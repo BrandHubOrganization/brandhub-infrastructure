@@ -1,0 +1,173 @@
+version: '3.9'
+
+services:
+  api-gateway:
+    build:
+      context: ../../brandhub-api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file: .env
+    depends_on:
+      - business-service
+      - ai-service
+      - redis
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+  business-service:
+    build:
+      context: ../../brandhub-business-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    env_file: .env
+    depends_on:
+      mongo:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+  ai-service:
+    build:
+      context: ../../brandhub-ai-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    env_file: .env
+    depends_on:
+      chromadb:
+        condition: service_started
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+  publisher-service:
+    build:
+      context: ../../brandhub-publisher-service
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    env_file: .env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+  web-dashboard:
+    build:
+      context: ../../brandhub-web-dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+  # --- Infrastructure ---
+
+  mongo:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: brandhub
+    volumes:
+      - mongo-data:/data/db
+      - ../scripts/init-mongo.js:/docker-entrypoint-initdb.d/init.js
+    networks:
+      - brandhub-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: brandhub
+      POSTGRES_USER: ${POSTGRES_USERNAME:-brandhub_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../scripts/init-postgres.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - brandhub-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME:-brandhub_user} -d brandhub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD:-password}
+    volumes:
+      - redis-data:/data
+    networks:
+      - brandhub-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-password}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-brandhub}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-password}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - brandhub-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
+  postgres-data:
+  redis-data:
+  rabbitmq-data:
+  chroma-data:
+
+networks:
+  brandhub-network:
+    driver: bridge
