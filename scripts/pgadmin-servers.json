@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "BrandHub PostgreSQL",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "brandhub",
+      "Username": "brandhub_user",
+      "SSLMode": "prefer",
+      "PassFile": "/pgpass"
+    }
+  }
+}
