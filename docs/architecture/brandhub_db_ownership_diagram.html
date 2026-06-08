@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrandHub — Database Ownership Diagram</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #F7F8FA;
+  color: #1a1a2e;
+  padding: 28px 24px 48px;
+  min-width: 860px;
+}
+
+/* ── Header ── */
+.hdr { text-align: center; margin-bottom: 24px; }
+.hdr h1 { font-size: 18px; font-weight: 700; color: #111; letter-spacing: -0.2px; }
+.hdr p  { font-size: 11px; color: #aaa; margin-top: 3px; }
+
+/* ── Top 3-service row ── */
+.svc-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+/* Service header cards */
+.svc-hdr {
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.svc-hdr i { font-size: 22px; flex-shrink: 0; }
+.svc-hdr-name { font-size: 13px; font-weight: 700; }
+.svc-hdr-sub  { font-size: 10px; margin-top: 2px; opacity: 0.75; }
+
+.sh-biz { background: #F8C946; border: 1.5px solid #D4A317; color: #3A2800; }
+.sh-ai  { background: #2D9B87; border: 1.5px solid #1F7A68; color: #fff; }
+.sh-ai .svc-hdr-sub { opacity: 0.8; }
+.sh-pub { background: #F29A2E; border: 1.5px solid #C97A12; color: #3A1800; }
+
+/* ── Domain boxes ── */
+.domain {
+  border-radius: 12px;
+  border: 1.5px solid;
+  background: #fff;
+  overflow: hidden;
+}
+.dom-biz { border-color: #7986CB; }
+.dom-ai  { border-color: #00897B; }
+.dom-pub { border-color: #BDBDBD; background: #FAFAFA; }
+
+/* connector strip */
+.conn-strip {
+  display: flex;
+  justify-content: space-around;
+  padding: 6px 20px;
+  background: transparent;
+}
+.conn-item { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.conn-line { width: 1.5px; height: 10px; }
+.conn-badge {
+  font-size: 9.5px; font-weight: 600; border-radius: 3px;
+  padding: 1px 7px; border: 0.5px solid;
+}
+.cb-biz { background: #EEF2FD; border-color: #7986CB; color: #283593; }
+.cb-ai  { background: #E0F2F1; border-color: #80CBC4; color: #004D40; }
+.cb-cache { background: #FFF3E0; border-color: #FFCC80; color: #E65100; }
+
+/* ── DB cards inside domain ── */
+.db-section { padding: 0 10px 10px; display: flex; flex-direction: column; gap: 8px; }
+.db-row { display: flex; gap: 8px; }
+
+.db-card {
+  border-radius: 9px;
+  border: 1.5px solid;
+  background: #fff;
+  padding: 9px 8px;
+  flex: 1;
+  min-width: 0;
+}
+.db-card-wide { flex: none; width: 100%; }
+
+.dc-name { font-size: 11px; font-weight: 700; margin: 3px 0 1px; }
+.dc-icon { font-size: 18px; }
+.dc-cols { font-size: 9.5px; color: #666; line-height: 1.55; margin-top: 3px; }
+
+/* DB accent */
+.dbc-mongo  { border-color: #4CAF50; }
+.dbc-mongo .dc-icon { color: #4CAF50; }
+.dbc-mongo .dc-name { color: #2E7D32; }
+
+.dbc-pg     { border-color: #336791; }
+.dbc-pg .dc-icon { color: #336791; }
+.dbc-pg .dc-name { color: #1A4D6E; }
+
+.dbc-redis  { border-color: #5C6BC0; border-style: dashed; }
+.dbc-redis .dc-icon { color: #5C6BC0; }
+.dbc-redis .dc-name { color: #283593; }
+
+.dbc-chroma { border-color: #00897B; }
+.dbc-chroma .dc-icon { color: #00897B; }
+.dbc-chroma .dc-name { color: #004D40; }
+
+.dbc-s3     { border-color: #FF9900; }
+.dbc-s3 .dc-icon { color: #FF9900; }
+.dbc-s3 .dc-name { color: #A05000; }
+
+/* Publisher "no DB" card */
+.no-db-card {
+  border-radius: 9px; border: 1.5px dashed #BDBDBD;
+  background: #F5F5F5; padding: 12px 12px;
+  margin: 0 10px 10px;
+}
+.no-db-title { font-size: 10.5px; font-weight: 600; color: #9E9E9E; margin-bottom: 8px; text-align: center; }
+.no-db-item {
+  display: flex; align-items: flex-start; gap: 6px;
+  font-size: 10px; color: #666; padding: 3px 0; line-height: 1.4;
+}
+.no-db-item i { font-size: 12px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── Cross-DB reference section ── */
+.cross-section {
+  background: #EEF4FB;
+  border: 1.5px dashed #5C83C0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-top: 14px;
+}
+.cross-title { font-size: 11.5px; font-weight: 700; color: #2C5282; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.cross-body  { display: flex; align-items: center; gap: 12px; }
+
+.code-box {
+  border-radius: 8px; border: 1px solid; padding: 8px 12px;
+  flex-shrink: 0;
+}
+.cb-mongo { background: #E8F0FE; border-color: #7986CB; }
+.cb-pg    { background: #E3EDF9; border-color: #336791; }
+.code-box-title { font-size: 10px; font-weight: 700; margin-bottom: 5px; }
+.code { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 10px; line-height: 1.6; }
+.ck { color: #888; }
+.cv { color: #D93025; }
+.cn { color: #185FA5; }
+.cs { color: #2E7D32; }
+
+.soft-ref {
+  flex: 1; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.sr-line { width: 100%; border-top: 2px dashed #5C83C0; }
+.sr-label { font-size: 10px; font-weight: 600; color: #2C5282; }
+.sr-sub   { font-size: 9.5px; color: #667; }
+
+.cross-note {
+  font-size: 10px; color: #4A6080; margin-top: 10px; line-height: 1.6;
+  background: #DDE9F8; border-radius: 6px; padding: 7px 10px;
+}
+
+/* ── Ownership rules ── */
+.rules-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.rule-card {
+  border-radius: 10px; border: 1.5px solid; padding: 11px 12px;
+  font-size: 10.5px; line-height: 1.55;
+}
+.rule-title { font-size: 11px; font-weight: 700; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; }
+
+.rc-biz { background: #EEF2FD; border-color: #7986CB; }
+.rc-biz .rule-title { color: #283593; }
+.rc-ai  { background: #E0F2F1; border-color: #00897B; }
+.rc-ai  .rule-title { color: #004D40; }
+.rc-pub { background: #FFF3E0; border-color: #F29A2E; }
+.rc-pub .rule-title { color: #8B4000; }
+
+strong { font-weight: 700; }
+em     { font-style: italic; color: #555; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <h1>Database Ownership Diagram — BrandHub</h1>
+  <p>Each service owns its own data store · No cross-service direct DB access · Microservice independence enforced</p>
+</div>
+
+<!-- ══════════════════════════════════════
+     TOP ROW: 3 service domains
+══════════════════════════════════════ -->
+<div class="svc-row">
+
+  <!-- ── BUSINESS SERVICE ── -->
+  <div>
+    <div class="svc-hdr sh-biz" style="margin-bottom:6px">
+      <i class="ti ti-server"></i>
+      <div>
+        <div class="svc-hdr-name">business-service</div>
+        <div class="svc-hdr-sub">Spring Boot 3 · Port 8081</div>
+      </div>
+    </div>
+
+    <div class="domain dom-biz">
+      <!-- Access type connectors -->
+      <div class="conn-strip">
+        <div class="conn-item">
+          <div class="conn-line" style="background:#7986CB"></div>
+          <div class="conn-badge cb-biz">R/W</div>
+          <div class="conn-line" style="background:#7986CB"></div>
+        </div>
+        <div class="conn-item">
+          <div class="conn-line" style="background:#7986CB"></div>
+          <div class="conn-badge cb-biz">R/W</div>
+          <div class="conn-line" style="background:#7986CB"></div>
+        </div>
+        <div class="conn-item">
+          <div class="conn-line" style="background:#FFAB40"></div>
+          <div class="conn-badge cb-cache">Cache</div>
+          <div class="conn-line" style="background:#FFAB40"></div>
+        </div>
+      </div>
+
+      <div class="db-section">
+        <!-- MongoDB + PostgreSQL side by side -->
+        <div class="db-row">
+          <div class="db-card dbc-mongo">
+            <i class="ti ti-database dc-icon"></i>
+            <div class="dc-name">MongoDB</div>
+            <div class="dc-cols">
+              users · workspaces<br>
+              clients · posts<br>
+              content_requests<br>
+              social_accounts
+            </div>
+          </div>
+          <div class="db-card dbc-pg">
+            <i class="ti ti-database dc-icon"></i>
+            <div class="dc-name">PostgreSQL</div>
+            <div class="dc-cols">
+              subscriptions<br>
+              payments<br>
+              invoices<br>
+              audit_logs
+            </div>
+          </div>
+        </div>
+
+        <!-- Redis full-width -->
+        <div class="db-card dbc-redis db-card-wide" style="display:flex;align-items:center;gap:10px;padding:7px 10px">
+          <i class="ti ti-database dc-icon" style="font-size:16px;flex-shrink:0"></i>
+          <div>
+            <div class="dc-name" style="font-size:10.5px">Redis</div>
+            <div class="dc-cols" style="margin-top:1px">JWT blacklist · rate limit · session cache</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── AI SERVICE ── -->
+  <div>
+    <div class="svc-hdr sh-ai" style="margin-bottom:6px">
+      <i class="ti ti-brain" style="color:#fff"></i>
+      <div>
+        <div class="svc-hdr-name">ai-service</div>
+        <div class="svc-hdr-sub">FastAPI · Python · Port 8082</div>
+      </div>
+    </div>
+
+    <div class="domain dom-ai">
+      <div class="conn-strip">
+        <div class="conn-item">
+          <div class="conn-line" style="background:#00897B"></div>
+          <div class="conn-badge cb-ai">R/W</div>
+          <div class="conn-line" style="background:#00897B"></div>
+        </div>
+        <div class="conn-item">
+          <div class="conn-line" style="background:#00897B"></div>
+          <div class="conn-badge cb-ai">Write</div>
+          <div class="conn-line" style="background:#00897B"></div>
+        </div>
+      </div>
+
+      <div class="db-section">
+        <div class="db-row">
+          <div class="db-card dbc-chroma">
+            <i class="ti ti-vector dc-icon"></i>
+            <div class="dc-name">ChromaDB</div>
+            <div class="dc-cols">
+              brand knowledge<br>
+              vectors · RAG<br>
+              embeddings<br>
+              top-K = 5
+            </div>
+          </div>
+          <div class="db-card dbc-s3">
+            <i class="ti ti-cloud dc-icon"></i>
+            <div class="dc-name">AWS S3</div>
+            <div class="dc-cols">
+              generated images<br>
+              videos<br>
+              media files<br>
+              presigned URLs
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PUBLISHER SERVICE ── -->
+  <div>
+    <div class="svc-hdr sh-pub" style="margin-bottom:6px">
+      <i class="ti ti-send"></i>
+      <div>
+        <div class="svc-hdr-name">publisher-service</div>
+        <div class="svc-hdr-sub">Spring Boot 3 · Stateless · Port 8083</div>
+      </div>
+    </div>
+
+    <div class="domain dom-pub">
+      <div style="text-align:center;font-size:10px;color:#BDBDBD;padding:10px 0 4px;font-weight:500;letter-spacing:0.4px">
+        — no database access —
+      </div>
+
+      <div class="no-db-card">
+        <div class="no-db-title">
+          <i class="ti ti-database-off" style="font-size:16px;color:#BDBDBD"></i>
+          &nbsp;No Direct DB Access
+        </div>
+
+        <div style="font-size:10px;font-weight:600;color:#888;margin-bottom:4px">
+          Gets from RabbitMQ:
+        </div>
+        <div class="no-db-item">
+          <i class="ti ti-file-text" style="color:#F29A2E"></i>
+          Post content + media URLs
+        </div>
+        <div class="no-db-item">
+          <i class="ti ti-lock" style="color:#F29A2E"></i>
+          Encrypted OAuth tokens (AES-256)
+        </div>
+        <div class="no-db-item">
+          <i class="ti ti-settings" style="color:#F29A2E"></i>
+          Platform configs per channel
+        </div>
+        <div class="no-db-item">
+          <i class="ti ti-repeat" style="color:#F29A2E"></i>
+          Retry 30s → 60s → 120s → DLQ
+        </div>
+
+        <div style="margin-top:8px;padding-top:7px;border-top:1px solid #E0E0E0">
+          <div class="no-db-item">
+            <i class="ti ti-arrow-back" style="color:#7986CB"></i>
+            HTTP callback → business-service after publish success/fail
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /svc-row -->
+
+<!-- ══════════════════════════════════════
+     CROSS-DB REFERENCE STRATEGY
+══════════════════════════════════════ -->
+<div class="cross-section">
+  <div class="cross-title">
+    <i class="ti ti-arrows-split" style="font-size:16px"></i>
+    Cross-DB Reference Strategy (business-service)
+  </div>
+
+  <div class="cross-body">
+    <!-- MongoDB snippet -->
+    <div class="code-box cb-mongo">
+      <div class="code-box-title" style="color:#3F51B5">MongoDB</div>
+      <div class="code"><span class="ck">workspaces</span> {</div>
+      <div class="code" style="padding-left:12px">
+        <span class="ck">subscriptionId:</span> <span class="cv">string</span>
+        <span style="color:#aaa;font-size:9px"> // FK to PG</span>
+      </div>
+      <div class="code"><span class="ck">}</span></div>
+    </div>
+
+    <!-- Soft reference explanation -->
+    <div class="soft-ref">
+      <div class="sr-line"></div>
+      <div style="padding:4px 8px;text-align:center">
+        <div class="sr-label">Soft reference</div>
+        <div class="sr-sub">No FK constraint</div>
+        <div class="sr-sub">Application-level join</div>
+        <div class="sr-sub" style="margin-top:3px;font-style:italic">in-memory after 2 queries</div>
+      </div>
+      <div class="sr-line"></div>
+    </div>
+
+    <!-- PostgreSQL snippet -->
+    <div class="code-box cb-pg">
+      <div class="code-box-title" style="color:#336791">PostgreSQL</div>
+      <div class="code"><span class="ck">subscriptions</span> {</div>
+      <div class="code" style="padding-left:12px">
+        <span class="ck">id:</span> <span class="cs">UUID (PK)</span>
+      </div>
+      <div class="code" style="padding-left:12px">
+        <span class="ck">workspaceId:</span> <span class="cv">string</span>
+        <span style="color:#aaa;font-size:9px"> // from Mongo</span>
+      </div>
+      <div class="code"><span class="ck">}</span></div>
+    </div>
+  </div>
+
+  <div class="cross-note">
+    <strong>Rule:</strong> business-service queries MongoDB và PostgreSQL <strong>riêng biệt</strong>, sau đó join trong application memory.
+    Không thực hiện JOIN trực tiếp ở DB engine level.
+    Đây là cách duy nhất cross-DB reference được phép trong hệ thống — ai-service và publisher-service <strong>không được</strong> biết về cấu trúc này.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     OWNERSHIP RULES
+══════════════════════════════════════ -->
+<div class="rules-row">
+
+  <div class="rule-card rc-biz">
+    <div class="rule-title">
+      <i class="ti ti-server" style="font-size:13px"></i>
+      business-service
+    </div>
+    <strong>Sole owner</strong> của MongoDB, PostgreSQL, Redis.
+    Mọi CRUD đều qua service này.
+    ai-service và publisher-service <strong>không được</strong> kết nối trực tiếp vào bất kỳ DB nào trong nhóm này.
+  </div>
+
+  <div class="rule-card rc-ai">
+    <div class="rule-title">
+      <i class="ti ti-brain" style="font-size:13px"></i>
+      ai-service
+    </div>
+    <strong>Sole owner</strong> của ChromaDB và ghi vào S3.
+    Không bao giờ kết nối MongoDB hoặc PostgreSQL.
+    Lấy business context qua <em>REST API</em> từ business-service khi cần.
+  </div>
+
+  <div class="rule-card rc-pub">
+    <div class="rule-title">
+      <i class="ti ti-send" style="font-size:13px"></i>
+      publisher-service
+    </div>
+    <strong>Zero DB access.</strong> Toàn bộ data (nội dung + token + config) được đóng gói trong RabbitMQ message bởi business-service trước khi enqueue.
+    Sau publish gửi callback HTTP.
+  </div>
+
+</div>
+
+<!-- Schema Reference -->
+<div style="margin-top:20px;border:1px solid #E0E0E0;border-radius:12px;overflow:hidden">
+  <div style="background:#F5F5F5;padding:10px 16px;border-bottom:1px solid #E0E0E0;display:flex;gap:20px;align-items:center">
+    <span style="font-size:11.5px;font-weight:700;color:#333">Schema Reference</span>
+    <span style="font-size:10px;color:#999">Nguồn: init-postgres.sql · init-mongo.js</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:#fff">
+
+    <!-- PostgreSQL -->
+    <div style="padding:12px 16px;border-right:1px solid #E8E8E8">
+      <div style="font-size:11px;font-weight:700;color:#444;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+        <i class="ti ti-database" style="font-size:13px;color:#336791"></i> PostgreSQL — 4 tables
+      </div>
+
+      <table style="width:100%;border-collapse:collapse;font-size:10px">
+        <thead>
+          <tr style="background:#F5F5F5">
+            <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Table</th>
+            <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Mô tả</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">subscription_plans</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Định nghĩa gói FREE/BASIC/PRO/ENTERPRISE, giới hạn posts · platforms · clients · AI credits, giá</td>
+          </tr>
+          <tr style="background:#FAFAFA">
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">subscriptions</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Gói đang dùng của từng workspace, trạng thái, ngày bắt đầu/kết thúc, auto-renew</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">payments</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Lịch sử thanh toán, transaction ID, invoice number/URL</td>
+          </tr>
+          <tr style="background:#FAFAFA">
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">audit_logs</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Log mọi hành động user (action, resource, IP, timestamp, JSONB details)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- MongoDB -->
+    <div style="padding:12px 16px">
+      <div style="font-size:11px;font-weight:700;color:#444;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+        <i class="ti ti-database" style="font-size:13px;color:#4CAF50"></i> MongoDB — 9 collections
+      </div>
+
+      <table style="width:100%;border-collapse:collapse;font-size:10px">
+        <thead>
+          <tr style="background:#F5F5F5">
+            <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Collection</th>
+            <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Mô tả</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">users</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Tài khoản, role: ADMIN · AGENCY_OWNER · ACCOUNT_MANAGER · CONTENT_CREATOR · BRAND_CLIENT</td>
+          </tr>
+          <tr style="background:#FAFAFA">
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">workspaces</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Agency workspace, ref → <code style="font-size:9.5px">ownerId</code> (user)</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">clients</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Brand client thuộc workspace, có <code style="font-size:9.5px">accountManagerId</code></td>
+          </tr>
+          <tr style="background:#FAFAFA">
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">social_accounts</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">OAuth tokens các nền tảng (FB/IG/TikTok…) của client, có <code style="font-size:9.5px">tokenExpiresAt</code></td>
+          </tr>
+          <tr>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">content_requests</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Yêu cầu tạo nội dung, có <code style="font-size:9.5px">assignedTo</code>, <code style="font-size:9.5px">status</code></td>
+          </tr>
+          <tr style="background:#FAFAFA">
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">posts</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Bài đăng đã tạo, có <code style="font-size:9.5px">scheduledAt</code>, <code style="font-size:9.5px">status</code></td>
+          </tr>
+          <tr>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">campaigns</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Chiến dịch marketing (nhóm posts)</td>
+          </tr>
+          <tr style="background:#FAFAFA">
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">knowledge_documents</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Tài liệu brand knowledge dùng cho RAG (ai-service đọc qua API)</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">notifications</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Thông báo in-app cho user, có <code style="font-size:9.5px">isRead</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- Footer -->
+<div style="text-align:center;margin-top:18px;font-size:10px;color:#ccc">
+  BrandHub v1.0 · Database Ownership Diagram · 2026
+</div>
+
+</body>
+</html>
