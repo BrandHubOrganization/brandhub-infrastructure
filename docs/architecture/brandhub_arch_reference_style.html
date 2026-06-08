@@ -1,0 +1,176 @@
+
+<style>
+.bh{font-size:11px;color:var(--color-text-primary);padding:4px 0}
+.l-pres{background:#FDECEA;border:1px solid #F5BCBA;border-radius:10px;padding:10px 14px;margin-bottom:3px}
+.l-svc{background:#FEF3E2;border:1px solid#ECC97A;border-radius:10px;padding:10px 12px}
+.l-db{background:#EBF5FB;border:1px solid #93C8E8;border-radius:10px;padding:10px 12px}
+.ll{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.6px;color:#999;margin-bottom:7px}
+.sc{border-radius:8px;padding:7px 5px;text-align:center;flex:1;min-width:0}
+.sc-biz{background:#F8C946;border:1px solid#D4A317}
+.sc-ai{background:#4BB5A2;border:1px solid#2D9B87;color:#fff}
+.sc-pub{background:#F29A2E;border:1px solid#C97A12}
+.dc{background:var(--color-background-primary);border:1.5px solid#93C8E8;border-radius:7px;padding:6px 3px;text-align:center;flex:1;min-width:0}
+.sp{border-radius:9px;padding:8px}
+.sp-l{background:#F1EFE8;border:1px solid#C5C0B5}
+.sp-r{background:#FAEBF5;border:1px solid#D8A0C8}
+.si{display:flex;align-items:center;gap:4px;border-radius:5px;padding:3px 5px;margin-bottom:3px;font-size:11px}
+.si-l{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary)}
+.si-r{background:#F5D8EE;border:0.5px solid#C890B5}
+.bgt{display:inline-block;font-size:10px;border-radius:4px;padding:1px 5px;margin-top:3px}
+.nm{font-weight:500;font-size:11px;margin:3px 0 0}
+.sb{font-size:10px;color:var(--color-text-secondary)}
+.sp-hd{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.sec-sub{font-size:10px;font-weight:500;margin-bottom:4px}
+.tag{display:inline-block;font-size:10px;border-radius:4px;padding:1px 5px}
+</style>
+
+<div class="bh">
+
+  <!-- PRESENTATION LAYER -->
+  <div class="l-pres">
+    <div class="ll">Presentation Layer</div>
+    <div style="display:flex;justify-content:center;gap:32px">
+      <div style="text-align:center">
+        <i class="ti ti-layout-dashboard" style="font-size:26px;color:#D95050" aria-hidden="true"></i>
+        <div class="nm">Web Dashboard</div>
+        <div class="sb">ReactJS + Vite + TypeScript</div>
+      </div>
+      <div style="text-align:center">
+        <i class="ti ti-device-mobile" style="font-size:26px;color:#D95050" aria-hidden="true"></i>
+        <div class="nm">Mobile App</div>
+        <div class="sb">React Native (Android)</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:2px 0;color:var(--color-text-secondary);font-size:13px">↓</div>
+
+  <!-- API GATEWAY -->
+  <div style="text-align:center;margin-bottom:3px">
+    <div style="display:inline-flex;align-items:center;gap:10px;background:var(--color-background-primary);border:1px solid var(--color-border-secondary);border-radius:9px;padding:7px 22px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+      <i class="ti ti-shield-check" style="font-size:24px;color:#5C6BC0" aria-hidden="true"></i>
+      <div>
+        <div style="font-weight:500;font-size:12px">API Gateway</div>
+        <div class="sb">Spring Cloud Gateway · JWT · Rate limit · Port 8080</div>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;font-size:10px;color:var(--color-text-secondary);margin-bottom:3px">Forwards request ↓</div>
+
+  <!-- 3-COLUMN LAYOUT -->
+  <div style="display:flex;gap:6px;align-items:flex-start">
+
+    <!-- LEFT PANEL -->
+    <div class="sp sp-l" style="width:72px;flex-shrink:0">
+      <div class="sp-hd" style="color:#5F5E5A">Infra</div>
+      <div class="si si-l"><i class="ti ti-brand-docker" style="font-size:13px;color:#0DB7ED" aria-hidden="true"></i><span style="font-size:11px">Docker</span></div>
+      <div class="si si-l"><i class="ti ti-brand-github" style="font-size:13px" aria-hidden="true"></i><span style="font-size:11px">CI/CD</span></div>
+      <div class="si si-l"><i class="ti ti-server" style="font-size:13px;color:#FF9900" aria-hidden="true"></i><span style="font-size:11px">AWS EC2</span></div>
+      <div class="si si-l"><i class="ti ti-eye" style="font-size:13px" aria-hidden="true"></i><span style="font-size:11px">Monitor</span></div>
+    </div>
+
+    <!-- CENTER: Service + Persistence -->
+    <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+
+      <!-- SERVICE LAYER -->
+      <div class="l-svc">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div class="ll" style="margin:0">Service Layer</div>
+          <div style="display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end">
+            <span class="tag" style="background:#FDE8D8;border:0.5px solid#E09060">RabbitMQ</span>
+            <span class="tag" style="background:#E8F0FE;border:0.5px solid#90A8E0">Java · Python</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px">
+
+          <div class="sc sc-biz">
+            <i class="ti ti-server" style="font-size:20px" aria-hidden="true"></i>
+            <div class="nm">business-service</div>
+            <div class="bgt" style="background:rgba(0,0,0,0.1)">Spring Boot 3</div>
+            <div class="sb" style="font-size:10px;margin-top:2px">Port 8081</div>
+          </div>
+
+          <div class="sc sc-ai">
+            <i class="ti ti-brain" style="font-size:20px" aria-hidden="true"></i>
+            <div class="nm" style="color:#fff">ai-service</div>
+            <div class="bgt" style="background:rgba(255,255,255,0.25);color:#fff">FastAPI · Python</div>
+            <div style="font-size:10px;margin-top:2px;opacity:0.8;color:#fff">Port 8082</div>
+          </div>
+
+          <div class="sc sc-pub">
+            <i class="ti ti-send" style="font-size:20px" aria-hidden="true"></i>
+            <div class="nm">publisher-service</div>
+            <div class="bgt" style="background:rgba(0,0,0,0.1)">Spring Boot 3</div>
+            <div class="sb" style="font-size:10px;margin-top:2px">Port 8083</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-around;font-size:10px;color:var(--color-text-secondary);padding:0 20px">
+        <span>queries ↓</span><span>queries ↓</span><span>queries ↓</span>
+      </div>
+
+      <!-- PERSISTENCE LAYER -->
+      <div class="l-db">
+        <div class="ll">Persistence Layer</div>
+        <div style="display:flex;gap:5px">
+
+          <div class="dc">
+            <i class="ti ti-database" style="font-size:18px;color:#589636" aria-hidden="true"></i>
+            <div class="nm">MongoDB</div>
+            <div class="sb">Documents</div>
+          </div>
+
+          <div class="dc">
+            <i class="ti ti-database" style="font-size:18px;color:#336791" aria-hidden="true"></i>
+            <div class="nm">PostgreSQL</div>
+            <div class="sb">Billing · Logs</div>
+          </div>
+
+          <div class="dc" style="border-color:#D93025;border-style:dashed">
+            <i class="ti ti-database" style="font-size:18px;color:#D93025" aria-hidden="true"></i>
+            <div class="nm">Redis</div>
+            <div class="sb">Cache · JWT</div>
+          </div>
+
+          <div class="dc" style="border-color:#0F6E56">
+            <i class="ti ti-vector" style="font-size:18px;color:#0F6E56" aria-hidden="true"></i>
+            <div class="nm">ChromaDB</div>
+            <div class="sb">Vectors · RAG</div>
+          </div>
+
+          <div class="dc" style="border-color:#FF9900">
+            <i class="ti ti-cloud" style="font-size:18px;color:#FF9900" aria-hidden="true"></i>
+            <div class="nm">AWS S3</div>
+            <div class="sb">Media files</div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL: Third Party -->
+    <div class="sp sp-r" style="width:98px;flex-shrink:0">
+      <div class="sp-hd" style="color:#8B3F7A">Third Party</div>
+
+      <div class="sec-sub" style="color:#A05080">Social APIs</div>
+      <div class="si si-r"><i class="ti ti-brand-facebook" style="font-size:12px;color:#1877F2" aria-hidden="true"></i><span>Facebook</span></div>
+      <div class="si si-r"><i class="ti ti-brand-instagram" style="font-size:12px;color:#C13584" aria-hidden="true"></i><span>Instagram</span></div>
+      <div class="si si-r"><i class="ti ti-brand-tiktok" style="font-size:12px" aria-hidden="true"></i><span>TikTok</span></div>
+      <div class="si si-r"><i class="ti ti-message-circle" style="font-size:12px" aria-hidden="true"></i><span>Threads</span></div>
+      <div class="si si-r"><i class="ti ti-message" style="font-size:12px;color:#0068FF" aria-hidden="true"></i><span>Zalo OA</span></div>
+
+      <div style="height:0.5px;background:#C890B5;margin:5px 0"></div>
+
+      <div class="sec-sub" style="color:#A05080">AI APIs</div>
+      <div class="si si-r"><i class="ti ti-cpu" style="font-size:12px" aria-hidden="true"></i><span>Groq API</span></div>
+      <div class="si si-r"><i class="ti ti-message-dots" style="font-size:12px;color:#CC785C" aria-hidden="true"></i><span>Claude API</span></div>
+      <div class="si si-r"><i class="ti ti-photo" style="font-size:12px" aria-hidden="true"></i><span>Stability AI</span></div>
+      <div class="si si-r"><i class="ti ti-video" style="font-size:12px;color:#4285F4" aria-hidden="true"></i><span>Google Veo</span></div>
+      <div class="si si-r"><i class="ti ti-user-circle" style="font-size:12px" aria-hidden="true"></i><span>InstantID</span></div>
+    </div>
+
+  </div>
+</div>
