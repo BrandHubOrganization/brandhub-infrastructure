@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E31-02",
+    "summary": "[DA-E31-02] Implement POST /api/v1/posts/{id}/account-review (ACCOUNT_MANAGER approve hoac reject + note)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-115",
+    "description": "### DA-E31-02 — Implement POST /api/v1/posts/{id}/account-review\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow ACCOUNT_MANAGER to approve a post for client review or reject it back to draft with a feedback note.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/posts/{id}/account-review with body `{decision: \"APPROVE\"|\"REJECT\", note?: string}`\n- [ ] APPROVE transitions status PENDING_REVIEW→SENT_TO_CLIENT and creates `post_sent_to_client` notification for BRAND_CLIENT\n- [ ] REJECT transitions status PENDING_REVIEW→DRAFT and stores `rejectionNote` on the post document\n- [ ] Returns 403 if caller is not ACCOUNT_MANAGER in the same workspace\n- [ ] Returns 409 if post status is not PENDING_REVIEW\n\n**Technical Notes:**\n- `note` is required when `decision = REJECT`; return 400 if missing\n- Notification to BRAND_CLIENT should include post title and a link to the approval page\n\n**Dependencies:** Blocks: [DA-E31-03, DA-E31-04]. Blocked by: [DA-E31-01].\n\n---"
+  },
+  {
+    "id": "DA-E31-03",
+    "summary": "[DA-E31-03] Implement POST /api/v1/posts/{id}/client-approve (BRAND_CLIENT approve → SCHEDULED)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-115",
+    "description": "### DA-E31-03 — Implement POST /api/v1/posts/{id}/client-approve\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow BRAND_CLIENT to approve a post for scheduling, which triggers the scheduling pipeline automatically.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/posts/{id}/client-approve transitions status SENT_TO_CLIENT→SCHEDULED\n- [ ] Returns 403 if caller's clientId does not match the post's clientId\n- [ ] Returns 409 if post status is not SENT_TO_CLIENT\n- [ ] Upon approval, if `scheduledAt` is already set, a `PublishJobMessage` is enqueued to RabbitMQ delayed exchange immediately\n- [ ] If `scheduledAt` is not set, status becomes APPROVED (pending manual scheduling by ACCOUNT_MANAGER)\n- [ ] Response includes updated post with `approvedAt` timestamp\n\n**Technical Notes:**\n- Reuse the same RabbitMQ enqueue logic from DA-E30-02 to avoid duplication\n- Emit a `client_approved` internal event so ACCOUNT_MANAGER is notified\n\n**Dependencies:** Blocks: [DA-E32-01]. Blocked by: [DA-E31-02].\n\n---"
+  },
+  {
+    "id": "DA-E31-04",
+    "summary": "[DA-E31-04] Implement POST /api/v1/posts/{id}/client-reject (BRAND_CLIENT reject + feedback)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-115",
+    "description": "### DA-E31-04 — Implement POST /api/v1/posts/{id}/client-reject\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow BRAND_CLIENT to reject a post with written feedback, returning it to DRAFT status for revision.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/posts/{id}/client-reject with body `{feedback: string}` transitions status SENT_TO_CLIENT→DRAFT\n- [ ] `feedback` field is required; returns 400 if empty or missing\n- [ ] Returns 403 if caller's clientId does not match the post's clientId\n- [ ] Returns 409 if post status is not SENT_TO_CLIENT\n- [ ] `clientFeedback` is stored on the post document and is visible to CONTENT_CREATOR in the editor\n- [ ] A notification is created for ACCOUNT_MANAGER and CONTENT_CREATOR with the rejection feedback\n\n**Technical Notes:**\n- Store feedback in `post.clientFeedback: {text, rejectedAt, rejectedBy}`\n- Display `clientFeedback` prominently at the top of the Content Editor page when present\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E31-02].\n\n---"
+  },
+  {
+    "id": "DA-E32-01",
+    "summary": "[DA-E32-01] Implement Smart Ingestion (dong goi post + encrypted token + platform configs thanh RabbitMQ message)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-113",
+    "description": "### DA-E32-01 — Implement Smart Ingestion (PublishJobMessage packaging)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Package a post's content, decrypted social token, and platform config into a `PublishJobMessage` and enqueue it to RabbitMQ for publisher-service consumption.\n\n**Acceptance Criteria:**\n- [ ] `PublishJobMessage` includes `{postId, workspaceId, platform, caption, mediaUrls[], decryptedAccessToken, platformConfig{pageId, accountId}, scheduledAt}`\n- [ ] AES-256 token is decrypted using the workspace's encryption key before packaging (never stored decrypted)\n- [ ] Message is published to `brandhub.publish.delayed` exchange with correct `x-delay` header\n- [ ] If AES decryption fails (bad key/corrupted token), the post status is set to FAILED and an error notification is created\n- [ ] A `publishJobId` UUID is stored on the post document for correlation with callback results\n\n**Technical Notes:**\n- AES key must be fetched from environment/Vault, never from the database\n- Use `RabbitTemplate.convertAndSend(exchange, routingKey, message, m -> { m.getMessageProperties().setHeader(\"x-delay\", delay); return m; })`\n- Serialize `PublishJobMessage` as JSON; use `@JsonProperty` for all fields\n\n**Dependencies:** Blocks: [DA-E32-02]. Blocked by: [DA-E30-02, DA-E31-03].\n\n---"
+  },
+  {
+    "id": "DA-E32-02",
+    "summary": "[DA-E32-02] Implement RabbitMQ consumer trong publisher-service (FIFO, exactly-once, acknowledgement)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-113",
+    "description": "### DA-E32-02 — Implement RabbitMQ consumer in publisher-service\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Consume `PublishJobMessage` messages from RabbitMQ with FIFO ordering, exactly-once semantics via Redis, and manual acknowledgment.\n\n**Acceptance Criteria:**\n- [ ] Consumer uses `@RabbitListener` with `acknowledgeMode = MANUAL` and processes one message at a time (`prefetchCount = 1`)\n- [ ] Before processing, checks Redis set `processingPostIds`; if postId already present, NACK and discard (duplicate detection)\n- [ ] Adds postId to Redis with TTL of 24h at start of processing; removes on success or permanent failure\n- [ ] Routes message to the correct platform adapter based on `platform` field\n- [ ] On success, calls HTTP callback DA-E32-08; on failure, increments retry count and requeues or sends to DLQ\n\n**Technical Notes:**\n- Use `channel.basicAck(tag, false)` on success and `channel.basicNack(tag, false, false)` to send to DLQ after max retries\n- Redis key: `publish:processing:{postId}` with `SETNX` for atomic check-and-set\n- Consumer must be single-threaded per queue to guarantee FIFO; set `concurrency = 1` on listener container\n\n**Dependencies:** Blocks: [DA-E32-03, DA-E32-04, DA-E32-05, DA-E32-06, DA-E32-07]. Blocked by: [DA-E32-01].\n\n---"
+  }
+]

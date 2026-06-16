@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E38-04",
+    "summary": "[DA-E38-04] Build Analytics Dashboard (charts: publishing success rate, platform breakdown, campaign performance)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-125",
+    "description": "### DA-E38-04 — Build Analytics Dashboard\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Deliver the agency-facing analytics page with interactive charts giving AGENCY_OWNER and ACCOUNT_MANAGER a comprehensive view of content performance.\n\n**Acceptance Criteria:**\n- [ ] Line chart: posts published per day for selected date range using `<LineChart>` from Recharts\n- [ ] Pie chart: post distribution by platform (5 slices: FB, IG, TikTok, Threads, Zalo) using `<PieChart>`\n- [ ] Bar chart: success rate per platform using `<BarChart>`\n- [ ] KPI cards row: total published, total failed, overall success rate, most active platform\n- [ ] Date range selector (7d / 30d / 90d / custom); updating range refetches and animates chart transitions\n- [ ] Client filter dropdown (AGENCY_OWNER/ACCOUNT_MANAGER only): filter all charts to a specific client\n\n**Technical Notes:**\n- All charts wrapped in `<ResponsiveContainer width=\"100%\" height={300}>` for responsive sizing\n- Tooltips enabled on all charts showing exact values on hover\n- Use `useMemo` to transform API response into Recharts-compatible data format without re-computing on every render\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E38-01].\n\n---"
+  },
+  {
+    "id": "DA-E39-01",
+    "summary": "[DA-E39-01] Implement notification CRUD APIs (/api/v1/notifications: GET, PUT read, PUT read-all)",
+    "assignee": "Trung (Leader)",
+    "priority": "High",
+    "epic_key": "DA-121",
+    "description": "### DA-E39-01 — Implement notification CRUD APIs\n**Assignee:** Trung (Leader) | **Priority:** 🟡 High\n\n**Goal:** Provide endpoints for the frontend to fetch, read, and bulk-read notifications so the Notification Center has a reliable data source.\n\n**Acceptance Criteria:**\n- [ ] GET /api/v1/notifications returns paginated notifications for the authenticated user, sorted by `createdAt DESC`; default page size 20\n- [ ] PUT /api/v1/notifications/{id}/read sets `isRead = true` and `readAt = now()`; returns 404 if notification doesn't belong to user\n- [ ] PUT /api/v1/notifications/read-all sets all unread notifications for the user to `isRead = true`\n- [ ] GET /api/v1/notifications/unread-count returns `{count: N}` for badge display; cached 30s in Redis\n- [ ] Notifications older than 90 days are purged by a nightly scheduled job\n\n**Technical Notes:**\n- MongoDB index on `{recipientId, isRead, createdAt}` for efficient unread queries\n- `read-all` uses `updateMany({recipientId, isRead: false}, {$set: {isRead: true}})` — single DB operation\n- Unread count cache key: `notification:unread:{userId}`; invalidate on any write operation\n\n**Dependencies:** Blocks: [DA-E39-03]. Blocked by: [None].\n\n---"
+  },
+  {
+    "id": "DA-E39-02",
+    "summary": "[DA-E39-02] Implement notification creation khi cac events xay ra (post published, task assigned, token expiry, etc.)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-121",
+    "description": "### DA-E39-02 — Implement notification creation for 7 event types\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Ensure all key platform events automatically create notifications for the relevant user so no important action goes unnoticed.\n\n**Acceptance Criteria:**\n- [ ] `post_published`: recipient = ACCOUNT_MANAGER; message = \"Post '{title}' published successfully on {platform}\"\n- [ ] `post_failed`: recipient = ACCOUNT_MANAGER; message = \"Post '{title}' failed to publish on {platform}: {errorMessage}\"\n- [ ] `task_assigned`: recipient = CONTENT_CREATOR; message = \"You have been assigned a new task: '{topic}'\"\n- [ ] `post_submitted`: recipient = ACCOUNT_MANAGER; message = \"{creatorName} submitted '{title}' for review\"\n- [ ] `post_sent_to_client`: recipient = BRAND_CLIENT; message = \"A new post is ready for your approval\"\n- [ ] `token_expiring_3d`: recipient = AGENCY_OWNER; message = \"{platform} access token for '{clientName}' expires in 3 days\"\n- [ ] `deadline_24h`: recipient = CONTENT_CREATOR; message = \"Task '{topic}' deadline is in less than 24 hours\"\n- [ ] All 7 event types have corresponding unit tests verifying correct recipient and message content\n\n**Technical Notes:**\n- Implement `NotificationService.createNotification(type, recipientId, payload)` as the single creation method\n- Use a `NotificationTemplate` enum or map to generate message strings from event payloads\n- Token expiry check runs as a scheduled job every 6 hours: query `SocialAccount` where `tokenExpiresAt BETWEEN now AND now+3d AND notifiedExpiry = false`\n\n**Dependencies:** Blocks: [DA-E29-03, DA-E39-03]. Blocked by: [DA-E39-01].\n\n---"
+  },
+  {
+    "id": "DA-E39-03",
+    "summary": "[DA-E39-03] Build Notification Center UI (dropdown bell icon, unread badge, list voi mark as read)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-121",
+    "description": "### DA-E39-03 — Build Notification Center UI\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Deliver an in-app notification center that keeps users aware of important events without requiring them to refresh or navigate away.\n\n**Acceptance Criteria:**\n- [ ] Bell icon in Navbar shows a red badge with unread count from GET /api/v1/notifications/unread-count; hides badge when count = 0\n- [ ] Clicking bell opens a dropdown showing the last 20 notifications with message, relative timestamp (\"2 min ago\"), and read/unread indicator (blue dot)\n- [ ] Clicking a notification calls PUT /{id}/read and navigates to the relevant page (post → Content Editor, task → My Tasks, etc.)\n- [ ] \"Mark all as read\" button in dropdown header calls PUT /read-all and clears all blue dots\n- [ ] Unread count badge auto-updates every 60s via polling (or WebSocket if available)\n\n**Technical Notes:**\n- Use `date-fns`'s `formatDistanceToNow` for relative timestamps\n- Dropdown implemented with Radix UI `<Popover>` (via shadcn/ui) for accessibility (focus trap, keyboard navigation)\n- Navigation mapping: `{post_published → /posts/{postId}, task_assigned → /requests/{requestId}, post_submitted → /posts/{postId}, ...}`\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E39-01, DA-E39-02].\n\n---"
+  },
+  {
+    "id": "DA-E40-01",
+    "summary": "[DA-E40-01] Setup React Native project voi Expo, navigation (React Navigation v6)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-123",
+    "description": "### DA-E40-01 — Set up React Native + Expo project\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Initialize the mobile app project with navigation structure, shared API client, and Expo configuration so all subsequent mobile screens can be built on a stable foundation.\n\n**Acceptance Criteria:**\n- [ ] Expo project created with TypeScript template; `app.json` configured with `bundleIdentifier` and `package` for iOS/Android\n- [ ] React Navigation v6 configured: `AuthStack` (Login, Register, ForgotPassword) and `MainTabs` (5 tabs: Dashboard, Calendar, Approval, Notifications, Profile)\n- [ ] Shared Axios instance configured with same interceptor logic as web (token attach, refresh, logout on 401)\n- [ ] `authStore` implemented with Zustand + AsyncStorage persistence (same interface as web store)\n- [ ] `app.json` includes required permissions: camera, photo library, notifications\n\n**Technical Notes:**\n- Use `expo-router` v3 for file-based routing OR `@react-navigation/native` with manual stack config — choose one and document\n- Shared business logic (API calls, store) extracted to a `src/services/` and `src/stores/` layer; do NOT share components with web\n- EAS Build configured (`eas.json`) with `development`, `preview`, and `production` profiles\n\n**Dependencies:** Blocks: [DA-E40-02]. Blocked by: [None].\n\n---"
+  }
+]

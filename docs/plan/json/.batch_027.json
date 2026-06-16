@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-AI02-05",
+    "summary": "[DA-AI02-05] Viet Dockerfile cho ai-service + them service ai-service vao docker-compose.yml o infrastructure repo",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-56",
+    "description": "### DA-AI02-05 — Write Dockerfile for ai-service + add ai-service to docker-compose.yml in infrastructure repo\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Make the ai-service runnable in the shared development environment with one `docker-compose up` command alongside all other BrandHub services.\n\n**Acceptance Criteria:**\n- [ ] `Dockerfile` builds successfully; image boots, passes `GET /health`, and exits cleanly on SIGTERM\n- [ ] `docker-compose.yml` entry exposes port 8082, injects env vars from `.env`, and declares dependency on ChromaDB and Redis services\n- [ ] `docker-compose up ai-service` from a clean clone (no local Python install) produces a running service within 3 minutes\n\n**Technical Notes:**\n- Use multi-stage build if any heavy ML libraries (torch, insightface) are included; otherwise `python:3.11-slim` is sufficient for Iterations 1-2\n- GPU-dependent services (InstantID) must NOT be included in the standard Dockerfile; use a separate `Dockerfile.gpu` or delegate to Replicate API\n\n**Dependencies:** Blocks: DA-AI10-03. Blocked by: DA-AI02-01.\n\n---"
+  },
+  {
+    "id": "DA-AI02-06",
+    "summary": "[DA-AI02-06] Viet Internal API key authentication middleware (kiem tra X-Internal-Key header)",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-56",
+    "description": "### DA-AI02-06 — Write internal API key authentication middleware (validate X-Internal-Key header on all /internal/* routes)\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Prevent unauthorized access to internal ai-service endpoints that are called by business-service but must not be publicly reachable.\n\n**Acceptance Criteria:**\n- [ ] FastAPI middleware or dependency checks `X-Internal-Key` header on all routes prefixed `/internal/`\n- [ ] Requests with missing or incorrect key receive `401 Unauthorized` with body `{\"error\": \"invalid_internal_key\"}`\n- [ ] Valid key is read from env var `INTERNAL_API_KEY`; hardcoded fallback values are forbidden\n- [ ] Unit tests cover: valid key passes, missing header rejected, wrong key rejected\n\n**Technical Notes:**\n- Implement as a FastAPI `Depends()` dependency rather than middleware so it can be applied selectively per router without affecting public endpoints\n- Use `secrets.compare_digest()` for key comparison to prevent timing attacks\n\n**Dependencies:** Blocks: DA-AI10-03. Blocked by: DA-AI02-01.\n\n---"
+  },
+  {
+    "id": "DA-AI02-07",
+    "summary": "[DA-AI02-07] Document ChromaDB collection design (collection naming per client, metadata schema, query patterns)",
+    "assignee": "Tuấn (AI)",
+    "priority": "High",
+    "epic_key": "DA-56",
+    "description": "### DA-AI02-07 — Document ChromaDB collection design (collection naming per clientId, metadata schema, query patterns)\n**Assignee:** Tuấn (AI) | **Priority:** 🟡 High\n\n**Goal:** Define and record the ChromaDB data model so all developers embed and query documents consistently without schema drift between features.\n\n**Acceptance Criteria:**\n- [ ] Document specifies collection naming convention (e.g., `client_{clientId}`) and the rationale for collection-per-client isolation\n- [ ] Metadata schema per document chunk is defined: `{documentId: str, clientId: str, chunkIndex: int, source: str, uploadedAt: str}`\n- [ ] Query patterns documented: top-K semantic search filtered by clientId, delete by documentId (fetch IDs then delete)\n\n**Technical Notes:**\n- ChromaDB does not support cross-collection queries; collection-per-client means listing all client documents requires a collection-level API call, not a query — document this limitation\n- `where` filter syntax for metadata: `{\"clientId\": {\"$eq\": client_id}}` — include exact ChromaDB filter syntax in the doc to avoid trial-and-error\n\n**Dependencies:** Blocks: DA-AI03-02, DA-AI03-03, DA-AI03-04. Blocked by: DA-AI02-01.\n\n---"
+  },
+  {
+    "id": "DA-AI03-01",
+    "summary": "[DA-AI03-01] Implement document upload endpoint (nhan PDF/DOCX/TXT/URL, luu file len S3)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-26",
+    "description": "### DA-AI03-01 — Implement document upload endpoint (accept PDF/DOCX/TXT/URL, save file to S3)\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Provide the entry point for brand knowledge ingestion so that clients can upload brand documents that the RAG pipeline will index.\n\n**Acceptance Criteria:**\n- [ ] `POST /ai/rag/documents` accepts multipart file upload (PDF, DOCX, TXT) and an optional URL parameter\n- [ ] File is uploaded to S3 at key `rag/{clientId}/{documentId}/{filename}` and a document record is returned with `{documentId, s3Key, status: \"processing\"}`\n- [ ] URL input fetches the page content (via `requests` + `BeautifulSoup`) and saves as `.txt` to S3 before proceeding\n- [ ] File size limit enforced (max 10MB); unsupported extensions return `400 Bad Request`\n\n**Technical Notes:**\n- Use `python-docx` for DOCX text extraction and `pdfplumber` for PDF; do not rely on OCR for this iteration\n- Trigger chunking pipeline (DA-AI03-02) asynchronously via `BackgroundTasks` so the upload endpoint returns immediately without waiting for embedding\n\n**Dependencies:** Blocks: DA-AI03-02, DA-AI03-07. Blocked by: DA-AI02-03, DA-AI02-04.\n\n---"
+  },
+  {
+    "id": "DA-AI03-02",
+    "summary": "[DA-AI03-02] Build document chunking service dung LangChain RecursiveCharacterTextSplitter (chunk_size=500, overlap=50)",
+    "assignee": "Ân (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-26",
+    "description": "### DA-AI03-02 — Build document chunking service using LangChain RecursiveCharacterTextSplitter (chunk_size=500, overlap=50)\n**Assignee:** Ân (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Split raw brand documents into consistently sized chunks that are optimally sized for embedding and retrieval.\n\n**Acceptance Criteria:**\n- [ ] `services/chunking.py` accepts raw text string, returns `List[str]` of chunks using `RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)`\n- [ ] PDF/DOCX/TXT extracted text is correctly passed through the chunker; empty chunks are filtered out\n- [ ] Unit test confirms: a 2000-character document produces chunks of ≤500 chars with ≥50-char overlap between consecutive chunks\n\n**Technical Notes:**\n- `RecursiveCharacterTextSplitter` splits on `[\"\\n\\n\", \"\\n\", \" \", \"\"]` by default; this is appropriate for Vietnamese marketing copy — do not override separators unless testing reveals poor splits\n- Log chunk count per document at INFO level for monitoring; this is the only way to detect degenerate inputs (e.g., 1-chunk PDFs that are actually scanned images)\n\n**Dependencies:** Blocks: DA-AI03-03. Blocked by: DA-AI03-01, DA-AI02-07.\n\n---"
+  }
+]

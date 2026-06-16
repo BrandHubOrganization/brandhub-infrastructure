@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E42-02",
+    "summary": "[DA-E42-02] Viet unit tests cho ai-service (content generation, RAG pipeline, image generation)",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-124",
+    "description": "### DA-E42-02 — Write unit tests for ai-service\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Validate ai-service business logic in isolation using mocks so that external AI API failures don't block testing and regressions are caught early.\n\n**Acceptance Criteria:**\n- [ ] Content generation tests: mock Groq API response, verify prompt construction includes brand context, verify output parsed correctly, verify error handling when Groq returns 429\n- [ ] RAG pipeline tests: mock ChromaDB `query()`, verify top-k documents are retrieved and injected into prompt, verify empty retrieval fallback behavior\n- [ ] Image generation tests: mock Stability AI response, verify payload construction, verify base64 decode and S3 upload call, verify error on NSFW rejection\n- [ ] All tests use `pytest` with `unittest.mock.patch`; minimum 65% coverage measured by `pytest-cov`\n- [ ] Tests runnable with `pytest tests/unit/` without any external service dependencies\n\n**Technical Notes:**\n- Use `@patch(\"app.services.groq_client.ChatCompletion.create\")` pattern to mock Groq\n- Fixture files in `tests/fixtures/` for mock API responses (valid generation, rate limit error, NSFW error)\n- `pytest-cov` configured in `pytest.ini`: `addopts = --cov=app --cov-report=term-missing`\n\n**Dependencies:** Blocks: [DA-E42-03]. Blocked by: [None].\n\n---"
+  },
+  {
+    "id": "DA-E42-03",
+    "summary": "[DA-E42-03] Viet integration tests cho cac API endpoints chinh (business-service)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-124",
+    "description": "### DA-E42-03 — Write integration tests for business-service\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Validate the full request lifecycle through real database and cache layers to catch integration bugs that unit tests cannot detect.\n\n**Acceptance Criteria:**\n- [ ] Full auth flow: POST /register → POST /login → GET /me → POST /refresh → POST /logout — all returning correct status codes and response shapes\n- [ ] RBAC enforcement: BRAND_CLIENT calling ACCOUNT_MANAGER endpoints returns 403; CONTENT_CREATOR calling admin endpoints returns 403\n- [ ] Workspace isolation: User in Workspace A cannot read/modify resources in Workspace B (verified by attempting cross-workspace API calls)\n- [ ] Tests use `@SpringBootTest(webEnvironment = RANDOM_PORT)` with `TestRestTemplate`\n- [ ] Testcontainers spins up real MongoDB and Redis containers; no H2 or mocks for persistence layer\n\n**Technical Notes:**\n- Add `testcontainers-bom` to `pom.xml` and `MongoDBContainer`, `GenericContainer` (Redis) to test base class\n- `@DirtiesContext(classMode = AFTER_EACH_TEST_CLASS)` to reset containers between test classes\n- Use `@Sql` equivalent (MongoTemplate insert) to seed test data in `@BeforeEach`\n\n**Dependencies:** Blocks: [DA-E42-04]. Blocked by: [DA-E42-01, DA-E42-02].\n\n---"
+  },
+  {
+    "id": "DA-E42-04",
+    "summary": "[DA-E42-04] Performance testing (load test voi 200 concurrent users)",
+    "assignee": "All (Team)",
+    "priority": "High",
+    "epic_key": "DA-124",
+    "description": "### DA-E42-04 — Performance test\n**Assignee:** All (Team) | **Priority:** 🟡 High\n\n**Goal:** Validate that the system meets latency SLAs under realistic concurrent load before production deployment.\n\n**Acceptance Criteria:**\n- [ ] k6 or JMeter test script covers: login, GET /posts/calendar, GET /content-requests, GET /analytics/overview, POST /posts/{id}/submit\n- [ ] Load profile: 200 concurrent virtual users, 60s ramp-up, 5-minute sustained load, 30s ramp-down\n- [ ] p95 latency < 500ms for all non-AI endpoints under the target load\n- [ ] Error rate < 1% during sustained load phase\n- [ ] Performance report (HTML or CSV) committed to repo under `/performance-tests/results/`\n\n**Technical Notes:**\n- If using k6: `options = {stages: [{duration: '60s', target: 200}, {duration: '5m', target: 200}, {duration: '30s', target: 0}]}`\n- Run against staging environment (not production); use seeded test data (pre-created workspaces, posts)\n- Monitor MongoDB and Redis metrics during test to identify bottlenecks (use `mongostat` and `redis-cli info`)\n\n**Dependencies:** Blocks: [DA-E43-01]. Blocked by: [DA-E42-03].\n\n---"
+  },
+  {
+    "id": "DA-E42-05",
+    "summary": "[DA-E42-05] Test publishing flow E2E tren sandbox accounts (FB/IG/TikTok/Threads/Zalo)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-124",
+    "description": "### DA-E42-05 — E2E publishing test\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Verify the complete content workflow from request to live post on real platform sandbox accounts to confirm end-to-end system correctness.\n\n**Acceptance Criteria:**\n- [ ] Test flow executes in order: create ContentRequest → AI generate → save draft → submit → ACCOUNT_MANAGER approve → client approve → verify post appears as PUBLISHED in DB\n- [ ] Test covers all 5 platforms: Facebook, Instagram, TikTok, Threads, Zalo OA using developer sandbox/test accounts\n- [ ] Each platform's `platformPostId` is stored in the Post document after successful publish\n- [ ] Test verifies the post actually appears on the platform by calling the platform's read API to confirm existence\n- [ ] Test is tagged `@E2E` and excluded from the default test run; only runs manually or in a dedicated CI stage\n\n**Technical Notes:**\n- Facebook/Instagram: use a Facebook Test User linked to a test Page in the Meta Developer App\n- TikTok: use a sandbox account from TikTok Developer Portal\n- Test credentials stored in GitHub Secrets / `.env.test` (never committed)\n- E2E test runs against the deployed staging environment, not local\n\n**Dependencies:** Blocks: [DA-E43-01]. Blocked by: [DA-E32-03, DA-E32-04, DA-E32-05, DA-E32-06, DA-E32-07, DA-E42-03].\n\n---"
+  },
+  {
+    "id": "DA-E43-01",
+    "summary": "[DA-E43-01] Sprint retrospective, compile bug list tu testing",
+    "assignee": "All (Team)",
+    "priority": "Highest",
+    "epic_key": "DA-126",
+    "description": "### DA-E43-01 — Sprint retrospective and bug list compilation\n**Assignee:** All (Team) | **Priority:** 🔴 Critical\n\n**Goal:** Systematically catalog all defects discovered during testing phases into a prioritized bug list so the fix sprint is focused and nothing is overlooked.\n\n**Acceptance Criteria:**\n- [ ] All bugs found in DA-E42-01 through DA-E42-05 documented in a shared tracker (Jira/Notion/GitHub Issues) with: title, steps to reproduce, actual vs expected behavior, severity\n- [ ] Bugs triaged into severity levels: P0 (system down/data loss), P1 (feature broken), P2 (degraded UX), P3 (cosmetic)\n- [ ] All P0 and P1 bugs assigned to a team member with a fix deadline before the submission date\n- [ ] Bug list reviewed by Trung (Leader) and signed off before fix sprint begins\n- [ ] Retrospective meeting notes documented covering what went well, what to improve, action items\n\n**Dependencies:** Blocks: [DA-E43-02, DA-E43-03]. Blocked by: [DA-E42-04, DA-E42-05].\n\n---"
+  }
+]

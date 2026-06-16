@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E14-04",
+    "summary": "[DA-E14-04] Viet permission matrix document (6 roles x tat ca endpoints = duoc/khong duoc)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Medium",
+    "epic_key": "DA-93",
+    "description": "### DA-E14-04 — Write Permission Matrix Document\n**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium\n\n**Goal:** Document the complete access control matrix mapping all 6 roles to every API endpoint so the team has a single source of truth for RBAC decisions.\n\n**Acceptance Criteria:**\n- [ ] Document covers all 6 roles: ADMIN, AGENCY_OWNER, ACCOUNT_MANAGER, CONTENT_CREATOR, PUBLISHER, BRAND_CLIENT\n- [ ] Every API endpoint from epics E12–E24 is listed with allowed roles marked\n- [ ] Document is stored in the project wiki or Confluence and linked from the main README\n- [ ] Document is reviewed and signed off by Trung (Leader) before Sprint 6 begins\n- [ ] Any discrepancy found between the document and code annotations is treated as a bug\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E14-01].\n\n---"
+  },
+  {
+    "id": "DA-E15-01",
+    "summary": "[DA-E15-01] Implement POST /api/v1/workspaces (tao workspace moi, AGENCY_OWNER role)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-94",
+    "description": "### DA-E15-01 — Implement POST /api/v1/workspaces\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow AGENCY_OWNER users to create a new workspace, which becomes the top-level container for all their clients and team members.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/workspaces accepts {name, timezone, defaultPlatforms} and returns 201 with the created workspace document\n- [ ] Only users with role AGENCY_OWNER may call this endpoint; others receive 403\n- [ ] A user who already has a workspace receives 409 Conflict (one workspace per AGENCY_OWNER)\n- [ ] Creator is automatically added as the first member of the workspace with OWNER membership\n- [ ] Created workspace document includes: {workspaceId, name, ownerId, timezone, defaultPlatforms, createdAt, memberCount: 1}\n\n**Technical Notes:**\n- After workspace creation, update the User document to set `workspaceId` and re-issue tokens (or instruct the client to call the refresh endpoint so the new workspaceId appears in the JWT)\n- Validate `timezone` with `ZoneId.of()` and `defaultPlatforms` against an enum {FACEBOOK, INSTAGRAM, TIKTOK, THREADS, ZALO}\n\n**Dependencies:** Blocks: [DA-E15-02, DA-E15-03, DA-E16-01]. Blocked by: [DA-E14-01, DA-E14-02].\n\n---"
+  },
+  {
+    "id": "DA-E15-02",
+    "summary": "[DA-E15-02] Implement GET /api/v1/workspaces/mine (lay workspace cua user hien tai)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-94",
+    "description": "### DA-E15-02 — Implement GET /api/v1/workspaces/mine\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow any authenticated workspace member to retrieve the details of their current workspace.\n\n**Acceptance Criteria:**\n- [ ] GET /api/v1/workspaces/mine returns workspace document for the workspaceId embedded in the JWT\n- [ ] Response includes {workspaceId, name, ownerId, timezone, defaultPlatforms, memberCount, currentPlan, createdAt}\n- [ ] Users with null workspaceId in their JWT receive 404 with \"No workspace found\"\n- [ ] Response is accessible to all roles within the workspace (not restricted by role)\n- [ ] workspaceId is extracted from JWT only, never from a query parameter\n\n**Technical Notes:**\n- `currentPlan` should be joined from the Subscription collection; use a single MongoDB aggregation or two separate queries — avoid N+1\n- Cache this response in Redis for 60 seconds with key `workspace:mine:{workspaceId}` to reduce DB load; invalidate on workspace settings update\n\n**Dependencies:** Blocks: [DA-E15-03, DA-E15-05]. Blocked by: [DA-E15-01].\n\n---"
+  },
+  {
+    "id": "DA-E15-03",
+    "summary": "[DA-E15-03] Implement POST /api/v1/workspaces/{id}/members (invite thanh vien qua email)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-94",
+    "description": "### DA-E15-03 — Implement POST /api/v1/workspaces/{id}/members\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Enable workspace owners to invite new members by email, sending an invitation link and provisioning their account with the correct role.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/workspaces/{id}/members accepts {email, role} where role is one of ACCOUNT_MANAGER, CONTENT_CREATOR, PUBLISHER, BRAND_CLIENT\n- [ ] Only AGENCY_OWNER of that workspace may call this endpoint; 403 otherwise\n- [ ] If the email is already a registered user, they are added to the workspace and notified via email\n- [ ] If the email is not yet registered, a pending invitation record is created and an invitation email with a signup link is sent\n- [ ] Inviting an email already in the workspace returns 409 Conflict\n- [ ] Member count on the workspace document is incremented atomically\n\n**Technical Notes:**\n- Invitation token stored in Redis: `workspace:invite:{token}` → {workspaceId, email, role}, TTL = 7 days\n- Use MongoDB `$inc` operator to increment `memberCount` atomically\n- Subscription plan client limits apply: check current client count against plan limits before adding a BRAND_CLIENT role member\n\n**Dependencies:** Blocks: [DA-E15-04]. Blocked by: [DA-E15-01, DA-E17-01].\n\n---"
+  },
+  {
+    "id": "DA-E15-04",
+    "summary": "[DA-E15-04] Implement DELETE /api/v1/workspaces/{id}/members/{userId} (remove thanh vien)",
+    "assignee": "Trung (Leader)",
+    "priority": "High",
+    "epic_key": "DA-94",
+    "description": "### DA-E15-04 — Implement DELETE /api/v1/workspaces/{id}/members/{userId}\n**Assignee:** Trung (Leader) | **Priority:** 🟡 High\n\n**Goal:** Allow workspace owners to remove a member from their workspace, revoking their access immediately.\n\n**Acceptance Criteria:**\n- [ ] DELETE /api/v1/workspaces/{id}/members/{userId} removes the member and returns 204 No Content\n- [ ] Only AGENCY_OWNER of that specific workspace may perform this action; 403 otherwise\n- [ ] Removing the workspace owner themselves returns 400 Bad Request\n- [ ] Removed user's active JWT sessions are invalidated using the `lastBannedAt`-style timestamp approach (set `removedFromWorkspaceAt`, reject tokens with workspaceId in JWT that were issued before this timestamp)\n- [ ] Member count on the workspace document is decremented atomically\n\n**Technical Notes:**\n- Set `workspaceId = null` on the removed User document so they lose workspace context on next token refresh\n- Clearing workspaceId from the User document is sufficient if the JWT filter validates workspaceId against the current User document on each request (adds a DB read per request — weigh against the alternative of short token lifetime)\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E15-03].\n\n---"
+  }
+]

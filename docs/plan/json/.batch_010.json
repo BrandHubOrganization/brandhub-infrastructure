@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E08-03",
+    "summary": "[DA-E08-03] Ve user flow diagrams cho 3 main flows: content creation, approval, publishing",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-88",
+    "description": "### DA-E08-03 — Draw user flow diagrams for 3 main flows: content creation, approval, publishing\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Produce UX-layer user flow diagrams (screen-to-screen, not sequence diagrams) for the three most critical end-user journeys so frontend developers know which screens connect to which and what triggers each navigation.\n\n**Acceptance Criteria:**\n- [ ] Content creation flow diagram covers: entry point (Dashboard) → AI prompt input → generation result → draft editing → save draft / submit for review\n- [ ] Approval flow diagram covers: notification received → review screen → approve/request changes/reject → notification sent to creator → (if approved) calendar placement\n- [ ] Publishing flow diagram covers: scheduled post on calendar → publish trigger → status polling or push notification → success state or failure state with retry option\n\n**Technical Notes:**\n- Use Figma's connector arrows (not a separate tool) so flow diagrams live in the same file as wireframes and stay in sync when screens change\n- Each flow node should reference the wireframe frame by name so developers can jump directly from the flow diagram to the corresponding screen design\n\n**Dependencies:** Blocks: None. Blocked by: DA-E08-01.\n\n---"
+  },
+  {
+    "id": "DA-E08-04",
+    "summary": "[DA-E08-04] Wireframe Client Portal (read-only calendar, approve/reject, analytics view)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-88",
+    "description": "### DA-E08-04 — Wireframe Client Portal (read-only calendar, approve/reject, analytics view)\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Design the BRAND_CLIENT-facing portal screens so the team has a clear, minimal interface target for the client-facing features that differ significantly from the internal agency dashboard.\n\n**Acceptance Criteria:**\n- [ ] Read-only content calendar wireframe shows: monthly/weekly view, post status indicators, post detail preview panel (text + image, no edit controls)\n- [ ] Approve/reject interaction is wireframed: approve button, reject with required comment field, confirmation state\n- [ ] Analytics view wireframe shows: reach/impressions/engagement metrics per platform, date range selector, export button placeholder\n\n**Technical Notes:**\n- Client portal must be visually distinct from the agency dashboard — consider a stripped navigation (no workspace switcher, no AI tools) to reinforce the limited-access context for the BRAND_CLIENT role\n- Approve/reject actions must show the current post status (from the PostStatus enum) to indicate whether action has already been taken\n\n**Dependencies:** Blocks: None. Blocked by: DA-E08-01.\n\n---"
+  },
+  {
+    "id": "DA-E09-01",
+    "summary": "[DA-E09-01] Viet docker-compose.yml chay toan bo infrastructure: MongoDB, PostgreSQL, Redis, RabbitMQ, ChromaDB",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-89",
+    "description": "### DA-E09-01 — Write docker-compose.yml to run the full infrastructure stack: MongoDB, PostgreSQL, Redis, RabbitMQ, ChromaDB\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Produce a single docker-compose.yml that any developer can run to start the complete local infrastructure stack with correct ports, volumes, health checks, and network configuration.\n\n**Acceptance Criteria:**\n- [ ] docker-compose.yml defines all 5 infrastructure services with exact image versions: MongoDB 7, PostgreSQL 16, Redis 7-alpine, RabbitMQ 3-management, ChromaDB (latest pinned tag)\n- [ ] All services expose their canonical ports: 27017, 5432, 6379, 5672+15672, 8000\n- [ ] Every service has a `healthcheck` configured and all application-level services declare `depends_on` with `condition: service_healthy`\n\n**Technical Notes:**\n- Mount init scripts into the correct paths: `./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js` and `./init-postgres.sql:/docker-entrypoint-initdb.d/init-postgres.sql`\n- Define a single Docker network (`brandhub-network`) so all services can address each other by service name; this network name must be documented for developers adding application service containers later\n- Pin RabbitMQ to `rabbitmq:3-management` not `latest`; add `RABBITMQ_DEFAULT_USER` and `RABBITMQ_DEFAULT_PASS` from `.env` file\n\n**Dependencies:** Blocks: DA-E09-04. Blocked by: DA-E06-07.\n\n---"
+  },
+  {
+    "id": "DA-E09-02",
+    "summary": "[DA-E09-02] Viet init-mongo.js (tao collections + indexes) va init-postgres.sql (tao tables + seed subscription plans)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-89",
+    "description": "### DA-E09-02 — Write init-mongo.js (create collections + indexes) and init-postgres.sql (create tables + seed subscription plans)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Produce the database initialization scripts that create the complete schema and seed data so that `docker-compose up` results in a fully ready database without any manual setup steps.\n\n**Acceptance Criteria:**\n- [ ] `init-mongo.js` creates all 12 collections with the indexes specified in DA-E06-04 using `db.createCollection()` and `db.collection.createIndex()`\n- [ ] `init-postgres.sql` creates all 5 tables with all constraints using `CREATE TABLE IF NOT EXISTS` and seeds 3 subscription plan rows (FREE: 0 USD, PROFESSIONAL: 49 USD/month, ENTERPRISE: 199 USD/month)\n- [ ] Both scripts execute without errors when run against a fresh MongoDB 7 and PostgreSQL 16 container\n\n**Technical Notes:**\n- MongoDB script must switch to the correct database first: `use brandhub;` at the top of `init-mongo.js`\n- PostgreSQL: create the `uuid-ossp` extension before table creation with `CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";` to enable `uuid_generate_v4()` as a default for UUID primary keys\n\n**Dependencies:** Blocks: DA-E09-01. Blocked by: DA-E06-04.\n\n---"
+  },
+  {
+    "id": "DA-E09-03",
+    "summary": "[DA-E09-03] Viet .env.example tong hop tat ca environment variables cua 6 services",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-89",
+    "description": "### DA-E09-03 — Write .env.example consolidating all environment variables across 6 services\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Produce a single `.env.example` file listing every environment variable required by all 6 services so that any developer can onboard by copying the file, filling in secrets, and running the stack.\n\n**Acceptance Criteria:**\n- [ ] `.env.example` includes variables for all 6 services grouped by service with comment headers\n- [ ] Every variable has an inline comment explaining its purpose and an example or placeholder value (never a real secret)\n- [ ] Variables include at minimum: all DB connection strings (MongoDB URI, PostgreSQL URL, Redis URL, ChromaDB URL), JWT RS256 public and private keys (as file paths), Groq API key, Stability AI API key, RabbitMQ credentials, all social platform app IDs and secrets\n\n**Technical Notes:**\n- JWT RS256 keys should be referenced as file paths (e.g., `JWT_PRIVATE_KEY_PATH=./keys/private.pem`) rather than inline in `.env` to avoid newline encoding issues in environment variables\n- Add a `CAUTION: never commit the real .env file` warning comment at the top of `.env.example`; ensure `.env` is in `.gitignore` in every repo\n\n**Dependencies:** Blocks: DA-E09-04, DA-E09-05. Blocked by: DA-E07-01, DA-E07-02.\n\n---"
+  }
+]

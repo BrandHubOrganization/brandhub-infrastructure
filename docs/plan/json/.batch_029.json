@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-AI03-08",
+    "summary": "[DA-AI03-08] Viet RAG pipeline documentation (architecture, tuning parameters, evaluation methodology)",
+    "assignee": "Ân (AI)",
+    "priority": "Medium",
+    "epic_key": "DA-26",
+    "description": "### DA-AI03-08 — Write RAG pipeline documentation (architecture, tuning parameters, evaluation methodology)\n**Assignee:** Ân (AI) | **Priority:** 🟢 Medium\n\n**Goal:** Ensure the RAG pipeline design is legible to future maintainers and evaluators without requiring a walkthrough from the original implementer.\n\n**Acceptance Criteria:**\n- [ ] Document covers: end-to-end data flow diagram (upload → chunk → embed → store → retrieve → prompt), component responsibilities, and tuning knobs (chunk_size, overlap, k)\n- [ ] Evaluation methodology section explains how retrieval precision was measured in DA-AI03-07\n- [ ] Known limitations are listed (e.g., scanned PDF not supported, max 10MB, English-biased embedding model on Vietnamese text)\n\n**Dependencies:** Blocks: None. Blocked by: DA-AI03-07.\n\n---"
+  },
+  {
+    "id": "DA-AI04-01",
+    "summary": "[DA-AI04-01] Build prompt template system (nhan topic + RAG context + trend data + tone → tao full prompt)",
+    "assignee": "Ân (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-79",
+    "description": "### DA-AI04-01 — Build prompt template system (topic + RAG context + trend data + tone + platform → full LLM prompt)\n**Assignee:** Ân (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Create a reusable, testable prompt assembly layer so that LLM input is constructed consistently and changes to prompts do not require touching business logic.\n\n**Acceptance Criteria:**\n- [ ] `services/prompt_builder.py` function `build_caption_prompt(topic, rag_context, trends, tone, platform) -> str` returns a complete, ready-to-send prompt string\n- [ ] System prompt includes: \"only use provided context, do not fabricate facts\" anti-hallucination instruction\n- [ ] Platform-specific instructions are injected (e.g., \"caption must be under 500 characters\" for Threads, \"use 3-5 hashtags\" for Instagram)\n- [ ] Unit tests cover all 5 platform variants and verify the anti-hallucination instruction is always present\n\n**Technical Notes:**\n- Use Python f-string templates stored as constants in `utils/prompts.py`; avoid Jinja2 unless the team already uses it elsewhere (adds dependency for minimal gain)\n- Tone values to support at minimum: `professional`, `playful`, `urgent`, `inspirational` — map each to a short instruction phrase injected into the prompt\n\n**Dependencies:** Blocks: DA-AI04-02. Blocked by: DA-AI03-05, DA-AI02-04.\n\n---"
+  },
+  {
+    "id": "DA-AI04-02",
+    "summary": "[DA-AI04-02] Integrate Llama 3 via Groq API (system prompt enforce: only use provided context, do not fabricate)",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-79",
+    "description": "### DA-AI04-02 — Integrate Llama 3 via Groq API (system prompt: \"only use provided context, do not fabricate\")\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Wire the primary LLM provider into the caption generation service using the prompt template output as input.\n\n**Acceptance Criteria:**\n- [ ] `services/llm.py` function `generate_caption_groq(prompt: str) -> str` calls Groq API with `llama3-8b-8192` or `llama3-70b-8192` model\n- [ ] System message is always prepended; user message contains the assembled prompt from DA-AI04-01\n- [ ] Rate limit (30 req/min) is handled: on `429` response, raise a custom `RateLimitError` that the caller (DA-AI04-03) catches and routes to fallback\n- [ ] Response text is returned stripped of leading/trailing whitespace; empty responses raise `LLMEmptyResponseError`\n\n**Technical Notes:**\n- Use `groq` Python SDK (`pip install groq`); initialize client once from `utils/clients.py`\n- Log every Groq call at DEBUG level with: model, prompt token count, completion token count, latency_ms — essential for cost tracking in DA-AI11-04\n\n**Dependencies:** Blocks: DA-AI04-07, DA-AI03-07. Blocked by: DA-AI04-01, DA-AI02-02, DA-AI01-07.\n\n---"
+  },
+  {
+    "id": "DA-AI04-03",
+    "summary": "[DA-AI04-03] Integrate Claude API lam fallback khi Groq rate limit hoac quality thap",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-79",
+    "description": "### DA-AI04-03 — Integrate Claude API as fallback when Groq is rate-limited or quality fails\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Ensure caption generation never hard-fails due to Groq rate limits by automatically routing to Claude when the primary provider is unavailable.\n\n**Acceptance Criteria:**\n- [ ] `services/llm.py` function `generate_caption(prompt: str) -> str` tries Groq first; on `RateLimitError` calls `generate_caption_claude(prompt)` transparently\n- [ ] Claude fallback uses `claude-haiku-3` by default for cost efficiency; model is configurable via env var `CLAUDE_FALLBACK_MODEL`\n- [ ] Fallback activation is logged at WARN level with reason (`rate_limit` or `empty_response`)\n- [ ] If both providers fail, raises `LLMUnavailableError` with a message the API layer converts to `503 Service Unavailable`\n\n**Technical Notes:**\n- Use `anthropic` Python SDK; system prompt structure differs from Groq — Claude uses `system=` parameter at the top-level call, not inside `messages`\n- Do not implement exponential backoff at this layer; backoff belongs in DA-AI10-02 error handling wrapper\n\n**Dependencies:** Blocks: DA-AI04-07. Blocked by: DA-AI04-02, DA-AI02-02, DA-AI01-07.\n\n---"
+  },
+  {
+    "id": "DA-AI04-04",
+    "summary": "[DA-AI04-04] Implement platform-specific optimization (tu dong truncate caption: FB 63k, Threads 500, TikTok 4k chars)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-79",
+    "description": "### DA-AI04-04 — Implement platform-specific caption truncation (FB 63k, Threads 500, TikTok 4k chars)\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Guarantee that generated captions are never rejected by platform APIs due to exceeding character limits.\n\n**Acceptance Criteria:**\n- [ ] `utils/truncation.py` implements `truncate_caption(text: str, platform: str) -> str` with per-platform limits: facebook=63206, threads=500, tiktok=4000, instagram=2200, zalo=None\n- [ ] Truncation cuts at the last complete sentence before the limit, not mid-word; appends `\"...\"` if truncated\n- [ ] Unit tests cover: text exactly at limit (no change), text 1 char over limit (truncated), Threads limit (strictest, most likely to trigger)\n\n**Technical Notes:**\n- Instagram's practical limit is 2200 chars (API accepts more but UI truncates); enforce 2200 to avoid display issues\n- Vietnamese sentences do not always end with `.`; also split on `!`, `?`, and `\\n` as sentence boundaries\n\n**Dependencies:** Blocks: DA-AI10-01. Blocked by: DA-AI02-04.\n\n---"
+  }
+]

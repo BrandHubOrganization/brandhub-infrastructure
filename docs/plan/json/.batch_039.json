@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-AI11-03",
+    "summary": "[DA-AI11-03] Viet Image Composition Research Report (technique comparison, best practices, quality evaluation)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-109",
+    "description": "### DA-AI11-03 — Write Image Composition Research Report\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Document the composition technique evaluation and implementation decisions for mentor review and future reference.\n\n**Acceptance Criteria:**\n- [ ] Report covers: technique comparison (DA-AI01-05/06 research), rembg + Pillow implementation rationale, quality test results (DA-AI08-06)\n- [ ] Failure case gallery: ≥5 documented cases with root cause analysis and workaround recommendations\n- [ ] Composition quality metrics summarized: average realism scores per product category\n\n**Dependencies:** Blocks: DA-AI11-05. Blocked by: DA-AI08-06, DA-AI06-05.\n\n---"
+  },
+  {
+    "id": "DA-AI11-04",
+    "summary": "[DA-AI11-04] Compile AI Cost Analysis (chi phi uoc tinh per feature x average usage x 1000 users/month)",
+    "assignee": "All (Team)",
+    "priority": "High",
+    "epic_key": "DA-109",
+    "description": "### DA-AI11-04 — Compile AI Cost Analysis (estimated cost per feature × average usage × 1000 users/month)\n**Assignee:** All (Team) | **Priority:** 🟡 High\n\n**Goal:** Provide the business-side cost model for the AI features so stakeholders can evaluate commercial viability before launch.\n\n**Acceptance Criteria:**\n- [ ] Cost table covers all 5 AI features: caption generation (Groq + Claude fallback), image generation (SDXL), video generation (Veo), ambassador generation (Replicate/InstantID), background removal (CPU cost)\n- [ ] Assumptions documented: average uses per user per month per feature, data based on benchmark results from DA-AI06-05, DA-AI09-07, DA-AI07-04\n- [ ] Total estimated AI infrastructure cost per 1000 monthly active users calculated and highlighted\n- [ ] Sensitivity analysis: cost at 500, 1000, 5000 users to show scaling behavior\n\n**Dependencies:** Blocks: DA-AI11-05. Blocked by: DA-AI09-07, DA-AI07-04, DA-AI06-05.\n\n---"
+  },
+  {
+    "id": "DA-AI11-05",
+    "summary": "[DA-AI11-05] Record AI feature demo video (showcase 7 AI features hoat dong thuc te)",
+    "assignee": "All (Team)",
+    "priority": "Highest",
+    "epic_key": "DA-109",
+    "description": "### DA-AI11-05 — Record AI feature demo video (showcase all 7 AI features working end-to-end)\n**Assignee:** All (Team) | **Priority:** 🔴 Critical\n\n**Goal:** Produce a polished demo video that demonstrates all AI capabilities working in the integrated BrandHub product for the mentor presentation.\n\n**Acceptance Criteria:**\n- [ ] Video demonstrates all 7 features in sequence: RAG document upload, caption generation, hashtag generation, image generation, virtual ambassador, image composition, video generation\n- [ ] Each feature demo includes: user action → loading state → final result clearly visible on screen\n- [ ] Video is ≤ 10 minutes total; each feature segment is labeled with a title card\n- [ ] Demo uses real brand data (not lorem ipsum) to show production-realistic output quality\n\n**Dependencies:** Blocks: DA-AI11-06. Blocked by: DA-AI10-03, DA-AI11-01, DA-AI11-02, DA-AI11-03, DA-AI11-04.\n\n---"
+  },
+  {
+    "id": "DA-AI11-06",
+    "summary": "[DA-AI11-06] Present AI results to mentor (demo live + Q&A, thu thap feedback)",
+    "assignee": "All (Team)",
+    "priority": "Highest",
+    "epic_key": "DA-109",
+    "description": "### DA-AI11-06 — Present AI results to mentor (live demo + Q&A, collect feedback for final report)\n**Assignee:** All (Team) | **Priority:** 🔴 Critical\n\n**Goal:** Deliver the AI track milestone presentation and capture mentor feedback to incorporate into the final project report.\n\n**Acceptance Criteria:**\n- [ ] All 7 AI features demonstrated live (not just via recorded video) against the running Docker environment\n- [ ] Each team member presents the features they implemented; mentor can ask implementation questions to any member\n- [ ] All mentor feedback is written down during the session and assigned as follow-up items within 24 hours\n- [ ] Presentation deck includes: architecture diagram, benchmark results summary, cost analysis table, sample outputs gallery\n\n**Dependencies:** Blocks: None. Blocked by: DA-AI11-05.\n\n---"
+  },
+  {
+    "id": "DA-E28-01",
+    "summary": "[DA-E28-01] Implement POST /api/v1/content-requests (BRAND_CLIENT submit yeu cau: topic, platform, tone, deadline)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-112",
+    "description": "### DA-E28-01 — Implement POST /api/v1/content-requests\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow BRAND_CLIENT to submit a new content request with topic, platform, tone, deadline, and clientId, creating the request in SUBMITTED status.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/content-requests accepts `{topic, platform, tone, deadline, clientId}` and returns 201 with the created request body\n- [ ] Request is persisted with status SUBMITTED and createdBy set to authenticated user's ID\n- [ ] Returns 400 if required fields are missing or deadline is in the past\n- [ ] Returns 403 if caller does not have BRAND_CLIENT role\n- [ ] clientId in payload is validated to match the authenticated user's associated client (no cross-client injection)\n\n**Technical Notes:**\n- Validate `platform` against enum (FB, IG, TIKTOK, THREADS, ZALO)\n- `deadline` should be stored as UTC ISO-8601; reject if `deadline < now + 1h`\n- Use `@PreAuthorize(\"hasRole('BRAND_CLIENT')\")` on the controller method\n\n**Dependencies:** Blocks: [DA-E28-02, DA-E28-03, DA-E29-01]. Blocked by: [None].\n\n---"
+  }
+]

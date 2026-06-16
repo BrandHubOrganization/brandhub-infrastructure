@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E21-01",
+    "summary": "[DA-E21-01] Khoi tao brandhub-publisher-service project (Spring Boot 3, RabbitMQ consumer setup)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-105",
+    "description": "### DA-E21-01 — Initialize brandhub-publisher-service project (Spring Boot 3, RabbitMQ consumer bean setup)\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Create the canonical publisher-service project structure with RabbitMQ consumer infrastructure ready for adapter implementation.\n\n**Acceptance Criteria:**\n- [ ] Spring Boot 3 project created with dependencies: `spring-boot-starter-amqp`, `spring-boot-starter-data-redis`, `spring-boot-starter-web`, `spring-boot-starter-actuator`\n- [ ] `RabbitMQ` consumer bean configured and connected to the `publish.jobs` queue (queue name from application properties, not hardcoded)\n- [ ] `GET /actuator/health` returns `{\"status\": \"UP\"}` including RabbitMQ connectivity check\n- [ ] Service starts cleanly on port 8083 via `docker-compose up publisher-service`\n\n**Technical Notes:**\n- Use `@RabbitListener(queues = \"${rabbitmq.queue.publish-jobs}\")` pattern for queue name externalization\n- Configure `MessageConverter` bean with `Jackson2JsonMessageConverter` so `PublishJobMessage` is deserialized automatically\n\n**Dependencies:** Blocks: DA-E21-02. Blocked by: None.\n\n---"
+  },
+  {
+    "id": "DA-E21-02",
+    "summary": "[DA-E21-02] Implement RabbitMQ consumer: nhan PublishJobMessage (postId, platform, content, mediaUrls, scheduledAt)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-105",
+    "description": "### DA-E21-02 — Implement RabbitMQ consumer: receive PublishJobMessage and route to correct platform adapter\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Build the message intake layer that deserializes incoming publish jobs and dispatches them to the correct social platform adapter.\n\n**Acceptance Criteria:**\n- [ ] `PublishJobMessage` POJO defined: `{postId, platform, content, mediaUrls: List<String>, scheduledAt, encryptedToken}`\n- [ ] Consumer method deserializes message and routes to the correct adapter based on `platform` enum value: FACEBOOK, INSTAGRAM, TIKTOK, THREADS, ZALO\n- [ ] Unknown platform values are caught and logged as errors; message is sent to Dead Letter Queue rather than crashing the consumer\n- [ ] Exactly-once guard: check Redis `processingPostIds` set before processing; add `postId` at start, remove at end (or on DLQ)\n\n**Technical Notes:**\n- Use `SETNX` (via `RedisTemplate.opsForSet().add()`) to add postId to `processingPostIds` before processing; if SETNX returns 0, the message is already being processed — discard it\n- Set a TTL on the Redis key (`processingPostIds:{postId}`, TTL 30 minutes) to auto-release stuck locks\n\n**Dependencies:** Blocks: DA-E21-03, DA-E21-04, DA-E21-05, DA-E21-06, DA-E21-07. Blocked by: DA-E21-01.\n\n---"
+  },
+  {
+    "id": "DA-E21-03",
+    "summary": "[DA-E21-03] Implement Facebook publish adapter (Graph API v19: /me/feed + /me/photos)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-105",
+    "description": "### DA-E21-03 — Implement Facebook publish adapter (Graph API v19: /me/feed for text, /me/photos for image)\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Enable publishing text and image posts to Facebook Pages via the Graph API.\n\n**Acceptance Criteria:**\n- [ ] `FacebookAdapter.publish(PublishJobMessage)` posts to `POST /v19.0/me/feed` for text-only content\n- [ ] For posts with `mediaUrls`, uploads image via `POST /v19.0/me/photos` with `published=true`\n- [ ] Adapter decrypts `encryptedToken` using the shared decryption key (from env var) before use in API calls\n- [ ] On success, returns `{platform: FACEBOOK, platformPostId: str, status: SUCCESS}`; on API error returns `{status: FAILED, errorCode, errorMessage}`\n\n**Technical Notes:**\n- Graph API v19 access token must be a Page Access Token (not User token) for `me/feed` posts; validate this during adapter testing\n- `encryptedToken` decryption must use the same algorithm as business-service encryption; confirm with Trung (Leader) before implementing\n\n**Dependencies:** Blocks: DA-E22-01. Blocked by: DA-E21-02.\n\n---"
+  },
+  {
+    "id": "DA-E21-04",
+    "summary": "[DA-E21-04] Implement Instagram publish adapter (Content Publishing API: create container → publish)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-105",
+    "description": "### DA-E21-04 — Implement Instagram publish adapter (2-step: create container → publish)\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Enable image and carousel publishing to Instagram Business accounts via the Content Publishing API.\n\n**Acceptance Criteria:**\n- [ ] Step 1: `POST /{ig-user-id}/media` with `image_url` and `caption` to create a media container; receive `container_id`\n- [ ] Step 2: `POST /{ig-user-id}/media_publish` with `creation_id={container_id}` to publish\n- [ ] Adapter polls container status between steps; if container status is not `FINISHED` within 30 seconds, returns `FAILED`\n- [ ] Caption is automatically truncated to 2200 characters if it exceeds the limit before submission\n\n**Technical Notes:**\n- Instagram Content Publishing API requires the image to be publicly accessible via URL; `mediaUrls` must be presigned S3 URLs with sufficient expiry (at least 1 hour from publish time)\n- Reels publishing uses a different endpoint (`/reels` instead of `/media`); out of scope for this task — document explicitly\n\n**Dependencies:** Blocks: DA-E22-01. Blocked by: DA-E21-02.\n\n---"
+  },
+  {
+    "id": "DA-E21-05",
+    "summary": "[DA-E21-05] Implement TikTok publish adapter (Content Posting API v2)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-105",
+    "description": "### DA-E21-05 — Implement TikTok publish adapter (Direct Post ≤60s, Creator Upload >60s)\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Enable video publishing to TikTok using the correct API path based on video duration.\n\n**Acceptance Criteria:**\n- [ ] Adapter checks video duration from `mediaUrls` metadata or content field; routes to Direct Post API for ≤60s, Creator Upload API for >60s\n- [ ] Direct Post: `POST /v2/post/publish/video/init/` with video URL; receive `publish_id`; poll until `status.publish_type` is COMPLETE\n- [ ] Creator Upload: initiates chunk upload flow, uploads video bytes, then triggers publish\n- [ ] Caption truncated to 4000 characters before submission; returns `{status: SUCCESS, platformPostId}` on completion\n\n**Technical Notes:**\n- TikTok Content Posting API v2 requires `Content-Type: application/json; charset=UTF-8` and OAuth 2.0 access token (not API key)\n- Creator Upload API for long videos involves multi-part chunk upload; implement as a separate `TikTokCreatorUploadService` to keep adapter clean\n\n**Dependencies:** Blocks: DA-E22-01. Blocked by: DA-E21-02.\n\n---"
+  }
+]
