@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E09-04",
+    "summary": "[DA-E09-04] Viet clone-all.sh script de clone 7 repos ve may voi 1 lenh",
+    "assignee": "Trung (Leader)",
+    "priority": "High",
+    "epic_key": "DA-89",
+    "description": "### DA-E09-04 — Write clone-all.sh script to clone all 7 repos locally with a single command\n**Assignee:** Trung (Leader) | **Priority:** 🟡 High\n\n**Goal:** Eliminate the manual multi-step repo cloning process so any new developer can set up the full local environment with a single script execution.\n\n**Acceptance Criteria:**\n- [ ] `clone-all.sh` clones all 7 repos from the GitHub Organization into sibling directories relative to the script's location\n- [ ] Script is idempotent: if a repo directory already exists, it runs `git pull` on the existing clone instead of erroring\n- [ ] Script prints the GitHub Organization URL and all 7 repo names being cloned so the developer can verify the correct source\n\n**Technical Notes:**\n- Make the GitHub Organization name a variable at the top of the script (e.g., `ORG=\"brandhub-capstone\"`) so it can be updated in one place if the org is renamed\n- Test the script on both macOS/Linux (bash) and Windows (Git Bash) since team members use different OSes\n\n**Dependencies:** Blocks: None. Blocked by: DA-E09-01.\n\n---"
+  },
+  {
+    "id": "DA-E09-05",
+    "summary": "[DA-E09-05] Viet README.md cho infrastructure repo (huong dan setup tung buoc)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Medium",
+    "epic_key": "DA-89",
+    "description": "### DA-E09-05 — Write README.md for the infrastructure repo (step-by-step setup guide)\n**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium\n\n**Goal:** Produce a clear, step-by-step setup guide in the brandhub-infrastructure README so that any team member or evaluator can get the full local stack running without asking for help.\n\n**Acceptance Criteria:**\n- [ ] README covers the complete setup sequence: prerequisites (Docker, Git, Java 21, Python 3.11, Node 20), clone step, `.env` configuration, `docker-compose up`, and verification steps\n- [ ] Verification section includes the expected output or health check URL for each service (e.g., MongoDB: `mongosh --eval \"db.runCommand({ping:1})\"`, RabbitMQ management UI: `http://localhost:15672`)\n- [ ] Troubleshooting section lists at least 3 common setup issues with their solutions (e.g., port conflicts, Docker memory limits, ChromaDB startup delay)\n\n**Dependencies:** Blocks: None. Blocked by: DA-E09-03.\n\n---"
+  },
+  {
+    "id": "DA-E10-01",
+    "summary": "[DA-E10-01] Viet GitHub Actions workflow cho business-service (build + test + push Docker image)",
+    "assignee": "Trung (Leader)",
+    "priority": "High",
+    "epic_key": "DA-90",
+    "description": "### DA-E10-01 — Write GitHub Actions workflow for business-service (mvn test + docker build + push to ghcr.io)\n**Assignee:** Trung (Leader) | **Priority:** 🟡 High\n\n**Goal:** Automate the build, test, and container publish pipeline for business-service so that every push to `develop` or `main` produces a verified, tagged Docker image in ghcr.io without manual intervention.\n\n**Acceptance Criteria:**\n- [ ] Workflow triggers on: push to `develop`, push to `main`, and pull_request targeting `develop`\n- [ ] Workflow steps execute in order: checkout → set up Java 21 → `mvn test` → `docker build` → login to ghcr.io → `docker push` with tags `latest` and the commit SHA\n- [ ] Workflow fails the entire pipeline if `mvn test` fails; Docker build and push steps are skipped on test failure\n\n**Technical Notes:**\n- Use `actions/setup-java@v4` with `distribution: 'temurin'` and `java-version: '21'`\n- Cache Maven local repository with `actions/cache@v4` using key `${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}` to reduce build time from ~4 min to ~1 min after first run\n- ghcr.io image name must follow the pattern: `ghcr.io/{org}/{repo}:{tag}` — use `GITHUB_REPOSITORY` env var to construct this automatically\n\n**Dependencies:** Blocks: None. Blocked by: DA-E02-02, DA-E02-03, DA-E02-04.\n\n---"
+  },
+  {
+    "id": "DA-E10-02",
+    "summary": "[DA-E10-02] Viet GitHub Actions workflow cho publisher-service (build + test + push Docker image)",
+    "assignee": "Phước (Publisher)",
+    "priority": "High",
+    "epic_key": "DA-90",
+    "description": "### DA-E10-02 — Write GitHub Actions workflow for publisher-service (mvn test + docker build + push)\n**Assignee:** Phước (Publisher) | **Priority:** 🟡 High\n\n**Goal:** Automate the CI/CD pipeline for publisher-service so that every merge to `develop` produces a tested and published container image, identical in structure to the business-service pipeline.\n\n**Acceptance Criteria:**\n- [ ] Workflow triggers on push to `develop`, push to `main`, and pull_request targeting `develop`\n- [ ] All steps mirror DA-E10-01: Java 21 setup with Temurin, Maven test, Docker build, ghcr.io push with SHA tag and `latest`\n- [ ] Maven cache is configured using the same key pattern as DA-E10-01 for consistency\n\n**Technical Notes:**\n- publisher-service pom.xml will include RabbitMQ test dependencies (`spring-amqp-test`); ensure the test phase does not attempt to connect to a real RabbitMQ instance by configuring an embedded or mocked broker in test scope\n- Reuse the same workflow YAML structure from DA-E10-01 to minimize divergence; consider a shared reusable workflow (`.github/workflows/java-ci.yml`) in the org if the team wants to DRY the pattern\n\n**Dependencies:** Blocks: None. Blocked by: DA-E02-02, DA-E02-03, DA-E02-04.\n\n---"
+  },
+  {
+    "id": "DA-E10-03",
+    "summary": "[DA-E10-03] Viet GitHub Actions workflow cho ai-service (lint + test + build Docker image)",
+    "assignee": "Tuấn (AI)",
+    "priority": "High",
+    "epic_key": "DA-90",
+    "description": "### DA-E10-03 — Write GitHub Actions workflow for ai-service (flake8 + pytest + docker build + push)\n**Assignee:** Tuấn (AI) | **Priority:** 🟡 High\n\n**Goal:** Automate the CI/CD pipeline for ai-service with Python-appropriate linting and testing steps so that code quality is enforced and images are published on every merge to `develop`.\n\n**Acceptance Criteria:**\n- [ ] Workflow triggers on push to `develop`, push to `main`, and pull_request targeting `develop`\n- [ ] Workflow steps: checkout → setup Python 3.11 → `pip install -r requirements.txt` → `flake8 .` → `pytest` → docker build → ghcr.io push\n- [ ] Workflow fails if either `flake8` or `pytest` fails; Docker steps are skipped on failure\n\n**Technical Notes:**\n- Use `actions/setup-python@v5` with `python-version: '3.11'` and cache pip dependencies with `actions/cache@v4` using key `${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}`\n- Add a `.flake8` config file to the repo root with `max-line-length = 120` to avoid fighting the default 79-character limit on FastAPI/Pydantic code\n- Mock all external AI API calls (Groq, Stability AI) in pytest using `unittest.mock.patch` or `respx` for httpx; never make real API calls in CI\n\n**Dependencies:** Blocks: None. Blocked by: DA-E02-02, DA-E02-03, DA-E02-04.\n\n---"
+  }
+]

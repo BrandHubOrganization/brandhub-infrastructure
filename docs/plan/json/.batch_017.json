@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E15-05",
+    "summary": "[DA-E15-05] Implement workspace settings (timezone, default platforms, report frequency)",
+    "assignee": "Trung (Leader)",
+    "priority": "High",
+    "epic_key": "DA-94",
+    "description": "### DA-E15-05 — Implement Workspace Settings\n**Assignee:** Trung (Leader) | **Priority:** 🟡 High\n\n**Goal:** Allow workspace owners to configure workspace-level defaults such as timezone, default social platforms, and report frequency.\n\n**Acceptance Criteria:**\n- [ ] PUT /api/v1/workspaces/{id}/settings accepts {timezone, defaultPlatforms, reportFrequency} and returns 200 with updated settings\n- [ ] Only AGENCY_OWNER of the workspace may update settings; 403 otherwise\n- [ ] `timezone` must be a valid IANA timezone string; invalid values return 400\n- [ ] `defaultPlatforms` must be a subset of {FACEBOOK, INSTAGRAM, TIKTOK, THREADS, ZALO}; invalid values return 400\n- [ ] `reportFrequency` must be one of {WEEKLY, MONTHLY}; invalid value returns 400\n- [ ] Redis cache for workspace (from DA-E15-02) is invalidated on successful update\n\n**Technical Notes:**\n- Use `ZoneId.of(timezone)` inside a try-catch `DateTimeException` to validate timezone\n- Store `defaultPlatforms` as an enum list in MongoDB; validate using `@ValidPlatforms` custom constraint annotation for clean controller code\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E15-02].\n\n---"
+  },
+  {
+    "id": "DA-E16-01",
+    "summary": "[DA-E16-01] Implement POST /api/v1/clients (AGENCY_OWNER tao brand client moi)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-102",
+    "description": "### DA-E16-01 — Implement POST /api/v1/clients\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow AGENCY_OWNER to create a new brand client record within their workspace, subject to the subscription plan's client limit.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/clients accepts {brandName, industry, logoUrl, contactEmail, allowedPlatforms} and returns 201 with the created client record\n- [ ] Only AGENCY_OWNER may create clients; 403 otherwise\n- [ ] Current client count is checked against the subscription plan limit before creation; exceeding the limit returns 403 with {error: \"Client limit reached\", upgradeUrl}\n- [ ] Created client document includes: {clientId, workspaceId, brandName, industry, logoUrl, contactEmail, allowedPlatforms, createdAt}\n- [ ] `workspaceId` is injected from the JWT, never accepted from the request body\n\n**Technical Notes:**\n- Client count check + insert should be wrapped in a logical transaction; since MongoDB single-document atomicity does not span collections, use an optimistic lock or a counter field on the Workspace document with `$inc` and conditional update\n- Subscription plan limit lookup: query the active subscription for the workspace, then fetch the plan's `maxClients` field\n\n**Dependencies:** Blocks: [DA-E16-02, DA-E16-03, DA-E16-04]. Blocked by: [DA-E14-01, DA-E14-02, DA-E15-01, DA-E17-01].\n\n---"
+  },
+  {
+    "id": "DA-E16-02",
+    "summary": "[DA-E16-02] Implement PUT /api/v1/clients/{id}/assign (AGENCY_OWNER assign Account Manager)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-102",
+    "description": "### DA-E16-02 — Implement PUT /api/v1/clients/{id}/assign\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow AGENCY_OWNER to assign an Account Manager to a client, establishing the primary relationship for that client's day-to-day management.\n\n**Acceptance Criteria:**\n- [ ] PUT /api/v1/clients/{id}/assign accepts {accountManagerId} and returns 200 with updated client document\n- [ ] Only AGENCY_OWNER may perform assignment; 403 otherwise\n- [ ] The target userId must exist in the same workspace and have role ACCOUNT_MANAGER; invalid targets return 400\n- [ ] The client document must belong to the caller's workspaceId; mismatched workspaceId returns 404 (do not leak existence)\n- [ ] Re-assigning an already-assigned client replaces the previous Account Manager without error\n\n**Technical Notes:**\n- Workspace isolation filter (DA-E14-02) must be active; the query for the client record will automatically include `workspaceId`\n- After assignment, notify the new Account Manager by email with client brand name and a link to the client dashboard\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E16-01, DA-E14-02].\n\n---"
+  },
+  {
+    "id": "DA-E16-03",
+    "summary": "[DA-E16-03] Implement PUT /api/v1/clients/{id}/service-package (set gioi han bai/thang, platforms)",
+    "assignee": "Trung (Leader)",
+    "priority": "High",
+    "epic_key": "DA-102",
+    "description": "### DA-E16-03 — Implement PUT /api/v1/clients/{id}/service-package\n**Assignee:** Trung (Leader) | **Priority:** 🟡 High\n\n**Goal:** Allow AGENCY_OWNER to configure monthly post limits and permitted social platforms for each individual client.\n\n**Acceptance Criteria:**\n- [ ] PUT /api/v1/clients/{id}/service-package accepts {monthlyPostLimit, allowedPlatforms} and returns 200 with updated client record\n- [ ] Only AGENCY_OWNER may update service packages; 403 otherwise\n- [ ] `monthlyPostLimit` must be a positive integer; negative or zero values return 400\n- [ ] `allowedPlatforms` must be a non-empty subset of {FACEBOOK, INSTAGRAM, TIKTOK, THREADS, ZALO}; invalid values return 400\n- [ ] Client must belong to the caller's workspace; otherwise 404\n\n**Technical Notes:**\n- The `monthlyPostLimit` set here acts as a per-client cap, separate from the workspace-level plan limit; both limits must be respected when creating posts\n- Store `allowedPlatforms` as an enum list; validate using a custom constraint or `@Valid` with a Set<Platform> field\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E16-01].\n\n---"
+  },
+  {
+    "id": "DA-E16-04",
+    "summary": "[DA-E16-04] Implement GET /api/v1/clients (AGENCY_OWNER va ACCOUNT_MANAGER xem danh sach)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-102",
+    "description": "### DA-E16-04 — Implement GET /api/v1/clients\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Provide AGENCY_OWNER and ACCOUNT_MANAGER roles with a filtered, paginated list of clients in their workspace.\n\n**Acceptance Criteria:**\n- [ ] GET /api/v1/clients returns paginated list of clients scoped to the JWT's workspaceId\n- [ ] AGENCY_OWNER sees all clients in the workspace; ACCOUNT_MANAGER sees only clients assigned to them\n- [ ] Supports query params: `page`, `size`, `search` (partial brandName match), `platform` (filter by allowedPlatforms)\n- [ ] BRAND_CLIENT role receives 403 on this endpoint (they use a different profile endpoint)\n- [ ] Default page size is 20; maximum 100\n\n**Technical Notes:**\n- ACCOUNT_MANAGER filter: add `assignedAccountManagerId = currentUserId` condition alongside `workspaceId` filter — handled in the service layer by inspecting the caller's role\n- Use `MongoTemplate` with a dynamic `Criteria` chain for combining optional filters cleanly\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E16-01, DA-E14-02].\n\n---"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-AI04-05",
+    "summary": "[DA-AI04-05] Implement hashtag generation endpoint (goi Llama 3 voi prompt don gian)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-79",
+    "description": "### DA-AI04-05 — Implement hashtag generation endpoint (POST /ai/content/hashtags)\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Provide a standalone hashtag generation feature so users can request platform-optimized hashtags independently of caption generation.\n\n**Acceptance Criteria:**\n- [ ] `POST /ai/content/hashtags` accepts `{topic: str, platform: str, clientId: str, count: int}` and returns `{hashtags: List[str]}`\n- [ ] Generated hashtags are formatted without spaces, with `#` prefix (e.g., `#thờiTrang`, not `#thời trang`)\n- [ ] Count is clamped to platform best practices: Instagram max 30, TikTok max 10, others max 5\n\n**Technical Notes:**\n- Prompt the LLM to return hashtags as a JSON array to avoid parsing ambiguity; use `response_format` if the model supports it, otherwise parse with regex `#\\w+`\n- Include trend data from Redis cache (DA-AI05-04) in the hashtag prompt context if available for the given category\n\n**Dependencies:** Blocks: None. Blocked by: DA-AI04-02, DA-AI02-04.\n\n---"
+  },
+  {
+    "id": "DA-AI04-06",
+    "summary": "[DA-AI04-06] Implement regenerate with feedback (nhan previous output + feedback → tao cai tien)",
+    "assignee": "Ân (AI)",
+    "priority": "High",
+    "epic_key": "DA-79",
+    "description": "### DA-AI04-06 — Implement regenerate with feedback (receive previous caption + user feedback → generate improved version)\n**Assignee:** Ân (AI) | **Priority:** 🟡 High\n\n**Goal:** Enable iterative caption refinement so users can steer the AI output without starting from scratch.\n\n**Acceptance Criteria:**\n- [ ] `POST /ai/content/regenerate` accepts `{previousCaption: str, feedback: str, platform: str, clientId: str}` and returns a new caption\n- [ ] Feedback is injected into the prompt as: \"The previous caption was: {previousCaption}. User feedback: {feedback}. Generate an improved version.\"\n- [ ] Anti-hallucination system prompt is still included; RAG context from clientId is still retrieved and injected\n- [ ] End-to-end test: submit a caption + feedback \"make it shorter and more playful\" → verify the new caption is shorter and tonal shift is observable\n\n**Technical Notes:**\n- Do not pass the previous caption as assistant message in a multi-turn conversation; keep it as part of the user prompt to avoid the model anchoring too strongly to the prior output\n\n**Dependencies:** Blocks: None. Blocked by: DA-AI04-02, DA-AI03-04.\n\n---"
+  },
+  {
+    "id": "DA-AI04-07",
+    "summary": "[DA-AI04-07] Anti-hallucination test (verify 20 generated captions — moi claim deu co nguon tu brand context)",
+    "assignee": "All (Team)",
+    "priority": "Highest",
+    "epic_key": "DA-79",
+    "description": "### DA-AI04-07 — Anti-hallucination test (verify 20 generated captions — every claim must be sourced from brand context)\n**Assignee:** All (Team) | **Priority:** 🔴 Critical\n\n**Goal:** Validate that the anti-hallucination system prompt and RAG pipeline together prevent the LLM from inventing product claims, prices, or brand facts.\n\n**Acceptance Criteria:**\n- [ ] 20 captions generated across at least 3 different clientId brand contexts\n- [ ] Each caption reviewed: highlight every factual claim and trace it to a specific chunk in the brand documents\n- [ ] Zero captions contain unverifiable factual claims (fabricated prices, features, awards, endorsements)\n- [ ] Any hallucination found is documented with the prompt that triggered it and escalated for prompt engineering fix before DA-AI10-01\n\n**Technical Notes:**\n- Test specifically with topics that are NOT in the brand documents to verify the model deflects or generalizes rather than fabricates\n- Include one test where RAG context is intentionally empty (no documents uploaded for a clientId) to verify the model does not fall back to hallucinated brand knowledge\n\n**Dependencies:** Blocks: DA-AI10-01. Blocked by: DA-AI04-02, DA-AI04-03, DA-AI03-07.\n\n---"
+  },
+  {
+    "id": "DA-AI04-08",
+    "summary": "[DA-AI04-08] Viet Prompt Engineering Documentation (template design, system prompt best practices, tone guide)",
+    "assignee": "Ân (AI)",
+    "priority": "Medium",
+    "epic_key": "DA-79",
+    "description": "### DA-AI04-08 — Write Prompt Engineering Documentation (template design, system prompt guide, tone examples)\n**Assignee:** Ân (AI) | **Priority:** 🟢 Medium\n\n**Goal:** Record the prompt design decisions so that future prompt improvements can be made systematically rather than by trial and error.\n\n**Acceptance Criteria:**\n- [ ] Document covers: prompt template structure (annotated with section purposes), system prompt rationale, tone parameter examples (one sample output per tone)\n- [ ] Anti-hallucination approach is explained with the exact system prompt wording used\n- [ ] Known prompt failure modes from DA-AI04-07 testing are listed with mitigations\n\n**Dependencies:** Blocks: None. Blocked by: DA-AI04-07.\n\n---"
+  },
+  {
+    "id": "DA-AI05-01",
+    "summary": "[DA-AI05-01] Implement Google Trends crawler (pytrends) lay top trending keywords tai Vietnam",
+    "assignee": "Ân (AI)",
+    "priority": "High",
+    "epic_key": "DA-98",
+    "description": "### DA-AI05-01 — Implement Google Trends crawler using pytrends to fetch top trending keywords in Vietnam\n**Assignee:** Ân (AI) | **Priority:** 🟡 High\n\n**Goal:** Automate collection of real-time Vietnamese trend data to enrich caption generation prompts with culturally relevant keywords.\n\n**Acceptance Criteria:**\n- [ ] `services/trends/google_trends.py` uses `pytrends` to fetch top 20 trending keywords for Vietnam (`geo='VN'`)\n- [ ] Function `fetch_google_trends(category: str) -> List[{keyword: str, score: int}]` returns normalized results\n- [ ] Handles `pytrends` rate limiting (429/503) with exponential backoff; returns empty list rather than raising on persistent failure\n\n**Technical Notes:**\n- `pytrends` is an unofficial scraper and can break when Google changes response format; pin the version and add an integration test that alerts on unexpected response shape\n- Use `TrendReq(hl='vi-VN', tz=420)` for Vietnamese locale and ICT timezone\n\n**Dependencies:** Blocks: DA-AI05-03. Blocked by: DA-AI02-01.\n\n---"
+  }
+]

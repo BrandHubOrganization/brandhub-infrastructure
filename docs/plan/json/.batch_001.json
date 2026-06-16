@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E01-01",
+    "summary": "[DA-E01-01] Brainstorm va thong nhat y tuong de tai BrandHub, xac dinh scope va MVP",
+    "assignee": "All (Team)",
+    "priority": "Highest",
+    "epic_key": "DA-2",
+    "description": "### DA-E01-01 — Brainstorm and align on BrandHub topic idea, define scope and MVP\n**Assignee:** All (Team) | **Priority:** 🔴 Critical\n\n**Goal:** Reach full team consensus on the BrandHub product concept, feature scope, and MVP boundaries so all subsequent planning work has a stable foundation.\n\n**Acceptance Criteria:**\n- [ ] A written MVP scope document exists listing in-scope and explicitly out-of-scope features\n- [ ] All team members have signed off (commented/reacted) on the scope document in the shared workspace\n- [ ] MVP feature list maps to at least one use case per role (Admin, Agency Owner, Account Manager, Content Creator, Brand Client, Guest)\n\n**Technical Notes:**\n- Use a shared doc (Notion or Google Docs) to capture decisions; avoid verbal-only alignment\n- Explicitly call out AI features (content generation, image generation, RAG) as Phase 1 vs Phase 2 to prevent scope creep\n\n**Dependencies:** Blocks: DA-E01-02, DA-E01-03, DA-E01-05. Blocked by: None.\n\n---"
+  },
+  {
+    "id": "DA-E01-02",
+    "summary": "[DA-E01-02] Hop team xac nhan vai tro va trach nhiem tung thanh vien",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-2",
+    "description": "### DA-E01-02 — Team meeting to confirm roles and responsibilities of each member\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Formally assign each team member a technical domain so there is zero ambiguity about who owns which service or deliverable throughout the project.\n\n**Acceptance Criteria:**\n- [ ] A RACI or responsibility table is published listing each member's primary service ownership and documentation duties\n- [ ] Every service (business-service, ai-service, publisher-service, api-gateway, web-dashboard, mobile) has exactly one primary owner assigned\n- [ ] Meeting notes with decisions are stored in the shared project workspace\n\n**Dependencies:** Blocks: DA-E01-04, DA-E02-01. Blocked by: DA-E01-01.\n\n---"
+  },
+  {
+    "id": "DA-E01-03",
+    "summary": "[DA-E01-03] Tim va lien he mentor phu hop voi de tai AI + microservices",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-2",
+    "description": "### DA-E01-03 — Find and contact a mentor suitable for the AI + microservices topic\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Secure a mentor with relevant AI and microservices experience before the project registration deadline so the team has guidance from day one.\n\n**Acceptance Criteria:**\n- [ ] At least one mentor candidate with AI/microservices background is identified and contacted\n- [ ] Mentor confirms availability and agreement to supervise the BrandHub capstone\n- [ ] Mentor contact information and expected meeting cadence are recorded in the project workspace\n\n**Dependencies:** Blocks: DA-E01-05, DA-E03-05. Blocked by: DA-E01-01.\n\n---"
+  },
+  {
+    "id": "DA-E01-04",
+    "summary": "[DA-E01-04] Xac dinh kha nang ky thuat cua tung thanh vien (Java, Python, React, AI tools)",
+    "assignee": "All (Team)",
+    "priority": "High",
+    "epic_key": "DA-2",
+    "description": "### DA-E01-04 — Assess each team member's technical skills (Java, Python, React, AI tools)\n**Assignee:** All (Team) | **Priority:** 🟡 High\n\n**Goal:** Produce a skills matrix that allows the team leader to assign tasks aligned with each member's strengths and identify gaps that need upskilling or external resources.\n\n**Acceptance Criteria:**\n- [ ] Each member self-rates proficiency (Beginner/Intermediate/Advanced) in: Java/Spring Boot, Python/FastAPI, React/TypeScript, React Native, Docker, SQL/NoSQL, AI/LLM tooling\n- [ ] Skills matrix is stored in the shared workspace and visible to all members\n- [ ] Any critical skill gaps (e.g., no one experienced with Groq or Stability AI) are flagged with a mitigation note\n\n**Dependencies:** Blocks: DA-E02-01. Blocked by: DA-E01-02.\n\n---"
+  },
+  {
+    "id": "DA-E01-05",
+    "summary": "[DA-E01-05] Dien form dang ky de tai tren he thong Call4project (insideuni.fpt.edu.vn)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-2",
+    "description": "### DA-E01-05 — Submit project registration form on the Call4project system (insideuni.fpt.edu.vn)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Complete the official university project registration before the submission deadline so the team is formally enrolled and eligible for capstone evaluation.\n\n**Acceptance Criteria:**\n- [ ] Registration form is submitted on insideuni.fpt.edu.vn with all required fields completed\n- [ ] Submission confirmation (email or system acknowledgement) is saved and shared with all team members\n- [ ] Mentor name listed on the form matches the confirmed mentor from DA-E01-03\n\n**Dependencies:** Blocks: None. Blocked by: DA-E01-01, DA-E01-03.\n\n---"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E28-02",
+    "summary": "[DA-E28-02] Implement GET /api/v1/content-requests (ACCOUNT_MANAGER xem danh sach requests cua clients minh)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-112",
+    "description": "### DA-E28-02 — Implement GET /api/v1/content-requests\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow ACCOUNT_MANAGER to list all content requests from their assigned clients with filtering by status and platform.\n\n**Acceptance Criteria:**\n- [ ] GET /api/v1/content-requests returns paginated list scoped to clients assigned to the authenticated ACCOUNT_MANAGER\n- [ ] Supports query params `?status=&platform=&page=&size=` and returns correct filtered results\n- [ ] Returns 200 with empty list (not 404) when no requests match filters\n- [ ] BRAND_CLIENT calling the same endpoint sees only their own clientId's requests\n- [ ] Response includes `totalElements`, `totalPages`, `content[]` envelope\n\n**Technical Notes:**\n- Use MongoDB query with `$and` on `clientId IN [assignedClientIds]` + optional status/platform filters\n- Pull assigned clientIds from workspace membership data; cache if needed to avoid N+1 lookups\n- Paginate with Spring Data's `Pageable`\n\n**Dependencies:** Blocks: [DA-E36-01]. Blocked by: [DA-E28-01].\n\n---"
+  },
+  {
+    "id": "DA-E28-03",
+    "summary": "[DA-E28-03] Implement status tracking (SUBMITTED → ASSIGNED → IN_PROGRESS → PENDING_REVIEW → SENT_TO_CLIENT → APPROVED → REJECTED)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-112",
+    "description": "### DA-E28-03 — Implement status transition logic\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Enforce valid ContentRequest state machine transitions so that invalid status changes are rejected and audit trail is maintained.\n\n**Acceptance Criteria:**\n- [ ] Only allowed transitions execute: SUBMITTED→ASSIGNED, ASSIGNED→IN_PROGRESS, IN_PROGRESS→PENDING_REVIEW, PENDING_REVIEW→SENT_TO_CLIENT, SENT_TO_CLIENT→APPROVED, SENT_TO_CLIENT→REJECTED\n- [ ] Attempt to perform an out-of-order transition returns 409 Conflict with descriptive message\n- [ ] Each transition records `updatedAt` timestamp and `updatedBy` userId\n- [ ] Status history is stored as an embedded array `statusHistory: [{status, changedAt, changedBy}]`\n- [ ] Unit tests cover all valid and at least 5 invalid transitions\n\n**Technical Notes:**\n- Implement a `ContentRequestStateMachine` service class with a transition map `Map<Status, Set<Status>> allowedTransitions`\n- Throw a custom `InvalidStatusTransitionException` mapped to 409 in `@ControllerAdvice`\n\n**Dependencies:** Blocks: [DA-E29-01, DA-E31-01]. Blocked by: [DA-E28-01].\n\n---"
+  },
+  {
+    "id": "DA-E29-01",
+    "summary": "[DA-E29-01] Implement PUT /api/v1/content-requests/{id}/assign (ACCOUNT_MANAGER assign cho CONTENT_CREATOR)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-120",
+    "description": "### DA-E29-01 — Implement PUT /api/v1/content-requests/{id}/assign\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow ACCOUNT_MANAGER to assign a content request to a CONTENT_CREATOR and transition status to ASSIGNED.\n\n**Acceptance Criteria:**\n- [ ] PUT /api/v1/content-requests/{id}/assign with body `{assigneeId}` sets `assigneeId` on the request and transitions status SUBMITTED→ASSIGNED\n- [ ] Returns 404 if content request ID does not exist\n- [ ] Returns 400 if assigneeId does not correspond to a CONTENT_CREATOR in the same workspace\n- [ ] Returns 403 if caller is not ACCOUNT_MANAGER\n- [ ] A notification is created for the assigned CONTENT_CREATOR (event: task_assigned)\n\n**Technical Notes:**\n- Validate that `assigneeId` has role CONTENT_CREATOR and belongs to the same workspaceId as the request\n- Trigger notification via `NotificationService.createTaskAssignedNotification(assigneeId, requestId)`\n- Reuse state machine from DA-E28-03 to perform the SUBMITTED→ASSIGNED transition\n\n**Dependencies:** Blocks: [DA-E29-02]. Blocked by: [DA-E28-03].\n\n---"
+  },
+  {
+    "id": "DA-E29-02",
+    "summary": "[DA-E29-02] Implement GET /api/v1/content-requests/my-tasks (CONTENT_CREATOR xem tasks duoc assign)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-120",
+    "description": "### DA-E29-02 — Implement GET /api/v1/content-requests/my-tasks\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow CONTENT_CREATOR to view all tasks assigned to them with optional filtering by status.\n\n**Acceptance Criteria:**\n- [ ] GET /api/v1/content-requests/my-tasks returns paginated list where `assigneeId` equals authenticated user's ID\n- [ ] Supports `?status=&page=&size=` query params\n- [ ] Returns 403 if caller is not CONTENT_CREATOR\n- [ ] Each item includes `deadline`, `platform`, `topic`, `status`, `contentRequestId`\n- [ ] Results are sorted by `deadline ASC` by default\n\n**Technical Notes:**\n- Filter by `assigneeId = currentUserId` at the repository layer; do not expose other users' tasks\n- Add composite MongoDB index on `{assigneeId, status}` for query performance\n\n**Dependencies:** Blocks: [DA-E36-01]. Blocked by: [DA-E29-01].\n\n---"
+  },
+  {
+    "id": "DA-E29-03",
+    "summary": "[DA-E29-03] Implement deadline management (alert khi task sap qua han)",
+    "assignee": "Ân (AI)",
+    "priority": "High",
+    "epic_key": "DA-120",
+    "description": "### DA-E29-03 — Implement deadline alert notification\n**Assignee:** Ân (AI) | **Priority:** 🟡 High\n\n**Goal:** Automatically notify CONTENT_CREATOR when a task deadline is within 24 hours to prevent missed deadlines.\n\n**Acceptance Criteria:**\n- [ ] A scheduled job runs every 15 minutes and queries content requests with `deadline BETWEEN now AND now+24h` and status not in (APPROVED, REJECTED)\n- [ ] A notification with event type `deadline_24h` is created for the assigned CONTENT_CREATOR if not already notified\n- [ ] Each request triggers at most one `deadline_24h` notification (idempotent — check `notifiedDeadline24h` flag on the document)\n- [ ] Notification message includes task topic and exact deadline datetime\n- [ ] If FCM token exists for the user, a push notification is also sent\n\n**Technical Notes:**\n- Use `@Scheduled(fixedDelay = 900000)` in a `DeadlineAlertScheduler` component\n- Store `notifiedDeadline24h: boolean` on ContentRequest document to prevent duplicate alerts\n- Query: `deadline <= now+24h AND deadline >= now AND notifiedDeadline24h = false AND status NOT IN [APPROVED, REJECTED]`\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E29-01, DA-E39-02].\n\n---"
+  }
+]

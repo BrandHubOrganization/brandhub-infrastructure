@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E19-03",
+    "summary": "[DA-E19-03] Implement Zalo Official Account OAuth",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-108",
+    "description": "### DA-E19-03 — Implement Zalo Official Account OAuth\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Connect a Zalo Official Account to a client, with a dedicated 45-minute refresh job to handle Zalo's extremely short 1-hour token TTL.\n\n**Acceptance Criteria:**\n- [ ] GET /api/v1/social/zalo/connect?clientId={clientId} redirects to Zalo's OAuth dialog with required scopes\n- [ ] GET /api/v1/social/zalo/callback exchanges code for access token (1-hour TTL) and refresh token; both stored encrypted in MongoDB\n- [ ] SocialAccount document created with {clientId, workspaceId, platform: ZALO, oaId, oaName, tokenStatus: ACTIVE, expiresAt}\n- [ ] A dedicated Spring `@Scheduled` job runs every 45 minutes (separate from the nightly cron) to refresh Zalo tokens before they expire\n- [ ] If the 45-minute refresh fails, token status is set to EXPIRING_SOON and Account Manager is notified immediately (not at next nightly check)\n\n**Technical Notes:**\n- Zalo OA API base URL: `https://openapi.zalo.me/v2.0/oa/`\n- Zalo access token TTL is 1 hour — the 45-minute refresh cadence is intentional; a nightly job alone is insufficient\n- Refresh token itself has a longer TTL (varies by Zalo plan); store `refreshTokenExpiresAt` separately and alert when it is within 7 days of expiry\n\n**Dependencies:** Blocks: [DA-E20-01]. Blocked by: [DA-E18-03, DA-E14-02].\n\n---"
+  },
+  {
+    "id": "DA-E19-04",
+    "summary": "[DA-E19-04] Implement token status dashboard API (xem trang thai ACTIVE/EXPIRED/REVOKED cho moi accounts)",
+    "assignee": "Trung (Leader)",
+    "priority": "High",
+    "epic_key": "DA-108",
+    "description": "### DA-E19-04 — Implement Token Status API\n**Assignee:** Trung (Leader) | **Priority:** 🟡 High\n\n**Goal:** Expose an endpoint that returns the real-time connection status of all social accounts for a client, enabling the UI to display connection health at a glance.\n\n**Acceptance Criteria:**\n- [ ] GET /api/v1/social/accounts returns list of SocialAccount records for the JWT's workspaceId, optionally filtered by `clientId` query param\n- [ ] Each account includes {accountId, platform, displayName, tokenStatus, expiresAt, lastRefreshedAt}\n- [ ] `tokenStatus` values: ACTIVE (valid, > 7 days remaining), EXPIRING_SOON (valid, ≤ 7 days remaining), EXPIRED (past expiresAt), REVOKED (manually disconnected or revocation confirmed)\n- [ ] BRAND_CLIENT role receives only their own clientId's accounts (clientId filter applied from DA-E14-03)\n- [ ] Tokens themselves (encrypted ciphertext) are never included in this response\n\n**Technical Notes:**\n- `tokenStatus` is computed at query time from `expiresAt` vs `Instant.now()` unless the status was explicitly set to REVOKED — do not rely solely on a pre-computed field that may be stale\n- Consider a hybrid approach: store status in MongoDB (updated by refresh jobs) but recompute EXPIRED status on the fly if `expiresAt < now` regardless of stored status\n\n**Dependencies:** Blocks: [DA-E20-03]. Blocked by: [DA-E18-01, DA-E18-02, DA-E19-01, DA-E19-02, DA-E19-03, DA-E14-03].\n\n---"
+  },
+  {
+    "id": "DA-E20-01",
+    "summary": "[DA-E20-01] Implement scheduled token refresh job (chay luc 2:00 AM moi ngay, refresh tokens het han trong 7 ngay)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-100",
+    "description": "### DA-E20-01 — Implement Scheduled Token Refresh Job\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Automatically refresh expiring social platform tokens on a nightly schedule to maintain uninterrupted publishing capability, with a separate high-frequency job for Zalo.\n\n**Acceptance Criteria:**\n- [ ] A Spring `@Scheduled(cron = \"0 0 2 * * *\")` job runs at 2:00 AM daily and refreshes tokens for all platforms (except Zalo) expiring within 7 days\n- [ ] A separate `@Scheduled(fixedDelay = 2700000)` job (every 45 minutes) refreshes Zalo OA tokens exclusively\n- [ ] Successfully refreshed tokens update {accessToken (encrypted), refreshToken (encrypted), expiresAt, lastRefreshedAt, tokenStatus: ACTIVE} in MongoDB\n- [ ] Failed refresh attempts do not crash the job; errors are caught per-account and logged; DA-E20-02 is triggered for each failure\n- [ ] Job execution is idempotent: re-running manually produces no duplicate refreshes within the same window\n\n**Technical Notes:**\n- Use `@EnableScheduling` on a `@Configuration` class; inject the scheduler via `TaskScheduler` for testability\n- Process accounts in batches (e.g., 50 at a time) using MongoDB cursor pagination to avoid loading all accounts into memory\n- For multi-instance deployments, use a distributed lock (Redisson `RLock` or Redis `SET NX EX`) to ensure only one instance runs the job at a time\n\n**Dependencies:** Blocks: [DA-E20-02, DA-E20-03]. Blocked by: [DA-E18-01, DA-E18-02, DA-E19-01, DA-E19-02, DA-E19-03].\n\n---"
+  },
+  {
+    "id": "DA-E20-02",
+    "summary": "[DA-E20-02] Implement alert notification khi token refresh fail (gui thong bao cho Account Manager)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-100",
+    "description": "### DA-E20-02 — Implement Token Refresh Failure Alert\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Notify the assigned Account Manager immediately when a token refresh fails so they can re-authenticate the social account before publishing is disrupted.\n\n**Acceptance Criteria:**\n- [ ] When a refresh job fails for an account, `tokenStatus` is updated to EXPIRING_SOON (if token not yet expired) or EXPIRED\n- [ ] An email notification is sent to the Account Manager assigned to that client with: platform name, account display name, error reason, and a deep link to reconnect\n- [ ] If no Account Manager is assigned, the notification is sent to the workspace AGENCY_OWNER instead\n- [ ] Notifications are not duplicated: if a token has already sent a failure alert within the last 24 hours, suppress subsequent alerts until the token is refreshed or re-authenticated\n- [ ] Notification suppression state is stored in Redis: `alert:token_fail:{accountId}`, TTL = 24 hours\n\n**Technical Notes:**\n- Emit a Spring `ApplicationEvent` (e.g., `TokenRefreshFailedEvent`) from the refresh job and handle it in a separate `@EventListener` — keeps the job logic clean\n- Email template should include a clear call-to-action button; use Thymeleaf templates if already used elsewhere in the project\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E20-01].\n\n---"
+  },
+  {
+    "id": "DA-E20-03",
+    "summary": "[DA-E20-03] Implement manual token refresh API (Account Manager trigger thu cong)",
+    "assignee": "Phước (Publisher)",
+    "priority": "High",
+    "epic_key": "DA-100",
+    "description": "### DA-E20-03 — Implement Manual Token Refresh API\n**Assignee:** Phước (Publisher) | **Priority:** 🟡 High\n\n**Goal:** Allow Account Managers to manually trigger a token refresh for a specific social account outside of the scheduled job cycle.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/social/accounts/{accountId}/refresh triggers an immediate token refresh for the specified account; returns 200 with updated {tokenStatus, expiresAt}\n- [ ] Only AGENCY_OWNER and ACCOUNT_MANAGER assigned to the client may trigger manual refresh; 403 otherwise\n- [ ] If the refresh token itself is expired or invalid, returns 400 with {error: \"Re-authentication required\", reconnectUrl}\n- [ ] Account must belong to the caller's workspaceId; mismatched workspaceId returns 404\n- [ ] Rate-limited to 5 manual refresh attempts per account per hour to prevent abuse (Redis counter with 1-hour TTL)\n\n**Technical Notes:**\n- Reuse the same refresh logic extracted from DA-E20-01 into a `TokenRefreshService`; the scheduled job and this endpoint both call the same service method\n- Rate limit key: `ratelimit:manual_refresh:{accountId}`, increment with `INCR` and set TTL on first increment with `EXPIRE`\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E19-04, DA-E20-01].\n\n---"
+  }
+]

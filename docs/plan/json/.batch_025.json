@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-AI01-03",
+    "summary": "[DA-AI01-03] Research Google Veo API: capabilities, pricing, rate limits, movement parameters",
+    "assignee": "Ân (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-55",
+    "description": "### DA-AI01-03 — Research Google Veo API: capabilities, pricing, rate limits, movement parameters\n**Assignee:** Ân (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Establish a factual baseline for Veo API constraints so that the video pipeline design does not make assumptions that break in production.\n\n**Acceptance Criteria:**\n- [ ] Document lists: supported resolutions, max duration, accepted input types (text-only vs image+text), output format\n- [ ] Pricing per video second and rate limits (requests/min, concurrent jobs) are confirmed from official docs or billing sandbox\n- [ ] Movement/camera parameter list is enumerated (e.g., camera_pan, zoom_in, subject_walk) with accepted value ranges\n- [ ] Async flow confirmed: POST → jobId → poll GET status → final video URL lifecycle is documented with example JSON\n\n**Technical Notes:**\n- Veo API is under Google Cloud Vertex AI; access requires project allowlisting — confirm access status early and escalate if not granted\n- Redis polling design depends on the actual poll interval recommendation from Google docs; do not assume 5s without checking\n\n**Dependencies:** Blocks: DA-AI01-04, DA-AI09-01. Blocked by: None.\n\n---"
+  },
+  {
+    "id": "DA-AI01-04",
+    "summary": "[DA-AI01-04] Thu thap va test 20+ video generation prompts voi cac movement parameters khac nhau, phan loai ket qua",
+    "assignee": "Ân (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-55",
+    "description": "### DA-AI01-04 — Collect and test 20+ video generation prompts with various movement parameters, classify results\n**Assignee:** Ân (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Build an empirical prompt library that maps specific movement parameters to predictable visual outcomes, reducing guesswork during product video generation.\n\n**Acceptance Criteria:**\n- [ ] At least 20 prompts tested, covering at minimum: product showcase, lifestyle scene, brand intro, seasonal campaign categories\n- [ ] Each result is classified on: movement accuracy (does the video match the requested motion), visual quality (1-5), generation time\n- [ ] A \"top 10 best-performing prompts\" shortlist is extracted and formatted as starter templates for DA-AI09-04\n\n**Technical Notes:**\n- Tag each prompt with movement_type (camera_pan / zoom_in / zoom_out / subject_walk / static) to feed the parameter mapping in DA-AI09-03\n- Save video outputs to a shared S3 bucket or Google Drive folder with consistent naming: `veo_test_{prompt_id}_{movement_type}.mp4`\n\n**Dependencies:** Blocks: DA-AI09-02, DA-AI09-04. Blocked by: DA-AI01-03.\n\n---"
+  },
+  {
+    "id": "DA-AI01-05",
+    "summary": "[DA-AI01-05] Research cac ky thuat ghep anh san pham + model: ControlNet inpainting, DALL-E edit, rembg + composite",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-55",
+    "description": "### DA-AI01-05 — Research product + model image compositing techniques: ControlNet inpainting, DALL-E edit, rembg + composite\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Identify the compositing approach that best balances output realism, compute cost, and implementation complexity before building the composition service.\n\n**Acceptance Criteria:**\n- [ ] Three techniques are researched: ControlNet inpainting, DALL-E 2/3 edit API, and rembg + Pillow manual composite\n- [ ] Research note documents: API availability, estimated cost per composite, GPU/CPU requirements, known failure modes\n- [ ] Recommendation section states which technique BrandHub should use as primary and which as fallback, with rationale\n\n**Technical Notes:**\n- rembg known failure cases to document explicitly: transparent/glass packaging, fine hair edges, reflective surfaces (mirrors, metallic products)\n- DALL-E edit requires RGBA PNG input with mask; test whether product cutout masks from rembg are compatible\n\n**Dependencies:** Blocks: DA-AI01-06, DA-AI08-01. Blocked by: None.\n\n---"
+  },
+  {
+    "id": "DA-AI01-06",
+    "summary": "[DA-AI01-06] Test 3 phuong phap ghep anh tren 10 cap anh san pham + model, danh gia do tu nhien va chi phi compute",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-55",
+    "description": "### DA-AI01-06 — Test 3 compositing methods on 10 product + model image pairs, evaluate naturalness and compute cost\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Validate the compositing technique recommendation with real product images representative of BrandHub's target clientele (fashion, beauty, F&B).\n\n**Acceptance Criteria:**\n- [ ] 10 product + model image pairs tested across all 3 methods; raw composite outputs saved and linked\n- [ ] Evaluation rubric applied to each output: edge blending (1-5), shadow realism (1-5), lighting consistency (1-5), compute time (s), cost (USD)\n- [ ] Failure cases are photographed and catalogued with root cause notes (e.g., \"transparent bottle — rembg retains background pixels\")\n\n**Technical Notes:**\n- Include at least 2 \"hard\" cases: one with hair-heavy model photo and one with a reflective/glass product, to stress-test rembg limits\n- Use identical Pillow composite pipeline for all 3 so the only variable is the background/mask source\n\n**Dependencies:** Blocks: DA-AI08-01. Blocked by: DA-AI01-05.\n\n---"
+  },
+  {
+    "id": "DA-AI01-07",
+    "summary": "[DA-AI01-07] So sanh Llama 3 (Groq) vs Claude API: chat luong caption tieng Viet, toc do, chi phi/call",
+    "assignee": "All (Team)",
+    "priority": "Highest",
+    "epic_key": "DA-55",
+    "description": "### DA-AI01-07 — Compare Llama 3 (Groq) vs Claude API: Vietnamese caption quality, speed, cost per call\n**Assignee:** All (Team) | **Priority:** 🔴 Critical\n\n**Goal:** Determine the primary and fallback LLM pairing for caption generation based on measurable Vietnamese language quality, not assumption.\n\n**Acceptance Criteria:**\n- [ ] 20 Vietnamese marketing captions generated per model using identical prompts and brand context documents\n- [ ] Blind evaluation by all team members rates captions on: fluency, brand tone adherence, factual accuracy, cultural appropriateness (1-5 each)\n- [ ] Cost per 1000 calls and average latency (ms) documented for both providers; final recommendation recorded in AI Research Summary\n\n**Technical Notes:**\n- Use the same anti-hallucination system prompt for both: \"only use provided context, do not fabricate facts\"\n- Groq Llama 3 rate limit is 30 req/min; measure how often this is hit in a realistic burst test of 30 rapid requests\n- Test Claude Haiku vs Claude Sonnet for cost-quality tradeoff on the fallback side\n\n**Dependencies:** Blocks: DA-AI04-02, DA-AI04-03, DA-AI01-08. Blocked by: None.\n\n---"
+  }
+]
