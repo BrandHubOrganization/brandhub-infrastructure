@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E41-01",
+    "summary": "[DA-E41-01] Integrate Firebase Cloud Messaging (FCM) cho push notifications",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-127",
+    "description": "### DA-E41-01 — Integrate FCM push notifications (mobile)\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Enable the mobile app to receive push notifications from FCM so users are alerted of important events in real time.\n\n**Acceptance Criteria:**\n- [ ] `@react-native-firebase/messaging` initialized; `google-services.json` (Android) and `GoogleService-Info.plist` (iOS) configured\n- [ ] On first app launch (after login), `requestPermission()` is called; user is shown the system permission dialog\n- [ ] If permission granted, `getToken()` fetches the FCM token and calls PUT /api/v1/users/me/fcm-token to register it\n- [ ] FCM token is refreshed via `onTokenRefresh` listener and re-registered whenever it changes\n- [ ] Foreground notifications displayed using `notifee` or `@react-native-firebase/messaging` foreground presenter\n- [ ] Tapping a notification navigates to the relevant in-app screen (deep link routing)\n\n**Technical Notes:**\n- Background/quit state message handling via `messaging().setBackgroundMessageHandler()` registered in `index.js`\n- Deep link routing: notification `data.screen` and `data.entityId` fields map to React Navigation routes\n- FCM token stored in AsyncStorage as backup; re-registered on every app start if the stored token differs from server\n\n**Dependencies:** Blocks: [DA-E41-03]. Blocked by: [DA-E40-01].\n\n---"
+  },
+  {
+    "id": "DA-E41-02",
+    "summary": "[DA-E41-02] Setup FCM server-side (gui notification khi events xay ra trong business-service)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-127",
+    "description": "### DA-E41-02 — Set up FCM server-side in business-service\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Implement server-side FCM token storage and push notification dispatch so the backend can send targeted push notifications to mobile users.\n\n**Acceptance Criteria:**\n- [ ] PUT /api/v1/users/me/fcm-token with body `{fcmToken: string}` stores or updates `fcmToken` on the User document\n- [ ] On each notification creation event, if recipient has a non-null `fcmToken`, dispatch an FCM push via FCM HTTP API v1\n- [ ] FCM payload includes `{title, body, data: {screen, entityId}}` so mobile can deep link\n- [ ] If FCM returns `UNREGISTERED` error, clear the `fcmToken` from the user document (token is invalid)\n- [ ] FCM dispatch is asynchronous (`@Async`) so it does not slow down the primary notification creation path\n\n**Technical Notes:**\n- Use `google-auth-library` or Firebase Admin SDK (`firebase-admin`) for FCM HTTP API v1 authentication\n- FCM API endpoint: `POST https://fcm.googleapis.com/v1/projects/{projectId}/messages:send`\n- Service account key JSON configured via `FIREBASE_SERVICE_ACCOUNT_JSON` env var; never committed to repo\n\n**Dependencies:** Blocks: [DA-E41-01]. Blocked by: [DA-E39-02].\n\n---"
+  },
+  {
+    "id": "DA-E41-03",
+    "summary": "[DA-E41-03] Build Notification screen (list notifications, deep link khi tap)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-127",
+    "description": "### DA-E41-03 — Build Notification screen (mobile)\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Provide a dedicated mobile screen listing all notifications with deep-link navigation and read-state management.\n\n**Acceptance Criteria:**\n- [ ] `FlatList` of notifications sorted by `createdAt DESC`; unread items have a blue left border accent\n- [ ] Tapping a notification calls PUT /{id}/read, marks it read locally (optimistic), and navigates to the relevant screen\n- [ ] \"Mark all as read\" button in the screen header calls PUT /read-all and removes all blue accents\n- [ ] Pull-to-refresh reloads notification list\n- [ ] Infinite scroll loads next page when user reaches the bottom of the list\n- [ ] Empty state: \"No notifications yet\" with bell illustration\n\n**Technical Notes:**\n- Use `FlatList`'s `onEndReached` with `onEndReachedThreshold={0.5}` for infinite scroll\n- Optimistic read state: update local array immediately, revert on API error\n- Navigation mapping same as web: derive target route from `notification.type` and `notification.entityId`\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E41-01, DA-E39-01].\n\n---"
+  },
+  {
+    "id": "DA-E41-04",
+    "summary": "[DA-E41-04] Integrate native camera + media gallery upload",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-127",
+    "description": "### DA-E41-04 — Integrate expo-image-picker and expo-camera\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Enable CONTENT_CREATOR to attach media from their phone gallery or camera to posts directly from the mobile app.\n\n**Acceptance Criteria:**\n- [ ] \"Attach Media\" button in the mobile content editor shows an action sheet: \"Choose from Library\" or \"Take Photo/Video\"\n- [ ] Gallery picker (`expo-image-picker`) supports multi-select of up to 10 images or 1 video\n- [ ] Camera capture (`expo-camera`) supports photo and video modes\n- [ ] Selected media is uploaded via POST /api/v1/media/upload (multipart); upload progress shown per file\n- [ ] On upload success, returned S3 URL is added to the post's `mediaUrls` array\n- [ ] Permissions (camera, photo library) are requested before first use with explanation rationale\n\n**Technical Notes:**\n- `expo-image-picker` with `mediaTypes: ImagePicker.MediaTypeOptions.All`, `allowsMultipleSelection: true`, `quality: 0.8`\n- Video compressed with `expo-av` or `react-native-compressor` before upload if size > 50MB\n- Upload uses `FormData` with `axios.post('/api/v1/media/upload', formData, {onUploadProgress})`\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E40-02].\n\n---"
+  },
+  {
+    "id": "DA-E42-01",
+    "summary": "[DA-E42-01] Viet unit tests cho business-service (AuthService, WorkspaceService, PostService)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-124",
+    "description": "### DA-E42-01 — Write unit tests for business-service\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Achieve ≥70% unit test coverage for business-service core services to prevent regressions and validate business logic correctness.\n\n**Acceptance Criteria:**\n- [ ] `AuthServiceTest`: covers login (success, wrong password, user not found), register (success, duplicate email), refresh token (valid, expired, not found), logout (token invalidated)\n- [ ] `WorkspaceServiceTest`: covers create workspace, invite member (success, already member, wrong role), remove member, workspace isolation (cannot access another workspace's data)\n- [ ] `PostServiceTest`: covers submit (success, wrong status, wrong user), approve, reject, client-approve, client-reject, schedule\n- [ ] All tests use JUnit 5 + Mockito; no Spring context loaded (pure unit tests with mocked dependencies)\n- [ ] Coverage report generated with JaCoCo; fails build if overall coverage < 70%\n\n**Technical Notes:**\n- Add `jacoco-maven-plugin` to `pom.xml` with `<minimum>0.70</minimum>` rule on `check` goal\n- Mock MongoDB repositories with `@Mock` and `Mockito.when(repo.findById(...)).thenReturn(...)`\n- Test naming convention: `methodName_condition_expectedResult` (e.g., `login_wrongPassword_throwsUnauthorizedException`)\n\n**Dependencies:** Blocks: [DA-E42-03]. Blocked by: [DA-E28-03, DA-E31-04].\n\n---"
+  }
+]

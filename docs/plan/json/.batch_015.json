@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E13-03",
+    "summary": "[DA-E13-03] Implement Admin: GET /api/v1/admin/users (list tat ca users voi filter)",
+    "assignee": "Ân (AI)",
+    "priority": "High",
+    "epic_key": "DA-106",
+    "description": "### DA-E13-03 — Implement Admin: GET /api/v1/admin/users\n**Assignee:** Ân (AI) | **Priority:** 🟡 High\n\n**Goal:** Provide administrators with a paginated, filterable list of all users across the platform for oversight and moderation.\n\n**Acceptance Criteria:**\n- [ ] GET /api/v1/admin/users returns paginated list of users; supports query params: `page`, `size`, `role`, `isActive`, `search` (partial email/name match)\n- [ ] Endpoint is restricted to ADMIN role; returns 403 for any other role\n- [ ] Response includes {userId, email, fullName, role, workspaceId, isActive, createdAt, lastLoginAt}\n- [ ] Password hash is never included in any response field\n- [ ] Default page size is 20; maximum is 100\n\n**Technical Notes:**\n- Use Spring Data MongoDB `Pageable` with `MongoTemplate` for dynamic query building when multiple optional filters are combined\n- `search` filter should use a MongoDB `$regex` with `$options: 'i'` on both email and fullName fields\n- Requires `@RequireRole(\"ADMIN\")` on the controller method (depends on DA-E14-01)\n\n**Dependencies:** Blocks: [DA-E13-04]. Blocked by: [DA-E14-01].\n\n---"
+  },
+  {
+    "id": "DA-E13-04",
+    "summary": "[DA-E13-04] Implement Admin: Ban/Suspend user (cap nhat isActive=false, gui notification)",
+    "assignee": "Ân (AI)",
+    "priority": "High",
+    "epic_key": "DA-106",
+    "description": "### DA-E13-04 — Implement Admin: Ban/Suspend User\n**Assignee:** Ân (AI) | **Priority:** 🟡 High\n\n**Goal:** Allow administrators to deactivate a user account immediately, invalidating all active sessions and notifying the user.\n\n**Acceptance Criteria:**\n- [ ] PUT /api/v1/admin/users/{userId}/ban sets `isActive=false` in MongoDB; returns 200\n- [ ] All active refresh tokens for the target user are invalidated (set `lastBannedAt` timestamp and reject tokens issued before it in JWT filter)\n- [ ] Banned user's access token is blacklisted in Redis if the jti is retrievable; otherwise rely on `lastBannedAt` check\n- [ ] A notification email is sent to the banned user's email address with reason\n- [ ] Attempting to ban an already-banned user returns 409 Conflict\n- [ ] Attempting to ban an ADMIN account returns 403 Forbidden\n\n**Technical Notes:**\n- Full jti enumeration is not practical; use a `bannedAt` timestamp stored on the User document and add a check in the JWT filter: reject any token with `iat < user.bannedAt`\n- Notification email should be sent asynchronously via `@Async` to avoid blocking the response\n- Requires `@RequireRole(\"ADMIN\")` on the controller method\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E13-03, DA-E14-01].\n\n---"
+  },
+  {
+    "id": "DA-E14-01",
+    "summary": "[DA-E14-01] Viet RBAC annotation/middleware cho business-service (@RequireRole)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-93",
+    "description": "### DA-E14-01 — Write @RequireRole Annotation and AOP Aspect\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Implement a declarative, annotation-driven role enforcement mechanism for all controller endpoints using Spring AOP.\n\n**Acceptance Criteria:**\n- [ ] `@RequireRole({\"AGENCY_OWNER\", \"ACCOUNT_MANAGER\"})` annotation is defined and applicable at method and class level\n- [ ] An AOP `@Around` aspect intercepts all annotated methods and extracts the authenticated user's role from the SecurityContext\n- [ ] Requests from users whose role is not in the allowed list receive 403 Forbidden with body `{error: \"Insufficient permissions\"}`\n- [ ] Unauthenticated requests (no valid JWT) receive 401 before the aspect is evaluated\n- [ ] Aspect is covered by unit tests validating allowed, denied, and unauthenticated scenarios\n\n**Technical Notes:**\n- Annotate the aspect with `@Aspect` and `@Component`; pointcut: `@annotation(requireRole)` to capture the annotation instance directly\n- Extract role from `SecurityContextHolder.getContext().getAuthentication().getAuthorities()`\n- Class-level `@RequireRole` should apply to all methods unless a method-level annotation overrides it (method takes precedence)\n- Register the aspect before `@Transactional` in the proxy chain to avoid opening transactions for unauthorized requests\n\n**Dependencies:** Blocks: [DA-E13-03, DA-E13-04, DA-E14-02, DA-E14-03, DA-E15-01, DA-E16-01]. Blocked by: [DA-E12-02].\n\n---"
+  },
+  {
+    "id": "DA-E14-02",
+    "summary": "[DA-E14-02] Implement workspace isolation filter (moi query MongoDB phai co workspaceId filter)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-93",
+    "description": "### DA-E14-02 — Implement Workspace Isolation Filter\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Ensure every MongoDB query in business-service is automatically scoped to the authenticated user's workspaceId, preventing cross-tenant data leakage.\n\n**Acceptance Criteria:**\n- [ ] A Spring `HandlerInterceptor` or AOP aspect extracts `workspaceId` from the JWT and stores it in a `ThreadLocal` context holder\n- [ ] All repository methods that query collection data accept or inject `workspaceId`; queries without it fail with a runtime exception\n- [ ] Integration test confirms that a user from Workspace A cannot retrieve documents belonging to Workspace B even if they guess the document ID\n- [ ] The filter is applied automatically — no developer needs to manually pass workspaceId in every service call\n- [ ] Users with null workspaceId (newly registered, no workspace yet) receive 403 on any workspace-scoped endpoint\n\n**Technical Notes:**\n- Use a `WorkspaceContext` class with a static `ThreadLocal<String> workspaceId`; clear it in an `afterCompletion` hook to prevent thread pool leakage\n- Alternatively, use Spring Security's `Authentication` object to carry workspaceId as a custom `GrantedAuthority` or principal attribute\n- For MongoDB, apply the workspace filter using a `MongoTemplate` wrapper or a custom `@Query` base method on all repositories\n\n**Dependencies:** Blocks: [DA-E14-03, DA-E15-01, DA-E16-01, DA-E16-04]. Blocked by: [DA-E14-01].\n\n---"
+  },
+  {
+    "id": "DA-E14-03",
+    "summary": "[DA-E14-03] Implement client isolation cho BRAND_CLIENT (chi duoc xem data cua clientId minh)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-93",
+    "description": "### DA-E14-03 — Implement Client Isolation for BRAND_CLIENT Role\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Ensure users with the BRAND_CLIENT role can only access data belonging to their own clientId, enforced at the query layer.\n\n**Acceptance Criteria:**\n- [ ] All MongoDB queries executed in a BRAND_CLIENT session include both `workspaceId` and `clientId` filters\n- [ ] A BRAND_CLIENT user attempting to access another client's data receives 403 Forbidden, not 404 or 200\n- [ ] `clientId` is stored in the User document and included in the JWT payload for BRAND_CLIENT users\n- [ ] Integration test verifies BRAND_CLIENT user cannot read posts, analytics, or reports of a sibling client in the same workspace\n- [ ] AGENCY_OWNER and ACCOUNT_MANAGER roles are NOT subject to the clientId filter (they see all clients in their workspace)\n\n**Technical Notes:**\n- Extend the `WorkspaceContext` holder from DA-E14-02 to also carry an optional `clientId`\n- In the repository layer, check if the calling role is BRAND_CLIENT and conditionally append the `clientId` filter — this can be done in a base repository method\n- Consider a custom `@ClientScoped` annotation on repository methods that must enforce client isolation, making enforcement explicit and auditable\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E14-02].\n\n---"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-AI03-03",
+    "summary": "[DA-AI03-03] Build embedding pipeline (text chunk → vector via embedding model → store ChromaDB voi metadata: documentId, clientId, chunkIndex)",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-26",
+    "description": "### DA-AI03-03 — Build embedding pipeline (text chunk → embedding → store in ChromaDB with metadata)\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Convert document chunks into vector embeddings and persist them in ChromaDB so they can be retrieved by semantic similarity at caption generation time.\n\n**Acceptance Criteria:**\n- [ ] `services/embedding.py` takes `List[str]` chunks + `{documentId, clientId}` metadata and stores all chunks in the correct ChromaDB collection\n- [ ] Metadata stored per chunk: `{documentId, clientId, chunkIndex, source_filename}`\n- [ ] Collection is created if it does not exist; existing collections are reused (idempotent on collection create)\n- [ ] End-to-end test: upload a 1000-word TXT file → verify ChromaDB collection for that clientId contains the expected number of chunks\n\n**Technical Notes:**\n- Use ChromaDB's built-in embedding function (`chromadb.utils.embedding_functions.SentenceTransformerEmbeddingFunction`) or pass pre-computed embeddings; decide based on DA-AI02-07 design doc\n- Batch inserts using `collection.add(documents=chunks, metadatas=..., ids=...)` in batches of 50 to avoid ChromaDB timeout on large documents\n\n**Dependencies:** Blocks: DA-AI03-04. Blocked by: DA-AI03-02, DA-AI02-02, DA-AI02-07.\n\n---"
+  },
+  {
+    "id": "DA-AI03-04",
+    "summary": "[DA-AI03-04] Implement semantic search (query → embedding → top-K retrieval tu ChromaDB theo clientId)",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-26",
+    "description": "### DA-AI03-04 — Implement semantic search (query → embedding → top-K retrieval from ChromaDB filtered by clientId)\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Enable the RAG context builder to retrieve only the most relevant brand knowledge chunks for a given caption generation query.\n\n**Acceptance Criteria:**\n- [ ] `services/search.py` function `semantic_search(query: str, client_id: str, k: int = 5) -> List[str]` returns top-K chunk texts\n- [ ] Results are filtered by `clientId` metadata so no client ever retrieves another client's documents\n- [ ] When ChromaDB collection for a clientId does not exist, returns empty list (does not raise exception)\n- [ ] Unit test with seeded ChromaDB data verifies that a relevant query returns the expected chunk in position 0\n\n**Technical Notes:**\n- ChromaDB `collection.query(query_texts=[query], n_results=k, where={\"clientId\": {\"$eq\": client_id}})` is the correct call pattern\n- If k > number of stored chunks, ChromaDB raises an error; add a guard to set `n_results = min(k, collection.count())`\n\n**Dependencies:** Blocks: DA-AI03-05. Blocked by: DA-AI03-03.\n\n---"
+  },
+  {
+    "id": "DA-AI03-05",
+    "summary": "[DA-AI03-05] Build RAG context builder (format top-K chunks thanh context string cho LLM prompt)",
+    "assignee": "Ân (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-26",
+    "description": "### DA-AI03-05 — Build RAG context builder (format top-K chunks into context string for LLM prompt)\n**Assignee:** Ân (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Transform raw retrieved chunks into a cleanly formatted context block that the LLM prompt template can consume directly.\n\n**Acceptance Criteria:**\n- [ ] `services/rag_context.py` takes `List[str]` chunks, returns a single formatted string with numbered chunks and clear separators\n- [ ] Empty chunk list returns an empty string (not an error), allowing graceful degradation when no brand documents exist\n- [ ] Context string length is capped at 3000 characters to stay within LLM context budget; excess chunks are truncated with a log warning\n\n**Technical Notes:**\n- Format: `\"[1] {chunk1}\\n\\n[2] {chunk2}\\n\\n...\"` — numbered chunks help the LLM cite sources if prompted to do so\n- This module feeds directly into the prompt template in DA-AI04-01; coordinate the exact format string with Ân\n\n**Dependencies:** Blocks: DA-AI04-01. Blocked by: DA-AI03-04.\n\n---"
+  },
+  {
+    "id": "DA-AI03-06",
+    "summary": "[DA-AI03-06] Document deletion endpoint (xoa chunks khoi ChromaDB + file khoi S3)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-26",
+    "description": "### DA-AI03-06 — Document deletion endpoint (remove chunks from ChromaDB + file from S3)\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Allow clients to remove brand documents and ensure all associated vectors and stored files are fully purged to meet data hygiene requirements.\n\n**Acceptance Criteria:**\n- [ ] `DELETE /ai/rag/documents/{documentId}` deletes all ChromaDB chunks where `documentId` matches AND deletes the S3 file\n- [ ] If document does not exist, returns `404 Not Found`\n- [ ] Both operations (ChromaDB delete + S3 delete) are attempted; if S3 delete fails, ChromaDB delete is still committed and the error is logged (not raised to client)\n- [ ] Integration test confirms: after deletion, `semantic_search` no longer returns chunks from that document\n\n**Technical Notes:**\n- ChromaDB delete by metadata: `collection.delete(where={\"documentId\": {\"$eq\": document_id}})` — verify this filter syntax works in the installed ChromaDB version before writing the endpoint\n\n**Dependencies:** Blocks: None. Blocked by: DA-AI03-03, DA-AI02-03.\n\n---"
+  },
+  {
+    "id": "DA-AI03-07",
+    "summary": "[DA-AI03-07] Test RAG accuracy (upload 3 brand documents thuc te, verify retrieved context dung va khong hallucinate)",
+    "assignee": "Ân (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-26",
+    "description": "### DA-AI03-07 — Test RAG accuracy (upload 3 real brand documents, verify retrieved context is correct and does not hallucinate)\n**Assignee:** Ân (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Validate that the complete RAG pipeline retrieves factually correct chunks and that the LLM does not fabricate claims outside those chunks.\n\n**Acceptance Criteria:**\n- [ ] 3 real brand documents uploaded (ideally from different industries: fashion, F&B, beauty)\n- [ ] 10 test queries per document run; retrieved chunks manually inspected and rated as relevant/irrelevant\n- [ ] Retrieval precision ≥ 80% (≥8/10 queries return at least one relevant chunk in top-3)\n- [ ] 5 generated captions per document inspected for hallucination; any claim not traceable to a source chunk is flagged as a failure\n\n**Technical Notes:**\n- Document the exact queries used and the retrieved chunks in a test report so results can be reproduced during mentor presentation\n- If precision is below 80%, first check chunk size (may need tuning) before suspecting the embedding model\n\n**Dependencies:** Blocks: DA-AI04-07. Blocked by: DA-AI03-05, DA-AI04-02.\n\n---"
+  }
+]

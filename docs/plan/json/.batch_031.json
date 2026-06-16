@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-AI05-02",
+    "summary": "[DA-AI05-02] Implement TikTok trending hashtag crawler (web scraping hoac unofficial API)",
+    "assignee": "Ân (AI)",
+    "priority": "High",
+    "epic_key": "DA-98",
+    "description": "### DA-AI05-02 — Implement TikTok trending hashtag crawler (web scraping or unofficial API, fallback to pytrends)\n**Assignee:** Ân (AI) | **Priority:** 🟡 High\n\n**Goal:** Supplement Google Trends data with TikTok-specific trending hashtags, which are the primary discovery mechanism for BrandHub's target demographic.\n\n**Acceptance Criteria:**\n- [ ] `services/trends/tiktok_trends.py` attempts to fetch trending hashtags via TikTok web scraping or unofficial API\n- [ ] On failure or block, gracefully falls back to pytrends topic search with keyword `tiktok trending vietnam`\n- [ ] Returns `List[{keyword: str, score: int, platform: \"tiktok\"}]` in the same shape as DA-AI05-01\n\n**Technical Notes:**\n- TikTok actively blocks scrapers; use `playwright` with a stealth plugin or `httpx` with realistic browser headers as first attempt; document which approach succeeded in the test environment\n- If all scraping is blocked, the fallback is acceptable for MVP — document this limitation explicitly\n\n**Dependencies:** Blocks: DA-AI05-03. Blocked by: DA-AI02-01.\n\n---"
+  },
+  {
+    "id": "DA-AI05-03",
+    "summary": "[DA-AI05-03] Normalize trend data thanh format chuan: {keyword, score, platform, relatedTopics[]}",
+    "assignee": "Ân (AI)",
+    "priority": "High",
+    "epic_key": "DA-98",
+    "description": "### DA-AI05-03 — Normalize trend data into standard format {keyword, score, platform, relatedTopics[]}\n**Assignee:** Ân (AI) | **Priority:** 🟡 High\n\n**Goal:** Unify trend data from multiple sources into a single schema so the rest of the system has one interface regardless of trend source.\n\n**Acceptance Criteria:**\n- [ ] `services/trends/normalizer.py` accepts raw output from Google Trends and TikTok crawlers and returns `List[TrendItem]` where `TrendItem = {keyword: str, score: float, platform: str, relatedTopics: List[str]}`\n- [ ] Scores from different platforms are normalized to 0.0–1.0 range\n- [ ] Duplicate keywords across platforms are merged with scores averaged and platforms listed as an array\n\n**Dependencies:** Blocks: DA-AI05-04. Blocked by: DA-AI05-01, DA-AI05-02.\n\n---"
+  },
+  {
+    "id": "DA-AI05-04",
+    "summary": "[DA-AI05-04] Implement Redis cache cho trend data (TTL 6 gio, key: trends:vn:{date}:{category})",
+    "assignee": "Ân (AI)",
+    "priority": "High",
+    "epic_key": "DA-98",
+    "description": "### DA-AI05-04 — Implement Redis cache for trend data (key: trends:vn:{date}:{category}, TTL 6 hours)\n**Assignee:** Ân (AI) | **Priority:** 🟡 High\n\n**Goal:** Prevent excessive crawling and rate-limit exposure by caching trend data for 6 hours per category per day.\n\n**Acceptance Criteria:**\n- [ ] `utils/trends_cache.py` implements `get_cached_trends(category) -> Optional[List]` and `set_cached_trends(category, data)` with `TTL = 21600` seconds\n- [ ] Cache key format: `trends:vn:{YYYY-MM-DD}:{category}` using current UTC date\n- [ ] On Redis connection failure, function logs error and returns `None` so callers fall back to live crawl without crashing\n\n**Technical Notes:**\n- Serialize trend data as JSON in Redis; use `json.dumps` / `json.loads` with a custom encoder if `TrendItem` is a dataclass\n- Redis client should be shared from `utils/clients.py` (add `redis_client` alongside the existing 4 clients)\n\n**Dependencies:** Blocks: DA-AI05-05. Blocked by: DA-AI05-03, DA-AI02-01.\n\n---"
+  },
+  {
+    "id": "DA-AI05-05",
+    "summary": "[DA-AI05-05] Implement trend suggestions API endpoint (GET /ai/trends?category=fashion&limit=20)",
+    "assignee": "Ân (AI)",
+    "priority": "High",
+    "epic_key": "DA-98",
+    "description": "### DA-AI05-05 — Implement trend suggestions API endpoint (GET /ai/trends?category=fashion&limit=20)\n**Assignee:** Ân (AI) | **Priority:** 🟡 High\n\n**Goal:** Expose trend data to the frontend and to the caption generation pipeline via a stable, cacheable API endpoint.\n\n**Acceptance Criteria:**\n- [ ] `GET /ai/trends` accepts query params `category` and `limit` (default 20, max 50)\n- [ ] Response: `{trends: List[TrendItem], cachedAt: ISO8601 timestamp, ttlSeconds: int}`\n- [ ] Cache hit serves instantly from Redis; cache miss triggers live crawl, caches result, then responds\n- [ ] If both cache miss and crawl fail, returns `503` with `{\"error\": \"trend_data_unavailable\"}` rather than empty list\n\n**Dependencies:** Blocks: DA-AI04-01 (trend data injection into prompts). Blocked by: DA-AI05-04.\n\n---"
+  },
+  {
+    "id": "DA-AI05-06",
+    "summary": "[DA-AI05-06] Setup APScheduler de auto-crawl moi 6 gio",
+    "assignee": "Ân (AI)",
+    "priority": "Medium",
+    "epic_key": "DA-98",
+    "description": "### DA-AI05-06 — Set up APScheduler to auto-crawl every 6 hours\n**Assignee:** Ân (AI) | **Priority:** 🟢 Medium\n\n**Goal:** Keep the trend cache warm by proactively refreshing all tracked categories on a schedule rather than relying on user requests to trigger crawls.\n\n**Acceptance Criteria:**\n- [ ] `APScheduler` job runs every 6 hours, crawls trends for all configured categories (fashion, food, beauty, tech, lifestyle), and updates Redis\n- [ ] Scheduler starts automatically when FastAPI app starts via `lifespan` context manager\n- [ ] Failed crawl jobs log the error and do not crash the scheduler; next scheduled run proceeds normally\n\n**Technical Notes:**\n- Use `AsyncIOScheduler` from `apscheduler.schedulers.asyncio` to avoid blocking the FastAPI event loop\n- Add a manual trigger endpoint `POST /internal/trends/refresh` (protected by X-Internal-Key) for ad-hoc cache invalidation during demos\n\n**Dependencies:** Blocks: None. Blocked by: DA-AI05-04, DA-AI02-06.\n\n---"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E05-01",
+    "summary": "[DA-E05-01] Ve system architecture overview diagram (7 services + 5 databases + RabbitMQ + clients)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-27",
+    "description": "### DA-E05-01 — Draw system architecture overview diagram (7 services + 5 databases + RabbitMQ + clients)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Produce a single authoritative architecture diagram showing all system components and their connections so every team member has a shared visual mental model of the full system.\n\n**Acceptance Criteria:**\n- [ ] Diagram includes all 7 services: api-gateway (8080), business-service (8081), ai-service (8082), publisher-service (8083), web-dashboard, mobile app, and infrastructure\n- [ ] Diagram includes all 5 data stores: MongoDB (27017), PostgreSQL (5432), Redis (6379), ChromaDB (8000), and RabbitMQ (5672/15672) with their owning service clearly indicated\n- [ ] External actors (Web Browser, Mobile App, Social Platform APIs) are shown as separate nodes with arrows indicating communication direction and protocol (HTTP/HTTPS, AMQP)\n\n**Technical Notes:**\n- Use draw.io or Excalidraw for diagramming so the source file can be committed to the brandhub-infrastructure repo alongside documentation\n- Color-code by layer: client → gateway → services → data stores to aid readability\n\n**Dependencies:** Blocks: DA-E05-02, DA-E05-03, DA-E05-04, DA-E05-08. Blocked by: DA-E01-01.\n\n---"
+  },
+  {
+    "id": "DA-E05-02",
+    "summary": "[DA-E05-02] Dinh nghia service responsibilities va boundaries (7 services lam gi, KHONG lam gi)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-27",
+    "description": "### DA-E05-02 — Define service responsibilities and boundaries (what each of the 7 services does and does NOT do)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Write explicit responsibility and anti-responsibility definitions for each service to prevent scope overlap and cross-service coupling during implementation.\n\n**Acceptance Criteria:**\n- [ ] Each of the 7 services has a written \"Owns\" list and a \"Does NOT own\" list\n- [ ] No two services share ownership of the same concern (e.g., only business-service owns user authentication; only publisher-service sends to social APIs)\n- [ ] Document is stored in the brandhub-infrastructure repo under `docs/service-boundaries.md`\n\n**Technical Notes:**\n- Key boundary to make explicit: business-service orchestrates publishing by sending a RabbitMQ message; publisher-service executes the actual social API call and sends a callback — business-service must never call social APIs directly\n\n**Dependencies:** Blocks: DA-E05-05, DA-E05-08. Blocked by: DA-E05-01.\n\n---"
+  },
+  {
+    "id": "DA-E05-03",
+    "summary": "[DA-E05-03] Ve database ownership diagram (service nao so huu DB nao, cross-DB reference strategy)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-27",
+    "description": "### DA-E05-03 — Draw database ownership diagram (which service owns which DB, cross-DB reference strategy)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Visually document which service exclusively owns each database and how cross-service data references are handled so developers do not create unauthorized cross-database joins or direct DB access.\n\n**Acceptance Criteria:**\n- [ ] Diagram shows: business-service → MongoDB + PostgreSQL + Redis; ai-service → ChromaDB + Redis (read-only for rate limit); publisher-service → Redis (read-only for job state)\n- [ ] Cross-DB reference strategy is documented: services reference foreign entities by ID only, never by joining across databases\n- [ ] Diagram is committed to brandhub-infrastructure repo under `docs/`\n\n**Technical Notes:**\n- Document that publisher-service must not have a direct connection string to MongoDB or PostgreSQL — it receives all needed data in the RabbitMQ message payload\n\n**Dependencies:** Blocks: DA-E06-01, DA-E05-08. Blocked by: DA-E05-01.\n\n---"
+  },
+  {
+    "id": "DA-E05-04",
+    "summary": "[DA-E05-04] Document service-to-service communication (REST: business-ai, RabbitMQ: business-publisher, HTTP callback: publisher-business)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-27",
+    "description": "### DA-E05-04 — Document service-to-service communication (REST: business-ai, RabbitMQ: business-publisher, HTTP callback: publisher-business)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Produce a complete communication contract document so that each service team knows exactly how to send and receive messages from other services without ad hoc coordination.\n\n**Acceptance Criteria:**\n- [ ] REST communication from business-service to ai-service is documented with: base URL, auth mechanism, timeout value, retry policy\n- [ ] RabbitMQ publish job message from business-service to publisher-service is documented with: exchange name, routing key, queue name, full message JSON schema\n- [ ] HTTP callback from publisher-service back to business-service is documented with: endpoint URL pattern, callback payload schema, expected HTTP response codes, retry behavior on callback failure\n\n**Technical Notes:**\n- Use a shared internal API key (not JWT) for business→ai-service calls since ai-service is not exposed through the public gateway; document the header name (e.g., `X-Internal-Api-Key`)\n- RabbitMQ exchange type: use `direct` exchange for publish jobs to ensure exactly one publisher-service instance processes each job\n\n**Dependencies:** Blocks: DA-E07-01, DA-E07-02, DA-E07-03, DA-E05-08. Blocked by: DA-E05-02.\n\n---"
+  },
+  {
+    "id": "DA-E05-05",
+    "summary": "[DA-E05-05] Viet Architecture Decision Records (ADRs) cho 4 quyet dinh chinh: polyrepo, MongoDB+PostgreSQL split, RabbitMQ, Spring Cloud Gateway",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-27",
+    "description": "### DA-E05-05 — Write Architecture Decision Records (ADRs) for 4 key decisions: polyrepo, MongoDB+PostgreSQL split, RabbitMQ, Spring Cloud Gateway\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Document the rationale behind the four most consequential architecture decisions so the team can defend them to the mentor and future reviewers, and so the decisions are not revisited without cause.\n\n**Acceptance Criteria:**\n- [ ] Four ADR files exist: `ADR-001-polyrepo.md`, `ADR-002-database-split.md`, `ADR-003-rabbitmq.md`, `ADR-004-spring-cloud-gateway.md`\n- [ ] Each ADR follows the standard format: Status, Context, Decision, Consequences (positive and negative)\n- [ ] ADRs are committed to brandhub-infrastructure repo under `docs/adr/`\n\n**Technical Notes:**\n- ADR-002 must explain why MongoDB is used for content/posts/analytics (flexible schema, document model) while PostgreSQL is used for users/workspaces/subscriptions (ACID transactions, relational integrity) — this is the question mentors most commonly ask\n- ADR-003 must justify async over synchronous REST for publishing: social API latency (2–30s), retry isolation, and publisher-service independent scalability\n\n**Dependencies:** Blocks: DA-E05-08. Blocked by: DA-E05-02, DA-E05-03.\n\n---"
+  }
+]
