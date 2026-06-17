@@ -50,7 +50,7 @@
     <!-- File Node -->
     <div v-else class="file-node">
       <a 
-        :href="node.path" 
+        :href="withBase(node.path)" 
         class="node-row file-row"
         :class="{ 'active-link': isActive }"
       >
@@ -80,7 +80,7 @@
 
 <script setup>
 import { ref, watch, computed } from 'vue';
-import { useRoute } from 'vitepress';
+import { useRoute, withBase } from 'vitepress';
 
 const props = defineProps({
   node: {
@@ -112,7 +112,7 @@ const isActive = computed(() => {
   
   // Normalize paths for comparison (remove trailing slashes, clean urls, etc.)
   const cleanRoute = route.path.replace(/\.html$/, '').replace(/\/$/, '');
-  const cleanPath = props.node.path.replace(/\/$/, '');
+  const cleanPath = withBase(props.node.path).replace(/\.html$/, '').replace(/\/$/, '');
   
   return cleanRoute === cleanPath;
 });
