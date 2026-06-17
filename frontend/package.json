@@ -4,9 +4,9 @@
   "description": "BrandHub documentation site built with VitePress",
   "type": "module",
 "scripts": {
-  "docs:dev": "node generate-tree.js && vitepress dev",
-  "docs:build": "node generate-tree.js && vitepress build",
-  "docs:preview": "vitepress preview"
+  "dev": "node generate-tree.js && vitepress dev",
+  "build": "node generate-tree.js && vitepress build",
+  "preview": "vitepress preview"
 },
   "dependencies": {
     "vitepress": "^1.2.3",

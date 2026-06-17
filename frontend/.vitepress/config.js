@@ -123,6 +123,8 @@ export default {
     ]
   },
   themeConfig: {
+    logo: '/logo.svg',
+    siteTitle: 'BrandHub',
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Project Plan', link: '/plan/BrandHub_Project_Plan' },
