@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - develop
     paths:
       - 'docs/**'
       - 'frontend/**'
@@ -29,10 +30,10 @@ jobs:
         run: |
           cd frontend
           npm install
-          npm run build
+          npm run docs:build
           
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: frontend/dist
+          folder: frontend/.vitepress/dist
           branch: gh-pages
