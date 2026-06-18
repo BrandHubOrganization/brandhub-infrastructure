@@ -171,11 +171,51 @@ Sau bước này, Jira đã nhận diện được branch và gán vào task `DA
 ### Bước 6 — Tạo Pull Request và tự merge
 
 1. Vào GitHub → **Compare & pull request**
-2. Đặt tiêu đề PR: `[DA-47] User Schema Implementation`
-3. Chọn base branch là `develop`
-4. Nhấn **Squash and merge**
+2. Đặt tiêu đề PR theo chuẩn: `feat(DA-47): mô tả ngắn gọn`
+3. Điền mô tả theo template:
+
+```
+## 1. Mô tả
+Tóm tắt ngắn gọn tính năng / fix đã thực hiện.
+
+- **Loại tác vụ:** `feat` | `fix` | `refactor` | `chore` | `test` | `docs` | `perf`
+- **Phạm vi ảnh hưởng (Scope):** auth | database | ui | api | ...
+
+## 2. Task liên quan
+Jira: DA-47
+
+## 3. Yêu cầu chi tiết
+- [ ] Luồng xử lý chính: ...
+- [ ] Các trường hợp ngoại lệ (Edge cases): ...
+
+## 4. Các file chính đã chỉnh sửa
+- src/...
+
+## 5. Definition of Done
+- [ ] Tính năng hoạt động đúng yêu cầu kỹ thuật
+- [ ] Đã xóa hoặc cập nhật dòng TODO tương ứng trong file `README.md` (nếu có)
+- [ ] Đã viết Unit Test / Integration Test (nếu có logic nghiệp vụ)
+- [ ] Pull Request đặt tên theo chuẩn: `feat(DA-47): mô tả ngắn gọn (#số_PR)`
+- [ ] Không có `console.log` thừa
+- [ ] Code không có lỗi lint/build
+- [ ] Không có conflict chưa giải quyết
+
+## 6. Thông tin quản lý
+- **Độ ưu tiên:** 🔴 High | 🟡 Medium | 🔵 Low
+- **Ước lượng:** ___ Story Points / Giờ
+```
+
+4. Chọn base branch là `develop`
+5. Nhấn **Squash and merge**
+6. GitHub sẽ tạo 1 commit duy nhất — **chỉnh tiêu đề squash commit** theo chuẩn:
+
+```
+feat(DA-47): mô tả ngắn gọn (#số_PR)
+```
 
 > Dùng **Squash and merge** để giữ history `develop` gọn — tránh hàng chục commit nhỏ lẫn lộn.
+
+> **Không merge khi:** CI chưa pass, có conflict chưa giải quyết, hoặc branch chưa được cập nhật từ `develop`.
 
 ---
 
@@ -196,8 +236,8 @@ Jira: kéo task → In Progress
 Git:  pull develop → tạo branch feature/DA-47-xxx
 Code: commit thường xuyên với feat(DA-47): ...
 Push: git push -u origin feature/DA-47-xxx
-PR:   tiêu đề [DA-47] ..., chọn reviewer
-Merge: Squash and merge vào develop
+PR:   tiêu đề feat(DA-47): ..., base=develop, điền template đầy đủ
+Merge: Squash and merge → chỉnh tiêu đề squash commit → xác nhận
 Jira: kéo task → In Review → chờ duyệt → Done
 ```
 
@@ -209,3 +249,17 @@ Jira: kéo task → In Review → chờ duyệt → Done
 - Một commit có thể gán nhiều task: `feat(DA-47)(DA-58): ...` — Jira nhận cả hai.
 - Commit không có mã task vẫn hợp lệ cho Git, nhưng **không sync được vào Jira**.
 - Merge commit tự động (`Merge pull request #xx`) không cần mã task.
+
+---
+
+## 8. Quy tắc bắt buộc
+
+| Quy tắc | Mô tả |
+|---------|-------|
+| **Không push thẳng vào `develop`** | Mọi thay đổi phải qua PR — không dùng `git push origin develop` trực tiếp |
+| **Không merge khi conflict** | Phải rebase/merge từ `develop` và giải quyết conflict trước |
+| **Branch từ `develop`** | Không tạo branch từ `main` hoặc branch của người khác |
+| **Xóa branch sau merge** | GitHub tự xóa nếu bật "Automatically delete head branches"; hoặc xóa thủ công |
+| **Không force push** | Không dùng `git push --force` lên branch đã có PR open |
+| **Squash commit phải có mã DA** | Khi confirm squash merge, đảm bảo tiêu đề chứa `DA-xx` |
+| **Không commit file nhạy cảm** | `.env`, `*.key`, `credentials.*` — thêm vào `.gitignore` trước khi commit |
