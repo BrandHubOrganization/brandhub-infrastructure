@@ -168,50 +168,24 @@ Sau bước này, Jira đã nhận diện được branch và gán vào task `DA
 
 ---
 
-### Bước 6 — Tạo Pull Request trên GitHub
+### Bước 6 — Tạo Pull Request và tự merge
 
 1. Vào GitHub → **Compare & pull request**
 2. Đặt tiêu đề PR: `[DA-47] User Schema Implementation`
-3. Điền mô tả theo template:
+3. Chọn base branch là `develop`
+4. Nhấn **Squash and merge**
 
-```
-## Mô tả
-Tạo schema Mongoose cho bảng Users bao gồm: email, password (hash), role, createdAt.
-
-## Task liên quan
-Jira: DA-47
-
-## Checklist
-- [x] Code chạy không lỗi
-- [x] Đã viết unit test
-- [x] Không có console.log thừa
-- [ ] Đã được review bởi ít nhất 1 thành viên
-```
-
-4. Chọn **Reviewers** — ít nhất 1 người
-5. Chọn base branch là `develop`
+> Dùng **Squash and merge** để giữ history `develop` gọn — tránh hàng chục commit nhỏ lẫn lộn.
 
 ---
 
-### Bước 7 — Review và Merge
-
-| Người      | Việc cần làm                                              |
-|------------|-----------------------------------------------------------|
-| **Author** | Trả lời comment, sửa theo feedback, push thêm commit      |
-| **Reviewer** | Review code, approve hoặc request changes               |
-| **Author** | Sau khi được approve → **Squash and merge** vào `develop` |
-
-> Dùng **Squash and merge** để giữ history `main` gọn — tránh hàng chục commit nhỏ lẫn lộn.
-
----
-
-### Bước 8 — Cập nhật Jira
-
-Sau khi PR được merge:
+### Bước 7 — Cập nhật Jira sau khi merge
 
 1. Vào task `DA-47` trên Jira
-2. Kéo sang **Done**
-3. Panel **Development** sẽ hiển thị: branch đã merged, số commit, PR status = Merged
+2. Kéo sang **In Review**
+3. Chờ lead/người được phân công review kết quả
+4. Sau khi được duyệt → kéo sang **Done**
+5. Panel **Development** hiển thị: branch đã merged, số commit, PR status = Merged
 
 ---
 
@@ -223,8 +197,8 @@ Git:  pull develop → tạo branch feature/DA-47-xxx
 Code: commit thường xuyên với feat(DA-47): ...
 Push: git push -u origin feature/DA-47-xxx
 PR:   tiêu đề [DA-47] ..., chọn reviewer
-Merge: Squash and merge sau khi approved
-Jira: kéo task → Done
+Merge: Squash and merge vào develop
+Jira: kéo task → In Review → chờ duyệt → Done
 ```
 
 ---
