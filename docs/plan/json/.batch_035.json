@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-AI08-03",
+    "summary": "[DA-AI08-03] Build layer compositing service (product layer + model layer + background layer → single image dung Pillow)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-104",
+    "description": "### DA-AI08-03 — Build layer compositing service (product layer + model layer + background layer → Pillow composite)\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Combine the three image layers (product cutout, model cutout, background) into a single cohesive marketing image using Pillow.\n\n**Acceptance Criteria:**\n- [ ] `services/composition/compositor.py` function `composite_layers(product_png: bytes, model_png: bytes, background_jpg: bytes, layout: dict) -> bytes` returns a composed JPEG\n- [ ] `layout` dict specifies: product position (x, y, scale), model position (x, y, scale), layer order (product in front of / behind model)\n- [ ] Output image is 1080×1080 by default (Instagram square); output size is configurable via `layout.outputSize`\n- [ ] If any layer is `None`, it is skipped gracefully (supports product-only or model-only compositions)\n\n**Technical Notes:**\n- Use `Image.paste(layer, position, mask=layer)` with the alpha channel as mask for transparent PNG layers\n- Resize layers to fit within their bounding box defined in `layout` before pasting; maintain aspect ratio with `Image.LANCZOS` resampling\n\n**Dependencies:** Blocks: DA-AI08-04, DA-AI08-05. Blocked by: DA-AI08-01, DA-AI08-02.\n\n---"
+  },
+  {
+    "id": "DA-AI08-04",
+    "summary": "[DA-AI08-04] Implement shadow + lighting adjustment de merge trong tu nhien",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-104",
+    "description": "### DA-AI08-04 — Implement shadow + lighting adjustment for natural-looking merges\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Reduce the \"cutout\" appearance of composited elements by adding subtle shadow and brightness matching so subjects look photographically integrated.\n\n**Acceptance Criteria:**\n- [ ] `services/composition/effects.py` implements `add_drop_shadow(layer_png: bytes, opacity: int, blur_radius: int) -> bytes`\n- [ ] `adjust_brightness_to_background(layer_png: bytes, background_jpg: bytes) -> bytes` shifts layer brightness to match background luminance\n- [ ] Both effects are optional and activated by fields in the `layout` dict passed to DA-AI08-03 compositor\n- [ ] Visual test: composited image with effects applied is rated more realistic than without by at least 3 of 5 reviewers\n\n**Technical Notes:**\n- Drop shadow: create a copy of the layer alpha mask, apply Gaussian blur (`ImageFilter.GaussianBlur(blur_radius)`), colorize black, paste behind layer at `opacity`\n- Brightness matching: compute mean luminance of the background region behind the layer bounding box; adjust layer using `ImageEnhance.Brightness`\n\n**Dependencies:** Blocks: DA-AI08-05. Blocked by: DA-AI08-03.\n\n---"
+  },
+  {
+    "id": "DA-AI08-05",
+    "summary": "[DA-AI08-05] Build composition endpoint (POST /ai/compose: product S3 key + model S3 key + background S3 key → composed image)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-104",
+    "description": "### DA-AI08-05 — Build POST /ai/compose endpoint\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Expose the full composition pipeline as a single API endpoint that accepts S3 keys and returns the composed image URL.\n\n**Acceptance Criteria:**\n- [ ] `POST /ai/compose` accepts `{productKey: str, modelKey: Optional[str], backgroundKey: str, clientId: str, layout: Optional[dict]}`\n- [ ] Downloads all provided S3 keys, runs background removal on product and model layers, composites via DA-AI08-03, uploads result to S3\n- [ ] Returns `{composedImageUrl: str, s3Key: str, processingTimeMs: int}`\n- [ ] If an S3 key does not exist, returns `404` identifying the missing key\n\n**Technical Notes:**\n- Download all S3 assets concurrently using `asyncio.gather` to minimize latency before the CPU-bound composition step\n- Composed image S3 key: `composed/{clientId}/{uuid}.jpg`\n\n**Dependencies:** Blocks: DA-AI08-06. Blocked by: DA-AI08-03, DA-AI08-04, DA-AI02-03, DA-AI02-04.\n\n---"
+  },
+  {
+    "id": "DA-AI08-06",
+    "summary": "[DA-AI08-06] Test 20 cap product + model, evaluate realistic score, document cac case fail",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-104",
+    "description": "### DA-AI08-06 — Test 20 product + model pairs, evaluate realism, document failure cases\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Validate composition quality across the range of product categories and model types that BrandHub clients will submit.\n\n**Acceptance Criteria:**\n- [ ] 20 pairs tested: at minimum 5 fashion, 5 beauty/cosmetics, 5 food/beverage, 5 lifestyle/accessory\n- [ ] Each output rated: edge blending (1-5), shadow realism (1-5), lighting consistency (1-5), overall realism (1-5)\n- [ ] Failure cases documented with root cause: transparent packaging, hair edges, reflective surfaces, extreme lighting mismatch\n- [ ] Average realism score ≥ 3.5 across all 20 pairs; cases below 3 are logged as known limitations\n\n**Dependencies:** Blocks: DA-AI11-03. Blocked by: DA-AI08-05.\n\n---"
+  },
+  {
+    "id": "DA-AI08-07",
+    "summary": "[DA-AI08-07] Viet composition parameter guide (optimal sizes, best practices cho tung loai san pham)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Medium",
+    "epic_key": "DA-104",
+    "description": "### DA-AI08-07 — Write composition parameter guide (optimal image sizes, best practices per product category)\n**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Low\n\n**Goal:** Give BrandHub clients clear guidance on how to prepare input images to get the best possible composition results.\n\n**Acceptance Criteria:**\n- [ ] Guide documents recommended input image specs: minimum resolution, preferred background (plain vs complex), lighting direction\n- [ ] Per-category best practices: fashion (full-body vs half-body), beauty (macro product shots), food (top-down vs 45°), accessories\n- [ ] Known failure cases listed with workarounds (e.g., \"for glass bottles, manually remove background in Photoshop before uploading\")\n\n**Dependencies:** Blocks: None. Blocked by: DA-AI08-06.\n\n---"
+  }
+]

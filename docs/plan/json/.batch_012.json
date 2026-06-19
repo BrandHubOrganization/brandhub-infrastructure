@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E10-04",
+    "summary": "[DA-E10-04] Viet GitHub Actions workflow cho web-dashboard (lint + build + deploy)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-90",
+    "description": "### DA-E10-04 — Write GitHub Actions workflow for web-dashboard (eslint + tsc + vite build + deploy)\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Automate the frontend CI pipeline so that TypeScript errors and lint violations are caught on every PR and a production-ready Vite build is verified before merge.\n\n**Acceptance Criteria:**\n- [ ] Workflow triggers on push to `develop`, push to `main`, and pull_request targeting `develop`\n- [ ] Workflow steps: checkout → setup Node 20 → `npm ci` → `npm run lint` (ESLint) → `npm run type-check` (tsc --noEmit) → `npm run build` (vite build)\n- [ ] Workflow fails if any of lint, type-check, or build steps fail\n\n**Technical Notes:**\n- Use `actions/setup-node@v4` with `node-version: '20'` and cache npm with `cache: 'npm'` parameter\n- Add `\"type-check\": \"tsc --noEmit\"` to `package.json` scripts if not already present — `vite build` does not perform full TypeScript type checking by default\n- The deploy step is not in scope for this task; add a placeholder commented-out step so the workflow is ready for deployment configuration later\n\n**Dependencies:** Blocks: None. Blocked by: DA-E02-02, DA-E02-03, DA-E02-04.\n\n---"
+  },
+  {
+    "id": "DA-E10-05",
+    "summary": "[DA-E10-05] Thiet lap branch protection rules (require 1 approval truoc khi merge vao develop)",
+    "assignee": "Trung (Leader)",
+    "priority": "Medium",
+    "epic_key": "DA-90",
+    "description": "### DA-E10-05 — Set up branch protection rules (require 1 approval before merging into develop)\n**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium\n\n**Goal:** Enforce a mandatory peer review gate on the `develop` branch across all 7 repositories so no unreviewed code can be merged into the integration branch.\n\n**Acceptance Criteria:**\n- [ ] Branch protection on `develop` in all 7 repos requires at least 1 approving review before merge\n- [ ] \"Dismiss stale pull request approvals when new commits are pushed\" is enabled so approvals are not carried over after code changes\n- [ ] Status checks (CI workflows from DA-E10-01 through DA-E10-04) are added as required checks where applicable\n\n**Technical Notes:**\n- Use a GitHub Organization ruleset to apply this consistently across all repos rather than configuring each repo individually; the ruleset can target branches matching the pattern `develop`\n- Exempt the team leader account from the approval requirement on the infrastructure repo only (since some infrastructure commits may need emergency merges during initial setup)\n\n**Dependencies:** Blocks: None. Blocked by: DA-E02-03, DA-E10-01, DA-E10-02, DA-E10-03, DA-E10-04.\n\n---"
+  },
+  {
+    "id": "DA-E11-01",
+    "summary": "[DA-E11-01] Khoi tao brandhub-api-gateway project voi Spring Cloud Gateway",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-91",
+    "description": "### DA-E11-01 — Initialize brandhub-api-gateway project with Spring Cloud Gateway\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Bootstrap the api-gateway Spring Boot project with the correct dependencies and base configuration so subsequent filter and routing tasks have a working project to build on.\n\n**Acceptance Criteria:**\n- [ ] Spring Boot 3 project is initialized with dependencies: `spring-cloud-starter-gateway`, `spring-boot-starter-data-redis-reactive`, `spring-boot-starter-actuator`, `jjwt-api` (JWT library)\n- [ ] Application runs on port 8080 with `docker-compose up` and responds to `GET /actuator/health` with HTTP 200\n- [ ] `application.yml` includes base configuration: server port, Redis connection (from env var), and a placeholder routes section\n\n**Technical Notes:**\n- Use Spring Cloud Gateway reactive (WebFlux-based), not the legacy MVC version — all filters must be implemented as `GatewayFilter` or `GlobalFilter` using Project Reactor types (`Mono`, `Flux`)\n- Spring Cloud Gateway version must be compatible with Spring Boot 3: use the Spring Cloud 2023.x BOM (`spring-cloud.version=2023.0.x`) in `pom.xml`\n\n**Dependencies:** Blocks: DA-E11-02, DA-E11-03, DA-E11-04, DA-E11-05. Blocked by: DA-E02-02.\n\n---"
+  },
+  {
+    "id": "DA-E11-02",
+    "summary": "[DA-E11-02] Viet JWT validation filter (kiem tra token tu moi request, extract userId + role vao header)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-91",
+    "description": "### DA-E11-02 — Write JWT validation filter (verify RS256 token on every request, extract userId + role into X-User-Id and X-User-Role headers)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Implement the JWT validation GlobalFilter so that every request reaching a downstream service is guaranteed to carry verified user identity headers, and unauthenticated requests are rejected at the gateway.\n\n**Acceptance Criteria:**\n- [ ] Filter verifies the JWT signature using the RS256 public key loaded from a PEM file configured via environment variable\n- [ ] On valid token: extracts `sub` (userId), `role`, and `workspaceId` claims and forwards them as `X-User-Id`, `X-User-Role`, and `X-Workspace-Id` headers to the downstream service\n- [ ] On invalid or expired token: returns HTTP 401 with `ApiResponse` error body without forwarding the request\n- [ ] Public paths (`/api/v1/auth/**`) bypass JWT validation and are passed through without a token\n\n**Technical Notes:**\n- Use `io.jsonwebtoken:jjwt-impl` and `jjwt-jackson` at version 0.12.x for RS256 verification; load the public key using `RsaKeyConvertor` from the PEM file on application startup, not per-request\n- Check Redis `jwt:blacklist:{jti}` after signature validation but before forwarding — if the jti key exists in Redis, return 401 even if the signature is valid (this handles logout/token rotation)\n- Store the RS256 public key path in `JWT_PUBLIC_KEY_PATH` environment variable; read with `@Value(\"${jwt.public-key-path}\")` from application.yml binding\n\n**Dependencies:** Blocks: DA-E11-03, DA-E11-04. Blocked by: DA-E11-01, DA-E05-06.\n\n---"
+  },
+  {
+    "id": "DA-E11-03",
+    "summary": "[DA-E11-03] Viet rate limiting filter dung Redis (100 requests/minute/user)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-91",
+    "description": "### DA-E11-03 — Write rate limiting filter using Redis (100 requests/minute/user, key: ratelimit:{userId}:{minute})\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Implement per-user rate limiting at the gateway layer using Redis so that no single user can exceed 100 requests per minute, protecting downstream services from abuse without application-layer changes.\n\n**Acceptance Criteria:**\n- [ ] Filter increments a Redis counter keyed `ratelimit:{userId}:{minute}` (where `{minute}` is `epoch_seconds / 60`) on every authenticated request\n- [ ] If the counter exceeds 100 after increment, the filter returns HTTP 429 with `ApiResponse` error body and does not forward the request\n- [ ] TTL of 60 seconds is set on the Redis key at creation (using `INCR` then `EXPIRE` only on first increment, or a Lua script for atomicity) so keys expire automatically after the minute window passes\n\n**Technical Notes:**\n- Run `INCR` and conditional `EXPIRE` atomically using a Redis Lua script via `ReactiveRedisTemplate.execute(RedisScript<Long>)` to prevent a race condition between the INCR and EXPIRE calls\n- The `{userId}` value in the key must come from the `X-User-Id` header set by the JWT validation filter (DA-E11-02); the rate limiting filter must run after the JWT filter in the filter chain\n- Rate limit threshold must be externalized as a configuration property (`gateway.rate-limit.requests-per-minute=100`) so it can be changed without redeployment\n\n**Dependencies:** Blocks: DA-E11-04. Blocked by: DA-E11-02, DA-E06-06.\n\n---"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E24-01",
+    "summary": "[DA-E24-01] Implement AI content generation flow trong business-service: ContentRequest → call ai-service → luu draft Post",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-101",
+    "description": "### DA-E24-01 — Implement AI Content Generation Flow in Business-Service\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Wire the user-facing content generation request through business-service to ai-service, save the result as a Draft Post, and enforce AI credit limits.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/posts/ai-generate accepts {clientId, topic, platform, tone} and returns {postId, caption, hashtags, status: DRAFT}\n- [ ] business-service calls /internal/ai/content/generate on ai-service with `X-Internal-Key` header before creating the Post document\n- [ ] If the workspace has insufficient AI credits (0 remaining), returns 429 with {creditsUsed, creditsLimit, upgradeUrl} before calling ai-service\n- [ ] On success, deducts 1 AI credit (DA-E24-03) and saves a Post document with {clientId, workspaceId, caption, hashtags, platform, status: DRAFT, aiGenerated: true}\n- [ ] If ai-service returns an error, no credit is deducted and the error is surfaced to the caller with 502 Bad Gateway\n\n**Technical Notes:**\n- Use Spring's `RestClient` or `WebClient` to call ai-service; configure a 10-second timeout\n- Store the ai-service base URL in `application.yml` under `services.ai.base-url`; inject via `@Value`\n- Credit check and deduction must be in the same logical transaction scope; use an optimistic lock on the credit counter field to prevent race conditions\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E23-01, DA-E24-03, DA-E14-02].\n\n---"
+  },
+  {
+    "id": "DA-E24-02",
+    "summary": "[DA-E24-02] Implement image/ambassador generation trigger tu Post editor (user chon AI generate image)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-101",
+    "description": "### DA-E24-02 — Implement Image and Ambassador Generation Trigger\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow users in the Post editor to trigger AI image or ambassador composite generation and receive the resulting S3 URL to embed in their post.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/posts/{postId}/ai-image accepts {prompt, style} and returns {imageUrl, creditsDeducted: 3}\n- [ ] POST /api/v1/posts/{postId}/ai-ambassador accepts {faceImageS3Key, productImageS3Key} and returns {jobId} (async) with a polling URL\n- [ ] Both endpoints check AI credit availability before calling ai-service; insufficient credits return 429\n- [ ] On image generation success, the returned S3 URL is attached to the Post document's `mediaUrls` array\n- [ ] On ambassador generation, the Post document is updated with {ambassadorJobId, status: AI_PROCESSING}; a webhook or polling response updates it to READY when the job completes\n\n**Technical Notes:**\n- Image generation: synchronous call to DA-E23-02, deduct 3 credits on success\n- Ambassador generation: async call to DA-E23-03, deduct 5 credits at submission time; document the refund policy if the job fails\n- Expose GET /api/v1/posts/{postId}/ai-ambassador/status that polls the ai-service job status and updates the Post document when COMPLETED\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E23-02, DA-E23-03, DA-E24-03, DA-E14-02].\n\n---"
+  },
+  {
+    "id": "DA-E24-03",
+    "summary": "[DA-E24-03] Implement AI usage tracking (dem ai_credits_per_month theo subscription plan)",
+    "assignee": "Trung (Leader)",
+    "priority": "High",
+    "epic_key": "DA-101",
+    "description": "### DA-E24-03 — Implement AI Usage Tracking\n**Assignee:** Trung (Leader) | **Priority:** 🟡 High\n\n**Goal:** Track and enforce monthly AI credit consumption per workspace, returning structured 429 responses with upgrade prompts when limits are reached.\n\n**Acceptance Criteria:**\n- [ ] Each AI call type deducts the correct credit amount: content=1, image=3, ambassador=5, video=10\n- [ ] Credits are tracked per workspace per calendar month in MongoDB: {workspaceId, month (YYYY-MM), creditsUsed, creditsLimit}\n- [ ] Before any AI call, a `checkAndDeductCredits(workspaceId, cost)` method atomically checks remaining credits and deducts if sufficient\n- [ ] When credits are exhausted, returns 429 with {creditsUsed, creditsLimit, upgradeUrl} where `upgradeUrl = \"https://app.brandhub.io/billing/upgrade\"`\n- [ ] `creditsLimit` is read from the workspace's active subscription plan; Free=20, Basic=100, Pro=500, Enterprise=unlimited (-1 = skip check)\n\n**Technical Notes:**\n- Use MongoDB `findOneAndUpdate` with `$inc` and a conditional filter (`creditsUsed + cost <= creditsLimit`) to perform the check-and-deduct atomically — avoids race conditions without a distributed lock\n- For Enterprise (unlimited): short-circuit the credit check and only record usage for analytics\n- Reset `creditsUsed` to 0 at the start of each calendar month; implement via a `@Scheduled(cron = \"0 0 0 1 * *\")` job or compute it from a monthly usage log collection\n\n**Dependencies:** Blocks: [DA-E24-01, DA-E24-02]. Blocked by: [DA-E17-01].\n\n---\n\n## AI Parallel Track — Iterations 1–4\n\n---"
+  },
+  {
+    "id": "DA-AI01-01",
+    "summary": "[DA-AI01-01] Research va so sanh InstantID vs IP-Adapter vs ControlNet cho face-consistent virtual ambassador generation",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-55",
+    "description": "### DA-AI01-01 — Research and compare InstantID vs IP-Adapter vs ControlNet for face-consistent virtual ambassador generation\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Evaluate the three leading face-consistency approaches to select the best-fit architecture for BrandHub's virtual ambassador feature before any implementation begins.\n\n**Acceptance Criteria:**\n- [ ] Comparison table covers: inference speed, VRAM requirement, face similarity score methodology, licensing, and hosting options (Colab/Replicate/self-hosted)\n- [ ] Each approach is tested with at least one public demo or code sample and results are documented\n- [ ] A clear recommendation (with rationale) is written as the final section of the research note\n\n**Technical Notes:**\n- InstantID requires InsightFace buffalo_l (~300MB) and a ControlNet depth model; check Replicate hosted versions to avoid GPU setup cost in research phase\n- IP-Adapter works with standard diffusers pipeline; compare face_id variants (IP-Adapter-FaceID-Plus vs base)\n- ControlNet inpainting is the fallback compositing approach, not a direct face-ID method — distinguish this clearly in the comparison\n\n**Dependencies:** Blocks: DA-AI01-02, DA-AI07-01. Blocked by: None.\n\n---"
+  },
+  {
+    "id": "DA-AI01-02",
+    "summary": "[DA-AI01-02] Test 3 virtual ambassador tools tren 5 anh sample, viet bang so sanh (chat luong, toc do, chi phi)",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-55",
+    "description": "### DA-AI01-02 — Test 3 virtual ambassador tools on 5 sample images, write comparison table (quality, speed, cost)\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Produce empirical evidence (not just literature review) for the ambassador tool decision by running all three approaches against identical inputs.\n\n**Acceptance Criteria:**\n- [ ] All 3 tools run against the same 5 sample reference photos; raw output images are saved and linked in the document\n- [ ] Comparison table includes columns: tool, avg generation time (s), estimated cost per image, cosine similarity score vs reference, subjective realism rating (1-5)\n- [ ] Winning tool is confirmed and justification is written with enough detail to defend the choice to the mentor\n\n**Technical Notes:**\n- Use InsightFace `get_feat()` to compute cosine similarity between reference embedding and generated face embedding; target ≥ 0.85\n- Run Replicate API for InstantID during research to avoid local GPU requirement; log per-call latency and credit cost\n- Use consistent positive/negative prompts across all tools to eliminate prompt variance from results\n\n**Dependencies:** Blocks: DA-AI07-01. Blocked by: DA-AI01-01.\n\n---"
+  }
+]

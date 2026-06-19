@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E12-04",
+    "summary": "[DA-E12-04] Implement Logout API (them JWT jti vao Redis blacklist, clear cookie)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-92",
+    "description": "### DA-E12-04 — Implement Logout API\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Invalidate the current session by blacklisting the access token's jti in Redis and clearing the refresh token cookie.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/auth/logout requires a valid access token in Authorization header; returns 200\n- [ ] Access token's jti is written to Redis key `jwt:blacklist:{jti}` with TTL equal to remaining token lifetime\n- [ ] Refresh token HttpOnly cookie is cleared (Set-Cookie with Max-Age=0)\n- [ ] Subsequent requests using the blacklisted access token return 401\n- [ ] Unauthenticated logout requests (no token) return 401, not 500\n\n**Technical Notes:**\n- Calculate remaining TTL: `jwtExpiry.toEpochMilli() - Instant.now().toEpochMilli()` in milliseconds, then convert to seconds for Redis `SETEX`\n- If the access token is already expired, still attempt to clear the cookie but no need to blacklist an already-expired token\n- The JWT filter must check Redis blacklist on every request, not just at logout\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E12-02, DA-E12-03].\n\n---"
+  },
+  {
+    "id": "DA-E12-05",
+    "summary": "[DA-E12-05] Implement Forgot Password & Reset Password flow (email link voi time-limited token)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-92",
+    "description": "### DA-E12-05 — Implement Forgot Password & Reset Password Flow\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow users to securely recover their account via a time-limited email link backed by a Redis token with 1-hour TTL.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/auth/forgot-password accepts {email}; always returns 200 regardless of whether email exists (prevent enumeration)\n- [ ] A cryptographically random token (UUID v4 or SecureRandom 32 bytes hex) is stored in Redis as `pwd:reset:{token}` → userId, TTL = 3600 seconds\n- [ ] Reset link sent via email contains the token as a query param: `https://app.brandhub.io/reset-password?token={token}`\n- [ ] POST /api/v1/auth/reset-password accepts {token, newPassword}; validates token exists in Redis, hashes new password with bcrypt cost=12, saves to MongoDB, deletes Redis key\n- [ ] Expired or already-used tokens return 400 with \"Token invalid or expired\" message\n- [ ] After successful reset, all existing refresh tokens for the user are invalidated (or flag lastPasswordChange and reject older tokens)\n\n**Technical Notes:**\n- Use `SecureRandom` not `Math.random()` for token generation\n- Deleting the Redis key after use enforces single-use — do this atomically if possible\n- Send email via JavaMailSender or an external provider (SendGrid/SES); use async `@Async` to not block the HTTP response\n- Invalidating all sessions post-reset: store `lastPasswordChange` timestamp in User document and compare against token `iat` in the JWT filter\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E12-01].\n\n---"
+  },
+  {
+    "id": "DA-E12-06",
+    "summary": "[DA-E12-06] Implement Google OAuth login (callback, tao user neu chua co)",
+    "assignee": "Trung (Leader)",
+    "priority": "High",
+    "epic_key": "DA-92",
+    "description": "### DA-E12-06 — Implement Google OAuth Login\n**Assignee:** Trung (Leader) | **Priority:** 🟡 High\n\n**Goal:** Enable users to sign in with their Google account via PKCE flow, auto-creating a local user record on first login.\n\n**Acceptance Criteria:**\n- [ ] GET /api/v1/auth/google returns a redirect URL to Google's authorization endpoint with code_challenge (PKCE S256) and a state value\n- [ ] State is stored in Redis as `oauth:state:{state}` with 10-minute TTL before redirecting\n- [ ] GET /api/v1/auth/google/callback validates state against Redis (returns 400 if missing/mismatched), exchanges code + code_verifier for tokens\n- [ ] If Google email does not exist in MongoDB, a new User document is created (role=AGENCY_OWNER, no password field)\n- [ ] On success, issues the same JWT access token + refresh cookie as the standard login flow and redirects to frontend\n- [ ] Existing email registered via password login is linked to the Google account (merge, not duplicate)\n\n**Technical Notes:**\n- Use `spring-security-oauth2-client` or manual HTTP calls via `RestClient` to Google's token endpoint\n- PKCE: generate `code_verifier` (32 random bytes, Base64URL-encoded), `code_challenge = BASE64URL(SHA256(code_verifier))`\n- Store `code_verifier` alongside state in Redis so it is available at callback time\n- Google ID token (`id_token`) can be decoded without a second API call to get email + name + picture\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E12-01, DA-E12-02].\n\n---"
+  },
+  {
+    "id": "DA-E13-01",
+    "summary": "[DA-E13-01] Implement GET/PUT /api/v1/users/me (lay va cap nhat profile)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-106",
+    "description": "### DA-E13-01 — Implement GET/PUT /api/v1/users/me\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Provide authenticated users with endpoints to view and update their own profile information.\n\n**Acceptance Criteria:**\n- [ ] GET /api/v1/users/me returns {userId, email, fullName, avatarUrl, role, workspaceId, createdAt} for the authenticated user\n- [ ] PUT /api/v1/users/me accepts {fullName, timezone, notificationPreferences} and returns the updated profile\n- [ ] Email field is NOT updatable via this endpoint (requires separate verification flow)\n- [ ] userId is extracted from the JWT `sub` claim — never accepted as a request parameter\n- [ ] 401 is returned when the Authorization header is missing or token is invalid/blacklisted\n\n**Technical Notes:**\n- Create a `UserProfileResponse` DTO; never return the password hash field\n- Use a `@AuthenticationPrincipal` resolver or custom `HandlerMethodArgumentResolver` to inject the authenticated user from the SecurityContext\n- Validate that `timezone` is a valid IANA timezone ID using `ZoneId.of()`\n\n**Dependencies:** Blocks: [DA-E13-02]. Blocked by: [DA-E12-01, DA-E12-02, DA-E14-01].\n\n---"
+  },
+  {
+    "id": "DA-E13-02",
+    "summary": "[DA-E13-02] Implement avatar upload (nhan file → upload S3 → luu URL vao MongoDB)",
+    "assignee": "Trung (Leader)",
+    "priority": "High",
+    "epic_key": "DA-106",
+    "description": "### DA-E13-02 — Implement Avatar Upload\n**Assignee:** Trung (Leader) | **Priority:** 🟡 High\n\n**Goal:** Allow users to upload a profile avatar that is stored in S3 under a deterministic key and referenced by URL in their MongoDB document.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/users/me/avatar accepts `multipart/form-data` with field `file`; returns 200 with {avatarUrl}\n- [ ] File is uploaded to S3 key `avatars/{userId}/{timestamp}.{ext}` where timestamp is epoch millis and ext is derived from MIME type\n- [ ] Only JPEG, PNG, and WebP are accepted; other types return 400\n- [ ] File size is capped at 5 MB; larger uploads return 413\n- [ ] After successful S3 upload, `avatarUrl` field in MongoDB User document is updated atomically\n- [ ] Previous avatar file in S3 is deleted after the new one is confirmed uploaded\n\n**Technical Notes:**\n- Use AWS SDK v2 `S3AsyncClient` for non-blocking uploads; do not use deprecated v1 `AmazonS3`\n- Derive extension from `ContentType` header, not the original filename (filename is untrusted user input)\n- Generate a pre-signed URL for the response or make the S3 bucket path publicly readable via a CloudFront distribution\n- Delete old avatar: retrieve old key from MongoDB before updating, then issue `DeleteObjectRequest` after update\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E13-01].\n\n---"
+  }
+]

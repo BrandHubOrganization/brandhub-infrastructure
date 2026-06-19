@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E04-01",
+    "summary": "[DA-E04-01] Viet Functional objectives theo tung role (6 roles x features)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-39",
+    "description": "### DA-E04-01 — Write functional objectives per role (6 roles x features)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Translate the approved use cases into a concise functional requirements section organized by role so that each team member has a definitive feature checklist for their implementation work.\n\n**Acceptance Criteria:**\n- [ ] Functional objectives exist for all 6 roles: ADMIN, AGENCY_OWNER, ACCOUNT_MANAGER, CONTENT_CREATOR, BRAND_CLIENT, GUEST\n- [ ] Each role section lists its features as testable \"The system shall…\" statements\n- [ ] Every functional objective traces back to at least one UC ID from the approved use case list\n\n**Technical Notes:**\n- Use the exact role names from the JWT claim (ADMIN, AGENCY_OWNER, etc.) throughout to ensure naming consistency with the implementation\n\n**Dependencies:** Blocks: DA-E04-05, DA-E07-01. Blocked by: DA-E03-02, DA-E03-03, DA-E03-04, DA-E03-05.\n\n---"
+  },
+  {
+    "id": "DA-E04-02",
+    "summary": "[DA-E04-02] Viet Non-functional requirements (UI, Performance, Security, Reliability, Usability)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-39",
+    "description": "### DA-E04-02 — Write non-functional requirements (UI, Performance, Security, Reliability, Usability)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Define measurable non-functional requirements so that architecture and implementation decisions have objective quality targets to meet.\n\n**Acceptance Criteria:**\n- [ ] NFRs are written for all 5 categories: UI/UX, Performance, Security, Reliability, Usability — each with at least 3 measurable criteria\n- [ ] Performance NFRs include: API p95 response time target, minimum concurrent user count, dashboard load time\n- [ ] Security NFRs include: JWT access token TTL (15 min), refresh token TTL (30 days), rate limit threshold (100 req/min/user), HTTPS enforcement\n\n**Technical Notes:**\n- Align rate limit NFR with the api-gateway implementation value: 100 requests/minute/user using Redis key `ratelimit:{userId}:{minute}`\n- Do not set AI generation latency targets here; those are covered in DA-E04-03\n\n**Dependencies:** Blocks: DA-E04-05. Blocked by: DA-E03-05.\n\n---"
+  },
+  {
+    "id": "DA-E04-03",
+    "summary": "[DA-E04-03] Them AI Performance requirements (latency, throughput, model accuracy thresholds) vao Non-functional",
+    "assignee": "Ân (AI)",
+    "priority": "High",
+    "epic_key": "DA-39",
+    "description": "### DA-E04-03 — Add AI performance requirements (latency, throughput, model accuracy thresholds)\n**Assignee:** Ân (AI) | **Priority:** 🟡 High\n\n**Goal:** Define specific, measurable performance targets for all AI features so the ai-service implementation has clear acceptance thresholds for latency and quality.\n\n**Acceptance Criteria:**\n- [ ] Latency targets are defined for each ai-service endpoint: /ai/content, /ai/image, /ai/video, /ai/ambassador, /ai/rag, /ai/trends\n- [ ] Throughput targets (requests/minute) are specified per endpoint, accounting for Groq and Stability AI free-tier limits\n- [ ] Minimum acceptable quality thresholds are defined for content generation (e.g., coherence, language match) and image generation (e.g., resolution, rejection criteria)\n\n**Technical Notes:**\n- Groq free tier: ~30 RPM; document this as a hard system constraint and specify queue/retry behavior when limit is hit\n- RAG retrieval (/ai/rag) latency target must account for ChromaDB vector search time; budget at least 500ms separately from LLM inference time\n\n**Dependencies:** Blocks: DA-E04-05. Blocked by: DA-E03-05.\n\n---"
+  },
+  {
+    "id": "DA-E04-04",
+    "summary": "[DA-E04-04] Them Mobile requirements (FCM, offline draft, camera) vao Non-functional",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-39",
+    "description": "### DA-E04-04 — Add mobile requirements (FCM, offline draft, camera) to non-functional section\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Document mobile-specific requirements so the React Native app is built with the correct offline, notification, and device capability behaviors from the start.\n\n**Acceptance Criteria:**\n- [ ] FCM push notification requirement is documented: minimum notification delivery latency, supported notification types (approval request, publish success/failure)\n- [ ] Offline draft requirement is documented: which fields can be edited offline, sync behavior when connectivity is restored\n- [ ] Camera/media requirement is documented: supported formats for image upload, maximum file size, whether video capture is in MVP scope\n\n**Technical Notes:**\n- Expo SDK provides `expo-camera`, `expo-image-picker`, and `expo-notifications` — confirm FCM setup works via Expo's push notification service (EAS) rather than raw FCM to avoid native build complexity\n- Offline draft sync must define conflict resolution strategy (last-write-wins vs. server-authoritative) to avoid ambiguity during implementation\n\n**Dependencies:** Blocks: DA-E04-05. Blocked by: DA-E03-05.\n\n---"
+  },
+  {
+    "id": "DA-E04-05",
+    "summary": "[DA-E04-05] Dien va hoan thien Capstone Register form (BrandHub_Capstone_Register.docx)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-39",
+    "description": "### DA-E04-05 — Fill in and finalize the Capstone Register form (BrandHub_Capstone_Register.docx)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Complete the official university capstone registration document with all required technical and team information so it is ready for submission to the faculty.\n\n**Acceptance Criteria:**\n- [ ] BrandHub_Capstone_Register.docx is fully filled in with no blank required fields\n- [ ] Document includes: project title, team members with student IDs, mentor name, functional objectives summary, non-functional requirements summary, and technology stack\n- [ ] Final document is reviewed by all team members and approved before submission\n\n**Dependencies:** Blocks: None. Blocked by: DA-E04-01, DA-E04-02, DA-E04-03, DA-E04-04.\n\n---"
+  }
+]

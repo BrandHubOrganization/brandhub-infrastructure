@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E43-02",
+    "summary": "[DA-E43-02] UI responsive fixes (test tren cac screen sizes: 1920px, 1440px, 1280px, mobile)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-126",
+    "description": "### DA-E43-02 — UI responsive fixes\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Ensure all web UI pages are correctly displayed at all target breakpoints so the product is usable for agency staff on any screen size.\n\n**Acceptance Criteria:**\n- [ ] All pages tested at 1920px, 1440px, 1280px, and ≤768px using Chrome DevTools device emulation\n- [ ] No horizontal scroll on any page at any breakpoint\n- [ ] Tables degrade gracefully at ≤768px (either scroll horizontally within a container or collapse to card view)\n- [ ] Modals and dropdowns do not overflow screen bounds on mobile\n- [ ] Sidebar collapses to bottom tab bar at ≤768px (DA-E34-03) confirmed working\n\n**Technical Notes:**\n- Use Tailwind responsive prefixes: `sm:`, `md:`, `lg:`, `xl:`, `2xl:` for all layout-affecting utilities\n- Test with both browser DevTools and physical device (or BrowserStack) for iOS Safari rendering quirks\n- Priority fix order: P0 breaks → navigation issues → table overflow → modal/form usability\n\n**Dependencies:** Blocks: [DA-E44-04]. Blocked by: [DA-E43-01].\n\n---"
+  },
+  {
+    "id": "DA-E43-03",
+    "summary": "[DA-E43-03] Security audit checklist (check SQL injection, XSS, CSRF, token handling)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-126",
+    "description": "### DA-E43-03 — Security audit\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Verify all 10 security checklist items are addressed before production deployment to prevent critical vulnerabilities from reaching live users.\n\n**Acceptance Criteria:**\n- [ ] SQL injection: all DB queries use parameterized MongoDB queries; no string concatenation in queries\n- [ ] NoSQL injection: validate all `$`-prefixed keys are stripped from user input using a sanitizer middleware\n- [ ] XSS: all user-generated content rendered via React (safe by default); any `dangerouslySetInnerHTML` usages reviewed and eliminated\n- [ ] CSRF: stateless JWT auth (no session cookies); CSRF not applicable, but confirm no cookie-based session exists\n- [ ] JWT security: tokens signed with RS256 or HS256 with ≥256-bit key; short expiry (15m access, 7d refresh)\n- [ ] AES key: stored in env var or Vault, not in DB or source code; verified by `grep -r \"AES_KEY\"` in source\n- [ ] S3 bucket: bucket policy is private; all objects accessed via pre-signed URLs with ≤1h TTL\n- [ ] RabbitMQ management port (15672): blocked at security group / nginx level; not publicly accessible\n- [ ] Admin endpoints: all `/api/v1/admin/*` routes gated by `hasRole('ADMIN')` annotation + integration test confirming 403 for non-admin\n- [ ] Internal endpoints: all `/internal/*` routes blocked at nginx level; accessible only within Docker network\n\n**Technical Notes:**\n- Use OWASP dependency-check Maven plugin to scan for known CVEs in dependencies\n- Document findings and mitigations in a `SECURITY_AUDIT.md` file committed to the repo\n- For NoSQL injection: add a `MongoSanitizationFilter` that recursively removes keys starting with `$` from request bodies\n\n**Dependencies:** Blocks: [DA-E44-01]. Blocked by: [DA-E43-01].\n\n---"
+  },
+  {
+    "id": "DA-E44-01",
+    "summary": "[DA-E44-01] Setup VPS/EC2 instance, install Docker, configure nginx",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-128",
+    "description": "### DA-E44-01 — Provision EC2 and configure nginx\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Stand up the production server with Docker runtime and configure nginx as a reverse proxy so the platform is accessible via a custom domain with HTTPS.\n\n**Acceptance Criteria:**\n- [ ] EC2 t3.medium (Ubuntu 22.04 LTS) launched in the target region; security group allows 80, 443 inbound, 22 restricted to team IPs\n- [ ] Docker Engine 24+ and Docker Compose v2 installed; verified with `docker --version` and `docker compose version`\n- [ ] nginx configured as reverse proxy: `api.brandhub.com` → `127.0.0.1:8080`; all HTTP redirected to HTTPS\n- [ ] nginx rate limiting configured: `limit_req_zone` at 100 req/s per IP with burst of 20\n- [ ] Internal ports (8081, 5672, 15672, 27017, 6379) not exposed in EC2 security group; only Docker internal network\n\n**Technical Notes:**\n- nginx config: `proxy_pass http://127.0.0.1:8080; proxy_set_header X-Forwarded-For $remote_addr; proxy_read_timeout 120s`\n- Block `/internal/` at nginx level: `location /internal/ { deny all; return 403; }`\n- Allocate 20GB+ EBS volume to account for Docker images, logs, and MongoDB data\n\n**Dependencies:** Blocks: [DA-E44-02]. Blocked by: [DA-E43-03].\n\n---"
+  },
+  {
+    "id": "DA-E44-02",
+    "summary": "[DA-E44-02] Deploy all services via docker-compose.prod.yml, setup SSL voi Let's Encrypt",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-128",
+    "description": "### DA-E44-02 — Deploy all services via docker-compose.prod.yml\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Deploy all 7 BrandHub microservices to production with automatic restart, resource limits, and SSL so the full platform is live and stable.\n\n**Acceptance Criteria:**\n- [ ] `docker-compose.prod.yml` defines all 7 services (api-gateway, business-service, publisher-service, ai-service, MongoDB, Redis, RabbitMQ) with `image: ghcr.io/brandhub/{service}:latest`\n- [ ] All services have `restart: always` and memory limits (`mem_limit: 512m` for Java services, `mem_limit: 1g` for ai-service)\n- [ ] `.env.prod` file present on the server (not in repo) with all required secrets; `env_file: .env.prod` in compose\n- [ ] SSL certificate obtained via `certbot --nginx -d api.brandhub.com`; auto-renewal cron configured\n- [ ] All 7 services pass health check within 5 minutes of `docker compose up -d`\n\n**Technical Notes:**\n- Use GitHub Actions CD pipeline: on push to `main`, build Docker images, push to GHCR, SSH to EC2, run `docker compose pull && docker compose up -d`\n- MongoDB volume: `volumes: [mongo_data:/data/db]` with named volume to survive container restarts\n- RabbitMQ: enable `rabbitmq_delayed_message_exchange` plugin in the Dockerfile: `RUN rabbitmq-plugins enable rabbitmq_delayed_message_exchange`\n\n**Dependencies:** Blocks: [DA-E44-03]. Blocked by: [DA-E44-01].\n\n---"
+  },
+  {
+    "id": "DA-E44-03",
+    "summary": "[DA-E44-03] Setup monitoring (uptime check, error alerts)",
+    "assignee": "Trung (Leader)",
+    "priority": "High",
+    "epic_key": "DA-128",
+    "description": "### DA-E44-03 — Set up UptimeRobot and disk/CPU alerts\n**Assignee:** Trung (Leader) | **Priority:** 🟡 High\n\n**Goal:** Establish uptime monitoring and resource alerts so the team is immediately notified of outages or server resource exhaustion.\n\n**Acceptance Criteria:**\n- [ ] UptimeRobot monitor configured for `https://api.brandhub.com/health` with 5-minute check interval\n- [ ] Email alert sent to team email when monitor goes DOWN and again when it recovers (UP)\n- [ ] Disk usage alert: cron job runs every 15 minutes, sends email if disk usage > 80% (`df -h` check)\n- [ ] CPU alert: if CPU > 90% for 5 consecutive minutes, email sent (can use CloudWatch or a simple cron with `top`)\n- [ ] UptimeRobot public status page created and URL shared with stakeholders\n\n**Technical Notes:**\n- Disk alert cron: `*/15 * * * * df -h / | awk 'NR==2{print $5}' | grep -q \"^[89][0-9]%\\|^100%\" && mail -s \"DISK ALERT\" team@brandhub.com`\n- Alternatively use AWS CloudWatch Alarms with SNS email subscription for CPU/disk metrics\n- UptimeRobot free tier supports up to 50 monitors at 5-minute intervals\n\n**Dependencies:** Blocks: [DA-E44-04]. Blocked by: [DA-E44-02].\n\n---"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-AI07-01",
+    "summary": "[DA-AI07-01] Setup InstantID pipeline (load model, face encoder InsightFace, ControlNet depth)",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-99",
+    "description": "### DA-AI07-01 — Set up InstantID pipeline (load model, InsightFace buffalo_l, ControlNet depth — GPU required)\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Establish a working InstantID inference environment in Colab/Replicate for development so face-consistent generation can begin without waiting for GPU hardware.\n\n**Acceptance Criteria:**\n- [ ] InstantID pipeline loads successfully on Replicate API (or Colab T4) with InsightFace buffalo_l face encoder and ControlNet depth model\n- [ ] A test image run produces a generated face image without runtime errors\n- [ ] Model weights download and cache mechanism is documented (buffalo_l is ~300MB; caching avoids re-download on every cold start)\n- [ ] Replicate API call structure (model ID, input schema, polling for output) is recorded for use in DA-AI07-03\n\n**Technical Notes:**\n- buffalo_l download: `insightface.app.FaceAnalysis(name='buffalo_l', providers=['CUDAExecutionProvider'])` with `prepare(ctx_id=0, det_size=(640,640))`\n- Do not attempt to run InstantID on CPU; inference is prohibitively slow (>10 minutes per image) — enforce GPU requirement in code with an upfront check\n\n**Dependencies:** Blocks: DA-AI07-02. Blocked by: DA-AI01-01, DA-AI01-02, DA-AI02-02.\n\n---"
+  },
+  {
+    "id": "DA-AI07-02",
+    "summary": "[DA-AI07-02] Implement reference photo processing (face detection + face embedding extraction)",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-99",
+    "description": "### DA-AI07-02 — Implement reference photo processing (face detection + face embedding extraction using InsightFace)\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Build the face preprocessing module that converts a reference photo into the face embedding vector that InstantID uses to preserve facial identity.\n\n**Acceptance Criteria:**\n- [ ] `services/ambassador/face_processor.py` function `extract_face_embedding(image_bytes: bytes) -> np.ndarray` returns a 512-dim face embedding vector\n- [ ] If no face is detected in the image, raises `NoFaceDetectedError` with a user-friendly message\n- [ ] If multiple faces are detected, uses the largest face by bounding box area\n- [ ] Unit test with a known face image verifies embedding shape is `(512,)` and is not all-zeros\n\n**Technical Notes:**\n- InsightFace `app.get(img)` returns a list of detected faces with `.embedding` attribute; select `max(faces, key=lambda f: f.bbox area)`\n- Accept image as bytes and decode with OpenCV `cv2.imdecode(np.frombuffer(img_bytes, np.uint8), cv2.IMREAD_COLOR)` to avoid file I/O\n\n**Dependencies:** Blocks: DA-AI07-03. Blocked by: DA-AI07-01.\n\n---"
+  },
+  {
+    "id": "DA-AI07-03",
+    "summary": "[DA-AI07-03] Build face-consistent generation endpoint (POST /ai/ambassador/generate: 1 reference + prompt → generated image giu nguyen khuon mat)",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-99",
+    "description": "### DA-AI07-03 — Build POST /ai/ambassador/generate (1 reference photo + prompt → generated image preserving original face)\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Deliver the core virtual ambassador endpoint that marketing users will call to generate on-brand human model images from a single reference photo.\n\n**Acceptance Criteria:**\n- [ ] `POST /ai/ambassador/generate` accepts multipart: `referencePhoto` (image file) + JSON fields `{prompt, clientId, style}`\n- [ ] Returns `{imageUrl: str, s3Key: str, faceSimScore: float}` where `faceSimScore` is cosine similarity between reference and generated face embeddings\n- [ ] Generated image uploaded to S3 at `ambassador/{clientId}/generated/{uuid}.png`\n- [ ] Endpoint returns `400` with `{\"error\": \"no_face_detected\"}` if InsightFace finds no face in the reference photo\n\n**Technical Notes:**\n- Pipeline order: extract reference embedding → call InstantID (via Replicate API) → download output → compute face similarity → upload to S3 → return\n- Log `faceSimScore` for every generation; alert at WARN level if score < 0.85 as this indicates a consistency failure\n\n**Dependencies:** Blocks: DA-AI07-04, DA-AI07-06. Blocked by: DA-AI07-02, DA-AI02-03.\n\n---"
+  },
+  {
+    "id": "DA-AI07-04",
+    "summary": "[DA-AI07-04] Test face consistency (generate 15 anh khac nhau: pose/background/outfit tu 1 reference → do facial similarity score)",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-99",
+    "description": "### DA-AI07-04 — Test face consistency (15 generated images from 1 reference, measure cosine similarity — target ≥ 0.85)\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Verify that InstantID meets the minimum face consistency standard required for the virtual ambassador feature to be credible to clients.\n\n**Acceptance Criteria:**\n- [ ] 15 images generated from one reference photo using varied prompts (different outfits, backgrounds, poses)\n- [ ] Cosine similarity computed between reference embedding and each generated face embedding\n- [ ] ≥ 13 of 15 images (≥86%) achieve cosine similarity ≥ 0.85\n- [ ] Results table saved with: prompt, generation time, similarity score, pass/fail; summary statistics (mean, min, max) reported\n\n**Technical Notes:**\n- Use consistent `guidance_scale` and `ip_adapter_scale` parameters across all 15 tests; document the values used so results are reproducible\n- If pass rate is below threshold, investigate whether the issue is reference image quality (lighting, angle) before concluding the model is insufficient\n\n**Dependencies:** Blocks: DA-AI07-07. Blocked by: DA-AI07-03.\n\n---"
+  },
+  {
+    "id": "DA-AI07-05",
+    "summary": "[DA-AI07-05] Build ambassador gallery management (luu reference + generated images vao S3 theo clientId)",
+    "assignee": "Tuấn (AI)",
+    "priority": "High",
+    "epic_key": "DA-99",
+    "description": "### DA-AI07-05 — Build ambassador gallery management (save reference + generated images to S3 under clientId prefix)\n**Assignee:** Tuấn (AI) | **Priority:** 🟡 High\n\n**Goal:** Allow clients to maintain and retrieve a library of their ambassador reference photos and previously generated images.\n\n**Acceptance Criteria:**\n- [ ] `POST /ai/ambassador/references` uploads a reference photo to S3 at `ambassador/{clientId}/references/{uuid}.png` and returns `{referenceKey: str}`\n- [ ] `GET /ai/ambassador/gallery?clientId={id}` returns `{references: [{key, presignedUrl}], generated: [{key, presignedUrl, createdAt}]}`\n- [ ] Presigned URLs expire in 1 hour; clients must re-request if expired\n- [ ] `DELETE /ai/ambassador/references/{referenceKey}` deletes the S3 object and returns `204 No Content`\n\n**Dependencies:** Blocks: None. Blocked by: DA-AI02-03, DA-AI02-04.\n\n---"
+  }
+]

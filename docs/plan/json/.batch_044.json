@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E32-08",
+    "summary": "[DA-E32-08] Implement HTTP callback → business-service sau khi publish (update post status: PUBLISHED/FAILED)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-113",
+    "description": "### DA-E32-08 — Implement HTTP callback POST /internal/posts/{id}/publish-result\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Allow publisher-service to report publish outcome back to business-service so post status and platform metadata are updated.\n\n**Acceptance Criteria:**\n- [ ] POST /internal/posts/{id}/publish-result accepts `{status: \"SUCCESS\"|\"FAILED\", platformPostId?, errorMessage?}`\n- [ ] On SUCCESS: updates post status to PUBLISHED, stores `platformPostId`, `publishedAt`, creates `post_published` notification for ACCOUNT_MANAGER\n- [ ] On FAILED: updates post status to FAILED, stores `errorMessage`, creates `post_failed` notification for ACCOUNT_MANAGER\n- [ ] Endpoint is protected by internal service secret header `X-Internal-Secret`; returns 401 if missing or wrong\n- [ ] Returns 404 if postId does not exist\n\n**Technical Notes:**\n- `X-Internal-Secret` value configured via `INTERNAL_SECRET` env var on both services\n- This endpoint must NOT be exposed through the public nginx proxy; restrict at nginx level with `deny all` for `/internal/`\n- Consider adding `publishJobId` to the callback for correlation verification\n\n**Dependencies:** Blocks: [DA-E33-01]. Blocked by: [DA-E32-03, DA-E32-04, DA-E32-05, DA-E32-06, DA-E32-07].\n\n---"
+  },
+  {
+    "id": "DA-E33-01",
+    "summary": "[DA-E33-01] Implement retry logic (toi da 3 lan, exponential backoff: 30s, 60s, 120s)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-118",
+    "description": "### DA-E33-01 — Implement retry logic\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Automatically retry failed publish attempts with exponential backoff before routing permanently failed messages to the Dead Letter Queue.\n\n**Acceptance Criteria:**\n- [ ] Failed messages are retried up to 3 times with delays: immediate retry → +30s → +60s → +120s\n- [ ] Retry count is tracked in message header `x-retry-count`; incremented on each NACK\n- [ ] After 3 retries, message is routed to `brandhub.publish.dlq` Dead Letter Queue\n- [ ] Retry delays are implemented via the `delayed_message_exchange` with updated `x-delay` headers\n- [ ] Non-retryable errors (token expired, caption too long, permission denied) skip retries and go directly to DLQ\n\n**Technical Notes:**\n- Distinguish retryable errors (network timeout, 5xx from platform) from non-retryable errors (4xx platform errors, decryption failure)\n- DLQ message includes original payload plus `{failureReason, failedAt, retryCount}`\n- Use a separate `brandhub.publish.dlq` queue bound to a direct exchange for DLQ\n\n**Dependencies:** Blocks: [DA-E33-02]. Blocked by: [DA-E32-08].\n\n---"
+  },
+  {
+    "id": "DA-E33-02",
+    "summary": "[DA-E33-02] Implement Dead Letter Queue handler (Admin co the xem va manual retry/discard failed posts)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-118",
+    "description": "### DA-E33-02 — Implement Dead Letter Queue admin API\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Provide ADMIN users with visibility into and control over failed publish jobs in the Dead Letter Queue.\n\n**Acceptance Criteria:**\n- [ ] GET /api/v1/admin/dlq returns paginated list of DLQ entries with `{id, postId, platform, failureReason, failedAt, retryCount}`\n- [ ] POST /api/v1/admin/dlq/{id}/retry re-publishes the message to the main exchange with reset retry count\n- [ ] DELETE /api/v1/admin/dlq/{id} permanently discards the DLQ entry\n- [ ] All three endpoints are restricted to ADMIN role; return 403 otherwise\n- [ ] DLQ entries are persisted to MongoDB `dlq_entries` collection (not only in RabbitMQ queue) for queryability\n\n**Technical Notes:**\n- Mirror DLQ messages to MongoDB in a `DlqConsumer` that reads from `brandhub.publish.dlq` queue\n- Retry operation re-enqueues via `RabbitTemplate` with `x-retry-count: 0` header reset\n- RabbitMQ management port (15672) must NOT be publicly exposed; all DLQ operations go through this API\n\n**Dependencies:** Blocks: [DA-E43-01]. Blocked by: [DA-E33-01].\n\n---"
+  },
+  {
+    "id": "DA-E33-03",
+    "summary": "[DA-E33-03] Implement failure notification (gui alert cho Account Manager khi post fail sau tat ca retries)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-118",
+    "description": "### DA-E33-03 — Implement failure notification\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Notify ACCOUNT_MANAGER when a post fails all retries so they can take corrective action promptly.\n\n**Acceptance Criteria:**\n- [ ] When a message enters DLQ, a `post_failed` notification is created for the ACCOUNT_MANAGER of the workspace\n- [ ] Notification includes post title, target platform, and the final error message\n- [ ] If ACCOUNT_MANAGER has an FCM token, a push notification is also dispatched\n- [ ] Post status is updated to FAILED in the business-service via the DA-E32-08 callback\n- [ ] Duplicate failure notifications for the same post are suppressed (check if `post_failed` notification already exists for this postId)\n\n**Technical Notes:**\n- Trigger from the DLQ consumer in publisher-service by calling the /internal/posts/{id}/publish-result callback with `status: FAILED`\n- business-service handles notification creation in the callback handler to keep publisher-service decoupled from notification logic\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E33-01, DA-E32-08].\n\n---"
+  },
+  {
+    "id": "DA-E34-01",
+    "summary": "[DA-E34-01] Setup shadcn/ui + Tailwind CSS + custom design tokens trong web-dashboard",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-122",
+    "description": "### DA-E34-01 — Set up shadcn/ui + Tailwind CSS + design tokens\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Establish the design system foundation with consistent color tokens, typography scale, and spacing so all UI components share a unified visual language.\n\n**Acceptance Criteria:**\n- [ ] shadcn/ui initialized in `web-dashboard` with Vite + TypeScript; `components.json` committed to repo\n- [ ] Tailwind CSS configured with custom design tokens: primary (#3B82F6), secondary (#8B5CF6), success (#10B981), warning (#F59E0B), danger (#EF4444)\n- [ ] Typography scale defined: font-family Inter, sizes xs/sm/base/lg/xl/2xl/3xl\n- [ ] Dark mode support via Tailwind's `class` strategy with `ThemeProvider` wrapper\n- [ ] `tailwind.config.ts` and `globals.css` with CSS custom properties committed and documented\n\n**Technical Notes:**\n- Run `npx shadcn-ui@latest init` and select TypeScript, Tailwind CSS variables style\n- CSS variables in `:root` and `.dark` selectors for theming; map to Tailwind via `extend.colors`\n- Add `prettier-plugin-tailwindcss` for class sorting consistency\n\n**Dependencies:** Blocks: [DA-E34-02, DA-E34-03]. Blocked by: [None].\n\n---"
+  }
+]
