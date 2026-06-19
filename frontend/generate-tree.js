@@ -11,8 +11,8 @@ function scanDirectory(dirPath, relativePath = '') {
   const result = [];
 
   for (const item of items) {
-    // Ignore hidden files and the homepage index.md
-    if (item.startsWith('.') || (relativePath === '' && item.toLowerCase() === 'index.md')) {
+    // Ignore hidden files, homepage index.md, and the internal html-viewer page
+    if (item.startsWith('.') || (relativePath === '' && item.toLowerCase() === 'index.md') || (relativePath === '' && item.toLowerCase() === 'view.md')) {
       continue;
     }
 
@@ -40,6 +40,10 @@ function scanDirectory(dirPath, relativePath = '') {
       // For .md files, strip the extension to match VitePress routing
       if (item.endsWith('.md')) {
         linkPath = `/${cleanRelPath.substring(0, cleanRelPath.length - 3)}`;
+      }
+      // For .html files, route through VitePress /view page with query param
+      if (item.endsWith('.html')) {
+        linkPath = `/view?file=${cleanRelPath}`;
       }
 
       result.push({

@@ -49,8 +49,9 @@
 
     <!-- File Node -->
     <div v-else class="file-node">
-      <a 
-        :href="withBase(node.path)" 
+      <a
+        :href="withBase(node.path)"
+        @click.prevent="navigateTo(node)"
         class="node-row file-row"
         :class="{ 'active-link': isActive }"
       >
@@ -80,7 +81,7 @@
 
 <script setup>
 import { ref, watch, computed } from 'vue';
-import { useRoute, withBase } from 'vitepress';
+import { useRoute, useRouter, withBase } from 'vitepress';
 
 const props = defineProps({
   node: {
@@ -100,6 +101,13 @@ const props = defineProps({
 // All directories open by default for a complete visual overview
 const isOpen = ref(true);
 const route = useRoute();
+const router = useRouter();
+
+// HTML files use /view?file=... (VitePress page) — use router.go for SPA nav
+// Other files navigate normally via router
+const navigateTo = (node) => {
+  router.go(withBase(node.path));
+};
 
 // Toggle directory collapse state
 const toggle = () => {

@@ -168,50 +168,64 @@ Sau bước này, Jira đã nhận diện được branch và gán vào task `DA
 
 ---
 
-### Bước 6 — Tạo Pull Request trên GitHub
+### Bước 6 — Tạo Pull Request và tự merge
 
 1. Vào GitHub → **Compare & pull request**
-2. Đặt tiêu đề PR: `[DA-47] User Schema Implementation`
+2. Đặt tiêu đề PR theo chuẩn: `feat(DA-47): mô tả ngắn gọn`
 3. Điền mô tả theo template:
 
 ```
-## Mô tả
-Tạo schema Mongoose cho bảng Users bao gồm: email, password (hash), role, createdAt.
+## 1. Mô tả
+Tóm tắt ngắn gọn tính năng / fix đã thực hiện.
 
-## Task liên quan
+- **Loại tác vụ:** `feat` | `fix` | `refactor` | `chore` | `test` | `docs` | `perf`
+- **Phạm vi ảnh hưởng (Scope):** auth | database | ui | api | ...
+
+## 2. Task liên quan
 Jira: DA-47
 
-## Checklist
-- [x] Code chạy không lỗi
-- [x] Đã viết unit test
-- [x] Không có console.log thừa
-- [ ] Đã được review bởi ít nhất 1 thành viên
+## 3. Yêu cầu chi tiết
+- [ ] Luồng xử lý chính: ...
+- [ ] Các trường hợp ngoại lệ (Edge cases): ...
+
+## 4. Các file chính đã chỉnh sửa
+- src/...
+
+## 5. Definition of Done
+- [ ] Tính năng hoạt động đúng yêu cầu kỹ thuật
+- [ ] Đã xóa hoặc cập nhật dòng TODO tương ứng trong file `README.md` (nếu có)
+- [ ] Đã viết Unit Test / Integration Test (nếu có logic nghiệp vụ)
+- [ ] Pull Request đặt tên theo chuẩn: `feat(DA-47): mô tả ngắn gọn (#số_PR)`
+- [ ] Không có `console.log` thừa
+- [ ] Code không có lỗi lint/build
+- [ ] Không có conflict chưa giải quyết
+
+## 6. Thông tin quản lý
+- **Độ ưu tiên:** 🔴 High | 🟡 Medium | 🔵 Low
+- **Ước lượng:** ___ Story Points / Giờ
 ```
 
-4. Chọn **Reviewers** — ít nhất 1 người
-5. Chọn base branch là `develop`
+4. Chọn base branch là `develop`
+5. Nhấn **Squash and merge**
+6. GitHub sẽ tạo 1 commit duy nhất — **chỉnh tiêu đề squash commit** theo chuẩn:
+
+```
+feat(DA-47): mô tả ngắn gọn (#số_PR)
+```
+
+> Dùng **Squash and merge** để giữ history `develop` gọn — tránh hàng chục commit nhỏ lẫn lộn.
+
+> **Không merge khi:** CI chưa pass, có conflict chưa giải quyết, hoặc branch chưa được cập nhật từ `develop`.
 
 ---
 
-### Bước 7 — Review và Merge
-
-| Người      | Việc cần làm                                              |
-|------------|-----------------------------------------------------------|
-| **Author** | Trả lời comment, sửa theo feedback, push thêm commit      |
-| **Reviewer** | Review code, approve hoặc request changes               |
-| **Author** | Sau khi được approve → **Squash and merge** vào `develop` |
-
-> Dùng **Squash and merge** để giữ history `main` gọn — tránh hàng chục commit nhỏ lẫn lộn.
-
----
-
-### Bước 8 — Cập nhật Jira
-
-Sau khi PR được merge:
+### Bước 7 — Cập nhật Jira sau khi merge
 
 1. Vào task `DA-47` trên Jira
-2. Kéo sang **Done**
-3. Panel **Development** sẽ hiển thị: branch đã merged, số commit, PR status = Merged
+2. Kéo sang **In Review**
+3. Chờ lead/người được phân công review kết quả
+4. Sau khi được duyệt → kéo sang **Done**
+5. Panel **Development** hiển thị: branch đã merged, số commit, PR status = Merged
 
 ---
 
@@ -222,9 +236,9 @@ Jira: kéo task → In Progress
 Git:  pull develop → tạo branch feature/DA-47-xxx
 Code: commit thường xuyên với feat(DA-47): ...
 Push: git push -u origin feature/DA-47-xxx
-PR:   tiêu đề [DA-47] ..., chọn reviewer
-Merge: Squash and merge sau khi approved
-Jira: kéo task → Done
+PR:   tiêu đề feat(DA-47): ..., base=develop, điền template đầy đủ
+Merge: Squash and merge → chỉnh tiêu đề squash commit → xác nhận
+Jira: kéo task → In Review → chờ duyệt → Done
 ```
 
 ---
@@ -235,3 +249,17 @@ Jira: kéo task → Done
 - Một commit có thể gán nhiều task: `feat(DA-47)(DA-58): ...` — Jira nhận cả hai.
 - Commit không có mã task vẫn hợp lệ cho Git, nhưng **không sync được vào Jira**.
 - Merge commit tự động (`Merge pull request #xx`) không cần mã task.
+
+---
+
+## 8. Quy tắc bắt buộc
+
+| Quy tắc | Mô tả |
+|---------|-------|
+| **Không push thẳng vào `develop`** | Mọi thay đổi phải qua PR — không dùng `git push origin develop` trực tiếp |
+| **Không merge khi conflict** | Phải rebase/merge từ `develop` và giải quyết conflict trước |
+| **Branch từ `develop`** | Không tạo branch từ `main` hoặc branch của người khác |
+| **Xóa branch sau merge** | GitHub tự xóa nếu bật "Automatically delete head branches"; hoặc xóa thủ công |
+| **Không force push** | Không dùng `git push --force` lên branch đã có PR open |
+| **Squash commit phải có mã DA** | Khi confirm squash merge, đảm bảo tiêu đề chứa `DA-xx` |
+| **Không commit file nhạy cảm** | `.env`, `*.key`, `credentials.*` — thêm vào `.gitignore` trước khi commit |
