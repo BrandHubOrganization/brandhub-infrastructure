@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E03-02",
+    "summary": "[DA-E03-02] Viet mo ta chi tiet UC 01–20 (Admin + Agency Owner flows) — actor, description, main flow, alt flows",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-18",
+    "description": "### DA-E03-02 — Write detailed descriptions for UC 01–20 (Admin + Agency Owner flows)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Produce fully described use cases for UC-01 through UC-20 so that Admin and Agency Owner feature requirements are unambiguous for backend developers implementing those flows.\n\n**Acceptance Criteria:**\n- [ ] Each of UC-01 to UC-20 includes: Actor, Preconditions, Main Flow (numbered steps), Alternative Flows, and Postconditions\n- [ ] Admin use cases cover at minimum: user management, subscription management, platform configuration, audit log review\n- [ ] Agency Owner use cases cover at minimum: workspace creation, member invitation, client onboarding, subscription tier management\n\n**Technical Notes:**\n- Reference the role enum values exactly as they appear in the JWT: ADMIN, AGENCY_OWNER — these must match any permission checks in business-service\n\n**Dependencies:** Blocks: DA-E03-05, DA-E04-01. Blocked by: DA-E03-01.\n\n---"
+  },
+  {
+    "id": "DA-E03-03",
+    "summary": "[DA-E03-03] Viet mo ta chi tiet UC 21–40 (Account Manager + Content Creator flows)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-18",
+    "description": "### DA-E03-03 — Write detailed descriptions for UC 21–40 (Account Manager + Content Creator flows)\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Produce fully described use cases for UC-21 through UC-40 covering the core day-to-day content workflow so developers building content and approval features have precise requirements.\n\n**Acceptance Criteria:**\n- [ ] Each of UC-21 to UC-40 includes: Actor, Preconditions, Main Flow, Alternative Flows, and Postconditions\n- [ ] Account Manager use cases cover at minimum: assigning content to creators, reviewing drafts, managing approval workflows, reporting to clients\n- [ ] Content Creator use cases cover at minimum: AI content generation, image generation, draft editing, submitting for approval, scheduling posts\n\n**Technical Notes:**\n- The approval workflow use case must clearly distinguish between ACCOUNT_MANAGER approval and BRAND_CLIENT approval as separate states\n- AI generation steps in creator flows must specify which ai-service endpoint is called (e.g., /ai/content, /ai/image)\n\n**Dependencies:** Blocks: DA-E03-05, DA-E04-01. Blocked by: DA-E03-01.\n\n---"
+  },
+  {
+    "id": "DA-E03-04",
+    "summary": "[DA-E03-04] Viet mo ta chi tiet UC 41–60 (Brand Client + Social Publishing flows)",
+    "assignee": "Phước (Publisher)",
+    "priority": "High",
+    "epic_key": "DA-18",
+    "description": "### DA-E03-04 — Write detailed descriptions for UC 41–60 (Brand Client + Social Publishing flows)\n**Assignee:** Phước (Publisher) | **Priority:** 🟡 High\n\n**Goal:** Produce fully described use cases for UC-41 through UC-60 covering Brand Client portal interactions and automated social publishing so the publisher-service and client portal are built to spec.\n\n**Acceptance Criteria:**\n- [ ] Each of UC-41 to UC-60 includes: Actor, Preconditions, Main Flow, Alternative Flows, and Postconditions\n- [ ] Brand Client use cases cover at minimum: viewing content calendar, approving/rejecting posts, viewing analytics\n- [ ] Social publishing use cases cover at minimum: scheduling a post, RabbitMQ-triggered publish job, callback on success/failure, retry on failure\n\n**Technical Notes:**\n- Publishing flow use cases must reference the RabbitMQ message contract defined in DA-E07-03 once available; flag any assumptions made before that task completes\n- Brand Client flows must note that all data access is scoped by both workspaceId and clientId per the access rules in DA-E06-08\n\n**Dependencies:** Blocks: DA-E03-05, DA-E04-01. Blocked by: DA-E03-01.\n\n---"
+  },
+  {
+    "id": "DA-E03-05",
+    "summary": "[DA-E03-05] Review UC list voi mentor, cap nhat sau feedback",
+    "assignee": "All (Team)",
+    "priority": "High",
+    "epic_key": "DA-18",
+    "description": "### DA-E03-05 — Review UC list with mentor, update based on feedback\n**Assignee:** All (Team) | **Priority:** 🟡 High\n\n**Goal:** Validate the full 60-use-case set with the assigned mentor to catch scope, feasibility, or completeness issues before the team invests effort writing detailed requirements documents.\n\n**Acceptance Criteria:**\n- [ ] A mentor review session is scheduled and held with at least 3 team members present\n- [ ] All mentor feedback items are logged with a resolution status (Accepted / Rejected with rationale / Deferred)\n- [ ] The UC list is updated to incorporate all accepted feedback and the final version is re-shared with the team\n\n**Dependencies:** Blocks: DA-E03-06, DA-E04-01, DA-E04-02. Blocked by: DA-E01-03, DA-E03-02, DA-E03-03, DA-E03-04.\n\n---"
+  },
+  {
+    "id": "DA-E03-06",
+    "summary": "[DA-E03-06] Finalize UC table vao file Excel (BrandHub_UseCases.xlsx)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Medium",
+    "epic_key": "DA-18",
+    "description": "### DA-E03-06 — Finalize UC table into Excel file (BrandHub_UseCases.xlsx)\n**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium\n\n**Goal:** Package the finalized use case list into a structured Excel file formatted for university submission and mentor reference.\n\n**Acceptance Criteria:**\n- [ ] BrandHub_UseCases.xlsx contains columns: UC ID, Title, Actor, Priority, Status, Related Epic, Brief Description\n- [ ] All 60 use cases are present with no blank required fields\n- [ ] File is uploaded to the shared project folder and linked from the project wiki\n\n**Dependencies:** Blocks: None. Blocked by: DA-E03-05.\n\n---"
+  }
+]

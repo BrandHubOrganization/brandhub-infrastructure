@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-AI06-01",
+    "summary": "[DA-AI06-01] Integrate Stability AI API (SDXL): text-to-image voi style, aspect ratio, negative prompt params",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-97",
+    "description": "### DA-AI06-01 — Integrate Stability AI SDXL API: text-to-image with style, aspect ratio, negative prompt params\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Connect to Stability AI's image generation service and expose its key parameters through a clean internal function.\n\n**Acceptance Criteria:**\n- [ ] `services/image_gen.py` function `generate_image(prompt, negative_prompt, style_preset, aspect_ratio) -> bytes` calls Stability AI REST API and returns raw PNG bytes\n- [ ] Supported aspect ratios: 1:1, 4:3, 16:9, 9:16 mapped to SDXL pixel dimensions\n- [ ] `style_preset` maps to valid Stability AI style options (e.g., `photographic`, `digital-art`, `cinematic`)\n- [ ] On API error, raises `ImageGenerationError` with the Stability AI error message included\n\n**Technical Notes:**\n- Use `stability-sdk` or direct REST calls to `https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image`; REST is preferred for easier error inspection\n- API key from `STABILITY_API_KEY` env var via `utils/clients.py`\n\n**Dependencies:** Blocks: DA-AI06-02. Blocked by: DA-AI02-02, DA-AI02-04.\n\n---"
+  },
+  {
+    "id": "DA-AI06-02",
+    "summary": "[DA-AI06-02] Build image generation endpoint (POST /ai/image/generate → tra ve S3 URL)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-97",
+    "description": "### DA-AI06-02 — Build POST /ai/image/generate endpoint → upload result to S3 → return {imageUrl}\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Deliver the complete image generation user flow from prompt input to a publicly accessible (presigned) image URL.\n\n**Acceptance Criteria:**\n- [ ] `POST /ai/image/generate` accepts `{prompt, negativePrompt, stylePreset, aspectRatio, clientId}` and returns `{imageUrl: str, s3Key: str, generationTimeMs: int}`\n- [ ] Generated image uploaded to S3 at key `generated/{clientId}/{uuid}.png`\n- [ ] Presigned URL returned expires in 24 hours\n- [ ] Total endpoint response time logged; target P95 under 30 seconds (SDXL generation is slow)\n\n**Technical Notes:**\n- Stream the PNG bytes directly from Stability AI response into `upload_file()` without writing to disk\n- Add `X-Generation-Time-Ms` response header in addition to the body field for easy monitoring\n\n**Dependencies:** Blocks: DA-AI06-03, DA-AI06-04. Blocked by: DA-AI06-01, DA-AI02-03.\n\n---"
+  },
+  {
+    "id": "DA-AI06-03",
+    "summary": "[DA-AI06-03] Implement batch generation (tao 3 variations cung luc de user chon)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-97",
+    "description": "### DA-AI06-03 — Implement batch generation (generate 3 variations simultaneously via asyncio.gather)\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Allow users to request multiple image variations in a single API call by parallelizing Stability AI requests.\n\n**Acceptance Criteria:**\n- [ ] `POST /ai/image/generate/batch` accepts the same parameters as single-generate plus `count: int` (max 3)\n- [ ] All `count` requests are dispatched concurrently using `asyncio.gather`; total time is approximately single-request time, not `count × single-request time`\n- [ ] Returns `{images: [{imageUrl, s3Key}, ...]}` with results in deterministic order (by variation index)\n- [ ] If one variation fails, the others still complete; failed slots return `{error: \"generation_failed\"}` in position\n\n**Technical Notes:**\n- Stability AI charges per generation regardless of batching method; document that batch of 3 = 3× the credit cost\n- Use different random seeds per variation to ensure visual diversity across the batch\n\n**Dependencies:** Blocks: None. Blocked by: DA-AI06-02.\n\n---"
+  },
+  {
+    "id": "DA-AI06-04",
+    "summary": "[DA-AI06-04] Brand safety filter (negative prompts mac dinh tranh content khong phu hop)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-97",
+    "description": "### DA-AI06-04 — Brand safety filter (prepend default negative prompts to avoid inappropriate content)\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Prevent the image generation pipeline from producing content that could damage client brands or violate platform content policies.\n\n**Acceptance Criteria:**\n- [ ] `utils/safety.py` defines `BRAND_SAFETY_NEGATIVE_PROMPTS: str` — a fixed string prepended to all user-supplied negative prompts\n- [ ] Safety prompt includes at minimum: nudity, violence, political content, competitor brand logos, text/watermarks\n- [ ] Unit test confirms safety string is present in the final prompt for every call, even when user supplies no negative prompt\n- [ ] Safety prompt is loaded from config (env var or file) so it can be updated without code deployment\n\n**Technical Notes:**\n- Store the safety prompt in `utils/prompts.py` as `SAFETY_NEGATIVE_PROMPT` constant; make it the first thing appended, not last, so it takes precedence over user additions\n\n**Dependencies:** Blocks: None. Blocked by: DA-AI06-01.\n\n---"
+  },
+  {
+    "id": "DA-AI06-05",
+    "summary": "[DA-AI06-05] Test 20 product prompts thuc te, danh gia chat luong va thoi gian generate",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-97",
+    "description": "### DA-AI06-05 — Test 20 real product prompts, evaluate quality and generation time, document results\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Validate SDXL image quality against real BrandHub use cases and identify prompt patterns that produce reliably high-quality marketing visuals.\n\n**Acceptance Criteria:**\n- [ ] 20 prompts tested covering: packaged products, fashion items, food/beverage, lifestyle scenes, beauty products\n- [ ] Each output rated: visual quality (1-5), brand suitability (1-5), prompt adherence (1-5), generation time (s)\n- [ ] Top 10 best prompts documented as starter templates; 5 worst prompts documented with failure analysis\n\n**Dependencies:** Blocks: DA-AI11-03. Blocked by: DA-AI06-02, DA-AI06-04.\n\n---"
+  }
+]

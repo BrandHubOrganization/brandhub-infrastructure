@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E30-01",
+    "summary": "[DA-E30-01] Implement GET /api/v1/posts/calendar (lay posts theo date range, filter theo platform/status)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-114",
+    "description": "### DA-E30-01 — Implement GET /api/v1/posts/calendar\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Provide a date-range query endpoint for posts so the calendar UI can efficiently load scheduled and published posts within a given window.\n\n**Acceptance Criteria:**\n- [ ] GET /api/v1/posts/calendar?startDate=&endDate=&platform=&status= returns all matching posts within the date range\n- [ ] `startDate` and `endDate` are ISO-8601 dates; missing either returns 400\n- [ ] Scoped to the authenticated user's workspaceId (ACCOUNT_MANAGER sees all workspace posts; CONTENT_CREATOR sees own assigned posts; BRAND_CLIENT sees own clientId's posts)\n- [ ] Response includes `postId`, `title`, `scheduledAt`, `platform`, `status`, `thumbnailUrl` per post\n- [ ] Maximum date range is 90 days; request exceeding this returns 400\n\n**Technical Notes:**\n- MongoDB index on `{workspaceId, scheduledAt}` is required for performance\n- Use `@DateTimeFormat(iso = ISO.DATE)` on query params and convert to `LocalDate` then to UTC range `[startOfDay, endOfDay]`\n\n**Dependencies:** Blocks: [DA-E30-03]. Blocked by: [None].\n\n---"
+  },
+  {
+    "id": "DA-E30-02",
+    "summary": "[DA-E30-02] Implement POST /api/v1/posts/{id}/schedule (ACCOUNT_MANAGER dat lich: scheduledAt + targetPlatforms)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-114",
+    "description": "### DA-E30-02 — Implement POST /api/v1/posts/{id}/schedule\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow ACCOUNT_MANAGER to set a publish time for an approved post and enqueue it to RabbitMQ for delayed delivery.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/posts/{id}/schedule with body `{scheduledAt, targetPlatforms[]}` transitions post status to SCHEDULED\n- [ ] Message is published to `delayed_message_exchange` with `x-delay` header set to `scheduledAt - now` in milliseconds\n- [ ] Returns 400 if `scheduledAt` is in the past or `targetPlatforms` is empty\n- [ ] Returns 409 if post status is not APPROVED (cannot schedule unapproved content)\n- [ ] Post document is updated with `scheduledAt` and `targetPlatforms` fields\n\n**Technical Notes:**\n- Requires `rabbitmq_delayed_message_exchange` plugin enabled on the broker\n- Declare exchange as `x-delayed-message` type with `x-delayed-type: direct`\n- Message payload: `PublishJobMessage {postId, workspaceId, targetPlatforms, scheduledAt}`\n- Store `scheduledAt` in UTC; convert from client's local time if `timezone` param provided\n\n**Dependencies:** Blocks: [DA-E32-01]. Blocked by: [DA-E31-03].\n\n---"
+  },
+  {
+    "id": "DA-E30-03",
+    "summary": "[DA-E30-03] Build ContentCalendar React component (drag-drop rescheduling, color-coded status indicators)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-114",
+    "description": "### DA-E30-03 — Build ContentCalendar React component\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Deliver an interactive monthly/weekly content calendar that visually represents post schedules and allows drag-and-drop rescheduling.\n\n**Acceptance Criteria:**\n- [ ] Calendar renders in both monthly and weekly view modes with a toggle\n- [ ] Each post appears as a colored chip on its `scheduledAt` date, color-coded by status (SCHEDULED=blue, PUBLISHED=green, FAILED=red, PENDING_REVIEW=yellow)\n- [ ] Dragging a post chip to a new date calls PATCH /api/v1/posts/{id}/reschedule with the new datetime\n- [ ] Clicking a post chip opens a detail side-panel with post preview and action buttons\n- [ ] Supports platform filter (checkbox group: FB, IG, TikTok, Threads, Zalo)\n- [ ] Loading state shown while fetching; error toast on API failure\n\n**Technical Notes:**\n- Use `react-big-calendar` with `moment` or `date-fns` localizer, or `FullCalendar` with `@fullcalendar/react`\n- Fetch posts via GET /api/v1/posts/calendar with visible date range as `startDate`/`endDate` params; refetch on view change\n- Implement drag-and-drop via the calendar library's built-in `onEventDrop` callback\n\n**Dependencies:** Blocks: [DA-E36-03]. Blocked by: [DA-E30-01].\n\n---"
+  },
+  {
+    "id": "DA-E30-04",
+    "summary": "[DA-E30-04] Build PlatformPreview component (hien thi preview dung format cua FB, IG, TikTok, Threads)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-114",
+    "description": "### DA-E30-04 — Build PlatformPreview component\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Provide accurate per-platform post previews so content creators and clients can visualize how a post will appear before publishing.\n\n**Acceptance Criteria:**\n- [ ] Facebook preview renders at 1200×630 aspect ratio with profile avatar, page name, caption, and image\n- [ ] Instagram preview renders as 1080×1080 square card with username, square-cropped image, and caption\n- [ ] TikTok preview renders in 9:16 vertical orientation with overlay username and caption at the bottom\n- [ ] Threads preview renders as text-first layout with 500 character limit indicator\n- [ ] Switching platform tab instantly updates the preview without re-fetching data\n- [ ] Caption is truncated with \"See more\" at platform-appropriate character limits (FB: 63,206; IG: 2,200; TikTok: 2,200; Threads: 500)\n\n**Technical Notes:**\n- Implement as a tabbed modal: `<Tabs>` with one tab per platform\n- Use CSS aspect-ratio property rather than fixed pixel dimensions to maintain responsiveness\n- Character count warning at 80% and error styling at 100% of platform limit\n\n**Dependencies:** Blocks: [DA-E36-04, DA-E37-03]. Blocked by: [None].\n\n---"
+  },
+  {
+    "id": "DA-E31-01",
+    "summary": "[DA-E31-01] Implement POST /api/v1/posts/{id}/submit (CONTENT_CREATOR submit → PENDING_REVIEW)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-115",
+    "description": "### DA-E31-01 — Implement POST /api/v1/posts/{id}/submit\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow CONTENT_CREATOR to submit a drafted post for internal review, triggering an ACCOUNT_MANAGER notification.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/posts/{id}/submit transitions post status DRAFT→PENDING_REVIEW\n- [ ] Returns 403 if caller is not the assigned CONTENT_CREATOR for this post\n- [ ] Returns 409 if post status is not DRAFT\n- [ ] A notification of type `post_submitted` is created for the ACCOUNT_MANAGER responsible for the linked content request\n- [ ] Response returns updated post object with new status and `submittedAt` timestamp\n\n**Technical Notes:**\n- Resolve the responsible ACCOUNT_MANAGER via `ContentRequest.accountManagerId` linked to the post\n- Set `submittedAt = now()` on the Post document upon successful transition\n\n**Dependencies:** Blocks: [DA-E31-02]. Blocked by: [DA-E28-03].\n\n---"
+  }
+]

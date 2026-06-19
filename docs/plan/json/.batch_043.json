@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E32-03",
+    "summary": "[DA-E32-03] Implement Facebook adapter (Graph API: IMAGE post va REEL/VIDEO)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-113",
+    "description": "### DA-E32-03 — Implement Facebook adapter\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Publish text, image, and video (Reels) posts to Facebook via Graph API v19 using the workspace's connected page token.\n\n**Acceptance Criteria:**\n- [ ] Text-only posts use POST `/{pageId}/feed` with `{message, access_token}`\n- [ ] Image posts use POST `/{pageId}/photos` with `{url, caption, access_token}`\n- [ ] Video/Reels posts use the resumable upload flow: POST `/video/uploads` → upload chunks → POST `/{pageId}/videos` to publish\n- [ ] On API success, returns `{platformPostId, postUrl}` to the consumer\n- [ ] On API error, throws `PlatformPublishException` with the Graph API error code and message for retry logic\n\n**Technical Notes:**\n- Graph API version must be pinned to v19.0 in the base URL: `https://graph.facebook.com/v19.0`\n- Handle token expiry (error code 190) as a non-retryable error; notify ACCOUNT_MANAGER to reconnect\n- Use `RestTemplate` or `WebClient` with a 30s connect timeout and 60s read timeout\n\n**Dependencies:** Blocks: [DA-E42-05]. Blocked by: [DA-E32-02].\n\n---"
+  },
+  {
+    "id": "DA-E32-04",
+    "summary": "[DA-E32-04] Implement Instagram adapter (2-step: create container → publish)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-113",
+    "description": "### DA-E32-04 — Implement Instagram adapter\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Publish image and video posts to Instagram Business accounts via the two-step Content Publishing API.\n\n**Acceptance Criteria:**\n- [ ] Step 1: POST `/{igUserId}/media` with `{image_url|video_url, caption, media_type}` → returns `creationId`\n- [ ] Step 2: POST `/{igUserId}/media_publish` with `{creation_id}` → returns `igMediaId`\n- [ ] For videos, polls `GET /{creationId}?fields=status_code` until `FINISHED` before publishing (max 10 polls, 10s apart)\n- [ ] On success, returns `{platformPostId: igMediaId, postUrl: \"https://instagram.com/p/{shortcode}\"}`\n- [ ] Enforces 2,200 character caption limit; truncates with ellipsis if exceeded\n\n**Technical Notes:**\n- `media_type` values: `IMAGE`, `VIDEO`, `REELS`, `CAROUSEL`\n- Video polling timeout after 100s total should be treated as a soft failure with requeue\n- Instagram requires media to be publicly accessible via URL at the time of container creation; ensure S3 URLs are not pre-signed\n\n**Dependencies:** Blocks: [DA-E42-05]. Blocked by: [DA-E32-02].\n\n---"
+  },
+  {
+    "id": "DA-E32-05",
+    "summary": "[DA-E32-05] Implement TikTok adapter (Direct Post cho video ≤60s, Creator Upload cho video >60s)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-113",
+    "description": "### DA-E32-05 — Implement TikTok adapter\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Publish videos to TikTok using Direct Post API for short videos and Creator Upload API for longer content.\n\n**Acceptance Criteria:**\n- [ ] Videos ≤60s use Direct Post API: POST `/v2/post/publish/video/init/` with `{post_info, source_info}` → upload → confirm\n- [ ] Videos >60s use Creator Upload API: POST `/v2/post/publish/creator/inbox/` for draft upload flow\n- [ ] Polls publish status via GET `/v2/post/publish/status/fetch/` until `PUBLISH_COMPLETE` or `FAILED`\n- [ ] Returns `{platformPostId, shareUrl}` on success\n- [ ] Enforces TikTok privacy settings from workspace config (`privacy_level`: PUBLIC_TO_EVERYONE, MUTUAL_FOLLOW_FRIENDS, etc.)\n\n**Technical Notes:**\n- TikTok API requires `Content-Type: video/mp4` chunked upload with chunk size 10MB\n- Access token scope must include `video.upload` and `video.publish`\n- Rate limit: 100 publish requests per day per app; track and surface this limit\n\n**Dependencies:** Blocks: [DA-E42-05]. Blocked by: [DA-E32-02].\n\n---"
+  },
+  {
+    "id": "DA-E32-06",
+    "summary": "[DA-E32-06] Implement Threads adapter (2-step: create container → publish, max 500 chars)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-113",
+    "description": "### DA-E32-06 — Implement Threads adapter\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Publish text and image posts to Threads via the two-step container/publish flow with 500 character caption enforcement.\n\n**Acceptance Criteria:**\n- [ ] Step 1: POST `/{userId}/threads` with `{media_type, text, image_url?}` → returns `containerId`\n- [ ] Step 2: POST `/{userId}/threads_publish` with `{creation_id: containerId}` → returns `threadId`\n- [ ] Returns 400 (non-retryable) if caption exceeds 500 characters; does not attempt publish\n- [ ] Returns `{platformPostId: threadId}` on success\n- [ ] `media_type` TEXT for text-only, IMAGE for image posts; VIDEO not yet supported — reject with clear error\n\n**Technical Notes:**\n- Threads API base URL: `https://graph.threads.net/v1.0`\n- Threads API uses the same Facebook access token for connected Instagram/Threads accounts\n- Minimum delay of 30s between container creation and publish recommended per API docs\n\n**Dependencies:** Blocks: [DA-E42-05]. Blocked by: [DA-E32-02].\n\n---"
+  },
+  {
+    "id": "DA-E32-07",
+    "summary": "[DA-E32-07] Implement Zalo OA adapter",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-113",
+    "description": "### DA-E32-07 — Implement Zalo OA adapter\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Publish rich article and image posts to Zalo Official Accounts via the Zalo OA Open API.\n\n**Acceptance Criteria:**\n- [ ] Article posts use POST `/article/create` with `{title, description, body, cover, status: \"show\"}`\n- [ ] Image posts use POST `/photo/upload` first, then POST `/message/photo` with the returned `photo_id`\n- [ ] OA access token is refreshed if expired before publishing (Zalo OA tokens expire in 3 months)\n- [ ] Returns `{platformPostId: articleId|photoId}` on success\n- [ ] Returns non-retryable error on OA permission/scope issues with notification to ACCOUNT_MANAGER\n\n**Technical Notes:**\n- Zalo OA API base: `https://openapi.zalo.me/v2.0/oa`\n- OA access token obtained via OAuth 2.0 with `manage_oa` scope; refresh token stored encrypted in DB\n- Image must be uploaded to Zalo servers first; S3 URLs are not accepted directly\n\n**Dependencies:** Blocks: [DA-E42-05]. Blocked by: [DA-E32-02].\n\n---"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-AI10-03",
+    "summary": "[DA-AI10-03] Integration test voi business-service (verify tat ca AI calls tu business hoat dong dung)",
+    "assignee": "All (Team)",
+    "priority": "Highest",
+    "epic_key": "DA-111",
+    "description": "### DA-AI10-03 — Integration test with business-service (verify all AI calls from business-service reach ai-service correctly)\n**Assignee:** All (Team) | **Priority:** 🔴 Critical\n\n**Goal:** Validate the end-to-end integration between business-service and ai-service in the shared Docker environment before final demo.\n\n**Acceptance Criteria:**\n- [ ] All AI feature calls originating from business-service (caption generation, image generation, video trigger, composition) successfully reach ai-service endpoints\n- [ ] `X-Internal-Key` header is correctly sent from business-service and validated by ai-service middleware\n- [ ] At least one full user flow tested end-to-end: upload brand doc → generate caption using RAG → generate image → compose product + model\n- [ ] All integration tests pass in `docker-compose` environment without requiring local Python or AI SDK installation\n\n**Technical Notes:**\n- Use `pytest` with `httpx.AsyncClient` pointed at `http://localhost:8082` for integration tests\n- Test with a real (non-mocked) ChromaDB and Redis container to catch connection issues that unit tests miss\n\n**Dependencies:** Blocks: DA-AI11-05. Blocked by: DA-AI02-05, DA-AI02-06, DA-AI10-01, DA-AI10-02.\n\n---"
+  },
+  {
+    "id": "DA-AI10-04",
+    "summary": "[DA-AI10-04] Viet Postman collection cho tat ca AI endpoints voi example requests",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Medium",
+    "epic_key": "DA-111",
+    "description": "### DA-AI10-04 — Write Postman collection for all AI endpoints with example requests and responses\n**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium\n\n**Goal:** Give business-service developers and the mentor a ready-to-run set of API examples that work against the local Docker environment.\n\n**Acceptance Criteria:**\n- [ ] Postman collection covers all 7 endpoint groups with at least one example request per endpoint\n- [ ] Collection uses environment variables for `BASE_URL`, `INTERNAL_API_KEY`, `CLIENT_ID` so it works in both local and staging environments\n- [ ] Example responses match actual service responses (not fabricated); collection is exported as `ai_service.postman_collection.json` and committed to repo\n\n**Dependencies:** Blocks: None. Blocked by: DA-AI10-01.\n\n---"
+  },
+  {
+    "id": "DA-AI10-05",
+    "summary": "[DA-AI10-05] Viet Swagger/OpenAPI documentation cho ai-service",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Medium",
+    "epic_key": "DA-111",
+    "description": "### DA-AI10-05 — Write Swagger/OpenAPI documentation for ai-service (auto-generated via FastAPI /docs)\n**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium\n\n**Goal:** Ensure every endpoint has complete, accurate Swagger documentation that a developer can use without reading source code.\n\n**Acceptance Criteria:**\n- [ ] Every endpoint has: summary, description, request body schema with field descriptions, response schema with field descriptions, example values\n- [ ] Error responses (400, 401, 404, 422, 500, 503) are documented on every endpoint using FastAPI `responses=` parameter\n- [ ] `GET /docs` renders correctly in browser against the local Docker service\n\n**Technical Notes:**\n- Add `openapi_extra={\"x-internal-only\": True}` tag to all `/internal/*` endpoints to visually distinguish them from public endpoints in the Swagger UI\n\n**Dependencies:** Blocks: None. Blocked by: DA-AI10-01.\n\n---"
+  },
+  {
+    "id": "DA-AI11-01",
+    "summary": "[DA-AI11-01] Viet Virtual Ambassador Technical Report (model comparison, implementation decisions, sample results gallery)",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-109",
+    "description": "### DA-AI11-01 — Write Virtual Ambassador Technical Report\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Produce a comprehensive technical record of the virtual ambassador feature development that satisfies mentor evaluation requirements.\n\n**Acceptance Criteria:**\n- [ ] Report covers: model comparison (InstantID vs IP-Adapter from DA-AI07-07), implementation architecture, face consistency test results (DA-AI07-04), sample gallery (≥10 before/after image pairs)\n- [ ] Quantitative results included: face similarity score distribution, generation time statistics, cost per image\n- [ ] Implementation decisions justified with reference to empirical test results, not opinions\n- [ ] Report is ≥ 2000 words and includes all figures/tables from DA-AI07-04 and DA-AI07-07\n\n**Dependencies:** Blocks: DA-AI11-05. Blocked by: DA-AI07-07, DA-AI07-04.\n\n---"
+  },
+  {
+    "id": "DA-AI11-02",
+    "summary": "[DA-AI11-02] Viet Video Generation Research Report (full prompt library 30 templates, movement parameter guide, cost analysis)",
+    "assignee": "Ân (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-109",
+    "description": "### DA-AI11-02 — Write Video Generation Research Report (full prompt library, movement guide, cost analysis)\n**Assignee:** Ân (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Document the complete video generation research and implementation in a format suitable for mentor review and team knowledge transfer.\n\n**Acceptance Criteria:**\n- [ ] Report includes: Veo API capability summary, full 30-template prompt library with quality ratings, movement parameter cheat sheet, benchmark results table\n- [ ] Cost analysis section: cost per video × estimated monthly usage volume\n- [ ] Report cross-references DA-AI09-08 research report; does not duplicate content but synthesizes decisions made\n\n**Dependencies:** Blocks: DA-AI11-05. Blocked by: DA-AI09-07, DA-AI09-08.\n\n---"
+  }
+]

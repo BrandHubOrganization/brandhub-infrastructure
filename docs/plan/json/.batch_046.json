@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E35-02",
+    "summary": "[DA-E35-02] Build main Dashboard page (overview: tong posts, success rate, team activity)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-117",
+    "description": "### DA-E35-02 — Build main Dashboard page\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Deliver the post-login landing page with KPI cards and activity feed so users immediately see the health of their content operations.\n\n**Acceptance Criteria:**\n- [ ] KPI cards display: total posts this month, published count, failed count, success rate percentage — fetched from GET /api/v1/analytics/overview\n- [ ] Recent activity feed shows last 10 events (post published, task assigned, etc.) with timestamp and actor name\n- [ ] Team stats section shows per-member post counts (AGENCY_OWNER/ACCOUNT_MANAGER view only)\n- [ ] All data loads asynchronously with skeleton loaders; errors shown as inline error states (not blank page)\n- [ ] Dashboard is responsive: KPI cards stack to 2-column on tablet, 1-column on mobile\n\n**Technical Notes:**\n- Fetch analytics via GET /api/v1/analytics/overview; poll every 5 min or use WebSocket if available\n- Activity feed sourced from GET /api/v1/notifications?type=activity&page=0&size=10\n- Use `React.Suspense` or manual loading states per card to avoid full-page blocking\n\n**Dependencies:** Blocks: [DA-E35-03]. Blocked by: [DA-E35-01, DA-E38-01].\n\n---"
+  },
+  {
+    "id": "DA-E35-03",
+    "summary": "[DA-E35-03] Build Workspace management pages (create, settings, members)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-117",
+    "description": "### DA-E35-03 — Build Workspace management pages\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Allow AGENCY_OWNER to create and configure their workspace and manage team members through a dedicated settings UI.\n\n**Acceptance Criteria:**\n- [ ] Create Workspace page: name, subdomain, logo upload fields; calls POST /api/v1/workspaces; redirects to workspace settings on success\n- [ ] Workspace Settings panel: edit name/logo, view subscription plan, danger zone (delete workspace)\n- [ ] Member list table: shows name, email, role, joined date; supports search by name/email\n- [ ] Invite member flow: email input + role selector → POST /api/v1/workspaces/{id}/invite → success toast\n- [ ] Remove member: confirmation modal → DELETE /api/v1/workspaces/{id}/members/{userId}\n\n**Technical Notes:**\n- Logo upload uses POST /api/v1/media/upload → returns S3 URL → stored as `workspace.logoUrl`\n- Role selector options filtered by caller's role (AGENCY_OWNER cannot invite another AGENCY_OWNER)\n- Invitation email is handled server-side; frontend only needs to show success/failure state\n\n**Dependencies:** Blocks: [DA-E35-04]. Blocked by: [DA-E35-01].\n\n---"
+  },
+  {
+    "id": "DA-E35-04",
+    "summary": "[DA-E35-04] Build Client management pages (list, create, edit, service package)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-117",
+    "description": "### DA-E35-04 — Build Client management pages\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Provide ACCOUNT_MANAGER and AGENCY_OWNER with CRUD pages for managing brand clients and their service packages.\n\n**Acceptance Criteria:**\n- [ ] Client list page: searchable table with client name, assigned manager, active posts count, service package, status badge\n- [ ] Create/Edit client form: name, logo, contact email, assigned account manager, service package (starter/growth/enterprise)\n- [ ] Client detail page: client info, linked social accounts, current content requests, analytics summary\n- [ ] Service package settings: select package tier, set post quota per month, expiry date\n- [ ] Delete client: confirmation modal with warning that all associated data will be archived\n\n**Technical Notes:**\n- Client list uses GET /api/v1/clients with `?workspaceId=&page=&size=` and debounced search\n- Service package changes call PATCH /api/v1/clients/{id}/package\n- Optimistic UI update on edit: update local state immediately, roll back on API error with error toast\n\n**Dependencies:** Blocks: [DA-E36-01]. Blocked by: [DA-E35-03].\n\n---"
+  },
+  {
+    "id": "DA-E36-01",
+    "summary": "[DA-E36-01] Build Content Request list page (filter theo status, platform, deadline)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-119",
+    "description": "### DA-E36-01 — Build Content Request list page\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Provide ACCOUNT_MANAGER and CONTENT_CREATOR with a filterable, paginated view of all content requests relevant to their role.\n\n**Acceptance Criteria:**\n- [ ] Table columns: topic, platform (icon), client name, deadline, status badge, assignee, actions\n- [ ] Filter bar: status multi-select, platform multi-select, deadline date range picker\n- [ ] Pagination: 20 rows per page, page controls at bottom\n- [ ] ACCOUNT_MANAGER sees \"Assign\" button per row; clicking opens an assignee picker modal\n- [ ] CONTENT_CREATOR sees \"View My Tasks\" tab that calls GET /api/v1/content-requests/my-tasks\n- [ ] Clicking any row navigates to Content Editor page for that request\n\n**Technical Notes:**\n- Filter state stored in URL query params (using `useSearchParams`) so the view is bookmarkable and shareable\n- Debounce filter changes by 300ms before firing API calls\n- Status badges use the `Badge` component with color mapped to status: SUBMITTED=gray, ASSIGNED=blue, IN_PROGRESS=yellow, PENDING_REVIEW=orange, SENT_TO_CLIENT=purple, APPROVED=green, REJECTED=red\n\n**Dependencies:** Blocks: [DA-E36-02]. Blocked by: [DA-E28-02, DA-E29-02, DA-E35-04].\n\n---"
+  },
+  {
+    "id": "DA-E36-02",
+    "summary": "[DA-E36-02] Build Content Editor page voi AI Generate Panel (goi ai-service, hien thi caption + hashtag + image)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-119",
+    "description": "### DA-E36-02 — Build Content Editor page with AI Generate Panel\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Deliver the primary content creation interface where CONTENT_CREATOR writes or AI-generates captions, selects hashtags, attaches media, and submits for review.\n\n**Acceptance Criteria:**\n- [ ] Left panel: rich text editor for caption (character count per platform), media uploader (drag-drop + browse), hashtag input with suggestions\n- [ ] Right panel: AI Generate Panel — trigger button calls POST /api/v1/ai/generate, shows streaming response with loading skeleton, allows regeneration\n- [ ] AI result auto-populates caption and hashtag fields; user can edit before saving\n- [ ] Platform Preview button opens DA-E30-04 modal showing per-platform preview\n- [ ] Submit for Review button calls POST /api/v1/posts/{id}/submit; shows success toast and redirects to request list\n- [ ] Auto-save draft every 30s via PATCH /api/v1/posts/{id}; unsaved changes indicator in page header\n\n**Technical Notes:**\n- Use `@tiptap/react` for the rich text editor (bold, italic, emoji, link support)\n- AI generate endpoint may take 5–15s; show animated placeholder text during wait; do not block the editor\n- Media upload via POST /api/v1/media/upload with `multipart/form-data`; show upload progress bar\n\n**Dependencies:** Blocks: [DA-E36-03]. Blocked by: [DA-E36-01].\n\n---"
+  }
+]

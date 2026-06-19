@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E06-03",
+    "summary": "[DA-E06-03] Thiet ke 5 PostgreSQL tables voi constraints, foreign keys noi bo",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-47",
+    "description": "### DA-E06-03 — Design 5 PostgreSQL tables with constraints and internal foreign keys\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Produce a complete PostgreSQL schema specification for all 5 tables so developers can write JPA entities and Flyway migrations without ambiguity about constraints, keys, or data types.\n\n**Acceptance Criteria:**\n- [ ] All 5 tables are documented with every column: name, PostgreSQL data type, nullable, default value, constraints (PK, FK, UNIQUE, CHECK)\n- [ ] Foreign keys between tables are explicitly defined with ON DELETE behavior specified for each\n- [ ] Tables include at minimum: `users`, `workspaces`, `workspace_members`, `subscription_plans`, `workspace_subscriptions`\n\n**Technical Notes:**\n- Use `UUID` (not SERIAL/BIGINT) as primary key type for all tables to avoid ID collision across environments and to match the `sub` claim format in JWT\n- `workspace_members` table must have a composite unique constraint on `(workspace_id, user_id)` to prevent duplicate membership records\n\n**Dependencies:** Blocks: DA-E06-05, DA-E06-07, DA-E07-01. Blocked by: DA-E06-01.\n\n---"
+  },
+  {
+    "id": "DA-E06-04",
+    "summary": "[DA-E06-04] Dinh nghia indexing strategy cho MongoDB va PostgreSQL",
+    "assignee": "Tuấn (AI)",
+    "priority": "High",
+    "epic_key": "DA-47",
+    "description": "### DA-E06-04 — Define indexing strategy for MongoDB and PostgreSQL\n**Assignee:** Tuấn (AI) | **Priority:** 🟡 High\n\n**Goal:** Specify all database indexes needed to meet API performance requirements so the initialization scripts and application code create them from day one, not as a post-launch optimization.\n\n**Acceptance Criteria:**\n- [ ] Every MongoDB collection has its indexes listed: field(s), index type (single, compound, text, TTL), and the query pattern it supports\n- [ ] Every PostgreSQL table has its indexes listed beyond the automatic PK index, including indexes on foreign key columns and any columns used in WHERE clauses\n- [ ] TTL index is defined on any MongoDB collection used for temporary data (e.g., OAuth state cache if stored in MongoDB rather than Redis)\n\n**Technical Notes:**\n- Mandatory compound index on MongoDB collections: `{ workspaceId: 1, createdAt: -1 }` for all time-series queries (posts, analytics events)\n- PostgreSQL: add index on `workspace_members(workspace_id)` and `workspace_members(user_id)` separately since both are common query patterns\n\n**Dependencies:** Blocks: DA-E06-07. Blocked by: DA-E06-02, DA-E06-03.\n\n---"
+  },
+  {
+    "id": "DA-E06-05",
+    "summary": "[DA-E06-05] Viet DBML code cho dbdiagram.io (MongoDB + PostgreSQL + Enums + Refs + TableGroups)",
+    "assignee": "Tuấn (AI)",
+    "priority": "High",
+    "epic_key": "DA-47",
+    "description": "### DA-E06-05 — Write DBML code for dbdiagram.io (MongoDB + PostgreSQL + Enums + Refs + TableGroups)\n**Assignee:** Tuấn (AI) | **Priority:** 🟡 High\n\n**Goal:** Produce a complete, renderable DBML file covering all 17 collections/tables so the team has a visual, shareable database diagram for documentation and mentor review.\n\n**Acceptance Criteria:**\n- [ ] DBML file renders without errors on dbdiagram.io\n- [ ] All 12 MongoDB collections and 5 PostgreSQL tables are represented with their fields and types\n- [ ] Enums are defined for all enum-typed fields (e.g., UserRole, PostStatus, SubscriptionTier); TableGroups separate MongoDB from PostgreSQL; Refs show cross-collection/table relationships\n\n**Technical Notes:**\n- DBML does not natively support BSON types; use the closest SQL equivalent (e.g., ObjectId → varchar, Array → text[]) and add a comment noting the actual BSON type\n- Commit the `.dbml` file to brandhub-infrastructure repo under `docs/database/` alongside the exported diagram PNG\n\n**Dependencies:** Blocks: DA-E05-08. Blocked by: DA-E06-02, DA-E06-03.\n\n---"
+  },
+  {
+    "id": "DA-E06-06",
+    "summary": "[DA-E06-06] Document Redis key patterns (JWT blacklist, rate limit, OAuth state, trending cache)",
+    "assignee": "Ân (AI)",
+    "priority": "High",
+    "epic_key": "DA-47",
+    "description": "### DA-E06-06 — Document Redis key patterns (JWT blacklist, rate limit, OAuth state, trending cache)\n**Assignee:** Ân (AI) | **Priority:** 🟡 High\n\n**Goal:** Define all Redis key patterns, TTLs, and value formats used across the system so that every service writing to or reading from Redis uses consistent, non-colliding key structures.\n\n**Acceptance Criteria:**\n- [ ] All 4 key pattern families are documented: JWT blacklist, rate limiting, OAuth state, and trending/analytics cache\n- [ ] Each pattern entry includes: key template, example key, value type, value content, TTL, and which service reads/writes it\n- [ ] Document explicitly states that JWT blacklist TTL must equal the access token TTL (15 minutes) so blacklist entries expire naturally when the token would have expired anyway\n\n**Technical Notes:**\n- Key patterns must exactly match what is configured in api-gateway and business-service code:\n  - `jwt:blacklist:{jti}` → value: `\"1\"`, TTL: 15 minutes\n  - `ratelimit:{userId}:{minute}` → value: request count (INCR), TTL: 60 seconds\n  - `oauth:state:{state}` → value: JSON with provider + redirect URI, TTL: 10 minutes\n- Use Redis `INCR` + `EXPIRE` (set only on first INCR) pattern for rate limiting, not a Lua script, for simplicity\n\n**Dependencies:** Blocks: DA-E11-03. Blocked by: DA-E05-04.\n\n---"
+  },
+  {
+    "id": "DA-E06-07",
+    "summary": "[DA-E06-07] Viet database initialization scripts (init-mongo.js + init-postgres.sql)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-47",
+    "description": "### DA-E06-07 — Write database initialization scripts (init-mongo.js + init-postgres.sql)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Produce runnable initialization scripts that create all collections, indexes, tables, constraints, and seed data so any developer can spin up a fully configured local database with a single `docker-compose up` command.\n\n**Acceptance Criteria:**\n- [ ] `init-mongo.js` creates all 12 collections with schema validation rules (where applicable) and all indexes defined in DA-E06-04\n- [ ] `init-postgres.sql` creates all 5 tables with all constraints and seeds at least 3 subscription plan records (e.g., FREE, PROFESSIONAL, ENTERPRISE)\n- [ ] Both scripts are idempotent (safe to run multiple times without error) and are mounted into the Docker containers via the docker-compose.yml from DA-E09-01\n\n**Technical Notes:**\n- MongoDB init script path in docker-compose: `/docker-entrypoint-initdb.d/init-mongo.js` — MongoDB Docker image automatically executes `.js` files in this directory on first start\n- PostgreSQL init script path: `/docker-entrypoint-initdb.d/init-postgres.sql` — same convention; use `CREATE TABLE IF NOT EXISTS` for idempotency\n\n**Dependencies:** Blocks: DA-E09-01, DA-E09-02. Blocked by: DA-E06-02, DA-E06-03, DA-E06-04.\n\n---"
+  }
+]

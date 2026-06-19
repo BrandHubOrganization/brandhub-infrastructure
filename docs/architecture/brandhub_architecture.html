@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrandHub — System Architecture</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #fafafa;
+  color: #1a1a2e;
+  padding: 32px 24px 48px;
+  min-width: 700px;
+}
+
+.page-title { text-align: center; margin-bottom: 28px; }
+.page-title h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.2px; color: #111; }
+.page-title p  { font-size: 11px; color: #aaa; margin-top: 3px; }
+
+/* 3-col: sidebar | center | sidebar */
+.canvas-wrap {
+  display: grid;
+  grid-template-columns: 124px 1fr 128px;
+  gap: 20px;
+  max-width: 1140px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+/* Sidebars */
+.sidebar { margin-top: 20px; }
+.sb-box { border-radius: 10px; padding: 11px 9px; border: 1.5px dashed; }
+.sb-left-box  { background: #F7F6F2; border-color: #C8C3B8; }
+.sb-right-box { background: #FDF5FB; border-color: #CFA0C4; }
+.sb-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #999; margin-bottom: 7px; }
+.sb-i {
+  display: flex; align-items: center; gap: 5px;
+  background: #fff; border: 1px solid #E0DCD5;
+  border-radius: 6px; padding: 4px 6px; margin-bottom: 4px;
+  font-size: 10.5px; color: #444;
+}
+.sb-i i { font-size: 13px; }
+.sb-r {
+  display: flex; align-items: center; gap: 5px;
+  background: #FBF0F8; border: 1px solid #DDAACE;
+  border-radius: 5px; padding: 4px 6px; margin-bottom: 4px;
+  font-size: 10.5px; color: #5A2040;
+}
+.sb-r i { font-size: 12px; }
+.sb-sec { font-size: 9.5px; font-weight: 600; color: #A05080; margin: 6px 0 3px; }
+.sb-sec:first-of-type { margin-top: 0; }
+.sb-div { height: 1px; background: #D8A0C8; opacity: 0.25; margin: 5px 0; }
+
+/* Center */
+.center { position: relative; display: flex; flex-direction: column; align-items: center; }
+
+/* SVG overlay */
+#arch-svg {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; z-index: 20; overflow: visible;
+}
+
+/* Layer wrapper */
+.layer {
+  width: 100%; border: 1.5px dashed #CCCCCC;
+  border-radius: 12px; padding: 12px 14px 14px;
+  position: relative; background: transparent;
+}
+.layer-num {
+  position: absolute; top: -9px; left: 12px;
+  background: #fafafa; font-size: 10px; font-weight: 600;
+  color: #999; padding: 0 5px; letter-spacing: 0.4px;
+}
+
+/* Vertical pipe */
+.vpipe { width: 2px; height: 28px; background: #CCC; margin: 0 auto; }
+
+/* ── Client layer ── */
+.client-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.client-card { border-radius: 10px; padding: 12px 10px; text-align: center; border: 1.5px solid; }
+.cc-web { background: #EEF0FD; border-color: #9FA8DA; }
+.cc-mob { background: #EEF0FD; border-color: #9FA8DA; }
+.cc-name { font-size: 13px; font-weight: 700; color: #3949AB; }
+.cc-tech { font-size: 10px; color: #666; margin-top: 3px; }
+
+/* ── Gateway ── */
+.gw-card {
+  background: #fff; border: 1.5px solid #B0B8E8;
+  border-radius: 12px; padding: 12px 20px; text-align: center;
+  box-shadow: 0 1px 8px rgba(92,107,192,0.10); width: 100%;
+}
+.gw-num  { font-size: 9px; color: #aaa; font-weight: 600; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+.gw-name { font-size: 15px; font-weight: 700; color: #3949AB; }
+.gw-sub  { font-size: 10px; color: #888; margin-top: 3px; }
+
+/* ── Service cards ── */
+.svc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 4px; }
+.svc-card {
+  border-radius: 10px; padding: 12px 10px; text-align: center;
+  border: 1.5px solid; cursor: default;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.svc-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,0.13); }
+.sc-icon { font-size: 22px; margin-bottom: 5px; }
+.sc-name { font-size: 12px; font-weight: 700; }
+.sc-tech { font-size: 10px; margin-top: 2px; opacity: 0.7; }
+.sc-port { font-size: 9px; margin-top: 2px; opacity: 0.5; }
+.sc-feats { margin-top: 7px; text-align: left; }
+.sf { font-size: 9.5px; padding: 1px 0; }
+.sf::before { content: '· '; opacity: 0.45; }
+
+/* business = blue tones */
+.sc-biz { background: #EEF2FD; border-color: #7986CB; color: #1A237E; }
+.sc-biz .sc-icon { color: #3F51B5; }
+/* ai = teal */
+.sc-ai  { background: #E8F6F3; border-color: #4DB6AC; color: #00352C; }
+.sc-ai .sc-icon { color: #00796B; }
+/* publisher = neutral gray — no DB */
+.sc-pub { background: #F5F5F5; border-color: #BDBDBD; color: #424242; }
+.sc-pub .sc-icon { color: #757575; }
+
+/* ── DB layer ── */
+.db-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 4px; }
+.db-card {
+  background: #fff; border-radius: 10px; padding: 10px 6px; text-align: center;
+  border: 1.5px solid; cursor: default;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.db-card:hover { transform: translateY(-2px); box-shadow: 0 3px 12px rgba(0,0,0,0.11); }
+.dc-icon { font-size: 24px; margin-bottom: 3px; }
+.dc-name { font-size: 11px; font-weight: 700; }
+.dc-sub  { font-size: 9px; color: #888; margin-top: 1px; margin-bottom: 4px; }
+.dc-label {
+  font-size: 8.5px; border-radius: 3px; padding: 2px 6px; border: 0.5px solid;
+  display: inline-block; font-weight: 600; margin-top: 2px;
+}
+
+/* DB accent colors */
+.dc-mongo  { border-color: #4CAF50; }
+.dc-mongo .dc-icon { color: #4CAF50; }
+.dc-mongo .dc-label { background: #E8F5E9; border-color: #81C784; color: #2E7D32; }
+
+.dc-pg     { border-color: #3B6EA5; }
+.dc-pg .dc-icon { color: #336791; }
+.dc-pg .dc-label { background: #E3EDF9; border-color: #90BCE0; color: #1A4D6E; }
+
+.dc-redis  { border-color: #5C6BC0; border-style: solid; }
+.dc-redis .dc-icon { color: #5C6BC0; }
+.dc-redis .dc-label { background: #E8EAF6; border-color: #9FA8DA; color: #283593; }
+
+.dc-chroma { border-color: #00897B; }
+.dc-chroma .dc-icon { color: #00897B; }
+.dc-chroma .dc-label { background: #E0F2F1; border-color: #80CBC4; color: #004D40; }
+
+.dc-s3     { border-color: #FF9900; }
+.dc-s3 .dc-icon { color: #FF9900; }
+.dc-s3 .dc-label { background: #FFF8E1; border-color: #FFD54F; color: #A05000; }
+
+/* ── Connection owner badge on DB card ── */
+.dc-owner {
+  margin-top: 6px; border-top: 0.5px solid #EBEBEB; padding-top: 5px;
+  display: flex; flex-direction: column; gap: 3px; align-items: flex-start;
+}
+.owner-tag {
+  font-size: 8.5px; border-radius: 3px; padding: 2px 5px;
+  border: 0.5px solid; font-weight: 500; display: inline-block;
+}
+.ot-biz   { background: #EEF2FD; border-color: #7986CB; color: #283593; }
+.ot-ai    { background: #E8F6F3; border-color: #4DB6AC; color: #00352C; }
+.ot-gw    { background: #F3F4FD; border-color: #9FA8DA; color: #3949AB; }
+
+/* ── Legend ── */
+.legend {
+  max-width: 1140px; margin: 16px auto 0;
+  display: flex; gap: 16px; flex-wrap: wrap; align-items: center;
+  font-size: 10px; color: #888; padding: 8px 12px;
+  background: #fff; border: 1px solid #E8E8E8; border-radius: 8px;
+}
+.leg-i { display: flex; align-items: center; gap: 5px; }
+.leg-line { width: 20px; height: 2.5px; border-radius: 1px; }
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <h1>BrandHub — System Architecture</h1>
+  <p>B2B SaaS · AI-powered multi-channel content production · Microservices</p>
+</div>
+
+<div class="canvas-wrap">
+
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-box sb-left-box">
+      <div class="sb-label">Infra / DevOps</div>
+      <div class="sb-i"><i class="ti ti-brand-docker" style="color:#0DB7ED"></i>Docker Compose</div>
+      <div class="sb-i"><i class="ti ti-brand-github"></i>GitHub Actions</div>
+      <div class="sb-i"><i class="ti ti-server" style="color:#FF9900"></i>AWS EC2</div>
+      <div class="sb-i"><i class="ti ti-message-2" style="color:#FF6600"></i>RabbitMQ 3.12</div>
+      <div class="sb-i"><i class="ti ti-database" style="color:#5C6BC0"></i>pgAdmin UI</div>
+      <div class="sb-i"><i class="ti ti-activity" style="color:#888"></i>Monitoring</div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="center" id="center">
+    <svg id="arch-svg" aria-hidden="true"></svg>
+
+    <!-- ① Client layer -->
+    <div class="layer" id="layer-client">
+      <div class="layer-num">① client layer</div>
+      <div class="client-grid">
+        <div class="client-card cc-web">
+          <div class="cc-name">Web Dashboard</div>
+          <div class="cc-tech">React 18 + Vite + TypeScript</div>
+        </div>
+        <div class="client-card cc-mob">
+          <div class="cc-name">Mobile App</div>
+          <div class="cc-tech">React Native + Expo (Android)</div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:10px;color:#aaa;margin-top:6px">HTTPS · REST</div>
+    </div>
+
+    <div class="vpipe"></div>
+
+    <!-- ② API Gateway -->
+    <div class="gw-card" id="box-gw">
+      <div class="gw-num">② API Gateway</div>
+      <div class="gw-name">Spring Cloud Gateway</div>
+    </div>
+
+    <div class="vpipe"></div>
+    <div style="text-align:center;font-size:10px;color:#bbb;margin:-4px 0 0">Forwards request</div>
+    <!-- gap: JS draws fan-out lines here -->
+    <div style="height:44px;width:100%"></div>
+
+    <!-- ③ Core services -->
+    <div class="layer" id="layer-svc">
+      <div class="layer-num">③ core services</div>
+      <div class="svc-grid">
+
+        <div class="svc-card sc-biz" id="svc-biz">
+          <i class="ti ti-server sc-icon"></i>
+          <div class="sc-name">Business Service</div>
+          <div class="sc-tech">Java Spring Boot 3.3.5</div>
+        
+        </div>
+
+        <div class="svc-card sc-ai" id="svc-ai">
+          <i class="ti ti-brain sc-icon"></i>
+          <div class="sc-name">AI Service</div>
+          <div class="sc-tech">Python FastAPI 3.13</div>
+          
+        </div>
+
+        <div class="svc-card sc-pub" id="svc-pub">
+          <i class="ti ti-send sc-icon"></i>
+          <div class="sc-name">Publisher Service</div>
+          <div class="sc-tech">Java Spring Boot 3.3.5</div>
+          
+        </div>
+
+      </div>
+    </div>
+
+    <!-- gap: JS draws service→DB lines here -->
+    <div style="height:64px;width:100%"></div>
+
+    <!-- ④ Infrastructure -->
+    <div class="layer" id="layer-db">
+      <div class="layer-num">④ infrastructure</div>
+      <div class="db-grid">
+
+        <!-- business-service → MongoDB -->
+        <div class="db-card dc-mongo" id="db-mongo">
+          <i class="ti ti-database dc-icon"></i>
+          <div class="dc-name">MongoDB</div>
+          <div class="dc-sub">Document · 27017</div>
+          
+          <div class="dc-owner">
+            
+          </div>
+        </div>
+
+        <!-- business-service → PostgreSQL -->
+        <div class="db-card dc-pg" id="db-pg">
+          <i class="ti ti-database dc-icon"></i>
+          <div class="dc-name">PostgreSQL</div>
+          <div class="dc-sub">Relational · 5432</div>
+          
+          <div class="dc-owner">
+            
+          </div>
+        </div>
+
+        <!-- business-service + gateway → Redis -->
+        <div class="db-card dc-redis" id="db-redis">
+          <i class="ti ti-database dc-icon"></i>
+          <div class="dc-name">Redis</div>
+          <div class="dc-sub">Cache · 6379</div>
+     
+          <div class="dc-owner">
+  
+          </div>
+        </div>
+
+        <!-- ai-service → ChromaDB -->
+        <div class="db-card dc-chroma" id="db-chroma">
+          <i class="ti ti-vector dc-icon"></i>
+          <div class="dc-name">ChromaDB</div>
+          <div class="dc-sub">Vector DB · 8000</div>
+          
+          <div class="dc-owner">
+    
+          </div>
+        </div>
+
+        <!-- ai-service → S3 -->
+        <div class="db-card dc-s3" id="db-s3">
+          <i class="ti ti-cloud dc-icon"></i>
+          <div class="dc-name">AWS S3</div>
+          <div class="dc-sub">Object · ap-se-1</div>
+          <div class="dc-owner">
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="margin-top:12px;text-align:center;font-size:10px;color:#bbb;line-height:1.8">
+      Blue arrows = business-service &nbsp;·&nbsp; Teal arrows = ai-service &nbsp;·&nbsp; Publisher-service has no direct DB (uses RabbitMQ)
+    </div>
+
+  </div><!-- /center -->
+
+  <!-- RIGHT SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-box sb-right-box">
+      <div class="sb-label" style="color:#8B3F7A">Third Party</div>
+      <div class="sb-sec">Social APIs</div>
+      <div class="sb-r"><i class="ti ti-brand-facebook" style="color:#1877F2"></i>Facebook Graph</div>
+      <div class="sb-r"><i class="ti ti-brand-instagram" style="color:#C13584"></i>Instagram</div>
+      <div class="sb-r"><i class="ti ti-brand-tiktok"></i>TikTok</div>
+      <div class="sb-r"><i class="ti ti-message-circle"></i>Threads</div>
+      <div class="sb-r"><i class="ti ti-message" style="color:#0068FF"></i>Zalo OA</div>
+      <div class="sb-div"></div>
+      <div class="sb-sec">LLM</div>
+      <div class="sb-r"><i class="ti ti-cpu"></i>Groq (LLaMA)</div>
+      <div class="sb-r"><i class="ti ti-message-dots" style="color:#CC785C"></i>Claude API</div>
+      <div class="sb-div"></div>
+      <div class="sb-sec">Media Gen</div>
+      <div class="sb-r"><i class="ti ti-photo"></i>Stability AI</div>
+      <div class="sb-r"><i class="ti ti-video" style="color:#4285F4"></i>Google Veo</div>
+      <div class="sb-r"><i class="ti ti-user-circle"></i>InstantID</div>
+    </div>
+  </div>
+
+</div><!-- /canvas-wrap -->
+
+<div class="legend">
+  <span style="font-weight:600;color:#555">Connections:</span>
+  <div class="leg-i"><div class="leg-line" style="background:#3F51B5"></div>business-service → MongoDB · PostgreSQL · Redis</div>
+  <div class="leg-i"><div class="leg-line" style="background:#00897B"></div>ai-service → ChromaDB · AWS S3</div>
+  <div class="leg-i"><div class="leg-line" style="background:#AAB8D0;border-top:2px dashed #AAB8D0;height:0"></div>api-gateway fan-out</div>
+  <div class="leg-i" style="color:#BDBDBD"><i class="ti ti-send" style="font-size:12px"></i>publisher-service — no direct DB (RabbitMQ consumer)</div>
+  <span style="margin-left:auto;color:#ccc">BrandHub v1.0 · 2026</span>
+</div>
+
+<script>
+/*
+  Connections (service → DB):
+    business-service (#3F51B5 blue) → MongoDB, PostgreSQL, Redis
+    ai-service       (#00897B teal) → ChromaDB, S3
+    publisher-service               → (none)
+    api-gateway      (#5C6BC0)      → Redis  (fan-out lines only, no arrow to DB)
+*/
+const CONNS = [
+  { from:'svc-biz', to:'db-mongo',  color:'#3F51B5', w:2.2, dash:null,  label:'queries' },
+  { from:'svc-biz', to:'db-pg',     color:'#3F51B5', w:2.2, dash:null,  label:'queries' },
+  { from:'svc-biz', to:'db-redis',  color:'#3F51B5', w:2.2, dash:null,  label:'queries' },
+  { from:'svc-ai',  to:'db-chroma', color:'#00897B', w:2.2, dash:null,  label:'queries' },
+  { from:'svc-ai',  to:'db-s3',     color:'#00897B', w:2.2, dash:null,  label:'queries' },
+];
+
+function draw() {
+  const svg    = document.getElementById('arch-svg');
+  const center = document.getElementById('center');
+  if (!svg || !center) return;
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  const cr = center.getBoundingClientRect();
+  svg.setAttribute('width',  cr.width);
+  svg.setAttribute('height', cr.height);
+  svg.setAttribute('viewBox', `0 0 ${cr.width} ${cr.height}`);
+
+  function rel(id) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return {
+      top:    r.top    - cr.top,
+      bottom: r.bottom - cr.top,
+      left:   r.left   - cr.left,
+      right:  r.right  - cr.left,
+      width:  r.width,
+      height: r.height,
+      cx: r.left - cr.left + r.width  / 2,
+    };
+  }
+
+  function n(tag, attrs={}) {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (const [k,v] of Object.entries(attrs)) el.setAttribute(k,v);
+    return el;
+  }
+
+  // ── Arrowhead markers ──
+  const defs = n('defs');
+
+  function addMarker(id, color) {
+    const m = n('marker', { id, markerWidth:'8', markerHeight:'8', refX:'7', refY:'4', orient:'auto' });
+    m.appendChild(n('polygon', { points:'0 0, 8 4, 0 8', fill:color, opacity:'0.9' }));
+    defs.appendChild(m);
+  }
+  addMarker('arr-biz',  '#3F51B5');
+  addMarker('arr-ai',   '#00897B');
+  addMarker('arr-gw',   '#AAB8D0');
+  svg.appendChild(defs);
+
+  // ── Gateway fan-out → 3 services ──
+  const gw  = rel('box-gw');
+  const biz = rel('svc-biz');
+  const ai  = rel('svc-ai');
+  const pub = rel('svc-pub');
+
+  if (gw && biz && ai && pub) {
+    const botY  = gw.bottom;
+    const barY  = botY + (biz.top - botY) * 0.55;
+
+    // vertical stem
+    svg.appendChild(n('line', { x1:gw.cx, y1:botY, x2:gw.cx, y2:barY, stroke:'#AAB8D0', 'stroke-width':1.5, opacity:0.8 }));
+    // crossbar
+    svg.appendChild(n('line', { x1:biz.cx, y1:barY, x2:pub.cx, y2:barY, stroke:'#AAB8D0', 'stroke-width':1.5, opacity:0.8 }));
+    // drops to each service
+    [biz, ai, pub].forEach(s => {
+      const p = n('path', { d:`M ${s.cx},${barY} L ${s.cx},${s.top}`, fill:'none', stroke:'#AAB8D0', 'stroke-width':1.5, opacity:0.75, 'marker-end':'url(#arr-gw)' });
+      svg.appendChild(p);
+    });
+  }
+
+  // ── Service → DB orthogonal lines ──
+  // Each service group gets its OWN horizontal elbow level so lines don't overlap.
+  // business-service: elbow at 30% of gap (closer to service bottom)
+  // ai-service:       elbow at 65% of gap (closer to DB top)
+  // Within each group, stagger exit x slightly so parallel verticals are distinct.
+
+  // 5 separate rails — one per connection, evenly spaced across gap
+  const svcBiz   = rel('svc-biz');
+  const svcAi    = rel('svc-ai');
+  const dbSample = rel('db-mongo');
+  if (!svcBiz || !svcAi || !dbSample) return;
+
+  const gapTop    = Math.max(svcBiz.bottom, svcAi.bottom);
+  const gapBottom = dbSample.top;
+  const gapH      = gapBottom - gapTop;
+
+  const rails = [
+    gapTop + gapH * 0.10,
+    gapTop + gapH * 0.26,
+    gapTop + gapH * 0.44,
+    gapTop + gapH * 0.63,
+    gapTop + gapH * 0.82,
+  ];
+
+  const exitMap = { 'svc-biz': [-10, 0, 10], 'svc-ai': [-6, 6] };
+
+  const connList = [
+    { from:'svc-biz', to:'db-mongo',  color:'#3F51B5', marker:'arr-biz', ei:0 },
+    { from:'svc-biz', to:'db-pg',     color:'#3F51B5', marker:'arr-biz', ei:1 },
+    { from:'svc-biz', to:'db-redis',  color:'#3F51B5', marker:'arr-biz', ei:2 },
+    { from:'svc-ai',  to:'db-chroma', color:'#00897B', marker:'arr-ai',  ei:0 },
+    { from:'svc-ai',  to:'db-s3',     color:'#00897B', marker:'arr-ai',  ei:1 },
+  ];
+
+  connList.forEach(({ from, to, color, marker, ei }, i) => {
+    const f = rel(from);
+    const t = rel(to);
+    if (!f || !t) return;
+
+    const x1     = f.cx + (exitMap[from][ei] || 0);
+    const y1     = f.bottom;
+    const x2     = t.cx;
+    const y2     = t.top;
+    const elbowY = rails[i];
+
+    svg.appendChild(n('path', {
+      d: `M ${x1},${y1} L ${x1},${elbowY} L ${x2},${elbowY} L ${x2},${y2}`,
+      fill: 'none', stroke: color, 'stroke-width': '2.2',
+      opacity: '0.88', 'marker-end': `url(#${marker})`
+    }));
+
+    const lx = Math.min(x1, x2) + Math.abs(x2 - x1) * 0.28 + 3;
+    const tl = n('text', { x:lx, y:elbowY - 4, fill:color, 'font-size':'8', opacity:'0.6', 'font-family':'system-ui,sans-serif' });
+    tl.textContent = 'queries';
+    svg.appendChild(tl);
+  });
+}
+
+if (document.readyState === 'complete') draw();
+else window.addEventListener('load', draw);
+window.addEventListener('resize', () => requestAnimationFrame(draw));
+</script>
+</body>
+</html>

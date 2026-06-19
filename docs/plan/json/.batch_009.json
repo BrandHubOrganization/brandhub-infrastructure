@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E07-05",
+    "summary": "[DA-E07-05] Viet OpenAPI YAML spec cho business-service",
+    "assignee": "Trung (Leader)",
+    "priority": "High",
+    "epic_key": "DA-87",
+    "description": "### DA-E07-05 — Write OpenAPI YAML spec for business-service\n**Assignee:** Trung (Leader) | **Priority:** 🟡 High\n\n**Goal:** Produce a complete, valid OpenAPI 3.1 YAML specification for business-service so that frontend developers can generate typed API clients and the spec can be served via Swagger UI during development.\n\n**Acceptance Criteria:**\n- [ ] OpenAPI YAML is valid and renders without errors in Swagger Editor (editor.swagger.io)\n- [ ] All endpoints from DA-E07-01 are present with full request/response schemas, security requirements, and example values\n- [ ] The file is committed to the brandhub-business-service repo under `docs/openapi.yaml` and auto-served via SpringDoc (`/swagger-ui.html`) when the service runs\n\n**Technical Notes:**\n- Add `springdoc-openapi-starter-webmvc-ui` dependency to business-service `pom.xml`; annotate controllers with `@Tag` and `@Operation` so the YAML can be auto-generated from code annotations rather than maintained manually\n- Include `X-User-Id`, `X-User-Role`, and `X-Workspace-Id` as header parameters in every secured endpoint definition since these are injected by the gateway, not passed by the client\n\n**Dependencies:** Blocks: None. Blocked by: DA-E07-01, DA-E07-04.\n\n---"
+  },
+  {
+    "id": "DA-E07-06",
+    "summary": "[DA-E07-06] Viet OpenAPI YAML spec cho ai-service (tat ca internal + public endpoints)",
+    "assignee": "Tuấn (AI)",
+    "priority": "High",
+    "epic_key": "DA-87",
+    "description": "### DA-E07-06 — Write OpenAPI YAML spec for ai-service (all internal + public endpoints)\n**Assignee:** Tuấn (AI) | **Priority:** 🟡 High\n\n**Goal:** Produce a complete, valid OpenAPI 3.1 YAML specification for ai-service so that business-service developers have a precise integration contract and the spec is available via FastAPI's built-in Swagger UI.\n\n**Acceptance Criteria:**\n- [ ] OpenAPI YAML is valid and auto-served by FastAPI at `/docs` (Swagger UI) and `/openapi.json` when ai-service runs\n- [ ] All endpoints from DA-E07-02 are documented with full request/response schemas and `X-Internal-Api-Key` security scheme defined\n- [ ] Response schemas include both success and error examples with realistic AI-generated content samples\n\n**Technical Notes:**\n- FastAPI auto-generates OpenAPI from type annotations — use Pydantic v2 models for all request/response bodies to get accurate schema generation; do not write the YAML manually\n- Export the final spec by calling `GET /openapi.json` on the running service and committing the output to `docs/openapi.json` in the brandhub-ai-service repo\n\n**Dependencies:** Blocks: None. Blocked by: DA-E07-02, DA-E07-04.\n\n---"
+  },
+  {
+    "id": "DA-E07-07",
+    "summary": "[DA-E07-07] Document social platform API specs: FB Graph API, TikTok Content API, Threads API, Zalo OA API (versions, rate limits, payload formats)",
+    "assignee": "Phước (Publisher)",
+    "priority": "High",
+    "epic_key": "DA-87",
+    "description": "### DA-E07-07 — Document social platform API specs: FB Graph API v19, TikTok Content API v2, Threads API, Zalo OA API (versions, rate limits, payload formats)\n**Assignee:** Phước (Publisher) | **Priority:** 🟡 High\n\n**Goal:** Compile the external social platform API constraints into one reference document so publisher-service developers do not need to read four separate developer portals during implementation.\n\n**Acceptance Criteria:**\n- [ ] Each of the 4 platforms is documented with: API version pinned, authentication method, post creation endpoint, media upload method, rate limits, and error response format\n- [ ] Platform-specific payload format examples are included for at minimum: text post, image post, and video post (where supported)\n- [ ] Known gotchas or restrictions are documented (e.g., TikTok video minimum duration, Zalo OA approval requirements, Threads media attachment limits)\n\n**Technical Notes:**\n- Pin API versions explicitly: Facebook Graph API v19.0, TikTok Content Posting API v2; note that using unpinned versions risks breaking changes\n- Document Facebook's Page Access Token vs. User Access Token distinction — publisher-service will need Page Access Tokens (long-lived) for posting; document the token exchange flow\n\n**Dependencies:** Blocks: None. Blocked by: DA-E03-04.\n\n---"
+  },
+  {
+    "id": "DA-E08-01",
+    "summary": "[DA-E08-01] Ve Figma wireframe cho tat ca man hinh chinh (Login, Dashboard, Workspace, Content Editor, Calendar, Client Portal, Analytics)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-88",
+    "description": "### DA-E08-01 — Create Figma wireframes for all main screens (Login, Dashboard, Workspace, Content Editor, Calendar, Client Portal, Analytics)\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Produce low-to-mid fidelity wireframes for all primary screens so frontend developers can begin component implementation without waiting for high-fidelity design, and so the UX flow can be validated with the mentor early.\n\n**Acceptance Criteria:**\n- [ ] Wireframes exist for all 7 screen categories: Login/Auth, Main Dashboard, Workspace Management, Content Editor (with AI generation panel), Content Calendar, Client Portal, Analytics Dashboard\n- [ ] Each wireframe shows the layout for both the primary user role and any role-specific variations (e.g., Content Editor view for CONTENT_CREATOR vs. review view for ACCOUNT_MANAGER)\n- [ ] Figma file is shared with the team via a view link and the URL is recorded in the project wiki\n\n**Technical Notes:**\n- Design for 1440px desktop width as the primary breakpoint for web-dashboard; include a 375px mobile frame for the 3 screens that appear in the mobile app (Content Calendar, Notifications, Post Preview)\n- Use shadcn/ui component names as annotations on wireframe elements (e.g., label a modal as \"Dialog\", a dropdown as \"Select\") to speed up implementation mapping\n\n**Dependencies:** Blocks: DA-E08-02, DA-E08-03, DA-E08-04. Blocked by: DA-E03-01, DA-E04-04.\n\n---"
+  },
+  {
+    "id": "DA-E08-02",
+    "summary": "[DA-E08-02] Thiet ke component system (Button, Input, Modal, Table, Badge, Toast styles)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-88",
+    "description": "### DA-E08-02 — Design component system (Button, Input, Modal, Table, Badge, Toast styles)\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Define the visual design tokens and component variants that will be used across the web-dashboard so that all UI components have a consistent look without per-developer style decisions.\n\n**Acceptance Criteria:**\n- [ ] Design tokens are defined in Figma for: primary/secondary/destructive colors, typography scale (font family, sizes, weights), spacing scale, border radius values, and shadow levels\n- [ ] Component variants are designed for: Button (primary, secondary, destructive, ghost, sizes), Input (default, error, disabled), Modal/Dialog, Table (with sort headers, pagination), Badge (status colors for PostStatus enum values), Toast (success, error, warning, info)\n- [ ] All tokens and component names in Figma match their shadcn/ui equivalents so developers can implement them without translation\n\n**Technical Notes:**\n- shadcn/ui uses CSS variables for theming (`--primary`, `--secondary`, etc.) — define Figma variables with the same names to make the design-to-code handoff mechanical\n- Badge color mapping to PostStatus: DRAFT (gray), PENDING_REVIEW (yellow), APPROVED (blue), SCHEDULED (purple), PUBLISHED (green), FAILED (red), REJECTED (red/dark)\n\n**Dependencies:** Blocks: None. Blocked by: DA-E08-01.\n\n---"
+  }
+]

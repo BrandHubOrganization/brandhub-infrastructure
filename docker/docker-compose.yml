@@ -225,47 +225,46 @@ services:
       start_period: 20s
     restart: unless-stopped
 
+  # POSTGRESQL 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     container_name: brandhub-postgres
-    ports:
-      - "5432:5432"
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: brandhub
-      POSTGRES_USER: ${POSTGRES_USERNAME:-brandhub_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ../scripts/init-postgres.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - brandhub-network
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME:-brandhub_user} -d brandhub"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
-    restart: unless-stopped
+    networks:
+      - brandhub-network
 
   pgadmin:
-    image: dpage/pgadmin4:latest
+    image: dpage/pgadmin4:9
     container_name: brandhub-pgadmin
-    ports:
-      - "5050:80"
+    restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@brandhub.local}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
       PGADMIN_CONFIG_SERVER_MODE: "False"
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "${PGADMIN_HOST_PORT:-5050}:80"
     volumes:
-      - pgadmin-data:/var/lib/pgadmin
-      - ../scripts/pgadmin-servers.json:/pgadmin4/servers.json
+      - pgadmin_data:/var/lib/pgadmin
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - brandhub-network
-    restart: unless-stopped
 
   redis:
     image: redis:7.2-alpine
@@ -324,12 +323,15 @@ services:
 
 volumes:
   mongo-data:
-  postgres-data:
-  pgadmin-data:
+  postgres_data:
+    name: brandhub-postgres-data
+  pgadmin_data:
+    name: brandhub-pgadmin-data
   redis-data:
   rabbitmq-data:
   chroma-data:
 
 networks:
   brandhub-network:
+    name: brandhub-network
     driver: bridge

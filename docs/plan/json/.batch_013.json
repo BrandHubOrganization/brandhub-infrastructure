@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E11-04",
+    "summary": "[DA-E11-04] Config routing rules (anh xa URL path den dung service)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-91",
+    "description": "### DA-E11-04 — Configure routing rules (map URL paths to correct downstream service)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Define all gateway routing rules so that every incoming request is forwarded to the correct downstream service with no manual URL management needed on the client side.\n\n**Acceptance Criteria:**\n- [ ] Routes are configured in `application.yml` for all downstream targets: `/api/v1/auth/**` and `/api/v1/**` → business-service:8081; ai-service routes are internal only (no gateway route)\n- [ ] Each route applies the JWT validation filter and rate limiting filter in the correct order (JWT first, then rate limit)\n- [ ] Public routes (`/api/v1/auth/**`) have the JWT filter explicitly disabled using a route-level predicate or filter exclusion\n\n**Technical Notes:**\n- Use Spring Cloud Gateway's `RewritePath` filter if the downstream service expects a different path prefix than what the gateway exposes\n- Downstream service URIs must use Docker service hostnames (e.g., `http://business-service:8081`) configured via environment variable (`BUSINESS_SERVICE_URI`) rather than hardcoded values\n- Add `/actuator/**` as a gateway-local route (no forwarding) so health checks work without auth\n\n**Dependencies:** Blocks: DA-E11-05. Blocked by: DA-E11-02, DA-E11-03, DA-E07-01.\n\n---"
+  },
+  {
+    "id": "DA-E11-05",
+    "summary": "[DA-E11-05] Viet logging filter (log tat ca requests vao/ra de debug)",
+    "assignee": "Trung (Leader)",
+    "priority": "Medium",
+    "epic_key": "DA-91",
+    "description": "### DA-E11-05 — Write logging filter (log all inbound and outbound requests for debugging)\n**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium\n\n**Goal:** Implement a GlobalFilter that logs request and response metadata for every gateway-processed request so developers can trace issues across services during local development and staging.\n\n**Acceptance Criteria:**\n- [ ] Filter logs inbound request: timestamp, HTTP method, path, `X-User-Id` header value (if present), and request ID (generated UUID if not provided by client)\n- [ ] Filter logs outbound response: same request ID, downstream service URI, HTTP response status code, and total processing time in milliseconds\n- [ ] Log level is `DEBUG` by default and can be set to `INFO` or `OFF` via `gateway.logging.level` configuration property without code changes\n\n**Technical Notes:**\n- Use `Ordered.LOWEST_PRECEDENCE` for the logging filter's order so it wraps all other filters and captures total end-to-end gateway processing time accurately\n- Never log request bodies or Authorization headers — only log metadata to avoid accidentally persisting tokens or user content in log files\n- Use `exchange.getResponse().beforeCommit()` or `then()` operator to hook into the response completion to capture the status code and calculate elapsed time\n\n**Dependencies:** Blocks: None. Blocked by: DA-E11-04.\n\n---\n\n## Phase 2 — Infrastructure Setup (Sprint 4)\n\n---"
+  },
+  {
+    "id": "DA-E12-01",
+    "summary": "[DA-E12-01] Implement Register API (validate email uniqueness, hash password voi bcrypt cost=12)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-92",
+    "description": "### DA-E12-01 — Implement Register API\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Create a secure user registration endpoint that validates email uniqueness and stores credentials hashed with bcrypt cost=12.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/auth/register accepts {email, password, fullName} and returns 201 with userId\n- [ ] Duplicate email returns 409 Conflict with descriptive error message\n- [ ] Password is hashed using bcrypt with cost factor 12 before persisting to MongoDB\n- [ ] Email format and password complexity (min 8 chars, at least 1 number) are validated with 400 on failure\n- [ ] User document is saved with default role AGENCY_OWNER and isActive=true\n\n**Technical Notes:**\n- Use `BCryptPasswordEncoder(12)` bean — do not use the no-arg constructor (defaults to cost=10)\n- Index `email` field in MongoDB with `unique: true` to enforce uniqueness at DB level\n- Return generic error messages to avoid user enumeration attacks\n\n**Dependencies:** Blocks: [DA-E12-02, DA-E13-01]. Blocked by: [None].\n\n---"
+  },
+  {
+    "id": "DA-E12-02",
+    "summary": "[DA-E12-02] Implement Login API (verify password, issue JWT access token 15 phut + refresh token 30 ngay)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-92",
+    "description": "### DA-E12-02 — Implement Login API\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Authenticate users with email/password and issue a short-lived RS256 JWT access token plus a long-lived HttpOnly refresh token cookie.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/auth/login accepts {email, password} and returns 200 with access token (15 min expiry) in response body\n- [ ] Refresh token (30-day expiry) is set as HttpOnly, Secure, SameSite=Strict cookie named `refreshToken`\n- [ ] Invalid credentials return 401 with no detail distinguishing email vs password failure\n- [ ] JWT payload contains {sub: userId, role, workspaceId, jti} signed with RS256 private key\n- [ ] jti is a UUID v4, unique per token issuance\n\n**Technical Notes:**\n- Load RSA private key from environment variable or Vault; never hard-code in source\n- Use `java.util.UUID.randomUUID()` for jti generation\n- `workspaceId` may be null for users not yet attached to a workspace; handle gracefully in downstream filters\n- Library: `io.jsonwebtoken:jjwt-api` or `com.nimbusds:nimbus-jose-jwt`\n\n**Dependencies:** Blocks: [DA-E12-03, DA-E12-04, DA-E14-01]. Blocked by: [DA-E12-01].\n\n---"
+  },
+  {
+    "id": "DA-E12-03",
+    "summary": "[DA-E12-03] Implement Refresh Token API (verify refresh token, issue new access token)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-92",
+    "description": "### DA-E12-03 — Implement Refresh Token API\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow clients to silently renew expired access tokens by presenting a valid refresh token cookie, without requiring re-login.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/auth/refresh reads `refreshToken` HttpOnly cookie and returns a new access token (15 min) in response body\n- [ ] Refresh token is validated for signature, expiry, and not present in Redis blacklist\n- [ ] Stolen/replayed refresh tokens (already blacklisted) return 401 Unauthorized\n- [ ] A new refresh token cookie with a fresh 30-day TTL is issued on each successful refresh (rolling refresh)\n- [ ] Old refresh token's jti is added to Redis blacklist with TTL = remaining lifetime of the old token\n\n**Technical Notes:**\n- Key: `jwt:blacklist:{jti}` in Redis; value can be `\"1\"` — only existence matters\n- Rolling refresh prevents refresh token from expiring on active users; document the trade-off (slightly extended exposure window)\n- Do not rotate the refresh token if the old one is already expired — return 401 and force re-login\n\n**Dependencies:** Blocks: [DA-E12-04]. Blocked by: [DA-E12-02].\n\n---"
+  }
+]
