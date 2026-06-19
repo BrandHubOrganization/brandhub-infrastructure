@@ -6,6 +6,62 @@
     "children": []
   },
   {
+    "name": "architecture",
+    "path": "/architecture",
+    "type": "directory",
+    "children": [
+      {
+        "name": "brandhub_arch_reference_style.html",
+        "path": "/view?file=architecture/brandhub_arch_reference_style.html",
+        "type": "file",
+        "ext": ".html"
+      },
+      {
+        "name": "brandhub_architecture.html",
+        "path": "/view?file=architecture/brandhub_architecture.html",
+        "type": "file",
+        "ext": ".html"
+      },
+      {
+        "name": "brandhub_db_ownership_diagram.html",
+        "path": "/view?file=architecture/brandhub_db_ownership_diagram.html",
+        "type": "file",
+        "ext": ".html"
+      },
+      {
+        "name": "brandhub_polyrepo_structure.html",
+        "path": "/view?file=architecture/brandhub_polyrepo_structure.html",
+        "type": "file",
+        "ext": ".html"
+      }
+    ]
+  },
+  {
+    "name": "database",
+    "path": "/database",
+    "type": "directory",
+    "children": [
+      {
+        "name": "brandhub_dbml.dbml",
+        "path": "/database/brandhub_dbml.dbml",
+        "type": "file",
+        "ext": ".dbml"
+      },
+      {
+        "name": "brandhub_schema_diagram.html",
+        "path": "/view?file=database/brandhub_schema_diagram.html",
+        "type": "file",
+        "ext": ".html"
+      },
+      {
+        "name": "DA-E06-01_Database_Strategy.md",
+        "path": "/database/DA-E06-01_Database_Strategy",
+        "type": "file",
+        "ext": ".md"
+      }
+    ]
+  },
+  {
     "name": "deployment",
     "path": "/deployment",
     "type": "directory",
@@ -18,9 +74,236 @@
     "children": []
   },
   {
+    "name": "plan",
+    "path": "/plan",
+    "type": "directory",
+    "children": [
+      {
+        "name": "iterations",
+        "path": "/plan/iterations",
+        "type": "directory",
+        "children": [
+          {
+            "name": "AI_Iteration_1_Research_Evaluation.md",
+            "path": "/plan/iterations/AI_Iteration_1_Research_Evaluation",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "AI_Iteration_2_RAG_LLM_Trends.md",
+            "path": "/plan/iterations/AI_Iteration_2_RAG_LLM_Trends",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "AI_Iteration_3_Image_Ambassador_Composition.md",
+            "path": "/plan/iterations/AI_Iteration_3_Image_Ambassador_Composition",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "AI_Iteration_4_Video_Integration_Documentation.md",
+            "path": "/plan/iterations/AI_Iteration_4_Video_Integration_Documentation",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "README.md",
+            "path": "/plan/iterations/README",
+            "type": "file",
+            "ext": ".md"
+          }
+        ]
+      },
+      {
+        "name": "json",
+        "path": "/plan/json",
+        "type": "directory",
+        "children": []
+      },
+      {
+        "name": "sprints",
+        "path": "/plan/sprints",
+        "type": "directory",
+        "children": [
+          {
+            "name": "README.md",
+            "path": "/plan/sprints/README",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "Sprint_01_Project_Kickoff.md",
+            "path": "/plan/sprints/Sprint_01_Project_Kickoff",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "Sprint_02_Requirements_Architecture.md",
+            "path": "/plan/sprints/Sprint_02_Requirements_Architecture",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "Sprint_03_Database_API_UI_Design.md",
+            "path": "/plan/sprints/Sprint_03_Database_API_UI_Design",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "Sprint_04_Infrastructure_CICD_Gateway.md",
+            "path": "/plan/sprints/Sprint_04_Infrastructure_CICD_Gateway",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "Sprint_05_Authentication_RBAC.md",
+            "path": "/plan/sprints/Sprint_05_Authentication_RBAC",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "Sprint_06_Workspace_Client_Subscription.md",
+            "path": "/plan/sprints/Sprint_06_Workspace_Client_Subscription",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "Sprint_07_Social_OAuth_Token_Management.md",
+            "path": "/plan/sprints/Sprint_07_Social_OAuth_Token_Management",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "Sprint_08_Publisher_Service.md",
+            "path": "/plan/sprints/Sprint_08_Publisher_Service",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "Sprint_09_AI_Service_Wiring.md",
+            "path": "/plan/sprints/Sprint_09_AI_Service_Wiring",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "Sprint_10_Content_Requests_Calendar.md",
+            "path": "/plan/sprints/Sprint_10_Content_Requests_Calendar",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "Sprint_11_Approval_Workflow_Publishing.md",
+            "path": "/plan/sprints/Sprint_11_Approval_Workflow_Publishing",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "Sprint_12_Design_System_Core_Pages.md",
+            "path": "/plan/sprints/Sprint_12_Design_System_Core_Pages",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "Sprint_13_Client_Portal_Analytics_Notifications.md",
+            "path": "/plan/sprints/Sprint_13_Client_Portal_Analytics_Notifications",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "Sprint_14_Mobile_App.md",
+            "path": "/plan/sprints/Sprint_14_Mobile_App",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "Sprint_15_Testing_Bug_Fixes.md",
+            "path": "/plan/sprints/Sprint_15_Testing_Bug_Fixes",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "Sprint_16_Deployment_Docs_Presentation.md",
+            "path": "/plan/sprints/Sprint_16_Deployment_Docs_Presentation",
+            "type": "file",
+            "ext": ".md"
+          }
+        ]
+      },
+      {
+        "name": "BrandHub_Project_Plan_VI.md",
+        "path": "/plan/BrandHub_Project_Plan_VI",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "BrandHub_Project_Plan.md",
+        "path": "/plan/BrandHub_Project_Plan",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "BrandHub_Task_Details.md",
+        "path": "/plan/BrandHub_Task_Details",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "Jira_Upload_Tracking.md",
+        "path": "/plan/Jira_Upload_Tracking",
+        "type": "file",
+        "ext": ".md"
+      }
+    ]
+  },
+  {
     "name": "report",
     "path": "/report",
     "type": "directory",
     "children": []
+  },
+  {
+    "name": "Report_DA-E08",
+    "path": "/Report_DA-E08",
+    "type": "directory",
+    "children": [
+      {
+        "name": "brandhub_wireframe_blueprint.md",
+        "path": "/Report_DA-E08/brandhub_wireframe_blueprint",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "DA-E08-01_Wireframe_Report.md",
+        "path": "/Report_DA-E08/DA-E08-01_Wireframe_Report",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "project_context.md",
+        "path": "/Report_DA-E08/project_context",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "wireframe_to_code_checklist.md",
+        "path": "/Report_DA-E08/wireframe_to_code_checklist",
+        "type": "file",
+        "ext": ".md"
+      }
+    ]
+  },
+  {
+    "name": "rule",
+    "path": "/rule",
+    "type": "directory",
+    "children": [
+      {
+        "name": "git-commit-convention.md",
+        "path": "/rule/git-commit-convention",
+        "type": "file",
+        "ext": ".md"
+      }
+    ]
   }
 ]
