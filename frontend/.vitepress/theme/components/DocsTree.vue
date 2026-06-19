@@ -80,16 +80,22 @@ const startResize = (event) => {
   window.addEventListener('mouseup', stopResize);
 };
 
+const applyWidth = (width) => {
+  document.documentElement.style.setProperty('--vp-sidebar-width', `${width}px`);
+  // Force VitePress sidebar + content layout to use the new width
+  const sidebarEl = document.querySelector('.VPSidebar');
+  const contentEl = document.querySelector('.VPContent');
+  if (sidebarEl) sidebarEl.style.width = `${width}px`;
+  if (contentEl) contentEl.style.paddingLeft = `${width}px`;
+};
+
 const resize = (event) => {
   if (!isResizing.value) return;
-  // Get sidebar element bounding rect to account for center alignment on wide screens (>1440px)
   const sidebarEl = document.querySelector('.VPSidebar');
   const sidebarLeft = sidebarEl ? sidebarEl.getBoundingClientRect().left : 0;
-  
-  // Constraint width between 240px and 600px relative to sidebar's left position
-  const newWidth = Math.max(240, Math.min(600, event.clientX - sidebarLeft));
+  const newWidth = Math.max(200, Math.min(600, event.clientX - sidebarLeft));
   sidebarWidth.value = newWidth;
-  document.documentElement.style.setProperty('--vp-sidebar-width', `${newWidth}px`);
+  applyWidth(newWidth);
 };
 
 const stopResize = () => {
@@ -109,12 +115,12 @@ onMounted(() => {
   const savedWidth = localStorage.getItem('vp-sidebar-width');
   if (savedWidth) {
     const widthVal = parseInt(savedWidth);
-    if (!isNaN(widthVal) && widthVal >= 240 && widthVal <= 600) {
+    if (!isNaN(widthVal) && widthVal >= 200 && widthVal <= 600) {
       sidebarWidth.value = widthVal;
-      document.documentElement.style.setProperty('--vp-sidebar-width', savedWidth);
+      applyWidth(widthVal);
     }
   } else {
-    document.documentElement.style.setProperty('--vp-sidebar-width', '320px');
+    applyWidth(320);
   }
 });
 

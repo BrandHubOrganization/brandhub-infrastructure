@@ -1,0 +1,508 @@
+// BrandHub — Database Schema (DBML for dbdiagram.io)
+// DA-E06-05 | Owner: Tuấn (AI)
+// MongoDB collections + PostgreSQL tables + Enums + Refs + TableGroups
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+Enum user_role {
+  ADMIN
+  AGENCY_OWNER
+  ACCOUNT_MANAGER
+  CONTENT_CREATOR
+  BRAND_CLIENT
+}
+
+Enum user_status {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+Enum workspace_plan {
+  FREE
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
+Enum member_role {
+  OWNER
+  MANAGER
+  CREATOR
+  VIEWER
+}
+
+Enum social_platform {
+  FACEBOOK
+  INSTAGRAM
+  TIKTOK
+  THREADS
+  ZALO_OA
+}
+
+Enum post_status {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  FAILED
+}
+
+Enum content_request_status {
+  OPEN
+  IN_PROGRESS
+  REVIEW
+  APPROVED
+  DONE
+  CANCELLED
+}
+
+Enum publish_result {
+  SUCCESS
+  FAILED
+  RETRYING
+}
+
+Enum report_job_status {
+  PENDING
+  RUNNING
+  DONE
+  FAILED
+}
+
+Enum subscription_status {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  TRIALING
+}
+
+Enum payment_status {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+Enum invoice_status {
+  DRAFT
+  ISSUED
+  PAID
+  OVERDUE
+  VOID
+}
+
+Enum audit_action {
+  LOGIN
+  LOGOUT
+  CREATE
+  UPDATE
+  DELETE
+  ROLE_CHANGE
+  PERMISSION_CHANGE
+}
+
+// ============================================================
+// MONGODB COLLECTIONS (business-service)
+// ============================================================
+
+Table users [note: 'MongoDB — business-service'] {
+  _id           varchar     [pk, note: 'ObjectId']
+  email         varchar     [unique, not null]
+  password_hash varchar     [note: 'null if OAuth-only']
+  full_name     varchar     [not null]
+  avatar_url    varchar
+  role          user_role   [not null, default: 'CONTENT_CREATOR']
+  status        user_status [not null, default: 'ACTIVE']
+  oauth_providers varchar   [note: 'Array<{provider, providerId, accessToken}>']
+  preferences   varchar     [note: 'Object: {language, timezone, notifications}']
+  last_login_at timestamp
+  created_at    timestamp   [not null]
+  updated_at    timestamp   [not null]
+}
+
+Table workspaces [note: 'MongoDB — business-service'] {
+  _id           varchar     [pk, note: 'ObjectId']
+  name          varchar     [not null]
+  slug          varchar     [unique, not null]
+  owner_id      varchar     [not null, ref: > users._id]
+  plan          workspace_plan [not null, default: 'FREE']
+  logo_url      varchar
+  settings      varchar     [note: 'Object: {brandColor, defaultLanguage, approvalRequired}']
+  subscription_id varchar   [note: 'Soft ref → workspace_subscriptions.id (PostgreSQL)']
+  is_active     boolean     [not null, default: true]
+  created_at    timestamp   [not null]
+  updated_at    timestamp   [not null]
+}
+
+Table workspace_members [note: 'MongoDB — business-service'] {
+  _id           varchar     [pk, note: 'ObjectId']
+  workspace_id  varchar     [not null, ref: > workspaces._id]
+  user_id       varchar     [not null, ref: > users._id]
+  role          member_role [not null]
+  invited_by    varchar     [ref: > users._id]
+  joined_at     timestamp
+  created_at    timestamp   [not null]
+  updated_at    timestamp   [not null]
+
+  indexes {
+    (workspace_id, user_id) [unique]
+    workspace_id
+  }
+}
+
+Table clients [note: 'MongoDB — business-service'] {
+  _id           varchar     [pk, note: 'ObjectId']
+  workspace_id  varchar     [not null, ref: > workspaces._id]
+  name          varchar     [not null]
+  brand_name    varchar
+  industry      varchar
+  logo_url      varchar
+  contact_email varchar
+  contact_phone varchar
+  assigned_manager_id varchar [ref: > users._id]
+  portal_access_enabled boolean [not null, default: false]
+  portal_user_id varchar  [note: 'ref → users._id (BRAND_CLIENT role)']
+  metadata      varchar   [note: 'Object: flexible per agency']
+  created_at    timestamp [not null]
+  updated_at    timestamp [not null]
+
+  indexes {
+    workspace_id
+  }
+}
+
+Table social_accounts [note: 'MongoDB — business-service'] {
+  _id             varchar   [pk, note: 'ObjectId']
+  workspace_id    varchar   [not null, ref: > workspaces._id]
+  client_id       varchar   [ref: > clients._id]
+  platform        social_platform [not null]
+  account_name    varchar   [not null]
+  account_id      varchar   [not null, note: 'Platform user/page ID']
+  encrypted_token varchar   [not null, note: 'AES-256 encrypted OAuth token']
+  token_expires_at timestamp
+  scopes          varchar   [note: 'Array<string>']
+  is_active       boolean   [not null, default: true]
+  created_at      timestamp [not null]
+  updated_at      timestamp [not null]
+
+  indexes {
+    workspace_id
+    (workspace_id, platform, account_id) [unique]
+  }
+}
+
+Table posts [note: 'MongoDB — business-service'] {
+  _id              varchar    [pk, note: 'ObjectId']
+  workspace_id     varchar    [not null, ref: > workspaces._id]
+  client_id        varchar    [ref: > clients._id]
+  created_by       varchar    [not null, ref: > users._id]
+  title            varchar
+  content_text     varchar    [not null]
+  media_urls       varchar    [note: 'Array<string> — S3 URLs']
+  platform         social_platform [not null]
+  social_account_id varchar   [ref: > social_accounts._id]
+  status           post_status [not null, default: 'DRAFT']
+  scheduled_at     timestamp
+  published_at     timestamp
+  external_post_id varchar    [note: 'Platform post ID after publish']
+  ai_generated     boolean    [not null, default: false]
+  ai_metadata      varchar    [note: 'Object: {model, prompt, tokensUsed}']
+  approval_history varchar    [note: 'Array<{userId, action, comment, at}>']
+  content_request_id varchar  [ref: > content_requests._id]
+  created_at       timestamp  [not null]
+  updated_at       timestamp  [not null]
+
+  indexes {
+    (workspace_id, status)
+    (workspace_id, scheduled_at)
+    (workspace_id, client_id)
+  }
+}
+
+Table content_requests [note: 'MongoDB — business-service'] {
+  _id           varchar    [pk, note: 'ObjectId']
+  workspace_id  varchar    [not null, ref: > workspaces._id]
+  client_id     varchar    [ref: > clients._id]
+  requested_by  varchar    [not null, ref: > users._id]
+  assigned_to   varchar    [ref: > users._id]
+  title         varchar    [not null]
+  description   varchar
+  platforms     varchar    [note: 'Array<social_platform>']
+  deadline      timestamp
+  status        content_request_status [not null, default: 'OPEN']
+  attachments   varchar    [note: 'Array<string> — S3 URLs']
+  comments      varchar    [note: 'Array<{userId, text, at}>']
+  created_at    timestamp  [not null]
+  updated_at    timestamp  [not null]
+
+  indexes {
+    (workspace_id, status)
+    (workspace_id, client_id)
+  }
+}
+
+Table knowledge_documents [note: 'MongoDB — ai-service'] {
+  _id           varchar   [pk, note: 'ObjectId']
+  workspace_id  varchar   [not null]
+  client_id     varchar
+  title         varchar   [not null]
+  content       varchar   [not null, note: 'Raw text — also chunked & indexed in ChromaDB']
+  source_url    varchar
+  file_type     varchar   [note: 'pdf | docx | txt | url']
+  chunk_ids     varchar   [note: 'Array<string> — ChromaDB chunk IDs']
+  tags          varchar   [note: 'Array<string>']
+  created_by    varchar
+  created_at    timestamp [not null]
+  updated_at    timestamp [not null]
+
+  indexes {
+    workspace_id
+  }
+}
+
+Table notifications [note: 'MongoDB — business-service'] {
+  _id           varchar   [pk, note: 'ObjectId']
+  workspace_id  varchar   [not null, ref: > workspaces._id]
+  user_id       varchar   [not null, ref: > users._id]
+  type          varchar   [not null, note: 'POST_APPROVED | POST_FAILED | REPORT_READY | ...']
+  title         varchar   [not null]
+  body          varchar
+  metadata      varchar   [note: 'Object: {postId, clientId, etc}']
+  is_read       boolean   [not null, default: false]
+  created_at    timestamp [not null]
+
+  indexes {
+    (user_id, is_read)
+    (workspace_id, user_id)
+  }
+}
+
+Table publish_logs [note: 'MongoDB — publisher-service'] {
+  _id              varchar        [pk, note: 'ObjectId']
+  workspace_id     varchar        [not null]
+  post_id          varchar        [not null, note: 'Soft ref → posts._id']
+  platform         social_platform [not null]
+  social_account_id varchar
+  result           publish_result [not null]
+  external_post_id varchar
+  error_message    varchar
+  retry_count      int            [not null, default: 0]
+  published_at     timestamp
+  created_at       timestamp      [not null]
+
+  indexes {
+    post_id
+    (workspace_id, result)
+  }
+}
+
+Table ai_usage_logs [note: 'MongoDB — ai-service'] {
+  _id           varchar   [pk, note: 'ObjectId']
+  workspace_id  varchar   [not null]
+  user_id       varchar
+  feature       varchar   [not null, note: 'content_gen | image_gen | video_gen | rag | ambassador']
+  model         varchar   [not null, note: 'gpt-4 | llama3 | sdxl | veo | instantid']
+  input_tokens  int
+  output_tokens int
+  cost_usd      float
+  latency_ms    int
+  success       boolean   [not null]
+  error_code    varchar
+  created_at    timestamp [not null]
+
+  indexes {
+    (workspace_id, feature)
+    created_at
+  }
+}
+
+Table report_jobs [note: 'MongoDB — business-service'] {
+  _id           varchar           [pk, note: 'ObjectId']
+  workspace_id  varchar           [not null, ref: > workspaces._id]
+  client_id     varchar           [ref: > clients._id]
+  requested_by  varchar           [not null, ref: > users._id]
+  status        report_job_status [not null, default: 'PENDING']
+  date_from     timestamp         [not null]
+  date_to       timestamp         [not null]
+  file_url      varchar           [note: 'S3 URL — populated when DONE']
+  error_message varchar
+  created_at    timestamp         [not null]
+  updated_at    timestamp         [not null]
+
+  indexes {
+    (workspace_id, status)
+  }
+}
+
+// ============================================================
+// POSTGRESQL TABLES (business-service)
+// ============================================================
+
+Table subscription_plans [note: 'PostgreSQL — business-service'] {
+  id            serial      [pk]
+  name          workspace_plan [not null, unique]
+  display_name  varchar     [not null]
+  price_monthly decimal     [not null]
+  price_yearly  decimal     [not null]
+  max_workspaces int        [not null, default: 1]
+  max_members   int         [not null]
+  max_clients   int         [not null]
+  max_posts_month int       [not null]
+  ai_credits_month int      [not null]
+  features      varchar     [note: 'JSONB array of feature flags']
+  is_active     boolean     [not null, default: true]
+  created_at    timestamp   [not null, default: 'now()']
+  updated_at    timestamp   [not null, default: 'now()']
+}
+
+Table workspace_subscriptions [note: 'PostgreSQL — business-service'] {
+  id              serial      [pk]
+  workspace_id    varchar     [not null, note: 'Soft ref → workspaces._id (MongoDB)']
+  plan_id         int         [not null, ref: > subscription_plans.id]
+  status          subscription_status [not null, default: 'TRIALING']
+  trial_ends_at   timestamp
+  current_period_start timestamp [not null]
+  current_period_end   timestamp [not null]
+  cancelled_at    timestamp
+  cancel_reason   varchar
+  created_at      timestamp   [not null, default: 'now()']
+  updated_at      timestamp   [not null, default: 'now()']
+
+  indexes {
+    workspace_id [unique]
+    (status, current_period_end)
+  }
+}
+
+Table invoices [note: 'PostgreSQL — business-service'] {
+  id              serial      [pk]
+  workspace_id    varchar     [not null, note: 'Soft ref → workspaces._id (MongoDB)']
+  subscription_id int         [not null, ref: > workspace_subscriptions.id]
+  invoice_number  varchar     [unique, not null]
+  status          invoice_status [not null, default: 'DRAFT']
+  amount          decimal     [not null]
+  currency        varchar     [not null, default: 'VND']
+  period_start    timestamp   [not null]
+  period_end      timestamp   [not null]
+  issued_at       timestamp
+  due_at          timestamp
+  paid_at         timestamp
+  created_at      timestamp   [not null, default: 'now()']
+  updated_at      timestamp   [not null, default: 'now()']
+
+  indexes {
+    workspace_id
+    subscription_id
+    invoice_number
+  }
+}
+
+Table payments [note: 'PostgreSQL — business-service'] {
+  id              serial      [pk]
+  workspace_id    varchar     [not null, note: 'Soft ref → workspaces._id (MongoDB)']
+  invoice_id      int         [not null, ref: > invoices.id]
+  amount          decimal     [not null]
+  currency        varchar     [not null, default: 'VND']
+  status          payment_status [not null, default: 'PENDING']
+  payment_method  varchar     [note: 'bank_transfer | momo | vnpay | stripe']
+  transaction_id  varchar     [unique, note: 'External payment gateway TX ID']
+  paid_at         timestamp
+  failed_reason   varchar
+  created_at      timestamp   [not null, default: 'now()']
+  updated_at      timestamp   [not null, default: 'now()']
+
+  indexes {
+    invoice_id
+    workspace_id
+    transaction_id
+  }
+}
+
+Table audit_logs [note: 'PostgreSQL — business-service | Append-only'] {
+  id            bigserial   [pk]
+  workspace_id  varchar     [note: 'Soft ref — nullable for ADMIN actions']
+  user_id       varchar     [not null, note: 'Soft ref → users._id (MongoDB)']
+  action        audit_action [not null]
+  resource_type varchar     [not null, note: 'User | Post | Workspace | Client | ...']
+  resource_id   varchar     [note: 'ID of affected entity']
+  old_value     varchar     [note: 'JSONB — state before change']
+  new_value     varchar     [note: 'JSONB — state after change']
+  ip_address    varchar
+  user_agent    varchar
+  created_at    timestamp   [not null, default: 'now()']
+
+  indexes {
+    (user_id, created_at)
+    (workspace_id, created_at)
+    (resource_type, resource_id)
+  }
+}
+
+// ============================================================
+// REFS (cross-table relationships)
+// ============================================================
+
+// PostgreSQL internal refs
+Ref: workspace_subscriptions.plan_id > subscription_plans.id
+Ref: invoices.subscription_id > workspace_subscriptions.id
+Ref: payments.invoice_id > invoices.id
+
+// MongoDB internal refs
+Ref: workspaces.owner_id > users._id
+Ref: workspace_members.workspace_id > workspaces._id
+Ref: workspace_members.user_id > users._id
+Ref: clients.workspace_id > workspaces._id
+Ref: social_accounts.workspace_id > workspaces._id
+Ref: social_accounts.client_id > clients._id
+Ref: posts.workspace_id > workspaces._id
+Ref: posts.client_id > clients._id
+Ref: posts.created_by > users._id
+Ref: posts.social_account_id > social_accounts._id
+Ref: posts.content_request_id > content_requests._id
+Ref: content_requests.workspace_id > workspaces._id
+Ref: content_requests.client_id > clients._id
+Ref: content_requests.requested_by > users._id
+Ref: notifications.workspace_id > workspaces._id
+Ref: notifications.user_id > users._id
+Ref: report_jobs.workspace_id > workspaces._id
+Ref: report_jobs.client_id > clients._id
+Ref: report_jobs.requested_by > users._id
+
+// ============================================================
+// TABLE GROUPS
+// ============================================================
+
+TableGroup mongodb_business {
+  users
+  workspaces
+  workspace_members
+  clients
+  social_accounts
+  posts
+  content_requests
+  notifications
+  report_jobs
+}
+
+TableGroup mongodb_ai {
+  knowledge_documents
+  ai_usage_logs
+}
+
+TableGroup mongodb_publisher {
+  publish_logs
+}
+
+TableGroup postgresql_business {
+  subscription_plans
+  workspace_subscriptions
+  invoices
+  payments
+  audit_logs
+}
