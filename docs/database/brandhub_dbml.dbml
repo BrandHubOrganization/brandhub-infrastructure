@@ -51,15 +51,41 @@ Enum post_status {
   PUBLISHING
   PUBLISHED
   FAILED
+  CANCELLED
+}
+
+Enum notification_type {
+  POST_APPROVED
+  POST_REJECTED
+  POST_FAILED
+  POST_PUBLISHED
+  REPORT_READY
+  MEMBER_INVITED
+  SUBSCRIPTION_EXPIRING
+  CONTENT_REQUEST_ASSIGNED
+}
+
+Enum oauth_provider {
+  GOOGLE
+  FACEBOOK
 }
 
 Enum content_request_status {
-  OPEN
+  SUBMITTED
+  ASSIGNED
   IN_PROGRESS
-  REVIEW
+  PENDING_REVIEW
+  SENT_TO_CLIENT
   APPROVED
-  DONE
+  REJECTED
   CANCELLED
+}
+
+Enum social_account_status {
+  ACTIVE
+  EXPIRING_SOON
+  EXPIRED
+  REVOKED
 }
 
 Enum publish_result {
@@ -112,32 +138,35 @@ Enum audit_action {
 // ============================================================
 
 Table users [note: 'MongoDB — business-service'] {
-  _id           varchar     [pk, note: 'ObjectId']
-  email         varchar     [unique, not null]
-  password_hash varchar     [note: 'null if OAuth-only']
-  full_name     varchar     [not null]
-  avatar_url    varchar
-  role          user_role   [not null, default: 'CONTENT_CREATOR']
-  status        user_status [not null, default: 'ACTIVE']
-  oauth_providers varchar   [note: 'Array<{provider, providerId, accessToken}>']
-  preferences   varchar     [note: 'Object: {language, timezone, notifications}']
-  last_login_at timestamp
-  created_at    timestamp   [not null]
-  updated_at    timestamp   [not null]
+  _id             varchar     [pk, note: 'ObjectId']
+  email           varchar     [unique, not null]
+  password_hash   varchar     [note: 'null if OAuth-only']
+  full_name       varchar     [not null]
+  avatar_url      varchar
+  role            user_role   [not null, default: 'CONTENT_CREATOR']
+  status          user_status [not null, default: 'ACTIVE']
+  is_active       boolean     [not null, default: true, note: 'false = banned by Admin']
+  workspace_id    varchar     [note: 'One user belongs to one workspace only']
+  oauth_providers varchar     [note: 'Array<{provider: oauth_provider, providerId, accessToken}>']
+  refresh_tokens  varchar     [note: 'Array<{token, jti, expiresAt, createdAt}> — for refresh token validation']
+  preferences     varchar     [note: 'Object: {language, timezone, notifications}']
+  last_login_at   timestamp
+  created_at      timestamp   [not null]
+  updated_at      timestamp   [not null]
 }
 
 Table workspaces [note: 'MongoDB — business-service'] {
-  _id           varchar     [pk, note: 'ObjectId']
-  name          varchar     [not null]
-  slug          varchar     [unique, not null]
-  owner_id      varchar     [not null, ref: > users._id]
-  plan          workspace_plan [not null, default: 'FREE']
-  logo_url      varchar
-  settings      varchar     [note: 'Object: {brandColor, defaultLanguage, approvalRequired}']
-  subscription_id varchar   [note: 'Soft ref → workspace_subscriptions.id (PostgreSQL)']
-  is_active     boolean     [not null, default: true]
-  created_at    timestamp   [not null]
-  updated_at    timestamp   [not null]
+  _id             varchar        [pk, note: 'ObjectId']
+  name            varchar        [not null]
+  slug            varchar        [unique, not null]
+  owner_id        varchar        [not null, ref: > users._id]
+  plan            workspace_plan [not null, default: 'FREE']
+  logo_url        varchar
+  settings        varchar        [note: 'Object: {brandColor, defaultLanguage, approvalRequired, timezone, defaultPlatforms, reportFrequency}']
+  subscription_id varchar        [note: 'Soft ref → workspace_subscriptions.id (PostgreSQL)']
+  is_active       boolean        [not null, default: true]
+  created_at      timestamp      [not null]
+  updated_at      timestamp      [not null]
 }
 
 Table workspace_members [note: 'MongoDB — business-service'] {
@@ -147,6 +176,7 @@ Table workspace_members [note: 'MongoDB — business-service'] {
   role          member_role [not null]
   invited_by    varchar     [ref: > users._id]
   joined_at     timestamp
+  is_active     boolean     [not null, default: true, note: 'false = removed member, soft delete for audit trail']
   created_at    timestamp   [not null]
   updated_at    timestamp   [not null]
 
@@ -157,20 +187,21 @@ Table workspace_members [note: 'MongoDB — business-service'] {
 }
 
 Table clients [note: 'MongoDB — business-service'] {
-  _id           varchar     [pk, note: 'ObjectId']
-  workspace_id  varchar     [not null, ref: > workspaces._id]
-  name          varchar     [not null]
-  brand_name    varchar
-  industry      varchar
-  logo_url      varchar
-  contact_email varchar
-  contact_phone varchar
-  assigned_manager_id varchar [ref: > users._id]
+  _id                   varchar [pk, note: 'ObjectId']
+  workspace_id          varchar [not null, ref: > workspaces._id]
+  name                  varchar [not null]
+  brand_name            varchar
+  industry              varchar
+  logo_url              varchar
+  contact_email         varchar
+  contact_phone         varchar
+  assigned_manager_id   varchar [ref: > users._id]
   portal_access_enabled boolean [not null, default: false]
-  portal_user_id varchar  [note: 'ref → users._id (BRAND_CLIENT role)']
-  metadata      varchar   [note: 'Object: flexible per agency']
-  created_at    timestamp [not null]
-  updated_at    timestamp [not null]
+  portal_user_id        varchar [note: 'ref → users._id (BRAND_CLIENT role)']
+  service_package       varchar [note: 'Object: {postsPerMonth, platforms[], aiCreditsPerMonth} — client-level limit ≤ workspace plan']
+  metadata              varchar [note: 'Object: flexible per agency']
+  created_at            timestamp [not null]
+  updated_at            timestamp [not null]
 
   indexes {
     workspace_id
@@ -178,22 +209,27 @@ Table clients [note: 'MongoDB — business-service'] {
 }
 
 Table social_accounts [note: 'MongoDB — business-service'] {
-  _id             varchar   [pk, note: 'ObjectId']
-  workspace_id    varchar   [not null, ref: > workspaces._id]
-  client_id       varchar   [ref: > clients._id]
-  platform        social_platform [not null]
-  account_name    varchar   [not null]
-  account_id      varchar   [not null, note: 'Platform user/page ID']
-  encrypted_token varchar   [not null, note: 'AES-256 encrypted OAuth token']
-  token_expires_at timestamp
-  scopes          varchar   [note: 'Array<string>']
-  is_active       boolean   [not null, default: true]
-  created_at      timestamp [not null]
-  updated_at      timestamp [not null]
+  _id                   varchar               [pk, note: 'ObjectId']
+  workspace_id          varchar               [not null, ref: > workspaces._id]
+  client_id             varchar               [ref: > clients._id]
+  platform              social_platform       [not null]
+  account_name          varchar               [not null]
+  account_id            varchar               [not null, note: 'Platform user/page ID']
+  encrypted_token       varchar               [not null, note: 'AES-256-GCM encrypted access token']
+  encrypted_iv          varchar               [not null, note: 'AES-256-GCM IV — stored alongside encrypted token']
+  encrypted_refresh_token varchar             [note: 'AES-256-GCM encrypted refresh token (where platform provides one)']
+  encrypted_refresh_iv  varchar               [note: 'AES-256-GCM IV for refresh token']
+  token_expires_at      timestamp             [not null]
+  token_status          social_account_status [not null, default: 'ACTIVE']
+  scopes                varchar               [note: 'Array<string>']
+  is_active             boolean               [not null, default: true]
+  created_at            timestamp             [not null]
+  updated_at            timestamp             [not null]
 
   indexes {
     workspace_id
     (workspace_id, platform, account_id) [unique]
+    (workspace_id, token_status)
   }
 }
 
@@ -226,24 +262,27 @@ Table posts [note: 'MongoDB — business-service'] {
 }
 
 Table content_requests [note: 'MongoDB — business-service'] {
-  _id           varchar    [pk, note: 'ObjectId']
-  workspace_id  varchar    [not null, ref: > workspaces._id]
-  client_id     varchar    [ref: > clients._id]
-  requested_by  varchar    [not null, ref: > users._id]
-  assigned_to   varchar    [ref: > users._id]
-  title         varchar    [not null]
-  description   varchar
-  platforms     varchar    [note: 'Array<social_platform>']
-  deadline      timestamp
-  status        content_request_status [not null, default: 'OPEN']
-  attachments   varchar    [note: 'Array<string> — S3 URLs']
-  comments      varchar    [note: 'Array<{userId, text, at}>']
-  created_at    timestamp  [not null]
-  updated_at    timestamp  [not null]
+  _id            varchar                [pk, note: 'ObjectId']
+  workspace_id   varchar                [not null, ref: > workspaces._id]
+  client_id      varchar                [ref: > clients._id]
+  requested_by   varchar                [not null, ref: > users._id]
+  assigned_to    varchar                [ref: > users._id, note: 'CONTENT_CREATOR assigned by ACCOUNT_MANAGER']
+  title          varchar                [not null]
+  description    varchar
+  tone           varchar                [note: 'e.g. professional | casual | humorous | inspirational']
+  platforms      varchar                [note: 'Array<social_platform>']
+  deadline       timestamp
+  status         content_request_status [not null, default: 'SUBMITTED']
+  linked_post_id varchar                [note: 'ref → posts._id — post created from this request']
+  attachments    varchar                [note: 'Array<string> — S3 URLs']
+  comments       varchar                [note: 'Array<{userId, text, at}>']
+  created_at     timestamp              [not null]
+  updated_at     timestamp              [not null]
 
   indexes {
     (workspace_id, status)
     (workspace_id, client_id)
+    (workspace_id, assigned_to)
   }
 }
 
@@ -270,7 +309,7 @@ Table notifications [note: 'MongoDB — business-service'] {
   _id           varchar   [pk, note: 'ObjectId']
   workspace_id  varchar   [not null, ref: > workspaces._id]
   user_id       varchar   [not null, ref: > users._id]
-  type          varchar   [not null, note: 'POST_APPROVED | POST_FAILED | REPORT_READY | ...']
+  type          notification_type [not null]
   title         varchar   [not null]
   body          varchar
   metadata      varchar   [note: 'Object: {postId, clientId, etc}']
@@ -443,36 +482,6 @@ Table audit_logs [note: 'PostgreSQL — business-service | Append-only'] {
     (resource_type, resource_id)
   }
 }
-
-// ============================================================
-// REFS (cross-table relationships)
-// ============================================================
-
-// PostgreSQL internal refs
-Ref: workspace_subscriptions.plan_id > subscription_plans.id
-Ref: invoices.subscription_id > workspace_subscriptions.id
-Ref: payments.invoice_id > invoices.id
-
-// MongoDB internal refs
-Ref: workspaces.owner_id > users._id
-Ref: workspace_members.workspace_id > workspaces._id
-Ref: workspace_members.user_id > users._id
-Ref: clients.workspace_id > workspaces._id
-Ref: social_accounts.workspace_id > workspaces._id
-Ref: social_accounts.client_id > clients._id
-Ref: posts.workspace_id > workspaces._id
-Ref: posts.client_id > clients._id
-Ref: posts.created_by > users._id
-Ref: posts.social_account_id > social_accounts._id
-Ref: posts.content_request_id > content_requests._id
-Ref: content_requests.workspace_id > workspaces._id
-Ref: content_requests.client_id > clients._id
-Ref: content_requests.requested_by > users._id
-Ref: notifications.workspace_id > workspaces._id
-Ref: notifications.user_id > users._id
-Ref: report_jobs.workspace_id > workspaces._id
-Ref: report_jobs.client_id > clients._id
-Ref: report_jobs.requested_by > users._id
 
 // ============================================================
 // TABLE GROUPS
