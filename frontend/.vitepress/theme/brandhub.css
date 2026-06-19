@@ -265,14 +265,26 @@
   font-family: 'Geist Mono', 'JetBrains Mono', monospace;
   font-size: 0.85em;
   background-color: #f4f4f5;
-  color: #0a0a0a;
+  color: #0a0a0a !important;
   border-radius: 4px;
   padding: 0.1em 0.35em;
 }
 
+.vp-doc td code,
+.vp-doc th code {
+  color: #0a0a0a !important;
+  background-color: #ebebec !important;
+}
+
+.dark .vp-doc td code,
+.dark .vp-doc th code {
+  color: #fafafa !important;
+  background-color: #27272a !important;
+}
+
 .dark .vp-doc code {
   background-color: #18181b;
-  color: #fafafa;
+  color: #fafafa !important;
 }
 
 /* ── Custom containers (tip/warning/danger) ── */
@@ -330,6 +342,17 @@
   border-radius: 8px;
   border: 1px solid #e4e4e7;
   background-color: #f4f4f5;
+}
+
+/* Allow JS to override sidebar/content layout for resize */
+.VPSidebar {
+  width: var(--vp-sidebar-width, 320px) !important;
+}
+
+@media (min-width: 960px) {
+  .VPContent.has-sidebar {
+    padding-left: var(--vp-sidebar-width, 320px) !important;
+  }
 }
 
 /* ── Resize handle (DocsTree) — orange on hover ── */
