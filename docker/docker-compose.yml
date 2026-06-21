@@ -98,8 +98,6 @@ services:
       ZALO_APP_ID: ${ZALO_APP_ID:-}
       ZALO_APP_SECRET: ${ZALO_APP_SECRET:-}
     depends_on:
-      mongo:
-        condition: service_healthy
       postgres:
         condition: service_healthy
       redis:
@@ -203,29 +201,9 @@ services:
 
   # ── Infrastructure ─────────────────────────────────────────
 
-  mongo:
-    image: mongo:7.0
-    container_name: brandhub-mongo
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password}
-      MONGO_INITDB_DATABASE: brandhub
-    volumes:
-      - mongo-data:/data/db
-      - ../scripts/init-mongo.js:/docker-entrypoint-initdb.d/init.js
-    networks:
-      - brandhub-network
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-    restart: unless-stopped
+  # MongoDB → dùng Atlas (mongodb+srv://... trong .env), không chạy local container
 
-  # POSTGRESQL 
+  # POSTGRESQL
   postgres:
     image: postgres:17-alpine
     container_name: brandhub-postgres
@@ -238,6 +216,7 @@ services:
       - "${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ../scripts/init-postgres.sql:/docker-entrypoint-initdb.d/init-postgres.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
@@ -322,7 +301,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  mongo-data:
   postgres_data:
     name: brandhub-postgres-data
   pgadmin_data:
