@@ -1,6 +1,6 @@
 <template>
-  <a class="brand-title" href="/brandhub-infrastructure/">
-    <img src="/brandhub-infrastructure/logo.svg" alt="BrandHub logo" class="brand-logo" />
+  <a class="brand-title" href="/">
+    <img src="/logo.svg" alt="BrandHub logo" class="brand-logo" />
     <span class="brand-text">Brand<span class="brand-hub">Hub</span></span>
   </a>
 </template>
