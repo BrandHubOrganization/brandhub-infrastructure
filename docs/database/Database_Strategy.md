@@ -65,7 +65,8 @@ Toàn bộ content entity (`posts`, `content_requests`, `social_accounts`, ...) 
 :::
 
 ::: danger Hard Rule 3 — workspaceId bắt buộc
-Mọi MongoDB query **bắt buộc** có filter `workspaceId`.
+Mọi MongoDB query **bắt buộc** có filter `workspaceId`. `BRAND_CLIENT` role thêm filter `clientId` bên cạnh `workspaceId`.
+:::
 
 ```js
 // ❌ SAI — không có workspaceId
@@ -73,39 +74,40 @@ db.posts.find({ status: 'PUBLISHED' })
 
 // ✅ ĐÚNG
 db.posts.find({ workspaceId: ctx.workspaceId, status: 'PUBLISHED' })
-```
 
-`BRAND_CLIENT` role thêm filter `clientId` bên cạnh `workspaceId`:
-```js
+// ✅ BRAND_CLIENT — thêm clientId
 db.posts.find({ workspaceId: ctx.workspaceId, clientId: ctx.clientId, status: 'PUBLISHED' })
 ```
-:::
 
 ---
 
-## 4. Entity Mapping — 19 Entity vào đúng DB
+## 4. Entity Mapping — 23 Entity vào đúng DB
 
-> **Thay đổi thiết kế:** `users`, `workspaces`, `workspace_members`, `clients` chuyển từ MongoDB sang PostgreSQL để có FK thật, ACID transaction khi tạo user/workspace, và loại bỏ soft ref giữa financial chain với identity data.
+> **Thay đổi thiết kế:** `users`, `workspaces`, `workspace_members`, `clients` chuyển từ MongoDB sang PostgreSQL để có FK thật, ACID transaction khi tạo user/workspace, và loại bỏ soft ref giữa financial chain với identity data. Thêm 4 bảng hỗ trợ để đảm bảo đầy đủ workflow và OOP role model.
 
-### 4.1 PostgreSQL — 11 Tables (3 nhóm)
+### 4.1 PostgreSQL — 15 Tables (3 nhóm)
 
-#### Identity
+#### Identity (5 tables)
 
 | Table | Lý do chọn PostgreSQL | Constraints quan trọng |
 |---|---|---|
-| `users` | `email` UNIQUE atomic; auth data cần ACID; `refresh_tokens` tách bảng riêng (1NF) | `UNIQUE(email)`, FK từ workspace_members |
+| `users` | `email` UNIQUE atomic; auth data cần ACID; core identity không có role/workspace | `UNIQUE(email)`, FK từ nhiều bảng |
 | `user_oauth_providers` | 1NF: tách từ `users.oauth_providers[]` — array không thể query/index hiệu quả | `UNIQUE(provider, provider_id)`, FK → users |
-| `user_refresh_tokens` | 1NF: tách từ `users.refresh_tokens[]` — cần index trên `jti`, `expires_at` | `UNIQUE(jti)`, FK → users ON DELETE CASCADE |
+| `user_refresh_tokens` | 1NF: tách từ `users.refresh_tokens[]` — cần index `jti`, `expires_at`; thêm device tracking | `UNIQUE(jti)`, FK → users ON DELETE CASCADE |
+| `user_system_roles` | ADMIN/SUPPORT là system-level, không thuộc workspace nào — OOP discriminated type | `UNIQUE(user_id)`, FK → users |
+| `password_reset_tokens` | Audit trail cho reset password — Redis giữ TTL runtime, PG giữ permanent record | `UNIQUE(token_hash)`, FK → users |
 
-#### Workspace
+#### Workspace (5 tables)
 
 | Table | Lý do chọn PostgreSQL | Constraints quan trọng |
 |---|---|---|
-| `workspaces` | `slug` UNIQUE atomic; `owner_id` FK thật → users; là anchor của toàn bộ financial chain | `UNIQUE(slug)`, FK → users |
-| `workspace_members` | Junction user↔workspace với role — UNIQUE constraint atomic trên `(workspace_id, user_id)` | `UNIQUE(workspace_id, user_id)`, FK → users + workspaces |
-| `clients` | `portal_user_id` FK thật → users; `workspace_id` FK thật → workspaces | FK → workspaces, FK → users (2 FK) |
+| `workspaces` | `slug` UNIQUE atomic; `owner_id` FK thật → users; anchor toàn bộ financial chain | `UNIQUE(slug)`, FK → users |
+| `workspace_members` | Junction user↔workspace với workspace role — UNIQUE constraint atomic | `UNIQUE(workspace_id, user_id)`, FK → users + workspaces |
+| `workspace_invitations` | Invitation workflow: invited user có thể chưa tồn tại; token single-use | `UNIQUE(token)`, `UNIQUE(workspace_id, invited_email)`, FK → workspaces |
+| `workspace_member_permissions` | Fine-grained permission overrides per member — role là coarse-grained | `UNIQUE(workspace_member_id, permission)`, FK → workspace_members |
+| `clients` | `portal_user_id` FK thật → users; `workspace_id` FK thật → workspaces; 1 manager per client | FK → workspaces, FK → users (2 FK) |
 
-#### Billing
+#### Billing (5 tables)
 
 | Table | Lý do chọn PostgreSQL | Constraints quan trọng |
 |---|---|---|
@@ -113,7 +115,7 @@ db.posts.find({ workspaceId: ctx.workspaceId, clientId: ctx.clientId, status: 'P
 | `workspace_subscriptions` | `workspace_id` FK thật → workspaces (không còn soft ref); ACID khi upgrade/downgrade | `UNIQUE(workspace_id)`, FK → workspaces + plans |
 | `invoices` | Immutable sau `status = ISSUED` | FK → workspaces + workspace_subscriptions, `UNIQUE(invoice_number)` |
 | `payments` | Atomic, không duplicate | FK → workspaces + invoices, `UNIQUE(transaction_id)` |
-| `audit_logs` | Append-only — `user_id` giữ soft ref vì user có thể bị xóa nhưng log phải persist | `bigserial PK`, no UPDATE/DELETE |
+| `audit_logs` | Append-only — `user_id` giữ soft ref vì user có thể bị xóa nhưng log phải persist | `bigserial PK`, no UPDATE/DELETE ever |
 
 ### 4.2 MongoDB — 8 Collections
 
@@ -168,8 +170,8 @@ Sau khi chuyển `users`, `workspaces`, `workspace_members`, `clients` sang Post
 | `content_requests.assigned_to` | `users.id` (PG) | Soft ref |
 | `notifications.workspace_id` | `workspaces.id` (PG) | Soft ref |
 | `notifications.user_id` | `users.id` (PG) | Soft ref |
-| `audit_logs.workspace_id` (PG) | `workspaces.id` (PG) | **UUID nullable** — ADMIN action không có workspace |
-| `audit_logs.user_id` (PG) | `users.id` (PG) | **Soft ref** — user có thể bị xóa, log phải persist |
+| `audit_logs.workspace_id` (PG) | `workspaces.id` (PG) | **Nullable UUID** — ADMIN action không có workspace, không phải soft ref |
+| `audit_logs.user_id` (PG) | `users.id` (PG) | **Soft ref intentional** — append-only, không thể có FK (xóa user sẽ vi phạm constraint) |
 
 > **Lưu ý:** `audit_logs.user_id` giữ nguyên soft ref dù cả hai đều ở PostgreSQL — vì `audit_logs` là append-only, không thể có FK (DELETE user sẽ vi phạm constraint).
 
@@ -190,6 +192,7 @@ Redis **không** lưu primary data. Chỉ dùng làm cache và distributed coord
 | `jwt:blacklist:{jti}` | Token đã logout/revoke — block replay attack | Remaining token lifetime | Xóa tự động khi token expire |
 | `ratelimit:{userId}:{minute}` | Rate limiting per user per minute | 60s | Sliding window counter |
 | `oauth:state:{state}` | CSRF protection cho OAuth flow | 10 phút | Xóa ngay sau dùng |
+| `pwd:reset:{token}` | Runtime lookup cho reset password link — PG giữ audit trail | 1 giờ | Xóa ngay sau dùng (single-use) |
 | `trends:vn:{date}:{category}` | Cache trending topics từ external AI/social API | 6 giờ | Refresh daily 2AM |
 | `session:{sessionId}` | SSO session (nếu dùng) | 30 phút | Extend on activity |
 
@@ -290,35 +293,39 @@ COMMIT;
 ## 10. Sơ đồ tổng quan
 
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│                          business-service                             │
-│                                                                       │
-│  PostgreSQL (11 tables)                MongoDB (6 collections)        │
-│  ── Identity ──                        ├── social_accounts            │
-│  ├── users                             ├── posts                      │
-│  ├── user_oauth_providers              ├── content_requests           │
-│  ├── user_refresh_tokens               ├── notifications              │
-│  ── Workspace ──                       └── report_jobs               │
-│  ├── workspaces                                                       │
-│  ├── workspace_members                 Redis (cache)                  │
-│  ├── clients                           ├── jwt:blacklist:{jti}        │
-│  ── Billing ──                         ├── ratelimit:{userId}:{min}   │
-│  ├── subscription_plans                └── oauth:state:{state}        │
-│  ├── workspace_subscriptions                                          │
-│  ├── invoices                                                         │
-│  ├── payments                                                         │
-│  └── audit_logs                                                       │
-├──────────────────────────────────────────────────────────────────────┤
-│                            ai-service                                 │
-│  MongoDB                              ChromaDB                        │
-│  ├── knowledge_documents              └── brand_embeddings_{wsId}    │
-│  └── ai_usage_logs                    Redis                           │
-│                                       └── trends:vn:{date}:{cat}     │
-├──────────────────────────────────────────────────────────────────────┤
-│                         publisher-service                             │
-│  MongoDB                                                              │
-│  └── publish_logs                                                     │
-└──────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│                          business-service                                 │
+│                                                                           │
+│  PostgreSQL (15 tables)                  MongoDB (6 collections)          │
+│  ── Identity ──                          ├── social_accounts              │
+│  ├── users                               ├── posts                        │
+│  ├── user_oauth_providers                ├── content_requests             │
+│  ├── user_refresh_tokens                 ├── notifications                │
+│  ├── user_system_roles          (NEW)    └── report_jobs                  │
+│  ├── password_reset_tokens      (NEW)                                     │
+│  ── Workspace ──                         Redis (cache)                    │
+│  ├── workspaces                          ├── jwt:blacklist:{jti}          │
+│  ├── workspace_members                   ├── ratelimit:{userId}:{min}     │
+│  ├── workspace_invitations      (NEW)    ├── oauth:state:{state}          │
+│  ├── workspace_member_permissions (NEW)  └── pwd:reset:{token}  (NEW)    │
+│  ├── clients                                                              │
+│  ── Billing ──                                                            │
+│  ├── subscription_plans                                                   │
+│  ├── workspace_subscriptions                                              │
+│  ├── invoices                                                             │
+│  ├── payments                                                             │
+│  └── audit_logs                                                           │
+├──────────────────────────────────────────────────────────────────────────┤
+│                            ai-service                                     │
+│  MongoDB                              ChromaDB                            │
+│  ├── knowledge_documents              └── brand_embeddings_{wsId}        │
+│  └── ai_usage_logs                    Redis                               │
+│                                       └── trends:vn:{date}:{cat}         │
+├──────────────────────────────────────────────────────────────────────────┤
+│                         publisher-service                                 │
+│  MongoDB                                                                  │
+│  └── publish_logs                                                         │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -356,11 +363,12 @@ ALTER TABLE workspace_subscriptions
 ## 12. Acceptance Criteria
 
 - [x] Document liệt kê tiêu chí phân chia MongoDB vs PostgreSQL với giải thích chi tiết
-- [x] 17 entity (12 MongoDB + 5 PostgreSQL) được map với lý do và key query pattern
+- [x] 23 entity (8 MongoDB + 15 PostgreSQL) được map với lý do và key query pattern
 - [x] Hard rules không ngoại lệ được ghi rõ với ví dụ code
 - [x] Cross-DB reference strategy được định nghĩa với flow thực tế
 - [x] Redis và ChromaDB được làm rõ scope và giới hạn
 - [x] Security considerations cho từng storage layer
 - [x] Query pattern guidelines (index-first, transaction, pagination)
 - [x] Migration strategy cho cả MongoDB và PostgreSQL
+- [x] 4 bảng mới (user_system_roles, password_reset_tokens, workspace_invitations, workspace_member_permissions) được thêm với lý do đầy đủ
 - [x] Document lưu trong `brandhub-infrastructure/docs/database/`
