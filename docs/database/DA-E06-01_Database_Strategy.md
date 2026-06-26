@@ -83,34 +83,50 @@ db.posts.find({ workspaceId: ctx.workspaceId, clientId: ctx.clientId, status: 'P
 
 ---
 
-## 4. Entity Mapping — 17 Entity vào đúng DB
+## 4. Entity Mapping — 19 Entity vào đúng DB
 
-### 4.1 MongoDB — 12 Collections
+> **Thay đổi thiết kế:** `users`, `workspaces`, `workspace_members`, `clients` chuyển từ MongoDB sang PostgreSQL để có FK thật, ACID transaction khi tạo user/workspace, và loại bỏ soft ref giữa financial chain với identity data.
 
-| Collection | Service | Lý do chọn MongoDB | Key pattern |
+### 4.1 PostgreSQL — 11 Tables (3 nhóm)
+
+#### Identity
+
+| Table | Lý do chọn PostgreSQL | Constraints quan trọng |
+|---|---|---|
+| `users` | `email` UNIQUE atomic; auth data cần ACID; `refresh_tokens` tách bảng riêng (1NF) | `UNIQUE(email)`, FK từ workspace_members |
+| `user_oauth_providers` | 1NF: tách từ `users.oauth_providers[]` — array không thể query/index hiệu quả | `UNIQUE(provider, provider_id)`, FK → users |
+| `user_refresh_tokens` | 1NF: tách từ `users.refresh_tokens[]` — cần index trên `jti`, `expires_at` | `UNIQUE(jti)`, FK → users ON DELETE CASCADE |
+
+#### Workspace
+
+| Table | Lý do chọn PostgreSQL | Constraints quan trọng |
+|---|---|---|
+| `workspaces` | `slug` UNIQUE atomic; `owner_id` FK thật → users; là anchor của toàn bộ financial chain | `UNIQUE(slug)`, FK → users |
+| `workspace_members` | Junction user↔workspace với role — UNIQUE constraint atomic trên `(workspace_id, user_id)` | `UNIQUE(workspace_id, user_id)`, FK → users + workspaces |
+| `clients` | `portal_user_id` FK thật → users; `workspace_id` FK thật → workspaces | FK → workspaces, FK → users (2 FK) |
+
+#### Billing
+
+| Table | Lý do chọn PostgreSQL | Constraints quan trọng |
+|---|---|---|
+| `subscription_plans` | Master data cố định, referential integrity | `UNIQUE(name)` |
+| `workspace_subscriptions` | `workspace_id` FK thật → workspaces (không còn soft ref); ACID khi upgrade/downgrade | `UNIQUE(workspace_id)`, FK → workspaces + plans |
+| `invoices` | Immutable sau `status = ISSUED` | FK → workspaces + workspace_subscriptions, `UNIQUE(invoice_number)` |
+| `payments` | Atomic, không duplicate | FK → workspaces + invoices, `UNIQUE(transaction_id)` |
+| `audit_logs` | Append-only — `user_id` giữ soft ref vì user có thể bị xóa nhưng log phải persist | `bigserial PK`, no UPDATE/DELETE |
+
+### 4.2 MongoDB — 8 Collections
+
+| Collection | Service | Lý do giữ MongoDB | Key pattern |
 |---|---|---|---|
-| `users` | business-service | Schema mở rộng được (OAuth providers, preferences per user); không cần FK tới payment | Filter `{ _id }` hoặc `{ email }` |
-| `workspaces` | business-service | Flexible config per workspace (branding, settings object lồng nhau) | Filter `{ _id }` hoặc `{ slug }` |
-| `workspace_members` | business-service | Quan hệ user↔workspace thay đổi thường, soft delete cần audit nhẹ | Filter `{ workspaceId, userId }` |
-| `clients` | business-service | Profile client linh hoạt per agency; `service_package` dạng object thay đổi theo deal | Filter `{ workspaceId }` |
-| `social_accounts` | business-service | AES-256-GCM encrypted token; metadata khác nhau per platform (FB Page vs Zalo OA) | Filter `{ workspaceId, platform }` |
-| `posts` | business-service | Content entity core — high write, `approval_history[]` inline, schema thêm field per platform | Filter `{ workspaceId, status }`, `{ workspaceId, scheduledAt }` |
-| `content_requests` | business-service | Request flow nhiều state (8 states), nested `comments[]`, `attachments[]` | Filter `{ workspaceId, status }`, `{ workspaceId, assignedTo }` |
-| `knowledge_documents` | ai-service | Brand knowledge base cho RAG — document dạng tự do, chunked text | Filter `{ workspaceId }`, `{ workspaceId, clientId }` |
-| `notifications` | business-service | Event-driven, high volume, TTL tự expire sau 30 ngày, không cần JOIN | Filter `{ userId, isRead }` |
-| `publish_logs` | publisher-service | Append-only log mỗi lần publish — high write, retry tracking, không cần ACID | Filter `{ postId }`, `{ workspaceId, result }` |
-| `ai_usage_logs` | ai-service | Token count, model used, cost estimate — schema thay đổi per model/feature | Filter `{ workspaceId, feature }`, `{ createdAt }` |
-| `report_jobs` | business-service | Background report job status — transient state, không cần financial integrity | Filter `{ workspaceId, status }` |
-
-### 4.2 PostgreSQL — 5 Tables
-
-| Table | Service | Lý do chọn PostgreSQL | Constraints quan trọng |
-|---|---|---|---|
-| `subscription_plans` | business-service | Master data cố định (FREE/BASIC/PRO/ENTERPRISE), cần referential integrity | `UNIQUE(name)`, không xóa plan đang dùng |
-| `workspace_subscriptions` | business-service | FK tới `subscription_plans`, billing state — cần ACID khi upgrade/downgrade | `FK → subscription_plans.id`, `UNIQUE(workspaceId)` |
-| `invoices` | business-service | Hóa đơn tài chính — immutable sau khi `status = ISSUED`, audit bắt buộc | `FK → workspace_subscriptions.id`, `UNIQUE(invoiceNumber)` |
-| `payments` | business-service | Transaction thanh toán — atomic, không được duplicate | `FK → invoices.id`, `UNIQUE(transactionId)` |
-| `audit_logs` | business-service | Append-only security log (login, role change, delete) — không có UPDATE/DELETE | `bigserial PK`, no FK (soft refs), no DELETE permission |
+| `social_accounts` | business-service | AES-256-GCM encrypted token; metadata khác nhau per platform | Filter `{ workspaceId, platform }` |
+| `posts` | business-service | Content core — high write, `approval_history[]` inline, schema thêm field per platform | Filter `{ workspaceId, status }`, `{ workspaceId, scheduledAt }` |
+| `content_requests` | business-service | 8 states, nested `comments[]`, `attachments[]` | Filter `{ workspaceId, status }`, `{ workspaceId, assignedTo }` |
+| `knowledge_documents` | ai-service | Brand knowledge cho RAG — document tự do, chunked text | Filter `{ workspaceId }`, `{ workspaceId, clientId }` |
+| `notifications` | business-service | High volume, TTL 30 ngày tự expire, không cần JOIN | Filter `{ userId, isRead }` |
+| `publish_logs` | publisher-service | Append-only, high write, retry tracking | Filter `{ postId }`, `{ workspaceId, result }` |
+| `ai_usage_logs` | ai-service | Schema thay đổi per model/feature, append-only | Filter `{ workspaceId, feature }` |
+| `report_jobs` | business-service | Transient job state, không cần financial integrity | Filter `{ workspaceId, status }` |
 
 ---
 
@@ -135,16 +151,27 @@ workspaces._id (MongoDB ObjectId → string)
 5. Không thực hiện DB-level JOIN
 ```
 
-### 5.2 Các cross-DB soft refs hiện tại
+### 5.2 Các cross-DB soft refs còn lại
+
+Sau khi chuyển `users`, `workspaces`, `workspace_members`, `clients` sang PostgreSQL, phần lớn internal refs đã trở thành **FK thật**. Chỉ còn soft ref theo chiều MongoDB → PostgreSQL:
 
 | MongoDB field | Trỏ tới | Lưu ý |
 |---|---|---|
-| `workspaces.subscription_id` | `workspace_subscriptions.id` (PG) | Dùng để lookup nhanh, không enforce FK |
-| `workspace_subscriptions.workspace_id` (PG) | `workspaces._id` (Mongo) | String, không có FK constraint |
-| `invoices.workspace_id` (PG) | `workspaces._id` (Mongo) | Soft ref — tên workspace lấy từ app layer |
-| `payments.workspace_id` (PG) | `workspaces._id` (Mongo) | Tương tự invoices |
-| `audit_logs.workspace_id` (PG) | `workspaces._id` (Mongo) | Nullable (ADMIN action có thể không có workspace) |
-| `audit_logs.user_id` (PG) | `users._id` (Mongo) | Soft ref — user info lấy từ app layer khi cần |
+| `social_accounts.workspace_id` | `workspaces.id` (PG) | Soft ref — UUID string |
+| `social_accounts.client_id` | `clients.id` (PG) | Soft ref — UUID string |
+| `posts.workspace_id` | `workspaces.id` (PG) | Soft ref |
+| `posts.client_id` | `clients.id` (PG) | Soft ref |
+| `posts.created_by` | `users.id` (PG) | Soft ref |
+| `content_requests.workspace_id` | `workspaces.id` (PG) | Soft ref |
+| `content_requests.client_id` | `clients.id` (PG) | Soft ref |
+| `content_requests.requested_by` | `users.id` (PG) | Soft ref |
+| `content_requests.assigned_to` | `users.id` (PG) | Soft ref |
+| `notifications.workspace_id` | `workspaces.id` (PG) | Soft ref |
+| `notifications.user_id` | `users.id` (PG) | Soft ref |
+| `audit_logs.workspace_id` (PG) | `workspaces.id` (PG) | **UUID nullable** — ADMIN action không có workspace |
+| `audit_logs.user_id` (PG) | `users.id` (PG) | **Soft ref** — user có thể bị xóa, log phải persist |
+
+> **Lưu ý:** `audit_logs.user_id` giữ nguyên soft ref dù cả hai đều ở PostgreSQL — vì `audit_logs` là append-only, không thể có FK (DELETE user sẽ vi phạm constraint).
 
 ### 5.3 Khi nào KHÔNG dùng Soft Reference
 
@@ -263,31 +290,35 @@ COMMIT;
 ## 10. Sơ đồ tổng quan
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        business-service                          │
-│                                                                  │
-│  MongoDB (9 collections)          PostgreSQL (5 tables)          │
-│  ├── users                        ├── subscription_plans         │
-│  ├── workspaces                   ├── workspace_subscriptions    │
-│  ├── workspace_members            ├── invoices                   │
-│  ├── clients                      ├── payments                   │
-│  ├── social_accounts              └── audit_logs                 │
-│  ├── posts                                                       │
-│  ├── content_requests             Redis (cache)                  │
-│  ├── notifications                ├── jwt:blacklist:{jti}        │
-│  └── report_jobs                  ├── ratelimit:{userId}:{min}   │
-│                                   └── oauth:state:{state}        │
-├─────────────────────────────────────────────────────────────────┤
-│                          ai-service                              │
-│  MongoDB                          ChromaDB                       │
-│  ├── knowledge_documents          └── brand_embeddings_{wsId}   │
-│  └── ai_usage_logs                Redis                          │
-│                                   └── trends:vn:{date}:{cat}    │
-├─────────────────────────────────────────────────────────────────┤
-│                       publisher-service                          │
-│  MongoDB                                                         │
-│  └── publish_logs                                                │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                          business-service                             │
+│                                                                       │
+│  PostgreSQL (11 tables)                MongoDB (6 collections)        │
+│  ── Identity ──                        ├── social_accounts            │
+│  ├── users                             ├── posts                      │
+│  ├── user_oauth_providers              ├── content_requests           │
+│  ├── user_refresh_tokens               ├── notifications              │
+│  ── Workspace ──                       └── report_jobs               │
+│  ├── workspaces                                                       │
+│  ├── workspace_members                 Redis (cache)                  │
+│  ├── clients                           ├── jwt:blacklist:{jti}        │
+│  ── Billing ──                         ├── ratelimit:{userId}:{min}   │
+│  ├── subscription_plans                └── oauth:state:{state}        │
+│  ├── workspace_subscriptions                                          │
+│  ├── invoices                                                         │
+│  ├── payments                                                         │
+│  └── audit_logs                                                       │
+├──────────────────────────────────────────────────────────────────────┤
+│                            ai-service                                 │
+│  MongoDB                              ChromaDB                        │
+│  ├── knowledge_documents              └── brand_embeddings_{wsId}    │
+│  └── ai_usage_logs                    Redis                           │
+│                                       └── trends:vn:{date}:{cat}     │
+├──────────────────────────────────────────────────────────────────────┤
+│                         publisher-service                             │
+│  MongoDB                                                              │
+│  └── publish_logs                                                     │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
