@@ -1,4 +1,5 @@
 node_modules/
-.vitepress/dist/
+dist/
 .vitepress/cache/
+.vitepress/dist/
 docs-tree.json
