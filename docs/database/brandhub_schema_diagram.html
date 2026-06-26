@@ -141,7 +141,7 @@
 
 <div id="canvas-wrap">
   <div id="canvas">
-    <svg id="svg-layer" width="4000" height="3000"></svg>
+    <svg id="svg-layer" width="6000" height="4000"></svg>
   </div>
 </div>
 
@@ -154,7 +154,7 @@ const SCHEMA = {
   tables: [
     // ── PostgreSQL: Identity ──
     {
-      name: 'users', db: 'postgres', note: 'business-service — Identity only',
+      name: 'users', db: 'postgres', note: 'Identity only — no role/workspace_id',
       fields: [
         { name: 'id', type: 'uuid', pk: true, note: 'gen_random_uuid()' },
         { name: 'email', type: 'varchar(255)', unique: true, notNull: true },
@@ -170,7 +170,7 @@ const SCHEMA = {
       ]
     },
     {
-      name: 'user_oauth_providers', db: 'postgres', note: 'business-service — 1NF from users.oauth_providers[]',
+      name: 'user_oauth_providers', db: 'postgres', note: '1NF — extracted from users.oauth_providers[]',
       fields: [
         { name: 'id', type: 'uuid', pk: true },
         { name: 'user_id', type: 'uuid', fk: 'users.id', notNull: true },
@@ -179,19 +179,44 @@ const SCHEMA = {
       ]
     },
     {
-      name: 'user_refresh_tokens', db: 'postgres', note: 'business-service — 1NF from users.refresh_tokens[]',
+      name: 'user_refresh_tokens', db: 'postgres', note: '1NF — extracted from users.refresh_tokens[]',
       fields: [
         { name: 'id', type: 'uuid', pk: true },
         { name: 'user_id', type: 'uuid', fk: 'users.id', notNull: true },
         { name: 'token_hash', type: 'varchar(255)', unique: true, notNull: true },
         { name: 'jti', type: 'varchar(255)', unique: true, notNull: true },
         { name: 'expires_at', type: 'timestamptz', notNull: true },
+        { name: 'ip_address', type: 'varchar(45)' },
+        { name: 'user_agent', type: 'varchar' },
+        { name: 'device_info', type: 'jsonb', notNull: true, note: '{deviceType, osName, browserName}' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'user_system_roles', db: 'postgres', note: 'ADMIN/SUPPORT — system-level, not workspace-scoped',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'user_id', type: 'uuid', fk: 'users.id', unique: true, notNull: true },
+        { name: 'system_role', type: 'varchar(50)', notNull: true, note: 'ADMIN | SUPPORT' },
+        { name: 'granted_by', type: 'uuid', fk: 'users.id' },
+        { name: 'granted_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'password_reset_tokens', db: 'postgres', note: 'Audit trail — Redis holds TTL copy for runtime',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'user_id', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'token_hash', type: 'varchar(255)', unique: true, notNull: true },
+        { name: 'used_at', type: 'timestamptz', note: 'null = unused' },
+        { name: 'ip_address', type: 'varchar(45)' },
+        { name: 'expires_at', type: 'timestamptz', notNull: true },
         { name: 'created_at', type: 'timestamptz', notNull: true },
       ]
     },
     // ── PostgreSQL: Workspace ──
     {
-      name: 'workspaces', db: 'postgres', note: 'business-service — Removed: plan, subscription_id',
+      name: 'workspaces', db: 'postgres', note: 'Anchor for all FK chains',
       fields: [
         { name: 'id', type: 'uuid', pk: true },
         { name: 'name', type: 'varchar(255)', notNull: true },
@@ -205,7 +230,7 @@ const SCHEMA = {
       ]
     },
     {
-      name: 'workspace_members', db: 'postgres', note: 'business-service — Junction user↔workspace',
+      name: 'workspace_members', db: 'postgres', note: 'Junction user↔workspace with workspace role',
       fields: [
         { name: 'id', type: 'uuid', pk: true },
         { name: 'workspace_id', type: 'uuid', fk: 'workspaces.id', notNull: true },
@@ -219,7 +244,34 @@ const SCHEMA = {
       ]
     },
     {
-      name: 'clients', db: 'postgres', note: 'business-service',
+      name: 'workspace_invitations', db: 'postgres', note: 'Pending invitations — user may not exist yet',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'workspace_id', type: 'uuid', fk: 'workspaces.id', notNull: true },
+        { name: 'invited_email', type: 'varchar(255)', notNull: true },
+        { name: 'role', type: 'member_role', notNull: true },
+        { name: 'invited_by', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'token', type: 'varchar(255)', unique: true, notNull: true, note: 'UUID in email link — single-use' },
+        { name: 'status', type: 'varchar(20)', notNull: true, note: 'PENDING|ACCEPTED|EXPIRED|REVOKED' },
+        { name: 'expires_at', type: 'timestamptz', notNull: true },
+        { name: 'accepted_at', type: 'timestamptz' },
+        { name: 'accepted_by', type: 'uuid', fk: 'users.id' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'workspace_member_permissions', db: 'postgres', note: 'Fine-grained permission overrides per member',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'workspace_member_id', type: 'uuid', fk: 'workspace_members.id', notNull: true },
+        { name: 'permission', type: 'varchar(100)', notNull: true, note: 'ai:image_gen | post:publish | report:view' },
+        { name: 'granted', type: 'boolean', notNull: true, note: 'true=allow, false=deny' },
+        { name: 'granted_by', type: 'uuid', fk: 'users.id' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'clients', db: 'postgres', note: 'Brand clients — 1 assigned manager per client',
       fields: [
         { name: 'id', type: 'uuid', pk: true },
         { name: 'workspace_id', type: 'uuid', fk: 'workspaces.id', notNull: true },
@@ -475,68 +527,92 @@ const SCHEMA = {
   ],
 
   refs: [
-    // ── PostgreSQL internal FKs ──
-    { from: 'user_oauth_providers.user_id', to: 'users.id' },
-    { from: 'user_refresh_tokens.user_id', to: 'users.id' },
-    { from: 'workspaces.owner_id', to: 'users.id' },
-    { from: 'workspace_members.workspace_id', to: 'workspaces.id' },
-    { from: 'workspace_members.user_id', to: 'users.id' },
-    { from: 'workspace_members.invited_by', to: 'users.id' },
-    { from: 'clients.workspace_id', to: 'workspaces.id' },
-    { from: 'clients.assigned_manager_id', to: 'users.id' },
-    { from: 'clients.portal_user_id', to: 'users.id' },
-    { from: 'workspace_subscriptions.workspace_id', to: 'workspaces.id' },
-    { from: 'workspace_subscriptions.plan_id', to: 'subscription_plans.id' },
-    { from: 'invoices.workspace_id', to: 'workspaces.id' },
-    { from: 'invoices.subscription_id', to: 'workspace_subscriptions.id' },
-    { from: 'payments.workspace_id', to: 'workspaces.id' },
-    { from: 'payments.invoice_id', to: 'invoices.id' },
-    // ── MongoDB → PostgreSQL soft refs (cross-DB, shown as dashed) ──
-    { from: 'social_accounts.workspace_id', to: 'workspaces.id' },
-    { from: 'social_accounts.client_id', to: 'clients.id' },
-    { from: 'posts.workspace_id', to: 'workspaces.id' },
-    { from: 'posts.client_id', to: 'clients.id' },
-    { from: 'posts.created_by', to: 'users.id' },
-    { from: 'posts.social_account_id', to: 'social_accounts._id' },
-    { from: 'posts.content_request_id', to: 'content_requests._id' },
-    { from: 'content_requests.workspace_id', to: 'workspaces.id' },
-    { from: 'content_requests.client_id', to: 'clients.id' },
-    { from: 'content_requests.requested_by', to: 'users.id' },
-    { from: 'content_requests.assigned_to', to: 'users.id' },
-    { from: 'notifications.workspace_id', to: 'workspaces.id' },
-    { from: 'notifications.user_id', to: 'users.id' },
-    { from: 'report_jobs.workspace_id', to: 'workspaces.id' },
-    { from: 'report_jobs.client_id', to: 'clients.id' },
-    { from: 'report_jobs.requested_by', to: 'users.id' },
+    // ── PostgreSQL: Identity ──
+    { from: 'user_oauth_providers.user_id',               to: 'users.id' },
+    { from: 'user_refresh_tokens.user_id',                to: 'users.id' },
+    { from: 'user_system_roles.user_id',                  to: 'users.id' },
+    { from: 'user_system_roles.granted_by',               to: 'users.id' },
+    { from: 'password_reset_tokens.user_id',              to: 'users.id' },
+    // ── PostgreSQL: Workspace ──
+    { from: 'workspaces.owner_id',                        to: 'users.id' },
+    { from: 'workspace_members.workspace_id',             to: 'workspaces.id' },
+    { from: 'workspace_members.user_id',                  to: 'users.id' },
+    { from: 'workspace_members.invited_by',               to: 'users.id' },
+    { from: 'workspace_invitations.workspace_id',         to: 'workspaces.id' },
+    { from: 'workspace_invitations.invited_by',           to: 'users.id' },
+    { from: 'workspace_invitations.accepted_by',          to: 'users.id' },
+    { from: 'workspace_member_permissions.workspace_member_id', to: 'workspace_members.id' },
+    { from: 'workspace_member_permissions.granted_by',    to: 'users.id' },
+    { from: 'clients.workspace_id',                       to: 'workspaces.id' },
+    { from: 'clients.assigned_manager_id',                to: 'users.id' },
+    { from: 'clients.portal_user_id',                     to: 'users.id' },
+    // ── PostgreSQL: Billing ──
+    { from: 'workspace_subscriptions.workspace_id',       to: 'workspaces.id' },
+    { from: 'workspace_subscriptions.plan_id',            to: 'subscription_plans.id' },
+    { from: 'invoices.workspace_id',                      to: 'workspaces.id' },
+    { from: 'invoices.subscription_id',                   to: 'workspace_subscriptions.id' },
+    { from: 'payments.workspace_id',                      to: 'workspaces.id' },
+    { from: 'payments.invoice_id',                        to: 'invoices.id' },
+    // ── MongoDB → PostgreSQL soft refs ──
+    { from: 'social_accounts.workspace_id',               to: 'workspaces.id' },
+    { from: 'social_accounts.client_id',                  to: 'clients.id' },
+    { from: 'posts.workspace_id',                         to: 'workspaces.id' },
+    { from: 'posts.client_id',                            to: 'clients.id' },
+    { from: 'posts.created_by',                           to: 'users.id' },
+    { from: 'posts.social_account_id',                    to: 'social_accounts._id' },
+    { from: 'posts.content_request_id',                   to: 'content_requests._id' },
+    { from: 'content_requests.workspace_id',              to: 'workspaces.id' },
+    { from: 'content_requests.client_id',                 to: 'clients.id' },
+    { from: 'content_requests.requested_by',              to: 'users.id' },
+    { from: 'content_requests.assigned_to',               to: 'users.id' },
+    { from: 'notifications.workspace_id',                 to: 'workspaces.id' },
+    { from: 'notifications.user_id',                      to: 'users.id' },
+    { from: 'report_jobs.workspace_id',                   to: 'workspaces.id' },
+    { from: 'report_jobs.client_id',                      to: 'clients.id' },
+    { from: 'report_jobs.requested_by',                   to: 'users.id' },
   ]
 };
 
 // ── Layout positions ──
+// Strategy: 5 vertical lanes, each ~380px wide
+//   Lane 0 (x=60):   PG Identity
+//   Lane 1 (x=440):  PG Workspace (top) + PG Workspace extras (bottom)
+//   Lane 2 (x=860):  MongoDB Business (social, notifications, report_jobs)
+//   Lane 3 (x=1280): MongoDB Content (posts, content_requests) + AI/Publisher
+//   Lane 4 (x=1700): PG Billing
 const LAYOUT = {
-  // PostgreSQL Identity
-  users:                   { x: 60,   y: 60 },
-  user_oauth_providers:    { x: 60,   y: 440 },
-  user_refresh_tokens:     { x: 60,   y: 680 },
-  // PostgreSQL Workspace
-  workspaces:              { x: 420,  y: 60 },
-  workspace_members:       { x: 420,  y: 440 },
-  clients:                 { x: 420,  y: 760 },
-  // MongoDB Business
-  social_accounts:         { x: 820,  y: 60 },
-  posts:                   { x: 1200, y: 60 },
-  content_requests:        { x: 1200, y: 560 },
-  notifications:           { x: 820,  y: 560 },
-  report_jobs:             { x: 820,  y: 920 },
-  // MongoDB AI + Publisher
-  knowledge_documents:     { x: 1200, y: 1020 },
-  ai_usage_logs:           { x: 1580, y: 1020 },
-  publish_logs:            { x: 1580, y: 560 },
-  // PostgreSQL Billing
-  subscription_plans:      { x: 1580, y: 60 },
-  workspace_subscriptions: { x: 1960, y: 60 },
-  invoices:                { x: 1960, y: 440 },
-  payments:                { x: 1960, y: 800 },
-  audit_logs:              { x: 1580, y: 280 },
+  // ── Lane 0: PostgreSQL Identity ──
+  users:                         { x:  60,  y:  60 },
+  user_oauth_providers:          { x:  60,  y: 460 },
+  user_refresh_tokens:           { x:  60,  y: 680 },
+  user_system_roles:             { x:  60,  y: 980 },
+  password_reset_tokens:         { x:  60,  y: 1190 },
+
+  // ── Lane 1: PostgreSQL Workspace ──
+  workspaces:                    { x: 440,  y:  60 },
+  workspace_members:             { x: 440,  y: 400 },
+  workspace_invitations:         { x: 440,  y: 760 },
+  workspace_member_permissions:  { x: 440,  y: 1090 },
+  clients:                       { x: 440,  y: 1340 },
+
+  // ── Lane 2: MongoDB Business ──
+  social_accounts:               { x: 860,  y:  60 },
+  notifications:                 { x: 860,  y: 560 },
+  report_jobs:                   { x: 860,  y: 880 },
+
+  // ── Lane 3: MongoDB Content + AI ──
+  posts:                         { x: 1280, y:  60 },
+  content_requests:              { x: 1280, y: 580 },
+  publish_logs:                  { x: 1280, y: 1060 },
+  knowledge_documents:           { x: 1280, y: 1300 },
+  ai_usage_logs:                 { x: 1280, y: 1580 },
+
+  // ── Lane 4: PostgreSQL Billing ──
+  subscription_plans:            { x: 1700, y:  60 },
+  workspace_subscriptions:       { x: 1700, y: 380 },
+  invoices:                      { x: 1700, y: 720 },
+  payments:                      { x: 1700, y: 1080 },
+  audit_logs:                    { x: 1700, y: 1380 },
 };
 
 // ── State ──
@@ -698,7 +774,7 @@ function applyTransform() {
 
 function zoomIn() { scale = Math.min(2.5, scale * 1.15); applyTransform(); }
 function zoomOut() { scale = Math.max(0.2, scale / 1.15); applyTransform(); }
-function resetView() { scale = 0.65; panX = 20; panY = 20; applyTransform(); }
+function resetView() { scale = 0.45; panX = 30; panY = 20; applyTransform(); }
 function toggleRefs() {
   showRefs = !showRefs;
   document.getElementById('btn-refs').classList.toggle('active', showRefs);
