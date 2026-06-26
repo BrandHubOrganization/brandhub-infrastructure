@@ -1,54 +1,113 @@
-// MongoDB init script — runs inside mongosh on first container start
-db = db.getSiblingDB('brandhub');
+// ============================================================
+// BrandHub MongoDB Init Script
+// DA-E06-07 | Run via: mongosh <connection-string> --file init-mongo.js
+// Collections: social_accounts, posts, content_requests,
+//              knowledge_documents, notifications, publish_logs,
+//              ai_usage_logs, report_jobs
+// ============================================================
 
-// Collections with validators
-db.createCollection('users', {
-  validator: {
-    $jsonSchema: {
-      bsonType: 'object',
-      required: ['name', 'email', 'password', 'role', 'isActive'],
-      properties: {
-        email: { bsonType: 'string' },
-        role: { enum: ['ADMIN', 'AGENCY_OWNER', 'ACCOUNT_MANAGER', 'CONTENT_CREATOR', 'BRAND_CLIENT'] },
-        isActive: { bsonType: 'bool' },
-      },
-    },
-  },
-});
+// Switch to brandhub database
+use('brandhub');
 
-db.createCollection('workspaces');
-db.createCollection('clients');
-db.createCollection('social_accounts');
-db.createCollection('content_requests');
-db.createCollection('posts');
-db.createCollection('campaigns');
-db.createCollection('knowledge_documents');
-db.createCollection('notifications');
+// ── social_accounts ──────────────────────────────────────────
+db.social_accounts.createIndex(
+  { workspaceId: 1 },
+  { name: 'idx_sa_workspace' }
+);
+db.social_accounts.createIndex(
+  { workspaceId: 1, platform: 1, accountId: 1 },
+  { unique: true, name: 'idx_sa_workspace_platform_account' }
+);
+db.social_accounts.createIndex(
+  { workspaceId: 1, tokenStatus: 1 },
+  { name: 'idx_sa_workspace_status' }
+);
 
-// Indexes
-db.users.createIndex({ email: 1 }, { unique: true });
-db.users.createIndex({ workspaceId: 1 });
-db.users.createIndex({ role: 1 });
+// ── posts ────────────────────────────────────────────────────
+db.posts.createIndex(
+  { workspaceId: 1, status: 1, createdAt: -1 },
+  { name: 'idx_posts_ws_status' }
+);
+db.posts.createIndex(
+  { workspaceId: 1, scheduledAt: 1 },
+  { name: 'idx_posts_ws_scheduled' }
+);
+db.posts.createIndex(
+  { workspaceId: 1, clientId: 1, createdAt: -1 },
+  { name: 'idx_posts_ws_client' }
+);
+db.posts.createIndex(
+  { workspaceId: 1, createdBy: 1, createdAt: -1 },
+  { name: 'idx_posts_ws_creator' }
+);
 
-db.workspaces.createIndex({ ownerId: 1 });
+// ── content_requests ─────────────────────────────────────────
+db.content_requests.createIndex(
+  { workspaceId: 1, status: 1, createdAt: -1 },
+  { name: 'idx_cr_ws_status' }
+);
+db.content_requests.createIndex(
+  { workspaceId: 1, clientId: 1, createdAt: -1 },
+  { name: 'idx_cr_ws_client' }
+);
+db.content_requests.createIndex(
+  { workspaceId: 1, assignedTo: 1, status: 1 },
+  { name: 'idx_cr_ws_assigned' }
+);
 
-db.clients.createIndex({ workspaceId: 1 });
-db.clients.createIndex({ accountManagerId: 1 });
+// ── knowledge_documents ──────────────────────────────────────
+db.knowledge_documents.createIndex(
+  { workspaceId: 1 },
+  { name: 'idx_kd_workspace' }
+);
+db.knowledge_documents.createIndex(
+  { workspaceId: 1, clientId: 1 },
+  { name: 'idx_kd_ws_client' }
+);
 
-db.social_accounts.createIndex({ workspaceId: 1, clientId: 1 });
-db.social_accounts.createIndex({ tokenExpiresAt: 1 });
+// ── notifications ────────────────────────────────────────────
+db.notifications.createIndex(
+  { userId: 1, isRead: 1, createdAt: -1 },
+  { name: 'idx_notif_user_read' }
+);
+db.notifications.createIndex(
+  { workspaceId: 1, userId: 1 },
+  { name: 'idx_notif_ws_user' }
+);
+// TTL: auto-expire after 30 days
+db.notifications.createIndex(
+  { createdAt: 1 },
+  { expireAfterSeconds: 2592000, name: 'idx_notif_ttl' }
+);
 
-db.content_requests.createIndex({ workspaceId: 1, status: 1 });
-db.content_requests.createIndex({ clientId: 1 });
-db.content_requests.createIndex({ assignedTo: 1 });
+// ── publish_logs ─────────────────────────────────────────────
+db.publish_logs.createIndex(
+  { postId: 1 },
+  { name: 'idx_pl_post_id' }
+);
+db.publish_logs.createIndex(
+  { workspaceId: 1, result: 1, createdAt: -1 },
+  { name: 'idx_pl_ws_result' }
+);
 
-db.posts.createIndex({ workspaceId: 1, status: 1 });
-db.posts.createIndex({ clientId: 1 });
-db.posts.createIndex({ scheduledAt: 1, status: 1 });
+// ── ai_usage_logs ─────────────────────────────────────────────
+db.ai_usage_logs.createIndex(
+  { workspaceId: 1, feature: 1, createdAt: -1 },
+  { name: 'idx_ai_ws_feature' }
+);
+db.ai_usage_logs.createIndex(
+  { createdAt: -1 },
+  { name: 'idx_ai_created' }
+);
 
-db.knowledge_documents.createIndex({ workspaceId: 1, clientId: 1 });
+// ── report_jobs ───────────────────────────────────────────────
+db.report_jobs.createIndex(
+  { workspaceId: 1, status: 1 },
+  { name: 'idx_rj_ws_status' }
+);
+db.report_jobs.createIndex(
+  { workspaceId: 1, clientId: 1 },
+  { name: 'idx_rj_ws_client' }
+);
 
-db.notifications.createIndex({ userId: 1, isRead: 1 });
-db.notifications.createIndex({ createdAt: -1 });
-
-print('BrandHub MongoDB initialized.');
+print('BrandHub MongoDB indexes created successfully.');

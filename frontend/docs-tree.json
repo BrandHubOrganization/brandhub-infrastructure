@@ -61,14 +61,26 @@
         "ext": ".dbml"
       },
       {
+        "name": "brandhub_erd.puml",
+        "path": "/database/brandhub_erd.puml",
+        "type": "file",
+        "ext": ".puml"
+      },
+      {
         "name": "brandhub_schema_diagram.html",
         "path": "/view?file=database/brandhub_schema_diagram.html",
         "type": "file",
         "ext": ".html"
       },
       {
-        "name": "DA-E06-01_Database_Strategy.md",
-        "path": "/database/DA-E06-01_Database_Strategy",
+        "name": "DA-E06-04_Indexing_Strategy.md",
+        "path": "/database/DA-E06-04_Indexing_Strategy",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "Database_Strategy.md",
+        "path": "/database/Database_Strategy",
         "type": "file",
         "ext": ".md"
       }
@@ -293,6 +305,12 @@
     "path": "/wireframe",
     "type": "directory",
     "children": [
+      {
+        "name": "brandhub_components_Report.md",
+        "path": "/wireframe/brandhub_components_Report",
+        "type": "file",
+        "ext": ".md"
+      },
       {
         "name": "brandhub_wireframe_blueprint.md",
         "path": "/wireframe/brandhub_wireframe_blueprint",
