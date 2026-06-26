@@ -65,12 +65,16 @@ CREATE INDEX IF NOT EXISTS idx_oauth_providers_user_id ON user_oauth_providers(u
 
 -- ── user_refresh_tokens ───────────────────────────────────────
 -- 1NF: extracted from users.refresh_tokens[]
+-- device_info: web browser, mobile app, etc. — for session management UI
 CREATE TABLE IF NOT EXISTS user_refresh_tokens (
-    id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id     UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    id          UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token_hash  VARCHAR(255) NOT NULL UNIQUE,
     jti         VARCHAR(255) NOT NULL UNIQUE,
     expires_at  TIMESTAMPTZ  NOT NULL,
+    ip_address  VARCHAR(45),
+    user_agent  VARCHAR,
+    device_info JSONB        NOT NULL DEFAULT '{}', -- {deviceType, osName, browserName}
     created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
@@ -210,6 +214,74 @@ CREATE TABLE IF NOT EXISTS payments (
 CREATE INDEX IF NOT EXISTS idx_payments_workspace_id ON payments(workspace_id);
 CREATE INDEX IF NOT EXISTS idx_payments_invoice_id   ON payments(invoice_id);
 CREATE INDEX IF NOT EXISTS idx_payments_tx_id        ON payments(transaction_id);
+
+-- ── user_system_roles ─────────────────────────────────────────
+-- Separate from workspace_members: ADMIN is system-level, belongs to no workspace.
+-- OOP analogy: SystemUser extends User (discriminated by this table's existence).
+-- A user with a row here + no workspace_members row = pure system admin.
+CREATE TABLE IF NOT EXISTS user_system_roles (
+    id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     UUID        NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    system_role VARCHAR(50) NOT NULL DEFAULT 'ADMIN', -- ADMIN | SUPPORT
+    granted_by  UUID        REFERENCES users(id),
+    granted_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_system_roles_user_id ON user_system_roles(user_id);
+
+-- ── workspace_invitations ──────────────────────────────────────
+-- Tracks pending invitations. Sprint 6 DA-E15-03: invited user may not exist yet.
+-- token is a UUID sent in invitation email link — consumed once on accept.
+CREATE TABLE IF NOT EXISTS workspace_invitations (
+    id             UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id   UUID         NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    invited_email  VARCHAR(255) NOT NULL,
+    role           member_role  NOT NULL,
+    invited_by     UUID         NOT NULL REFERENCES users(id),
+    token          VARCHAR(255) NOT NULL UNIQUE, -- UUID in email link
+    status         VARCHAR(20)  NOT NULL DEFAULT 'PENDING', -- PENDING | ACCEPTED | EXPIRED | REVOKED
+    expires_at     TIMESTAMPTZ  NOT NULL,
+    accepted_at    TIMESTAMPTZ,
+    accepted_by    UUID         REFERENCES users(id),
+    created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    UNIQUE (workspace_id, invited_email)
+);
+
+CREATE INDEX IF NOT EXISTS idx_invitations_workspace  ON workspace_invitations(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_invitations_token      ON workspace_invitations(token);
+CREATE INDEX IF NOT EXISTS idx_invitations_email      ON workspace_invitations(invited_email);
+
+-- ── password_reset_tokens ──────────────────────────────────────
+-- PostgreSQL copy for audit trail. Runtime lookup uses Redis (fast).
+-- Both created together; Redis expires after 1h, PG row stays for audit.
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id    UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token_hash VARCHAR(255) NOT NULL UNIQUE,
+    used_at    TIMESTAMPTZ,                      -- null = unused
+    ip_address VARCHAR(45),
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_pwd_reset_user_id ON password_reset_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_pwd_reset_token   ON password_reset_tokens(token_hash);
+
+-- ── workspace_member_permissions ──────────────────────────────
+-- Fine-grained permission overrides per member. Role is coarse-grained;
+-- this table stores explicit grants/denials that override role defaults.
+-- e.g. CONTENT_CREATOR cannot use AI image gen for a specific workspace.
+CREATE TABLE IF NOT EXISTS workspace_member_permissions (
+    id                   UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_member_id  UUID        NOT NULL REFERENCES workspace_members(id) ON DELETE CASCADE,
+    permission           VARCHAR(100) NOT NULL, -- e.g. 'ai:image_gen', 'post:publish', 'report:view'
+    granted              BOOLEAN     NOT NULL,  -- true = explicit allow, false = explicit deny
+    granted_by           UUID        REFERENCES users(id),
+    created_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (workspace_member_id, permission)
+);
+
+CREATE INDEX IF NOT EXISTS idx_member_perms_member ON workspace_member_permissions(workspace_member_id);
 
 -- ── audit_logs ────────────────────────────────────────────────
 -- Append-only. workspace_id nullable (ADMIN global actions).
