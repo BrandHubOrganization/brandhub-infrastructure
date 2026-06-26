@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ── Secrets ──────────────────────────────────────────────────
 docker/.env
 **/.env
@@ -26,3 +27,14 @@ logs/
 postgres-data/
 mongo-data/
 redis-data/
+=======
+node_modules/
+dist/
+.vitepress/cache/
+.vitepress/dist/
+*.local
+.env
+.env.*
+!.env.example
+!docker/.env.example
+>>>>>>> c9b66c9611f3b0935033442cc97c249b7ff11f9f

@@ -67,7 +67,7 @@ function escapeMarkdownHtml(code) {
 }
 
 export default {
-  base: '/brandhub-infrastructure/',
+  base: '/',
   title: "BrandHub Docs",
   description: "BrandHub Infrastructure, Project Plans, and Sprints Documentation",
   srcDir: '../docs',
