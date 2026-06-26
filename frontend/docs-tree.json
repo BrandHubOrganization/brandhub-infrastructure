@@ -1,5 +1,18 @@
 [
   {
+    "name": "AI_Models",
+    "path": "/AI_Models",
+    "type": "directory",
+    "children": [
+      {
+        "name": "Research_Model_Generate_Advertise_Image.md",
+        "path": "/AI_Models/Research_Model_Generate_Advertise_Image",
+        "type": "file",
+        "ext": ".md"
+      }
+    ]
+  },
+  {
     "name": "api",
     "path": "/api",
     "type": "directory",
@@ -54,8 +67,8 @@
         "ext": ".html"
       },
       {
-        "name": "DA-E06-01_Database_Strategy.md",
-        "path": "/database/DA-E06-01_Database_Strategy",
+        "name": "Database_Strategy.md",
+        "path": "/database/Database_Strategy",
         "type": "file",
         "ext": ".md"
       }
@@ -263,37 +276,6 @@
     "children": []
   },
   {
-    "name": "Report_DA-E08",
-    "path": "/Report_DA-E08",
-    "type": "directory",
-    "children": [
-      {
-        "name": "brandhub_wireframe_blueprint.md",
-        "path": "/Report_DA-E08/brandhub_wireframe_blueprint",
-        "type": "file",
-        "ext": ".md"
-      },
-      {
-        "name": "DA-E08-01_Wireframe_Report.md",
-        "path": "/Report_DA-E08/DA-E08-01_Wireframe_Report",
-        "type": "file",
-        "ext": ".md"
-      },
-      {
-        "name": "project_context.md",
-        "path": "/Report_DA-E08/project_context",
-        "type": "file",
-        "ext": ".md"
-      },
-      {
-        "name": "wireframe_to_code_checklist.md",
-        "path": "/Report_DA-E08/wireframe_to_code_checklist",
-        "type": "file",
-        "ext": ".md"
-      }
-    ]
-  },
-  {
     "name": "rule",
     "path": "/rule",
     "type": "directory",
@@ -301,6 +283,37 @@
       {
         "name": "git-commit-convention.md",
         "path": "/rule/git-commit-convention",
+        "type": "file",
+        "ext": ".md"
+      }
+    ]
+  },
+  {
+    "name": "wireframe",
+    "path": "/wireframe",
+    "type": "directory",
+    "children": [
+      {
+        "name": "brandhub_components_Report.md",
+        "path": "/wireframe/brandhub_components_Report",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "brandhub_wireframe_blueprint.md",
+        "path": "/wireframe/brandhub_wireframe_blueprint",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "DA-E08-01_Wireframe_Report.md",
+        "path": "/wireframe/DA-E08-01_Wireframe_Report",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "wireframe_to_code_checklist.md",
+        "path": "/wireframe/wireframe_to_code_checklist",
         "type": "file",
         "ext": ".md"
       }
