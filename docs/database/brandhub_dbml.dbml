@@ -68,6 +68,11 @@ Enum notification_type {
   CONTENT_REQUEST_ASSIGNED
 }
 
+Enum oauth_provider {
+  GOOGLE
+  FACEBOOK
+}
+
 Enum content_request_status {
   SUBMITTED
   ASSIGNED
@@ -135,31 +140,70 @@ Enum audit_action {
 // POSTGRESQL — IDENTITY GROUP
 // ============================================================
 
-// Core identity. role + workspace_id removed — belong to workspace_members (3NF)
-Table users [note: 'PostgreSQL — business-service | Identity only'] {
-  id            uuid         [pk, default: `gen_random_uuid()`]
-  email         varchar(255) [not null, unique]
-  password_hash varchar      [note: 'null = OAuth-only user']
-  full_name     varchar(255) [not null]
-  avatar_url    varchar
-  status        user_status  [not null, default: 'ACTIVE']
-  is_active     boolean      [not null, default: true]
-  preferences   jsonb        [not null, default: '{}', note: '{language, timezone, notifications}']
-  last_login_at timestamptz
-  created_at    timestamptz  [not null, default: `now()`]
-  updated_at    timestamptz  [not null, default: `now()`]
+Table users [note: 'MongoDB — business-service'] {
+  _id             varchar     [pk, note: 'ObjectId']
+  email           varchar     [unique, not null]
+  password_hash   varchar     [note: 'null if OAuth-only']
+  full_name       varchar     [not null]
+  avatar_url      varchar
+  role            user_role   [not null, default: 'CONTENT_CREATOR']
+  status          user_status [not null, default: 'ACTIVE']
+  is_active       boolean     [not null, default: true, note: 'false = banned by Admin']
+  workspace_id    varchar     [note: 'One user belongs to one workspace only']
+  oauth_providers varchar     [note: 'Array<{provider: oauth_provider, providerId, accessToken}>']
+  refresh_tokens  varchar     [note: 'Array<{token, jti, expiresAt, createdAt}> — for refresh token validation']
+  preferences     varchar     [note: 'Object: {language, timezone, notifications}']
+  last_login_at   timestamp
+  created_at      timestamp   [not null]
+  updated_at      timestamp   [not null]
+}
+
+Table workspaces [note: 'MongoDB — business-service'] {
+  _id             varchar        [pk, note: 'ObjectId']
+  name            varchar        [not null]
+  slug            varchar        [unique, not null]
+  owner_id        varchar        [not null, ref: > users._id]
+  plan            workspace_plan [not null, default: 'FREE']
+  logo_url        varchar
+  settings        varchar        [note: 'Object: {brandColor, defaultLanguage, approvalRequired, timezone, defaultPlatforms, reportFrequency}']
+  subscription_id varchar        [note: 'Soft ref → workspace_subscriptions.id (PostgreSQL)']
+  is_active       boolean        [not null, default: true]
+  created_at      timestamp      [not null]
+  updated_at      timestamp      [not null]
+}
+
+Table workspace_members [note: 'MongoDB — business-service'] {
+  _id           varchar     [pk, note: 'ObjectId']
+  workspace_id  varchar     [not null, ref: > workspaces._id]
+  user_id       varchar     [not null, ref: > users._id]
+  role          member_role [not null]
+  invited_by    varchar     [ref: > users._id]
+  joined_at     timestamp
+  is_active     boolean     [not null, default: true, note: 'false = removed member, soft delete for audit trail']
+  created_at    timestamp   [not null]
+  updated_at    timestamp   [not null]
 
   indexes {
     email [unique]
   }
 }
 
-// 1NF fix: extracted from users.oauth_providers[] array
-Table user_oauth_providers [note: 'PostgreSQL — 1NF: extracted from users.oauth_providers[]'] {
-  id          uuid           [pk, default: `gen_random_uuid()`]
-  user_id     uuid           [not null, ref: > users.id]
-  provider    oauth_provider [not null]
-  provider_id varchar(255)   [not null]
+Table clients [note: 'MongoDB — business-service'] {
+  _id                   varchar [pk, note: 'ObjectId']
+  workspace_id          varchar [not null, ref: > workspaces._id]
+  name                  varchar [not null]
+  brand_name            varchar
+  industry              varchar
+  logo_url              varchar
+  contact_email         varchar
+  contact_phone         varchar
+  assigned_manager_id   varchar [ref: > users._id]
+  portal_access_enabled boolean [not null, default: false]
+  portal_user_id        varchar [note: 'ref → users._id (BRAND_CLIENT role)']
+  service_package       varchar [note: 'Object: {postsPerMonth, platforms[], aiCreditsPerMonth} — client-level limit ≤ workspace plan']
+  metadata              varchar [note: 'Object: flexible per agency']
+  created_at            timestamp [not null]
+  updated_at            timestamp [not null]
 
   indexes {
     user_id
@@ -167,22 +211,28 @@ Table user_oauth_providers [note: 'PostgreSQL — 1NF: extracted from users.oaut
   }
 }
 
-// 1NF fix: extracted from users.refresh_tokens[] array — includes device tracking
-Table user_refresh_tokens [note: 'PostgreSQL — 1NF: extracted from users.refresh_tokens[]'] {
-  id          uuid         [pk, default: `gen_random_uuid()`]
-  user_id     uuid         [not null, ref: > users.id]
-  token_hash  varchar(255) [not null, unique, note: 'Hashed — never store raw token']
-  jti         varchar(255) [not null, unique]
-  expires_at  timestamptz  [not null]
-  ip_address  varchar(45)
-  user_agent  varchar
-  device_info jsonb        [not null, default: '{}', note: '{deviceType, osName, browserName}']
-  created_at  timestamptz  [not null, default: `now()`]
+Table social_accounts [note: 'MongoDB — business-service'] {
+  _id                   varchar               [pk, note: 'ObjectId']
+  workspace_id          varchar               [not null, ref: > workspaces._id]
+  client_id             varchar               [ref: > clients._id]
+  platform              social_platform       [not null]
+  account_name          varchar               [not null]
+  account_id            varchar               [not null, note: 'Platform user/page ID']
+  encrypted_token       varchar               [not null, note: 'AES-256-GCM encrypted access token']
+  encrypted_iv          varchar               [not null, note: 'AES-256-GCM IV — stored alongside encrypted token']
+  encrypted_refresh_token varchar             [note: 'AES-256-GCM encrypted refresh token (where platform provides one)']
+  encrypted_refresh_iv  varchar               [note: 'AES-256-GCM IV for refresh token']
+  token_expires_at      timestamp             [not null]
+  token_status          social_account_status [not null, default: 'ACTIVE']
+  scopes                varchar               [note: 'Array<string>']
+  is_active             boolean               [not null, default: true]
+  created_at            timestamp             [not null]
+  updated_at            timestamp             [not null]
 
   indexes {
-    user_id
-    jti [unique]
-    expires_at
+    workspace_id
+    (workspace_id, platform, account_id) [unique]
+    (workspace_id, token_status)
   }
 }
 
@@ -200,19 +250,28 @@ Table user_system_roles [note: 'PostgreSQL — ADMIN/SUPPORT: system-level, not 
   }
 }
 
-// Audit trail for password reset. Runtime lookup = Redis (1h TTL); PG = permanent audit.
-Table password_reset_tokens [note: 'PostgreSQL — Audit trail. Redis holds TTL copy for runtime.'] {
-  id         uuid         [pk, default: `gen_random_uuid()`]
-  user_id    uuid         [not null, ref: > users.id]
-  token_hash varchar(255) [not null, unique]
-  used_at    timestamptz  [note: 'null = unused / not yet consumed']
-  ip_address varchar(45)
-  expires_at timestamptz  [not null]
-  created_at timestamptz  [not null, default: `now()`]
+Table content_requests [note: 'MongoDB — business-service'] {
+  _id            varchar                [pk, note: 'ObjectId']
+  workspace_id   varchar                [not null, ref: > workspaces._id]
+  client_id      varchar                [ref: > clients._id]
+  requested_by   varchar                [not null, ref: > users._id]
+  assigned_to    varchar                [ref: > users._id, note: 'CONTENT_CREATOR assigned by ACCOUNT_MANAGER']
+  title          varchar                [not null]
+  description    varchar
+  tone           varchar                [note: 'e.g. professional | casual | humorous | inspirational']
+  platforms      varchar                [note: 'Array<social_platform>']
+  deadline       timestamp
+  status         content_request_status [not null, default: 'SUBMITTED']
+  linked_post_id varchar                [note: 'ref → posts._id — post created from this request']
+  attachments    varchar                [note: 'Array<string> — S3 URLs']
+  comments       varchar                [note: 'Array<{userId, text, at}>']
+  created_at     timestamp              [not null]
+  updated_at     timestamp              [not null]
 
   indexes {
-    user_id
-    token_hash [unique]
+    (workspace_id, status)
+    (workspace_id, client_id)
+    (workspace_id, assigned_to)
   }
 }
 
@@ -238,18 +297,16 @@ Table workspaces [note: 'PostgreSQL — business-service | Anchor for all FK cha
   }
 }
 
-// Junction: user ↔ workspace with role in that workspace
-// role here = workspace role (OWNER/MANAGER/CREATOR/VIEWER), NOT system role
-Table workspace_members [note: 'PostgreSQL — Junction: user ↔ workspace with workspace role'] {
-  id           uuid        [pk, default: `gen_random_uuid()`]
-  workspace_id uuid        [not null, ref: > workspaces.id]
-  user_id      uuid        [not null, ref: > users.id]
-  role         member_role  [not null]
-  invited_by   uuid        [ref: > users.id]
-  joined_at    timestamptz
-  is_active    boolean      [not null, default: true, note: 'false = removed member (soft delete for audit)']
-  created_at   timestamptz  [not null, default: `now()`]
-  updated_at   timestamptz  [not null, default: `now()`]
+Table notifications [note: 'MongoDB — business-service'] {
+  _id           varchar   [pk, note: 'ObjectId']
+  workspace_id  varchar   [not null, ref: > workspaces._id]
+  user_id       varchar   [not null, ref: > users._id]
+  type          notification_type [not null]
+  title         varchar   [not null]
+  body          varchar
+  metadata      varchar   [note: 'Object: {postId, clientId, etc}']
+  is_read       boolean   [not null, default: false]
+  created_at    timestamp [not null]
 
   indexes {
     workspace_id
@@ -424,184 +481,6 @@ Table audit_logs [note: 'PostgreSQL — Append-only, no UPDATE/DELETE ever'] {
     (user_id, created_at)
     (workspace_id, created_at)
     (resource_type, resource_id)
-  }
-}
-
-// ============================================================
-// MONGODB COLLECTIONS
-// ============================================================
-
-// workspace_id, client_id = soft refs → PostgreSQL UUIDs stored as strings
-Table social_accounts [note: 'MongoDB — business-service'] {
-  _id                     varchar               [pk, note: 'ObjectId']
-  workspace_id            varchar               [not null, note: 'soft ref → workspaces.id (PG)']
-  client_id               varchar               [note: 'soft ref → clients.id (PG)']
-  platform                social_platform       [not null]
-  account_name            varchar               [not null]
-  account_id              varchar               [not null, note: 'Platform page/user ID']
-  encrypted_token         varchar               [not null, note: 'AES-256-GCM encrypted access token']
-  encrypted_iv            varchar               [not null, note: 'AES-256-GCM IV for access token']
-  encrypted_refresh_token varchar               [note: 'AES-256-GCM encrypted refresh token']
-  encrypted_refresh_iv    varchar               [note: 'AES-256-GCM IV for refresh token']
-  token_expires_at        timestamp             [not null]
-  token_status            social_account_status [not null, default: 'ACTIVE']
-  scopes                  varchar               [note: 'Array<string>']
-  is_active               boolean               [not null, default: true]
-  created_at              timestamp             [not null]
-  updated_at              timestamp             [not null]
-
-  indexes {
-    workspace_id
-    (workspace_id, platform, account_id) [unique]
-    (workspace_id, token_status)
-  }
-}
-
-Table posts [note: 'MongoDB — business-service | High write, schema flexible per platform'] {
-  _id                varchar         [pk, note: 'ObjectId']
-  workspace_id       varchar         [not null, note: 'soft ref → workspaces.id (PG)']
-  client_id          varchar         [note: 'soft ref → clients.id (PG)']
-  created_by         varchar         [not null, note: 'soft ref → users.id (PG)']
-  title              varchar
-  content_text       varchar         [not null]
-  media_urls         varchar         [note: 'Array<string> — S3 URLs']
-  platform           social_platform [not null]
-  social_account_id  varchar         [note: 'soft ref → social_accounts._id']
-  status             post_status     [not null, default: 'DRAFT']
-  scheduled_at       timestamp
-  published_at       timestamp
-  external_post_id   varchar         [note: 'Platform post ID after publish']
-  ai_generated       boolean         [not null, default: false]
-  ai_metadata        varchar         [note: 'Object: {model, prompt, tokensUsed}']
-  approval_history   varchar         [note: 'Array<{userId, action, comment, at}>']
-  content_request_id varchar         [note: 'soft ref → content_requests._id']
-  created_at         timestamp       [not null]
-  updated_at         timestamp       [not null]
-
-  indexes {
-    (workspace_id, status)
-    (workspace_id, scheduled_at)
-    (workspace_id, client_id)
-  }
-}
-
-Table content_requests [note: 'MongoDB — business-service | 8-state workflow'] {
-  _id            varchar                [pk, note: 'ObjectId']
-  workspace_id   varchar                [not null, note: 'soft ref → workspaces.id (PG)']
-  client_id      varchar                [note: 'soft ref → clients.id (PG)']
-  requested_by   varchar                [not null, note: 'soft ref → users.id (PG)']
-  assigned_to    varchar                [note: 'soft ref → users.id (PG) — CONTENT_CREATOR']
-  title          varchar                [not null]
-  description    varchar
-  tone           varchar                [note: 'professional | casual | humorous | inspirational']
-  platforms      varchar                [note: 'Array<social_platform>']
-  deadline       timestamp
-  status         content_request_status [not null, default: 'SUBMITTED']
-  linked_post_id varchar                [note: 'soft ref → posts._id']
-  attachments    varchar                [note: 'Array<string> — S3 URLs']
-  comments       varchar                [note: 'Array<{userId, text, at}>']
-  created_at     timestamp              [not null]
-  updated_at     timestamp              [not null]
-
-  indexes {
-    (workspace_id, status)
-    (workspace_id, client_id)
-    (workspace_id, assigned_to)
-  }
-}
-
-Table knowledge_documents [note: 'MongoDB — ai-service | RAG source documents'] {
-  _id          varchar   [pk, note: 'ObjectId']
-  workspace_id varchar   [not null, note: 'soft ref → workspaces.id (PG)']
-  client_id    varchar   [note: 'soft ref → clients.id (PG)']
-  title        varchar   [not null]
-  content      varchar   [not null, note: 'Raw text — also chunked & indexed in ChromaDB']
-  source_url   varchar
-  file_type    varchar   [note: 'pdf | docx | txt | url']
-  chunk_ids    varchar   [note: 'Array<string> — ChromaDB chunk IDs']
-  tags         varchar   [note: 'Array<string>']
-  created_by   varchar   [note: 'soft ref → users.id (PG)']
-  created_at   timestamp [not null]
-  updated_at   timestamp [not null]
-
-  indexes {
-    workspace_id
-    (workspace_id, client_id)
-  }
-}
-
-Table notifications [note: 'MongoDB — business-service | TTL 30d auto-expire'] {
-  _id          varchar           [pk, note: 'ObjectId']
-  workspace_id varchar           [not null, note: 'soft ref → workspaces.id (PG)']
-  user_id      varchar           [not null, note: 'soft ref → users.id (PG)']
-  type         notification_type [not null]
-  title        varchar           [not null]
-  body         varchar
-  metadata     varchar           [note: 'Object: {postId, clientId, etc}']
-  is_read      boolean           [not null, default: false]
-  created_at   timestamp         [not null, note: 'TTL index: expire after 30d']
-
-  indexes {
-    (user_id, is_read)
-    (workspace_id, user_id)
-  }
-}
-
-Table publish_logs [note: 'MongoDB — publisher-service | Append-only, high write'] {
-  _id               varchar         [pk, note: 'ObjectId']
-  workspace_id      varchar         [not null, note: 'soft ref → workspaces.id (PG)']
-  post_id           varchar         [not null, note: 'soft ref → posts._id']
-  platform          social_platform [not null]
-  social_account_id varchar
-  result            publish_result  [not null]
-  external_post_id  varchar
-  error_message     varchar
-  retry_count       int             [not null, default: 0]
-  published_at      timestamp
-  created_at        timestamp       [not null]
-
-  indexes {
-    post_id
-    (workspace_id, result)
-  }
-}
-
-Table ai_usage_logs [note: 'MongoDB — ai-service | Append-only, schema flexible per model'] {
-  _id           varchar   [pk, note: 'ObjectId']
-  workspace_id  varchar   [not null, note: 'soft ref → workspaces.id (PG)']
-  user_id       varchar   [note: 'soft ref → users.id (PG)']
-  feature       varchar   [not null, note: 'content_gen | image_gen | video_gen | rag | ambassador']
-  model         varchar   [not null, note: 'llama3 | claude | sdxl | veo | instantid']
-  input_tokens  int
-  output_tokens int
-  cost_usd      float
-  latency_ms    int
-  success       boolean   [not null]
-  error_code    varchar
-  created_at    timestamp [not null]
-
-  indexes {
-    (workspace_id, feature)
-    created_at
-  }
-}
-
-Table report_jobs [note: 'MongoDB — business-service | Background job state'] {
-  _id           varchar           [pk, note: 'ObjectId']
-  workspace_id  varchar           [not null, note: 'soft ref → workspaces.id (PG)']
-  client_id     varchar           [note: 'soft ref → clients.id (PG)']
-  requested_by  varchar           [not null, note: 'soft ref → users.id (PG)']
-  status        report_job_status [not null, default: 'PENDING']
-  date_from     timestamp         [not null]
-  date_to       timestamp         [not null]
-  file_url      varchar           [note: 'S3 URL — populated when status = DONE']
-  error_message varchar
-  created_at    timestamp         [not null]
-  updated_at    timestamp         [not null]
-
-  indexes {
-    (workspace_id, status)
-    (workspace_id, client_id)
   }
 }
 

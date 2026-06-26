@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.vitepress/cache/
+.vitepress/dist/
+*.local
+.env
+.env.*
+!.env.example
+!docker/.env.example

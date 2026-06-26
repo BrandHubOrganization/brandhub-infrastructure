@@ -849,21 +849,24 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 ---
 
-### DA-E09-02 — Write init-mongo.js (create collections + indexes) and init-postgres.sql (create tables + seed subscription plans)
+### DA-E09-02 — Write init-postgres.sql (create tables + seed subscription plans)
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Produce the database initialization scripts that create the complete schema and seed data so that `docker-compose up` results in a fully ready database without any manual setup steps.
+**Goal:** Produce the PostgreSQL initialization script that creates the complete schema and seed data so that `docker-compose up` results in a fully ready database without any manual setup steps. MongoDB is hosted on Atlas (cloud) — no local init script needed.
 
 **Acceptance Criteria:**
-- [ ] `init-mongo.js` creates all 12 collections with the indexes specified in DA-E06-04 using `db.createCollection()` and `db.collection.createIndex()`
-- [ ] `init-postgres.sql` creates all 5 tables with all constraints using `CREATE TABLE IF NOT EXISTS` and seeds 3 subscription plan rows (FREE: 0 USD, PROFESSIONAL: 49 USD/month, ENTERPRISE: 199 USD/month)
-- [ ] Both scripts execute without errors when run against a fresh MongoDB 7 and PostgreSQL 16 container
+- [ ] `init-postgres.sql` creates all 11 PostgreSQL tables with all constraints using `CREATE TABLE IF NOT EXISTS`
+- [ ] Seeds 3 subscription plan rows: FREE (0 USD), PROFESSIONAL (49 USD/month), ENTERPRISE (199 USD/month)
+- [ ] Script executes without errors when run against a fresh PostgreSQL 16 container
 
 **Technical Notes:**
-- MongoDB script must switch to the correct database first: `use brandhub;` at the top of `init-mongo.js`
-- PostgreSQL: create the `uuid-ossp` extension before table creation with `CREATE EXTENSION IF NOT EXISTS "uuid-ossp";` to enable `uuid_generate_v4()` as a default for UUID primary keys
+- Create the `pgcrypto` extension before table creation: `CREATE EXTENSION IF NOT EXISTS "pgcrypto";` — enables `gen_random_uuid()` as UUID default (no need for `uuid-ossp`)
+- Create all ENUM types before table creation
+- Use `CREATE TYPE ... AS ENUM` with `IF NOT EXISTS` guard (PostgreSQL 14+) or wrap in DO block for compatibility
+- Table creation order must respect FK dependencies: `users` → `workspaces` → `workspace_members`, `clients` → `subscription_plans` → `workspace_subscriptions` → `invoices` → `payments`
+- `audit_logs` uses `bigserial` PK, not UUID
 
-**Dependencies:** Blocks: DA-E09-01. Blocked by: DA-E06-04.
+**Dependencies:** Blocks: DA-E09-01. Blocked by: DA-E06-03, DA-E06-04.
 
 ---
 
@@ -875,13 +878,98 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Acceptance Criteria:**
 - [ ] `.env.example` includes variables for all 6 services grouped by service with comment headers
 - [ ] Every variable has an inline comment explaining its purpose and an example or placeholder value (never a real secret)
-- [ ] Variables include at minimum: all DB connection strings (MongoDB URI, PostgreSQL URL, Redis URL, ChromaDB URL), JWT RS256 public and private keys (as file paths), Groq API key, Stability AI API key, RabbitMQ credentials, all social platform app IDs and secrets
+- [ ] Variables include: all DB connection strings (PostgreSQL URL, Redis URL, ChromaDB URL, MongoDB Atlas URI), JWT secret, AES key, internal service key, all third-party API keys, all social platform credentials
 
 **Technical Notes:**
-- JWT RS256 keys should be referenced as file paths (e.g., `JWT_PRIVATE_KEY_PATH=./keys/private.pem`) rather than inline in `.env` to avoid newline encoding issues in environment variables
-- Add a `CAUTION: never commit the real .env file` warning comment at the top of `.env.example`; ensure `.env` is in `.gitignore` in every repo
+- MongoDB Atlas URI format: `MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/brandhub?retryWrites=true&w=majority` — không dùng `mongo:27017` local nữa
+- Add a `# CAUTION: never commit the real .env file` warning comment at the top of `.env.example`; ensure `.env` is in `.gitignore` in every repo
 
-**Dependencies:** Blocks: DA-E09-04, DA-E09-05. Blocked by: DA-E07-01, DA-E07-02.
+**Dependencies:** Blocks: DA-E09-04, DA-E09-05, DA-E09-06, DA-E09-07, DA-E09-08, DA-E09-09, DA-E09-10. Blocked by: DA-E07-01, DA-E07-02.
+
+---
+
+### DA-E09-06 — Infrastructure + Business Service keys
+**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
+
+**Goal:** Generate và cung cấp toàn bộ keys thuộc phạm vi infrastructure và business-service để Trung tổng hợp vào `.env`.
+
+**Acceptance Criteria:**
+- [ ] Generate `JWT_SECRET` (min 256-bit): `openssl rand -hex 32`
+- [ ] Generate `AES_SECRET_KEY` (exactly 32 chars): `openssl rand -hex 16`
+- [ ] Generate `INTERNAL_SERVICE_KEY`: `openssl rand -hex 24`
+- [ ] Set PostgreSQL credentials: `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
+- [ ] Set Redis password: `REDIS_PASSWORD`
+- [ ] Set RabbitMQ credentials: `RABBITMQ_USERNAME`, `RABBITMQ_PASSWORD`
+- [ ] Set pgAdmin credentials: `PGADMIN_DEFAULT_EMAIL`, `PGADMIN_DEFAULT_PASSWORD`
+- [ ] Set AWS S3: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_S3_BUCKET`, `AWS_S3_REGION`
+
+**Dependencies:** Blocks: DA-E09-03. Blocked by: DA-E02-04.
+
+---
+
+### DA-E09-07 — AI Service — LLM keys + Payment Gateway
+**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Cung cấp API keys cho LLM providers và xác nhận payment gateway để tổng hợp vào `.env`.
+
+**Acceptance Criteria:**
+- [ ] Cung cấp `GROQ_API_KEY` — lấy tại [console.groq.com](https://console.groq.com) → API Keys
+- [ ] Cung cấp `ANTHROPIC_API_KEY` — lấy tại [console.anthropic.com](https://console.anthropic.com) → API Keys
+- [ ] Xác nhận `LLM_PROVIDER` default (`groq` hay `anthropic`)
+- [ ] Cung cấp `MONGODB_URI` từ Atlas — lấy tại Atlas → Cluster → Connect → Drivers
+- [ ] Xác nhận payment gateway (VNPay / MoMo / Stripe) và cung cấp keys tương ứng:
+  - VNPay: `VNPAY_TMN_CODE`, `VNPAY_HASH_SECRET`, `VNPAY_URL`, `VNPAY_RETURN_URL`
+  - MoMo: `MOMO_PARTNER_CODE`, `MOMO_ACCESS_KEY`, `MOMO_SECRET_KEY`, `MOMO_REDIRECT_URL`, `MOMO_IPN_URL`
+  - Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
+
+**Dependencies:** Blocks: DA-E09-03. Blocked by: DA-E02-04.
+
+---
+
+### DA-E09-08 — AI Service — Image/Video Gen keys
+**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Cung cấp API keys cho image và video generation services để tổng hợp vào `.env`.
+
+**Acceptance Criteria:**
+- [ ] Cung cấp `STABILITY_AI_API_KEY` — lấy tại [platform.stability.ai](https://platform.stability.ai) → API Keys
+- [ ] Cung cấp `GOOGLE_VEO_API_KEY` — lấy tại Google AI Studio hoặc Google Cloud Console → Credentials
+- [ ] Xác nhận ChromaDB không cần auth thêm (mặc định không có token); nếu có thì cung cấp `CHROMADB_AUTH_TOKEN`
+
+**Dependencies:** Blocks: DA-E09-03. Blocked by: DA-E02-04.
+
+---
+
+### DA-E09-09 — Publisher Service — Social Platform OAuth
+**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical
+
+**Goal:** Tạo developer apps và cung cấp OAuth credentials cho 5 social platforms để tổng hợp vào `.env`.
+
+**Acceptance Criteria:**
+- [ ] Cung cấp `FACEBOOK_APP_ID` + `FACEBOOK_APP_SECRET` — lấy tại [developers.facebook.com](https://developers.facebook.com) → App → Settings → Basic
+- [ ] Xác nhận `FACEBOOK_REDIRECT_URI` + `INSTAGRAM_REDIRECT_URI`
+- [ ] Cung cấp `TIKTOK_CLIENT_KEY` + `TIKTOK_CLIENT_SECRET` — lấy tại [developers.tiktok.com](https://developers.tiktok.com) → Manage Apps
+- [ ] Xác nhận `TIKTOK_REDIRECT_URI`
+- [ ] Cung cấp `ZALO_APP_ID` + `ZALO_APP_SECRET` — lấy tại [developers.zalo.me](https://developers.zalo.me) → App → Settings
+- [ ] Xác nhận `THREADS_REDIRECT_URI` (Threads dùng chung Facebook App)
+
+**Dependencies:** Blocks: DA-E09-03. Blocked by: DA-E02-04.
+
+---
+
+### DA-E09-10 — Frontend — Google OAuth App
+**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+
+**Goal:** Tạo Google OAuth 2.0 Client và cung cấp credentials cho cả frontend và backend để tổng hợp vào `.env`.
+
+**Acceptance Criteria:**
+- [ ] Tạo Google OAuth App tại [console.cloud.google.com](https://console.cloud.google.com) → APIs & Services → Credentials → Create OAuth 2.0 Client ID
+- [ ] Cung cấp `GOOGLE_CLIENT_ID` — dùng cho cả business-service (verify token) và web-dashboard (OAuth button)
+- [ ] Cung cấp `GOOGLE_CLIENT_SECRET` — backend only
+- [ ] Xác nhận `GOOGLE_REDIRECT_URI` (ví dụ: `http://localhost:8080/api/v1/auth/oauth2/callback/google`)
+- [ ] Xác nhận `VITE_API_BASE_URL` cho web-dashboard (gateway URL local: `http://localhost:8080`)
+
+**Dependencies:** Blocks: DA-E09-03. Blocked by: DA-E02-04.
 
 ---
 
@@ -912,6 +1000,28 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - [ ] README covers the complete setup sequence: prerequisites (Docker, Git, Java 21, Python 3.11, Node 20), clone step, `.env` configuration, `docker-compose up`, and verification steps
 - [ ] Verification section includes the expected output or health check URL for each service (e.g., MongoDB: `mongosh --eval "db.runCommand({ping:1})"`, RabbitMQ management UI: `http://localhost:15672`)
 - [ ] Troubleshooting section lists at least 3 common setup issues with their solutions (e.g., port conflicts, Docker memory limits, ChromaDB startup delay)
+
+**Dependencies:** Blocks: None. Blocked by: DA-E09-03.
+
+---
+
+### DA-E09-11 — Create project cost sheet
+**Assignee:** Trung (Leader) | **Priority:** 🟡 High
+
+**Goal:** Produce a spreadsheet estimating the total cost of running BrandHub across all third-party services and infrastructure so the team has a clear budget picture for the capstone report and mentor review.
+
+**Acceptance Criteria:**
+- [ ] Sheet covers all paid/freemium services: Groq API, Anthropic API, Stability AI, Google Veo API, MongoDB Atlas, AWS S3, VPS/EC2 hosting
+- [ ] Each row includes: Service name, Plan/Tier used, Unit price, Estimated monthly usage, Monthly cost (USD), Notes
+- [ ] Includes a summary row with total estimated monthly cost at 3 scales: dev/test (team internal), demo (mentor presentation), production (1000 users/month)
+- [ ] File saved to `brandhub-infrastructure/docs/` as `BrandHub_Cost_Sheet.xlsx` or Google Sheet link added to `docs/index.md`
+
+**Technical Notes:**
+- Groq: free tier 30 req/min — estimate based on avg content generation calls per user per day
+- Stability AI: ~$0.002–$0.04/image depending on resolution
+- Google Veo: check current pricing at Google AI Studio (may still be in preview/waitlist)
+- MongoDB Atlas: M0 free tier sufficient for dev; M10 (~$57/month) for production estimate
+- AWS S3: estimate storage (media files) + transfer cost separately
 
 **Dependencies:** Blocks: None. Blocked by: DA-E09-03.
 
@@ -1006,7 +1116,25 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - Use a GitHub Organization ruleset to apply this consistently across all repos rather than configuring each repo individually; the ruleset can target branches matching the pattern `develop`
 - Exempt the team leader account from the approval requirement on the infrastructure repo only (since some infrastructure commits may need emergency merges during initial setup)
 
-**Dependencies:** Blocks: None. Blocked by: DA-E02-03, DA-E10-01, DA-E10-02, DA-E10-03, DA-E10-04.
+**Dependencies:** Blocks: None. Blocked by: DA-E02-03, DA-E10-01, DA-E10-02, DA-E10-03, DA-E10-04, DA-E10-06.
+
+---
+
+### DA-E10-06 — Write GitHub Actions workflow for api-gateway (build + test + push Docker image)
+**Assignee:** Trung (Leader) | **Priority:** 🟡 High
+
+**Goal:** Add CI/CD pipeline for api-gateway so every push to `develop` automatically builds, tests, and pushes the Docker image — consistent with DA-E10-01 through DA-E10-04.
+
+**Acceptance Criteria:**
+- [ ] Workflow triggers on push to `develop` and pull_request targeting `develop`
+- [ ] Steps: checkout → set up JDK 21 → Maven build + test (`mvn verify`) → build Docker image → push to container registry
+- [ ] Workflow file saved at `.github/workflows/ci.yml` in `brandhub-api-gateway` repo
+
+**Technical Notes:**
+- Mirror the structure of DA-E10-01 (business-service workflow) — same JDK version, same Maven cache setup, same Docker build args
+- Add `DOCKER_USERNAME` and `DOCKER_TOKEN` as GitHub repository secrets (same credentials as other services)
+
+**Dependencies:** Blocks: DA-E10-05. Blocked by: DA-E11-06.
 
 ---
 
@@ -1024,7 +1152,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - Use Spring Cloud Gateway reactive (WebFlux-based), not the legacy MVC version — all filters must be implemented as `GatewayFilter` or `GlobalFilter` using Project Reactor types (`Mono`, `Flux`)
 - Spring Cloud Gateway version must be compatible with Spring Boot 3: use the Spring Cloud 2023.x BOM (`spring-cloud.version=2023.0.x`) in `pom.xml`
 
-**Dependencies:** Blocks: DA-E11-02, DA-E11-03, DA-E11-04, DA-E11-05. Blocked by: DA-E02-02.
+**Dependencies:** Blocks: DA-E11-02, DA-E11-03, DA-E11-04, DA-E11-05, DA-E11-06. Blocked by: DA-E02-02.
 
 ---
 
@@ -1102,6 +1230,44 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - Use `exchange.getResponse().beforeCommit()` or `then()` operator to hook into the response completion to capture the status code and calculate elapsed time
 
 **Dependencies:** Blocks: None. Blocked by: DA-E11-04.
+
+---
+
+### DA-E11-06 — Write Dockerfile for api-gateway
+**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
+
+**Goal:** Produce a production-ready Dockerfile for api-gateway so `docker-compose up` can build and run the service without manual steps.
+
+**Acceptance Criteria:**
+- [ ] Dockerfile uses multi-stage build: stage 1 (`maven:3.9-eclipse-temurin-21`) runs `mvn package -DskipTests`, stage 2 (`eclipse-temurin:21-jre-alpine`) copies the fat JAR and runs it
+- [ ] Final image exposes port 8080 and starts with `java -jar app.jar`
+- [ ] `docker-compose.yml` in infrastructure repo already references this Dockerfile correctly — verify `docker-compose up api-gateway` builds and starts successfully
+
+**Technical Notes:**
+- Add `.dockerignore` in `brandhub-api-gateway` repo: exclude `target/`, `.git/`, `*.md` to keep build context small
+- Set `JAVA_OPTS` env var in Dockerfile: `ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"` so JVM respects container memory limits
+
+**Dependencies:** Blocks: DA-E10-06, DA-E11-02, DA-E11-03, DA-E11-04, DA-E11-05. Blocked by: DA-E11-01.
+
+---
+
+### DA-E11-07 — Write global error response handler for gateway
+**Assignee:** Trung (Leader) | **Priority:** 🟡 High
+
+**Goal:** Ensure all error responses from the gateway (JWT invalid, downstream service down, route not found) return the standard `ApiResponse` JSON format defined in DA-E07-04 instead of Spring's default Whitelabel error page.
+
+**Acceptance Criteria:**
+- [ ] `401 Unauthorized` (JWT missing/invalid/expired) returns `{ "success": false, "code": "UNAUTHORIZED", "message": "..." }`
+- [ ] `403 Forbidden` (valid JWT but insufficient role) returns `{ "success": false, "code": "FORBIDDEN", "message": "..." }`
+- [ ] `503 Service Unavailable` (downstream service unreachable) returns `{ "success": false, "code": "SERVICE_UNAVAILABLE", "message": "..." }`
+- [ ] `404 Not Found` (no matching route) returns `{ "success": false, "code": "NOT_FOUND", "message": "Route not found" }`
+- [ ] All error responses have `Content-Type: application/json`
+
+**Technical Notes:**
+- Implement by extending `DefaultErrorWebExceptionHandler` (WebFlux approach) — do NOT use `@ControllerAdvice` which is MVC-only and does not work with reactive gateway
+- Register the custom handler as a `@Bean` with `@Order(Ordered.HIGHEST_PRECEDENCE)` to override Spring's default error handler
+
+**Dependencies:** Blocks: None. Blocked by: DA-E11-02, DA-E07-04.
 
 ---
 
