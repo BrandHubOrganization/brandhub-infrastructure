@@ -1,9 +1,15 @@
 <template>
-  <a class="brand-title" href="/brandhub-infrastructure/">
-    <img src="/brandhub-infrastructure/logo.svg" alt="BrandHub logo" class="brand-logo" />
+  <a class="brand-title" :href="base">
+    <img :src="withBase('/logo.svg')" alt="BrandHub logo" class="brand-logo" />
     <span class="brand-text">Brand<span class="brand-hub">Hub</span></span>
   </a>
 </template>
+
+<script setup>
+import { useData, withBase } from 'vitepress'
+const { site } = useData()
+const base = site.value.base || '/'
+</script>
 
 <style scoped>
 .brand-title {
