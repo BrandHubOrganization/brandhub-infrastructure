@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrandHub — Social Platforms API Specifications</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+  body {font-family: system-ui, -apple-system, sans-serif; background: #F7F8FA; color: #1a1a2e; padding: 30px; margin: 0;}
+  .header {text-align: center; margin-bottom: 40px;}
+  .header h1 {font-size: 24px; color: #111; margin-bottom: 8px;}
+  .header p {font-size: 13px; color: #666;}
+  .grid {display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;}
+  
+  .card {background: #fff; border: 1px solid #EBEBEB; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04);}
+  .card-header {display: flex; align-items: center; gap: 12px; padding: 15px 20px; border-bottom: 1px solid #EBEBEB; background: #fafafa;}
+  .card-header i {font-size: 28px;}
+  .card-header h2 {font-size: 16px; margin: 0; color: #333;}
+  
+  .card-body {padding: 20px;}
+  .info-row {display: flex; margin-bottom: 8px; font-size: 13px;}
+  .info-label {font-weight: 600; width: 140px; color: #555; flex-shrink: 0;}
+  .info-value {color: #222; font-family: monospace; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 12px;}
+  .info-text {color: #222;}
+  
+  .gotchas {margin-top: 15px; background: #FFF4E5; border-left: 3px solid #FF9800; padding: 10px 15px; font-size: 12px; color: #666; border-radius: 4px;}
+  .gotchas strong {color: #E65100;}
+  
+  .code-section {margin-top: 20px;}
+  .code-title {font-size: 12px; font-weight: 600; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;}
+  .code-box {background: #2d2d2d; color: #e6e6e6; border-radius: 8px; padding: 15px; font-family: monospace; font-size: 12px; overflow-x: auto; white-space: pre-wrap; margin-bottom: 10px;}
+  
+  .prop {color: #e06c75;}
+  .string {color: #98c379;}
+  .comment {color: #7f848e; font-style: italic;}
+  
+  /* Platform Colors */
+  .fb {color: #1877F2;}
+  .tk {color: #000000;}
+  .th {color: #000000;}
+  .ig {background: -webkit-linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
+  .yt {color: #FF0000;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Social Platforms API Specifications</h1>
+  <p>Single source of truth for publisher-service integration versions, limits, and schemas</p>
+</div>
+
+<div class="grid">
+
+  <!-- FACEBOOK -->
+  <div class="card">
+    <div class="card-header">
+      <i class="ti ti-brand-facebook fb"></i>
+      <h2>Facebook Graph API</h2>
+    </div>
+    <div class="card-body">
+      <div class="info-row"><div class="info-label">Version Pinned:</div><div class="info-value">v19.0</div></div>
+      <div class="info-row"><div class="info-label">Authentication:</div><div class="info-text">Page Access Token (Long-lived)</div></div>
+      <div class="info-row"><div class="info-label">Endpoint:</div><div class="info-value">POST /{page-id}/feed</div></div>
+      <div class="info-row"><div class="info-label">Rate Limits:</div><div class="info-text">200 calls/hour per user</div></div>
+      
+      <div class="gotchas">
+        <strong>Gotchas:</strong> Page Access Tokens can suddenly expire if the user changes their password or revokes permissions.
+      </div>
+      
+      <div class="code-section">
+        <div class="code-title">Image Payload Example</div>
+        <div class="code-box">
+<span class="comment">// POST /v19.0/{page-id}/photos</span>
+{
+  <span class="prop">"message"</span>: <span class="string">"Check out this new image! 📸"</span>,
+  <span class="prop">"url"</span>: <span class="string">"https://brandhub.com/media/sample.jpg"</span>,
+  <span class="prop">"access_token"</span>: <span class="string">"{PAGE_ACCESS_TOKEN}"</span>
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIKTOK -->
+  <div class="card">
+    <div class="card-header">
+      <i class="ti ti-brand-tiktok tk"></i>
+      <h2>TikTok Content API</h2>
+    </div>
+    <div class="card-body">
+      <div class="info-row"><div class="info-label">Version Pinned:</div><div class="info-value">v2</div></div>
+      <div class="info-row"><div class="info-label">Authentication:</div><div class="info-text">OAuth 2.0 User Access Token</div></div>
+      <div class="info-row"><div class="info-label">Endpoint:</div><div class="info-value">POST /v2/post/publish/video/init/</div></div>
+      <div class="info-row"><div class="info-label">Rate Limits:</div><div class="info-text">1000 calls/day per user</div></div>
+      
+      <div class="gotchas">
+        <strong>Gotchas:</strong> Strict video duration limit: 3s min to 600s max. Multi-step pull-from-url approach is required.
+      </div>
+      
+      <div class="code-section">
+        <div class="code-title">Init Video Publish</div>
+        <div class="code-box">
+<span class="comment">// Headers: Authorization: Bearer {TOKEN}</span>
+{
+  <span class="prop">"post_info"</span>: {
+    <span class="prop">"title"</span>: <span class="string">"Amazing TikTok Video #viral"</span>,
+    <span class="prop">"privacy_level"</span>: <span class="string">"PUBLIC_TO_EVERYONE"</span>
+  },
+  <span class="prop">"source_info"</span>: {
+    <span class="prop">"source"</span>: <span class="string">"PULL_FROM_URL"</span>,
+    <span class="prop">"video_url"</span>: <span class="string">"https://brandhub.com/video.mp4"</span>
+  }
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THREADS -->
+  <div class="card">
+    <div class="card-header">
+      <i class="ti ti-brand-threads th"></i>
+      <h2>Threads API</h2>
+    </div>
+    <div class="card-body">
+      <div class="info-row"><div class="info-label">Version Pinned:</div><div class="info-value">v1.0</div></div>
+      <div class="info-row"><div class="info-label">Authentication:</div><div class="info-text">OAuth 2.0 User Access Token</div></div>
+      <div class="info-row"><div class="info-label">Endpoint:</div><div class="info-value">POST /{user-id}/threads</div></div>
+      <div class="info-row"><div class="info-label">Rate Limits:</div><div class="info-text">250 posts/day</div></div>
+      
+      <div class="gotchas">
+        <strong>Gotchas:</strong> 2-step process (create container, then publish). Max 10 media attachments per post.
+      </div>
+      
+      <div class="code-section">
+        <div class="code-title">Step 1: Create Container (Image)</div>
+        <div class="code-box">
+<span class="comment">// POST /v1.0/{user-id}/threads</span>
+{
+  <span class="prop">"media_type"</span>: <span class="string">"IMAGE"</span>,
+  <span class="prop">"text"</span>: <span class="string">"Look at this picture!"</span>,
+  <span class="prop">"image_url"</span>: <span class="string">"https://brandhub.com/threads-img.jpg"</span>
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSTAGRAM -->
+  <div class="card">
+    <div class="card-header">
+      <i class="ti ti-brand-instagram ig"></i>
+      <h2>Instagram Graph API</h2>
+    </div>
+    <div class="card-body">
+      <div class="info-row"><div class="info-label">Version Pinned:</div><div class="info-value">v19.0</div></div>
+      <div class="info-row"><div class="info-label">Authentication:</div><div class="info-text">Page Access Token</div></div>
+      <div class="info-row"><div class="info-label">Endpoint:</div><div class="info-value">POST /{ig-user-id}/media</div></div>
+      <div class="info-row"><div class="info-label">Rate Limits:</div><div class="info-text">200 calls/hour</div></div>
+      
+      <div class="gotchas">
+        <strong>Gotchas:</strong> Strict aspect ratios (4:5 to 1.91:1). Requires Professional Account linked to FB Page.
+      </div>
+      
+      <div class="code-section">
+        <div class="code-title">Step 1: Create Container</div>
+        <div class="code-box">
+<span class="comment">// POST /v19.0/{ig-user-id}/media</span>
+{
+  <span class="prop">"image_url"</span>: <span class="string">"https://brandhub.com/ig-post.jpg"</span>,
+  <span class="prop">"caption"</span>: <span class="string">"Hello Instagram! 📸"</span>,
+  <span class="prop">"access_token"</span>: <span class="string">"{PAGE_ACCESS_TOKEN}"</span>
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- YOUTUBE -->
+  <div class="card">
+    <div class="card-header">
+      <i class="ti ti-brand-youtube yt"></i>
+      <h2>YouTube Data API</h2>
+    </div>
+    <div class="card-body">
+      <div class="info-row"><div class="info-label">Version Pinned:</div><div class="info-value">v3</div></div>
+      <div class="info-row"><div class="info-label">Authentication:</div><div class="info-text">OAuth 2.0 User Access Token</div></div>
+      <div class="info-row"><div class="info-label">Endpoint:</div><div class="info-value">/upload/youtube/v3/videos</div></div>
+      <div class="info-row"><div class="info-label">Rate Limits:</div><div class="info-text">10,000 units/day (~6 uploads)</div></div>
+      
+      <div class="gotchas">
+        <strong>Gotchas:</strong> Uploading costs 1,600 quota units! Shorts use the same endpoint (vertical, < 60s).
+      </div>
+      
+      <div class="code-section">
+        <div class="code-title">Init Resumable Upload</div>
+        <div class="code-box">
+<span class="comment">// POST .../upload/youtube/v3/videos?uploadType=resumable</span>
+{
+  <span class="prop">"snippet"</span>: {
+    <span class="prop">"title"</span>: <span class="string">"BrandHub Video"</span>,
+    <span class="prop">"description"</span>: <span class="string">"Amazing! #Shorts"</span>,
+    <span class="prop">"tags"</span>: [<span class="string">"brandhub"</span>]
+  },
+  <span class="prop">"status"</span>: {
+    <span class="prop">"privacyStatus"</span>: <span class="string">"public"</span>
+  }
+}</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
