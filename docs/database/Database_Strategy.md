@@ -187,10 +187,12 @@ Sau khi chuyển `users`, `workspaces`, `workspace_members`, `clients` sang Post
 
 Redis **không** lưu primary data. Chỉ dùng làm cache và distributed coordination:
 
+Chi tiết key template, value format, TTL và service ownership nằm trong [DA-E06-06_Redis_Key_Patterns.md](./DA-E06-06_Redis_Key_Patterns.md).
+
 | Key pattern | Mục đích | TTL | Ghi chú |
 |---|---|---|---|
-| `jwt:blacklist:{jti}` | Token đã logout/revoke — block replay attack | Remaining token lifetime | Xóa tự động khi token expire |
-| `ratelimit:{userId}:{minute}` | Rate limiting per user per minute | 60s | Sliding window counter |
+| `jwt:blacklist:{jti}` | Access token đã logout/revoke — block replay attack | 15 phút | TTL phải bằng access token TTL |
+| `ratelimit:{userId}:{minute}` | Rate limiting per user per minute | 60s | Counter dùng `INCR` + `EXPIRE` khi count = 1 |
 | `oauth:state:{state}` | CSRF protection cho OAuth flow | 10 phút | Xóa ngay sau dùng |
 | `pwd:reset:{token}` | Runtime lookup cho reset password link — PG giữ audit trail | 1 giờ | Xóa ngay sau dùng (single-use) |
 | `trends:vn:{date}:{category}` | Cache trending topics từ external AI/social API | 6 giờ | Refresh daily 2AM |
