@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrandHub — RabbitMQ Publisher Contract</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+.bh {font-size:11px;color:var(--color-text-primary);padding:10px;font-family:system-ui,-apple-system,sans-serif;}
+.l-svc {background:#FEF3E2;border:1px solid #ECC97A;border-radius:10px;padding:15px;text-align:center;}
+.l-mq {background:#FDE8D8;border:1px solid #E09060;border-radius:10px;padding:15px;display:flex;flex-direction:column;gap:10px;align-items:center;}
+.ll {font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:#888;margin-bottom:10px;}
+.sc {border-radius:8px;padding:10px;text-align:center;width:250px;margin:0 auto;}
+.sc-biz {background:#F8C946;border:1px solid #D4A317;}
+.sc-pub {background:#F29A2E;border:1px solid #C97A12;}
+.mq-box {background:var(--color-background-primary);border:1.5px solid #E09060;border-radius:8px;padding:10px;text-align:center;width:300px;}
+.mq-queue {background:white;border:1px dashed #E09060;border-radius:6px;padding:8px;margin-top:6px;}
+.nm {font-weight:600;font-size:13px;margin:4px 0;}
+.sb {font-size:11px;color:var(--color-text-secondary);}
+.flow-arrow {display:flex;align-items:center;justify-content:center;font-size:16px;color:#888;padding:8px 0;gap:10px;}
+.code-container {display:flex;gap:15px;justify-content:center;margin-top:10px;}
+.code-box {background:#2d2d2d;color:#e6e6e6;border-radius:8px;padding:12px;font-family:monospace;text-align:left;font-size:11px;width:400px;overflow-x:auto;white-space:pre-wrap;}
+.keyword {color:#c678dd;}
+.string {color:#98c379;}
+.comment {color:#7f848e;font-style:italic;}
+.prop {color:#e06c75;}
+</style>
+</head>
+<body>
+
+<div class="bh">
+
+  <!-- BUSINESS SERVICE -->
+  <div class="l-svc">
+    <div class="ll">Sender / Consumer</div>
+    <div class="sc sc-biz">
+      <i class="ti ti-server" style="font-size:24px" aria-hidden="true"></i>
+      <div class="nm">business-service</div>
+      <div class="sb">Creates jobs, listens for results</div>
+    </div>
+  </div>
+
+  <div class="flow-arrow" style="padding:15px 0; gap: 40px;">
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <span style="font-weight:bold;color:#1877F2;font-size:13px;">publish.job</span>
+      <i class="ti ti-arrow-big-down-filled" style="font-size:32px;color:#1877F2;margin-top:8px" aria-hidden="true"></i>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <i class="ti ti-arrow-big-up-filled" style="font-size:32px;color:#589636;margin-bottom:8px" aria-hidden="true"></i>
+      <span style="font-weight:bold;color:#589636;font-size:13px;">publish.callback</span>
+    </div>
+  </div>
+
+  <!-- RABBITMQ -->
+  <div class="l-mq">
+    <div class="ll">RabbitMQ Message Broker</div>
+    
+    <div class="mq-box" style="border-color:#1877F2">
+      <i class="ti ti-arrows-right-left" style="font-size:20px;color:#1877F2" aria-hidden="true"></i>
+      <div class="nm">Exchange: brandhub.publishing</div>
+      <div class="sb">Type: direct</div>
+      
+      <div class="mq-queue" style="border-color:#1877F2">
+        <i class="ti ti-list" style="font-size:16px;color:#1877F2" aria-hidden="true"></i>
+        <div class="nm" style="font-size:12px">publisher.job.queue</div>
+        <div class="sb">Routing Key: publish.job</div>
+      </div>
+      
+      <div class="mq-queue" style="border-color:#589636">
+        <i class="ti ti-list" style="font-size:16px;color:#589636" aria-hidden="true"></i>
+        <div class="nm" style="font-size:12px">business.publish_callback.queue</div>
+        <div class="sb">Routing Key: publish.callback</div>
+      </div>
+    </div>
+    
+    <!-- Code Snippets for Schema -->
+    <div class="code-container">
+      <div class="code-box">
+        <div style="color:#888;margin-bottom:8px;font-weight:bold;border-bottom:1px solid #444;padding-bottom:4px">
+          <i class="ti ti-file-code"></i> Publish Job Payload
+        </div>
+{
+  <span class="prop">"jobId"</span>: <span class="string">"uuid"</span>,
+  <span class="prop">"postId"</span>: <span class="string">"uuid"</span>,
+  <span class="prop">"workspaceId"</span>: <span class="string">"uuid"</span>,
+  <span class="prop">"platform"</span>: <span class="string">"FB | TikTok | Threads | Zalo"</span>,
+  <span class="prop">"scheduledAt"</span>: <span class="string">"ISO 8601 | null"</span>,
+  <span class="prop">"content"</span>: {
+    <span class="prop">"text"</span>: <span class="string">"post text"</span>,
+    <span class="prop">"mediaUrls"</span>: [<span class="string">"url1"</span>, <span class="string">"url2"</span>]
+  },
+  <span class="prop">"socialAccountCredentials"</span>: {
+    <span class="prop">"socialAccountId"</span>: <span class="string">"uuid"</span>
+  }
+}
+      </div>
+
+      <div class="code-box">
+        <div style="color:#888;margin-bottom:8px;font-weight:bold;border-bottom:1px solid #444;padding-bottom:4px">
+          <i class="ti ti-file-code"></i> Callback Payload
+        </div>
+<span class="comment">// SUCCESS</span>
+{
+  <span class="prop">"jobId"</span>: <span class="string">"uuid"</span>,
+  <span class="prop">"postId"</span>: <span class="string">"uuid"</span>,
+  <span class="prop">"status"</span>: <span class="string">"SUCCESS"</span>,
+  <span class="prop">"platformPostId"</span>: <span class="string">"fb_12345"</span>,
+  <span class="prop">"processedAt"</span>: <span class="string">"ISO 8601"</span>
+}
+
+<span class="comment">// FAILED</span>
+{
+  <span class="prop">"jobId"</span>: <span class="string">"uuid"</span>,
+  <span class="prop">"postId"</span>: <span class="string">"uuid"</span>,
+  <span class="prop">"status"</span>: <span class="string">"FAILED"</span>,
+  <span class="prop">"error"</span>: {
+    <span class="prop">"code"</span>: <span class="string">"TOKEN_EXPIRED"</span>,
+    <span class="prop">"message"</span>: <span class="string">"Token is invalid"</span>
+  },
+  <span class="prop">"processedAt"</span>: <span class="string">"ISO 8601"</span>
+}
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-arrow" style="padding:15px 0; gap: 40px;">
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <i class="ti ti-arrow-big-down-filled" style="font-size:32px;color:#1877F2;margin-bottom:8px" aria-hidden="true"></i>
+      <span style="font-weight:bold;color:#1877F2;font-size:13px;">publish.job</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <span style="font-weight:bold;color:#589636;font-size:13px;">publish.callback</span>
+      <i class="ti ti-arrow-big-up-filled" style="font-size:32px;color:#589636;margin-top:8px" aria-hidden="true"></i>
+    </div>
+  </div>
+
+  <!-- PUBLISHER SERVICE -->
+  <div class="l-svc">
+    <div class="ll">Consumer / Sender</div>
+    <div class="sc sc-pub">
+      <i class="ti ti-send" style="font-size:24px" aria-hidden="true"></i>
+      <div class="nm">publisher-service</div>
+      <div class="sb">Executes jobs, sends callbacks</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
