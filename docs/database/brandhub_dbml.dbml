@@ -1,18 +1,16 @@
 // BrandHub — Database Schema (DBML for dbdiagram.io)
-// DA-E06-05 | Owner: Tuấn (AI)
-// MongoDB collections + PostgreSQL tables + Enums + Refs + TableGroups
+// DA-E06-05 | Owner: Trung (Leader)
+// PostgreSQL (11 tables): users, user_oauth_providers, user_refresh_tokens,
+//                         workspaces, workspace_members, clients,
+//                         subscription_plans, workspace_subscriptions,
+//                         invoices, payments, audit_logs
+// MongoDB (8 collections): social_accounts, posts, content_requests,
+//                          knowledge_documents, notifications,
+//                          publish_logs, ai_usage_logs, report_jobs
 
 // ============================================================
 // ENUMS
 // ============================================================
-
-Enum user_role {
-  ADMIN
-  AGENCY_OWNER
-  ACCOUNT_MANAGER
-  CONTENT_CREATOR
-  BRAND_CLIENT
-}
 
 Enum user_status {
   ACTIVE
@@ -20,11 +18,9 @@ Enum user_status {
   DELETED
 }
 
-Enum workspace_plan {
-  FREE
-  BASIC
-  PRO
-  ENTERPRISE
+Enum oauth_provider {
+  GOOGLE
+  FACEBOOK
 }
 
 Enum member_role {
@@ -32,6 +28,13 @@ Enum member_role {
   MANAGER
   CREATOR
   VIEWER
+}
+
+Enum workspace_plan {
+  FREE
+  BASIC
+  PRO
+  ENTERPRISE
 }
 
 Enum social_platform {
@@ -108,19 +111,19 @@ Enum subscription_status {
   TRIALING
 }
 
-Enum payment_status {
-  PENDING
-  COMPLETED
-  FAILED
-  REFUNDED
-}
-
 Enum invoice_status {
   DRAFT
   ISSUED
   PAID
   OVERDUE
   VOID
+}
+
+Enum payment_status {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
 }
 
 Enum audit_action {
@@ -134,7 +137,7 @@ Enum audit_action {
 }
 
 // ============================================================
-// MONGODB COLLECTIONS (business-service)
+// POSTGRESQL — IDENTITY GROUP
 // ============================================================
 
 Table users [note: 'MongoDB — business-service'] {
@@ -181,8 +184,7 @@ Table workspace_members [note: 'MongoDB — business-service'] {
   updated_at    timestamp   [not null]
 
   indexes {
-    (workspace_id, user_id) [unique]
-    workspace_id
+    email [unique]
   }
 }
 
@@ -204,7 +206,8 @@ Table clients [note: 'MongoDB — business-service'] {
   updated_at            timestamp [not null]
 
   indexes {
-    workspace_id
+    user_id
+    (provider, provider_id) [unique]
   }
 }
 
@@ -233,31 +236,17 @@ Table social_accounts [note: 'MongoDB — business-service'] {
   }
 }
 
-Table posts [note: 'MongoDB — business-service'] {
-  _id              varchar    [pk, note: 'ObjectId']
-  workspace_id     varchar    [not null, ref: > workspaces._id]
-  client_id        varchar    [ref: > clients._id]
-  created_by       varchar    [not null, ref: > users._id]
-  title            varchar
-  content_text     varchar    [not null]
-  media_urls       varchar    [note: 'Array<string> — S3 URLs']
-  platform         social_platform [not null]
-  social_account_id varchar   [ref: > social_accounts._id]
-  status           post_status [not null, default: 'DRAFT']
-  scheduled_at     timestamp
-  published_at     timestamp
-  external_post_id varchar    [note: 'Platform post ID after publish']
-  ai_generated     boolean    [not null, default: false]
-  ai_metadata      varchar    [note: 'Object: {model, prompt, tokensUsed}']
-  approval_history varchar    [note: 'Array<{userId, action, comment, at}>']
-  content_request_id varchar  [ref: > content_requests._id]
-  created_at       timestamp  [not null]
-  updated_at       timestamp  [not null]
+// ADMIN is system-level — belongs to no workspace.
+// OOP: discriminated type — user with a row here = SystemAdmin persona.
+Table user_system_roles [note: 'PostgreSQL — ADMIN/SUPPORT: system-level, not workspace-scoped'] {
+  id          uuid        [pk, default: `gen_random_uuid()`]
+  user_id     uuid        [not null, unique, ref: > users.id]
+  system_role varchar(50) [not null, default: 'ADMIN', note: 'ADMIN | SUPPORT']
+  granted_by  uuid        [ref: > users.id]
+  granted_at  timestamptz [not null, default: `now()`]
 
   indexes {
-    (workspace_id, status)
-    (workspace_id, scheduled_at)
-    (workspace_id, client_id)
+    user_id [unique]
   }
 }
 
@@ -286,22 +275,25 @@ Table content_requests [note: 'MongoDB — business-service'] {
   }
 }
 
-Table knowledge_documents [note: 'MongoDB — ai-service'] {
-  _id           varchar   [pk, note: 'ObjectId']
-  workspace_id  varchar   [not null]
-  client_id     varchar
-  title         varchar   [not null]
-  content       varchar   [not null, note: 'Raw text — also chunked & indexed in ChromaDB']
-  source_url    varchar
-  file_type     varchar   [note: 'pdf | docx | txt | url']
-  chunk_ids     varchar   [note: 'Array<string> — ChromaDB chunk IDs']
-  tags          varchar   [note: 'Array<string>']
-  created_by    varchar
-  created_at    timestamp [not null]
-  updated_at    timestamp [not null]
+// ============================================================
+// POSTGRESQL — WORKSPACE GROUP
+// ============================================================
+
+// Removed: plan (read from workspace_subscriptions), subscription_id (reverse lookup)
+Table workspaces [note: 'PostgreSQL — business-service | Anchor for all FK chains'] {
+  id         uuid        [pk, default: `gen_random_uuid()`]
+  name       varchar(255) [not null]
+  slug       varchar(100) [not null, unique]
+  owner_id   uuid        [not null, ref: > users.id]
+  logo_url   varchar
+  settings   jsonb        [not null, default: '{}', note: '{brandColor, defaultLanguage, approvalRequired, timezone, defaultPlatforms, reportFrequency}']
+  is_active  boolean      [not null, default: true]
+  created_at timestamptz  [not null, default: `now()`]
+  updated_at timestamptz  [not null, default: `now()`]
 
   indexes {
-    workspace_id
+    slug [unique]
+    owner_id
   }
 }
 
@@ -317,101 +309,108 @@ Table notifications [note: 'MongoDB — business-service'] {
   created_at    timestamp [not null]
 
   indexes {
-    (user_id, is_read)
-    (workspace_id, user_id)
+    workspace_id
+    user_id
+    (workspace_id, user_id) [unique]
   }
 }
 
-Table publish_logs [note: 'MongoDB — publisher-service'] {
-  _id              varchar        [pk, note: 'ObjectId']
-  workspace_id     varchar        [not null]
-  post_id          varchar        [not null, note: 'Soft ref → posts._id']
-  platform         social_platform [not null]
-  social_account_id varchar
-  result           publish_result [not null]
-  external_post_id varchar
-  error_message    varchar
-  retry_count      int            [not null, default: 0]
-  published_at     timestamp
-  created_at       timestamp      [not null]
+// Invitation workflow. Sprint 6 E15-03: invited user may not exist yet.
+// token = UUID sent in email link, consumed once on accept.
+Table workspace_invitations [note: 'PostgreSQL — Pending invitations, consumed once on accept'] {
+  id            uuid         [pk, default: `gen_random_uuid()`]
+  workspace_id  uuid         [not null, ref: > workspaces.id]
+  invited_email varchar(255) [not null]
+  role          member_role  [not null]
+  invited_by    uuid         [not null, ref: > users.id]
+  token         varchar(255) [not null, unique, note: 'UUID in email link — single-use']
+  status        varchar(20)  [not null, default: 'PENDING', note: 'PENDING|ACCEPTED|EXPIRED|REVOKED']
+  expires_at    timestamptz  [not null]
+  accepted_at   timestamptz
+  accepted_by   uuid         [ref: > users.id]
+  created_at    timestamptz  [not null, default: `now()`]
 
   indexes {
-    post_id
-    (workspace_id, result)
+    workspace_id
+    token [unique]
+    invited_email
+    (workspace_id, invited_email) [unique]
   }
 }
 
-Table ai_usage_logs [note: 'MongoDB — ai-service'] {
-  _id           varchar   [pk, note: 'ObjectId']
-  workspace_id  varchar   [not null]
-  user_id       varchar
-  feature       varchar   [not null, note: 'content_gen | image_gen | video_gen | rag | ambassador']
-  model         varchar   [not null, note: 'gpt-4 | llama3 | sdxl | veo | instantid']
-  input_tokens  int
-  output_tokens int
-  cost_usd      float
-  latency_ms    int
-  success       boolean   [not null]
-  error_code    varchar
-  created_at    timestamp [not null]
+// Fine-grained permission overrides per workspace member.
+// Role = coarse; this table = explicit grant/deny overriding role defaults.
+// e.g. CONTENT_CREATOR blocked from 'ai:image_gen' for a specific workspace.
+Table workspace_member_permissions [note: 'PostgreSQL — Permission overrides per member'] {
+  id                  uuid         [pk, default: `gen_random_uuid()`]
+  workspace_member_id uuid         [not null, ref: > workspace_members.id]
+  permission          varchar(100) [not null, note: 'ai:image_gen | post:publish | report:view | ...']
+  granted             boolean      [not null, note: 'true=explicit allow, false=explicit deny']
+  granted_by          uuid         [ref: > users.id]
+  created_at          timestamptz  [not null, default: `now()`]
 
   indexes {
-    (workspace_id, feature)
-    created_at
+    workspace_member_id
+    (workspace_member_id, permission) [unique]
   }
 }
 
-Table report_jobs [note: 'MongoDB — business-service'] {
-  _id           varchar           [pk, note: 'ObjectId']
-  workspace_id  varchar           [not null, ref: > workspaces._id]
-  client_id     varchar           [ref: > clients._id]
-  requested_by  varchar           [not null, ref: > users._id]
-  status        report_job_status [not null, default: 'PENDING']
-  date_from     timestamp         [not null]
-  date_to       timestamp         [not null]
-  file_url      varchar           [note: 'S3 URL — populated when DONE']
-  error_message varchar
-  created_at    timestamp         [not null]
-  updated_at    timestamp         [not null]
+Table clients [note: 'PostgreSQL — business-service'] {
+  id                    uuid        [pk, default: `gen_random_uuid()`]
+  workspace_id          uuid        [not null, ref: > workspaces.id]
+  name                  varchar(255) [not null]
+  brand_name            varchar(255)
+  industry              varchar(100)
+  logo_url              varchar
+  contact_email         varchar(255)
+  contact_phone         varchar(50)
+  assigned_manager_id   uuid        [ref: > users.id]
+  portal_access_enabled boolean      [not null, default: false]
+  portal_user_id        uuid        [ref: > users.id, note: 'FK → users — BRAND_CLIENT role user']
+  service_package       jsonb        [not null, default: '{}', note: '{postsPerMonth, platforms[], aiCreditsPerMonth}']
+  metadata              jsonb        [not null, default: '{}', note: 'Flexible per agency']
+  created_at            timestamptz  [not null, default: `now()`]
+  updated_at            timestamptz  [not null, default: `now()`]
 
   indexes {
-    (workspace_id, status)
+    workspace_id
+    assigned_manager_id
   }
 }
 
 // ============================================================
-// POSTGRESQL TABLES (business-service)
+// POSTGRESQL — BILLING GROUP
 // ============================================================
 
-Table subscription_plans [note: 'PostgreSQL — business-service'] {
-  id            serial      [pk]
-  name          workspace_plan [not null, unique]
-  display_name  varchar     [not null]
-  price_monthly decimal     [not null]
-  price_yearly  decimal     [not null]
-  max_workspaces int        [not null, default: 1]
-  max_members   int         [not null]
-  max_clients   int         [not null]
-  max_posts_month int       [not null]
-  ai_credits_month int      [not null]
-  features      varchar     [note: 'JSONB array of feature flags']
-  is_active     boolean     [not null, default: true]
-  created_at    timestamp   [not null, default: 'now()']
-  updated_at    timestamp   [not null, default: 'now()']
+Table subscription_plans [note: 'PostgreSQL — Master data, global'] {
+  id               uuid           [pk, default: `gen_random_uuid()`]
+  name             workspace_plan [not null, unique]
+  display_name     varchar(100)   [not null]
+  price_monthly    decimal(12,2)  [not null]
+  price_yearly     decimal(12,2)  [not null]
+  max_members      int            [not null]
+  max_clients      int            [not null]
+  max_posts_month  int            [not null, note: '-1 = unlimited']
+  ai_credits_month int            [not null, note: '-1 = unlimited']
+  features         jsonb          [not null, default: '[]', note: 'Array of feature flag strings']
+  is_active        boolean        [not null, default: true]
+  created_at       timestamptz    [not null, default: `now()`]
+  updated_at       timestamptz    [not null, default: `now()`]
 }
 
-Table workspace_subscriptions [note: 'PostgreSQL — business-service'] {
-  id              serial      [pk]
-  workspace_id    varchar     [not null, note: 'Soft ref → workspaces._id (MongoDB)']
-  plan_id         int         [not null, ref: > subscription_plans.id]
-  status          subscription_status [not null, default: 'TRIALING']
-  trial_ends_at   timestamp
-  current_period_start timestamp [not null]
-  current_period_end   timestamp [not null]
-  cancelled_at    timestamp
-  cancel_reason   varchar
-  created_at      timestamp   [not null, default: 'now()']
-  updated_at      timestamp   [not null, default: 'now()']
+// workspace_id is now a real FK (not soft ref) since workspaces moved to PG
+Table workspace_subscriptions [note: 'PostgreSQL — Billing state per workspace'] {
+  id                   uuid                [pk, default: `gen_random_uuid()`]
+  workspace_id         uuid                [not null, unique, ref: > workspaces.id]
+  plan_id              uuid                [not null, ref: > subscription_plans.id]
+  status               subscription_status [not null, default: 'TRIALING']
+  trial_ends_at        timestamptz
+  current_period_start timestamptz         [not null]
+  current_period_end   timestamptz         [not null]
+  cancelled_at         timestamptz
+  cancel_reason        varchar
+  created_at           timestamptz         [not null, default: `now()`]
+  updated_at           timestamptz         [not null, default: `now()`]
 
   indexes {
     workspace_id [unique]
@@ -419,62 +418,64 @@ Table workspace_subscriptions [note: 'PostgreSQL — business-service'] {
   }
 }
 
-Table invoices [note: 'PostgreSQL — business-service'] {
-  id              serial      [pk]
-  workspace_id    varchar     [not null, note: 'Soft ref → workspaces._id (MongoDB)']
-  subscription_id int         [not null, ref: > workspace_subscriptions.id]
-  invoice_number  varchar     [unique, not null]
+Table invoices [note: 'PostgreSQL — Immutable after status = ISSUED'] {
+  id              uuid           [pk, default: `gen_random_uuid()`]
+  workspace_id    uuid           [not null, ref: > workspaces.id]
+  subscription_id uuid           [not null, ref: > workspace_subscriptions.id]
+  invoice_number  varchar(50)    [not null, unique]
   status          invoice_status [not null, default: 'DRAFT']
-  amount          decimal     [not null]
-  currency        varchar     [not null, default: 'VND']
-  period_start    timestamp   [not null]
-  period_end      timestamp   [not null]
-  issued_at       timestamp
-  due_at          timestamp
-  paid_at         timestamp
-  created_at      timestamp   [not null, default: 'now()']
-  updated_at      timestamp   [not null, default: 'now()']
+  amount          decimal(12,2)  [not null]
+  currency        varchar(3)     [not null, default: 'VND']
+  period_start    timestamptz    [not null]
+  period_end      timestamptz    [not null]
+  issued_at       timestamptz
+  due_at          timestamptz
+  paid_at         timestamptz
+  created_at      timestamptz    [not null, default: `now()`]
+  updated_at      timestamptz    [not null, default: `now()`]
 
   indexes {
     workspace_id
     subscription_id
-    invoice_number
+    invoice_number [unique]
   }
 }
 
-Table payments [note: 'PostgreSQL — business-service'] {
-  id              serial      [pk]
-  workspace_id    varchar     [not null, note: 'Soft ref → workspaces._id (MongoDB)']
-  invoice_id      int         [not null, ref: > invoices.id]
-  amount          decimal     [not null]
-  currency        varchar     [not null, default: 'VND']
-  status          payment_status [not null, default: 'PENDING']
-  payment_method  varchar     [note: 'bank_transfer | momo | vnpay | stripe']
-  transaction_id  varchar     [unique, note: 'External payment gateway TX ID']
-  paid_at         timestamp
-  failed_reason   varchar
-  created_at      timestamp   [not null, default: 'now()']
-  updated_at      timestamp   [not null, default: 'now()']
+Table payments [note: 'PostgreSQL — Atomic, no duplicate allowed'] {
+  id             uuid           [pk, default: `gen_random_uuid()`]
+  workspace_id   uuid           [not null, ref: > workspaces.id]
+  invoice_id     uuid           [not null, ref: > invoices.id]
+  amount         decimal(12,2)  [not null]
+  currency       varchar(3)     [not null, default: 'VND']
+  status         payment_status [not null, default: 'PENDING']
+  payment_method varchar(50)    [note: 'bank_transfer | momo | vnpay | stripe']
+  transaction_id varchar(255)   [unique, note: 'External payment gateway TX ID']
+  paid_at        timestamptz
+  failed_reason  varchar
+  created_at     timestamptz    [not null, default: `now()`]
+  updated_at     timestamptz    [not null, default: `now()`]
 
   indexes {
-    invoice_id
     workspace_id
-    transaction_id
+    invoice_id
+    transaction_id [unique]
   }
 }
 
-Table audit_logs [note: 'PostgreSQL — business-service | Append-only'] {
-  id            bigserial   [pk]
-  workspace_id  varchar     [note: 'Soft ref — nullable for ADMIN actions']
-  user_id       varchar     [not null, note: 'Soft ref → users._id (MongoDB)']
+// Append-only. user_id = soft ref intentionally:
+// user may be deleted but audit log must persist (compliance)
+Table audit_logs [note: 'PostgreSQL — Append-only, no UPDATE/DELETE ever'] {
+  id            bigserial    [pk]
+  workspace_id  uuid         [note: 'Nullable — ADMIN global actions have no workspace']
+  user_id       uuid         [not null, note: 'Soft ref — kept even if user deleted']
   action        audit_action [not null]
-  resource_type varchar     [not null, note: 'User | Post | Workspace | Client | ...']
-  resource_id   varchar     [note: 'ID of affected entity']
-  old_value     varchar     [note: 'JSONB — state before change']
-  new_value     varchar     [note: 'JSONB — state after change']
-  ip_address    varchar
+  resource_type varchar(50)  [not null, note: 'User | Post | Workspace | Client | ...']
+  resource_id   varchar(255) [note: 'ID of affected entity']
+  old_value     jsonb        [note: 'State before change']
+  new_value     jsonb        [note: 'State after change']
+  ip_address    varchar(45)
   user_agent    varchar
-  created_at    timestamp   [not null, default: 'now()']
+  created_at    timestamptz  [not null, default: `now()`]
 
   indexes {
     (user_id, created_at)
@@ -487,11 +488,31 @@ Table audit_logs [note: 'PostgreSQL — business-service | Append-only'] {
 // TABLE GROUPS
 // ============================================================
 
-TableGroup mongodb_business {
+TableGroup postgresql_identity {
   users
+  user_oauth_providers
+  user_refresh_tokens
+  user_system_roles
+  password_reset_tokens
+}
+
+TableGroup postgresql_workspace {
   workspaces
   workspace_members
+  workspace_invitations
+  workspace_member_permissions
   clients
+}
+
+TableGroup postgresql_billing {
+  subscription_plans
+  workspace_subscriptions
+  invoices
+  payments
+  audit_logs
+}
+
+TableGroup mongodb_business {
   social_accounts
   posts
   content_requests
@@ -506,12 +527,4 @@ TableGroup mongodb_ai {
 
 TableGroup mongodb_publisher {
   publish_logs
-}
-
-TableGroup postgresql_business {
-  subscription_plans
-  workspace_subscriptions
-  invoices
-  payments
-  audit_logs
 }
