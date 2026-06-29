@@ -16,7 +16,93 @@
     "name": "api",
     "path": "/api",
     "type": "directory",
-    "children": []
+    "children": [
+      {
+        "name": "endpoints",
+        "path": "/api/endpoints",
+        "type": "directory",
+        "children": [
+          {
+            "name": "00_conventions.md",
+            "path": "/api/endpoints/00_conventions",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "01_auth.md",
+            "path": "/api/endpoints/01_auth",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "02_user.md",
+            "path": "/api/endpoints/02_user",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "03_workspace.md",
+            "path": "/api/endpoints/03_workspace",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "04_client.md",
+            "path": "/api/endpoints/04_client",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "05_post.md",
+            "path": "/api/endpoints/05_post",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "06_content_request.md",
+            "path": "/api/endpoints/06_content_request",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "07_social_account.md",
+            "path": "/api/endpoints/07_social_account",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "08_analytics.md",
+            "path": "/api/endpoints/08_analytics",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "09_report.md",
+            "path": "/api/endpoints/09_report",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "10_subscription.md",
+            "path": "/api/endpoints/10_subscription",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "11_admin.md",
+            "path": "/api/endpoints/11_admin",
+            "type": "file",
+            "ext": ".md"
+          }
+        ]
+      },
+      {
+        "name": "DA-E07-01_Business_Service_Endpoints.md",
+        "path": "/api/DA-E07-01_Business_Service_Endpoints",
+        "type": "file",
+        "ext": ".md"
+      }
+    ]
   },
   {
     "name": "architecture",
