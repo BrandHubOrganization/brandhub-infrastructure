@@ -38,27 +38,27 @@
 
 **Jira status:** Done  
 **Branch:** `docs/DA-E07-06-write-openapi-yaml-spec`  
-**Commit chính:** `docs(DA-155): viet openapi yaml spec ai-service`  
+**Commit chính:** `docs(DA-155): cap nhat openapi spec ai-service`  
 **File tạo ra / thay đổi:**
-- `docs/api/DA-E07-06_AI_Service_OpenAPI.yaml` — OpenAPI 3.1.0 YAML spec cho `brandhub-ai-service`
+- `docs/api/DA-E07-06_OpenAPI_Spec.md` — tài liệu OpenAPI spec reference cho `brandhub-ai-service`, cùng format với DA-E07-05
 - `docs/plan/sprints/sprint_04/members/tuannm.md` — cập nhật trạng thái và mô tả kết quả task DA-E07-06
 
 **Mô tả công việc đã làm:**
 
-Viết OpenAPI 3.1.0 YAML specification cho `ai-service`, bao gồm public health endpoint và các endpoint nội bộ phục vụ business-service. Spec định nghĩa security scheme `X-Internal-Key`, header `X-Request-Id`, response envelope `ApiResponse<T>` theo DA-E07-04, reusable schemas, reusable responses và các path chính của AI service.
+Viết tài liệu OpenAPI spec reference cho `ai-service` theo format của `docs/api/DA-E07-05_OpenAPI_Spec.md`. Tài liệu mô tả deliverables, phạm vi endpoint, schema components, API design decisions, FastAPI integration, error codes, validation checklist và file reference cho artifact OpenAPI của `brandhub-ai-service`.
 
-Các nhóm endpoint được mô tả gồm `/ai/content`, `/ai/image`, `/ai/video`, `/ai/ambassador`, `/ai/rag`, `/ai/trends`. Với các tác vụ chạy lâu như image/video/ambassador generation, spec hỗ trợ response `202 Accepted` và job polling. Với RAG, spec hỗ trợ upload multipart, query knowledge base và delete document.
+Các nhóm endpoint được mô tả gồm `/ai/content`, `/ai/image`, `/ai/video`, `/ai/ambassador`, `/ai/rag`, `/ai/trends`. Tài liệu cũng ghi rõ public endpoint `/health`, internal security bằng `X-Internal-Key`, response envelope theo DA-E07-04, async job pattern cho tác vụ chạy lâu và cách export `/openapi.json` từ FastAPI sau khi service chạy.
 
 **Kết quả đạt được:**
-- [x] OpenAPI version `3.1.0`
-- [x] Có public endpoint `/health`
-- [x] Có internal endpoints cho content, image, video, ambassador, RAG và trends
-- [x] Có `InternalApiKey` security scheme dùng `X-Internal-Key`
-- [x] Có reusable schemas cho request/response/error envelope
-- [x] Có common responses cho validation, unauthorized, AI credits exhausted, model unavailable, service unavailable
-- [x] Spec nằm đúng thư mục `docs/api`
+- [x] Có deliverables table giống DA-E07-05
+- [x] Có spec coverage cho Health, AI Content, AI Image, AI Video, AI Ambassador, AI RAG, AI Trends
+- [x] Có schema components và reusable responses cần có cho OpenAPI YAML
+- [x] Có API design decisions: `ApiResponse<T>`, `X-Internal-Key`, public/internal split, async job, no 204
+- [x] Có FastAPI integration notes cho `/docs`, `/redoc`, `/openapi.json`
+- [x] Có validation checklist và file reference
+- [x] Tài liệu nằm đúng thư mục `docs/api`
 
-**Khó khăn gặp phải:** Branch hiện tại chưa có file contract DA-E07-02 trước đó, nên spec được viết trực tiếp từ task detail, API response format DA-E07-04 và endpoint scope đã chốt.
+**Khó khăn gặp phải:** Cần sửa lại hướng làm ban đầu vì DA-E07-05 trong repo là tài liệu OpenAPI reference, không phải raw YAML file. Vì vậy DA-E07-06 được làm lại theo cùng format để nhất quán tài liệu API của team.
 
 **Thời gian thực tế:** ~4 giờ
 
@@ -90,8 +90,8 @@ Các nhóm endpoint được mô tả gồm `/ai/content`, `/ai/image`, `/ai/vid
 
 ## 7. Feedback & Đề xuất
 
-- Sau khi `brandhub-ai-service` chạy được, nên export `/openapi.json` từ FastAPI và so sánh với file YAML trong `docs/api`.
-- Cần đồng bộ lại path/schema giữa YAML spec và code FastAPI khi implementation hoàn tất.
+- Sau khi `brandhub-ai-service` chạy được, nên export `/openapi.json` từ FastAPI và commit vào `brandhub-ai-service/docs/openapi.json`.
+- Cần đồng bộ lại path/schema giữa OpenAPI reference và code FastAPI khi implementation hoàn tất.
 - Nên thêm validation bước CI cho OpenAPI YAML để tránh lỗi syntax/schema lọt vào PR.
 
 ---
