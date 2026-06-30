@@ -1,0 +1,1230 @@
+openapi: 3.1.0
+info:
+  title: BrandHub AI Service API
+  version: 1.0.0
+  summary: OpenAPI contract for BrandHub ai-service.
+  description: |
+    Contract for brandhub-ai-service. The service is internal by default:
+    business-service calls it through the Docker network hostname `ai-service:8082`.
+    Client applications must not call AI endpoints directly.
+
+    All secured endpoints require `X-Internal-Key`. Public surface is limited to
+    health/readiness style endpoints.
+  contact:
+    name: BrandHub Team
+servers:
+  - url: http://ai-service:8082
+    description: Docker internal service URL
+  - url: http://localhost:8082
+    description: Local development URL
+tags:
+  - name: Health
+    description: Public health checks.
+  - name: AI Content
+    description: Caption/copy generation.
+  - name: AI Image
+    description: Image generation.
+  - name: AI Video
+    description: Video generation and polling.
+  - name: AI Ambassador
+    description: Face-consistent ambassador generation.
+  - name: AI RAG
+    description: Brand knowledge ingestion and retrieval.
+  - name: AI Trends
+    description: Trend suggestions.
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      operationId: getHealth
+      security: []
+      responses:
+        "200":
+          description: Service is healthy.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+              example:
+                status: ok
+                service: brandhub-ai-service
+                version: v1
+
+  /api/v1/ai/content/generate:
+    post:
+      tags: [AI Content]
+      summary: Generate content
+      operationId: generateContent
+      security:
+        - InternalApiKey: []
+      parameters:
+        - $ref: "#/components/parameters/RequestIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContentGenerateRequest"
+            example:
+              workspaceId: 0a7dd0f8-16df-4a6d-8e59-036b9e0a3c35
+              clientId: f5f7a78b-7c3d-4b68-a8d1-b02b5177cb11
+              contentRequestId: 64b8e8f0d9f2c834b39a9001
+              platform: instagram
+              language: vi
+              tone: friendly
+              topic: Ra mắt bộ sưu tập thời trang hè
+              objective: increase_engagement
+              targetAudience: women 18-30 interested in fashion
+              brandVoice: modern, confident, premium
+              keywords: [summer, fashion, new collection]
+              constraints:
+                maxCaptionLength: 2200
+                hashtagCount: 8
+                includeEmoji: true
+                avoidWords: ["sale off quá đà"]
+              useRag: true
+      responses:
+        "200":
+          description: Generated caption/copy.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentGenerateApiResponse"
+        "400":
+          $ref: "#/components/responses/ValidationOrAiBadRequest"
+        "401":
+          $ref: "#/components/responses/InternalUnauthorized"
+        "429":
+          $ref: "#/components/responses/AiCreditsExhausted"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "502":
+          $ref: "#/components/responses/AiModelUnavailable"
+
+  /api/v1/ai/content/regenerate:
+    post:
+      tags: [AI Content]
+      summary: Regenerate content
+      operationId: regenerateContent
+      security:
+        - InternalApiKey: []
+      parameters:
+        - $ref: "#/components/parameters/RequestIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContentRegenerateRequest"
+      responses:
+        "200":
+          description: Regenerated caption/copy.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentGenerateApiResponse"
+        "400":
+          $ref: "#/components/responses/ValidationOrAiBadRequest"
+        "401":
+          $ref: "#/components/responses/InternalUnauthorized"
+        "429":
+          $ref: "#/components/responses/AiCreditsExhausted"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "502":
+          $ref: "#/components/responses/AiModelUnavailable"
+
+  /api/v1/ai/image/generate:
+    post:
+      tags: [AI Image]
+      summary: Generate image
+      operationId: generateImage
+      security:
+        - InternalApiKey: []
+      parameters:
+        - $ref: "#/components/parameters/RequestIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImageGenerateRequest"
+      responses:
+        "200":
+          description: Image generation completed synchronously.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImageGenerateApiResponse"
+        "202":
+          description: Image generation accepted as async job.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerationJobApiResponse"
+        "400":
+          $ref: "#/components/responses/ValidationOrAiBadRequest"
+        "401":
+          $ref: "#/components/responses/InternalUnauthorized"
+        "429":
+          $ref: "#/components/responses/AiCreditsExhausted"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "502":
+          $ref: "#/components/responses/AiModelUnavailable"
+
+  /api/v1/ai/video/generate:
+    post:
+      tags: [AI Video]
+      summary: Generate video
+      operationId: generateVideo
+      security:
+        - InternalApiKey: []
+      parameters:
+        - $ref: "#/components/parameters/RequestIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VideoGenerateRequest"
+      responses:
+        "202":
+          description: Video generation job accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerationJobApiResponse"
+        "400":
+          $ref: "#/components/responses/ValidationOrAiBadRequest"
+        "401":
+          $ref: "#/components/responses/InternalUnauthorized"
+        "429":
+          $ref: "#/components/responses/AiCreditsExhausted"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "502":
+          $ref: "#/components/responses/AiModelUnavailable"
+
+  /api/v1/ai/video/jobs/{jobId}:
+    get:
+      tags: [AI Video]
+      summary: Get video job status
+      operationId: getVideoJobStatus
+      security:
+        - InternalApiKey: []
+      parameters:
+        - $ref: "#/components/parameters/RequestIdHeader"
+        - $ref: "#/components/parameters/JobIdPath"
+      responses:
+        "200":
+          description: Current video job state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VideoJobStatusApiResponse"
+        "401":
+          $ref: "#/components/responses/InternalUnauthorized"
+        "404":
+          $ref: "#/components/responses/JobNotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/ai/ambassador/generate:
+    post:
+      tags: [AI Ambassador]
+      summary: Generate brand ambassador image
+      operationId: generateAmbassadorImage
+      security:
+        - InternalApiKey: []
+      parameters:
+        - $ref: "#/components/parameters/RequestIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AmbassadorGenerateRequest"
+      responses:
+        "200":
+          description: Ambassador image generation completed synchronously.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AmbassadorGenerateApiResponse"
+        "202":
+          description: Ambassador generation accepted as async job.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerationJobApiResponse"
+        "400":
+          $ref: "#/components/responses/ValidationOrAiBadRequest"
+        "401":
+          $ref: "#/components/responses/InternalUnauthorized"
+        "404":
+          $ref: "#/components/responses/AmbassadorNotFound"
+        "429":
+          $ref: "#/components/responses/AiCreditsExhausted"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "502":
+          $ref: "#/components/responses/AiModelUnavailable"
+
+  /api/v1/ai/rag/upload:
+    post:
+      tags: [AI RAG]
+      summary: Upload brand knowledge document
+      operationId: uploadRagDocument
+      security:
+        - InternalApiKey: []
+      parameters:
+        - $ref: "#/components/parameters/RequestIdHeader"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/RagUploadRequest"
+      responses:
+        "200":
+          description: Document indexed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RagUploadApiResponse"
+        "202":
+          description: Document ingestion accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerationJobApiResponse"
+        "400":
+          $ref: "#/components/responses/ValidationOrAiBadRequest"
+        "401":
+          $ref: "#/components/responses/InternalUnauthorized"
+        "409":
+          $ref: "#/components/responses/DocumentConflict"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+  /api/v1/ai/rag/query:
+    post:
+      tags: [AI RAG]
+      summary: Query brand knowledge
+      operationId: queryRagKnowledge
+      security:
+        - InternalApiKey: []
+      parameters:
+        - $ref: "#/components/parameters/RequestIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RagQueryRequest"
+      responses:
+        "200":
+          description: Matching knowledge chunks.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RagQueryApiResponse"
+        "400":
+          $ref: "#/components/responses/ValidationOrAiBadRequest"
+        "401":
+          $ref: "#/components/responses/InternalUnauthorized"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+  /api/v1/ai/rag/documents/{documentId}:
+    delete:
+      tags: [AI RAG]
+      summary: Delete brand knowledge document
+      operationId: deleteRagDocument
+      security:
+        - InternalApiKey: []
+      parameters:
+        - $ref: "#/components/parameters/RequestIdHeader"
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^doc_[A-Za-z0-9]+$"
+      responses:
+        "200":
+          description: Document deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RagDeleteApiResponse"
+        "401":
+          $ref: "#/components/responses/InternalUnauthorized"
+        "404":
+          $ref: "#/components/responses/DocumentNotFound"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+  /api/v1/ai/trends:
+    get:
+      tags: [AI Trends]
+      summary: Get trend suggestions
+      operationId: getTrendSuggestions
+      security:
+        - InternalApiKey: []
+      parameters:
+        - $ref: "#/components/parameters/RequestIdHeader"
+        - name: workspaceId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: platform
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: region
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 5
+            default: VN
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 50
+            default: general
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        "200":
+          description: Trend suggestions.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrendsApiResponse"
+        "400":
+          $ref: "#/components/responses/ValidationOrAiBadRequest"
+        "401":
+          $ref: "#/components/responses/InternalUnauthorized"
+        "502":
+          $ref: "#/components/responses/AiModelUnavailable"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+components:
+  securitySchemes:
+    InternalApiKey:
+      type: apiKey
+      in: header
+      name: X-Internal-Key
+      description: Shared secret for internal business-service to ai-service calls.
+
+  parameters:
+    RequestIdHeader:
+      name: X-Request-Id
+      in: header
+      required: false
+      schema:
+        type: string
+        format: uuid
+      description: Request correlation id generated by api-gateway.
+    JobIdPath:
+      name: jobId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: "^(vid|img|amb)_[A-Za-z0-9]+$"
+
+  responses:
+    ValidationOrAiBadRequest:
+      description: Validation failure or AI-domain bad request.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorApiResponse"
+          examples:
+            validation:
+              value:
+                success: false
+                data: null
+                error:
+                  code: VALIDATION_ERROR
+                  message: Request validation failed
+                  details:
+                    fields:
+                      prompt: must not be blank
+                meta: null
+                requestId: a1d9cf65-a331-4828-8f82-b9b1e7e0f6d9
+                version: v1
+                timestamp: 2026-07-03T09:30:00Z
+    InternalUnauthorized:
+      description: Missing or invalid internal API key.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorApiResponse"
+          example:
+            success: false
+            data: null
+            error:
+              code: INTERNAL_KEY_INVALID
+              message: Missing or invalid internal API key
+              details: null
+            meta: null
+            requestId: a1d9cf65-a331-4828-8f82-b9b1e7e0f6d9
+            version: v1
+            timestamp: 2026-07-03T09:30:00Z
+    AiCreditsExhausted:
+      description: Workspace has no remaining AI credits.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorApiResponse"
+          example:
+            success: false
+            data: null
+            error:
+              code: AI_CREDITS_EXHAUSTED
+              message: Monthly AI credits exhausted
+              details:
+                creditsRemaining: 0
+            meta: null
+            requestId: a1d9cf65-a331-4828-8f82-b9b1e7e0f6d9
+            version: v1
+            timestamp: 2026-07-03T09:30:00Z
+    AiModelUnavailable:
+      description: Upstream AI provider is unavailable.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorApiResponse"
+    AmbassadorNotFound:
+      description: Ambassador profile not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorApiResponse"
+    JobNotFound:
+      description: Generation job not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorApiResponse"
+    DocumentConflict:
+      description: Knowledge document already exists or conflicts with current state.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorApiResponse"
+    DocumentNotFound:
+      description: Knowledge document not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorApiResponse"
+    InternalError:
+      description: Unhandled server error.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorApiResponse"
+    ServiceUnavailable:
+      description: Required dependency is unavailable.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorApiResponse"
+
+  schemas:
+    ApiResponseBase:
+      type: object
+      required: [success, data, error, meta, requestId, version, timestamp]
+      properties:
+        success:
+          type: boolean
+        data: {}
+        error:
+          anyOf:
+            - $ref: "#/components/schemas/ErrorBody"
+            - type: "null"
+        meta:
+          anyOf:
+            - $ref: "#/components/schemas/MetaBody"
+            - type: "null"
+        requestId:
+          type: string
+          format: uuid
+        version:
+          type: string
+          const: v1
+        timestamp:
+          type: string
+          format: date-time
+
+    ErrorBody:
+      type: object
+      required: [code, message, details]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          anyOf:
+            - type: object
+              additionalProperties: true
+            - type: "null"
+
+    MetaBody:
+      type: object
+      required: [page, size, total]
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        size:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+
+    ErrorApiResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponseBase"
+        - type: object
+          properties:
+            success:
+              const: false
+            data:
+              type: "null"
+            error:
+              $ref: "#/components/schemas/ErrorBody"
+
+    HealthResponse:
+      type: object
+      required: [status, service, version]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        service:
+          type: string
+          example: brandhub-ai-service
+        version:
+          type: string
+          example: v1
+
+    Platform:
+      type: string
+      enum: [facebook, instagram, tiktok, zalo, linkedin]
+    Language:
+      type: string
+      enum: [vi, en]
+    Tone:
+      type: string
+      enum: [professional, friendly, playful, luxury, bold, informative]
+    ImageStyle:
+      type: string
+      enum: [product, lifestyle, fashion, minimal, studio, ugc]
+    VideoStyle:
+      type: string
+      enum: [short_ad, product_showcase, tutorial, storytelling]
+    AspectRatio:
+      type: string
+      enum: ["1:1", "4:5", "9:16", "16:9"]
+    JobStatus:
+      type: string
+      enum: [PENDING, PROCESSING, COMPLETED, FAILED, CANCELLED]
+
+    ContentConstraints:
+      type: object
+      properties:
+        maxCaptionLength:
+          type: integer
+          minimum: 50
+          maximum: 5000
+        hashtagCount:
+          type: integer
+          minimum: 0
+          maximum: 30
+        includeEmoji:
+          type: boolean
+        avoidWords:
+          type: array
+          maxItems: 50
+          items:
+            type: string
+            maxLength: 100
+
+    ContentGenerateRequest:
+      type: object
+      required: [workspaceId, clientId, platform, language, tone, topic]
+      properties:
+        workspaceId:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        contentRequestId:
+          type: string
+          nullable: true
+        platform:
+          $ref: "#/components/schemas/Platform"
+        language:
+          $ref: "#/components/schemas/Language"
+        tone:
+          $ref: "#/components/schemas/Tone"
+        topic:
+          type: string
+          minLength: 5
+          maxLength: 500
+        objective:
+          type: string
+          maxLength: 100
+        targetAudience:
+          type: string
+          maxLength: 500
+        brandVoice:
+          type: string
+          maxLength: 500
+        keywords:
+          type: array
+          maxItems: 20
+          items:
+            type: string
+            maxLength: 50
+        constraints:
+          $ref: "#/components/schemas/ContentConstraints"
+        useRag:
+          type: boolean
+          default: true
+
+    ContentRegenerateRequest:
+      type: object
+      required: [workspaceId, clientId, previousCaption, feedback, platform, language, tone]
+      properties:
+        workspaceId:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        previousCaption:
+          type: string
+          maxLength: 5000
+        feedback:
+          type: string
+          minLength: 5
+          maxLength: 1000
+        platform:
+          $ref: "#/components/schemas/Platform"
+        language:
+          $ref: "#/components/schemas/Language"
+        tone:
+          $ref: "#/components/schemas/Tone"
+        constraints:
+          $ref: "#/components/schemas/ContentConstraints"
+
+    AiUsage:
+      type: object
+      properties:
+        provider:
+          type: string
+        model:
+          type: string
+        inputTokens:
+          type: integer
+          minimum: 0
+        outputTokens:
+          type: integer
+          minimum: 0
+        creditsUsed:
+          type: integer
+          minimum: 0
+
+    ContentGenerateResponse:
+      type: object
+      required: [caption, hashtags]
+      properties:
+        caption:
+          type: string
+        hashtags:
+          type: array
+          items:
+            type: string
+        callToAction:
+          type: string
+        ragSources:
+          type: array
+          items:
+            $ref: "#/components/schemas/RagSource"
+        usage:
+          $ref: "#/components/schemas/AiUsage"
+
+    ContentGenerateApiResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponseBase"
+        - type: object
+          properties:
+            success:
+              const: true
+            data:
+              $ref: "#/components/schemas/ContentGenerateResponse"
+
+    Asset:
+      type: object
+      required: [assetId, url]
+      properties:
+        assetId:
+          type: string
+        url:
+          type: string
+          format: uri
+        width:
+          type: integer
+        height:
+          type: integer
+        format:
+          type: string
+
+    ImageGenerateRequest:
+      type: object
+      required: [workspaceId, clientId, prompt, imageStyle, aspectRatio]
+      properties:
+        workspaceId:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        prompt:
+          type: string
+          minLength: 10
+          maxLength: 2000
+        negativePrompt:
+          type: string
+          maxLength: 1000
+        imageStyle:
+          $ref: "#/components/schemas/ImageStyle"
+        aspectRatio:
+          $ref: "#/components/schemas/AspectRatio"
+        count:
+          type: integer
+          minimum: 1
+          maximum: 4
+          default: 1
+        outputFormat:
+          type: string
+          enum: [png, jpg, webp]
+          default: png
+        seed:
+          type: integer
+        referenceAssetUrl:
+          type: string
+          format: uri
+
+    ImageGenerateResponse:
+      type: object
+      required: [jobId, status, assets]
+      properties:
+        jobId:
+          type: string
+        status:
+          $ref: "#/components/schemas/JobStatus"
+        assets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Asset"
+        usage:
+          $ref: "#/components/schemas/AiUsage"
+
+    ImageGenerateApiResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponseBase"
+        - type: object
+          properties:
+            success:
+              const: true
+            data:
+              $ref: "#/components/schemas/ImageGenerateResponse"
+
+    VideoGenerateRequest:
+      type: object
+      required: [workspaceId, clientId, script, videoStyle, platform, durationSeconds, aspectRatio]
+      properties:
+        workspaceId:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        script:
+          type: string
+          minLength: 10
+          maxLength: 3000
+        videoStyle:
+          $ref: "#/components/schemas/VideoStyle"
+        platform:
+          $ref: "#/components/schemas/Platform"
+        durationSeconds:
+          type: integer
+          minimum: 5
+          maximum: 30
+        aspectRatio:
+          $ref: "#/components/schemas/AspectRatio"
+        referenceImageUrls:
+          type: array
+          maxItems: 5
+          items:
+            type: string
+            format: uri
+        musicMood:
+          type: string
+          maxLength: 50
+
+    GenerationJobResponse:
+      type: object
+      required: [jobId, status]
+      properties:
+        jobId:
+          type: string
+        status:
+          $ref: "#/components/schemas/JobStatus"
+        estimatedSeconds:
+          type: integer
+          minimum: 0
+        pollUrl:
+          type: string
+
+    GenerationJobApiResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponseBase"
+        - type: object
+          properties:
+            success:
+              const: true
+            data:
+              $ref: "#/components/schemas/GenerationJobResponse"
+
+    VideoJobStatusResponse:
+      type: object
+      required: [jobId, status, progress]
+      properties:
+        jobId:
+          type: string
+        status:
+          $ref: "#/components/schemas/JobStatus"
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        asset:
+          anyOf:
+            - $ref: "#/components/schemas/Asset"
+            - type: "null"
+        errorMessage:
+          anyOf:
+            - type: string
+            - type: "null"
+
+    VideoJobStatusApiResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponseBase"
+        - type: object
+          properties:
+            success:
+              const: true
+            data:
+              $ref: "#/components/schemas/VideoJobStatusResponse"
+
+    AmbassadorGenerateRequest:
+      type: object
+      required: [workspaceId, clientId, prompt, imageStyle, aspectRatio]
+      properties:
+        workspaceId:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        ambassadorId:
+          type: string
+          pattern: "^amb_[A-Za-z0-9]+$"
+        faceImageUrl:
+          type: string
+          format: uri
+        productImageUrl:
+          type: string
+          format: uri
+        prompt:
+          type: string
+          minLength: 10
+          maxLength: 2000
+        imageStyle:
+          $ref: "#/components/schemas/ImageStyle"
+        aspectRatio:
+          $ref: "#/components/schemas/AspectRatio"
+        count:
+          type: integer
+          minimum: 1
+          maximum: 4
+
+    AmbassadorGenerateResponse:
+      type: object
+      required: [jobId, status, assets]
+      properties:
+        jobId:
+          type: string
+        status:
+          $ref: "#/components/schemas/JobStatus"
+        assets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Asset"
+        identityConsistencyScore:
+          type: number
+          minimum: 0
+          maximum: 1
+        usage:
+          $ref: "#/components/schemas/AiUsage"
+
+    AmbassadorGenerateApiResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponseBase"
+        - type: object
+          properties:
+            success:
+              const: true
+            data:
+              $ref: "#/components/schemas/AmbassadorGenerateResponse"
+
+    RagUploadRequest:
+      type: object
+      required: [workspaceId, clientId, title, sourceType]
+      properties:
+        workspaceId:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        sourceType:
+          type: string
+          enum: [pdf, docx, txt, url]
+        file:
+          type: string
+          format: binary
+        sourceUrl:
+          type: string
+          format: uri
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+
+    RagUploadResponse:
+      type: object
+      required: [documentId, status, chunksIndexed, collectionName, title]
+      properties:
+        documentId:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, INDEXED, FAILED]
+        chunksIndexed:
+          type: integer
+          minimum: 0
+        collectionName:
+          type: string
+        title:
+          type: string
+
+    RagUploadApiResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponseBase"
+        - type: object
+          properties:
+            success:
+              const: true
+            data:
+              $ref: "#/components/schemas/RagUploadResponse"
+
+    RagQueryRequest:
+      type: object
+      required: [workspaceId, clientId, query]
+      properties:
+        workspaceId:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        query:
+          type: string
+          minLength: 3
+          maxLength: 1000
+        topK:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 5
+        minScore:
+          type: number
+          minimum: 0
+          maximum: 1
+          default: 0.65
+        tags:
+          type: array
+          items:
+            type: string
+
+    RagSource:
+      type: object
+      properties:
+        documentId:
+          type: string
+        title:
+          type: string
+        score:
+          type: number
+          minimum: 0
+          maximum: 1
+
+    RagMatch:
+      type: object
+      required: [documentId, chunkId, content, score]
+      properties:
+        documentId:
+          type: string
+        chunkId:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        score:
+          type: number
+          minimum: 0
+          maximum: 1
+        metadata:
+          type: object
+          additionalProperties: true
+
+    RagQueryResponse:
+      type: object
+      required: [matches]
+      properties:
+        matches:
+          type: array
+          items:
+            $ref: "#/components/schemas/RagMatch"
+
+    RagQueryApiResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponseBase"
+        - type: object
+          properties:
+            success:
+              const: true
+            data:
+              $ref: "#/components/schemas/RagQueryResponse"
+
+    RagDeleteResponse:
+      type: object
+      required: [documentId, deleted, chunksDeleted]
+      properties:
+        documentId:
+          type: string
+        deleted:
+          type: boolean
+        chunksDeleted:
+          type: integer
+          minimum: 0
+
+    RagDeleteApiResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponseBase"
+        - type: object
+          properties:
+            success:
+              const: true
+            data:
+              $ref: "#/components/schemas/RagDeleteResponse"
+
+    Trend:
+      type: object
+      required: [keyword, score]
+      properties:
+        keyword:
+          type: string
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        growth:
+          type: number
+        hashtags:
+          type: array
+          items:
+            type: string
+        suggestedAngles:
+          type: array
+          items:
+            type: string
+
+    TrendsResponse:
+      type: object
+      required: [platform, region, category, trends]
+      properties:
+        platform:
+          $ref: "#/components/schemas/Platform"
+        region:
+          type: string
+        category:
+          type: string
+        trends:
+          type: array
+          items:
+            $ref: "#/components/schemas/Trend"
+        source:
+          type: string
+        cachedUntil:
+          type: string
+          format: date-time
+
+    TrendsApiResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponseBase"
+        - type: object
+          properties:
+            success:
+              const: true
+            data:
+              $ref: "#/components/schemas/TrendsResponse"
