@@ -150,7 +150,7 @@ Cookie: `Set-Cookie: refreshToken=<token>; HttpOnly; Secure; SameSite=Strict`
 ```
 
 **Implementation notes:**
-- Add access token `jti` to Redis `jwt:blacklist:{jti}` with TTL = remaining access token lifetime
+- Add access token `jti` to Redis `jwt:blacklist:{jti}` with TTL = access token TTL (15 minutes)
 - Delete matching row from `user_refresh_tokens`
 - Clear cookie: `Set-Cookie: refreshToken=; Max-Age=0; HttpOnly; Secure; SameSite=Strict`
 - If cookie missing or token already expired — still return 200 (idempotent)
