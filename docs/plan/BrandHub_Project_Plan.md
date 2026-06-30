@@ -741,6 +741,254 @@
 
 ---
 
+## PHASE 8 — Sprint Reporting
+
+---
+
+## EPIC E47 — Sprint Reports & Documentation
+
+> **Note:** Runs at the end of every sprint (Sprint 1–16). Each sprint has 7 tasks: 5 individual member reports, 1 team report review by Trung, 1 commit/finalize task.
+
+### Sprint 1 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E47-01 | Write individual sprint report for Sprint 1 — Trung | Trung (Leader) | 🟢 Medium |
+| DA-E47-02 | Write individual sprint report for Sprint 1 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E47-03 | Write individual sprint report for Sprint 1 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E47-04 | Write individual sprint report for Sprint 1 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E47-05 | Write individual sprint report for Sprint 1 — Phước | Phước (Publisher) | 🟢 Medium |
+| DA-E47-06 | Review all member reports + write team SPRINT_REPORT for Sprint 1 | Trung (Leader) | 🟢 Medium |
+| DA-E47-07 | Finalize and commit Sprint 1 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 2 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E47-08 | Write individual sprint report for Sprint 2 — Trung | Trung (Leader) | 🟢 Medium |
+| DA-E47-09 | Write individual sprint report for Sprint 2 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E47-10 | Write individual sprint report for Sprint 2 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E47-11 | Write individual sprint report for Sprint 2 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E47-12 | Write individual sprint report for Sprint 2 — Phước | Phước (Publisher) | 🟢 Medium |
+| DA-E47-13 | Review all member reports + write team SPRINT_REPORT for Sprint 2 | Trung (Leader) | 🟢 Medium |
+| DA-E47-14 | Finalize and commit Sprint 2 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 3 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E47-15 | Write individual sprint report for Sprint 3 — Trung | Trung (Leader) | 🟢 Medium |
+| DA-E47-16 | Write individual sprint report for Sprint 3 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E47-17 | Write individual sprint report for Sprint 3 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E47-18 | Write individual sprint report for Sprint 3 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E47-19 | Write individual sprint report for Sprint 3 — Phước | Phước (Publisher) | 🟢 Medium |
+| DA-E47-20 | Review all member reports + write team SPRINT_REPORT for Sprint 3 | Trung (Leader) | 🟢 Medium |
+| DA-E47-21 | Finalize and commit Sprint 3 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 4 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E47-22 | Write individual sprint report for Sprint 4 — Trung | Trung (Leader) | 🟢 Medium |
+| DA-E47-23 | Write individual sprint report for Sprint 4 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E47-24 | Write individual sprint report for Sprint 4 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E47-25 | Write individual sprint report for Sprint 4 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E47-26 | Write individual sprint report for Sprint 4 — Phước | Phước (Publisher) | 🟢 Medium |
+| DA-E47-27 | Review all member reports + write team SPRINT_REPORT for Sprint 4 | Trung (Leader) | 🟢 Medium |
+| DA-E47-28 | Finalize and commit Sprint 4 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 5 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E47-29 | Write individual sprint report for Sprint 5 — Trung | Trung (Leader) | 🟢 Medium |
+| DA-E47-30 | Write individual sprint report for Sprint 5 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E47-31 | Write individual sprint report for Sprint 5 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E47-32 | Write individual sprint report for Sprint 5 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E47-33 | Write individual sprint report for Sprint 5 — Phước | Phước (Publisher) | 🟢 Medium |
+| DA-E47-34 | Review all member reports + write team SPRINT_REPORT for Sprint 5 | Trung (Leader) | 🟢 Medium |
+| DA-E47-35 | Finalize and commit Sprint 5 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 6 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E47-36 | Write individual sprint report for Sprint 6 — Trung | Trung (Leader) | 🟢 Medium |
+| DA-E47-37 | Write individual sprint report for Sprint 6 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E47-38 | Write individual sprint report for Sprint 6 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E47-39 | Write individual sprint report for Sprint 6 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E47-40 | Write individual sprint report for Sprint 6 — Phước | Phước (Publisher) | 🟢 Medium |
+| DA-E47-41 | Review all member reports + write team SPRINT_REPORT for Sprint 6 | Trung (Leader) | 🟢 Medium |
+| DA-E47-42 | Finalize and commit Sprint 6 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 7 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E47-43 | Write individual sprint report for Sprint 7 — Trung | Trung (Leader) | 🟢 Medium |
+| DA-E47-44 | Write individual sprint report for Sprint 7 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E47-45 | Write individual sprint report for Sprint 7 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E47-46 | Write individual sprint report for Sprint 7 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E47-47 | Write individual sprint report for Sprint 7 — Phước | Phước (Publisher) | 🟢 Medium |
+| DA-E47-48 | Review all member reports + write team SPRINT_REPORT for Sprint 7 | Trung (Leader) | 🟢 Medium |
+| DA-E47-49 | Finalize and commit Sprint 7 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 8 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E47-50 | Write individual sprint report for Sprint 8 — Trung | Trung (Leader) | 🟢 Medium |
+| DA-E47-51 | Write individual sprint report for Sprint 8 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E47-52 | Write individual sprint report for Sprint 8 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E47-53 | Write individual sprint report for Sprint 8 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E47-54 | Write individual sprint report for Sprint 8 — Phước | Phước (Publisher) | 🟢 Medium |
+| DA-E47-55 | Review all member reports + write team SPRINT_REPORT for Sprint 8 | Trung (Leader) | 🟢 Medium |
+| DA-E47-56 | Finalize and commit Sprint 8 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 9 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E47-57 | Write individual sprint report for Sprint 9 — Trung | Trung (Leader) | 🟢 Medium |
+| DA-E47-58 | Write individual sprint report for Sprint 9 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E47-59 | Write individual sprint report for Sprint 9 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E47-60 | Write individual sprint report for Sprint 9 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E47-61 | Write individual sprint report for Sprint 9 — Phước | Phước (Publisher) | 🟢 Medium |
+| DA-E47-62 | Review all member reports + write team SPRINT_REPORT for Sprint 9 | Trung (Leader) | 🟢 Medium |
+| DA-E47-63 | Finalize and commit Sprint 9 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 10 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E47-64 | Write individual sprint report for Sprint 10 — Trung | Trung (Leader) | 🟢 Medium |
+| DA-E47-65 | Write individual sprint report for Sprint 10 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E47-66 | Write individual sprint report for Sprint 10 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E47-67 | Write individual sprint report for Sprint 10 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E47-68 | Write individual sprint report for Sprint 10 — Phước | Phước (Publisher) | 🟢 Medium |
+| DA-E47-69 | Review all member reports + write team SPRINT_REPORT for Sprint 10 | Trung (Leader) | 🟢 Medium |
+| DA-E47-70 | Finalize and commit Sprint 10 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 11 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E47-71 | Write individual sprint report for Sprint 11 — Trung | Trung (Leader) | 🟢 Medium |
+| DA-E47-72 | Write individual sprint report for Sprint 11 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E47-73 | Write individual sprint report for Sprint 11 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E47-74 | Write individual sprint report for Sprint 11 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E47-75 | Write individual sprint report for Sprint 11 — Phước | Phước (Publisher) | 🟢 Medium |
+| DA-E47-76 | Review all member reports + write team SPRINT_REPORT for Sprint 11 | Trung (Leader) | 🟢 Medium |
+| DA-E47-77 | Finalize and commit Sprint 11 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 12 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E47-78 | Write individual sprint report for Sprint 12 — Trung | Trung (Leader) | 🟢 Medium |
+| DA-E47-79 | Write individual sprint report for Sprint 12 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E47-80 | Write individual sprint report for Sprint 12 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E47-81 | Write individual sprint report for Sprint 12 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E47-82 | Write individual sprint report for Sprint 12 — Phước | Phước (Publisher) | 🟢 Medium |
+| DA-E47-83 | Review all member reports + write team SPRINT_REPORT for Sprint 12 | Trung (Leader) | 🟢 Medium |
+| DA-E47-84 | Finalize and commit Sprint 12 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 13 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E47-85 | Write individual sprint report for Sprint 13 — Trung | Trung (Leader) | 🟢 Medium |
+| DA-E47-86 | Write individual sprint report for Sprint 13 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E47-87 | Write individual sprint report for Sprint 13 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E47-88 | Write individual sprint report for Sprint 13 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E47-89 | Write individual sprint report for Sprint 13 — Phước | Phước (Publisher) | 🟢 Medium |
+| DA-E47-90 | Review all member reports + write team SPRINT_REPORT for Sprint 13 | Trung (Leader) | 🟢 Medium |
+| DA-E47-91 | Finalize and commit Sprint 13 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 14 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E47-92 | Write individual sprint report for Sprint 14 — Trung | Trung (Leader) | 🟢 Medium |
+| DA-E47-93 | Write individual sprint report for Sprint 14 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E47-94 | Write individual sprint report for Sprint 14 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E47-95 | Write individual sprint report for Sprint 14 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E47-96 | Write individual sprint report for Sprint 14 — Phước | Phước (Publisher) | 🟢 Medium |
+| DA-E47-97 | Review all member reports + write team SPRINT_REPORT for Sprint 14 | Trung (Leader) | 🟢 Medium |
+| DA-E47-98 | Finalize and commit Sprint 14 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 15 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E47-99 | Write individual sprint report for Sprint 15 — Trung | Trung (Leader) | 🟢 Medium |
+| DA-E47-100 | Write individual sprint report for Sprint 15 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E47-101 | Write individual sprint report for Sprint 15 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E47-102 | Write individual sprint report for Sprint 15 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E47-103 | Write individual sprint report for Sprint 15 — Phước | Phước (Publisher) | 🟢 Medium |
+| DA-E47-104 | Review all member reports + write team SPRINT_REPORT for Sprint 15 | Trung (Leader) | 🟢 Medium |
+| DA-E47-105 | Finalize and commit Sprint 15 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 16 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E47-106 | Write individual sprint report for Sprint 16 — Trung | Trung (Leader) | 🟢 Medium |
+| DA-E47-107 | Write individual sprint report for Sprint 16 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E47-108 | Write individual sprint report for Sprint 16 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E47-109 | Write individual sprint report for Sprint 16 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E47-110 | Write individual sprint report for Sprint 16 — Phước | Phước (Publisher) | 🟢 Medium |
+| DA-E47-111 | Review all member reports + write team SPRINT_REPORT for Sprint 16 | Trung (Leader) | 🟢 Medium |
+| DA-E47-112 | Finalize and commit Sprint 16 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+---
+
+## EPIC E48 — AI Track Reports & Documentation
+
+> **Note:** Runs at the end of every AI Parallel Track iteration (Iteration 1–4). Each iteration has 5 tasks: 3 individual member reports (Tuấn, Ân, Lộc), 1 team report review by Lộc, 1 commit/finalize task. Mirrors E47's pattern but scoped to the AI track — Lộc plays the same aggregator role here that Trung plays in E47.
+
+### Iteration 1 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E48-01 | Write individual AI iteration report for Iteration 1 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E48-02 | Write individual AI iteration report for Iteration 1 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E48-03 | Write individual AI iteration report for Iteration 1 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E48-04 | Review all member reports + write team ITERATION_REPORT for Iteration 1 | Lộc (Frontend) | 🟢 Medium |
+| DA-E48-05 | Finalize and commit Iteration 1 report to brandhub-infrastructure | Lộc (Frontend) | 🟢 Medium |
+
+### Iteration 2 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E48-06 | Write individual AI iteration report for Iteration 2 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E48-07 | Write individual AI iteration report for Iteration 2 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E48-08 | Write individual AI iteration report for Iteration 2 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E48-09 | Review all member reports + write team ITERATION_REPORT for Iteration 2 | Lộc (Frontend) | 🟢 Medium |
+| DA-E48-10 | Finalize and commit Iteration 2 report to brandhub-infrastructure | Lộc (Frontend) | 🟢 Medium |
+
+### Iteration 3 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E48-11 | Write individual AI iteration report for Iteration 3 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E48-12 | Write individual AI iteration report for Iteration 3 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E48-13 | Write individual AI iteration report for Iteration 3 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E48-14 | Review all member reports + write team ITERATION_REPORT for Iteration 3 | Lộc (Frontend) | 🟢 Medium |
+| DA-E48-15 | Finalize and commit Iteration 3 report to brandhub-infrastructure | Lộc (Frontend) | 🟢 Medium |
+
+### Iteration 4 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E48-16 | Write individual AI iteration report for Iteration 4 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| DA-E48-17 | Write individual AI iteration report for Iteration 4 — Ân | Ân (AI) | 🟢 Medium |
+| DA-E48-18 | Write individual AI iteration report for Iteration 4 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| DA-E48-19 | Review all member reports + write team ITERATION_REPORT for Iteration 4 | Lộc (Frontend) | 🟢 Medium |
+| DA-E48-20 | Finalize and commit Iteration 4 report to brandhub-infrastructure | Lộc (Frontend) | 🟢 Medium |
+
+---
+
 ## SPRINT SUMMARY TABLE
 
 | Sprint | Weeks | Phase | Key Deliverables |
@@ -778,7 +1026,7 @@
 | Ân | AI Engineer | 54 | Non-functional AI requirements, Redis key doc, Admin user APIs, RAG chunking & context builder, LLM prompt system, trend crawler, video generation (Veo), AI research summaries |
 | Phước | Publisher Engineer | 53 | Use case docs (UC21–60), social platform API specs, RabbitMQ message contract, permission matrix, publisher-service setup, all 5 platform adapters, token manual refresh, integration tests for publisher |
 
-> **Total tasks:** ~270 across all epics and AI track iterations.
+> **Total tasks:** ~290 across all epics and AI track iterations.
 
 ---
 

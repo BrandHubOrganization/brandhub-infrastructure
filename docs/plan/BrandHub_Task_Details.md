@@ -3798,6 +3798,2151 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 ---
 
+## Phase 8 — Sprint Reporting (All Sprints)
+
+> Epic E47 runs at the end of every sprint. Each sprint has 7 tasks: 5 individual member reports, 1 team report compiled by Trung, 1 finalize + commit task.
+>
+> **Individual report format** (tasks DA-E47-{n} where n % 7 ∈ {1..5}): Each member fills their own `members/{handle}.md` file under the sprint folder. Report must cover: personal info, task list with Jira links + status, detailed work log per task (branch, commit hash, files changed, description, time spent), incomplete tasks with reason, bonus contributions, learnings, feedback & suggestions, and self-assessment score (out of 20).
+>
+> **Team report format** (tasks DA-E47-{n} where n % 7 = 6): Trung reads all 5 member reports, verifies against git history, then writes `SPRINT_REPORT.md` covering: sprint overview, completion rate, task breakdown table, deliverables list with evidence, retrospective (what went well / what didn't), workload distribution, and action items for next sprint.
+>
+> **Finalize task** (tasks DA-E47-{n} where n % 7 = 0): Commit all report files to `brandhub-infrastructure` repo under `docs/plan/sprints/sprint_{XX}/` on the `docs/sprint-{XX}-report` branch, then merge to `develop`.
+
+---
+
+### DA-E47-01 — Write individual sprint report for Sprint 1 — Trung
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Document Trung's personal contributions in Sprint 1 in `sprint_01/members/trungle.md`, covering all 9 tasks across E01 and E02 plus the Docker Compose scaffold bonus work.
+
+**Acceptance Criteria:**
+- [ ] All assigned tasks listed with Jira links and final status
+- [ ] Each task has: branch name, commit hash, files changed, work description, time spent
+- [ ] Bonus contributions (Docker Compose scaffold) documented with commit evidence
+- [ ] Self-assessment table filled (score out of 20)
+- [ ] File submitted before sprint review meeting
+
+**Technical Notes:**
+- Sprint 1 tasks: DA-E01-01/02/03/05, DA-E02-01/02/03/04 (all Done)
+- Bonus: Docker Compose scaffold — commits `67fca93`, `4e42c2b` in brandhub-infrastructure
+- Use git log `--author="trungle"` to verify commit hashes before writing
+
+**Dependencies:** Blocks: [DA-E47-06]. Blocked by: Sprint 1 work completion.
+
+---
+
+### DA-E47-02 — Write individual sprint report for Sprint 1 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's personal contributions in Sprint 1 in `sprint_01/members/locnv.md`. Sprint 1 had no tasks assigned to Lộc, so this report confirms participation in team meetings and skill assessment only.
+
+**Acceptance Criteria:**
+- [ ] Personal info section filled
+- [ ] Tasks section reflects no individual tasks assigned (DA-E01-01/04 were "All Team")
+- [ ] Participation in team brainstorm (DA-E01-01) and skill assessment (DA-E01-04) documented
+- [ ] Self-assessment filled
+
+**Technical Notes:**
+- DA-E01-01 (brainstorm) and DA-E01-04 (skill assessment) are "All (Team)" — Lộc participated but Trung owned them
+- File: `sprint_01/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E47-06]. Blocked by: Sprint 1 completion.
+
+---
+
+### DA-E47-03 — Write individual sprint report for Sprint 1 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's personal contributions in Sprint 1 in `sprint_01/members/tuannm.md`. Same as Lộc — no individual tasks, participation in team tasks only.
+
+**Acceptance Criteria:**
+- [ ] Personal info section filled
+- [ ] Team task participation (DA-E01-01, DA-E01-04) documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_01/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E47-06]. Blocked by: Sprint 1 completion.
+
+---
+
+### DA-E47-04 — Write individual sprint report for Sprint 1 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's personal contributions in Sprint 1 in `sprint_01/members/anha.md`. Same as Lộc and Tuấn — no individual tasks, participation in team tasks only.
+
+**Acceptance Criteria:**
+- [ ] Personal info section filled
+- [ ] Team task participation (DA-E01-01, DA-E01-04) documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_01/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E47-06]. Blocked by: Sprint 1 completion.
+
+---
+
+### DA-E47-05 — Write individual sprint report for Sprint 1 — Phước
+**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
+
+**Goal:** Document Phước's personal contributions in Sprint 1 in `sprint_01/members/phuocnc.md`. Same as Lộc — no individual tasks, participation in team tasks only.
+
+**Acceptance Criteria:**
+- [ ] Personal info section filled
+- [ ] Team task participation (DA-E01-01, DA-E01-04) documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_01/members/phuocnc.md`
+
+**Dependencies:** Blocks: [DA-E47-06]. Blocked by: Sprint 1 completion.
+
+---
+
+### DA-E47-06 — Review all member reports + write team SPRINT_REPORT for Sprint 1
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 5 member reports for Sprint 1, verify claims against git history, then write the team-level `sprint_01/SPRINT_REPORT.md` covering overall sprint outcome, completion rate, and retrospective.
+
+**Acceptance Criteria:**
+- [ ] All 5 member report files exist and are non-empty before starting this task
+- [ ] SPRINT_REPORT.md covers: sprint overview, completion rate (tasks done / total), deliverables table with evidence, retrospective (what went well / what didn't), workload table, action items for Sprint 2
+- [ ] Completion rate and deliverables verified against git log
+- [ ] Retrospective has at least 2 "went well" and 2 "to improve" items
+
+**Technical Notes:**
+- Sprint 1: 9 tasks total (E01: 5, E02: 4), expected 100% completion
+- Main deliverables: GitHub Org + 7 repos, Linear workspace, branch protection, service accounts, Docker Compose scaffold (bonus)
+- File: `sprint_01/SPRINT_REPORT.md`
+
+**Dependencies:** Blocks: [DA-E47-07]. Blocked by: [DA-E47-01], [DA-E47-02], [DA-E47-03], [DA-E47-04], [DA-E47-05].
+
+---
+
+### DA-E47-07 — Finalize and commit Sprint 1 report to brandhub-infrastructure
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all Sprint 1 report files (`SPRINT_REPORT.md` + all member `.md` files) to `brandhub-infrastructure` on the correct branch and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Branch `docs/sprint-01-report` created from `develop`
+- [ ] All files under `docs/plan/sprints/sprint_01/` committed with conventional commit message: `docs(sprint-01): add sprint 1 team and member reports`
+- [ ] PR opened, reviewed by at least 1 member, merged to `develop`
+- [ ] No placeholder text remaining in any report file
+
+**Technical Notes:**
+- Target path: `docs/plan/sprints/sprint_01/`
+- Conventional commit: `docs(sprint-01): add sprint 1 team and member reports`
+
+**Dependencies:** Blocked by: [DA-E47-06].
+
+---
+
+### DA-E47-08 — Write individual sprint report for Sprint 2 — Trung
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Document Trung's personal contributions in Sprint 2 in `sprint_02/members/trungle.md`, covering 10 tasks across E03, E04, E05 plus bonus ADR work and architecture HTML diagrams.
+
+**Acceptance Criteria:**
+- [ ] All 10 assigned tasks listed with Jira links and final status
+- [ ] Architecture HTML deliverables documented with commit hashes and file sizes
+- [ ] Bonus tasks (DA-408 git convention, DA-409 VitePress HTML viewer, Sprint 10–16 plans) documented
+- [ ] Self-assessment filled
+
+**Technical Notes:**
+- Tasks: DA-E03-02, DA-E04-01/02/05, DA-E05-01/02/03/04/05/08
+- Architecture files: `brandhub_architecture.html` (commit `d74c885`), `brandhub_db_ownership_diagram.html` (commit `b5f66d3`), `brandhub_polyrepo_structure.html` (commit `bf70f70`)
+
+**Dependencies:** Blocks: [DA-E47-13]. Blocked by: Sprint 2 completion.
+
+---
+
+### DA-E47-09 — Write individual sprint report for Sprint 2 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's personal contributions in Sprint 2 in `sprint_02/members/locnv.md`. Sprint 2 tasks for Lộc: DA-E04-04 (mobile non-functional requirements).
+
+**Acceptance Criteria:**
+- [ ] DA-E04-04 documented with deliverable description, Jira link, and status
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_02/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E47-13]. Blocked by: Sprint 2 completion.
+
+---
+
+### DA-E47-10 — Write individual sprint report for Sprint 2 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's contributions in Sprint 2 in `sprint_02/members/tuannm.md`. Tasks: DA-E04-03 (AI non-functional requirements), DA-E05-06 (sequence diagrams), DA-E05-07 (AI architecture section).
+
+**Acceptance Criteria:**
+- [ ] All 3 tasks documented with Jira links, status, deliverable description
+- [ ] Sequence diagram file paths and commit hashes included
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_02/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E47-13]. Blocked by: Sprint 2 completion.
+
+---
+
+### DA-E47-11 — Write individual sprint report for Sprint 2 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's contributions in Sprint 2 in `sprint_02/members/anha.md`. Task: DA-E04-03 shared with Tuấn context, participation in team reviews.
+
+**Acceptance Criteria:**
+- [ ] Assigned tasks listed with status
+- [ ] Participation in DA-E03-05 (mentor review, All Team) documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_02/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E47-13]. Blocked by: Sprint 2 completion.
+
+---
+
+### DA-E47-12 — Write individual sprint report for Sprint 2 — Phước
+**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
+
+**Goal:** Document Phước's contributions in Sprint 2 in `sprint_02/members/phuocnc.md`. Tasks: DA-E03-01 (UC list), DA-E03-03 (UC 21–40), DA-E03-04 (UC 41–60), DA-E03-06 (UC Excel file).
+
+**Acceptance Criteria:**
+- [ ] All 4 tasks documented with Jira links, status, and deliverable description
+- [ ] Use case file paths and commit evidence included
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_02/members/phuocnc.md`
+
+**Dependencies:** Blocks: [DA-E47-13]. Blocked by: Sprint 2 completion.
+
+---
+
+### DA-E47-13 — Review all member reports + write team SPRINT_REPORT for Sprint 2
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 5 member reports for Sprint 2, verify against git history, write `sprint_02/SPRINT_REPORT.md`.
+
+**Acceptance Criteria:**
+- [ ] All 5 member reports exist and non-empty
+- [ ] SPRINT_REPORT covers: 19 tasks total (E03: 6, E04: 5, E05: 8), completion rate, 15 deliverables list, retrospective, workload table noting Trung's 10/19 task load
+- [ ] Action items for Sprint 3 included
+
+**Technical Notes:**
+- Sprint 2: 19 tasks, expected ~95% (DA-E03-05 mentor review may carry over)
+- File: `sprint_02/SPRINT_REPORT.md`
+
+**Dependencies:** Blocks: [DA-E47-14]. Blocked by: [DA-E47-08] through [DA-E47-12].
+
+---
+
+### DA-E47-14 — Finalize and commit Sprint 2 report to brandhub-infrastructure
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all Sprint 2 report files to `brandhub-infrastructure` on branch `docs/sprint-02-report` and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Branch `docs/sprint-02-report` created
+- [ ] All files under `docs/plan/sprints/sprint_02/` committed: `docs(sprint-02): add sprint 2 team and member reports`
+- [ ] PR merged to `develop`, no placeholder text remaining
+
+**Dependencies:** Blocked by: [DA-E47-13].
+
+---
+
+### DA-E47-15 — Write individual sprint report for Sprint 3 — Trung
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Document Trung's contributions in Sprint 3 in `sprint_03/members/trungle.md`. Tasks: DA-E06-01/02/03/07/08 (database design), DA-E07-01/04/05 (API design for business-service).
+
+**Acceptance Criteria:**
+- [ ] All 8 tasks documented with Jira links, status, deliverable paths, commit hashes
+- [ ] Database design files (DBML, init scripts) referenced with file sizes
+- [ ] OpenAPI YAML spec file path and line count included
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_03/members/trungle.md`
+
+**Dependencies:** Blocks: [DA-E47-20]. Blocked by: Sprint 3 completion.
+
+---
+
+### DA-E47-16 — Write individual sprint report for Sprint 3 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's contributions in Sprint 3 in `sprint_03/members/locnv.md`. Tasks: DA-E08-01/02/03/04 (Figma wireframes and component system).
+
+**Acceptance Criteria:**
+- [ ] All 4 wireframe tasks documented with Figma links or exported file paths
+- [ ] Component system catalogue file path referenced
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_03/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E47-20]. Blocked by: Sprint 3 completion.
+
+---
+
+### DA-E47-17 — Write individual sprint report for Sprint 3 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's contributions in Sprint 3 in `sprint_03/members/tuannm.md`. Tasks: DA-E06-04/05 (DB indexing + DBML), DA-E07-02/06 (AI service API endpoints + OpenAPI YAML).
+
+**Acceptance Criteria:**
+- [ ] All 4 tasks documented with deliverable paths, Jira links, and status
+- [ ] DBML file path and dbdiagram.io link (if applicable) referenced
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_03/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E47-20]. Blocked by: Sprint 3 completion.
+
+---
+
+### DA-E47-18 — Write individual sprint report for Sprint 3 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's contributions in Sprint 3 in `sprint_03/members/anha.md`. Task: DA-E06-06 (Redis key patterns documentation).
+
+**Acceptance Criteria:**
+- [ ] DA-E06-06 documented with deliverable file path and content summary
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_03/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E47-20]. Blocked by: Sprint 3 completion.
+
+---
+
+### DA-E47-19 — Write individual sprint report for Sprint 3 — Phước
+**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
+
+**Goal:** Document Phước's contributions in Sprint 3 in `sprint_03/members/phuocnc.md`. Tasks: DA-E07-03/07 (RabbitMQ message format, social platform API specs).
+
+**Acceptance Criteria:**
+- [ ] Both tasks documented with deliverable file paths and content summary
+- [ ] Social platform API specs: FB, TikTok, Threads, Zalo versions and rate limits noted
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_03/members/phuocnc.md`
+
+**Dependencies:** Blocks: [DA-E47-20]. Blocked by: Sprint 3 completion.
+
+---
+
+### DA-E47-20 — Review all member reports + write team SPRINT_REPORT for Sprint 3
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 5 Sprint 3 member reports, verify against git history, write `sprint_03/SPRINT_REPORT.md`.
+
+**Acceptance Criteria:**
+- [ ] SPRINT_REPORT covers: E06 (8 tasks), E07 (7 tasks), E08 (4 tasks) = 19 tasks total
+- [ ] Deliverables: MongoDB + PostgreSQL schema, DBML, init scripts, OpenAPI YAML specs, Figma wireframes, component system
+- [ ] Retrospective + action items for Sprint 4
+
+**Dependencies:** Blocks: [DA-E47-21]. Blocked by: [DA-E47-15] through [DA-E47-19].
+
+---
+
+### DA-E47-21 — Finalize and commit Sprint 3 report to brandhub-infrastructure
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all Sprint 3 report files on branch `docs/sprint-03-report` and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Commit message: `docs(sprint-03): add sprint 3 team and member reports`
+- [ ] PR merged, no placeholders remaining
+
+**Dependencies:** Blocked by: [DA-E47-20].
+
+---
+
+### DA-E47-22 — Write individual sprint report for Sprint 4 — Trung
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Document Trung's contributions in Sprint 4 in `sprint_04/members/trungle.md`. Tasks: DA-E09-01/02/03/04 (Docker Compose, init scripts, .env.example, clone-all.sh), DA-E10-01/05 (CI/CD for business-service, branch protection), DA-E11-01/02/03/04/05 (full API Gateway implementation).
+
+**Acceptance Criteria:**
+- [ ] All 11 tasks documented with commit hashes, file paths, and status
+- [ ] Docker Compose services list and health check configuration described
+- [ ] API Gateway filters (JWT validation, rate limiting, routing) documented with key config values
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_04/members/trungle.md`
+
+**Dependencies:** Blocks: [DA-E47-27]. Blocked by: Sprint 4 completion.
+
+---
+
+### DA-E47-23 — Write individual sprint report for Sprint 4 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's contributions in Sprint 4 in `sprint_04/members/locnv.md`. Tasks: DA-E10-04 (CI/CD for web-dashboard).
+
+**Acceptance Criteria:**
+- [ ] DA-E10-04 documented with GitHub Actions workflow file path and pipeline steps
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_04/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E47-27]. Blocked by: Sprint 4 completion.
+
+---
+
+### DA-E47-24 — Write individual sprint report for Sprint 4 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's contributions in Sprint 4 in `sprint_04/members/tuannm.md`. Tasks: DA-E10-03 (CI/CD for ai-service), carry-over DA-E07-02 (ai-service endpoint definitions), DA-E07-06 (OpenAPI YAML for ai-service).
+
+**Acceptance Criteria:**
+- [ ] All tasks documented including carry-over items with reason for carry-over
+- [ ] CI/CD workflow file path referenced
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_04/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E47-27]. Blocked by: Sprint 4 completion.
+
+---
+
+### DA-E47-25 — Write individual sprint report for Sprint 4 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's contributions in Sprint 4 in `sprint_04/members/anha.md`. Carry-over task: DA-E06-06 (Redis key patterns) if not completed in Sprint 3.
+
+**Acceptance Criteria:**
+- [ ] Carry-over tasks noted with original sprint and reason
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_04/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E47-27]. Blocked by: Sprint 4 completion.
+
+---
+
+### DA-E47-26 — Write individual sprint report for Sprint 4 — Phước
+**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
+
+**Goal:** Document Phước's contributions in Sprint 4 in `sprint_04/members/phuocnc.md`. Tasks: DA-E09-05 (infrastructure README), DA-E10-02 (CI/CD for publisher-service), carry-over DA-E07-03/07.
+
+**Acceptance Criteria:**
+- [ ] All tasks documented including carry-overs
+- [ ] README content summary included
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_04/members/phuocnc.md`
+
+**Dependencies:** Blocks: [DA-E47-27]. Blocked by: Sprint 4 completion.
+
+---
+
+### DA-E47-27 — Review all member reports + write team SPRINT_REPORT for Sprint 4
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 5 Sprint 4 member reports, verify against git history, write `sprint_04/SPRINT_REPORT.md`.
+
+**Acceptance Criteria:**
+- [ ] SPRINT_REPORT covers: E09 (5 tasks), E10 (5 tasks), E11 (5 tasks) = 15 tasks total + carry-overs
+- [ ] Deliverables: docker-compose.yml running all 5 infra services, GitHub Actions workflows, API Gateway with JWT/rate-limit/routing filters
+- [ ] Carry-over tasks from Sprint 3 tracked
+- [ ] Retrospective + action items for Sprint 5
+
+**Dependencies:** Blocks: [DA-E47-28]. Blocked by: [DA-E47-22] through [DA-E47-26].
+
+---
+
+### DA-E47-28 — Finalize and commit Sprint 4 report to brandhub-infrastructure
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all Sprint 4 report files on branch `docs/sprint-04-report` and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Commit message: `docs(sprint-04): add sprint 4 team and member reports`
+- [ ] PR merged, no placeholders remaining
+
+**Dependencies:** Blocked by: [DA-E47-27].
+
+---
+
+### DA-E47-29 — Write individual sprint report for Sprint 5 — Trung
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Document Trung's contributions in Sprint 5 in `sprint_05/members/trungle.md`. Tasks: DA-E12-01 through 06 (full Auth implementation), DA-E13-01/02 (user profile + avatar upload), DA-E14-01/02/03 (RBAC annotations and workspace/client isolation filters).
+
+**Acceptance Criteria:**
+- [ ] All 11 tasks documented with API endpoint paths, commit hashes, and status
+- [ ] JWT config values documented (access token 15 min, refresh token 30 days, bcrypt cost=12)
+- [ ] Redis blacklist key pattern documented
+- [ ] S3 avatar upload flow described
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_05/members/trungle.md`
+
+**Dependencies:** Blocks: [DA-E47-34]. Blocked by: Sprint 5 completion.
+
+---
+
+### DA-E47-30 — Write individual sprint report for Sprint 5 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's contributions in Sprint 5 in `sprint_05/members/locnv.md`. AI Iteration 1 tasks: DA-AI01-05/06 (image compositing research), DA-AI02-01/03/05 (ai-service project init, S3 helper, Dockerfile).
+
+**Acceptance Criteria:**
+- [ ] All 5 tasks documented with deliverable paths
+- [ ] Compositing technique comparison table referenced
+- [ ] ai-service folder structure described
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_05/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E47-34]. Blocked by: Sprint 5 completion.
+
+---
+
+### DA-E47-31 — Write individual sprint report for Sprint 5 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's contributions in Sprint 5 in `sprint_05/members/tuannm.md`. Tasks: DA-AI01-01/02 (InstantID vs IP-Adapter research), DA-AI02-02/06/07 (API clients config, internal auth middleware, ChromaDB design).
+
+**Acceptance Criteria:**
+- [ ] Research comparison table (InstantID vs IP-Adapter) referenced
+- [ ] ChromaDB collection design documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_05/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E47-34]. Blocked by: Sprint 5 completion.
+
+---
+
+### DA-E47-32 — Write individual sprint report for Sprint 5 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's contributions in Sprint 5 in `sprint_05/members/anha.md`. Tasks: DA-E13-03/04 (Admin user list + ban APIs), DA-AI01-03/04 (Veo API research + video prompt tests), DA-AI02-04/08 (Pydantic schemas, AI research summary).
+
+**Acceptance Criteria:**
+- [ ] Admin API endpoints documented
+- [ ] Veo API research findings referenced (capabilities, pricing, rate limits)
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_05/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E47-34]. Blocked by: Sprint 5 completion.
+
+---
+
+### DA-E47-33 — Write individual sprint report for Sprint 5 — Phước
+**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
+
+**Goal:** Document Phước's contributions in Sprint 5 in `sprint_05/members/phuocnc.md`. Tasks: DA-E14-04 (permission matrix document), DA-AI01-07 (Llama 3 vs Claude comparison, All Team).
+
+**Acceptance Criteria:**
+- [ ] Permission matrix file path and summary included
+- [ ] LLM comparison findings referenced
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_05/members/phuocnc.md`
+
+**Dependencies:** Blocks: [DA-E47-34]. Blocked by: Sprint 5 completion.
+
+---
+
+### DA-E47-34 — Review all member reports + write team SPRINT_REPORT for Sprint 5
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 5 Sprint 5 member reports, verify against git history, write `sprint_05/SPRINT_REPORT.md`.
+
+**Acceptance Criteria:**
+- [ ] Covers E12 (6), E13 (4), E14 (4), AI-01 (8), AI-02 (7) tasks
+- [ ] Auth system deliverables verified: register/login/refresh/logout/OAuth endpoints working
+- [ ] AI Iteration 1 research reports referenced
+- [ ] Retrospective + action items for Sprint 6
+
+**Dependencies:** Blocks: [DA-E47-35]. Blocked by: [DA-E47-29] through [DA-E47-33].
+
+---
+
+### DA-E47-35 — Finalize and commit Sprint 5 report to brandhub-infrastructure
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all Sprint 5 report files on branch `docs/sprint-05-report` and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Commit message: `docs(sprint-05): add sprint 5 team and member reports`
+- [ ] PR merged, no placeholders remaining
+
+**Dependencies:** Blocked by: [DA-E47-34].
+
+---
+
+### DA-E47-36 — Write individual sprint report for Sprint 6 — Trung
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Document Trung's contributions in Sprint 6 in `sprint_06/members/trungle.md`. Tasks: DA-E15-01 through 05 (Workspace CRUD), DA-E16-01 through 04 (Client management), DA-E17-01/02/03 (Subscription + billing).
+
+**Acceptance Criteria:**
+- [ ] All 12 tasks documented with API endpoints, commit hashes, and status
+- [ ] Payment gateway integration approach documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_06/members/trungle.md`
+
+**Dependencies:** Blocks: [DA-E47-41]. Blocked by: Sprint 6 completion.
+
+---
+
+### DA-E47-37 — Write individual sprint report for Sprint 6 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's AI Iteration 1 carry-over or Sprint 6 parallel work in `sprint_06/members/locnv.md`.
+
+**Acceptance Criteria:**
+- [ ] Tasks assigned in this sprint documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_06/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E47-41]. Blocked by: Sprint 6 completion.
+
+---
+
+### DA-E47-38 — Write individual sprint report for Sprint 6 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's contributions in Sprint 6 in `sprint_06/members/tuannm.md`. AI Iteration 2 tasks: DA-AI03-03/04 (RAG embedding pipeline + semantic search), DA-AI04-02/03 (Llama 3 + Claude API integration).
+
+**Acceptance Criteria:**
+- [ ] RAG pipeline architecture described (embedding model, ChromaDB metadata schema)
+- [ ] LLM routing strategy documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_06/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E47-41]. Blocked by: Sprint 6 completion.
+
+---
+
+### DA-E47-39 — Write individual sprint report for Sprint 6 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's contributions in Sprint 6 in `sprint_06/members/anha.md`. Tasks: DA-E17-04 (billing history API), DA-AI03-02/05/07/08 (RAG chunking, context builder, accuracy test, docs), DA-AI04-01/06/07/08 (prompt template, regenerate with feedback, anti-hallucination test, docs).
+
+**Acceptance Criteria:**
+- [ ] RAG accuracy test results referenced (3 brand documents tested)
+- [ ] Anti-hallucination test results documented (20 captions verified)
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_06/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E47-41]. Blocked by: Sprint 6 completion.
+
+---
+
+### DA-E47-40 — Write individual sprint report for Sprint 6 — Phước
+**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
+
+**Goal:** Document Phước's contributions in Sprint 6 in `sprint_06/members/phuocnc.md`. Tasks: DA-AI03-01/06 (document upload endpoint, deletion endpoint), DA-AI04-04/05 (platform caption truncation, hashtag generation), DA-AI05-01 through 06 (trend crawler).
+
+**Acceptance Criteria:**
+- [ ] Trend crawler design documented (pytrends, TikTok scraping approach)
+- [ ] Redis cache key pattern for trends noted
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_06/members/phuocnc.md`
+
+**Dependencies:** Blocks: [DA-E47-41]. Blocked by: Sprint 6 completion.
+
+---
+
+### DA-E47-41 — Review all member reports + write team SPRINT_REPORT for Sprint 6
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 5 Sprint 6 member reports, verify against git history, write `sprint_06/SPRINT_REPORT.md`.
+
+**Acceptance Criteria:**
+- [ ] Covers E15 (5), E16 (4), E17 (4), AI-03 (8), AI-04 (8), AI-05 (6) tasks
+- [ ] Core business deliverables verified: Workspace + Client + Subscription APIs working
+- [ ] RAG pipeline and LLM content generation working end-to-end
+- [ ] Retrospective + action items for Sprint 7
+
+**Dependencies:** Blocks: [DA-E47-42]. Blocked by: [DA-E47-36] through [DA-E47-40].
+
+---
+
+### DA-E47-42 — Finalize and commit Sprint 6 report to brandhub-infrastructure
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all Sprint 6 report files on branch `docs/sprint-06-report` and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Commit message: `docs(sprint-06): add sprint 6 team and member reports`
+- [ ] PR merged, no placeholders remaining
+
+**Dependencies:** Blocked by: [DA-E47-41].
+
+---
+
+### DA-E47-43 — Write individual sprint report for Sprint 7 — Trung
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Document Trung's contributions in Sprint 7 in `sprint_07/members/trungle.md`. Tasks: DA-E18-03 (AES-256 token encryption), DA-E19-04 (token status dashboard), DA-E20-01/02 (scheduled token refresh job, alert on failure).
+
+**Acceptance Criteria:**
+- [ ] AES-256 encryption implementation described (key management, IV handling)
+- [ ] Token refresh scheduler config documented (cron expression, 2AM daily)
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_07/members/trungle.md`
+
+**Dependencies:** Blocks: [DA-E47-48]. Blocked by: Sprint 7 completion.
+
+---
+
+### DA-E47-44 — Write individual sprint report for Sprint 7 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's contributions in Sprint 7 in `sprint_07/members/locnv.md`. AI Iteration 3 tasks: DA-AI06-01 through 05 (Stability AI image generation pipeline), DA-AI08-01 through 07 (image composition pipeline with rembg + Pillow).
+
+**Acceptance Criteria:**
+- [ ] Image generation endpoint documented with Stability AI params
+- [ ] Composition pipeline layers described (product + model + background)
+- [ ] Test results (20 product prompts, 20 composition pairs) referenced
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_07/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E47-48]. Blocked by: Sprint 7 completion.
+
+---
+
+### DA-E47-45 — Write individual sprint report for Sprint 7 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's contributions in Sprint 7 in `sprint_07/members/tuannm.md`. Tasks: DA-E18 context + DA-AI07-01 through 08 (InstantID virtual ambassador pipeline).
+
+**Acceptance Criteria:**
+- [ ] InstantID pipeline described (InsightFace face encoder, ControlNet depth, model loading)
+- [ ] Face consistency test results referenced (15 generated images, similarity score)
+- [ ] Benchmark vs IP-Adapter documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_07/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E47-48]. Blocked by: Sprint 7 completion.
+
+---
+
+### DA-E47-46 — Write individual sprint report for Sprint 7 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's contributions in Sprint 7 in `sprint_07/members/anha.md`. Tasks relevant from AI Iter 3 or Sprint 7 business tasks.
+
+**Acceptance Criteria:**
+- [ ] All assigned tasks documented with status
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_07/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E47-48]. Blocked by: Sprint 7 completion.
+
+---
+
+### DA-E47-47 — Write individual sprint report for Sprint 7 — Phước
+**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
+
+**Goal:** Document Phước's contributions in Sprint 7 in `sprint_07/members/phuocnc.md`. Tasks: DA-E18-01/02/04 (Meta OAuth flows), DA-E19-01/02/03 (TikTok, Threads, Zalo OAuth), DA-E20-03 (manual token refresh).
+
+**Acceptance Criteria:**
+- [ ] Each OAuth flow described: redirect URL, callback handling, token exchange
+- [ ] Token storage approach noted (encrypted, MongoDB)
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_07/members/phuocnc.md`
+
+**Dependencies:** Blocks: [DA-E47-48]. Blocked by: Sprint 7 completion.
+
+---
+
+### DA-E47-48 — Review all member reports + write team SPRINT_REPORT for Sprint 7
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 5 Sprint 7 member reports, verify against git history, write `sprint_07/SPRINT_REPORT.md`.
+
+**Acceptance Criteria:**
+- [ ] Covers E18 (4), E19 (4), E20 (3), AI-06 (5), AI-07 (8), AI-08 (7) tasks
+- [ ] Social OAuth deliverables verified: all 5 platforms OAuth flows working
+- [ ] InstantID and image composition pipelines functional
+- [ ] Retrospective + action items for Sprint 8
+
+**Dependencies:** Blocks: [DA-E47-49]. Blocked by: [DA-E47-43] through [DA-E47-47].
+
+---
+
+### DA-E47-49 — Finalize and commit Sprint 7 report to brandhub-infrastructure
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all Sprint 7 report files on branch `docs/sprint-07-report` and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Commit message: `docs(sprint-07): add sprint 7 team and member reports`
+- [ ] PR merged, no placeholders remaining
+
+**Dependencies:** Blocked by: [DA-E47-48].
+
+---
+
+### DA-E47-50 — Write individual sprint report for Sprint 8 — Trung
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Document Trung's contributions in Sprint 8 in `sprint_08/members/trungle.md`. Tasks: DA-E22-03 (publish callback handler in business-service).
+
+**Acceptance Criteria:**
+- [ ] Callback endpoint documented: POST /internal/posts/{id}/publish-result
+- [ ] Status update logic described (PUBLISHED/FAILED + notification creation)
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_08/members/trungle.md`
+
+**Dependencies:** Blocks: [DA-E47-55]. Blocked by: Sprint 8 completion.
+
+---
+
+### DA-E47-51 — Write individual sprint report for Sprint 8 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's contributions in Sprint 8 in `sprint_08/members/locnv.md`. AI Iteration 4 tasks: DA-AI10-01/04/05 (finalize all FastAPI endpoints, Postman collection, Swagger docs), DA-AI11-03 (Image Composition Research Report).
+
+**Acceptance Criteria:**
+- [ ] All finalized FastAPI endpoint paths listed
+- [ ] Postman collection file path referenced
+- [ ] Image Composition Research Report path and summary included
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_08/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E47-55]. Blocked by: Sprint 8 completion.
+
+---
+
+### DA-E47-52 — Write individual sprint report for Sprint 8 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's contributions in Sprint 8 in `sprint_08/members/tuannm.md`. Tasks: DA-AI10-02/03 (error handling + retry, integration tests with business-service), DA-AI11-01 (Virtual Ambassador Technical Report).
+
+**Acceptance Criteria:**
+- [ ] Integration test results documented (all AI calls from business-service verified)
+- [ ] Virtual Ambassador Technical Report path referenced
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_08/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E47-55]. Blocked by: Sprint 8 completion.
+
+---
+
+### DA-E47-53 — Write individual sprint report for Sprint 8 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's contributions in Sprint 8 in `sprint_08/members/anha.md`. Tasks: DA-AI09-01 through 08 (Veo video generation), DA-AI11-02 (Video Generation Research Report), DA-AI11-04/05/06 (AI cost analysis, demo video, mentor presentation).
+
+**Acceptance Criteria:**
+- [ ] Veo API integration documented: async polling flow, S3 upload, thumbnail extraction
+- [ ] 30-prompt benchmark results referenced
+- [ ] Cost analysis findings noted
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_08/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E47-55]. Blocked by: Sprint 8 completion.
+
+---
+
+### DA-E47-54 — Write individual sprint report for Sprint 8 — Phước
+**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
+
+**Goal:** Document Phước's contributions in Sprint 8 in `sprint_08/members/phuocnc.md`. Tasks: DA-E21-01 through 07 (publisher-service init + all 5 platform adapters), DA-E22-01/02 (HTTP callback, retry logic).
+
+**Acceptance Criteria:**
+- [ ] Publisher service architecture described (RabbitMQ consumer setup)
+- [ ] Each platform adapter's API approach documented (Graph API, Content Posting API v2, etc.)
+- [ ] Retry logic config noted (3 attempts, 1m/5m/15m backoff)
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_08/members/phuocnc.md`
+
+**Dependencies:** Blocks: [DA-E47-55]. Blocked by: Sprint 8 completion.
+
+---
+
+### DA-E47-55 — Review all member reports + write team SPRINT_REPORT for Sprint 8
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 5 Sprint 8 member reports, verify against git history, write `sprint_08/SPRINT_REPORT.md`.
+
+**Acceptance Criteria:**
+- [ ] Covers E21 (7), E22 (3), AI-09 (8), AI-10 (5), AI-11 (6) tasks
+- [ ] Publisher service deliverables verified: all 5 platform adapters + retry + callback working
+- [ ] AI Iteration 4 complete: all endpoints finalized, research reports written, demo recorded
+- [ ] Retrospective + action items for Sprint 9
+
+**Dependencies:** Blocks: [DA-E47-56]. Blocked by: [DA-E47-50] through [DA-E47-54].
+
+---
+
+### DA-E47-56 — Finalize and commit Sprint 8 report to brandhub-infrastructure
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all Sprint 8 report files on branch `docs/sprint-08-report` and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Commit message: `docs(sprint-08): add sprint 8 team and member reports`
+- [ ] PR merged, no placeholders remaining
+
+**Dependencies:** Blocked by: [DA-E47-55].
+
+---
+
+### DA-E47-57 — Write individual sprint report for Sprint 9 — Trung
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Document Trung's contributions in Sprint 9 in `sprint_09/members/trungle.md`. Tasks: DA-E24-01/02/03 (AI content flow in business-service: ContentRequest → ai-service → draft Post, image/ambassador generation trigger, AI usage tracking).
+
+**Acceptance Criteria:**
+- [ ] ContentRequest → ai-service → Post draft flow documented
+- [ ] AI credits tracking logic described (quota check against subscription plan)
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_09/members/trungle.md`
+
+**Dependencies:** Blocks: [DA-E47-62]. Blocked by: Sprint 9 completion.
+
+---
+
+### DA-E47-58 — Write individual sprint report for Sprint 9 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's contributions in Sprint 9 in `sprint_09/members/locnv.md`. No Sprint 9 tasks assigned to Lộc in main plan — note any support work or prep for Sprint 10.
+
+**Acceptance Criteria:**
+- [ ] Any support contributions documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_09/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E47-62]. Blocked by: Sprint 9 completion.
+
+---
+
+### DA-E47-59 — Write individual sprint report for Sprint 9 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's contributions in Sprint 9 in `sprint_09/members/tuannm.md`. Tasks: DA-E23-01/02/03 (expose /internal/ai/content, /internal/ai/image, /internal/ai/ambassador endpoints).
+
+**Acceptance Criteria:**
+- [ ] Each internal endpoint documented: request/response schema, auth method (X-Internal-Key)
+- [ ] S3 URL return format for image/ambassador noted
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_09/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E47-62]. Blocked by: Sprint 9 completion.
+
+---
+
+### DA-E47-60 — Write individual sprint report for Sprint 9 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's contributions in Sprint 9 in `sprint_09/members/anha.md`. Tasks: DA-E23-04/05 (expose /internal/ai/video async endpoint with polling, /internal/ai/trends).
+
+**Acceptance Criteria:**
+- [ ] Video endpoint async pattern described (jobId → GET status polling)
+- [ ] Trends endpoint response format documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_09/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E47-62]. Blocked by: Sprint 9 completion.
+
+---
+
+### DA-E47-61 — Write individual sprint report for Sprint 9 — Phước
+**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
+
+**Goal:** Document Phước's contributions in Sprint 9 in `sprint_09/members/phuocnc.md`. No Sprint 9 tasks assigned to Phước — note any support work or carry-over resolution.
+
+**Acceptance Criteria:**
+- [ ] Any carry-over or support work documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_09/members/phuocnc.md`
+
+**Dependencies:** Blocks: [DA-E47-62]. Blocked by: Sprint 9 completion.
+
+---
+
+### DA-E47-62 — Review all member reports + write team SPRINT_REPORT for Sprint 9
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 5 Sprint 9 member reports, verify against git history, write `sprint_09/SPRINT_REPORT.md`.
+
+**Acceptance Criteria:**
+- [ ] Covers E23 (5), E24 (3) tasks
+- [ ] All 5 internal AI endpoints callable from business-service verified
+- [ ] AI content generation flow end-to-end working
+- [ ] Retrospective + action items for Sprint 10
+
+**Dependencies:** Blocks: [DA-E47-63]. Blocked by: [DA-E47-57] through [DA-E47-61].
+
+---
+
+### DA-E47-63 — Finalize and commit Sprint 9 report to brandhub-infrastructure
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all Sprint 9 report files on branch `docs/sprint-09-report` and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Commit message: `docs(sprint-09): add sprint 9 team and member reports`
+- [ ] PR merged, no placeholders remaining
+
+**Dependencies:** Blocked by: [DA-E47-62].
+
+---
+
+### DA-E47-64 — Write individual sprint report for Sprint 10 — Trung
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Document Trung's contributions in Sprint 10 in `sprint_10/members/trungle.md`. Tasks: DA-E28-01/02/03 (content request CRUD + status tracking), DA-E29-01/02 (task assignment + my-tasks endpoint), DA-E30-01/02 (calendar API + scheduling).
+
+**Acceptance Criteria:**
+- [ ] Content request status machine documented (7 states: SUBMITTED → APPROVED/REJECTED)
+- [ ] All 7 API endpoints documented with paths and key logic
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_10/members/trungle.md`
+
+**Dependencies:** Blocks: [DA-E47-69]. Blocked by: Sprint 10 completion.
+
+---
+
+### DA-E47-65 — Write individual sprint report for Sprint 10 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's contributions in Sprint 10 in `sprint_10/members/locnv.md`. Tasks: DA-E30-03/04 (ContentCalendar React component with drag-drop, PlatformPreview component).
+
+**Acceptance Criteria:**
+- [ ] ContentCalendar component documented: drag-drop library used, color-coded status logic
+- [ ] PlatformPreview component: format differences per platform (FB/IG/TikTok/Threads) described
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_10/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E47-69]. Blocked by: Sprint 10 completion.
+
+---
+
+### DA-E47-66 — Write individual sprint report for Sprint 10 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's contributions in Sprint 10 in `sprint_10/members/tuannm.md`. No Sprint 10 tasks assigned to Tuấn — note any support work or carry-over.
+
+**Acceptance Criteria:**
+- [ ] Any support or carry-over work documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_10/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E47-69]. Blocked by: Sprint 10 completion.
+
+---
+
+### DA-E47-67 — Write individual sprint report for Sprint 10 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's contributions in Sprint 10 in `sprint_10/members/anha.md`. Task: DA-E29-03 (deadline alert management).
+
+**Acceptance Criteria:**
+- [ ] Alert mechanism described (scheduler, notification trigger logic)
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_10/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E47-69]. Blocked by: Sprint 10 completion.
+
+---
+
+### DA-E47-68 — Write individual sprint report for Sprint 10 — Phước
+**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
+
+**Goal:** Document Phước's contributions in Sprint 10 in `sprint_10/members/phuocnc.md`. No Sprint 10 tasks assigned to Phước — note any support work.
+
+**Acceptance Criteria:**
+- [ ] Any support or carry-over work documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_10/members/phuocnc.md`
+
+**Dependencies:** Blocks: [DA-E47-69]. Blocked by: Sprint 10 completion.
+
+---
+
+### DA-E47-69 — Review all member reports + write team SPRINT_REPORT for Sprint 10
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 5 Sprint 10 member reports, verify against git history, write `sprint_10/SPRINT_REPORT.md`.
+
+**Acceptance Criteria:**
+- [ ] Covers E28 (3), E29 (3), E30 (4) tasks
+- [ ] Content request lifecycle and calendar verified working end-to-end
+- [ ] ContentCalendar and PlatformPreview components in web-dashboard
+- [ ] Retrospective + action items for Sprint 11
+
+**Dependencies:** Blocks: [DA-E47-70]. Blocked by: [DA-E47-64] through [DA-E47-68].
+
+---
+
+### DA-E47-70 — Finalize and commit Sprint 10 report to brandhub-infrastructure
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all Sprint 10 report files on branch `docs/sprint-10-report` and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Commit message: `docs(sprint-10): add sprint 10 team and member reports`
+- [ ] PR merged, no placeholders remaining
+
+**Dependencies:** Blocked by: [DA-E47-69].
+
+---
+
+### DA-E47-71 — Write individual sprint report for Sprint 11 — Trung
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Document Trung's contributions in Sprint 11 in `sprint_11/members/trungle.md`. Tasks: DA-E31-01 through 04 (full approval workflow APIs), DA-E32-01 (Smart Ingestion to RabbitMQ), DA-E33-02/03 (DLQ handler, failure notification).
+
+**Acceptance Criteria:**
+- [ ] Approval state machine documented (submit → account review → client approve/reject)
+- [ ] Smart Ingestion logic described: post + encrypted token + platform configs → RabbitMQ message
+- [ ] DLQ handler Admin API endpoint documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_11/members/trungle.md`
+
+**Dependencies:** Blocks: [DA-E47-76]. Blocked by: Sprint 11 completion.
+
+---
+
+### DA-E47-72 — Write individual sprint report for Sprint 11 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's contributions in Sprint 11 in `sprint_11/members/locnv.md`. No Sprint 11 tasks assigned to Lộc in main plan — note any support or prep work.
+
+**Acceptance Criteria:**
+- [ ] Any support work documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_11/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E47-76]. Blocked by: Sprint 11 completion.
+
+---
+
+### DA-E47-73 — Write individual sprint report for Sprint 11 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's contributions in Sprint 11 in `sprint_11/members/tuannm.md`. No Sprint 11 tasks assigned to Tuấn — note any support work.
+
+**Acceptance Criteria:**
+- [ ] Any support work documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_11/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E47-76]. Blocked by: Sprint 11 completion.
+
+---
+
+### DA-E47-74 — Write individual sprint report for Sprint 11 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's contributions in Sprint 11 in `sprint_11/members/anha.md`. No Sprint 11 tasks assigned to Ân — note any support work.
+
+**Acceptance Criteria:**
+- [ ] Any support work documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_11/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E47-76]. Blocked by: Sprint 11 completion.
+
+---
+
+### DA-E47-75 — Write individual sprint report for Sprint 11 — Phước
+**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
+
+**Goal:** Document Phước's contributions in Sprint 11 in `sprint_11/members/phuocnc.md`. Tasks: DA-E32-02 through 08 (RabbitMQ consumer + all 5 platform adapters in publisher-service + HTTP callback), DA-E33-01 (retry logic).
+
+**Acceptance Criteria:**
+- [ ] Publisher service FIFO + exactly-once consumer described
+- [ ] Each platform adapter's API version and key steps documented
+- [ ] Retry config: 3 attempts, 30s/60s/120s backoff noted
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_11/members/phuocnc.md`
+
+**Dependencies:** Blocks: [DA-E47-76]. Blocked by: Sprint 11 completion.
+
+---
+
+### DA-E47-76 — Review all member reports + write team SPRINT_REPORT for Sprint 11
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 5 Sprint 11 member reports, verify against git history, write `sprint_11/SPRINT_REPORT.md`.
+
+**Acceptance Criteria:**
+- [ ] Covers E31 (4), E32 (8), E33 (3) tasks
+- [ ] Full publish flow end-to-end verified: approve → enqueue → publish on all 5 platforms
+- [ ] DLQ + retry + failure notification working
+- [ ] Retrospective + action items for Sprint 12
+
+**Dependencies:** Blocks: [DA-E47-77]. Blocked by: [DA-E47-71] through [DA-E47-75].
+
+---
+
+### DA-E47-77 — Finalize and commit Sprint 11 report to brandhub-infrastructure
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all Sprint 11 report files on branch `docs/sprint-11-report` and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Commit message: `docs(sprint-11): add sprint 11 team and member reports`
+- [ ] PR merged, no placeholders remaining
+
+**Dependencies:** Blocked by: [DA-E47-76].
+
+---
+
+### DA-E47-78 — Write individual sprint report for Sprint 12 — Trung
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Document Trung's contributions in Sprint 12 in `sprint_12/members/trungle.md`. No Sprint 12 tasks assigned to Trung in main plan — note any support, code review, or unblocking work for Lộc's frontend tasks.
+
+**Acceptance Criteria:**
+- [ ] Any support or unblocking contributions documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_12/members/trungle.md`
+
+**Dependencies:** Blocks: [DA-E47-83]. Blocked by: Sprint 12 completion.
+
+---
+
+### DA-E47-79 — Write individual sprint report for Sprint 12 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's contributions in Sprint 12 in `sprint_12/members/locnv.md`. Tasks: DA-E34-01 through 05 (design system setup), DA-E35-01 through 04 (auth + dashboard + workspace + client pages), DA-E36-01 through 05 (content management pages).
+
+**Acceptance Criteria:**
+- [ ] All 14 tasks documented with component names, file paths, and status
+- [ ] Design token setup described (color, spacing, typography)
+- [ ] Zustand store structure documented (authStore, workspaceStore, notificationStore)
+- [ ] Login/Register page Google OAuth flow described
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_12/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E47-83]. Blocked by: Sprint 12 completion.
+
+---
+
+### DA-E47-80 — Write individual sprint report for Sprint 12 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's contributions in Sprint 12 in `sprint_12/members/tuannm.md`. No Sprint 12 tasks assigned to Tuấn — note any support work.
+
+**Acceptance Criteria:**
+- [ ] Any support work documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_12/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E47-83]. Blocked by: Sprint 12 completion.
+
+---
+
+### DA-E47-81 — Write individual sprint report for Sprint 12 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's contributions in Sprint 12 in `sprint_12/members/anha.md`. No Sprint 12 tasks assigned to Ân — note any support work.
+
+**Acceptance Criteria:**
+- [ ] Any support work documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_12/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E47-83]. Blocked by: Sprint 12 completion.
+
+---
+
+### DA-E47-82 — Write individual sprint report for Sprint 12 — Phước
+**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
+
+**Goal:** Document Phước's contributions in Sprint 12 in `sprint_12/members/phuocnc.md`. No Sprint 12 tasks assigned to Phước — note any support work.
+
+**Acceptance Criteria:**
+- [ ] Any support work documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_12/members/phuocnc.md`
+
+**Dependencies:** Blocks: [DA-E47-83]. Blocked by: Sprint 12 completion.
+
+---
+
+### DA-E47-83 — Review all member reports + write team SPRINT_REPORT for Sprint 12
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 5 Sprint 12 member reports, verify against git history, write `sprint_12/SPRINT_REPORT.md`.
+
+**Acceptance Criteria:**
+- [ ] Covers E34 (5), E35 (4), E36 (5) tasks — all 14 assigned to Lộc
+- [ ] Web dashboard deliverables verified: design system, auth pages, dashboard, content management pages
+- [ ] Note workload concentration on Lộc for this sprint
+- [ ] Retrospective + action items for Sprint 13
+
+**Dependencies:** Blocks: [DA-E47-84]. Blocked by: [DA-E47-78] through [DA-E47-82].
+
+---
+
+### DA-E47-84 — Finalize and commit Sprint 12 report to brandhub-infrastructure
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all Sprint 12 report files on branch `docs/sprint-12-report` and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Commit message: `docs(sprint-12): add sprint 12 team and member reports`
+- [ ] PR merged, no placeholders remaining
+
+**Dependencies:** Blocked by: [DA-E47-83].
+
+---
+
+### DA-E47-85 — Write individual sprint report for Sprint 13 — Trung
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Document Trung's contributions in Sprint 13 in `sprint_13/members/trungle.md`. Tasks: DA-E38-01/02 (analytics aggregation APIs, automated PDF report), DA-E39-01/02 (notification CRUD, notification creation events).
+
+**Acceptance Criteria:**
+- [ ] Analytics aggregation query logic described (posts + publish_logs data sources)
+- [ ] PDF report generation library and schedule documented
+- [ ] Notification event triggers listed (post published, task assigned, token expiry, etc.)
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_13/members/trungle.md`
+
+**Dependencies:** Blocks: [DA-E47-90]. Blocked by: Sprint 13 completion.
+
+---
+
+### DA-E47-86 — Write individual sprint report for Sprint 13 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's contributions in Sprint 13 in `sprint_13/members/locnv.md`. Tasks: DA-E37-01 through 04 (Client Portal pages), DA-E38-04 (Analytics Dashboard), DA-E39-03 (Notification Center UI).
+
+**Acceptance Criteria:**
+- [ ] All 6 tasks documented with component names, file paths, and status
+- [ ] Client Portal isolation described (no workspace sidebar, clientId-scoped data)
+- [ ] Analytics charts documented (libraries used, chart types)
+- [ ] Notification Center: bell icon, unread badge, mark-as-read
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_13/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E47-90]. Blocked by: Sprint 13 completion.
+
+---
+
+### DA-E47-87 — Write individual sprint report for Sprint 13 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's contributions in Sprint 13 in `sprint_13/members/tuannm.md`. No Sprint 13 tasks assigned to Tuấn — note any support work.
+
+**Acceptance Criteria:**
+- [ ] Any support work documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_13/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E47-90]. Blocked by: Sprint 13 completion.
+
+---
+
+### DA-E47-88 — Write individual sprint report for Sprint 13 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's contributions in Sprint 13 in `sprint_13/members/anha.md`. Task: DA-E38-03 (report email sending — auto-send PDF to Brand Client on schedule).
+
+**Acceptance Criteria:**
+- [ ] Email sending mechanism documented (email library, schedule config)
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_13/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E47-90]. Blocked by: Sprint 13 completion.
+
+---
+
+### DA-E47-89 — Write individual sprint report for Sprint 13 — Phước
+**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
+
+**Goal:** Document Phước's contributions in Sprint 13 in `sprint_13/members/phuocnc.md`. No Sprint 13 tasks assigned to Phước — note any support work.
+
+**Acceptance Criteria:**
+- [ ] Any support work documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_13/members/phuocnc.md`
+
+**Dependencies:** Blocks: [DA-E47-90]. Blocked by: Sprint 13 completion.
+
+---
+
+### DA-E47-90 — Review all member reports + write team SPRINT_REPORT for Sprint 13
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 5 Sprint 13 member reports, verify against git history, write `sprint_13/SPRINT_REPORT.md`.
+
+**Acceptance Criteria:**
+- [ ] Covers E37 (4), E38 (4), E39 (3) tasks
+- [ ] Client Portal, Analytics Dashboard, Notification Center verified functional
+- [ ] Automated PDF report generation and email sending working
+- [ ] Retrospective + action items for Sprint 14
+
+**Dependencies:** Blocks: [DA-E47-91]. Blocked by: [DA-E47-85] through [DA-E47-89].
+
+---
+
+### DA-E47-91 — Finalize and commit Sprint 13 report to brandhub-infrastructure
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all Sprint 13 report files on branch `docs/sprint-13-report` and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Commit message: `docs(sprint-13): add sprint 13 team and member reports`
+- [ ] PR merged, no placeholders remaining
+
+**Dependencies:** Blocked by: [DA-E47-90].
+
+---
+
+### DA-E47-92 — Write individual sprint report for Sprint 14 — Trung
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Document Trung's contributions in Sprint 14 in `sprint_14/members/trungle.md`. Task: DA-E41-02 (FCM server-side setup in business-service).
+
+**Acceptance Criteria:**
+- [ ] FCM integration documented: event triggers, FCM HTTP API v1 call, payload format
+- [ ] Deep link data payload structure noted
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_14/members/trungle.md`
+
+**Dependencies:** Blocks: [DA-E47-97]. Blocked by: Sprint 14 completion.
+
+---
+
+### DA-E47-93 — Write individual sprint report for Sprint 14 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's contributions in Sprint 14 in `sprint_14/members/locnv.md`. Tasks: DA-E40-01 through 06 (full React Native app setup + all screens), DA-E41-01/03/04 (FCM client-side, Notification screen, camera/gallery upload).
+
+**Acceptance Criteria:**
+- [ ] All 9 tasks documented with screen names, navigation structure, and status
+- [ ] Offline draft AsyncStorage key pattern documented
+- [ ] FCM permission flow described (first launch request → token save → handler setup)
+- [ ] Deep link navigation table included
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_14/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E47-97]. Blocked by: Sprint 14 completion.
+
+---
+
+### DA-E47-94 — Write individual sprint report for Sprint 14 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's contributions in Sprint 14 in `sprint_14/members/tuannm.md`. No Sprint 14 tasks assigned to Tuấn — note any support work.
+
+**Acceptance Criteria:**
+- [ ] Any support work documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_14/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E47-97]. Blocked by: Sprint 14 completion.
+
+---
+
+### DA-E47-95 — Write individual sprint report for Sprint 14 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's contributions in Sprint 14 in `sprint_14/members/anha.md`. No Sprint 14 tasks assigned to Ân — note any support work.
+
+**Acceptance Criteria:**
+- [ ] Any support work documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_14/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E47-97]. Blocked by: Sprint 14 completion.
+
+---
+
+### DA-E47-96 — Write individual sprint report for Sprint 14 — Phước
+**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
+
+**Goal:** Document Phước's contributions in Sprint 14 in `sprint_14/members/phuocnc.md`. No Sprint 14 tasks assigned to Phước — note any support work.
+
+**Acceptance Criteria:**
+- [ ] Any support work documented
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_14/members/phuocnc.md`
+
+**Dependencies:** Blocks: [DA-E47-97]. Blocked by: Sprint 14 completion.
+
+---
+
+### DA-E47-97 — Review all member reports + write team SPRINT_REPORT for Sprint 14
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 5 Sprint 14 member reports, verify against git history, write `sprint_14/SPRINT_REPORT.md`.
+
+**Acceptance Criteria:**
+- [ ] Covers E40 (6), E41 (4) tasks
+- [ ] React Native app verified: runs on iOS + Android, auth screens, calendar, approval, FCM
+- [ ] Offline draft + camera/gallery upload working
+- [ ] Retrospective + action items for Sprint 15
+
+**Dependencies:** Blocks: [DA-E47-98]. Blocked by: [DA-E47-92] through [DA-E47-96].
+
+---
+
+### DA-E47-98 — Finalize and commit Sprint 14 report to brandhub-infrastructure
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all Sprint 14 report files on branch `docs/sprint-14-report` and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Commit message: `docs(sprint-14): add sprint 14 team and member reports`
+- [ ] PR merged, no placeholders remaining
+
+**Dependencies:** Blocked by: [DA-E47-97].
+
+---
+
+### DA-E47-99 — Write individual sprint report for Sprint 15 — Trung
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Document Trung's contributions in Sprint 15 in `sprint_15/members/trungle.md`. Tasks: DA-E42-01 (unit tests for AuthService, WorkspaceService, PostService), DA-E43-03 (security audit checklist).
+
+**Acceptance Criteria:**
+- [ ] Unit test coverage percentage reported for each service
+- [ ] Security audit table completed: 10 checklist items with pass/fail result and evidence
+- [ ] Any vulnerabilities found and fixed documented
+- [ ] Self-assessment filled
+
+**Technical Notes:**
+- Unit test framework: JUnit 5 + Mockito
+- Security audit covers: SQL injection, NoSQL injection, XSS, CSRF, JWT, AES key exposure, S3, RabbitMQ, Admin endpoints, internal endpoints
+- File: `sprint_15/members/trungle.md`
+
+**Dependencies:** Blocks: [DA-E47-104]. Blocked by: Sprint 15 completion.
+
+---
+
+### DA-E47-100 — Write individual sprint report for Sprint 15 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's contributions in Sprint 15 in `sprint_15/members/locnv.md`. Task: DA-E43-02 (UI responsive fixes across 4 breakpoints).
+
+**Acceptance Criteria:**
+- [ ] Responsive fixes documented per breakpoint (1920/1440/1280/mobile)
+- [ ] Components/pages that needed fixing listed
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_15/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E47-104]. Blocked by: Sprint 15 completion.
+
+---
+
+### DA-E47-101 — Write individual sprint report for Sprint 15 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's contributions in Sprint 15 in `sprint_15/members/tuannm.md`. Task: DA-E42-02 (unit tests for ai-service: content generation, RAG pipeline, image generation).
+
+**Acceptance Criteria:**
+- [ ] Test coverage per ai-service module reported
+- [ ] Mocking strategy documented (Groq API mock, ChromaDB mock, Stability AI mock)
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_15/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E47-104]. Blocked by: Sprint 15 completion.
+
+---
+
+### DA-E47-102 — Write individual sprint report for Sprint 15 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's contributions in Sprint 15 in `sprint_15/members/anha.md`. Tasks: DA-E42-04 (performance testing — 200 concurrent users with JMeter/k6), DA-E43-01 (sprint retrospective + bug list compilation, All Team).
+
+**Acceptance Criteria:**
+- [ ] Load test results documented: p95 latency, error rate, RPS at 200 concurrent users
+- [ ] Bug list from retrospective referenced (count and severity breakdown)
+- [ ] Self-assessment filled
+
+**Technical Notes:**
+- Target: p95 < 500ms for non-AI endpoints, < 0.1% errors
+- File: `sprint_15/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E47-104]. Blocked by: Sprint 15 completion.
+
+---
+
+### DA-E47-103 — Write individual sprint report for Sprint 15 — Phước
+**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
+
+**Goal:** Document Phước's contributions in Sprint 15 in `sprint_15/members/phuocnc.md`. Tasks: DA-E42-03 (integration tests for business-service with Testcontainers), DA-E42-05 (E2E publish test on sandbox accounts for all 5 platforms).
+
+**Acceptance Criteria:**
+- [ ] Integration test scenarios documented (auth flow, RBAC, workspace isolation)
+- [ ] E2E publish test results per platform (pass/fail + any issues noted)
+- [ ] Testcontainers setup described (MongoDB + Redis in Docker)
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_15/members/phuocnc.md`
+
+**Dependencies:** Blocks: [DA-E47-104]. Blocked by: Sprint 15 completion.
+
+---
+
+### DA-E47-104 — Review all member reports + write team SPRINT_REPORT for Sprint 15
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 5 Sprint 15 member reports, verify against git history, write `sprint_15/SPRINT_REPORT.md`.
+
+**Acceptance Criteria:**
+- [ ] Covers E42 (5), E43 (3) tasks
+- [ ] Test results summary: unit coverage %, integration pass rate, p95 latency, E2E platform results
+- [ ] Security audit: all 10 items verified
+- [ ] All critical bugs from testing fixed
+- [ ] Retrospective + action items for Sprint 16
+
+**Dependencies:** Blocks: [DA-E47-105]. Blocked by: [DA-E47-99] through [DA-E47-103].
+
+---
+
+### DA-E47-105 — Finalize and commit Sprint 15 report to brandhub-infrastructure
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all Sprint 15 report files on branch `docs/sprint-15-report` and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Commit message: `docs(sprint-15): add sprint 15 team and member reports`
+- [ ] PR merged, no placeholders remaining
+
+**Dependencies:** Blocked by: [DA-E47-104].
+
+---
+
+### DA-E47-106 — Write individual sprint report for Sprint 16 — Trung
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Document Trung's contributions in Sprint 16 in `sprint_16/members/trungle.md`. Tasks: DA-E44-01/02/03 (VPS/EC2 setup, docker-compose.prod.yml deployment, monitoring), DA-E45-01/03 (Swagger API docs, Deployment Guide), DA-E46-02 (report consolidation and review).
+
+**Acceptance Criteria:**
+- [ ] Production server specs documented (instance type, OS, nginx config, SSL setup)
+- [ ] docker-compose.prod.yml differences from dev noted
+- [ ] Monitoring setup documented (UptimeRobot, alert thresholds)
+- [ ] Deployment Guide tested cold by a team member
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_16/members/trungle.md`
+
+**Dependencies:** Blocks: [DA-E47-111]. Blocked by: Sprint 16 completion.
+
+---
+
+### DA-E47-107 — Write individual sprint report for Sprint 16 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's contributions in Sprint 16 in `sprint_16/members/locnv.md`. Tasks: DA-E44-04 (smoke test on production), DA-E45-02 (User Manual contribution), DA-E45-04 (demo video), DA-E46-01/03/04 (capstone report, slide deck, Q&A prep).
+
+**Acceptance Criteria:**
+- [ ] Smoke test flow documented: registration → login → workspace → social connect → AI generate → approve → publish
+- [ ] Sections of User Manual authored by Lộc noted
+- [ ] Demo video timestamp breakdown referenced
+- [ ] Slide deck sections authored by Lộc noted
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_16/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E47-111]. Blocked by: Sprint 16 completion.
+
+---
+
+### DA-E47-108 — Write individual sprint report for Sprint 16 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's contributions in Sprint 16 in `sprint_16/members/tuannm.md`. Tasks: DA-E44-04 (smoke test), DA-E45-02 (User Manual — AI features section), DA-E46-01/03/04 (capstone report AI section, slide deck AI slides, Q&A prep for AI questions).
+
+**Acceptance Criteria:**
+- [ ] AI section of capstone report described
+- [ ] Anticipated Q&A answers prepared (InstantID technical, RAG anti-hallucination)
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_16/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E47-111]. Blocked by: Sprint 16 completion.
+
+---
+
+### DA-E47-109 — Write individual sprint report for Sprint 16 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's contributions in Sprint 16 in `sprint_16/members/anha.md`. Tasks: DA-E44-04 (smoke test), DA-E45-02 (User Manual), DA-E46-01/03/04 (capstone report video generation section, slides, Q&A prep for video/cost questions).
+
+**Acceptance Criteria:**
+- [ ] Video generation and cost analysis sections of capstone report described
+- [ ] AI cost analysis results referenced (per feature × 1000 users/month)
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_16/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E47-111]. Blocked by: Sprint 16 completion.
+
+---
+
+### DA-E47-110 — Write individual sprint report for Sprint 16 — Phước
+**Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
+
+**Goal:** Document Phước's contributions in Sprint 16 in `sprint_16/members/phuocnc.md`. Tasks: DA-E44-04 (smoke test), DA-E45-02 (User Manual — publisher/social accounts section), DA-E46-01/03/04 (capstone report publisher section, slides, Q&A prep for publisher/platform questions).
+
+**Acceptance Criteria:**
+- [ ] Publisher service and social platform sections of capstone report described
+- [ ] Anticipated Q&A prepared (adapter pattern, API version changes)
+- [ ] Self-assessment filled
+
+**Technical Notes:** File: `sprint_16/members/phuocnc.md`
+
+**Dependencies:** Blocks: [DA-E47-111]. Blocked by: Sprint 16 completion.
+
+---
+
+### DA-E47-111 — Review all member reports + write team SPRINT_REPORT for Sprint 16
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 5 Sprint 16 member reports, verify against production evidence, write `sprint_16/SPRINT_REPORT.md` — the final sprint report for the entire project.
+
+**Acceptance Criteria:**
+- [ ] Covers E44 (4), E45 (4), E46 (4) tasks
+- [ ] Production deployment verified: all 7 services healthy, SSL active, smoke test passed
+- [ ] All final documentation confirmed: Swagger, User Manual, Deployment Guide, Demo Video
+- [ ] Capstone report submitted to FPT, presentation delivered
+- [ ] Final retrospective: overall project reflection (16 sprints), what the team would do differently, key learnings
+
+**Dependencies:** Blocks: [DA-E47-112]. Blocked by: [DA-E47-106] through [DA-E47-110].
+
+---
+
+### DA-E47-112 — Finalize and commit Sprint 16 report to brandhub-infrastructure
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all Sprint 16 report files on branch `docs/sprint-16-report` and merge to `develop`. This is the final commit of the project documentation.
+
+**Acceptance Criteria:**
+- [ ] Commit message: `docs(sprint-16): add sprint 16 team and member reports`
+- [ ] PR merged to `develop`, then `develop` merged to `main`
+- [ ] No placeholder text in any file across all 16 sprint report folders
+- [ ] `docs/plan/sprints/` directory structure complete: 16 sprint folders each with `PLAN.md`, `SPRINT_REPORT.md`, and `members/` subfolder
+
+**Dependencies:** Blocked by: [DA-E47-111].
+
+---
+
+> **Individual report format** (tasks DA-E48-{n} where n % 5 ∈ {1..3}): Each AI track member (Tuấn, Ân, Lộc) fills their own `members/{handle}.md` file under the iteration folder. Same 8-section format as E47 individual reports: personal info, task list with Jira links + status, detailed work log per task, incomplete tasks, bonus contributions, learnings, feedback & suggestions, self-assessment (out of 20).
+>
+> **Team report format** (tasks DA-E48-{n} where n % 5 = 4): Lộc reads all 3 member reports, verifies against git history, then writes `ITERATION_REPORT.md` covering: iteration overview, completion rate, task breakdown table, deliverables list with evidence, retrospective, workload distribution, and action items for the next iteration. Lộc plays this aggregator role for the AI track the same way Trung does for sprints in E47.
+>
+> **Finalize task** (tasks DA-E48-{n} where n % 5 = 0): Commit all report files to `brandhub-infrastructure` under `docs/plan/iterations/iteration_{X}/` on branch `docs/ai-iteration-{X}-report`, then merge to `develop`.
+
+---
+
+### DA-E48-01 — Write individual AI iteration report for Iteration 1 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's personal contributions in AI Iteration 1 in `iterations/iteration_1/members/tuannm.md`, covering AI-01 ambassador-tool research/comparison work.
+
+**Acceptance Criteria:**
+- [ ] All assigned tasks (DA-AI01-01, DA-AI01-02) listed with Jira links and final status
+- [ ] Each task has: branch name, commit hash, files changed, work description, time spent
+- [ ] Self-assessment table filled (score out of 20)
+- [ ] File submitted before iteration review meeting
+
+**Technical Notes:**
+- Iteration 1 tasks: DA-AI01-01 (InstantID vs IP-Adapter vs ControlNet research), DA-AI01-02 (comparison table on 5 sample images)
+- File: `iterations/iteration_1/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E48-04]. Blocked by: AI Iteration 1 work completion.
+
+---
+
+### DA-E48-02 — Write individual AI iteration report for Iteration 1 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's personal contributions in AI Iteration 1 in `iterations/iteration_1/members/anha.md`, covering AI-01 video research and the consolidated AI Research Summary Document.
+
+**Acceptance Criteria:**
+- [ ] All assigned tasks (DA-AI01-03, DA-AI01-04, DA-AI01-08) listed with Jira links and final status
+- [ ] Each task has: branch name, commit hash, files changed, work description, time spent
+- [ ] AI Research Summary Document (DA-AI01-08) linked as deliverable evidence
+- [ ] Self-assessment filled
+
+**Technical Notes:**
+- Iteration 1 tasks: DA-AI01-03 (Google Veo API research), DA-AI01-04 (20+ video prompt tests), DA-AI01-08 (research summary doc)
+- File: `iterations/iteration_1/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E48-04]. Blocked by: AI Iteration 1 work completion.
+
+---
+
+### DA-E48-03 — Write individual AI iteration report for Iteration 1 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's personal contributions in AI Iteration 1 in `iterations/iteration_1/members/locnv.md`, covering AI-01 compositing research and AI-02 service scaffolding.
+
+**Acceptance Criteria:**
+- [ ] All assigned tasks (DA-AI01-05/06, DA-AI02-01/03/05) listed with Jira links and final status
+- [ ] Each task has: branch name, commit hash, files changed, work description, time spent
+- [ ] `brandhub-ai-service` scaffold and Dockerfile work documented with commit evidence
+- [ ] Self-assessment filled
+
+**Technical Notes:**
+- Iteration 1 tasks: DA-AI01-05/06 (compositing research), DA-AI02-01 (ai-service init), DA-AI02-03 (S3 client), DA-AI02-05 (Dockerfile + docker-compose)
+- File: `iterations/iteration_1/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E48-04]. Blocked by: AI Iteration 1 work completion.
+
+---
+
+### DA-E48-04 — Review all member reports + write team ITERATION_REPORT for Iteration 1
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 3 member reports for AI Iteration 1, verify claims against git history, then write the team-level `iterations/iteration_1/ITERATION_REPORT.md` covering overall iteration outcome, completion rate, and retrospective.
+
+**Acceptance Criteria:**
+- [ ] All 3 member report files exist and are non-empty before starting this task
+- [ ] ITERATION_REPORT.md covers: iteration overview, completion rate, deliverables table with evidence, retrospective, workload table, action items for Iteration 2
+- [ ] Completion rate and deliverables verified against git log
+- [ ] Decisions required for downstream iterations (InstantID choice, LLM choice) explicitly recorded with rationale
+
+**Technical Notes:**
+- Iteration 1: 15 tasks total (AI-01: 8, AI-02: 7)
+- Main deliverables: 3 comparison reports, AI Research Summary Document, `brandhub-ai-service` scaffolded and running
+- File: `iterations/iteration_1/ITERATION_REPORT.md`
+
+**Dependencies:** Blocks: [DA-E48-05]. Blocked by: [DA-E48-01], [DA-E48-02], [DA-E48-03].
+
+---
+
+### DA-E48-05 — Finalize and commit Iteration 1 report to brandhub-infrastructure
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all AI Iteration 1 report files (`ITERATION_REPORT.md` + all member `.md` files) to `brandhub-infrastructure` on the correct branch and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Branch `docs/ai-iteration-1-report` created from `develop`
+- [ ] All files under `docs/plan/iterations/iteration_1/` committed with conventional commit message: `docs(ai-iteration-1): add iteration 1 team and member reports`
+- [ ] PR opened, reviewed by at least 1 member, merged to `develop`
+- [ ] No placeholder text remaining in any report file
+
+**Technical Notes:**
+- Target path: `docs/plan/iterations/iteration_1/`
+- Conventional commit: `docs(ai-iteration-1): add iteration 1 team and member reports`
+
+**Dependencies:** Blocks: [DA-E48-06]. Blocked by: [DA-E48-04].
+
+---
+
+### DA-E48-06 — Write individual AI iteration report for Iteration 2 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's personal contributions in AI Iteration 2 in `iterations/iteration_2/members/tuannm.md`, covering ChromaDB/RAG infrastructure and LLM client work from AI-02/AI-03.
+
+**Acceptance Criteria:**
+- [ ] All assigned tasks listed with Jira links and final status
+- [ ] Each task has: branch name, commit hash, files changed, work description, time spent
+- [ ] Self-assessment filled
+
+**Technical Notes:**
+- Iteration 2 epics: AI-03 (RAG Knowledge Base Pipeline), AI-04 (LLM Content Generation), AI-05 (Trend Crawler Service) — see `iterations/AI_Iteration_2_RAG_LLM_Trends.md` for Tuấn's exact task assignments
+- File: `iterations/iteration_2/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E48-09]. Blocked by: AI Iteration 2 work completion.
+
+---
+
+### DA-E48-07 — Write individual AI iteration report for Iteration 2 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's personal contributions in AI Iteration 2 in `iterations/iteration_2/members/anha.md`, covering RAG chunking/context builder, LLM prompt system, and trend crawler work.
+
+**Acceptance Criteria:**
+- [ ] All assigned tasks listed with Jira links and final status
+- [ ] Each task has: branch name, commit hash, files changed, work description, time spent
+- [ ] Self-assessment filled
+
+**Technical Notes:**
+- Iteration 2 epics: AI-03, AI-04, AI-05 — see `iterations/AI_Iteration_2_RAG_LLM_Trends.md` for Ân's exact task assignments
+- File: `iterations/iteration_2/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E48-09]. Blocked by: AI Iteration 2 work completion.
+
+---
+
+### DA-E48-08 — Write individual AI iteration report for Iteration 2 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's personal contributions in AI Iteration 2 in `iterations/iteration_2/members/locnv.md`.
+
+**Acceptance Criteria:**
+- [ ] All assigned tasks listed with Jira links and final status
+- [ ] Each task has: branch name, commit hash, files changed, work description, time spent
+- [ ] Self-assessment filled
+
+**Technical Notes:**
+- Iteration 2 epics: AI-03, AI-04, AI-05 — see `iterations/AI_Iteration_2_RAG_LLM_Trends.md` for Lộc's exact task assignments
+- File: `iterations/iteration_2/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E48-09]. Blocked by: AI Iteration 2 work completion.
+
+---
+
+### DA-E48-09 — Review all member reports + write team ITERATION_REPORT for Iteration 2
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 3 member reports for AI Iteration 2, verify claims against git history, then write `iterations/iteration_2/ITERATION_REPORT.md`.
+
+**Acceptance Criteria:**
+- [ ] All 3 member report files exist and are non-empty before starting this task
+- [ ] ITERATION_REPORT.md covers: iteration overview, completion rate, deliverables table with evidence, retrospective, workload table, action items for Iteration 3
+- [ ] Completion rate and deliverables verified against git log
+
+**Technical Notes:**
+- Main deliverables: RAG pipeline working, LLM content generation with anti-hallucination, trend crawler
+- File: `iterations/iteration_2/ITERATION_REPORT.md`
+
+**Dependencies:** Blocks: [DA-E48-10]. Blocked by: [DA-E48-06], [DA-E48-07], [DA-E48-08].
+
+---
+
+### DA-E48-10 — Finalize and commit Iteration 2 report to brandhub-infrastructure
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all AI Iteration 2 report files to `brandhub-infrastructure` on the correct branch and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Branch `docs/ai-iteration-2-report` created from `develop`
+- [ ] All files under `docs/plan/iterations/iteration_2/` committed with conventional commit message: `docs(ai-iteration-2): add iteration 2 team and member reports`
+- [ ] PR opened, reviewed by at least 1 member, merged to `develop`
+- [ ] No placeholder text remaining in any report file
+
+**Technical Notes:** Conventional commit: `docs(ai-iteration-2): add iteration 2 team and member reports`
+
+**Dependencies:** Blocks: [DA-E48-11]. Blocked by: [DA-E48-09].
+
+---
+
+### DA-E48-11 — Write individual AI iteration report for Iteration 3 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's personal contributions in AI Iteration 3 in `iterations/iteration_3/members/tuannm.md`, covering InstantID ambassador pipeline work.
+
+**Acceptance Criteria:**
+- [ ] All assigned tasks listed with Jira links and final status
+- [ ] Each task has: branch name, commit hash, files changed, work description, time spent
+- [ ] Self-assessment filled
+
+**Technical Notes:**
+- Iteration 3 epics: AI-06 (Image Generation Pipeline), AI-07 (Virtual Brand Ambassador / InstantID), AI-08 (Image Composition Pipeline) — see `iterations/AI_Iteration_3_Image_Ambassador_Composition.md` for Tuấn's exact task assignments
+- File: `iterations/iteration_3/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E48-14]. Blocked by: AI Iteration 3 work completion.
+
+---
+
+### DA-E48-12 — Write individual AI iteration report for Iteration 3 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's personal contributions in AI Iteration 3 in `iterations/iteration_3/members/anha.md`.
+
+**Acceptance Criteria:**
+- [ ] All assigned tasks listed with Jira links and final status
+- [ ] Each task has: branch name, commit hash, files changed, work description, time spent
+- [ ] Self-assessment filled
+
+**Technical Notes:**
+- Iteration 3 epics: AI-06, AI-07, AI-08 — see `iterations/AI_Iteration_3_Image_Ambassador_Composition.md` for Ân's exact task assignments
+- File: `iterations/iteration_3/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E48-14]. Blocked by: AI Iteration 3 work completion.
+
+---
+
+### DA-E48-13 — Write individual AI iteration report for Iteration 3 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's personal contributions in AI Iteration 3 in `iterations/iteration_3/members/locnv.md`, covering image generation UI and composition pipeline work.
+
+**Acceptance Criteria:**
+- [ ] All assigned tasks listed with Jira links and final status
+- [ ] Each task has: branch name, commit hash, files changed, work description, time spent
+- [ ] Self-assessment filled
+
+**Technical Notes:**
+- Iteration 3 epics: AI-06, AI-07, AI-08 — see `iterations/AI_Iteration_3_Image_Ambassador_Composition.md` for Lộc's exact task assignments
+- File: `iterations/iteration_3/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E48-14]. Blocked by: AI Iteration 3 work completion.
+
+---
+
+### DA-E48-14 — Review all member reports + write team ITERATION_REPORT for Iteration 3
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 3 member reports for AI Iteration 3, verify claims against git history, then write `iterations/iteration_3/ITERATION_REPORT.md`.
+
+**Acceptance Criteria:**
+- [ ] All 3 member report files exist and are non-empty before starting this task
+- [ ] ITERATION_REPORT.md covers: iteration overview, completion rate, deliverables table with evidence, retrospective, workload table, action items for Iteration 4
+- [ ] Completion rate and deliverables verified against git log
+
+**Technical Notes:**
+- Main deliverables: Image generation (SDXL), InstantID ambassador, image composition pipeline
+- File: `iterations/iteration_3/ITERATION_REPORT.md`
+
+**Dependencies:** Blocks: [DA-E48-15]. Blocked by: [DA-E48-11], [DA-E48-12], [DA-E48-13].
+
+---
+
+### DA-E48-15 — Finalize and commit Iteration 3 report to brandhub-infrastructure
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all AI Iteration 3 report files to `brandhub-infrastructure` on the correct branch and merge to `develop`.
+
+**Acceptance Criteria:**
+- [ ] Branch `docs/ai-iteration-3-report` created from `develop`
+- [ ] All files under `docs/plan/iterations/iteration_3/` committed with conventional commit message: `docs(ai-iteration-3): add iteration 3 team and member reports`
+- [ ] PR opened, reviewed by at least 1 member, merged to `develop`
+- [ ] No placeholder text remaining in any report file
+
+**Technical Notes:** Conventional commit: `docs(ai-iteration-3): add iteration 3 team and member reports`
+
+**Dependencies:** Blocks: [DA-E48-16]. Blocked by: [DA-E48-14].
+
+---
+
+### DA-E48-16 — Write individual AI iteration report for Iteration 4 — Tuấn
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Tuấn's personal contributions in AI Iteration 4 in `iterations/iteration_4/members/tuannm.md`.
+
+**Acceptance Criteria:**
+- [ ] All assigned tasks listed with Jira links and final status
+- [ ] Each task has: branch name, commit hash, files changed, work description, time spent
+- [ ] Self-assessment filled
+
+**Technical Notes:**
+- Iteration 4 epics: AI-09 (AI Video Generation), AI-10 (AI Service Integration & API Finalize), AI-11 (AI Research Documentation & Demo) — see `iterations/AI_Iteration_4_Video_Integration_Documentation.md` for Tuấn's exact task assignments
+- File: `iterations/iteration_4/members/tuannm.md`
+
+**Dependencies:** Blocks: [DA-E48-19]. Blocked by: AI Iteration 4 work completion.
+
+---
+
+### DA-E48-17 — Write individual AI iteration report for Iteration 4 — Ân
+**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+
+**Goal:** Document Ân's personal contributions in AI Iteration 4 in `iterations/iteration_4/members/anha.md`, covering Veo video generation and AI research summaries.
+
+**Acceptance Criteria:**
+- [ ] All assigned tasks listed with Jira links and final status
+- [ ] Each task has: branch name, commit hash, files changed, work description, time spent
+- [ ] Self-assessment filled
+
+**Technical Notes:**
+- Iteration 4 epics: AI-09, AI-10, AI-11 — see `iterations/AI_Iteration_4_Video_Integration_Documentation.md` for Ân's exact task assignments
+- File: `iterations/iteration_4/members/anha.md`
+
+**Dependencies:** Blocks: [DA-E48-19]. Blocked by: AI Iteration 4 work completion.
+
+---
+
+### DA-E48-18 — Write individual AI iteration report for Iteration 4 — Lộc
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Document Lộc's personal contributions in AI Iteration 4 in `iterations/iteration_4/members/locnv.md`.
+
+**Acceptance Criteria:**
+- [ ] All assigned tasks listed with Jira links and final status
+- [ ] Each task has: branch name, commit hash, files changed, work description, time spent
+- [ ] Self-assessment filled
+
+**Technical Notes:**
+- Iteration 4 epics: AI-09, AI-10, AI-11 — see `iterations/AI_Iteration_4_Video_Integration_Documentation.md` for Lộc's exact task assignments
+- File: `iterations/iteration_4/members/locnv.md`
+
+**Dependencies:** Blocks: [DA-E48-19]. Blocked by: AI Iteration 4 work completion.
+
+---
+
+### DA-E48-19 — Review all member reports + write team ITERATION_REPORT for Iteration 4
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Read all 3 member reports for AI Iteration 4, verify claims against git history, then write `iterations/iteration_4/ITERATION_REPORT.md`. This is the final AI track report, consolidating the full 4-iteration AI track outcome.
+
+**Acceptance Criteria:**
+- [ ] All 3 member report files exist and are non-empty before starting this task
+- [ ] ITERATION_REPORT.md covers: iteration overview, completion rate, deliverables table with evidence, retrospective, workload table
+- [ ] Completion rate and deliverables verified against git log
+- [ ] Final AI track retrospective: overall reflection across all 4 iterations, what the team would do differently, key learnings
+
+**Technical Notes:**
+- Main deliverables: Veo video generation, all AI endpoints finalized, integration tests, AI research reports
+- File: `iterations/iteration_4/ITERATION_REPORT.md`
+
+**Dependencies:** Blocks: [DA-E48-20]. Blocked by: [DA-E48-16], [DA-E48-17], [DA-E48-18].
+
+---
+
+### DA-E48-20 — Finalize and commit Iteration 4 report to brandhub-infrastructure
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Commit all AI Iteration 4 report files on branch `docs/ai-iteration-4-report` and merge to `develop`. This is the final commit of the AI track documentation.
+
+**Acceptance Criteria:**
+- [ ] Commit message: `docs(ai-iteration-4): add iteration 4 team and member reports`
+- [ ] PR merged to `develop`, then `develop` merged to `main`
+- [ ] No placeholder text in any file across all 4 iteration report folders
+- [ ] `docs/plan/iterations/` directory structure complete: 4 iteration folders each with `ITERATION_REPORT.md` and `members/` subfolder
+
+**Dependencies:** Blocked by: [DA-E48-19].
+
+---
+
 ### DA-E28-03 — Implement status transition logic
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
