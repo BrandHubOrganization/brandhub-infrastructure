@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E44-04",
+    "summary": "[DA-E44-04] Smoke test tren production environment",
+    "assignee": "All (Team)",
+    "priority": "Highest",
+    "epic_key": "DA-128",
+    "description": "### DA-E44-04 — Run production smoke test\n**Assignee:** All (Team) | **Priority:** 🔴 Critical\n\n**Goal:** Verify the end-to-end user journey works correctly on the production environment to confirm the deployment is fully functional before submission.\n\n**Acceptance Criteria:**\n- [ ] Register a new agency account → Login → Create workspace → Connect a social account → Create a content request\n- [ ] CONTENT_CREATOR generates AI content → saves draft → submits for review\n- [ ] ACCOUNT_MANAGER approves → sends to client\n- [ ] BRAND_CLIENT logs in to portal → approves the post\n- [ ] Post is scheduled and published → verified as PUBLISHED status in the DB and visible on the platform\n- [ ] All steps completed without errors; any issue found is logged and fixed before sign-off\n\n**Technical Notes:**\n- Use real (non-test) social accounts for the final smoke test to confirm real publishing works\n- Document the smoke test run with screenshots at each step; commit to `/smoke-test/results/` folder\n- If publishing to real platforms is risky, use a private/test Facebook Page with no followers\n\n**Dependencies:** Blocks: [DA-E45-01]. Blocked by: [DA-E44-02, DA-E44-03, DA-E43-02].\n\n---"
+  },
+  {
+    "id": "DA-E45-01",
+    "summary": "[DA-E45-01] Finalize Swagger API docs cho business-service",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-130",
+    "description": "### DA-E45-01 — Finalize Swagger/OpenAPI documentation\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Deliver complete, accurate API documentation for business-service so evaluators and future developers can understand and use the API without reading source code.\n\n**Acceptance Criteria:**\n- [ ] All endpoints documented with `@Operation`, `@ApiResponse`, `@RequestBody`, `@Parameter` annotations\n- [ ] Each endpoint has at least one success example (200/201) and relevant error examples (400, 401, 403, 404, 409)\n- [ ] Request and response schemas include field-level `@Schema(description=...)` annotations\n- [ ] Swagger UI accessible at `https://api.brandhub.com/swagger-ui.html` (or `/api-docs`)\n- [ ] OpenAPI 3.0 spec JSON exported and committed to `/docs/openapi.json`\n\n**Technical Notes:**\n- Use `springdoc-openapi-starter-webmvc-ui` dependency (not the deprecated springfox)\n- Group endpoints by tag: `Auth`, `Workspace`, `Client`, `ContentRequest`, `Post`, `Analytics`, `Notification`, `Admin`\n- Secure Swagger UI in production: require Basic Auth or restrict to internal IP via nginx\n\n**Dependencies:** Blocks: [DA-E45-02]. Blocked by: [DA-E44-04].\n\n---"
+  },
+  {
+    "id": "DA-E45-02",
+    "summary": "[DA-E45-02] Viet User Manual (huong dan su dung cho tung role)",
+    "assignee": "All (Team)",
+    "priority": "High",
+    "epic_key": "DA-130",
+    "description": "### DA-E45-02 — Write User Manual\n**Assignee:** All (Team) | **Priority:** 🟡 High\n\n**Goal:** Provide a comprehensive user manual covering all 6 roles so that new users and evaluators can understand system capabilities without requiring a walkthrough.\n\n**Acceptance Criteria:**\n- [ ] Manual covers all 6 roles: ADMIN, AGENCY_OWNER, ACCOUNT_MANAGER, CONTENT_CREATOR, BRAND_CLIENT, GUEST\n- [ ] Each role section includes: role overview, available features, step-by-step instructions for key workflows, annotated screenshots\n- [ ] Key workflows documented: onboarding, content request lifecycle, AI generation, approval process, publishing, analytics\n- [ ] Manual formatted as PDF and Word (.docx); committed to `/docs/user-manual/`\n- [ ] Total length: 30–60 pages with screenshots\n\n**Technical Notes:**\n- Screenshots taken from the production deployment after DA-E44-04 smoke test passes\n- Use consistent screenshot annotations: numbered callouts, red rectangle highlights for UI elements\n- GUEST role section covers public-facing pages only (if any exist) or the registration flow\n\n**Dependencies:** Blocks: [DA-E45-04]. Blocked by: [DA-E45-01].\n\n---"
+  },
+  {
+    "id": "DA-E45-03",
+    "summary": "[DA-E45-03] Viet Deployment Guide (step-by-step de deploy tu dau)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-130",
+    "description": "### DA-E45-03 — Write Deployment Guide\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Document the exact steps to deploy BrandHub from scratch so the system can be reproduced by evaluators or a new team member.\n\n**Acceptance Criteria:**\n- [ ] 7 steps documented: 1) Prerequisites (Docker, git, domain), 2) Clone repo, 3) Configure .env.prod, 4) docker-compose up, 5) Verify all service health endpoints, 6) Configure nginx + SSL (certbot), 7) Initialize DB (indexes, admin user seed)\n- [ ] Each step includes the exact command(s) to run and expected output\n- [ ] `.env.prod.example` file committed to repo with all required variable keys (values blank/placeholder)\n- [ ] Troubleshooting section covers 5 common issues: port conflict, out-of-memory, MongoDB auth failure, RabbitMQ plugin missing, SSL cert renewal\n- [ ] Guide tested by a team member not involved in deployment to verify accuracy\n\n**Technical Notes:**\n- Include `docker compose ps` and `curl https://api.brandhub.com/health` as verification commands after step 4\n- Document RabbitMQ delayed message exchange plugin enablement as a required step\n- Note minimum server specs: 2 vCPU, 4GB RAM, 20GB disk, Ubuntu 22.04\n\n**Dependencies:** Blocks: [DA-E45-04]. Blocked by: [DA-E44-04].\n\n---"
+  },
+  {
+    "id": "DA-E45-04",
+    "summary": "[DA-E45-04] Record demo video (5-10 phut showcase tat ca features)",
+    "assignee": "All (Team)",
+    "priority": "Highest",
+    "epic_key": "DA-130",
+    "description": "### DA-E45-04 — Record demo video\n**Assignee:** All (Team) | **Priority:** 🔴 Critical\n\n**Goal:** Produce a polished 7-minute demo video showcasing all key system capabilities so evaluators can assess the product without a live demonstration.\n\n**Acceptance Criteria:**\n- [ ] Scene 1 (~30s): System overview — architecture diagram, tech stack summary\n- [ ] Scene 2 (~60s): AGENCY_OWNER — create workspace, invite members, connect social account\n- [ ] Scene 3 (~45s): BRAND_CLIENT — submit content request\n- [ ] Scene 4 (~90s): CONTENT_CREATOR — open request, trigger AI generate, edit caption, attach image, submit for review\n- [ ] Scene 5 (~45s): ACCOUNT_MANAGER — review post, approve, send to client\n- [ ] Scene 6 (~45s): BRAND_CLIENT — log into portal, view preview, approve post\n- [ ] Scene 7 (~30s): Publishing — show post moving to PUBLISHED status, show post live on platform\n- [ ] Scene 8 (~45s): Analytics — dashboard charts, download PDF report\n- [ ] Scene 9 (~30s): Mobile — show approval and notification on phone\n- [ ] Video exported as MP4 1080p; uploaded to Google Drive/YouTube and link committed to `/docs/demo-link.txt`\n\n**Technical Notes:**\n- Record with OBS Studio (free) at 1920×1080; use screen capture + webcam overlay for presenter\n- Narrate in Vietnamese (matching FPT submission language) with clear audio; add English subtitles if required\n- Edit in DaVinci Resolve or CapCut; trim silences, add scene title cards, add background music at 20% volume\n\n**Dependencies:** Blocks: [DA-E46-01]. Blocked by: [DA-E45-02, DA-E45-03].\n\n---"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E06-08",
+    "summary": "[DA-E06-08] Viet database access rules documentation (moi query phai co workspaceId filter, BRAND_CLIENT them clientId filter)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-47",
+    "description": "### DA-E06-08 — Write database access rules documentation (every query must include workspaceId filter; BRAND_CLIENT additionally requires clientId filter)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Document mandatory data access rules as a non-negotiable implementation contract so that no developer accidentally builds a query that can leak data across workspaces or client accounts.\n\n**Acceptance Criteria:**\n- [ ] Rule 1 is documented: every MongoDB query on a multi-tenant collection must include `{ workspaceId: <value> }` as a filter condition — no exceptions\n- [ ] Rule 2 is documented: all queries executed in the context of a BRAND_CLIENT role must additionally filter by `{ clientId: <value> }`\n- [ ] Document includes a code example (Java/Spring Data style) showing a compliant and a non-compliant query side by side\n\n**Technical Notes:**\n- Enforce Rule 1 at the repository layer in Spring Data MongoDB using a custom `ReactiveMongoTemplate` or `@Query` annotation pattern that always injects `workspaceId` from the security context — do not rely on individual developers remembering to add the filter\n- The `workspaceId` value must be extracted from the JWT claim (`workspaceId` field) passed via the `X-Workspace-Id` header set by api-gateway after token validation\n\n**Dependencies:** Blocks: DA-E07-01. Blocked by: DA-E06-02, DA-E06-03.\n\n---"
+  },
+  {
+    "id": "DA-E07-01",
+    "summary": "[DA-E07-01] Dinh nghia tat ca endpoints cho business-service (Auth, User, Workspace, Client, Post, ContentRequest, SocialAccount, Analytics, Report, Subscription, Admin)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-87",
+    "description": "### DA-E07-01 — Define all endpoints for business-service (Auth, User, Workspace, Client, Post, ContentRequest, SocialAccount, Analytics, Report, Subscription, Admin)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Produce a complete endpoint inventory for business-service so that api-gateway routing rules, frontend API clients, and OpenAPI specs can all be written from a single authoritative source.\n\n**Acceptance Criteria:**\n- [ ] Every endpoint is listed with: HTTP method, path, required role(s), request body schema (or \"none\"), and response body schema\n- [ ] All 11 functional groups are covered: Auth, User, Workspace, Client, Post, ContentRequest, SocialAccount, Analytics, Report, Subscription, Admin\n- [ ] Each endpoint specifies which JWT claims it requires from the gateway headers (X-User-Id, X-User-Role, X-Workspace-Id)\n\n**Technical Notes:**\n- Path convention: `/api/v1/{resource}` for all business-service endpoints; this must match the routing rules in api-gateway\n- Auth endpoints (`/api/v1/auth/**`) must be in the gateway's public (no-JWT) allowlist; document this explicitly on each auth endpoint entry\n\n**Dependencies:** Blocks: DA-E07-04, DA-E07-05, DA-E11-04. Blocked by: DA-E04-01, DA-E06-02, DA-E06-03, DA-E06-08.\n\n---"
+  },
+  {
+    "id": "DA-E07-02",
+    "summary": "[DA-E07-02] Dinh nghia endpoints cho ai-service (/ai/content, /ai/image, /ai/video, /ai/ambassador, /ai/rag, /ai/trends)",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-87",
+    "description": "### DA-E07-02 — Define endpoints for ai-service (/ai/content, /ai/image, /ai/video, /ai/ambassador, /ai/rag, /ai/trends)\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Produce a complete endpoint specification for ai-service so that business-service developers know exactly how to call each AI endpoint and what response format to expect.\n\n**Acceptance Criteria:**\n- [ ] All 6 endpoint groups are documented: /ai/content, /ai/image, /ai/video, /ai/ambassador, /ai/rag, /ai/trends\n- [ ] Each endpoint includes: HTTP method, full path, request body schema with field types, response schema, error codes, and expected p95 latency (from DA-E04-03)\n- [ ] Authentication mechanism for internal calls is documented (X-Internal-Api-Key header, value from environment variable)\n\n**Technical Notes:**\n- ai-service is NOT routed through the public api-gateway; business-service calls it directly on its internal Docker network hostname (`ai-service:8082`)\n- All endpoints should be async-capable (FastAPI `async def`) to avoid blocking the event loop during Groq/Stability AI HTTP calls; use `httpx.AsyncClient` not the synchronous `requests` library\n\n**Dependencies:** Blocks: DA-E07-06, DA-E05-08. Blocked by: DA-E05-04, DA-E05-07.\n\n---"
+  },
+  {
+    "id": "DA-E07-03",
+    "summary": "[DA-E07-03] Dinh nghia RabbitMQ message format cho publisher-service (publish job + callback message contract)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-87",
+    "description": "### DA-E07-03 — Define RabbitMQ message format for publisher-service (publish job + callback message contract)\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Establish the exact JSON schema for both the publish job message and the callback message so business-service and publisher-service can be developed independently against the same contract.\n\n**Acceptance Criteria:**\n- [ ] Publish job message schema is fully defined: all fields with types, required/optional, and example values — must include at minimum: jobId, postId, workspaceId, platform (FB/TikTok/Threads/Zalo), scheduledAt, content (text, mediaUrls), socialAccountCredentials reference\n- [ ] Callback message schema is fully defined: jobId, postId, status (SUCCESS/FAILED), platformPostId (on success), errorCode + errorMessage (on failure), processedAt\n- [ ] Exchange name, routing keys, and queue names are specified for both message directions\n\n**Technical Notes:**\n- Exchange name: `brandhub.publishing` (direct exchange); routing key for job: `publish.job`; routing key for callback: `publish.callback`\n- Do NOT include raw OAuth access tokens in the message payload; instead include a `socialAccountId` reference and have publisher-service fetch credentials from a secure store or receive them as an encrypted field\n\n**Dependencies:** Blocks: DA-E05-04. Blocked by: DA-E05-02.\n\n---"
+  },
+  {
+    "id": "DA-E07-04",
+    "summary": "[DA-E07-04] Viet API response format chuan (ApiResponse wrapper, error codes, HTTP status codes)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-87",
+    "description": "### DA-E07-04 — Write standard API response format (ApiResponse wrapper, error codes, HTTP status codes)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Define a single, mandatory API response envelope used by both business-service and ai-service so that frontend clients and the mobile app can use one consistent response-parsing pattern.\n\n**Acceptance Criteria:**\n- [ ] `ApiResponse<T>` wrapper schema is defined with fields: `success` (boolean), `data` (T, nullable), `error` (object with `code` and `message`, nullable), `timestamp` (ISO 8601)\n- [ ] A complete error code catalogue is written covering all expected error conditions across Auth, Content, AI, Publishing, and Admin domains (minimum 20 error codes)\n- [ ] HTTP status code usage is standardized: 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 409 Conflict, 429 Too Many Requests, 500 Internal Server Error — with the specific scenario each is used for\n\n**Technical Notes:**\n- Implement `ApiResponse` as a generic Java record in business-service and as a Pydantic model in ai-service to enforce structure at the framework level\n- 429 Too Many Requests must be returned by api-gateway (not business-service) when the Redis rate limit is exceeded; the response body must still follow the `ApiResponse` wrapper format\n\n**Dependencies:** Blocks: DA-E07-05, DA-E07-06. Blocked by: DA-E07-01.\n\n---"
+  }
+]

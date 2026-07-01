@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E18-02",
+    "summary": "[DA-E18-02] Implement Instagram Business account connection (linked via Facebook Business)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-103",
+    "description": "### DA-E18-02 — Implement Instagram Business Account Connection\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Connect an Instagram Business Account to a client by leveraging the Facebook Business Manager OAuth flow (Instagram is accessed via Facebook Graph API).\n\n**Acceptance Criteria:**\n- [ ] Instagram connection piggybacks on the Facebook OAuth flow; additional scopes `instagram_basic, instagram_content_publish` are added to DA-E18-01's OAuth request\n- [ ] After Facebook OAuth, the API calls `/{facebook-page-id}?fields=instagram_business_account` to retrieve the linked Instagram account ID\n- [ ] SocialAccount document is created for the Instagram account with {clientId, workspaceId, platform: INSTAGRAM, igAccountId, igUsername, tokenStatus: ACTIVE}\n- [ ] If no Instagram Business Account is linked to the Facebook Page, return 400 with a descriptive error and a help link\n- [ ] Instagram and Facebook connections are stored as separate SocialAccount documents\n\n**Technical Notes:**\n- Instagram Basic Display API is for personal accounts; use Instagram Graph API via Facebook for Business accounts — do not confuse the two\n- The page access token from DA-E18-01 is reused for Instagram Graph API calls; no separate Instagram token is needed\n- Validate that the Instagram account is of type BUSINESS or CREATOR; personal accounts cannot publish content\n\n**Dependencies:** Blocks: [DA-E18-04]. Blocked by: [DA-E18-01, DA-E18-03].\n\n---"
+  },
+  {
+    "id": "DA-E18-03",
+    "summary": "[DA-E18-03] Implement AES-256 encryption cho access token + refresh token truoc khi luu MongoDB",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-103",
+    "description": "### DA-E18-03 — Implement AES-256-GCM Token Encryption\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Encrypt all social platform access tokens and refresh tokens with AES-256-GCM before persisting to MongoDB to protect credentials at rest.\n\n**Acceptance Criteria:**\n- [ ] A `TokenEncryptionService` bean encrypts and decrypts strings using AES-256-GCM\n- [ ] Each encryption operation generates a unique 96-bit IV; the IV is stored alongside the ciphertext (e.g., as `{base64(iv)}:{base64(ciphertext)}`)\n- [ ] The 256-bit encryption key is loaded from an environment variable or Vault; it is never hardcoded or committed to source control\n- [ ] All social account token fields in MongoDB contain only the encrypted form; plaintext tokens never appear in any log or DB document\n- [ ] Unit tests verify that encrypt(decrypt(x)) == x and that two encryptions of the same plaintext produce different ciphertexts (due to random IV)\n\n**Technical Notes:**\n- Use `javax.crypto.Cipher` with `\"AES/GCM/NoPadding\"`, `GCMParameterSpec(128, iv)` for 128-bit authentication tag\n- Key derivation: if the raw key is provided as a Base64 string, decode it to a `SecretKeySpec`; document the expected format clearly\n- Do not use AES-ECB or AES-CBC for this use case; GCM provides authenticated encryption which detects tampering\n\n**Dependencies:** Blocks: [DA-E18-01, DA-E18-02, DA-E19-01, DA-E19-02, DA-E19-03]. Blocked by: [None].\n\n---"
+  },
+  {
+    "id": "DA-E18-04",
+    "summary": "[DA-E18-04] Implement disconnect flow (revoke token tai Meta, xoa khoi MongoDB)",
+    "assignee": "Phước (Publisher)",
+    "priority": "High",
+    "epic_key": "DA-103",
+    "description": "### DA-E18-04 — Implement Social Account Disconnect Flow\n**Assignee:** Phước (Publisher) | **Priority:** 🟡 High\n\n**Goal:** Allow Account Managers to disconnect a social account by revoking the token at Meta's Graph API and removing the record from MongoDB.\n\n**Acceptance Criteria:**\n- [ ] DELETE /api/v1/social/accounts/{accountId} revokes the token at Meta Graph API (`DELETE /{user-id}/permissions`) then deletes the SocialAccount document; returns 204\n- [ ] Only AGENCY_OWNER and ACCOUNT_MANAGER assigned to the client may disconnect; 403 otherwise\n- [ ] If Meta API revocation fails (network error, already revoked), the local record is still deleted and the error is logged — do not block the user\n- [ ] Attempting to disconnect an already-disconnected account returns 404\n- [ ] Account must belong to the caller's workspaceId; mismatched workspaceId returns 404\n\n**Technical Notes:**\n- Decrypt the token using `TokenEncryptionService` (DA-E18-03) before calling the Meta API\n- Wrap the Meta API call in a try-catch; log failure with the accountId and platform but proceed with local deletion (fire-and-forget revocation)\n- For Instagram accounts, revocation is handled via the same Facebook user permission deletion endpoint\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E18-01, DA-E18-02].\n\n---"
+  },
+  {
+    "id": "DA-E19-01",
+    "summary": "[DA-E19-01] Implement TikTok for Business OAuth (Client Credentials Flow)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-108",
+    "description": "### DA-E19-01 — Implement TikTok for Business OAuth\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Enable connection of a TikTok for Business account to a client using TikTok's Client Credentials OAuth flow with video.publish scope.\n\n**Acceptance Criteria:**\n- [ ] GET /api/v1/social/tiktok/connect?clientId={clientId} redirects to TikTok's OAuth dialog with scope `video.publish,user.info.basic`\n- [ ] State parameter stored in Redis `oauth:state:{state}` with 10-minute TTL\n- [ ] GET /api/v1/social/tiktok/callback validates state, exchanges code for access token and refresh token, stores both encrypted in MongoDB\n- [ ] SocialAccount document is created with {clientId, workspaceId, platform: TIKTOK, tiktokUserId, displayName, tokenStatus: ACTIVE, expiresAt}\n- [ ] Token encryption uses `TokenEncryptionService` (DA-E18-03)\n\n**Technical Notes:**\n- TikTok's OAuth 2.0 authorization endpoint: `https://www.tiktok.com/v2/auth/authorize/`\n- TikTok access tokens expire in 24 hours; refresh tokens in 365 days — set `expiresAt` accordingly and ensure the nightly refresh job (DA-E20-01) handles this short TTL\n- Use TikTok Content Posting API v2 (`https://open.tiktokapis.com/v2/`) for publishing, not the deprecated v1 endpoint\n\n**Dependencies:** Blocks: [DA-E20-01]. Blocked by: [DA-E18-03, DA-E14-02].\n\n---"
+  },
+  {
+    "id": "DA-E19-02",
+    "summary": "[DA-E19-02] Implement Threads OAuth (dung Meta Graph API, scope: threads_basic + threads_content_publish)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-108",
+    "description": "### DA-E19-02 — Implement Threads OAuth\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Connect a Threads account to a client using Meta Graph API OAuth with threads_basic and threads_content_publish scopes.\n\n**Acceptance Criteria:**\n- [ ] GET /api/v1/social/threads/connect?clientId={clientId} redirects to Meta's OAuth dialog with scopes `threads_basic,threads_content_publish`\n- [ ] State parameter stored in Redis `oauth:state:{state}` with 10-minute TTL\n- [ ] GET /api/v1/social/threads/callback validates state, exchanges code for a short-lived token, then for a long-lived token (60-day TTL)\n- [ ] SocialAccount document created with {clientId, workspaceId, platform: THREADS, threadsUserId, username, tokenStatus: ACTIVE, expiresAt}\n- [ ] Token is encrypted before saving using `TokenEncryptionService` (DA-E18-03)\n\n**Technical Notes:**\n- Threads uses the same Meta developer app as Facebook/Instagram; add Threads permissions in the same Facebook App dashboard\n- Long-lived token exchange endpoint: `https://graph.threads.net/access_token` — distinct from the Facebook token exchange URL\n- Threads API base URL: `https://graph.threads.net/v1.0/`\n\n**Dependencies:** Blocks: [DA-E20-01]. Blocked by: [DA-E18-03, DA-E14-02].\n\n---"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-AI07-06",
+    "summary": "[DA-AI07-06] Apply ambassador endpoint (POST /ai/ambassador/apply: ambassador key + background key → composed image)",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-99",
+    "description": "### DA-AI07-06 — Apply ambassador endpoint (POST /ai/ambassador/apply: ambassador key + background S3 key → composed image)\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Enable users to place a generated ambassador image onto a chosen background, completing the product-with-model composition workflow.\n\n**Acceptance Criteria:**\n- [ ] `POST /ai/ambassador/apply` accepts `{ambassadorKey: str, backgroundKey: str, clientId: str}` and returns `{composedImageUrl: str, s3Key: str}`\n- [ ] Ambassador image background is removed (rembg) before compositing onto the background\n- [ ] Composed image uploaded to S3 at `ambassador/{clientId}/composed/{uuid}.png`\n- [ ] If either S3 key does not exist, returns `404` with the missing key identified in the error body\n\n**Technical Notes:**\n- Coordinate with DA-AI08-03 (Pillow composite service) — reuse `services/composition.py` composite function rather than duplicating Pillow logic here\n- rembg hair edge failure case applies here (ambassador images frequently have styled hair); document this known limitation in DA-AI08-07\n\n**Dependencies:** Blocks: None. Blocked by: DA-AI07-03, DA-AI08-03, DA-AI02-03.\n\n---"
+  },
+  {
+    "id": "DA-AI07-07",
+    "summary": "[DA-AI07-07] Benchmark InstantID vs IP-Adapter tren bo test 20 anh, document final decision",
+    "assignee": "Tuấn (AI)",
+    "priority": "High",
+    "epic_key": "DA-99",
+    "description": "### DA-AI07-07 — Benchmark InstantID vs IP-Adapter on 20 test images, document final decision with evidence\n**Assignee:** Tuấn (AI) | **Priority:** 🟡 High\n\n**Goal:** Produce a definitive, evidence-backed record of the ambassador model decision to satisfy mentor scrutiny and inform future model upgrades.\n\n**Acceptance Criteria:**\n- [ ] 20 test images run through both InstantID and IP-Adapter (FaceID-Plus variant) with identical prompts\n- [ ] Comparison table: cosine similarity score, generation time, cost per image, subjective realism rating\n- [ ] Final decision statement names the winning model with quantitative justification\n- [ ] Document is cross-referenced in DA-AI11-01 Virtual Ambassador Technical Report\n\n**Dependencies:** Blocks: DA-AI11-01. Blocked by: DA-AI07-04.\n\n---"
+  },
+  {
+    "id": "DA-AI07-08",
+    "summary": "[DA-AI07-08] Viet implementation guide (parameters, tips de tao ambassador chat luong cao)",
+    "assignee": "Tuấn (AI)",
+    "priority": "Medium",
+    "epic_key": "DA-99",
+    "description": "### DA-AI07-08 — Write implementation guide (model params, prompt tips, GPU memory requirements)\n**Assignee:** Tuấn (AI) | **Priority:** 🟢 Low\n\n**Goal:** Enable a new developer to reproduce the ambassador pipeline setup without oral knowledge transfer from the original implementer.\n\n**Acceptance Criteria:**\n- [ ] Guide covers: environment setup (CUDA version, VRAM minimum), model weight download steps, recommended `ip_adapter_scale` and `guidance_scale` ranges\n- [ ] Prompt tips section documents 5 prompt patterns that reliably produce high face-similarity scores\n- [ ] Troubleshooting section addresses: \"no face detected\", OOM errors, low similarity scores\n\n**Dependencies:** Blocks: None. Blocked by: DA-AI07-07.\n\n---"
+  },
+  {
+    "id": "DA-AI08-01",
+    "summary": "[DA-AI08-01] Implement background removal cho product images (rembg library, U2Net model) → output PNG transparent",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-104",
+    "description": "### DA-AI08-01 — Implement background removal for product images (rembg + U2Net, output transparent PNG)\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Automatically remove product image backgrounds to produce clean transparent PNGs ready for composition onto marketing backgrounds.\n\n**Acceptance Criteria:**\n- [ ] `services/composition/bg_removal.py` function `remove_background(image_bytes: bytes) -> bytes` returns transparent PNG bytes\n- [ ] Uses `rembg` with the U2Net model; model downloads on first use and is cached at `~/.u2net/`\n- [ ] Unit test: input a product photo on white background → output PNG has transparent pixels where background was\n- [ ] Processing time logged at INFO level; alert at WARN if >15 seconds (indicates model cache miss or CPU-only inference)\n\n**Technical Notes:**\n- Known failure cases to handle gracefully (return result with a warning header rather than error): transparent packaging, reflective surfaces, fine hair\n- `rembg.remove(image_bytes)` is the simplest call; for batch processing use `rembg.remove(image_bytes, session=new_session('u2net'))` with a shared session to avoid reloading weights per call\n\n**Dependencies:** Blocks: DA-AI08-03. Blocked by: DA-AI01-05, DA-AI01-06.\n\n---"
+  },
+  {
+    "id": "DA-AI08-02",
+    "summary": "[DA-AI08-02] Implement background removal cho model/ambassador images",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-104",
+    "description": "### DA-AI08-02 — Implement background removal for model/ambassador images\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Apply background removal to human model and ambassador images, which present harder edge cases (hair, skin tones) than product images.\n\n**Acceptance Criteria:**\n- [ ] Same `remove_background()` function from DA-AI08-01 is reused; this task validates it works acceptably for human subjects\n- [ ] 10 model/ambassador test images processed; hair edge quality evaluated and documented\n- [ ] If U2Net quality is insufficient for hair, evaluate `rembg` with `isnet-general-use` model as an alternative and document comparison\n\n**Technical Notes:**\n- Human subject removal is rembg's primary design target; quality should be better than product images with complex backgrounds\n- Fine hair strands will always show some fringing — document the acceptable quality threshold so QA knows what to pass\n\n**Dependencies:** Blocks: DA-AI08-03. Blocked by: DA-AI08-01.\n\n---"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E02-01",
+    "summary": "[DA-E02-01] Tao Linear workspace, thiet lap sprint cadence 2 tuan, tao issue templates",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-33",
+    "description": "### DA-E02-01 — Create Linear workspace, set up 2-week sprint cadence, create issue templates\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Establish the team's project management foundation in Linear so all tasks, sprints, and progress are tracked in a single organized system from the start.\n\n**Acceptance Criteria:**\n- [ ] Linear workspace named \"BrandHub\" is created and all team members are invited with appropriate roles\n- [ ] Sprint cycles are configured as 2-week intervals starting from the project kick-off date\n- [ ] Issue templates exist for at minimum: Feature, Bug, Documentation, and Research task types\n\n**Dependencies:** Blocks: DA-E02-02. Blocked by: DA-E01-02, DA-E01-04.\n\n---"
+  },
+  {
+    "id": "DA-E02-02",
+    "summary": "[DA-E02-02] Tao GitHub Organization va 7 repos theo polyrepo structure",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-33",
+    "description": "### DA-E02-02 — Create GitHub Organization and 7 repos following polyrepo structure\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Provision the seven canonical repositories under a shared GitHub Organization so all team members can begin committing to isolated, correctly named codebases.\n\n**Acceptance Criteria:**\n- [ ] GitHub Organization is created and all team members are added as members\n- [ ] All 7 repos exist with exact names: brandhub-business-service, brandhub-ai-service, brandhub-publisher-service, brandhub-api-gateway, brandhub-web-dashboard, brandhub-mobile-app, brandhub-infrastructure\n- [ ] Each repo has a base README.md, .gitignore appropriate to its language/framework, and an initial commit on `main`\n\n**Technical Notes:**\n- Use organization-level secrets for shared credentials (GHCR token, Groq API key) rather than per-repo secrets to reduce maintenance\n- Set default branch to `main`; create `develop` branch immediately as the integration target\n\n**Dependencies:** Blocks: DA-E02-03, DA-E02-04, DA-E10-01, DA-E10-02, DA-E10-03, DA-E10-04, DA-E11-01. Blocked by: DA-E02-01.\n\n---"
+  },
+  {
+    "id": "DA-E02-03",
+    "summary": "[DA-E02-03] Thiet lap branch protection rules, PR template, commit convention (Conventional Commits)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-33",
+    "description": "### DA-E02-03 — Set up branch protection rules, PR template, commit convention (Conventional Commits)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Enforce code quality gates and consistent commit history across all 7 repositories so the codebase remains reviewable and CI-friendly throughout development.\n\n**Acceptance Criteria:**\n- [ ] Branch protection is enabled on `main` and `develop` in all 7 repos: require PR, require at least 1 approval, block direct push\n- [ ] A `.github/pull_request_template.md` file exists in each repo with sections for: Summary, Changes, Testing, Screenshots\n- [ ] A `CONTRIBUTING.md` or `.github/CONTRIBUTING.md` documents the Conventional Commits standard (feat, fix, docs, chore, refactor, test) with examples\n\n**Technical Notes:**\n- Use a GitHub Organization-level ruleset (available in GitHub Free for orgs) to apply protection rules across all repos from one place rather than configuring each individually\n- Recommend enforcing commit message format via `commitlint` in a pre-commit hook or CI step\n\n**Dependencies:** Blocks: DA-E10-01, DA-E10-02, DA-E10-03, DA-E10-04, DA-E10-05. Blocked by: DA-E02-02.\n\n---"
+  },
+  {
+    "id": "DA-E02-04",
+    "summary": "[DA-E02-04] Tao email du an va tai khoan cac service (AWS, GitHub Actions, Groq, Stability AI, etc.)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-33",
+    "description": "### DA-E02-04 — Create project email and accounts for all services (AWS, GitHub Actions, Groq, Stability AI, etc.)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Provision all third-party service accounts under a shared project identity so credentials are team-owned, not tied to any individual member's personal account.\n\n**Acceptance Criteria:**\n- [ ] A dedicated project email address (e.g., brandhub.capstone@gmail.com) is created and credentials shared securely with all team members\n- [ ] Accounts created and verified for: GitHub (org already exists), Groq API, Stability AI, and any social platform developer portals needed (Facebook Developer, TikTok for Developers, Zalo OA)\n- [ ] All API keys and credentials are stored in a shared secrets manager (e.g., a shared Bitwarden vault or GitHub Organization secrets) — never committed to any repo\n\n**Technical Notes:**\n- Groq free tier: 30 RPM, 6,000 RPM on paid; document tier limits in the project wiki so AI developers can plan request budgets\n- Stability AI requires a separate API key per environment (dev/prod); provision at minimum a dev key now\n\n**Dependencies:** Blocks: DA-E10-01, DA-E10-02, DA-E10-03, DA-E10-04. Blocked by: DA-E02-02.\n\n---"
+  },
+  {
+    "id": "DA-E03-01",
+    "summary": "[DA-E03-01] Liet ke va phan nhom toan bo 60 UC theo 6 roles (Admin, Agency Owner, Account Manager, Content Creator, Brand Client, Guest)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-18",
+    "description": "### DA-E03-01 — List and group all 60 use cases by 6 roles (Admin, Agency Owner, Account Manager, Content Creator, Brand Client, Guest)\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Produce a complete, numbered, role-grouped use case inventory that gives every team member a shared reference for what BrandHub must do before any detailed writing begins.\n\n**Acceptance Criteria:**\n- [ ] Exactly 60 use cases are listed, each with a unique ID (UC-01 through UC-60)\n- [ ] Each use case is assigned to exactly one primary role (Admin, Agency Owner, Account Manager, Content Creator, Brand Client, or Guest)\n- [ ] The list is stored in a shared document and accessible to the full team for review and comment\n\n**Technical Notes:**\n- Group use cases in blocks by role rather than interleaving to make the split for DA-E03-02, DA-E03-03, DA-E03-04 clean and non-overlapping\n\n**Dependencies:** Blocks: DA-E03-02, DA-E03-03, DA-E03-04, DA-E03-06. Blocked by: DA-E01-01.\n\n---"
+  }
+]

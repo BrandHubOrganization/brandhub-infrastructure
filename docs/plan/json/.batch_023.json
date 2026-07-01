@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E23-01",
+    "summary": "[DA-E23-01] Expose /internal/ai/content/generate endpoint (nhan topic + clientId + platform → tra caption + hashtags)",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-96",
+    "description": "### DA-E23-01 — Expose /internal/ai/content/generate\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Provide an internal HTTP endpoint that generates social media captions and hashtags using AI, callable only by business-service with a shared secret key.\n\n**Acceptance Criteria:**\n- [ ] POST /internal/ai/content/generate accepts {topic, clientId, platform, tone} in the request body; returns {caption, hashtags, generatedAt}\n- [ ] Requires `X-Internal-Key` header matching the configured secret; missing or mismatched key returns 401\n- [ ] Endpoint is NOT exposed through the API Gateway or accessible from the public internet; only internal service-to-service communication\n- [ ] `platform` must be one of {FACEBOOK, INSTAGRAM, TIKTOK, THREADS, ZALO}; invalid value returns 400\n- [ ] Response time SLA: 95th percentile under 5 seconds; timeouts return 504\n\n**Technical Notes:**\n- Validate `X-Internal-Key` in a `OncePerRequestFilter` that runs before any business logic; store the expected key in an environment variable\n- Use Spring's `@Profile(\"!test\")` or a separate security configuration to exclude this filter in unit tests\n- This endpoint deducts 1 AI credit per call; credit deduction is handled by business-service (DA-E24-03), not this endpoint\n\n**Dependencies:** Blocks: [DA-E24-01]. Blocked by: [None].\n\n---"
+  },
+  {
+    "id": "DA-E23-02",
+    "summary": "[DA-E23-02] Expose /internal/ai/image/generate endpoint (nhan prompt + style → tra S3 URL)",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-96",
+    "description": "### DA-E23-02 — Expose /internal/ai/image/generate\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Provide an internal endpoint that generates an AI image from a text prompt and style, uploads it to S3, and returns the S3 URL.\n\n**Acceptance Criteria:**\n- [ ] POST /internal/ai/image/generate accepts {prompt, style, clientId} and returns {imageUrl, s3Key, generatedAt}\n- [ ] Requires `X-Internal-Key` header; missing or invalid key returns 401\n- [ ] Generated image is uploaded to S3 under a deterministic key (e.g., `ai-images/{clientId}/{timestamp}.png`); the public or pre-signed URL is returned\n- [ ] If the image generation model fails or times out, returns 503 with a retry-after hint\n- [ ] Response time SLA: 95th percentile under 30 seconds given typical image generation latency; implement async if needed\n\n**Technical Notes:**\n- Integrate with an image generation provider (e.g., Stability AI, DALL-E 3, or Replicate); abstract behind an `ImageGenerationProvider` interface for swappability\n- Upload to S3 using AWS SDK v2 `S3AsyncClient`; do not return raw image bytes in the HTTP response — always upload to S3 first\n- This call costs 3 AI credits; deduction handled by business-service (DA-E24-03)\n\n**Dependencies:** Blocks: [DA-E24-02]. Blocked by: [None].\n\n---"
+  },
+  {
+    "id": "DA-E23-03",
+    "summary": "[DA-E23-03] Expose /internal/ai/ambassador/generate endpoint (nhan faceImage + productImage → tra S3 URL)",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-96",
+    "description": "### DA-E23-03 — Expose /internal/ai/ambassador/generate\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Provide an internal endpoint that composites a face image onto a product image using AI to create brand ambassador visuals.\n\n**Acceptance Criteria:**\n- [ ] POST /internal/ai/ambassador/generate accepts {faceImageS3Key, productImageS3Key, clientId} and returns {composedImageUrl, s3Key, generatedAt}\n- [ ] Requires `X-Internal-Key` header; missing or invalid key returns 401\n- [ ] Both S3 keys must exist and be accessible; invalid keys return 400 with descriptive error\n- [ ] Composed image is uploaded to S3 under `ai-ambassador/{clientId}/{timestamp}.png`; URL is returned\n- [ ] This operation may take 15–60 seconds; endpoint should support async processing with a jobId if synchronous response is not feasible within gateway timeout\n\n**Technical Notes:**\n- This call costs 5 AI credits; deduction handled by business-service (DA-E24-03)\n- If async: return 202 Accepted with {jobId}; provide GET /internal/ai/ambassador/jobs/{jobId} for polling status and result URL\n- Use pre-signed S3 URLs to download input images into the AI processing service without making the buckets fully public\n\n**Dependencies:** Blocks: [DA-E24-02]. Blocked by: [None].\n\n---"
+  },
+  {
+    "id": "DA-E23-04",
+    "summary": "[DA-E23-04] Expose /internal/ai/video/generate endpoint (nhan script + style → tra S3 URL, async with polling)",
+    "assignee": "Ân (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-96",
+    "description": "### DA-E23-04 — Expose /internal/ai/video/generate\n**Assignee:** Ân (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Provide an internal async endpoint that generates a short video from a script and style, returning a jobId for polling until the S3 URL is ready.\n\n**Acceptance Criteria:**\n- [ ] POST /internal/ai/video/generate accepts {script, style, clientId} and immediately returns 202 Accepted with {jobId}\n- [ ] Requires `X-Internal-Key` header; missing or invalid key returns 401\n- [ ] GET /internal/ai/video/jobs/{jobId} returns {status: PENDING|PROCESSING|COMPLETED|FAILED, videoUrl (when COMPLETED), errorMessage (when FAILED)}\n- [ ] On completion, generated video is uploaded to S3 under `ai-video/{clientId}/{jobId}.mp4` and `videoUrl` is populated\n- [ ] Job state is persisted in MongoDB or Redis with TTL = 24 hours after completion\n\n**Technical Notes:**\n- This call costs 10 AI credits; deduct synchronously at job submission time (before video is generated) so the credit is reserved; if generation fails, consider a credit refund policy\n- Use a message queue (Redis Streams or RabbitMQ) to decouple job submission from processing\n- Expose the polling endpoint with the same `X-Internal-Key` guard\n\n**Dependencies:** Blocks: [DA-E24-02]. Blocked by: [None].\n\n---"
+  },
+  {
+    "id": "DA-E23-05",
+    "summary": "[DA-E23-05] Expose /internal/ai/trends/fetch endpoint (tra top trending topics theo platform + region)",
+    "assignee": "Ân (AI)",
+    "priority": "High",
+    "epic_key": "DA-96",
+    "description": "### DA-E23-05 — Expose /internal/ai/trends/fetch\n**Assignee:** Ân (AI) | **Priority:** 🟡 High\n\n**Goal:** Provide an internal endpoint that returns trending topics per platform and region, served from Redis cache to ensure fast and consistent responses.\n\n**Acceptance Criteria:**\n- [ ] GET /internal/ai/trends/fetch?platform={platform}&region={region} returns {trends: [{topic, score, relatedHashtags}], cachedAt, ttlSeconds}\n- [ ] Requires `X-Internal-Key` header; missing or invalid key returns 401\n- [ ] Data is served from Redis cache; a background job refreshes the cache periodically (every 1–6 hours depending on platform)\n- [ ] If cache is empty or stale, fetches fresh data from an external trends source (e.g., Google Trends API, TikTok Trending API) and repopulates Redis\n- [ ] `platform` must be one of {FACEBOOK, INSTAGRAM, TIKTOK, THREADS, ZALO}; `region` is an ISO 3166-1 alpha-2 country code\n\n**Technical Notes:**\n- Redis key: `trends:{platform}:{region}`, value: serialized JSON list, TTL matches refresh interval\n- Cache miss fallback must be resilient: if the external trends API is unavailable, return cached data even if stale rather than returning 503\n- This endpoint does not cost AI credits (it is a data lookup, not a generation call)\n\n**Dependencies:** Blocks: [None]. Blocked by: [None].\n\n---"
+  }
+]

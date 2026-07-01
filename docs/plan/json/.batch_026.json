@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-AI01-08",
+    "summary": "[DA-AI01-08] Viet AI Research Summary Document tong hop ket qua cua ca 3 mang, luu vao docs/ repo",
+    "assignee": "Ân (AI)",
+    "priority": "Medium",
+    "epic_key": "DA-55",
+    "description": "### DA-AI01-08 — Write AI Research Summary Document consolidating results from all 3 tracks\n**Assignee:** Ân (AI) | **Priority:** 🟢 Medium\n\n**Goal:** Produce a single document that a mentor or new team member can read to understand all AI architecture decisions and the evidence behind them.\n\n**Acceptance Criteria:**\n- [ ] Document includes sections for: Virtual Ambassador (DA-AI01-01/02), Video Generation (DA-AI01-03/04), Image Compositing (DA-AI01-05/06), LLM Comparison (DA-AI01-07)\n- [ ] Each section references raw data/output links and states the final decision clearly\n- [ ] Document is stored in the shared team repository and linked in the project README\n\n**Dependencies:** Blocks: None. Blocked by: DA-AI01-02, DA-AI01-04, DA-AI01-06, DA-AI01-07.\n\n---"
+  },
+  {
+    "id": "DA-AI02-01",
+    "summary": "[DA-AI02-01] Khoi tao brandhub-ai-service project: FastAPI + Python 3.11 + folder structure (api/services/models/utils)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-56",
+    "description": "### DA-AI02-01 — Initialize brandhub-ai-service project: FastAPI + Python 3.11 + folder structure\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Create the canonical project skeleton so all AI developers work in a consistent directory layout from day one.\n\n**Acceptance Criteria:**\n- [ ] Repository created with folders: `api/`, `services/`, `models/`, `utils/`, `tests/`, `requirements.txt`, `.env.example`\n- [ ] FastAPI app boots with `uvicorn` on port 8082 and returns `{\"status\": \"ok\"}` at `GET /health`\n- [ ] `requirements.txt` pins: fastapi, uvicorn, pydantic, python-dotenv, and placeholder entries for chromadb, groq, anthropic, boto3, stability-sdk\n\n**Technical Notes:**\n- Use Python 3.11 explicitly in `.python-version` and Dockerfile `FROM python:3.11-slim`\n- Structure `api/` as routers (one file per feature: content.py, image.py, video.py, ambassador.py, compose.py, rag.py, trends.py)\n\n**Dependencies:** Blocks: DA-AI02-02, DA-AI02-03, DA-AI02-04, DA-AI02-05, DA-AI02-06. Blocked by: None.\n\n---"
+  },
+  {
+    "id": "DA-AI02-02",
+    "summary": "[DA-AI02-02] Configure 4 API clients tu .env: ChromaDB client, Groq API client, Anthropic client, Stability AI client",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-56",
+    "description": "### DA-AI02-02 — Configure 4 API clients from .env: ChromaDB, Groq, Anthropic, Stability AI\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Provide a single `clients.py` module that all services import, ensuring no API key is hardcoded and all clients are initialized once at startup.\n\n**Acceptance Criteria:**\n- [ ] `utils/clients.py` exports: `chroma_client`, `groq_client`, `anthropic_client`, `stability_client` — all initialized from `os.environ`\n- [ ] `.env.example` documents all required keys: `CHROMA_HOST`, `CHROMA_PORT`, `GROQ_API_KEY`, `ANTHROPIC_API_KEY`, `STABILITY_API_KEY`\n- [ ] Application startup fails fast with a clear error message if any required env var is missing\n- [ ] Unit test confirms each client object is not None when valid dummy keys are provided\n\n**Technical Notes:**\n- ChromaDB: use `chromadb.HttpClient(host, port)` for containerized Chroma; do not use the in-memory client in any environment\n- Wrap client initialization in a `lifespan` context manager (FastAPI 0.95+) rather than module-level globals to support clean shutdown\n\n**Dependencies:** Blocks: DA-AI03-03, DA-AI04-02, DA-AI04-03, DA-AI06-01, DA-AI07-01. Blocked by: DA-AI02-01.\n\n---"
+  },
+  {
+    "id": "DA-AI02-03",
+    "summary": "[DA-AI02-03] Configure AWS S3 client voi boto3, viet 3 helper functions: upload_file(), get_presigned_url(), delete_file()",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-56",
+    "description": "### DA-AI02-03 — Configure AWS S3 client with boto3, write upload_file(), get_presigned_url(), delete_file() helpers\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Provide a tested S3 utility layer that every AI feature can use without reimplementing boto3 boilerplate or handling credentials directly.\n\n**Acceptance Criteria:**\n- [ ] `utils/s3.py` implements: `upload_file(local_path, s3_key) -> str`, `get_presigned_url(s3_key, expires_in=3600) -> str`, `delete_file(s3_key) -> bool`\n- [ ] All three functions have unit tests using `moto` to mock S3; tests pass in CI without real AWS credentials\n- [ ] Bucket name and region read from env vars `S3_BUCKET_NAME` and `AWS_REGION`; `.env.example` updated\n\n**Technical Notes:**\n- `upload_file()` should accept both a file path and a `bytes` object (for in-memory image/video buffers from AI generation)\n- Set `ContentType` correctly on upload (image/png, video/mp4) so presigned URLs serve with correct MIME type in browser\n\n**Dependencies:** Blocks: DA-AI03-01, DA-AI06-02, DA-AI07-05, DA-AI09-06. Blocked by: DA-AI02-01.\n\n---"
+  },
+  {
+    "id": "DA-AI02-04",
+    "summary": "[DA-AI02-04] Setup Pydantic base schemas cho tat ca request/response models",
+    "assignee": "Ân (AI)",
+    "priority": "High",
+    "epic_key": "DA-56",
+    "description": "### DA-AI02-04 — Set up Pydantic base schemas for all request/response models\n**Assignee:** Ân (AI) | **Priority:** 🟡 High\n\n**Goal:** Define the data contracts for all AI endpoints upfront so that parallel implementation work does not produce incompatible request/response shapes.\n\n**Acceptance Criteria:**\n- [ ] `models/` contains schema files for: content (caption request/response), image generation, video generation, ambassador, compose, RAG document, trends\n- [ ] All schemas inherit from a `BaseRequest` / `BaseResponse` with common fields (e.g., `clientId: str`, `requestId: Optional[str]`)\n- [ ] Schemas are importable and validate correctly using `pytest` model instantiation tests\n\n**Technical Notes:**\n- Use `model_config = ConfigDict(str_strip_whitespace=True)` on all request models to avoid whitespace bugs in clientId lookups\n- Caption response schema must include `platform: Literal[\"facebook\",\"instagram\",\"tiktok\",\"threads\",\"zalo\"]` to enforce platform-awareness downstream\n\n**Dependencies:** Blocks: DA-AI03-01, DA-AI04-01, DA-AI06-02, DA-AI07-03, DA-AI08-05, DA-AI09-05. Blocked by: DA-AI02-01.\n\n---"
+  }
+]

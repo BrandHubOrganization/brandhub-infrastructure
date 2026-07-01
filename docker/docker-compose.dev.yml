@@ -1,0 +1,45 @@
+services:
+  postgres:
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+
+  redis:
+    ports:
+      - "${REDIS_HOST_PORT:-6379}:6379"
+
+  # rabbitmq:
+  #   ports:
+  #     - "${RABBITMQ_AMQP_HOST_PORT:-5672}:5672"
+  #     - "${RABBITMQ_MANAGEMENT_HOST_PORT:-15672}:15672"
+
+  # chromadb:
+  #   ports:
+  #     - "${CHROMADB_HOST_PORT:-8000}:8000"
+
+  pgadmin:
+    image: dpage/pgadmin4:9
+    container_name: brandhub-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "${PGADMIN_HOST_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - brandhub-network
+
+volumes:
+  pgadmin_data:
+    name: brandhub-pgadmin-data
+
+networks:
+  brandhub-network:
+    name: brandhub-network
+    driver: bridge

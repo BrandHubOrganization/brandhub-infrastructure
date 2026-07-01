@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E05-06",
+    "summary": "[DA-E05-06] Ve sequence diagrams cho 4 core flows: content creation, approval workflow, auto-publishing, OAuth token refresh",
+    "assignee": "Tuấn (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-27",
+    "description": "### DA-E05-06 — Draw sequence diagrams for 4 core flows: content creation, approval workflow, auto-publishing, OAuth token refresh\n**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Produce detailed sequence diagrams for the four most complex system flows so developers know the exact call order, data passed at each step, and error handling paths before writing code.\n\n**Acceptance Criteria:**\n- [ ] Content creation sequence diagram covers: client → gateway → business-service → ai-service (content generation) → response with draft saved to MongoDB\n- [ ] Approval workflow sequence diagram covers: creator submits → account manager reviews → optional brand client approval → status transitions and notifications at each step\n- [ ] Auto-publishing sequence covers: scheduler trigger → business-service → RabbitMQ publish message → publisher-service → social API call → HTTP callback → business-service updates post status\n- [ ] OAuth token refresh sequence covers: client detects 401 → sends refresh token cookie → gateway forwards to business-service → JWT blacklist check via Redis → new access token issued → old jti added to `jwt:blacklist:{jti}`\n\n**Technical Notes:**\n- Use PlantUML or Mermaid so diagrams are text-based and committable to the repo; avoid image-only diagrams\n- Token refresh diagram must show that the old jti is written to Redis blacklist (`jwt:blacklist:{jti}`) before the new token is issued, not after\n\n**Dependencies:** Blocks: DA-E05-08, DA-E11-02. Blocked by: DA-E05-04.\n\n---"
+  },
+  {
+    "id": "DA-E05-07",
+    "summary": "[DA-E05-07] Viet phan AI architecture trong Technical Document (ai-service internal design, ChromaDB schema, LLM routing strategy)",
+    "assignee": "Tuấn (AI)",
+    "priority": "High",
+    "epic_key": "DA-27",
+    "description": "### DA-E05-07 — Write the AI architecture section in the Technical Document (ai-service internal design, ChromaDB schema, LLM routing strategy)\n**Assignee:** Tuấn (AI) | **Priority:** 🟡 High\n\n**Goal:** Document the internal design of ai-service so the AI developers have a clear implementation blueprint and so the mentor can evaluate the AI subsystem's technical soundness.\n\n**Acceptance Criteria:**\n- [ ] ai-service internal architecture is documented: FastAPI router structure, service layer separation, async task handling for long-running generation jobs\n- [ ] ChromaDB schema is documented: collection names, metadata fields stored per embedding, embedding model used (e.g., sentence-transformers model name)\n- [ ] LLM routing strategy is documented: which model/endpoint is used for each task type (content generation → Groq LLaMA, image → Stability AI, RAG → Groq with ChromaDB retrieval)\n\n**Technical Notes:**\n- Document the Groq model ID used (e.g., `llama3-8b-8192` or `mixtral-8x7b-32768`) as a configuration value, not hardcoded, so it can be swapped without code changes\n- ChromaDB collection naming convention: use `workspace_{workspaceId}_brand_voice` to enforce workspace isolation at the collection level\n\n**Dependencies:** Blocks: DA-E05-08. Blocked by: DA-E05-04.\n\n---"
+  },
+  {
+    "id": "DA-E05-08",
+    "summary": "[DA-E05-08] Compile full technical document (BrandHub_Technical_Document.md)",
+    "assignee": "Trung (Leader)",
+    "priority": "High",
+    "epic_key": "DA-27",
+    "description": "### DA-E05-08 — Compile full technical document (BrandHub_Technical_Document.md)\n**Assignee:** Trung (Leader) | **Priority:** 🟡 High\n\n**Goal:** Assemble all architecture, design, and decision artifacts into a single cohesive technical document that serves as the primary reference for developers and the official submission to the mentor.\n\n**Acceptance Criteria:**\n- [ ] Document contains all major sections: System Overview, Service Boundaries, Database Design, API Contracts, Sequence Diagrams, AI Architecture, ADRs, Security Model, Deployment Architecture\n- [ ] All diagrams referenced in the document are embedded or linked with accessible URLs\n- [ ] Document is reviewed by all team members, version-tagged (v1.0), and stored in the brandhub-infrastructure repo under `docs/`\n\n**Dependencies:** Blocks: None. Blocked by: DA-E05-01, DA-E05-02, DA-E05-03, DA-E05-04, DA-E05-05, DA-E05-06, DA-E05-07.\n\n---"
+  },
+  {
+    "id": "DA-E06-01",
+    "summary": "[DA-E06-01] Dinh nghia database strategy: data nao vao MongoDB, data nao vao PostgreSQL, va tai sao",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-47",
+    "description": "### DA-E06-01 — Define database strategy: which data goes into MongoDB vs PostgreSQL and why\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Establish a written, rule-based data placement strategy so every developer knows without ambiguity whether a new entity belongs in MongoDB or PostgreSQL.\n\n**Acceptance Criteria:**\n- [ ] A written strategy document lists the decision criteria for MongoDB (flexible schema, document-oriented, high write throughput) vs PostgreSQL (ACID transactions, relational integrity, financial/subscription data)\n- [ ] Each of the 17 planned collections/tables is mapped to its database with a one-line rationale\n- [ ] The document is approved by the team leader and stored in brandhub-infrastructure repo under `docs/`\n\n**Technical Notes:**\n- Hard rule: all financial data (subscriptions, billing records) lives in PostgreSQL for ACID compliance; no exceptions\n- Hard rule: all content entities (posts, content requests, analytics events) live in MongoDB due to flexible schema and high write volume\n\n**Dependencies:** Blocks: DA-E06-02, DA-E06-03. Blocked by: DA-E05-03.\n\n---"
+  },
+  {
+    "id": "DA-E06-02",
+    "summary": "[DA-E06-02] Thiet ke 12 MongoDB collections voi day du field types, required/optional, default values",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-47",
+    "description": "### DA-E06-02 — Design 12 MongoDB collections with full field types, required/optional flags, default values\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Produce a complete MongoDB schema specification for all 12 collections so developers can implement Spring Data MongoDB repositories and Mongoose schemas without guessing field names or types.\n\n**Acceptance Criteria:**\n- [ ] All 12 collections are documented with every field: name, BSON type, required/optional, default value, and a brief description\n- [ ] Every collection includes the mandatory fields: `_id` (ObjectId), `workspaceId` (String, required, indexed), `createdAt` (Date), `updatedAt` (Date)\n- [ ] Embedded document structures and arrays are fully expanded — no fields left as \"TBD\"\n\n**Technical Notes:**\n- Use String type (not ObjectId) for cross-collection references (e.g., `workspaceId`, `userId`) since business-service cross-references PostgreSQL IDs which are UUIDs\n- `posts` collection must include a `status` enum field with all valid state values: DRAFT, PENDING_REVIEW, APPROVED, SCHEDULED, PUBLISHING, PUBLISHED, FAILED, REJECTED\n\n**Dependencies:** Blocks: DA-E06-05, DA-E06-07, DA-E07-01. Blocked by: DA-E06-01.\n\n---"
+  }
+]
