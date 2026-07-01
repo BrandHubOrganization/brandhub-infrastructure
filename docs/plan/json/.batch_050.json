@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E40-02",
+    "summary": "[DA-E40-02] Build Auth screens (Login, Register, Forgot Password)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-123",
+    "description": "### DA-E40-02 — Build Auth screens (mobile)\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Deliver Login, Register, and Forgot Password screens for the mobile app with the same API integration as the web counterparts.\n\n**Acceptance Criteria:**\n- [ ] Login screen: email + password inputs, Login button, \"Forgot Password?\" link, Google Sign-In button\n- [ ] Register screen: name, email, password, confirm password, Register button\n- [ ] Forgot Password screen: email input, \"Send Reset Link\" button, success message state\n- [ ] Form validation with inline error messages below each field\n- [ ] Keyboard-aware layout (`KeyboardAvoidingView`) so inputs are not hidden by the soft keyboard\n- [ ] Successful login stores tokens in AsyncStorage via authStore and navigates to MainTabs\n\n**Technical Notes:**\n- Use `react-native-paper` or custom styled components with StyleSheet (no Tailwind on mobile)\n- Google Sign-In via `@react-native-google-signin/google-signin`; configure OAuth client IDs for iOS/Android in `app.json`\n- Auto-focus next input on submit (email → password → Login) using `ref` and `onSubmitEditing`\n\n**Dependencies:** Blocks: [DA-E40-03]. Blocked by: [DA-E40-01].\n\n---"
+  },
+  {
+    "id": "DA-E40-03",
+    "summary": "[DA-E40-03] Build Dashboard screen (simplified overview)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-123",
+    "description": "### DA-E40-03 — Build Dashboard screen (mobile)\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Deliver a simplified mobile dashboard showing KPI cards and recent activity so users get a quick status overview on their phone.\n\n**Acceptance Criteria:**\n- [ ] KPI cards in a 2-column grid: total posts, success rate, pending approvals, failed posts — fetched from GET /api/v1/analytics/overview\n- [ ] Recent activity list (last 5 items) below KPI cards with activity icon, description, and relative timestamp\n- [ ] Pull-to-refresh gesture triggers re-fetch of all dashboard data\n- [ ] Loading skeleton shown during initial data fetch; error state with \"Retry\" button if fetch fails\n- [ ] Tapping an activity item navigates to the relevant screen (e.g., pending approval → Approval screen)\n\n**Technical Notes:**\n- Use `FlatList` with `ListHeaderComponent` for the KPI cards + activity items in a single scrollable view\n- `RefreshControl` component for pull-to-refresh behavior\n- `react-native-skeleton-placeholder` for loading skeleton UI\n\n**Dependencies:** Blocks: [DA-E40-04]. Blocked by: [DA-E40-02, DA-E38-01].\n\n---"
+  },
+  {
+    "id": "DA-E40-04",
+    "summary": "[DA-E40-04] Build Calendar screen (calendar view, post status)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-123",
+    "description": "### DA-E40-04 — Build Calendar screen (mobile)\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Provide mobile users with a calendar view of their posts where they can tap a day to see what's scheduled or published.\n\n**Acceptance Criteria:**\n- [ ] Monthly calendar rendered with `react-native-calendars` showing colored dots on days with posts (green=published, blue=scheduled, red=failed)\n- [ ] Tapping a day shows a post list below the calendar filtered to that date\n- [ ] Tapping a post in the list opens a read-only post detail bottom sheet with caption, platforms, status, and scheduled time\n- [ ] Navigation arrows advance to next/previous month; changing month fetches new date range from API\n- [ ] Platform filter pills above the calendar (scrollable horizontal list); toggling hides that platform's dots\n\n**Technical Notes:**\n- `react-native-calendars` `markedDates` prop: `{\"2025-06-15\": {dots: [{color: \"green\"}, {color: \"blue\"}]}}` — multi-dot mode\n- Bottom sheet via `@gorhom/bottom-sheet` with snap points [0, 50%, 90%]\n- Fetch calendar data with GET /api/v1/posts/calendar?startDate=&endDate= on month change\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E40-03, DA-E30-01].\n\n---"
+  },
+  {
+    "id": "DA-E40-05",
+    "summary": "[DA-E40-05] Build Approval screen cho BRAND_CLIENT (xem preview, approve/reject)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-123",
+    "description": "### DA-E40-05 — Build Approval screen (mobile)\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Allow BRAND_CLIENT to approve or reject posts directly from their phone, making the approval workflow accessible without a desktop browser.\n\n**Acceptance Criteria:**\n- [ ] List of posts in SENT_TO_CLIENT status rendered as swipeable cards (one per post)\n- [ ] Each card shows: post caption (truncated), target platforms (icon list), scheduled date, thumbnail if image post\n- [ ] Tapping a card expands to full detail with scrollable caption and platform icon chips\n- [ ] \"Approve\" (green) and \"Reject\" (red) buttons at bottom; reject shows a modal with a text input for feedback\n- [ ] After approve/reject, card slides out of list with animation; success toast shown\n- [ ] Empty state: \"All posts reviewed — you're up to date!\" with a checkmark illustration\n\n**Technical Notes:**\n- Swipeable cards via `react-native-gesture-handler` `Swipeable` component with right-action \"Approve\" quick action\n- Feedback text input in a `Modal` with `KeyboardAvoidingView`; minimum 10 characters for reject feedback\n- Optimistic removal from list on action; re-fetch if API call fails and restore the card\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E40-02, DA-E31-03, DA-E31-04].\n\n---"
+  },
+  {
+    "id": "DA-E40-06",
+    "summary": "[DA-E40-06] Implement offline draft mode (luu draft vao AsyncStorage khi mat mang, sync khi co mang)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-123",
+    "description": "### DA-E40-06 — Implement offline draft mode\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Allow CONTENT_CREATOR to save post drafts on mobile without internet connectivity and automatically sync them when connectivity is restored.\n\n**Acceptance Criteria:**\n- [ ] When offline, \"Save Draft\" in the content editor saves to AsyncStorage key `drafts:{userId}:{tempId}` with full post payload\n- [ ] A \"Drafts (offline)\" badge appears in the navigation when unsync'd drafts exist\n- [ ] `NetInfo.addEventListener` detects when network reconnects and automatically calls POST /api/v1/posts for each pending draft\n- [ ] Successfully synced drafts are removed from AsyncStorage; failed syncs remain with an error indicator\n- [ ] User can manually trigger sync from a \"Sync Drafts\" button in the Drafts screen\n\n**Technical Notes:**\n- Use `@react-native-community/netinfo` for connectivity detection\n- AsyncStorage stores JSON-serialized draft: `{tempId, userId, topic, caption, platform, mediaUrls[], createdAt}`\n- Sync is idempotent: check if a post with `tempId` already exists server-side before creating (use `X-Idempotency-Key: tempId` header)\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E40-02].\n\n---"
+  }
+]

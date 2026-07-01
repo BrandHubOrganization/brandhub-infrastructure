@@ -1,0 +1,491 @@
+@startuml BrandHub ERD
+skinparam shadowing false
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 80
+
+skinparam entity {
+  BackgroundColor #FAFAFA
+  BorderColor #555555
+  FontSize 12
+}
+
+' ============================================================
+' POSTGRESQL — IDENTITY GROUP (5 tables)
+' ============================================================
+
+entity "users" as users <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * email : varchar(255) <<UQ>>
+  password_hash : varchar
+  * full_name : varchar(255)
+  avatar_url : varchar
+  * status : user_status
+  * is_active : boolean
+  * preferences : jsonb
+  last_login_at : timestamptz
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+
+entity "user_oauth_providers" as oauth <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * user_id : uuid <<FK>>
+  * provider : oauth_provider
+  * provider_id : varchar(255)
+  * created_at : timestamptz
+}
+note right of oauth
+  UNIQUE(provider, provider_id)
+  ON DELETE CASCADE
+end note
+
+entity "user_refresh_tokens" as refresh_tokens <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * user_id : uuid <<FK>>
+  * token_hash : varchar(255) <<UQ>>
+  * jti : varchar(255) <<UQ>>
+  * expires_at : timestamptz
+  ip_address : varchar(45)
+  user_agent : varchar
+  * device_info : jsonb
+  * created_at : timestamptz
+}
+note right of refresh_tokens
+  ON DELETE CASCADE
+end note
+
+entity "user_system_roles" as system_roles <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * user_id : uuid <<FK, UQ>>
+  * system_role : varchar(50)
+  granted_by : uuid <<FK>>
+  * granted_at : timestamptz
+}
+note right of system_roles
+  CHECK system_role IN ('ADMIN','SUPPORT')
+  OOP discriminated type for system-level users
+end note
+
+entity "password_reset_tokens" as pwd_reset <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * user_id : uuid <<FK>>
+  * token_hash : varchar(255) <<UQ>>
+  used_at : timestamptz
+  ip_address : varchar(45)
+  * expires_at : timestamptz
+  * created_at : timestamptz
+}
+note right of pwd_reset
+  Redis holds runtime TTL
+  PG holds permanent audit trail
+end note
+
+' ============================================================
+' POSTGRESQL — WORKSPACE GROUP (5 tables)
+' ============================================================
+
+entity "workspaces" as workspaces <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * name : varchar(255)
+  * slug : varchar(100) <<UQ>>
+  * owner_id : uuid <<FK>>
+  logo_url : varchar
+  * settings : jsonb
+  * is_active : boolean
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of workspaces
+  Anchor for all FK chains.
+  plan removed — read from workspace_subscriptions
+end note
+
+entity "workspace_members" as wm <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * workspace_id : uuid <<FK>>
+  * user_id : uuid <<FK>>
+  * role : member_role
+  invited_by : uuid <<FK>>
+  joined_at : timestamptz
+  * is_active : boolean
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of wm
+  UNIQUE(workspace_id, user_id)
+  is_active=false = soft-deleted member
+end note
+
+entity "workspace_invitations" as invitations <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * workspace_id : uuid <<FK>>
+  * invited_email : varchar(255)
+  * role : member_role
+  * invited_by : uuid <<FK>>
+  * token : varchar(255) <<UQ>>
+  * status : varchar(20)
+  * expires_at : timestamptz
+  accepted_at : timestamptz
+  accepted_by : uuid <<FK>>
+  * created_at : timestamptz
+}
+note right of invitations
+  UNIQUE(workspace_id, invited_email)
+  status: PENDING|ACCEPTED|EXPIRED|REVOKED
+  token = single-use UUID in email link
+end note
+
+entity "workspace_member_permissions" as perms <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * workspace_member_id : uuid <<FK>>
+  * permission : varchar(100)
+  * granted : boolean
+  granted_by : uuid <<FK>>
+  * created_at : timestamptz
+}
+note right of perms
+  UNIQUE(workspace_member_id, permission)
+  granted=true: explicit allow
+  granted=false: explicit deny (override role)
+end note
+
+entity "clients" as clients <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * workspace_id : uuid <<FK>>
+  * name : varchar(255)
+  brand_name : varchar(255)
+  industry : varchar(100)
+  logo_url : varchar
+  contact_email : varchar(255)
+  contact_phone : varchar(50)
+  assigned_manager_id : uuid <<FK>>
+  * portal_access_enabled : boolean
+  portal_user_id : uuid <<FK>>
+  * service_package : jsonb
+  * metadata : jsonb
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of clients
+  portal_user_id -> users (BRAND_CLIENT role)
+  service_package: {postsPerMonth, platforms[], aiCreditsPerMonth}
+  metadata: flexible per agency
+end note
+
+' ============================================================
+' POSTGRESQL — BILLING GROUP (5 tables)
+' ============================================================
+
+entity "subscription_plans" as plans <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * name : workspace_plan <<UQ>>
+  * display_name : varchar(100)
+  * price_monthly : decimal(12,2)
+  * price_yearly : decimal(12,2)
+  * max_members : int
+  * max_clients : int
+  * max_posts_month : int
+  * ai_credits_month : int
+  * features : jsonb
+  * is_active : boolean
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of plans
+  -1 = unlimited (ENTERPRISE)
+  features: Array of feature flag strings
+end note
+
+entity "workspace_subscriptions" as subscriptions <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * workspace_id : uuid <<FK, UQ>>
+  * plan_id : uuid <<FK>>
+  * status : subscription_status
+  trial_ends_at : timestamptz
+  * current_period_start : timestamptz
+  * current_period_end : timestamptz
+  cancelled_at : timestamptz
+  cancel_reason : varchar
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of subscriptions
+  workspace_id is a REAL FK (not soft ref)
+  workspaces was moved from MongoDB to PostgreSQL
+end note
+
+entity "invoices" as invoices <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * workspace_id : uuid <<FK>>
+  * subscription_id : uuid <<FK>>
+  * invoice_number : varchar(50) <<UQ>>
+  * status : invoice_status
+  * amount : decimal(12,2)
+  * currency : varchar(3)
+  * period_start : timestamptz
+  * period_end : timestamptz
+  issued_at : timestamptz
+  due_at : timestamptz
+  paid_at : timestamptz
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of invoices
+  Immutable after status = ISSUED
+  currency default: VND
+end note
+
+entity "payments" as payments <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * workspace_id : uuid <<FK>>
+  * invoice_id : uuid <<FK>>
+  * amount : decimal(12,2)
+  * currency : varchar(3)
+  * status : payment_status
+  payment_method : varchar(50)
+  transaction_id : varchar(255) <<UQ>>
+  paid_at : timestamptz
+  failed_reason : varchar
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of payments
+  payment_method: bank_transfer|momo|vnpay|stripe
+  UNIQUE(transaction_id) prevents double-charge
+end note
+
+entity "audit_logs" as audit <<PostgreSQL>> {
+  * id : bigserial <<PK>>
+  --
+  workspace_id : uuid
+  * user_id : uuid
+  * action : audit_action
+  * resource_type : varchar(50)
+  resource_id : varchar(255)
+  old_value : jsonb
+  new_value : jsonb
+  ip_address : varchar(45)
+  user_agent : varchar
+  * created_at : timestamptz
+}
+note right of audit
+  Append-only: UPDATE/DELETE trigger RAISE EXCEPTION
+  workspace_id nullable (ADMIN global actions)
+  user_id = soft ref intentional (compliance: log must persist after user deleted)
+end note
+
+' ============================================================
+' MONGODB COLLECTIONS (8 collections)
+' ============================================================
+
+entity "social_accounts" as social <<MongoDB>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string <<soft ref PG workspaces>>
+  clientId : string <<soft ref PG clients>>
+  * platform : social_platform
+  * accountName : string
+  * accountId : string
+  * encryptedToken : string
+  * encryptedIv : string
+  encryptedRefreshToken : string
+  encryptedRefreshIv : string
+  * tokenExpiresAt : date
+  * tokenStatus : social_account_status
+  scopes : string[]
+  * isActive : boolean
+  * createdAt : date
+  * updatedAt : date
+}
+note bottom of social
+  AES-256-GCM encrypted tokens
+  Index: {workspaceId, platform, accountId} UNIQUE
+end note
+
+entity "posts" as posts <<MongoDB>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string <<soft ref PG workspaces>>
+  clientId : string <<soft ref PG clients>>
+  * createdBy : string <<soft ref PG users>>
+  title : string
+  * contentText : string
+  mediaUrls : string[]
+  * platform : social_platform
+  socialAccountId : string
+  * status : post_status
+  scheduledAt : date
+  publishedAt : date
+  externalPostId : string
+  * aiGenerated : boolean
+  aiMetadata : object
+  approvalHistory : object[]
+  contentRequestId : string
+  * createdAt : date
+  * updatedAt : date
+}
+note bottom of posts
+  approvalHistory: [{userId, action, at}] inline
+  Index: {workspaceId, status}, {workspaceId, scheduledAt}
+end note
+
+entity "content_requests" as cr <<MongoDB>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string <<soft ref PG workspaces>>
+  clientId : string <<soft ref PG clients>>
+  * requestedBy : string <<soft ref PG users>>
+  assignedTo : string <<soft ref PG users>>
+  * title : string
+  description : string
+  tone : string
+  platforms : string[]
+  deadline : date
+  * status : content_request_status
+  linkedPostId : string
+  attachments : string[]
+  comments : object[]
+  * createdAt : date
+  * updatedAt : date
+}
+
+entity "knowledge_documents" as kdocs <<MongoDB>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string <<soft ref PG workspaces>>
+  clientId : string <<soft ref PG clients>>
+  * title : string
+  * content : string
+  sourceUrl : string
+  fileType : string
+  chunkIds : string[]
+  tags : string[]
+  createdBy : string
+  * createdAt : date
+  * updatedAt : date
+}
+note bottom of kdocs
+  content = raw text stored here
+  chunkIds = vector IDs in ChromaDB
+  ai-service only
+end note
+
+entity "notifications" as notifs <<MongoDB>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string <<soft ref PG workspaces>>
+  * userId : string <<soft ref PG users>>
+  * type : notification_type
+  * title : string
+  body : string
+  metadata : object
+  * isRead : boolean
+  * createdAt : date <<TTL 30d>>
+}
+note bottom of notifs
+  TTL index on createdAt (30 days)
+  High volume — no JOIN needed
+end note
+
+entity "publish_logs" as pub_logs <<MongoDB>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string <<soft ref PG workspaces>>
+  * postId : string <<soft ref posts>>
+  * platform : social_platform
+  socialAccountId : string
+  * result : publish_result
+  externalPostId : string
+  errorMessage : string
+  * retryCount : int
+  publishedAt : date
+  * createdAt : date
+}
+note bottom of pub_logs
+  publisher-service only
+  Append-only, high write, retry tracking
+end note
+
+entity "ai_usage_logs" as ai_logs <<MongoDB>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string <<soft ref PG workspaces>>
+  userId : string <<soft ref PG users>>
+  * feature : string
+  * model : string
+  inputTokens : int
+  outputTokens : int
+  costUsd : float
+  latencyMs : int
+  * success : boolean
+  errorCode : string
+  * createdAt : date
+}
+note bottom of ai_logs
+  ai-service only
+  feature: content_gen|image_gen|video_gen|rag
+  model: llama3|sdxl|veo|instantid
+end note
+
+entity "report_jobs" as report_jobs <<MongoDB>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string <<soft ref PG workspaces>>
+  clientId : string <<soft ref PG clients>>
+  * requestedBy : string <<soft ref PG users>>
+  * status : report_job_status
+  * dateFrom : date
+  * dateTo : date
+  fileUrl : string
+  errorMessage : string
+  * createdAt : date
+  * updatedAt : date
+}
+
+' ============================================================
+' RELATIONSHIPS — PostgreSQL (real FK lines)
+' Rule: one line per table pair to avoid crossing arrows.
+' Secondary FKs (invited_by, accepted_by, granted_by, portal_user_id,
+' assigned_manager_id) annotated inside entity body — not drawn as lines.
+' ============================================================
+
+' Identity chain — radiate from users
+users           ||--o{ oauth            : "user_id"
+users           ||--o{ refresh_tokens   : "user_id"
+users           ||--o| system_roles     : "user_id"
+users           ||--o{ pwd_reset        : "user_id"
+
+' Workspace hub
+workspaces      }o--||  users           : "owner_id"
+workspaces      ||--o{ wm               : "workspace_id"
+workspaces      ||--o{ invitations      : "workspace_id"
+workspaces      ||--|{ clients          : "workspace_id"
+workspaces      ||--||  subscriptions   : "workspace_id"
+workspaces      ||--o{ invoices         : "workspace_id"
+workspaces      ||--o{ payments         : "workspace_id"
+
+' Workspace members chain
+wm              }o--||  users           : "user_id"
+wm              ||--o{ perms            : "workspace_member_id"
+
+' Billing chain
+subscriptions   }o--||  plans           : "plan_id"
+invoices        }o--||  subscriptions   : "subscription_id"
+payments        }o--||  invoices        : "invoice_id"
+
+@enduml

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E17-01",
+    "summary": "[DA-E17-01] Implement Admin CRUD cho subscription plans (Free/Basic/Pro/Enterprise)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-107",
+    "description": "### DA-E17-01 — Implement Admin CRUD for Subscription Plans\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow platform administrators to manage subscription plan definitions (Free, Basic, Pro, Enterprise) including their pricing and feature limits.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/admin/plans creates a plan with {name, priceUsd, maxClients, maxPostsPerMonth, maxAiCredits, stripePriceId}; returns 201\n- [ ] GET /api/v1/admin/plans returns all plans; GET /api/v1/plans returns publicly visible plans (no admin auth required)\n- [ ] PUT /api/v1/admin/plans/{id} updates plan details; DELETE /api/v1/admin/plans/{id} soft-deletes (isActive=false)\n- [ ] All admin plan endpoints require ADMIN role; 403 otherwise\n- [ ] Plan names must be unique; duplicate name on create returns 409\n\n**Technical Notes:**\n- Seed the four default plans on application startup using a `CommandLineRunner` or Liquibase/Mongock migration script — check if they exist before inserting\n- Plans: Free ($0, 1, 10, 20 AI credits), Basic ($29, 5, 50, 100), Pro ($79, 20, 200, 500), Enterprise ($199, unlimited — store as -1 for unlimited)\n- `stripePriceId` maps to the corresponding Stripe recurring price; must be set before the subscribe endpoint goes live\n\n**Dependencies:** Blocks: [DA-E15-03, DA-E16-01, DA-E17-02]. Blocked by: [DA-E14-01].\n\n---"
+  },
+  {
+    "id": "DA-E17-02",
+    "summary": "[DA-E17-02] Implement POST /api/v1/subscriptions/subscribe (AGENCY_OWNER dang ky goi)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-107",
+    "description": "### DA-E17-02 — Implement POST /api/v1/subscriptions/subscribe\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Allow AGENCY_OWNER to initiate a plan subscription by creating a Stripe Checkout session and recording the pending subscription intent.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/subscriptions/subscribe accepts {planId} and returns 200 with {checkoutUrl} to redirect the user to Stripe\n- [ ] Only AGENCY_OWNER may subscribe; 403 for other roles\n- [ ] Creates a Stripe Customer if one does not already exist for this workspace; stores `stripeCustomerId` on the Workspace document\n- [ ] Stripe Checkout session is created with `mode=subscription`, the plan's `stripePriceId`, and a success/cancel redirect URL\n- [ ] Subscription is NOT activated until the Stripe webhook confirms payment (DA-E17-03 handles this)\n\n**Technical Notes:**\n- Use Stripe Java SDK (`com.stripe:stripe-java`); initialize with secret key from environment variable\n- Set `metadata: {workspaceId}` on the Stripe Checkout session so the webhook can identify the workspace\n- Never store raw card details; Stripe Checkout handles PCI compliance\n\n**Dependencies:** Blocks: [DA-E17-03]. Blocked by: [DA-E17-01].\n\n---"
+  },
+  {
+    "id": "DA-E17-03",
+    "summary": "[DA-E17-03] Implement payment flow (tich hop payment gateway, tao invoice)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-107",
+    "description": "### DA-E17-03 — Implement Stripe Payment Webhook Flow\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Handle Stripe webhook events to activate, update, or cancel subscriptions in MongoDB based on confirmed payment events.\n\n**Acceptance Criteria:**\n- [ ] POST /api/v1/webhooks/stripe verifies Stripe-Signature header using the webhook secret; invalid signature returns 400\n- [ ] `checkout.session.completed` event activates the subscription: creates Subscription document with {workspaceId, planId, stripeCustomerId, stripeSubscriptionId, status: ACTIVE, currentPeriodEnd}\n- [ ] `invoice.payment_failed` event sets subscription status to PAST_DUE and notifies the AGENCY_OWNER by email\n- [ ] `customer.subscription.deleted` event sets subscription status to CANCELLED and downgrades workspace to Free plan limits\n- [ ] Webhook endpoint does not require JWT authentication (it is called by Stripe, not the user)\n- [ ] Idempotency: duplicate webhook delivery for the same event ID is safely ignored\n\n**Technical Notes:**\n- Verify signature with `Webhook.constructEvent(payload, sigHeader, endpointSecret)` from the Stripe SDK — do this before any processing\n- Store the Stripe `event.id` in a processed-events collection to enforce idempotency\n- Raw request body must be read as bytes before any JSON parsing; Spring's `@RequestBody String` or a custom filter preserving the raw body is required for signature verification\n\n**Dependencies:** Blocks: [DA-E17-04]. Blocked by: [DA-E17-02].\n\n---"
+  },
+  {
+    "id": "DA-E17-04",
+    "summary": "[DA-E17-04] Implement GET /api/v1/subscriptions/invoices (lich su hoa don)",
+    "assignee": "Ân (AI)",
+    "priority": "High",
+    "epic_key": "DA-107",
+    "description": "### DA-E17-04 — Implement GET /api/v1/subscriptions/invoices\n**Assignee:** Ân (AI) | **Priority:** 🟡 High\n\n**Goal:** Provide AGENCY_OWNER with a billing history showing past invoices retrieved from Stripe for their workspace.\n\n**Acceptance Criteria:**\n- [ ] GET /api/v1/subscriptions/invoices returns paginated list of invoices for the current workspace's Stripe customer\n- [ ] Each invoice includes {invoiceId, amountUsd, status, paidAt, invoicePdfUrl, periodStart, periodEnd}\n- [ ] Only AGENCY_OWNER may access billing history; 403 for other roles\n- [ ] Workspace with no Stripe customer (Free plan, never subscribed) returns empty list, not 404\n- [ ] Supports `limit` and `startingAfter` cursor params (maps to Stripe's native pagination)\n\n**Technical Notes:**\n- Use Stripe SDK `Invoice.list(params)` with `customer = stripeCustomerId`; do not store invoice data in MongoDB (always fetch live from Stripe)\n- Map Stripe's `amount_due` (in cents) to USD by dividing by 100\n- Cache results in Redis for 5 minutes (`invoices:{workspaceId}`) to avoid hammering the Stripe API\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E17-03].\n\n---"
+  },
+  {
+    "id": "DA-E18-01",
+    "summary": "[DA-E18-01] Implement Facebook Fanpage OAuth flow (redirect → callback → token exchange)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-103",
+    "description": "### DA-E18-01 — Implement Facebook Fanpage OAuth Flow\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Enable Account Managers to connect a Facebook Fanpage to a client, obtaining a long-lived page access token via OAuth.\n\n**Acceptance Criteria:**\n- [ ] GET /api/v1/social/facebook/connect?clientId={clientId} redirects to Facebook's OAuth dialog with required scopes (pages_manage_posts, pages_read_engagement)\n- [ ] State parameter is stored in Redis as `oauth:state:{state}` → {clientId, userId}, TTL = 10 minutes\n- [ ] GET /api/v1/social/facebook/callback validates state, exchanges short-lived code for a user access token, then exchanges for a long-lived page access token (60-day TTL)\n- [ ] Page token is encrypted with AES-256-GCM before saving to MongoDB (DA-E18-03 must be complete first)\n- [ ] SocialAccount document is created with {clientId, workspaceId, platform: FACEBOOK, pageId, pageName, tokenStatus: ACTIVE, expiresAt}\n- [ ] If the same Fanpage is already connected for this client, the token is refreshed rather than creating a duplicate\n\n**Technical Notes:**\n- Facebook short-lived → long-lived exchange: POST to `https://graph.facebook.com/oauth/access_token` with `grant_type=fb_exchange_token`\n- Then call `/{user-id}/accounts` to list pages and let the user select; for MVP, auto-select the first page or require the pageId as a query param\n- Long-lived user tokens expire in 60 days; page tokens obtained from a long-lived user token do not expire — confirm this via the `GET /debug_token` endpoint\n\n**Dependencies:** Blocks: [DA-E18-04, DA-E20-01]. Blocked by: [DA-E14-02, DA-E18-03].\n\n---"
+  }
+]

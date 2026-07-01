@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E36-03",
+    "summary": "[DA-E36-03] Build Content Calendar page (calendar view + drag-drop rescheduling)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-119",
+    "description": "### DA-E36-03 — Build Content Calendar page\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Provide a visual, interactive calendar for scheduling and managing posts across all platforms with drag-and-drop rescheduling.\n\n**Acceptance Criteria:**\n- [ ] Monthly and weekly views with toggle; default to monthly view\n- [ ] Posts displayed as color-coded event chips (by status); hovering shows tooltip with caption preview\n- [ ] Drag-and-drop a chip to new date calls PATCH /api/v1/posts/{id}/reschedule; optimistic update with rollback on failure\n- [ ] \"Schedule Post\" button on each day cell opens a scheduling modal to set time and target platforms\n- [ ] Platform filter chips above calendar (FB, IG, TikTok, Threads, Zalo); toggling hides/shows that platform's posts\n- [ ] Navigating months/weeks fetches new date range from GET /api/v1/posts/calendar\n\n**Technical Notes:**\n- Prefer `FullCalendar` (`@fullcalendar/react` + `@fullcalendar/daygrid` + `@fullcalendar/interaction`) for drag-drop support\n- Each event object: `{id, title, start: scheduledAt, backgroundColor: statusColor, extendedProps: {platform, status}}`\n- On drag-drop, call reschedule API before committing the calendar state change\n\n**Dependencies:** Blocks: [DA-E37-02]. Blocked by: [DA-E30-03, DA-E36-02].\n\n---"
+  },
+  {
+    "id": "DA-E36-04",
+    "summary": "[DA-E36-04] Build Platform Preview modal (preview chinh xac format cua tung platform)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-119",
+    "description": "### DA-E36-04 — Build Platform Preview modal\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Give content creators and clients a realistic visual mockup of how each post will appear on each social platform before publishing.\n\n**Acceptance Criteria:**\n- [ ] Modal has tabs for each target platform in the post's `targetPlatforms` array\n- [ ] Each tab renders the platform-specific preview component from DA-E30-04 using the post's actual caption, media, and metadata\n- [ ] Character count displayed per platform with red highlight if over limit\n- [ ] Image shown cropped to the correct aspect ratio per platform (1200×630 for FB, 1:1 square for IG, 9:16 for TikTok)\n- [ ] \"Copy Caption\" button per tab copies the caption to clipboard\n\n**Technical Notes:**\n- Reuse `PlatformPreview` component from DA-E30-04; this task only wraps it in a modal with tab routing\n- Image cropping preview implemented with CSS `object-fit: cover` and explicit container aspect ratios — no server-side cropping needed for preview\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E30-04].\n\n---"
+  },
+  {
+    "id": "DA-E36-05",
+    "summary": "[DA-E36-05] Build Content Library page (media browser, template browser, hashtag groups)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "High",
+    "epic_key": "DA-119",
+    "description": "### DA-E36-05 — Build Content Library page\n**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High\n\n**Goal:** Provide a centralized media and content asset browser so teams can reuse uploaded images, saved hashtag groups, and approved content templates.\n\n**Acceptance Criteria:**\n- [ ] Media tab: grid view of S3-hosted images/videos for the workspace; supports search by filename, filter by type (image/video), sort by date\n- [ ] Hashtag Groups tab: create/edit/delete named hashtag sets (e.g., \"#fashion-may\"), copy group to clipboard\n- [ ] Templates tab: list of saved post templates (caption + hashtag group); \"Use Template\" pre-fills Content Editor\n- [ ] Clicking a media file opens a detail panel with file metadata, copy URL button, and delete option\n- [ ] Upload button in Media tab opens file picker; uploads via POST /api/v1/media/upload\n\n**Technical Notes:**\n- Media list from GET /api/v1/media?workspaceId=&type=&page= with infinite scroll (not pagination)\n- Use `react-intersection-observer` to trigger next page load when last item is visible\n- Hashtag groups stored client-side in workspaceStore and synced via GET/POST /api/v1/hashtag-groups\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E35-03].\n\n---"
+  },
+  {
+    "id": "DA-E37-01",
+    "summary": "[DA-E37-01] Build Client Portal login (isolated, chi thay data cua client minh)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-116",
+    "description": "### DA-E37-01 — Build Client Portal login\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Provide BRAND_CLIENT users with a dedicated, isolated portal entry point that enforces role-based access and prevents cross-client data exposure.\n\n**Acceptance Criteria:**\n- [ ] All portal routes are under `/portal/*`; accessing without BRAND_CLIENT role redirects to `/portal/login`\n- [ ] Portal login page is visually distinct from agency login (different branding, no workspace selector)\n- [ ] AuthGuard on portal routes verifies `user.role === BRAND_CLIENT` and `user.clientId` is present; fails → redirect to /portal/login\n- [ ] All API calls from portal pages include the user's `clientId` scope; backend enforces isolation server-side\n- [ ] Logout from portal redirects to `/portal/login`, not `/login`\n\n**Technical Notes:**\n- Implement `PortalAuthGuard` as a separate component from the main `AuthGuard` to keep portal routing logic isolated\n- Portal has its own `<RouterProvider>` subtree or nested route group under `/portal`\n- Token and user state are shared with the main authStore; only routing guard differs\n\n**Dependencies:** Blocks: [DA-E37-02, DA-E37-03, DA-E37-04]. Blocked by: [DA-E34-03, DA-E34-05].\n\n---"
+  },
+  {
+    "id": "DA-E37-02",
+    "summary": "[DA-E37-02] Build Client Calendar (read-only, chi xem khong edit)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-116",
+    "description": "### DA-E37-02 — Build Client Calendar\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Give BRAND_CLIENT a read-only calendar view of their scheduled and published posts so they have visibility into their content plan without editing capabilities.\n\n**Acceptance Criteria:**\n- [ ] Calendar displays all posts for the authenticated client's `clientId` from GET /api/v1/posts/calendar\n- [ ] Posts shown as color-coded chips: SCHEDULED=blue, PUBLISHING=orange, PUBLISHED=green, FAILED=red\n- [ ] Clicking a post chip opens a read-only detail panel (no edit, schedule, or delete actions)\n- [ ] Monthly and weekly view toggle available\n- [ ] No drag-and-drop or scheduling controls present (read-only; edit actions are removed/hidden)\n\n**Technical Notes:**\n- Reuse the same `FullCalendar` setup from DA-E36-03 with `editable={false}` and `droppable={false}` props\n- API call includes `clientId` filter which backend enforces; do not rely solely on frontend filtering\n\n**Dependencies:** Blocks: [None]. Blocked by: [DA-E37-01, DA-E36-03].\n\n---"
+  }
+]

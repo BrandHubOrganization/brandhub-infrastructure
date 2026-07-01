@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E21-06",
+    "summary": "[DA-E21-06] Implement Threads publish adapter (Threads API: tao container → publish, max 500 chars)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-105",
+    "description": "### DA-E21-06 — Implement Threads publish adapter (2-step: create container → publish, enforce max 500 chars)\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Enable publishing to Threads using Meta's 2-step container creation flow with enforced 500-character caption limit.\n\n**Acceptance Criteria:**\n- [ ] Step 1: `POST /{threads-user-id}/threads` with `media_type`, `text`, `image_url` (if applicable) to create container\n- [ ] Step 2: `POST /{threads-user-id}/threads_publish` with `creation_id` to publish\n- [ ] Caption is hard-truncated to 500 characters BEFORE submission; truncation at last complete word with `\"...\"` appended\n- [ ] If caption exceeds 500 chars and truncation would leave fewer than 100 chars of content, returns `FAILED` with `{\"error\": \"caption_too_short_after_truncation\"}` rather than posting unintelligible content\n\n**Technical Notes:**\n- Threads API uses the same access token type as Instagram (Meta Graph API); token decryption logic is shared with the Facebook adapter\n- Threads is text-first; image support is single-image only (no carousels); validate `mediaUrls.size() <= 1` and return `400` if violated\n\n**Dependencies:** Blocks: DA-E22-01. Blocked by: DA-E21-02.\n\n---"
+  },
+  {
+    "id": "DA-E21-07",
+    "summary": "[DA-E21-07] Implement Zalo OA publish adapter (Article API + Photo API)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-105",
+    "description": "### DA-E21-07 — Implement Zalo OA publish adapter (Article API for text/image posts, Photo API for image-only)\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Enable publishing to Zalo Official Accounts, the primary Vietnamese social platform for BrandHub's local market.\n\n**Acceptance Criteria:**\n- [ ] For posts with text content: uses Zalo OA Article API to publish with title, description, and optional image\n- [ ] For image-only posts: uses Zalo OA Photo API\n- [ ] Zalo access token refresh is handled automatically when a `401` is received (Zalo tokens expire frequently)\n- [ ] Returns `{status: SUCCESS/FAILED, platformPostId}` in the same shape as all other adapters\n\n**Technical Notes:**\n- Zalo OA API base URL: `https://openapi.zalo.me/v2.0/oa/`; requires `access_token` query parameter (not header)\n- Zalo token refresh requires the `refresh_token` stored in `encryptedToken`; decrypt and use it to call `https://oauth.zaloapp.com/v4/oa/access_token` before retrying the failed request\n\n**Dependencies:** Blocks: DA-E22-01. Blocked by: DA-E21-02.\n\n---"
+  },
+  {
+    "id": "DA-E22-01",
+    "summary": "[DA-E22-01] Implement HTTP callback ve business-service sau khi publish xong (POST /internal/posts/{id}/publish-result)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-95",
+    "description": "### DA-E22-01 — Implement HTTP callback POST /internal/posts/{id}/publish-result to business-service\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Notify business-service of every publish attempt outcome so it can update post status and trigger user notifications.\n\n**Acceptance Criteria:**\n- [ ] After every publish attempt (success or failure), publisher-service calls `POST http://business-service/internal/posts/{postId}/publish-result`\n- [ ] Request body: `{postId, platform, status: PUBLISHED|FAILED, platformPostId?, errorCode?, errorMessage?, publishedAt?}`\n- [ ] `X-Internal-Key` header included on all callback requests\n- [ ] Callback is retried up to 3 times with 2-second delay if business-service returns non-2xx; failures are logged but do not affect the publish retry logic\n\n**Technical Notes:**\n- Use `RestTemplate` or `WebClient` (prefer `WebClient` for non-blocking); configure a dedicated `HttpClient` bean with 10-second connection/read timeout\n- Callback URL base is read from env var `BUSINESS_SERVICE_URL`; never hardcode `localhost`\n\n**Dependencies:** Blocks: DA-E22-03. Blocked by: DA-E21-03, DA-E21-04, DA-E21-05, DA-E21-06, DA-E21-07.\n\n---"
+  },
+  {
+    "id": "DA-E22-02",
+    "summary": "[DA-E22-02] Implement retry logic: that bai → retry toi da 3 lan voi exponential backoff (1m, 5m, 15m)",
+    "assignee": "Phước (Publisher)",
+    "priority": "Highest",
+    "epic_key": "DA-95",
+    "description": "### DA-E22-02 — Implement retry logic: immediate → +1min → +5min → +15min → Dead Letter Queue\n**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical\n\n**Goal:** Ensure transient platform API failures (network blips, rate limits, temporary outages) are retried automatically without data loss.\n\n**Acceptance Criteria:**\n- [ ] On publish failure, message is re-queued with delay: attempt 1 = immediate, attempt 2 = 1 minute, attempt 3 = 5 minutes, attempt 4 = 15 minutes\n- [ ] After 4 failed attempts, message is routed to Dead Letter Queue (`publish.jobs.dlq`); an alert is logged at ERROR level with full context\n- [ ] Attempt count is tracked in message headers (`x-retry-count`); incremented on each re-queue\n- [ ] Redis `processingPostIds` lock is released before re-queuing so the retried message is not blocked by the exactly-once guard\n\n**Technical Notes:**\n- Implement delayed retry using RabbitMQ `x-message-ttl` on a per-delay dead letter exchange chain (one exchange per delay level), or use RabbitMQ Delayed Message Plugin if available\n- Do NOT use `Thread.sleep()` for delays in the consumer thread; this blocks the consumer and prevents other messages from being processed\n- Non-retryable errors (e.g., invalid token, account suspended — HTTP 4xx from platform that is not 429) must go directly to DLQ without retry; maintain a list of non-retryable HTTP status codes per platform\n\n**Dependencies:** Blocks: DA-E22-03. Blocked by: DA-E21-02, DA-E22-01.\n\n---"
+  },
+  {
+    "id": "DA-E22-03",
+    "summary": "[DA-E22-03] Implement business-service handler cho publish callback (cap nhat post status, tao notification)",
+    "assignee": "Trung (Leader)",
+    "priority": "Highest",
+    "epic_key": "DA-95",
+    "description": "### DA-E22-03 — Implement business-service handler for publish callback (update post status PUBLISHED/FAILED, create notification)\n**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical\n\n**Goal:** Complete the publish feedback loop by processing the callback from publisher-service and updating the post record and user notification state in business-service.\n\n**Acceptance Criteria:**\n- [ ] `POST /internal/posts/{id}/publish-result` endpoint in business-service is authenticated via `X-Internal-Key`\n- [ ] On `status: PUBLISHED`: post record updated to `status=PUBLISHED`, `platformPostId` and `publishedAt` persisted\n- [ ] On `status: FAILED`: post record updated to `status=FAILED`, `errorCode` and `errorMessage` persisted; user notification created with failure reason\n- [ ] Endpoint is idempotent: duplicate callbacks with the same `postId` and `status` do not create duplicate notifications\n\n**Technical Notes:**\n- Use database-level unique constraint or `INSERT ... ON CONFLICT DO NOTHING` to enforce idempotency on notification creation\n- Notification content for failure should be user-readable, not the raw API error message; map `errorCode` to a Vietnamese-language user message\n\n**Dependencies:** Blocks: None. Blocked by: DA-E22-01, DA-E22-02.\n\n## Phase 5–7 — Content Workflow, Frontend, Mobile, Testing, Deployment (Sprints 10–16)\n\n---"
+  }
+]

@@ -1,0 +1,40 @@
+<<<<<<< HEAD
+# ── Secrets ──────────────────────────────────────────────────
+docker/.env
+**/.env
+**/.env.local
+**/.env.*.local
+!**/.env.example
+
+# ── Node / VitePress ─────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+frontend/.vitepress/cache/
+frontend/.vitepress/dist/
+dist/
+
+# ── OS / Editor ───────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/settings.json
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Docker volumes (local data) ──────────────────────────────
+postgres-data/
+mongo-data/
+redis-data/
+=======
+node_modules/
+dist/
+.vitepress/cache/
+.vitepress/dist/
+*.local
+.env
+.env.*
+!.env.example
+!docker/.env.example
+>>>>>>> c9b66c9611f3b0935033442cc97c249b7ff11f9f

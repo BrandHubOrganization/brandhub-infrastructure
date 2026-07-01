@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-AI09-01",
+    "summary": "[DA-AI09-01] Integrate Google Veo API (authentication, generate request, async polling cho status)",
+    "assignee": "Ân (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-110",
+    "description": "### DA-AI09-01 — Integrate Google Veo API (auth, POST generate → jobId → poll GET status → S3 upload)\n**Assignee:** Ân (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Establish the complete async video generation pipeline from API trigger to a finished video file in S3.\n\n**Acceptance Criteria:**\n- [ ] `services/video/veo_client.py` implements: `create_video_job(prompt: str, params: dict) -> str` (returns jobId) and `get_job_status(jobId: str) -> {status, videoUrl?}`\n- [ ] Job status is polled every 10 seconds with a maximum timeout of 10 minutes; on timeout raises `VideoGenerationTimeoutError`\n- [ ] On status `DONE`, video is downloaded from Veo-provided URL and uploaded to S3 at `videos/{clientId}/{uuid}.mp4`\n- [ ] Auth uses Google Cloud service account credentials from `GOOGLE_APPLICATION_CREDENTIALS` env var\n\n**Technical Notes:**\n- Store `jobId → status` in Redis (key: `veo:job:{jobId}`, TTL 24 hours) so the FastAPI polling endpoint (DA-AI09-05) can serve status without re-querying Veo\n- Poll in a background task, not in the request thread; POST endpoint returns `{jobId}` immediately\n\n**Dependencies:** Blocks: DA-AI09-05, DA-AI09-06. Blocked by: DA-AI01-03, DA-AI02-02.\n\n---"
+  },
+  {
+    "id": "DA-AI09-02",
+    "summary": "[DA-AI09-02] Build video prompt template system (nhan topic + movement type + duration → tao optimized Veo prompt)",
+    "assignee": "Ân (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-110",
+    "description": "### DA-AI09-02 — Build video prompt template system (topic + movement type + duration → optimized Veo prompt)\n**Assignee:** Ân (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Ensure video generation prompts consistently include the motion and scene elements that Veo needs to produce high-quality marketing videos.\n\n**Acceptance Criteria:**\n- [ ] `services/video/prompt_builder.py` function `build_video_prompt(topic, movement_type, duration_seconds, brand_context) -> str` returns an optimized Veo prompt string\n- [ ] Movement types supported: `camera_pan`, `zoom_in`, `zoom_out`, `subject_walk`, `static`; each maps to a specific Veo parameter phrase\n- [ ] Duration is included in the prompt as an explicit instruction (`\"Generate a {n}-second video...\"`)\n- [ ] Unit tests for all 5 movement types verify the correct motion phrase appears in the output prompt\n\n**Dependencies:** Blocks: DA-AI09-04, DA-AI09-05. Blocked by: DA-AI01-04, DA-AI02-04.\n\n---"
+  },
+  {
+    "id": "DA-AI09-03",
+    "summary": "[DA-AI09-03] Implement movement parameter mapping (camera_pan, zoom_in, zoom_out, subject_walk → Veo params)",
+    "assignee": "Ân (AI)",
+    "priority": "High",
+    "epic_key": "DA-110",
+    "description": "### DA-AI09-03 — Implement movement parameter mapping (camera_pan, zoom_in, zoom_out, subject_walk → Veo params)\n**Assignee:** Ân (AI) | **Priority:** 🟡 High\n\n**Goal:** Translate BrandHub's user-friendly movement vocabulary into the exact Veo API parameter values confirmed during research.\n\n**Acceptance Criteria:**\n- [ ] `utils/video_params.py` defines `MOVEMENT_MAP: dict` mapping each movement type to the corresponding Veo API parameter dict\n- [ ] All movement types from DA-AI01-04 research are covered; parameter values are taken directly from the research results\n- [ ] Unit test: calling the mapper with each movement type returns a non-empty param dict with no `None` values\n\n**Technical Notes:**\n- This mapping will likely need updating after DA-AI01-03 confirms exact Veo parameter names; design it as a config dict, not hard-coded if-else chains\n\n**Dependencies:** Blocks: DA-AI09-02. Blocked by: DA-AI01-03, DA-AI01-04.\n\n---"
+  },
+  {
+    "id": "DA-AI09-04",
+    "summary": "[DA-AI09-04] Tao prompt library: 10 loai marketing video x 3 movement styles = 30 prompt templates",
+    "assignee": "Ân (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-110",
+    "description": "### DA-AI09-04 — Create prompt library: 10 marketing video types × 3 movement styles = 30 templates\n**Assignee:** Ân (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Give the system and users a tested starting library of prompts that reliably produce professional marketing video outputs.\n\n**Acceptance Criteria:**\n- [ ] 30 prompt templates created: 10 video types (product showcase, brand intro, seasonal, lifestyle, tutorial, testimonial, launch, promo, behind-the-scenes, social trend) × 3 movement styles\n- [ ] Each template is a parameterized string with `{product}`, `{brand}`, `{tone}` placeholders\n- [ ] All 30 templates tested against Veo API; at least 25 produce acceptable output; failed templates are revised or replaced\n- [ ] Templates stored in `utils/video_templates.py` as a structured dict keyed by `(video_type, movement_style)`\n\n**Dependencies:** Blocks: DA-AI09-07. Blocked by: DA-AI09-02, DA-AI01-04.\n\n---"
+  },
+  {
+    "id": "DA-AI09-05",
+    "summary": "[DA-AI09-05] Build video generation endpoint (POST /ai/video/generate → async, tra ve jobId → GET /ai/video/{jobId}/status de poll)",
+    "assignee": "Ân (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-110",
+    "description": "### DA-AI09-05 — Build POST /ai/video/generate → returns {jobId}, GET /ai/video/{jobId}/status for polling\n**Assignee:** Ân (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Expose the async video generation flow to clients via a non-blocking API that matches the jobId polling pattern used across the system.\n\n**Acceptance Criteria:**\n- [ ] `POST /ai/video/generate` accepts `{topic, movementType, durationSeconds, clientId, templateKey?}` and immediately returns `{jobId: str, status: \"PENDING\"}`\n- [ ] `GET /ai/video/{jobId}/status` returns `{status: PENDING|PROCESSING|DONE|FAILED, videoUrl?, thumbnailUrl?, errorMessage?}`\n- [ ] Status is read from Redis (set by background poller in DA-AI09-01); endpoint never directly calls Veo API\n- [ ] `jobId` is validated; unknown IDs return `404 Not Found`\n\n**Technical Notes:**\n- Redis key for job status: `veo:job:{jobId}` (consistent with DA-AI09-01 design)\n- Business-service frontend can poll this endpoint every 5 seconds; document recommended polling interval in Postman collection\n\n**Dependencies:** Blocks: DA-AI09-06. Blocked by: DA-AI09-01, DA-AI09-02, DA-AI02-04.\n\n---"
+  }
+]

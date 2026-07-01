@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrandHub — Polyrepo Structure</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #F7F8FA;
+  color: #1a1a2e;
+  padding: 28px 24px 48px;
+  min-width: 900px;
+}
+
+/* ── Header ── */
+.hdr { text-align: center; margin-bottom: 24px; }
+.hdr h1 { font-size: 18px; font-weight: 700; color: #111; }
+.hdr p  { font-size: 11px; color: #aaa; margin-top: 3px; }
+
+/* ── Grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.grid-full { grid-column: 1 / -1; }
+
+/* ── Repo card ── */
+.card {
+  border-radius: 12px;
+  border: 1px solid #E0E0E0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-bottom: 1px solid #EBEBEB;
+}
+.card-head i { font-size: 18px; flex-shrink: 0; }
+.head-info { flex: 1; min-width: 0; }
+.head-name { font-size: 12.5px; font-weight: 700; font-family: 'SF Mono','Fira Code','Consolas',monospace; }
+.head-sub  { font-size: 10px; margin-top: 1px; opacity: 0.7; }
+.tech-badge {
+  font-size: 10px; font-weight: 600;
+  padding: 2px 9px; border-radius: 20px;
+  white-space: nowrap; flex-shrink: 0;
+}
+
+/* ── Card body ── */
+.card-body {
+  padding: 10px 14px 12px;
+  display: flex;
+  gap: 16px;
+}
+
+/* ── Tree ── */
+.tree {
+  font-family: 'SF Mono','Fira Code','Consolas',monospace;
+  font-size: 10.5px;
+  line-height: 1.75;
+  flex: 1;
+  min-width: 0;
+}
+.t-d   { color: #5f5d5d; user-select: none; }
+.t-dir { font-weight: 700; }
+.t-file{ color: #424242; }
+.t-cm  { color: #5f5d5d; font-style: italic; font-size: 9.5px; }
+.t-sep { height: 1px; background: #F0F0F0; margin: 4px 0; }
+
+/* ── Meta panel ── */
+.meta {
+  width: 168px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.meta-block { border-radius: 8px; padding: 8px 10px; border: 1px solid; }
+.meta-title { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+.meta-item  { display: flex; align-items: flex-start; gap: 5px; font-size: 10px; line-height: 1.45; padding: 1px 0; }
+.meta-item i { font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+
+/* port badge */
+.port-badge {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  padding: 1px 8px; border-radius: 4px;
+  font-family: 'SF Mono','Fira Code','Consolas',monospace;
+}
+
+/* ── Color themes per service ── */
+/* business - blue */
+.th-biz .card-head { background: #EEF2FD; }
+.th-biz .card-head i { color: #3F51B5; }
+.th-biz .head-name  { color: #283593; }
+.th-biz .head-sub   { color: #5C6BC0; }
+.th-biz .tech-badge { background: #C5CAE9; color: #1A237E; }
+.th-biz .t-dir      { color: #3F51B5; }
+.th-biz .meta-block { background: #F5F7FE; border-color: #C5CAE9; }
+.th-biz .meta-title { color: #3F51B5; }
+.th-biz .meta-item i { color: #5C6BC0; }
+.th-biz .port-badge  { background: #C5CAE9; color: #1A237E; }
+
+/* ai - teal */
+.th-ai .card-head { background: #E0F2F1; }
+.th-ai .card-head i { color: #00897B; }
+.th-ai .head-name   { color: #00695C; }
+.th-ai .head-sub    { color: #26A69A; }
+.th-ai .tech-badge  { background: #B2DFDB; color: #004D40; }
+.th-ai .t-dir       { color: #00897B; }
+.th-ai .meta-block  { background: #F0FAF9; border-color: #B2DFDB; }
+.th-ai .meta-title  { color: #00897B; }
+.th-ai .meta-item i { color: #26A69A; }
+.th-ai .port-badge  { background: #B2DFDB; color: #004D40; }
+
+/* publisher - orange */
+.th-pub .card-head { background: #FFF3E0; }
+.th-pub .card-head i { color: #E65100; }
+.th-pub .head-name   { color: #BF360C; }
+.th-pub .head-sub    { color: #F4511E; }
+.th-pub .tech-badge  { background: #FFCCBC; color: #BF360C; }
+.th-pub .t-dir       { color: #E65100; }
+.th-pub .meta-block  { background: #FFF8F5; border-color: #FFCCBC; }
+.th-pub .meta-title  { color: #E65100; }
+.th-pub .meta-item i { color: #F4511E; }
+.th-pub .port-badge  { background: #FFCCBC; color: #BF360C; }
+
+/* gateway - slate */
+.th-gw .card-head { background: #ECEFF1; }
+.th-gw .card-head i { color: #455A64; }
+.th-gw .head-name   { color: #263238; }
+.th-gw .head-sub    { color: #607D8B; }
+.th-gw .tech-badge  { background: #CFD8DC; color: #263238; }
+.th-gw .t-dir       { color: #455A64; }
+.th-gw .meta-block  { background: #F5F7F8; border-color: #CFD8DC; }
+.th-gw .meta-title  { color: #455A64; }
+.th-gw .meta-item i { color: #607D8B; }
+.th-gw .port-badge  { background: #CFD8DC; color: #263238; }
+
+/* web - purple */
+.th-web .card-head { background: #EDE7F6; }
+.th-web .card-head i { color: #5E35B1; }
+.th-web .head-name   { color: #4527A0; }
+.th-web .head-sub    { color: #7E57C2; }
+.th-web .tech-badge  { background: #D1C4E9; color: #311B92; }
+.th-web .t-dir       { color: #5E35B1; }
+.th-web .meta-block  { background: #F6F3FD; border-color: #D1C4E9; }
+.th-web .meta-title  { color: #5E35B1; }
+.th-web .meta-item i { color: #7E57C2; }
+.th-web .port-badge  { background: #D1C4E9; color: #311B92; }
+
+/* mobile - indigo */
+.th-mob .card-head { background: #E8EAF6; }
+.th-mob .card-head i { color: #3949AB; }
+.th-mob .head-name   { color: #283593; }
+.th-mob .head-sub    { color: #5C6BC0; }
+.th-mob .tech-badge  { background: #C5CAE9; color: #1A237E; }
+.th-mob .t-dir       { color: #3949AB; }
+.th-mob .meta-block  { background: #F5F6FD; border-color: #C5CAE9; }
+.th-mob .meta-title  { color: #3949AB; }
+.th-mob .meta-item i { color: #5C6BC0; }
+.th-mob .port-badge  { background: #C5CAE9; color: #1A237E; }
+
+/* infra - amber */
+.th-inf .card-head { background: #FFF8E1; }
+.th-inf .card-head i { color: #F57F17; }
+.th-inf .head-name   { color: #E65100; }
+.th-inf .head-sub    { color: #FB8C00; }
+.th-inf .tech-badge  { background: #FFE082; color: #E65100; }
+.th-inf .t-dir       { color: #F57F17; }
+.th-inf .meta-block  { background: #FFFDF0; border-color: #FFE082; }
+.th-inf .meta-title  { color: #F57F17; }
+.th-inf .meta-item i { color: #FB8C00; }
+.th-inf .port-badge  { background: #FFE082; color: #E65100; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <h1>BrandHub — Polyrepo Structure</h1>
+  <p>7 repositories · Microservice architecture · Spring Boot · FastAPI · React · React Native</p>
+</div>
+
+<div class="grid">
+
+<!-- ══════════════════════════════════
+     1. BUSINESS SERVICE
+══════════════════════════════════ -->
+<div class="card th-biz">
+  <div class="card-head">
+    <i class="ti ti-server"></i>
+    <div class="head-info">
+      <div class="head-name">brandhub-business-service</div>
+      <div class="head-sub">Core domain · Auth · Workspace · Content · Subscription</div>
+    </div>
+    <span class="tech-badge">Java Spring Boot 3</span>
+  </div>
+  <div class="card-body">
+    <div class="tree">
+      <div><span class="t-dir">src/main/java/com/brandhub/business/</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">controller/</span><span class="t-cm"> — AuthController · WorkspaceController · UserController · ClientController · PostController · CampaignController</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">service/</span><span class="t-cm"> — AuthService · WorkspaceService · UserService · ClientService · PostService · ReportService · SubscriptionService</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">repository/</span><span class="t-cm"> — UserRepo · WorkspaceRepo · PostRepo · ClientRepo · SubscriptionRepo (Mongo + PG)</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">model/</span><span class="t-cm"> — User · Workspace · Post · Campaign · Client · SocialAccount · ContentRequest · Notification</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">dto/</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-dir">request/</span><span class="t-cm"> — LoginRequest · RegisterRequest · CreatePostRequest · ...</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;└── </span><span class="t-dir">response/</span><span class="t-cm"> — AuthResponse · WorkspaceResponse · PostResponse · ...</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">config/</span><span class="t-cm"> — SecurityConfig · MongoConfig · RedisConfig · RabbitMQConfig · JwtConfig</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">security/</span><span class="t-cm"> — JwtTokenProvider · JwtAuthFilter · UserDetailsServiceImpl</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">exception/</span><span class="t-cm"> — GlobalExceptionHandler · BusinessException · ResourceNotFoundException</span></div>
+      <div><span class="t-d">└── </span><span class="t-dir">util/</span><span class="t-cm"> — DateUtils · SlugUtils · PaginationUtils</span></div>
+      <div class="t-sep"></div>
+      <div><span class="t-d">src/main/resources/</span></div>
+      <div><span class="t-d">├── </span><span class="t-file">application.yml</span><span class="t-cm"> — MongoDB · PostgreSQL · Redis · RabbitMQ · JWT config</span></div>
+      <div><span class="t-d">├── </span><span class="t-file">application-dev.yml</span><span class="t-cm"> — local Docker hostnames</span></div>
+      <div><span class="t-d">└── </span><span class="t-file">application-prod.yml</span><span class="t-cm"> — prod secrets via env vars</span></div>
+      <div><span class="t-d">src/test/java/</span><span class="t-cm"> — unit + integration tests</span></div>
+      <div class="t-sep"></div>
+      <div><span class="t-file">Dockerfile</span><span class="t-cm"> · </span><span class="t-file">pom.xml</span><span class="t-cm"> · </span><span class="t-file">.env.example</span><span class="t-cm"> · </span><span class="t-file">README.md</span></div>
+      <div><span class="t-d">.github/workflows/</span><span class="t-file">ci.yml</span><span class="t-cm"> — build · test · push Docker image</span></div>
+    </div>
+    <div class="meta">
+      <div class="meta-block">
+        <div class="meta-title">Runtime</div>
+        <div class="meta-item"><i class="ti ti-circle-dot"></i><span>Port <span class="port-badge">8081</span></span></div>
+        <div class="meta-item"><i class="ti ti-database"></i><span>MongoDB · PostgreSQL · Redis</span></div>
+        <div class="meta-item"><i class="ti ti-arrows-exchange"></i><span>RabbitMQ producer</span></div>
+      </div>
+      <div class="meta-block">
+        <div class="meta-title">Key APIs</div>
+        <div class="meta-item"><i class="ti ti-lock"></i><span>/api/v1/auth/**</span></div>
+        <div class="meta-item"><i class="ti ti-building"></i><span>/api/v1/workspaces/**</span></div>
+        <div class="meta-item"><i class="ti ti-file-text"></i><span>/api/v1/posts/**</span></div>
+        <div class="meta-item"><i class="ti ti-users"></i><span>/api/v1/clients/**</span></div>
+        <div class="meta-item"><i class="ti ti-credit-card"></i><span>/api/v1/subscriptions/**</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     2. AI SERVICE
+══════════════════════════════════ -->
+<div class="card th-ai">
+  <div class="card-head">
+    <i class="ti ti-brain"></i>
+    <div class="head-info">
+      <div class="head-name">brandhub-ai-service</div>
+      <div class="head-sub">LLM · RAG · Image · Video · Trend · Ambassador</div>
+    </div>
+    <span class="tech-badge">Python FastAPI</span>
+  </div>
+  <div class="card-body">
+    <div class="tree">
+      <div><span class="t-dir">app/</span></div>
+      <div><span class="t-d">├── </span><span class="t-file">main.py</span><span class="t-cm"> — FastAPI app init · CORS · router mount</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">api/v1/endpoints/</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">content.py</span><span class="t-cm"> — POST /generate · POST /refine</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">rag.py</span><span class="t-cm"> — POST /rag/index · POST /rag/query</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">media.py</span><span class="t-cm"> — POST /image/generate · POST /video/generate</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">trend.py</span><span class="t-cm"> — GET /trends · GET /hashtags</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;└── </span><span class="t-file">ambassador.py</span><span class="t-cm"> — POST /ambassador/generate (InstantID)</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">services/</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">llm_service.py</span><span class="t-cm"> — Groq (Llama 3) + Claude API</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">rag_service.py</span><span class="t-cm"> — ChromaDB indexing · top-K=5 retrieval</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">image_service.py</span><span class="t-cm"> — Stability AI SDXL</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">video_service.py</span><span class="t-cm"> — Google Veo API</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">ambassador_service.py</span><span class="t-cm"> — InstantID face swap</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;└── </span><span class="t-file">trend_service.py</span><span class="t-cm"> — Google Trends + TikTok crawler</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">models/</span><span class="t-cm"> — content_models.py · image_models.py · rag_models.py (Pydantic)</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">core/</span><span class="t-cm"> — config.py · security.py</span></div>
+      <div><span class="t-d">└── </span><span class="t-dir">utils/</span><span class="t-cm"> — s3_utils.py · chromadb_utils.py</span></div>
+      <div class="t-sep"></div>
+      <div><span class="t-file">tests/</span><span class="t-cm"> &nbsp; </span><span class="t-file">Dockerfile</span><span class="t-cm"> · </span><span class="t-file">requirements.txt</span><span class="t-cm"> · </span><span class="t-file">.env.example</span><span class="t-cm"> · </span><span class="t-file">README.md</span></div>
+      <div><span class="t-d">.github/workflows/</span><span class="t-file">ci.yml</span><span class="t-cm"> — lint · test · push Docker image</span></div>
+    </div>
+    <div class="meta">
+      <div class="meta-block">
+        <div class="meta-title">Runtime</div>
+        <div class="meta-item"><i class="ti ti-circle-dot"></i><span>Port <span class="port-badge">8082</span></span></div>
+        <div class="meta-item"><i class="ti ti-vector"></i><span>ChromaDB (R/W)</span></div>
+        <div class="meta-item"><i class="ti ti-cloud"></i><span>AWS S3 (Write)</span></div>
+      </div>
+      <div class="meta-block">
+        <div class="meta-title">External APIs</div>
+        <div class="meta-item"><i class="ti ti-cpu"></i><span>Groq — Llama 3</span></div>
+        <div class="meta-item"><i class="ti ti-message-dots"></i><span>Claude API</span></div>
+        <div class="meta-item"><i class="ti ti-photo"></i><span>Stability AI</span></div>
+        <div class="meta-item"><i class="ti ti-video"></i><span>Google Veo</span></div>
+        <div class="meta-item"><i class="ti ti-user-circle"></i><span>InstantID</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     3. PUBLISHER SERVICE
+══════════════════════════════════ -->
+<div class="card th-pub">
+  <div class="card-head">
+    <i class="ti ti-send"></i>
+    <div class="head-info">
+      <div class="head-name">brandhub-publisher-service</div>
+      <div class="head-sub">Stateless · RabbitMQ consumer · Social media publish</div>
+    </div>
+    <span class="tech-badge">Java Spring Boot 3</span>
+  </div>
+  <div class="card-body">
+    <div class="tree">
+      <div><span class="t-dir">src/main/java/com/brandhub/publisher/</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">consumer/</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;└── </span><span class="t-file">PostPublishConsumer.java</span><span class="t-cm"> — @RabbitListener · deserialize · dispatch adapter</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">adapter/</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">PlatformAdapter.java</span><span class="t-cm"> — interface: publish(PostPublishJob)</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">FacebookAdapter.java</span><span class="t-cm"> — Graph API v19</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">InstagramAdapter.java</span><span class="t-cm"> — Instagram Basic Display API</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">TikTokAdapter.java</span><span class="t-cm"> — TikTok Content Posting API</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">ThreadsAdapter.java</span><span class="t-cm"> — Threads API</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;└── </span><span class="t-file">ZaloOAAdapter.java</span><span class="t-cm"> — Zalo OA v2</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">service/</span><span class="t-cm"> — PublisherService · TokenDecryptService · RetryService</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">config/</span><span class="t-cm"> — RabbitMQConfig · SchedulerConfig · RetryConfig</span></div>
+      <div><span class="t-d">└── </span><span class="t-dir">model/</span><span class="t-cm"> — PostPublishJob · PublishResult · PlatformType</span></div>
+      <div class="t-sep"></div>
+      <div><span class="t-d">src/main/resources/</span><span class="t-file">application.yml</span><span class="t-cm"> — RabbitMQ · retry policy</span></div>
+      <div class="t-sep"></div>
+      <div><span class="t-file">Dockerfile</span><span class="t-cm"> · </span><span class="t-file">pom.xml</span><span class="t-cm"> · </span><span class="t-file">.env.example</span><span class="t-cm"> · </span><span class="t-file">README.md</span></div>
+      <div><span class="t-d">.github/workflows/</span><span class="t-file">ci.yml</span></div>
+    </div>
+    <div class="meta">
+      <div class="meta-block">
+        <div class="meta-title">Runtime</div>
+        <div class="meta-item"><i class="ti ti-circle-dot"></i><span>Port <span class="port-badge">8083</span></span></div>
+        <div class="meta-item"><i class="ti ti-database-off"></i><span>No DB access</span></div>
+        <div class="meta-item"><i class="ti ti-arrows-exchange"></i><span>RabbitMQ consumer</span></div>
+      </div>
+      <div class="meta-block">
+        <div class="meta-title">Retry Policy</div>
+        <div class="meta-item"><i class="ti ti-refresh"></i><span>30s → 60s → 120s</span></div>
+        <div class="meta-item"><i class="ti ti-alert-triangle"></i><span>Dead-letter queue</span></div>
+        <div class="meta-item"><i class="ti ti-arrow-back"></i><span>HTTP callback → biz</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     4. API GATEWAY
+══════════════════════════════════ -->
+<div class="card th-gw">
+  <div class="card-head">
+    <i class="ti ti-shield-check"></i>
+    <div class="head-info">
+      <div class="head-name">brandhub-api-gateway</div>
+      <div class="head-sub">JWT auth · Rate limit · Request routing · Logging</div>
+    </div>
+    <span class="tech-badge">Spring Cloud Gateway</span>
+  </div>
+  <div class="card-body">
+    <div class="tree">
+      <div><span class="t-dir">src/main/java/com/brandhub/gateway/</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">filter/</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">JwtAuthFilter.java</span><span class="t-cm"> — validate Bearer token via Redis blacklist</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">RateLimitFilter.java</span><span class="t-cm"> — per-IP · per-user (Redis token bucket)</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;└── </span><span class="t-file">LoggingFilter.java</span><span class="t-cm"> — request/response logging với traceId</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">config/</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">GatewayConfig.java</span><span class="t-cm"> — route definitions</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;└── </span><span class="t-file">SecurityConfig.java</span><span class="t-cm"> — public paths whitelist</span></div>
+      <div><span class="t-d">└── </span><span class="t-dir">util/</span><span class="t-cm"> — JwtUtil.java</span></div>
+      <div class="t-sep"></div>
+      <div><span class="t-d">src/main/resources/</span><span class="t-file">application.yml</span><span class="t-cm"> — routing rules:</span></div>
+      <div><span class="t-cm" style="padding-left:20px">/api/v1/auth/**  → business-service:8081</span></div>
+      <div><span class="t-cm" style="padding-left:20px">/api/v1/**       → business-service:8081</span></div>
+      <div><span class="t-cm" style="padding-left:20px">/api/v1/ai/**    → ai-service:8082</span></div>
+      <div class="t-sep"></div>
+      <div><span class="t-file">Dockerfile</span><span class="t-cm"> · </span><span class="t-file">pom.xml</span><span class="t-cm"> · </span><span class="t-file">.env.example</span><span class="t-cm"> · </span><span class="t-file">README.md</span></div>
+      <div><span class="t-d">.github/workflows/</span><span class="t-file">ci.yml</span></div>
+    </div>
+    <div class="meta">
+      <div class="meta-block">
+        <div class="meta-title">Runtime</div>
+        <div class="meta-item"><i class="ti ti-circle-dot"></i><span>Port <span class="port-badge">8080</span></span></div>
+        <div class="meta-item"><i class="ti ti-database"></i><span>Redis (JWT blacklist)</span></div>
+      </div>
+      <div class="meta-block">
+        <div class="meta-title">Responsibilities</div>
+        <div class="meta-item"><i class="ti ti-lock"></i><span>JWT validation</span></div>
+        <div class="meta-item"><i class="ti ti-gauge"></i><span>Rate limiting</span></div>
+        <div class="meta-item"><i class="ti ti-route"></i><span>Route forwarding</span></div>
+        <div class="meta-item"><i class="ti ti-list"></i><span>Access logging</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     5. WEB DASHBOARD (full width)
+══════════════════════════════════ -->
+<div class="card th-web grid-full">
+  <div class="card-head">
+    <i class="ti ti-layout-dashboard"></i>
+    <div class="head-info">
+      <div class="head-name">brandhub-web-dashboard</div>
+      <div class="head-sub">Agency management panel · Content calendar · Analytics · Client portal</div>
+    </div>
+    <span class="tech-badge">React + Vite + TypeScript</span>
+  </div>
+  <div class="card-body">
+    <div class="tree" style="column-count:2;column-gap:24px">
+      <div style="break-inside:avoid">
+        <div><span class="t-dir">src/</span></div>
+        <div><span class="t-d">├── </span><span class="t-file">main.tsx</span><span class="t-cm"> — app entry</span></div>
+        <div><span class="t-d">├── </span><span class="t-file">App.tsx</span><span class="t-cm"> — Router + QueryClient + Providers</span></div>
+        <div><span class="t-d">├── </span><span class="t-dir">pages/</span></div>
+        <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-dir">auth/</span><span class="t-cm"> — Login · Register · ForgotPassword</span></div>
+        <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-dir">dashboard/</span><span class="t-cm"> — Overview · Stats cards</span></div>
+        <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-dir">workspace/</span><span class="t-cm"> — Settings · Members · Billing</span></div>
+        <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-dir">content/</span><span class="t-cm"> — Calendar · Editor · Scheduled</span></div>
+        <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-dir">analytics/</span><span class="t-cm"> — Performance · Charts</span></div>
+        <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-dir">client-portal/</span><span class="t-cm"> — Client approval view</span></div>
+        <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-dir">admin/</span><span class="t-cm"> — Super-admin panel</span></div>
+        <div><span class="t-d">│&nbsp;&nbsp;&nbsp;└── </span><span class="t-dir">settings/</span><span class="t-cm"> — Profile · Security</span></div>
+      </div>
+      <div style="break-inside:avoid">
+        <div><span class="t-d">├── </span><span class="t-dir">components/</span></div>
+        <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-dir">common/</span><span class="t-cm"> — Button · Input · Modal · Toast · Table · Badge · Spinner</span></div>
+        <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-dir">layout/</span><span class="t-cm"> — Sidebar · Navbar · PageWrapper · Breadcrumb</span></div>
+        <div><span class="t-d">│&nbsp;&nbsp;&nbsp;└── </span><span class="t-dir">features/</span><span class="t-cm"> — ContentEditor · CalendarView · PreviewModal · AnalyticsChart · AIGeneratePanel</span></div>
+        <div><span class="t-d">├── </span><span class="t-dir">services/</span><span class="t-cm"> — api.ts · authService.ts · workspaceService.ts · contentService.ts · aiService.ts</span></div>
+        <div><span class="t-d">├── </span><span class="t-dir">store/</span><span class="t-cm"> — authStore.ts · workspaceStore.ts · contentStore.ts (Zustand)</span></div>
+        <div><span class="t-d">├── </span><span class="t-dir">hooks/</span><span class="t-cm"> — useAuth · useWorkspace · useContent · useAIGenerate</span></div>
+        <div><span class="t-d">├── </span><span class="t-dir">types/</span><span class="t-cm"> — user.ts · post.ts · workspace.ts · client.ts</span></div>
+        <div><span class="t-d">├── </span><span class="t-dir">lib/</span><span class="t-cm"> — utils.ts (cn helper)</span></div>
+        <div><span class="t-d">└── </span><span class="t-dir">utils/</span><span class="t-cm"> — formatDate · truncateText · platformRules</span></div>
+        <div class="t-sep"></div>
+        <div><span class="t-file">index.html</span><span class="t-cm"> · </span><span class="t-file">vite.config.ts</span><span class="t-cm"> · </span><span class="t-file">tsconfig.json</span><span class="t-cm"> · </span><span class="t-file">tailwind.config.ts</span><span class="t-cm"> · </span><span class="t-file">eslint.config.js</span></div>
+        <div><span class="t-file">Dockerfile</span><span class="t-cm"> · </span><span class="t-file">nginx.conf</span><span class="t-cm"> · </span><span class="t-file">package.json</span><span class="t-cm"> · </span><span class="t-file">.env.example</span></div>
+        <div><span class="t-d">.github/workflows/</span><span class="t-file">ci.yml</span><span class="t-cm"> — lint · build · test</span></div>
+      </div>
+    </div>
+    <div class="meta">
+      <div class="meta-block">
+        <div class="meta-title">Runtime</div>
+        <div class="meta-item"><i class="ti ti-circle-dot"></i><span>Port <span class="port-badge">3000</span></span></div>
+        <div class="meta-item"><i class="ti ti-server"></i><span>nginx (prod)</span></div>
+      </div>
+      <div class="meta-block">
+        <div class="meta-title">Stack</div>
+        <div class="meta-item"><i class="ti ti-brand-react"></i><span>React 18</span></div>
+        <div class="meta-item"><i class="ti ti-bolt"></i><span>Vite 5</span></div>
+        <div class="meta-item"><i class="ti ti-brand-typescript"></i><span>TypeScript</span></div>
+        <div class="meta-item"><i class="ti ti-wind"></i><span>Tailwind CSS</span></div>
+        <div class="meta-item"><i class="ti ti-package"></i><span>Zustand · Axios</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     6. MOBILE APP
+══════════════════════════════════ -->
+<div class="card th-mob">
+  <div class="card-head">
+    <i class="ti ti-device-mobile"></i>
+    <div class="head-info">
+      <div class="head-name">brandhub-mobile-app</div>
+      <div class="head-sub">Android · Approval workflow · Notifications · Offline draft</div>
+    </div>
+    <span class="tech-badge">React Native · Expo</span>
+  </div>
+  <div class="card-body">
+    <div class="tree">
+      <div><span class="t-dir">src/</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">screens/</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-dir">auth/</span><span class="t-cm"> — Login · ForgotPassword</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-dir">dashboard/</span><span class="t-cm"> — Overview · Stats</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-dir">content/</span><span class="t-cm"> — List · Detail</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-dir">calendar/</span><span class="t-cm"> — Scheduled posts</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-dir">approval/</span><span class="t-cm"> — Approve/Reject posts</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-dir">notifications/</span><span class="t-cm"> — Push + in-app</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;└── </span><span class="t-dir">settings/</span><span class="t-cm"> — Profile · Account</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">components/</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-dir">common/</span><span class="t-cm"> — Button · Card · Input · BottomSheet · Badge</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;└── </span><span class="t-dir">features/</span><span class="t-cm"> — PostCard · CalendarStrip · ApprovalModal · NotificationItem</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">navigation/</span><span class="t-cm"> — AppNavigator · AuthNavigator · MainTabNavigator</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">services/</span><span class="t-cm"> — api.ts · authService.ts · contentService.ts</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">store/</span><span class="t-cm"> — authStore.ts · notificationStore.ts (Zustand)</span></div>
+      <div><span class="t-d">├── </span><span class="t-dir">hooks/</span><span class="t-cm"> — usePushNotification · useOfflineDraft · useCamera</span></div>
+      <div><span class="t-d">└── </span><span class="t-dir">utils/</span><span class="t-cm"> — fcm.ts · offlineStorage.ts</span></div>
+      <div class="t-sep"></div>
+      <div><span class="t-file">App.tsx</span><span class="t-cm"> · </span><span class="t-file">app.json</span><span class="t-cm"> · </span><span class="t-file">package.json</span><span class="t-cm"> · </span><span class="t-file">.env.example</span></div>
+      <div><span class="t-d">android/</span><span class="t-cm"> — native Android build files</span></div>
+      <div><span class="t-d">assets/</span><span class="t-cm"> — icon.png · splash-icon.png · android-icon-*.png</span></div>
+      <div><span class="t-d">.github/workflows/</span><span class="t-file">ci.yml</span><span class="t-cm"> — lint · build APK</span></div>
+    </div>
+    <div class="meta">
+      <div class="meta-block">
+        <div class="meta-title">Runtime</div>
+        <div class="meta-item"><i class="ti ti-brand-android"></i><span>Android (Expo)</span></div>
+        <div class="meta-item"><i class="ti ti-wifi-off"></i><span>Offline drafts</span></div>
+        <div class="meta-item"><i class="ti ti-bell"></i><span>FCM push notif</span></div>
+      </div>
+      <div class="meta-block">
+        <div class="meta-title">Dev</div>
+        <div class="meta-item"><i class="ti ti-terminal"></i><span>npx expo start</span></div>
+        <div class="meta-item"><i class="ti ti-network"></i><span>EXPO_PUBLIC_API_BASE_URL</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     7. INFRASTRUCTURE (full width)
+══════════════════════════════════ -->
+<div class="card th-inf grid-full">
+  <div class="card-head">
+    <i class="ti ti-settings"></i>
+    <div class="head-info">
+      <div class="head-name">brandhub-infrastructure</div>
+      <div class="head-sub">Docker Compose · DB init scripts · Deployment docs · Architecture diagrams</div>
+    </div>
+    <span class="tech-badge">Docker + Shell + Docs</span>
+  </div>
+  <div class="card-body">
+    <div class="tree" style="column-count:2;column-gap:24px">
+      <div style="break-inside:avoid">
+        <div><span class="t-dir">docker/</span></div>
+        <div><span class="t-d">├── </span><span class="t-file">docker-compose.yml</span><span class="t-cm"> — full dev stack: 6 services + MongoDB + PostgreSQL + Redis + RabbitMQ + ChromaDB + pgAdmin</span></div>
+        <div><span class="t-d">├── </span><span class="t-file">docker-compose.prod.yml</span><span class="t-cm"> — production overrides (no pgAdmin, resource limits)</span></div>
+        <div><span class="t-d">└── </span><span class="t-file">.env.example</span><span class="t-cm"> — tổng hợp tất cả env vars của 6 services</span></div>
+        <div class="t-sep"></div>
+        <div><span class="t-dir">scripts/</span></div>
+        <div><span class="t-d">├── </span><span class="t-file">init-mongo.js</span><span class="t-cm"> — tạo 9 collections + validators + indexes</span></div>
+        <div><span class="t-d">├── </span><span class="t-file">init-postgres.sql</span><span class="t-cm"> — tạo 4 tables + indexes + seed plans</span></div>
+        <div><span class="t-d">├── </span><span class="t-file">pgadmin-servers.json</span><span class="t-cm"> — pgAdmin server config</span></div>
+        <div><span class="t-d">├── </span><span class="t-file">start-all.sh</span><span class="t-cm"> / </span><span class="t-file">start-all.ps1</span><span class="t-cm"> — start full stack including mobile</span></div>
+        <div><span class="t-d">└── </span><span class="t-file">start-no-mobile.sh</span><span class="t-cm"> / </span><span class="t-file">start-no-mobile.ps1</span><span class="t-cm"> — start stack without mobile container</span></div>
+      </div>
+      <div style="break-inside:avoid">
+        <div><span class="t-dir">docs/</span></div>
+        <div><span class="t-d">├── </span><span class="t-dir">api/</span><span class="t-cm"> — business-service.yaml · ai-service.yaml · publisher-service.yaml (Swagger/OpenAPI)</span></div>
+        <div><span class="t-d">├── </span><span class="t-dir">architecture/</span></div>
+        <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">brandhub_architecture.html</span><span class="t-cm"> — system architecture diagram</span></div>
+        <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">brandhub_db_ownership_diagram.html</span><span class="t-cm"> — DB ownership + schema reference</span></div>
+        <div><span class="t-d">│&nbsp;&nbsp;&nbsp;└── </span><span class="t-file">brandhub_polyrepo_structure.html</span><span class="t-cm"> — this file</span></div>
+        <div><span class="t-d">└── </span><span class="t-dir">deployment/</span><span class="t-cm"> — server-setup.md · env-guide.md · release-checklist.md</span></div>
+        <div class="t-sep"></div>
+        <div><span class="t-file">README.md</span><span class="t-cm"> — tổng quan + links đến tất cả 6 repos + quick-start guide</span></div>
+      </div>
+    </div>
+    <div class="meta">
+      <div class="meta-block">
+        <div class="meta-title">Services (dev)</div>
+        <div class="meta-item"><i class="ti ti-circle-dot"></i><span>API Gateway :8080</span></div>
+        <div class="meta-item"><i class="ti ti-circle-dot"></i><span>Business :8081</span></div>
+        <div class="meta-item"><i class="ti ti-circle-dot"></i><span>AI :8082</span></div>
+        <div class="meta-item"><i class="ti ti-circle-dot"></i><span>Publisher :8083</span></div>
+        <div class="meta-item"><i class="ti ti-circle-dot"></i><span>Web :3000</span></div>
+      </div>
+      <div class="meta-block">
+        <div class="meta-title">Data stores</div>
+        <div class="meta-item"><i class="ti ti-database"></i><span>MongoDB :27017</span></div>
+        <div class="meta-item"><i class="ti ti-database"></i><span>PostgreSQL :5432</span></div>
+        <div class="meta-item"><i class="ti ti-database"></i><span>Redis :6379</span></div>
+        <div class="meta-item"><i class="ti ti-vector"></i><span>ChromaDB :8000</span></div>
+        <div class="meta-item"><i class="ti ti-mail"></i><span>RabbitMQ :5672/:15672</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /grid -->
+
+<div style="text-align:center;margin-top:18px;font-size:10px;color:#ccc">
+  BrandHub v1.0 · Polyrepo Structure · 7 repositories · 2026
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1127 @@
+[
+  {
+    "name": "AI_Models",
+    "path": "/AI_Models",
+    "type": "directory",
+    "children": [
+      {
+        "name": "Research_Model_Generate_Advertise_Image.md",
+        "path": "/AI_Models/Research_Model_Generate_Advertise_Image",
+        "type": "file",
+        "ext": ".md"
+      }
+    ]
+  },
+  {
+    "name": "api",
+    "path": "/api",
+    "type": "directory",
+    "children": [
+      {
+        "name": "endpoints",
+        "path": "/api/endpoints",
+        "type": "directory",
+        "children": [
+          {
+            "name": "00_conventions.md",
+            "path": "/api/endpoints/00_conventions",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "01_auth.md",
+            "path": "/api/endpoints/01_auth",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "02_user.md",
+            "path": "/api/endpoints/02_user",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "03_workspace.md",
+            "path": "/api/endpoints/03_workspace",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "04_client.md",
+            "path": "/api/endpoints/04_client",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "05_post.md",
+            "path": "/api/endpoints/05_post",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "06_content_request.md",
+            "path": "/api/endpoints/06_content_request",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "07_social_account.md",
+            "path": "/api/endpoints/07_social_account",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "08_analytics.md",
+            "path": "/api/endpoints/08_analytics",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "09_report.md",
+            "path": "/api/endpoints/09_report",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "10_subscription.md",
+            "path": "/api/endpoints/10_subscription",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "11_admin.md",
+            "path": "/api/endpoints/11_admin",
+            "type": "file",
+            "ext": ".md"
+          }
+        ]
+      },
+      {
+        "name": "DA-E07-01_Business_Service_Endpoints.md",
+        "path": "/api/DA-E07-01_Business_Service_Endpoints",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "DA-E07-04_API_Response_Format.md",
+        "path": "/api/DA-E07-04_API_Response_Format",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "DA-E07-05_OpenAPI_Spec.md",
+        "path": "/api/DA-E07-05_OpenAPI_Spec",
+        "type": "file",
+        "ext": ".md"
+      }
+    ]
+  },
+  {
+    "name": "architecture",
+    "path": "/architecture",
+    "type": "directory",
+    "children": [
+      {
+        "name": "brandhub_arch_reference_style.html",
+        "path": "/view?file=architecture/brandhub_arch_reference_style.html",
+        "type": "file",
+        "ext": ".html"
+      },
+      {
+        "name": "brandhub_architecture.html",
+        "path": "/view?file=architecture/brandhub_architecture.html",
+        "type": "file",
+        "ext": ".html"
+      },
+      {
+        "name": "brandhub_db_ownership_diagram.html",
+        "path": "/view?file=architecture/brandhub_db_ownership_diagram.html",
+        "type": "file",
+        "ext": ".html"
+      },
+      {
+        "name": "brandhub_polyrepo_structure.html",
+        "path": "/view?file=architecture/brandhub_polyrepo_structure.html",
+        "type": "file",
+        "ext": ".html"
+      },
+      {
+        "name": "rabbitmq_publisher_contract.html",
+        "path": "/view?file=architecture/rabbitmq_publisher_contract.html",
+        "type": "file",
+        "ext": ".html"
+      },
+      {
+        "name": "social_platforms_api_specs.html",
+        "path": "/view?file=architecture/social_platforms_api_specs.html",
+        "type": "file",
+        "ext": ".html"
+      }
+    ]
+  },
+  {
+    "name": "database",
+    "path": "/database",
+    "type": "directory",
+    "children": [
+      {
+        "name": "brandhub_dbml.dbml",
+        "path": "/database/brandhub_dbml.dbml",
+        "type": "file",
+        "ext": ".dbml"
+      },
+      {
+        "name": "brandhub_erd.puml",
+        "path": "/database/brandhub_erd.puml",
+        "type": "file",
+        "ext": ".puml"
+      },
+      {
+        "name": "brandhub_schema_diagram.html",
+        "path": "/view?file=database/brandhub_schema_diagram.html",
+        "type": "file",
+        "ext": ".html"
+      },
+      {
+        "name": "DA-E06-04_Indexing_Strategy.md",
+        "path": "/database/DA-E06-04_Indexing_Strategy",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "DA-E06-06_Redis_Key_Patterns.md",
+        "path": "/database/DA-E06-06_Redis_Key_Patterns",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "DA-E06-08_Database_Access_Rules.md",
+        "path": "/database/DA-E06-08_Database_Access_Rules",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "Database_Strategy.md",
+        "path": "/database/Database_Strategy",
+        "type": "file",
+        "ext": ".md"
+      }
+    ]
+  },
+  {
+    "name": "plan",
+    "path": "/plan",
+    "type": "directory",
+    "children": [
+      {
+        "name": "iterations",
+        "path": "/plan/iterations",
+        "type": "directory",
+        "children": [
+          {
+            "name": "AI_Iteration_1_Research_Evaluation.md",
+            "path": "/plan/iterations/AI_Iteration_1_Research_Evaluation",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "AI_Iteration_2_RAG_LLM_Trends.md",
+            "path": "/plan/iterations/AI_Iteration_2_RAG_LLM_Trends",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "AI_Iteration_3_Image_Ambassador_Composition.md",
+            "path": "/plan/iterations/AI_Iteration_3_Image_Ambassador_Composition",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "AI_Iteration_4_Video_Integration_Documentation.md",
+            "path": "/plan/iterations/AI_Iteration_4_Video_Integration_Documentation",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "README.md",
+            "path": "/plan/iterations/README",
+            "type": "file",
+            "ext": ".md"
+          }
+        ]
+      },
+      {
+        "name": "json",
+        "path": "/plan/json",
+        "type": "directory",
+        "children": [
+          {
+            "name": "Jira_Upload_Tracking.md",
+            "path": "/plan/json/Jira_Upload_Tracking",
+            "type": "file",
+            "ext": ".md"
+          }
+        ]
+      },
+      {
+        "name": "sprints",
+        "path": "/plan/sprints",
+        "type": "directory",
+        "children": [
+          {
+            "name": "sprint_01",
+            "path": "/plan/sprints/sprint_01",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/sprints/sprint_01/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "anha.md",
+                    "path": "/plan/sprints/sprint_01/members/anha",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "locnv.md",
+                    "path": "/plan/sprints/sprint_01/members/locnv",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "phuocnc.md",
+                    "path": "/plan/sprints/sprint_01/members/phuocnc",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "trungle.md",
+                    "path": "/plan/sprints/sprint_01/members/trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "tuannm.md",
+                    "path": "/plan/sprints/sprint_01/members/tuannm",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "PLAN.md",
+                "path": "/plan/sprints/sprint_01/PLAN",
+                "type": "file",
+                "ext": ".md"
+              },
+              {
+                "name": "SPRINT_REPORT.md",
+                "path": "/plan/sprints/sprint_01/SPRINT_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "sprint_02",
+            "path": "/plan/sprints/sprint_02",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/sprints/sprint_02/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "anha.md",
+                    "path": "/plan/sprints/sprint_02/members/anha",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "locnv.md",
+                    "path": "/plan/sprints/sprint_02/members/locnv",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "phuocnc.md",
+                    "path": "/plan/sprints/sprint_02/members/phuocnc",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "trungle.md",
+                    "path": "/plan/sprints/sprint_02/members/trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "tuannm.md",
+                    "path": "/plan/sprints/sprint_02/members/tuannm",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "PLAN.md",
+                "path": "/plan/sprints/sprint_02/PLAN",
+                "type": "file",
+                "ext": ".md"
+              },
+              {
+                "name": "SPRINT_REPORT.md",
+                "path": "/plan/sprints/sprint_02/SPRINT_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "sprint_03",
+            "path": "/plan/sprints/sprint_03",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/sprints/sprint_03/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "anha.md",
+                    "path": "/plan/sprints/sprint_03/members/anha",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "locnv.md",
+                    "path": "/plan/sprints/sprint_03/members/locnv",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "phuocnc.md",
+                    "path": "/plan/sprints/sprint_03/members/phuocnc",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "trungle.md",
+                    "path": "/plan/sprints/sprint_03/members/trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "tuannm.md",
+                    "path": "/plan/sprints/sprint_03/members/tuannm",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "PLAN.md",
+                "path": "/plan/sprints/sprint_03/PLAN",
+                "type": "file",
+                "ext": ".md"
+              },
+              {
+                "name": "SPRINT_REPORT.md",
+                "path": "/plan/sprints/sprint_03/SPRINT_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "sprint_04",
+            "path": "/plan/sprints/sprint_04",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/sprints/sprint_04/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "anha.md",
+                    "path": "/plan/sprints/sprint_04/members/anha",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "locnv.md",
+                    "path": "/plan/sprints/sprint_04/members/locnv",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "phuocnc.md",
+                    "path": "/plan/sprints/sprint_04/members/phuocnc",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "trungle.md",
+                    "path": "/plan/sprints/sprint_04/members/trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "tuannm.md",
+                    "path": "/plan/sprints/sprint_04/members/tuannm",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "PLAN.md",
+                "path": "/plan/sprints/sprint_04/PLAN",
+                "type": "file",
+                "ext": ".md"
+              },
+              {
+                "name": "SPRINT_REPORT.md",
+                "path": "/plan/sprints/sprint_04/SPRINT_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "sprint_05",
+            "path": "/plan/sprints/sprint_05",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/sprints/sprint_05/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "anha.md",
+                    "path": "/plan/sprints/sprint_05/members/anha",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "phuocnc.md",
+                    "path": "/plan/sprints/sprint_05/members/phuocnc",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "trungle.md",
+                    "path": "/plan/sprints/sprint_05/members/trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "PLAN.md",
+                "path": "/plan/sprints/sprint_05/PLAN",
+                "type": "file",
+                "ext": ".md"
+              },
+              {
+                "name": "SPRINT_REPORT.md",
+                "path": "/plan/sprints/sprint_05/SPRINT_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "sprint_06",
+            "path": "/plan/sprints/sprint_06",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/sprints/sprint_06/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "anha.md",
+                    "path": "/plan/sprints/sprint_06/members/anha",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "trungle.md",
+                    "path": "/plan/sprints/sprint_06/members/trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "PLAN.md",
+                "path": "/plan/sprints/sprint_06/PLAN",
+                "type": "file",
+                "ext": ".md"
+              },
+              {
+                "name": "SPRINT_REPORT.md",
+                "path": "/plan/sprints/sprint_06/SPRINT_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "sprint_07",
+            "path": "/plan/sprints/sprint_07",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/sprints/sprint_07/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "phuocnc.md",
+                    "path": "/plan/sprints/sprint_07/members/phuocnc",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "trungle.md",
+                    "path": "/plan/sprints/sprint_07/members/trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "PLAN.md",
+                "path": "/plan/sprints/sprint_07/PLAN",
+                "type": "file",
+                "ext": ".md"
+              },
+              {
+                "name": "SPRINT_REPORT.md",
+                "path": "/plan/sprints/sprint_07/SPRINT_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "sprint_08",
+            "path": "/plan/sprints/sprint_08",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/sprints/sprint_08/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "phuocnc.md",
+                    "path": "/plan/sprints/sprint_08/members/phuocnc",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "trungle.md",
+                    "path": "/plan/sprints/sprint_08/members/trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "PLAN.md",
+                "path": "/plan/sprints/sprint_08/PLAN",
+                "type": "file",
+                "ext": ".md"
+              },
+              {
+                "name": "SPRINT_REPORT.md",
+                "path": "/plan/sprints/sprint_08/SPRINT_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "sprint_09",
+            "path": "/plan/sprints/sprint_09",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/sprints/sprint_09/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "anha.md",
+                    "path": "/plan/sprints/sprint_09/members/anha",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "trungle.md",
+                    "path": "/plan/sprints/sprint_09/members/trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "tuannm.md",
+                    "path": "/plan/sprints/sprint_09/members/tuannm",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "PLAN.md",
+                "path": "/plan/sprints/sprint_09/PLAN",
+                "type": "file",
+                "ext": ".md"
+              },
+              {
+                "name": "SPRINT_REPORT.md",
+                "path": "/plan/sprints/sprint_09/SPRINT_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "sprint_10",
+            "path": "/plan/sprints/sprint_10",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/sprints/sprint_10/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "anha.md",
+                    "path": "/plan/sprints/sprint_10/members/anha",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "locnv.md",
+                    "path": "/plan/sprints/sprint_10/members/locnv",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "trungle.md",
+                    "path": "/plan/sprints/sprint_10/members/trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "PLAN.md",
+                "path": "/plan/sprints/sprint_10/PLAN",
+                "type": "file",
+                "ext": ".md"
+              },
+              {
+                "name": "SPRINT_REPORT.md",
+                "path": "/plan/sprints/sprint_10/SPRINT_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "sprint_11",
+            "path": "/plan/sprints/sprint_11",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/sprints/sprint_11/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "phuocnc.md",
+                    "path": "/plan/sprints/sprint_11/members/phuocnc",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "trungle.md",
+                    "path": "/plan/sprints/sprint_11/members/trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "PLAN.md",
+                "path": "/plan/sprints/sprint_11/PLAN",
+                "type": "file",
+                "ext": ".md"
+              },
+              {
+                "name": "SPRINT_REPORT.md",
+                "path": "/plan/sprints/sprint_11/SPRINT_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "sprint_12",
+            "path": "/plan/sprints/sprint_12",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/sprints/sprint_12/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "locnv.md",
+                    "path": "/plan/sprints/sprint_12/members/locnv",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "PLAN.md",
+                "path": "/plan/sprints/sprint_12/PLAN",
+                "type": "file",
+                "ext": ".md"
+              },
+              {
+                "name": "SPRINT_REPORT.md",
+                "path": "/plan/sprints/sprint_12/SPRINT_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "sprint_13",
+            "path": "/plan/sprints/sprint_13",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/sprints/sprint_13/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "anha.md",
+                    "path": "/plan/sprints/sprint_13/members/anha",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "locnv.md",
+                    "path": "/plan/sprints/sprint_13/members/locnv",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "trungle.md",
+                    "path": "/plan/sprints/sprint_13/members/trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "PLAN.md",
+                "path": "/plan/sprints/sprint_13/PLAN",
+                "type": "file",
+                "ext": ".md"
+              },
+              {
+                "name": "SPRINT_REPORT.md",
+                "path": "/plan/sprints/sprint_13/SPRINT_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "sprint_14",
+            "path": "/plan/sprints/sprint_14",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/sprints/sprint_14/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "locnv.md",
+                    "path": "/plan/sprints/sprint_14/members/locnv",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "trungle.md",
+                    "path": "/plan/sprints/sprint_14/members/trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "PLAN.md",
+                "path": "/plan/sprints/sprint_14/PLAN",
+                "type": "file",
+                "ext": ".md"
+              },
+              {
+                "name": "SPRINT_REPORT.md",
+                "path": "/plan/sprints/sprint_14/SPRINT_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "sprint_15",
+            "path": "/plan/sprints/sprint_15",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/sprints/sprint_15/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "anha.md",
+                    "path": "/plan/sprints/sprint_15/members/anha",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "locnv.md",
+                    "path": "/plan/sprints/sprint_15/members/locnv",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "phuocnc.md",
+                    "path": "/plan/sprints/sprint_15/members/phuocnc",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "trungle.md",
+                    "path": "/plan/sprints/sprint_15/members/trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "tuannm.md",
+                    "path": "/plan/sprints/sprint_15/members/tuannm",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "PLAN.md",
+                "path": "/plan/sprints/sprint_15/PLAN",
+                "type": "file",
+                "ext": ".md"
+              },
+              {
+                "name": "SPRINT_REPORT.md",
+                "path": "/plan/sprints/sprint_15/SPRINT_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "sprint_16",
+            "path": "/plan/sprints/sprint_16",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/sprints/sprint_16/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "anha.md",
+                    "path": "/plan/sprints/sprint_16/members/anha",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "locnv.md",
+                    "path": "/plan/sprints/sprint_16/members/locnv",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "phuocnc.md",
+                    "path": "/plan/sprints/sprint_16/members/phuocnc",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "trungle.md",
+                    "path": "/plan/sprints/sprint_16/members/trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "tuannm.md",
+                    "path": "/plan/sprints/sprint_16/members/tuannm",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "PLAN.md",
+                "path": "/plan/sprints/sprint_16/PLAN",
+                "type": "file",
+                "ext": ".md"
+              },
+              {
+                "name": "SPRINT_REPORT.md",
+                "path": "/plan/sprints/sprint_16/SPRINT_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "sprint_sample",
+            "path": "/plan/sprints/sprint_sample",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/sprints/sprint_sample/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "MEMBER_REPORT_TEMPLATE.md",
+                    "path": "/plan/sprints/sprint_sample/members/MEMBER_REPORT_TEMPLATE",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "sample_member.md",
+                    "path": "/plan/sprints/sprint_sample/members/sample_member",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "sample_trungle.md",
+                    "path": "/plan/sprints/sprint_sample/members/sample_trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "README.md",
+                "path": "/plan/sprints/sprint_sample/README",
+                "type": "file",
+                "ext": ".md"
+              },
+              {
+                "name": "SPRINT_REPORT.md",
+                "path": "/plan/sprints/sprint_sample/SPRINT_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "README.md",
+            "path": "/plan/sprints/README",
+            "type": "file",
+            "ext": ".md"
+          }
+        ]
+      },
+      {
+        "name": "BrandHub_Project_Plan_VI.md",
+        "path": "/plan/BrandHub_Project_Plan_VI",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "BrandHub_Project_Plan.md",
+        "path": "/plan/BrandHub_Project_Plan",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "BrandHub_Task_Details.md",
+        "path": "/plan/BrandHub_Task_Details",
+        "type": "file",
+        "ext": ".md"
+      }
+    ]
+  },
+  {
+    "name": "rule",
+    "path": "/rule",
+    "type": "directory",
+    "children": [
+      {
+        "name": "git-commit-convention.md",
+        "path": "/rule/git-commit-convention",
+        "type": "file",
+        "ext": ".md"
+      }
+    ]
+  },
+  {
+    "name": "wireframe",
+    "path": "/wireframe",
+    "type": "directory",
+    "children": [
+      {
+        "name": "brandhub_components_Report.md",
+        "path": "/wireframe/brandhub_components_Report",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "brandhub_flows_Report.md",
+        "path": "/wireframe/brandhub_flows_Report",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "brandhub_wireframe_blueprint.md",
+        "path": "/wireframe/brandhub_wireframe_blueprint",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "DA-E08-01_Wireframe_Report.md",
+        "path": "/wireframe/DA-E08-01_Wireframe_Report",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "wireframe_to_code_checklist.md",
+        "path": "/wireframe/wireframe_to_code_checklist",
+        "type": "file",
+        "ext": ".md"
+      }
+    ]
+  }
+]

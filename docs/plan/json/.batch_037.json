@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-AI09-06",
+    "summary": "[DA-AI09-06] Upload generated video len S3, extract thumbnail, tra ve {videoUrl, thumbnailUrl, duration}",
+    "assignee": "Ân (AI)",
+    "priority": "Highest",
+    "epic_key": "DA-110",
+    "description": "### DA-AI09-06 — Upload generated video to S3, extract thumbnail, return {videoUrl, thumbnailUrl, duration}\n**Assignee:** Ân (AI) | **Priority:** 🔴 Critical\n\n**Goal:** Complete the video output pipeline by ensuring the finished video is stored durably in S3 with a thumbnail for UI display.\n\n**Acceptance Criteria:**\n- [ ] When Veo job status becomes `DONE`, background task downloads video, uploads to S3 at `videos/{clientId}/{uuid}.mp4`\n- [ ] Thumbnail extracted from frame at 1 second using `ffmpeg` (via `ffmpeg-python` library); uploaded to S3 at `videos/{clientId}/{uuid}_thumb.jpg`\n- [ ] Video duration extracted via `ffprobe` and stored in Redis job record\n- [ ] Final status update in Redis: `{status: \"DONE\", videoUrl: presignedUrl, thumbnailUrl: presignedUrl, duration: float}`\n\n**Technical Notes:**\n- `ffmpeg` must be installed in the Docker image; add `RUN apt-get install -y ffmpeg` to Dockerfile\n- Presigned video URL should expire in 7 days (videos are large; short expiry causes frequent client re-requests)\n\n**Dependencies:** Blocks: DA-AI09-07. Blocked by: DA-AI09-05, DA-AI02-03.\n\n---"
+  },
+  {
+    "id": "DA-AI09-07",
+    "summary": "[DA-AI09-07] Benchmark 30 prompts (quality, generation time, cost per video) → document ket qua",
+    "assignee": "Ân (AI)",
+    "priority": "High",
+    "epic_key": "DA-110",
+    "description": "### DA-AI09-07 — Benchmark 30 prompts (quality, generation time, cost per video), document results\n**Assignee:** Ân (AI) | **Priority:** 🟡 High\n\n**Goal:** Produce empirical performance data for the video feature to inform cost estimates and set client expectations.\n\n**Acceptance Criteria:**\n- [ ] All 30 library templates from DA-AI09-04 benchmarked against Veo API\n- [ ] Results table: template key, generation time (min), video duration (s), quality rating (1-5), cost (USD)\n- [ ] Summary statistics: average cost per video, average generation time, quality distribution\n- [ ] Results feed directly into DA-AI11-04 cost analysis\n\n**Dependencies:** Blocks: DA-AI11-02. Blocked by: DA-AI09-06, DA-AI09-04.\n\n---"
+  },
+  {
+    "id": "DA-AI09-08",
+    "summary": "[DA-AI09-08] Viet Video Generation Research Report (prompt guide, parameter cheat sheet, best practices)",
+    "assignee": "Ân (AI)",
+    "priority": "High",
+    "epic_key": "DA-110",
+    "description": "### DA-AI09-08 — Write Video Generation Research Report (prompt guide, parameter cheat sheet, best practices)\n**Assignee:** Ân (AI) | **Priority:** 🟡 High\n\n**Goal:** Document everything the team learned about Veo so it can be referenced during the mentor presentation and by future developers.\n\n**Acceptance Criteria:**\n- [ ] Report includes: Veo API capability summary, full 30-template prompt library with quality ratings, movement parameter cheat sheet, cost table\n- [ ] Best practices section: top 5 prompt writing tips derived from benchmark failures and successes\n- [ ] Known limitations documented: unsupported movement types, max duration, content restrictions\n\n**Dependencies:** Blocks: DA-AI11-02. Blocked by: DA-AI09-07.\n\n---"
+  },
+  {
+    "id": "DA-AI10-01",
+    "summary": "[DA-AI10-01] Finalize tat ca FastAPI endpoints (/ai/content, /ai/image, /ai/video, /ai/ambassador, /ai/compose, /ai/rag/*, /ai/trends)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-111",
+    "description": "### DA-AI10-01 — Finalize all FastAPI endpoints\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Ensure every AI endpoint is production-ready with consistent request validation, error handling, and response shapes before integration testing.\n\n**Acceptance Criteria:**\n- [ ] All 7 endpoint groups are implemented and reachable: `/ai/content`, `/ai/image`, `/ai/video`, `/ai/ambassador`, `/ai/compose`, `/ai/rag/*`, `/ai/trends`\n- [ ] Every endpoint returns consistent error shape: `{error: str, detail: Optional[str], requestId: str}`\n- [ ] Pydantic validation errors return `422` with field-level error detail; unhandled exceptions return `500` (never expose stack traces to clients)\n- [ ] `GET /health` and `GET /docs` (Swagger) are accessible without authentication\n\n**Technical Notes:**\n- Use FastAPI `exception_handler` decorators for `ValidationError`, `LLMUnavailableError`, `ImageGenerationError`, `VideoGenerationTimeoutError`, `NoFaceDetectedError`\n- Add `requestId` (UUID) to every response via middleware so distributed traces can be correlated across services\n\n**Dependencies:** Blocks: DA-AI10-03. Blocked by: DA-AI04-07, DA-AI06-04, DA-AI07-06, DA-AI08-05, DA-AI09-06, DA-AI05-05.\n\n---"
+  },
+  {
+    "id": "DA-AI10-02",
+    "summary": "[DA-AI10-02] Error handling & retry cho external AI API calls (exponential backoff, fallback provider)",
+    "assignee": "All (Team)",
+    "priority": "High",
+    "epic_key": "DA-111",
+    "description": "### DA-AI10-02 — Error handling & retry for external AI API calls (exponential backoff, fallback provider on rate limit)\n**Assignee:** All (Team) | **Priority:** 🟡 High\n\n**Goal:** Make ai-service resilient to transient failures from third-party APIs (Groq, Stability AI, Veo, Replicate) without requiring manual intervention.\n\n**Acceptance Criteria:**\n- [ ] `utils/retry.py` implements `retry_with_backoff(fn, max_attempts=3, base_delay=1.0, max_delay=30.0)` using exponential backoff with jitter\n- [ ] All external API calls (Groq, Anthropic, Stability AI, Veo, Replicate) are wrapped with `retry_with_backoff`\n- [ ] Rate limit errors (`429`) trigger immediate fallback-provider switch (Groq → Claude) without waiting for retry backoff\n- [ ] Retry attempts are logged at DEBUG level with: attempt number, delay, exception type\n\n**Technical Notes:**\n- Use `tenacity` library rather than hand-rolling retry logic; `@retry(wait=wait_exponential(min=1, max=30), stop=stop_after_attempt(3), reraise=True)` covers most cases\n- Distinguish `429 RateLimitError` (switch provider) from `500 ServerError` (retry same provider) in the exception handling logic\n\n**Dependencies:** Blocks: DA-AI10-03. Blocked by: DA-AI04-03.\n\n---"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "DA-E34-02",
+    "summary": "[DA-E34-02] Build common components: Button, Input, Modal, Toast, Table, Badge, Spinner, Dropdown",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-122",
+    "description": "### DA-E34-02 — Build common UI components\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Deliver a library of reusable, typed UI primitives that all feature pages can compose without duplicating UI code.\n\n**Acceptance Criteria:**\n- [ ] Button: variants (primary, secondary, outline, ghost, danger), sizes (sm, md, lg), loading state with spinner, disabled state\n- [ ] Input: label, placeholder, error message, icon prefix/suffix, controlled and uncontrolled modes\n- [ ] Modal: backdrop, close button, title, body slot, footer slot, `onClose` callback, focus trap\n- [ ] Toast: success/error/warning/info variants, auto-dismiss after 4s, `useToast()` hook\n- [ ] Table: sortable columns, pagination controls, loading skeleton, empty state\n- [ ] Badge, Spinner, Dropdown: each with correct TypeScript props interface exported\n- [ ] All components have at least one usage example in a `/components/examples` page\n\n**Technical Notes:**\n- Extend shadcn/ui primitives (Button, Dialog, etc.) rather than building from scratch\n- Export all components from `src/components/ui/index.ts` for clean imports\n- Use `cva` (class-variance-authority) for variant management on Button and Badge\n\n**Dependencies:** Blocks: [DA-E34-03, DA-E35-01]. Blocked by: [DA-E34-01].\n\n---"
+  },
+  {
+    "id": "DA-E34-03",
+    "summary": "[DA-E34-03] Build layout components: Sidebar, Navbar, PageWrapper, AuthGuard",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-122",
+    "description": "### DA-E34-03 — Build layout components\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Deliver the app shell (sidebar, navbar, page wrapper) and route-level auth guard so all authenticated pages share a consistent layout and enforce role-based access.\n\n**Acceptance Criteria:**\n- [ ] Sidebar: collapsible (icon-only mode at <1280px), nav links grouped by section, active link highlighted, workspace selector dropdown\n- [ ] Navbar: breadcrumb, notification bell (DA-E39-03), user avatar dropdown (profile, logout)\n- [ ] PageWrapper: centers content, sets max-width, adds page title via `<title>` and `<h1>`\n- [ ] AuthGuard: reads role from `authStore`; redirects AGENCY_OWNER → /workspace, BRAND_CLIENT → /portal, ADMIN → /admin; unauthenticated → /login\n- [ ] Layout is fully responsive: sidebar collapses to bottom tab bar on mobile ≤768px\n\n**Technical Notes:**\n- Use React Router v6 `<Outlet>` with `<AuthGuard>` as a layout route wrapper\n- Sidebar collapse state persisted to `localStorage` so it survives page refresh\n- Tailwind `lg:block hidden` pattern for desktop/mobile sidebar/tab-bar swap\n\n**Dependencies:** Blocks: [DA-E35-01]. Blocked by: [DA-E34-02].\n\n---"
+  },
+  {
+    "id": "DA-E34-04",
+    "summary": "[DA-E34-04] Setup API service layer (Axios instance + interceptors + token refresh)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-122",
+    "description": "### DA-E34-04 — Set up Axios instance with interceptors\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Configure a singleton Axios instance that automatically attaches auth tokens and handles token refresh transparently so all API calls in the app are authenticated without per-call boilerplate.\n\n**Acceptance Criteria:**\n- [ ] Request interceptor attaches `Authorization: Bearer {token}` from `authStore` to every outgoing request\n- [ ] Response interceptor catches 401, calls POST /api/v1/auth/refresh with the stored refresh token, retries the original request once with the new access token\n- [ ] If the refresh call itself returns 401 or fails, `authStore.logout()` is called and user is redirected to /login\n- [ ] Concurrent 401 responses during refresh are queued (not each triggering a parallel refresh); resolved when refresh completes\n- [ ] All API calls in the app import from `src/lib/axios.ts` (not from `axios` directly)\n\n**Technical Notes:**\n- Implement request queue with a `isRefreshing` flag and `failedRequestsQueue[]` to handle concurrent 401s\n- Use `axios.interceptors.response.use(null, errorHandler)` pattern\n- Refresh token stored in `httpOnly` cookie (preferred) or `localStorage` as fallback; align with backend DA-E28-01 auth design\n\n**Dependencies:** Blocks: [DA-E35-01]. Blocked by: [DA-E34-01].\n\n---"
+  },
+  {
+    "id": "DA-E34-05",
+    "summary": "[DA-E34-05] Setup Zustand stores (authStore, workspaceStore, notificationStore)",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-122",
+    "description": "### DA-E34-05 — Set up Zustand stores\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Establish centralized client-side state management for authentication, workspace context, and notifications using Zustand so components share state without prop drilling.\n\n**Acceptance Criteria:**\n- [ ] `authStore`: holds `{user, accessToken, refreshToken}`, actions `setUser`, `setTokens`, `logout` (clears all state), persisted to `localStorage` via `zustand/middleware/persist`\n- [ ] `workspaceStore`: holds `{currentWorkspace, workspaceList}`, actions `setCurrentWorkspace`, `fetchWorkspaces`\n- [ ] `notificationStore`: holds `{notifications[], unreadCount}`, actions `addNotification`, `markRead`, `markAllRead`\n- [ ] `authStore.logout()` clears both auth and workspace store state atomically\n- [ ] All stores are typed with TypeScript interfaces; no `any` types\n\n**Technical Notes:**\n- Use `zustand` v4 with `immer` middleware for immutable state updates in notificationStore\n- Persist only `authStore`; `workspaceStore` and `notificationStore` refetch on mount\n- Expose stores via custom hooks: `useAuthStore()`, `useWorkspaceStore()`, `useNotificationStore()`\n\n**Dependencies:** Blocks: [DA-E34-03, DA-E34-04]. Blocked by: [DA-E34-01].\n\n---"
+  },
+  {
+    "id": "DA-E35-01",
+    "summary": "[DA-E35-01] Build Login/Register pages voi Google OAuth button",
+    "assignee": "Lộc (Frontend)",
+    "priority": "Highest",
+    "epic_key": "DA-117",
+    "description": "### DA-E35-01 — Build Login and Register pages\n**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical\n\n**Goal:** Deliver the entry points for user authentication with email/password and Google OAuth, implementing proper validation and error handling.\n\n**Acceptance Criteria:**\n- [ ] Login page: email + password fields, form validation (email format, password ≥8 chars), submit calls POST /api/v1/auth/login, stores tokens in authStore, redirects by role\n- [ ] Register page: name, email, password, confirm password fields; calls POST /api/v1/auth/register; shows success toast then redirects to login\n- [ ] Google OAuth button initiates OAuth flow; on callback, exchanges code for tokens and stores in authStore\n- [ ] API errors (wrong password, email already exists) shown as inline form error messages (not just toasts)\n- [ ] Both pages redirect authenticated users away (if already logged in, skip to role-based landing page)\n\n**Technical Notes:**\n- Use `react-hook-form` + `zod` for form validation\n- Google OAuth: redirect to `/api/v1/auth/google` which handles the server-side OAuth flow; frontend just opens the URL\n- Show loading spinner on the submit button during API call; disable button to prevent double-submit\n\n**Dependencies:** Blocks: [DA-E35-02]. Blocked by: [DA-E34-02, DA-E34-03, DA-E34-04, DA-E34-05].\n\n---"
+  }
+]
