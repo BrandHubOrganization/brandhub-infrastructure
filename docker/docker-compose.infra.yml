@@ -1,0 +1,113 @@
+# Core infrastructure stack only.
+# Run with:
+#   docker compose -f docker-compose.infra.yml up -d
+# Add docker-compose.dev.yml when local host ports or pgAdmin are needed.
+
+services:
+  # Relational database for subscription plans and transactional data.
+  # The init script runs only when the postgres_data volume is created the first time.
+  postgres:
+    image: postgres:17-alpine
+    container_name: brandhub-postgres
+    restart: unless-stopped
+    environment:
+      # Defaults keep local setup runnable without a .env file.
+      # Override these values from .env for shared or production-like environments.
+      POSTGRES_DB: ${POSTGRES_DB:-brandhub}
+      POSTGRES_USER: ${POSTGRES_USER:-brandhub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../scripts/init-postgres.sql:/docker-entrypoint-initdb.d/init-postgres.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - brandhub-network
+
+  # Shared Redis instance for cache, JWT blacklist, OAuth state, and rate limiting.
+  # Host port exposure belongs in docker-compose.dev.yml, not in this infra file.
+  redis:
+    image: redis:7.2-alpine
+    container_name: brandhub-redis
+    command:
+      - redis-server
+      # Password protects local/shared Redis from accidental unauthenticated access.
+      - --requirepass
+      - ${REDIS_PASSWORD:-password}
+      # AOF keeps Redis data across restarts together with the mounted volume.
+      - --appendonly
+      - "yes"
+      # Memory limit prevents Redis from consuming all container/host memory.
+      - --maxmemory
+      - ${REDIS_MAXMEMORY:-256mb}
+      # Good default for cache-heavy usage: evict least recently used keys.
+      - --maxmemory-policy
+      - ${REDIS_MAXMEMORY_POLICY:-allkeys-lru}
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-password}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+  # Message broker for async jobs and publisher-service workflows.
+  # The management UI port is exposed only by docker-compose.dev.yml.
+  # rabbitmq:
+  #   image: rabbitmq:3.12-management-alpine
+  #   container_name: brandhub-rabbitmq
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-brandhub}
+  #     RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-password}
+  #   volumes:
+  #     - rabbitmq-data:/var/lib/rabbitmq
+  #   healthcheck:
+  #     test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 20s
+  #   networks:
+  #     - brandhub-network
+  #   restart: unless-stopped
+
+  # Vector database for AI/RAG features.
+  # TODO: pin a concrete ChromaDB image version when the team confirms compatibility.
+  # chromadb:
+  #   image: chromadb/chroma:latest
+  #   container_name: brandhub-chromadb
+  #   volumes:
+  #     - chroma-data:/chroma/chroma
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "wget -qO- http://localhost:8000/api/v1/heartbeat || exit 1"]
+  #     interval: 15s
+  #     timeout: 5s
+  #     retries: 3
+  #     start_period: 10s
+  #   networks:
+  #     - brandhub-network
+  #   restart: unless-stopped
+
+# Named volumes keep data stable even if containers are recreated.
+volumes:
+  postgres_data:
+    name: brandhub-postgres-data
+  redis-data:
+    name: brandhub-redis-data
+  # rabbitmq-data:
+  #   name: brandhub-rabbitmq-data
+  # chroma-data:
+  #   name: brandhub-chroma-data
+
+# Shared bridge network used by infra, app, and dev compose files.
+networks:
+  brandhub-network:
+    name: brandhub-network
+    driver: bridge
