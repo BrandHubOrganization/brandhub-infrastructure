@@ -43,7 +43,7 @@
 **JWT specification:**
 - Access token: 15 min TTL, signed with RS256, payload: `{sub: userId, role, workspaceId, jti}`
 - Refresh token: 30 days TTL, stored in HttpOnly cookie + MongoDB `users.refreshTokens[]`
-- Blacklist: Redis `jwt:blacklist:{jti}` with TTL = remaining access token lifetime
+- Blacklist: Redis `jwt:blacklist:{jti}` with TTL = access token TTL (15 minutes)
 
 **Reset password token:** random UUID, stored in Redis `pwd:reset:{token}` with TTL = 1 hour.
 

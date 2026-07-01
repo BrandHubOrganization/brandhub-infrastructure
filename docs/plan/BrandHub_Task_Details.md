@@ -1184,10 +1184,10 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Acceptance Criteria:**
 - [ ] Filter increments a Redis counter keyed `ratelimit:{userId}:{minute}` (where `{minute}` is `epoch_seconds / 60`) on every authenticated request
 - [ ] If the counter exceeds 100 after increment, the filter returns HTTP 429 with `ApiResponse` error body and does not forward the request
-- [ ] TTL of 60 seconds is set on the Redis key at creation (using `INCR` then `EXPIRE` only on first increment, or a Lua script for atomicity) so keys expire automatically after the minute window passes
+- [ ] TTL of 60 seconds is set on the Redis key at creation using `INCR` then `EXPIRE` only on first increment, so keys expire automatically after the minute window passes
 
 **Technical Notes:**
-- Run `INCR` and conditional `EXPIRE` atomically using a Redis Lua script via `ReactiveRedisTemplate.execute(RedisScript<Long>)` to prevent a race condition between the INCR and EXPIRE calls
+- Use the DA-E06-06 contract: Redis `INCR` followed by conditional `EXPIRE` only when the increment result is `1`. Do not use a Lua script for this task.
 - The `{userId}` value in the key must come from the `X-User-Id` header set by the JWT validation filter (DA-E11-02); the rate limiting filter must run after the JWT filter in the filter chain
 - Rate limit threshold must be externalized as a configuration property (`gateway.rate-limit.requests-per-minute=100`) so it can be changed without redeployment
 
@@ -1346,7 +1346,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Acceptance Criteria:**
 - [ ] POST /api/v1/auth/logout requires a valid access token in Authorization header; returns 200
-- [ ] Access token's jti is written to Redis key `jwt:blacklist:{jti}` with TTL equal to remaining token lifetime
+- [ ] Access token's jti is written to Redis key `jwt:blacklist:{jti}` with TTL equal to the access token TTL: 15 minutes
 - [ ] Refresh token HttpOnly cookie is cleared (Set-Cookie with Max-Age=0)
 - [ ] Subsequent requests using the blacklisted access token return 401
 - [ ] Unauthenticated logout requests (no token) return 401, not 500
