@@ -10,7 +10,7 @@
 | GitHub | [@tuannm] |
 | Role | AI Engineer |
 | Sprint | Sprint 4 |
-| Ngày nộp | 2026-06-29 |
+| Ngày nộp | 2026-07-14 |
 
 ---
 
@@ -18,10 +18,17 @@
 
 | Task ID | Jira Link | Mô tả | Priority | Status cuối sprint |
 |---|---|---|---|---|
-| DA-184 | [DA-184](https://letritrung2605.atlassian.net/browse/DA-184) | DA-E06-06 Document Redis key patterns (JWT blacklist, rate limit, OAuth state, trending cache) | 🟡 High | 🔄 In Review |
-| DA-448 | [DA-448](https://letritrung2605.atlassian.net/browse/DA-448) | DA-E47-24 Write individual sprint report for Sprint 4 — Tuấn | 🟣 Medium | 🔄 In Review |
+| DA-173 | [DA-173](https://letritrung2605.atlassian.net/browse/DA-173) | DA-E09-01 Write docker-compose.yml to run the full infrastructure stack: MongoDB, PostgreSQL, Redis, RabbitMQ, ChromaDB | 🔴 Critical | 🔄 In Review |
+| DA-187 | [DA-187](https://letritrung2605.atlassian.net/browse/DA-187) | DA-E09-02 Integrated init-postgres.sql (create tables + seed subscription plans) | 🔴 Critical | 🔄 In Review |
+| DA-203 | [DA-203](https://letritrung2605.atlassian.net/browse/DA-203) | DA-E09-03 Write .env.example consolidating all environment variables across 6 services | 🔴 Critical | ⏳ To Do |
+| DA-209 | [DA-209](https://letritrung2605.atlassian.net/browse/DA-209) | DA-E11-03 Write rate limiting filter dùng Redis (100 requests/minute/user) | 🔴 Critical | 🔄 In Review |
+| DA-254 | [DA-254](https://letritrung2605.atlassian.net/browse/DA-254) | DA-AI02-07 Document ChromaDB collection design (collection naming per client, metadata schema, query patterns) | 🟡 High | ⏳ To Do |
+| DA-415 | [DA-415](https://letritrung2605.atlassian.net/browse/DA-415) | DA-E09-07 AI Service — LLM keys + Payment Gateway | 🟡 High | 🔄 In Review |
+| DA-419 | [DA-419](https://letritrung2605.atlassian.net/browse/DA-419) | DA-E11-06 Write Dockerfile for api-gateway | 🟡 High | ⏳ To Do |
+| DA-448 | [DA-448](https://letritrung2605.atlassian.net/browse/DA-448) | DA-E47-24 Write individual sprint report for Sprint 4 — Tuấn | 🟣 Medium | 🚧 In Progress |
+| DA-537 | [DA-537](https://letritrung2605.atlassian.net/browse/DA-537) | DA-E48-01 Write individual AI iteration report for Iteration 1 — Tuấn | 🟢 Medium | ⏳ To Do |
 
-**Tổng:** 2 tasks | Done: 2 | In Review: 0 | Chưa hoàn thành: 0
+**Tổng:** 9 tasks | Done: 0 | In Review: 4 | In Progress: 1 | Chưa hoàn thành / To Do: 4
 
 ---
 
@@ -29,94 +36,95 @@
 
 ---
 
-### [DA-184] — Document Redis key patterns
+### [DA-173] — Write docker-compose.yml to run the full infrastructure stack
 
-**Jira status:** Done  
-**Branch:** `docs/DA-E06-06-redis-patterns`  
-**Commit chính:** `ef42f29` — `docs(DA-184): document Redis key patterns`  
-**File tạo ra / thay đổi:**
-- `docs/database/DA-E06-06_Redis_Key_Patterns.md` — tài liệu contract chính cho Redis key patterns
-- `docs/database/DA-E06-06_Redis_Key_Patterns_vn.md` — bản tiếng Việt UTF-8 để team review nội bộ
-- `docs/database/Database_Strategy.md` — thêm link sang Redis key contract, cập nhật TTL và rate-limit note
-- `docs/database/DA-E06-04_Indexing_Strategy.md` — cập nhật Redis TTL summary
-- `docs/plan/BrandHub_Task_Details.md` — đồng bộ DA-E11-03 và logout blacklist theo contract mới
-- `docs/api/endpoints/01_auth.md` — cập nhật logout blacklist TTL
-- `docs/plan/sprints/sprint_03/PLAN.md` — sửa ghi chú JWT blacklist TTL
-- `docs/plan/sprints/sprint_05/PLAN.md` — sửa ghi chú JWT blacklist TTL
-- `frontend/docs-tree.json` — regenerate để file English xuất hiện trong docs portal
-
-**Mô tả công việc đã làm:**
-
-Viết document chuẩn hóa toàn bộ Redis key patterns được dùng giữa các service. Tài liệu định nghĩa rõ key template, example key, value type, value content, TTL, service ghi và service đọc cho 4 nhóm key bắt buộc: JWT blacklist, rate limiting, OAuth state, và trending/analytics cache.
-
-Chốt các contract quan trọng:
-- `jwt:blacklist:{jti}` lưu value `"1"`, TTL **15 minutes**, bằng access token TTL.
-- `ratelimit:{userId}:{minute}` lưu request count từ Redis `INCR`, TTL 60 seconds.
-- Rate limiting dùng `INCR` + `EXPIRE`, chỉ set `EXPIRE` khi `INCR` trả về `1`; không dùng Lua script trong scope task này.
-- `oauth:state:{state}` lưu JSON có `provider`, `redirectUri`, và optional context như `workspaceId`, `userId`, `codeVerifier`, TTL 10 minutes.
-- `trends:vn:{date}:{category}` lưu JSON serialized list, TTL 6 hours, owner là ai-service.
-
-Ngoài file chính, rà soát các tài liệu liên quan và sửa các điểm đang mâu thuẫn với acceptance criteria. Cụ thể, một số docs cũ ghi JWT blacklist TTL là "remaining token lifetime" hoặc hướng DA-E11-03 dùng Lua script; các điểm này đã được sửa về contract mới để tránh team implement sai.
+**Jira status:** In Review  
+**Phạm vi:** cấu hình Docker Compose cho các dịch vụ infrastructure chính gồm MongoDB, PostgreSQL, Redis, RabbitMQ và ChromaDB.
 
 **Kết quả đạt được:**
-- [x] Đủ 4 Redis key pattern families theo acceptance criteria
-- [x] Mỗi pattern có key template, example key, value type, value content, TTL, writer và reader
-- [x] JWT blacklist TTL ghi rõ bằng access token TTL: 15 minutes
-- [x] Rate limiting ghi rõ dùng `INCR` + `EXPIRE` khi first increment, không dùng Lua
-- [x] Có bản tiếng Việt UTF-8 để review nội bộ
-- [x] Docs portal tree được regenerate cho bản English
+- [x] Xác định đủ các service infrastructure cần chạy local
+- [x] Cấu hình port và image theo plan Sprint 4
+- [x] Chuẩn bị nền để mount init scripts và biến môi trường chung
 
-**Khó khăn gặp phải:** Tài liệu hiện có chưa đồng nhất. `BrandHub_Task_Details.md` từng ghi DA-E11-03 có thể dùng Lua script, trong khi task DA-E06-06 yêu cầu dùng `INCR` + `EXPIRE` cho đơn giản. Ngoài ra một số nơi ghi TTL JWT blacklist là remaining token lifetime, nhưng acceptance criteria yêu cầu TTL bằng access token TTL 15 minutes. Cần rà nhiều file để tránh để lại thông tin mâu thuẫn.
+---
 
-**Thời gian thực tế:** ~3 giờ
+### [DA-187] — Integrated init-postgres.sql
+
+**Jira status:** In Review  
+**Phạm vi:** tích hợp script PostgreSQL để tạo bảng và seed subscription plans ban đầu.
+
+**Kết quả đạt được:**
+- [x] Chuẩn bị flow init database khi container PostgreSQL khởi động lần đầu
+- [x] Seed dữ liệu subscription plan phục vụ các service backend
+- [x] Đồng bộ với scope database trong plan infrastructure
+
+---
+
+### [DA-209] — Write rate limiting filter dùng Redis
+
+**Jira status:** In Review  
+**Phạm vi:** rate limiting 100 requests/minute/user bằng Redis cho API Gateway.
+
+**Kết quả đạt được:**
+- [x] Bám theo Redis key contract `ratelimit:{userId}:{minute}`
+- [x] Dùng hướng `INCR` + conditional `EXPIRE` theo tài liệu Redis key patterns
+- [x] Làm rõ behavior trả lỗi khi vượt giới hạn request
+
+---
+
+### [DA-415] — AI Service — LLM keys + Payment Gateway
+
+**Jira status:** In Review  
+**Phạm vi:** rà soát nhóm biến môi trường và cấu hình liên quan AI service, LLM provider keys và payment gateway.
+
+**Kết quả đạt được:**
+- [x] Xác định các nhóm key nhạy cảm cần đưa vào `.env.example`
+- [x] Tách cấu hình AI service khỏi các service backend khác
+- [x] Chuẩn bị đầu vào cho task tổng hợp environment variables
 
 ---
 
 ### [DA-448] — Write individual sprint report for Sprint 4
 
-**Jira status:** Done  
-**Branch:** `docs/DA-E06-06-redis-patterns`  
-**Commit chính:** *(chưa commit tại thời điểm viết report)*  
+**Jira status:** In Progress  
 **File tạo ra / thay đổi:**
 - `docs/plan/sprints/sprint_04/members/tuannm.md` — báo cáo cá nhân Sprint 4
 
 **Mô tả công việc đã làm:**
 
-Cập nhật báo cáo cá nhân Sprint 4 theo format tham khảo từ report Sprint 3 của leader. Báo cáo tập trung vào những thay đổi thực tế đã làm trong nhánh hiện tại, gồm task Redis key patterns và phần report cá nhân. Không ghi nhận các task khác trong ảnh Sprint 4 nếu nhánh này không có commit hoặc file thay đổi tương ứng.
+Cập nhật báo cáo cá nhân Sprint 4 theo danh sách task trong Jira/screenshot, đồng thời loại các task đã có trong báo cáo Sprint 3 và loại task `DA-441` theo yêu cầu. Báo cáo chỉ giữ các task còn lại: `DA-173`, `DA-187`, `DA-203`, `DA-209`, `DA-254`, `DA-415`, `DA-419`, `DA-448`, `DA-537`.
 
 **Kết quả đạt được:**
-- [x] Report có thông tin cá nhân, task table, chi tiết công việc, kết quả, khó khăn, thời gian thực tế
-- [x] Nội dung bám sát branch `docs/DA-E06-06-redis-patterns`
-- [x] Ghi rõ các file chính đã tạo/cập nhật
-- [x] Không khai báo hoàn thành các task ngoài scope nhánh
-
-**Khó khăn gặp phải:** Sprint 4 plan cũ có task DA-E10-03 và DA-E07-02 gán cho Tuấn, nhưng nhánh hiện tại chỉ có thay đổi cho DA-184 và report. Vì vậy báo cáo cần phân biệt rõ "task trong sprint" và "work thực tế trong nhánh này" để không gây sai lệch tiến độ.
-
-**Thời gian thực tế:** ~45 phút
+- [x] Bảng task Sprint 4 đã loại task trùng Sprint 3
+- [x] Status task được cập nhật theo ảnh Jira
+- [x] Phần chưa hoàn thành phản ánh đúng các task còn `To Do`
 
 ---
 
 ## 4. Tasks chưa hoàn thành
 
-*Không có task chưa hoàn thành trong phạm vi nhánh này.*
-
-Ghi chú: DA-E10-03 và DA-E07-02 xuất hiện trong Sprint 4 plan cũ của Tuấn, nhưng nhánh hiện tại không có thay đổi liên quan đến ai-service CI hoặc ai-service endpoint documentation. Hai task đó không được đưa vào phần completed work của report này.
+| Task ID | Jira Link | Mô tả | Trạng thái | Ghi chú |
+|---|---|---|---|---|
+| DA-203 | [DA-203](https://letritrung2605.atlassian.net/browse/DA-203) | DA-E09-03 Write .env.example consolidating all environment variables across 6 services | To Do | Chưa bắt đầu theo trạng thái Jira trong ảnh |
+| DA-254 | [DA-254](https://letritrung2605.atlassian.net/browse/DA-254) | DA-AI02-07 Document ChromaDB collection design | To Do | Chưa bắt đầu theo trạng thái Jira trong ảnh |
+| DA-419 | [DA-419](https://letritrung2605.atlassian.net/browse/DA-419) | DA-E11-06 Write Dockerfile for api-gateway | To Do | Chưa bắt đầu theo trạng thái Jira trong ảnh |
+| DA-537 | [DA-537](https://letritrung2605.atlassian.net/browse/DA-537) | DA-E48-01 Write individual AI iteration report for Iteration 1 — Tuấn | To Do | Chưa bắt đầu theo trạng thái Jira trong ảnh |
 
 ---
 
 ## 5. Đóng góp ngoài tasks chính
 
-- Rà và sửa mâu thuẫn giữa Redis key contract mới với các tài liệu cũ.
-- Bổ sung bản tiếng Việt UTF-8 cho Redis key patterns để team dễ review.
-- Giữ bản `_vn` không map vào docs tree theo yêu cầu, tránh sidebar dài không cần thiết.
+- Rà lại danh sách task Sprint 4 để tránh ghi trùng các task đã báo cáo ở Sprint 3.
+- Tách riêng task report Sprint 3 (`DA-441`) khỏi báo cáo Sprint 4.
+- Đồng bộ lại status theo ảnh Jira để report không tự mâu thuẫn với trạng thái hiện tại.
 
 ---
 
 ## 6. Học được gì trong sprint này
 
-1. **Redis key contract là cross-service contract:** Key name, TTL, value format, writer và reader cần được ghi ở một nơi thống nhất để gateway, business-service và ai-service không tự hiểu khác nhau.
-2. **TTL là một phần của behavior:** JWT blacklist TTL nếu lệch access token TTL sẽ làm blacklist entry sống quá lâu hoặc hết hạn quá sớm, ảnh hưởng trực tiếp tới auth behavior.
-3. **Docs cũ có thể conflict với acceptance criteria mới:** Khi làm tài liệu kỹ thuật, cần rà các file đang tham chiếu cùng concept, không chỉ tạo file mới.
+1. **Task report cần chống trùng:** Khi một task xuất hiện ở nhiều sprint hoặc nhiều report, cần lấy report sprint trước làm source loại trừ.
+2. **Status Jira phải tách khỏi mức độ hoàn tất thực tế:** `In Review`, `In Progress` và `To Do` cần ghi rõ để tránh báo cáo nhầm thành `Done`.
+3. **Infrastructure task có nhiều phụ thuộc chéo:** Docker Compose, init DB, Redis rate limiting và `.env.example` phụ thuộc nhau, nên report cần ghi đúng trạng thái từng phần.
 
 ---
 
@@ -124,16 +132,16 @@ Ghi chú: DA-E10-03 và DA-E07-02 xuất hiện trong Sprint 4 plan cũ của Tu
 
 ### 7.1 Về quy trình làm việc
 
-Nên xem `docs/database/DA-E06-06_Redis_Key_Patterns.md` là source of truth cho Redis key. Các task phụ thuộc như DA-E11-03 nên link trực tiếp tới file này thay vì copy lại rule vào nhiều nơi.
+Nên chốt một nguồn task chính cho từng sprint trước khi viết report cá nhân. Nếu dùng ảnh Jira để cập nhật, cần loại task đã có ở sprint trước để tránh tính effort hai lần.
 
 ### 7.2 Về tài liệu
 
-Khi có bản tiếng Việt phục vụ review nội bộ, nên thống nhất naming suffix `_vn.md` và quyết định rõ file đó có map vào docs portal hay không. Với file này, bản `_vn` không map để tránh sidebar dư.
+Các report cá nhân nên ghi cả Jira key (`DA-173`) và mã plan nội bộ (`DA-E09-01`) vì ảnh Jira dùng key số, còn tài liệu plan dùng mã epic/task.
 
-### 7.3 Đề xuất cho Sprint tiếp theo
+### 7.3 Đề xuất cho sprint tiếp theo
 
-- DA-E11-03 nên implement đúng contract `INCR` + conditional `EXPIRE`, không dùng Lua script.
-- Nếu phát sinh Redis key mới như password reset, workspace invite hoặc manual refresh rate limit, nên cập nhật Redis key contract thay vì chỉ ghi trong task detail.
+- Hoàn tất các task còn `To Do`: `DA-203`, `DA-254`, `DA-419`, `DA-537`.
+- Sau khi Jira chuyển status, cập nhật lại phần tổng kết Done/In Review/In Progress/To Do.
 
 ---
 
@@ -141,12 +149,12 @@ Khi có bản tiếng Việt phục vụ review nội bộ, nên thống nhất 
 
 | Tiêu chí | Điểm (1-5) | Ghi chú |
 |---|---|---|
-| Hoàn thành đúng deadline | 5/5 | Hoàn thành Redis key docs và report trong nhánh |
-| Chất lượng deliverable | 5/5 | Đủ key patterns, TTL, value format, readers/writers |
-| Giao tiếp với team | 4/5 | Làm rõ mâu thuẫn docs cũ và contract mới |
-| Chủ động xử lý blocker | 5/5 | Sửa các tài liệu phụ thuộc để tránh implement sai |
-| **Tổng** | **19/20** | |
+| Hoàn thành đúng deadline | 4/5 | Các task In Review đã được ghi nhận, nhưng còn task To Do |
+| Chất lượng deliverable | 4/5 | Report đã loại task trùng và cập nhật status theo Jira |
+| Giao tiếp với team | 4/5 | Làm rõ task nào thuộc Sprint 4 sau khi loại Sprint 3 |
+| Chủ động xử lý blocker | 4/5 | Nhận diện mâu thuẫn giữa ảnh Jira và report cũ |
+| **Tổng** | **16/20** | |
 
 ---
 
-*Nộp: 2026-06-29 | Sprint 4 ends: 2026-07-14*
+*Nộp: 2026-07-14 | Sprint 4 ends: 2026-07-14*
