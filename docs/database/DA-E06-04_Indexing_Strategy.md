@@ -229,9 +229,10 @@ Xác định toàn bộ indexes cần thiết cho 15 bảng PostgreSQL và 8 col
 | `notifications` | `createdAt` | 30 ngày | Thông báo cũ không cần thiết |
 
 > Redis TTL keys (không phải MongoDB):
-> - `refresh:{jti}` → 7 ngày (đồng bộ với `user_refresh_tokens.expires_at`)
+> - `jwt:blacklist:{jti}` → 15 phút, bằng access token TTL
 > - `pwd:reset:{token}` → 1 giờ (đồng bộ với `password_reset_tokens.expires_at`)
 > - `oauth:state:{state}` → 10 phút (CSRF protection cho OAuth flow)
+> - Xem contract đầy đủ tại [DA-E06-06_Redis_Key_Patterns.md](./DA-E06-06_Redis_Key_Patterns.md)
 
 ---
 
