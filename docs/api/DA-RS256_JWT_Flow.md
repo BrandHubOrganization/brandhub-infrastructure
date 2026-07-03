@@ -202,26 +202,31 @@ A4BZQ9kzi/j7W3SXa+yz3w==
 -----END PRIVATE KEY-----    ← footer
 ```
 
-Khi ứng dụng load key, nó sẽ:
-1. Đọc toàn bộ file PEM thành string
+Khi ứng dụng load key (từ env var, không phải file nữa), nó sẽ:
+1. Đọc giá trị PEM từ biến môi trường (`JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEY`) thành string
 2. Bỏ header (`-----BEGIN ...-----`) và footer (`-----END ...-----`)
-3. Bỏ tất cả whitespace (newline, space, tab)
+3. Bỏ tất cả whitespace (newline, space, tab) — nên PEM có thể để 1 dòng liền không cần giữ format 64 ký tự/dòng
 4. Giải mã Base64 → byte array
 5. Dùng KeyFactory để parse thành đối tượng PrivateKey/PublicKey trong Java
 
 ```java
-// Code minh họa — JwtUtil.java
-private byte[] loadPemBytes(String path) throws Exception {
-    DefaultResourceLoader loader = new DefaultResourceLoader();
-    Resource resource = loader.getResource(path);
-    try (InputStream is = resource.getInputStream()) {
-        String pem = new String(is.readAllBytes(), StandardCharsets.UTF_8)
-                .replaceAll("-----[^-]+-----", "")   // bỏ header/footer
-                .replaceAll("\\s", "");               // bỏ whitespace
-        return Base64.getDecoder().decode(pem);        // giải mã Base64
-    }
+// Code thật — JwtUtil.java (business-service)
+@PostConstruct
+void init() throws Exception {
+    KeyFactory kf = KeyFactory.getInstance("RSA");
+    privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(decodePem(props.getPrivateKey())));
+    publicKey = kf.generatePublic(new X509EncodedKeySpec(decodePem(props.getPublicKey())));
+}
+
+private byte[] decodePem(String pem) {
+    String base64 = pem
+            .replaceAll("-----[^-]+-----", "")   // bỏ header/footer
+            .replaceAll("\\s", "");               // bỏ whitespace
+    return Base64.getDecoder().decode(base64);    // giải mã Base64
 }
 ```
+
+`props.getPrivateKey()` đọc từ `${JWT_PRIVATE_KEY}` trong `application.yml` — không có default, thiếu env là `IllegalArgumentException: Could not resolve placeholder` ngay lúc Spring context khởi động.
 
 ### 2.4 Kiểm tra key pair có match không
 
@@ -243,16 +248,19 @@ Nếu khác → 2 file không cùng cặp. Bug signature không verify được.
 
 ## 3. Phân phối Key giữa các Service
 
-| File | Service | Mục đích | Nơi chứa |
+> **Cập nhật:** Không còn dùng file `.pem` trong `src/main/resources` nữa. Key được truyền trực tiếp qua biến môi trường dưới dạng nội dung PEM (1 dòng, `\n` bị strip khi parse). Không có fallback path — thiếu env là app crash ngay lúc startup.
+
+| Key | Service | Mục đích | Biến môi trường |
 |------|---------|----------|----------|
-| `private.pem` | Business Service | **Sign** JWT (tạo access/refresh token) | `classpath:keys/private.pem` (dev) hoặc mount tại `/app/keys/private.pem` (docker) |
-| `public.pem` | Business Service | **Verify** JWT nội bộ (parse token khi logout, refresh) | `classpath:keys/public.pem` |
-| `public.pem` | API Gateway | **Verify** JWT từ request (chỉ verify, không sign) | `classpath:keys/public.pem` (dev) hoặc mount tại `/app/keys/public.pem` (docker) |
+| Private key | Business Service | **Sign** JWT (tạo access/refresh token) | `JWT_PRIVATE_KEY` (bắt buộc) |
+| Public key | Business Service | **Verify** JWT nội bộ (parse token khi logout, refresh) | `JWT_PUBLIC_KEY` (bắt buộc) |
+| Public key | API Gateway | **Verify** JWT từ request (chỉ verify, không sign) | `JWT_PUBLIC_KEY` (bắt buộc) |
 
 **Nguyên tắc:**
-- Business Service giữ cả private + public
+- Business Service giữ cả private + public (2 env var)
 - API Gateway chỉ giữ **public** — không bao giờ có private key
 - Các service khác (AI, Publisher) dùng **internal service key** (symmetric), không dùng JWT
+- `.env` / `.env.example` ở mỗi service repo (và `brandhub-infrastructure/docker/.env`) chứa giá trị này — `.env` thật bị gitignore, không commit
 
 ---
 
@@ -827,35 +835,40 @@ Token còn 0 giây → TTL <= 0 → không blacklist (token đã hết hạn t�
 
 ## 7. Docker Deployment
 
-### Volume Mounts
+> **Cập nhật:** Không còn volume mount `.pem` nữa. Key content đi thẳng qua biến môi trường `JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEY`.
+
+### Environment (docker-compose.apps.yml)
 
 ```yaml
-# docker-compose.apps.yml
 services:
   api-gateway:
     environment:
-      JWT_PUBLIC_KEY_PATH: /app/keys/public.pem
-    volumes:
-      - ./keys/public.pem:/app/keys/public.pem
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
 
   business-service:
     environment:
-      JWT_PRIVATE_KEY_PATH: /app/keys/private.pem
-      JWT_PUBLIC_KEY_PATH: /app/keys/public.pem
-    volumes:
-      - ./keys/private.pem:/app/keys/private.pem
-      - ./keys/public.pem:/app/keys/public.pem
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+```
+
+Giá trị `JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEY` được set trong `brandhub-infrastructure/docker/.env` (gitignored, không commit) — nội dung PEM gộp thành 1 dòng, ví dụ:
+
+```
+JWT_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----MIIEvgIBADANBgkq...-----END PRIVATE KEY-----
+JWT_PUBLIC_KEY=-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0...-----END PUBLIC KEY-----
 ```
 
 ### Environment Variables
 
-| Variable | Service | Default (dev) | Docker |
-|----------|---------|---------------|--------|
-| `JWT_PRIVATE_KEY_PATH` | business | `classpath:keys/private.pem` | `/app/keys/private.pem` |
-| `JWT_PUBLIC_KEY_PATH` | business | `classpath:keys/public.pem` | `/app/keys/public.pem` |
-| `JWT_PUBLIC_KEY_PATH` | gateway | `classpath:keys/public.pem` | `/app/keys/public.pem` |
-| `JWT_ACCESS_EXPIRATION_MS` | business | `900000` | `900000` |
-| `JWT_REFRESH_EXPIRATION_MS` | business | `2592000000` | `2592000000` |
+| Variable | Service | Bắt buộc? | Ghi chú |
+|----------|---------|-----------|---------|
+| `JWT_PRIVATE_KEY` | business | Có, không có default | Nội dung PEM private key, 1 dòng |
+| `JWT_PUBLIC_KEY` | business | Có, không có default | Nội dung PEM public key, 1 dòng |
+| `JWT_PUBLIC_KEY` | gateway | Có, không có default | Cùng giá trị public key với business |
+| `JWT_ACCESS_EXPIRATION_MS` | business | Không, default `900000` | |
+| `JWT_REFRESH_EXPIRATION_MS` | business | Không, default `2592000000` | |
+
+Thiếu `JWT_PRIVATE_KEY`/`JWT_PUBLIC_KEY` → Spring context fail lúc startup với `IllegalArgumentException: Could not resolve placeholder`. Không có fallback path, không silent-skip.
 
 ---
 
@@ -1015,57 +1028,53 @@ Nói cách khác: RSA ký chậm nhưng verify nhanh. ECDSA ký nhanh nhưng ver
 
 ### 9.1 Mô tả
 
-Gateway load public key từ PEM file một lần duy nhất lúc startup (qua `@PostConstruct`). Không load per-request vì:
+Gateway load public key từ biến môi trường một lần duy nhất lúc startup (qua `@PostConstruct`). Không load per-request vì:
 - Public key không thay đổi trong runtime (trừ khi deploy lại).
-- Load file mỗi request là lãng phí I/O.
 - KeyFactory.generatePublic() là operation tương đối nặng.
+
+Không còn đọc từ file `.pem`/`Resource` — env var là nguồn duy nhất, không có fallback.
 
 ### 9.2 Code
 
 ```java
 @Component
 public class JwtUtil {
-    private PublicKey publicKey;
+    private static final Logger log = LoggerFactory.getLogger(JwtUtil.class);
 
-    @Value("${jwt.public-key-path}")
-    Resource publicKeyResource;
+    @Value("${jwt.public-key}")
+    String publicKeyPem;
+
+    private PublicKey publicKey;
 
     @PostConstruct
     public void loadPublicKey() throws Exception {
-        String pem = new String(publicKeyResource.getInputStream().readAllBytes());
-        log.info("Loading JWT public key from: {}, length={}",
-                 publicKeyResource, pem.length());
-
-        // Bỏ PEM header/footer và whitespace
-        String base64 = pem
+        String base64 = publicKeyPem
                 .replace("-----BEGIN PUBLIC KEY-----", "")
                 .replace("-----END PUBLIC KEY-----", "")
                 .replaceAll("\\s", "");
-
-        // Giải mã Base64 → byte array
         byte[] decoded = Base64.getDecoder().decode(base64);
-
-        // Tạo PublicKey object
         publicKey = KeyFactory.getInstance("RSA")
                 .generatePublic(new X509EncodedKeySpec(decoded));
+        log.info("JWT RS256 public key loaded from env JWT_PUBLIC_KEY");
     }
 }
 ```
 
-### 9.3 Cấu hình đường dẫn (application.yml)
+### 9.3 Cấu hình (application.yml)
 
 ```yaml
-# Dev: load từ classpath
 jwt:
-  public-key-path: ${JWT_PUBLIC_KEY_PATH:classpath:keys/public.pem}
+  public-key: ${JWT_PUBLIC_KEY}
 ```
+
+Không có default — thiếu `JWT_PUBLIC_KEY` là Spring context fail ngay lúc khởi động (`Could not resolve placeholder`), không start silently với key sai/thiếu.
 
 ### 9.4 Quy trình load key
 
 ```
 Spring Boot start
   → @PostConstruct JwtUtil.loadPublicKey()
-    → Đọc file PEM từ classpath (dev) hoặc filesystem (docker)
+    → Đọc giá trị từ env JWT_PUBLIC_KEY (bắt buộc, không default)
     → Parse PEM: bỏ header/footer, decode Base64
     → KeyFactory.getInstance("RSA").generatePublic(spec)
     → publicKey sẵn sàng cho toàn bộ vòng đời application
@@ -1164,6 +1173,8 @@ Ba service tham gia:
 
 ## 13. Verification Commands
 
+Các lệnh dưới thao tác trên file `.pem` tạm thời (lúc generate key mới) — key thật không lưu file lâu dài, chỉ tồn tại trong biến môi trường (mục 7, 9).
+
 Kiểm tra key pair có match không:
 
 ```bash
@@ -1184,4 +1195,17 @@ jose jws sig -I '{"sub":"test"}' -k private.pem -a RS256 -c
 
 # Verify bằng public key
 jose jws ver -I <token> -k public.pem
+```
+
+### Đưa key mới vào env sau khi generate
+
+```bash
+# Nén PEM thành 1 dòng (bỏ newline) rồi gán vào .env
+PRIV_ONELINE=$(tr -d '\n' < private.pem)
+PUB_ONELINE=$(tr -d '\n' < public.pem)
+echo "JWT_PRIVATE_KEY=$PRIV_ONELINE"   # dán vào business-service/.env
+echo "JWT_PUBLIC_KEY=$PUB_ONELINE"     # dán vào business-service/.env + api-gateway/.env + docker/.env
+
+# Sau khi copy vào .env, xoá file .pem tạm — không giữ lại trên disk
+rm private.pem public.pem
 ```
