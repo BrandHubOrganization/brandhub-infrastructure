@@ -121,33 +121,25 @@ services:
     container_name: brandhub-ai-service
     ports:
       - "8082:8082"
+    env_file:
+      - .env
     environment:
-      APP_PORT: 8082
-      CHROMADB_HOST: chromadb
-      CHROMADB_PORT: 8000
-      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
-      GROQ_API_KEY: ${GROQ_API_KEY:-}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      LLM_PROVIDER: ${LLM_PROVIDER:-groq}
-      STABILITY_AI_API_KEY: ${STABILITY_AI_API_KEY:-}
-      GOOGLE_VEO_API_KEY: ${GOOGLE_VEO_API_KEY:-}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
-      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-brandhub-media}
-      AWS_S3_REGION: ${AWS_S3_REGION:-ap-southeast-1}
-      RAG_TOP_K: ${RAG_TOP_K:-5}
+      - CHROMADB_HOST=chromadb
+      - CHROMADB_PORT=8000
     depends_on:
       chromadb:
-        condition: service_started
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - brandhub-network
-    restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/health || exit 1"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8082/health')"]
+      interval: 15s
+      timeout: 5s
       retries: 3
-      start_period: 30s
+      start_period: 10s
+    restart: always
 
   publisher-service:
     build:
@@ -293,7 +285,7 @@ services:
     networks:
       - brandhub-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/api/v1/heartbeat || exit 1"]
+      test: ["CMD", "bash", "-c", "</dev/tcp/localhost/8000"]
       interval: 15s
       timeout: 5s
       retries: 3
