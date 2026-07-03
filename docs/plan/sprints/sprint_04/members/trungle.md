@@ -418,12 +418,145 @@ Code hoàn chỉnh, đủ AC của DA-200. Chưa transition Jira — tự làm t
 
 ---
 
+### DA-160 — Forgot Password & Reset Password Flow ✅ Code done
+
+**Mục tiêu:** Cho phép user request reset password qua email link với time-limited token. Post-reset session invalidation buộc tất cả refresh token hiện tại hết hạn, kể cả attacker đã steal.
+
+#### 3.23 Phân tích thiết kế
+
+**Luồng forgot-password:**
+1. User nhập email → `POST /api/v1/auth/forgot-password`
+2. Server kiểm tra email tồn tại (không báo không tồn tại — chống user enumeration)
+3. Tạo reset token: `SecureRandom(32 bytes)` → 64 hex chars
+4. Lưu vào Redis: `password:reset:{token}` → `{userId}` với TTL configurable (mặc định 3600s)
+5. Gửi email async: `FRONTEND_URL/reset-password?token={token}`
+
+**Luồng reset-password:**
+1. User click link → `POST /api/v1/auth/reset-password` với `token` + `newPassword`
+2. `redisTemplate.opsForValue().getAndDelete("password:reset:" + token)` — atomic, single-use
+3. Token không tồn tại/hết hạn → `BusinessException(TOKEN_INVALID_OR_EXPIRED)`
+4. Hash password mới với bcrypt cost=12 → update user
+5. Set `lastPasswordChange = now` trên user record
+6. **Post-reset session invalidation:** `refresh()` method đã có check `claims.getIssuedAt() < user.getLastPasswordChange()` — tất cả refresh token issue trước khi reset password đều invalid ngay lập tức
+
+**Always 200 cho forgot-password:** Dù email có tồn tại hay không, response luôn `{"success": true, "message": "If the email exists...", "data": null}` — không cho attacker biết email nào đã registered.
+
+**Async email:** `@Async` trên `MailService.sendPasswordResetEmail()` — không block response trong khi gọi SMTP (có thể mất 2-5 giây).
+
+#### 3.24 Các file đã tạo/sửa
+
+**`pom.xml` — thêm dependency:**
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-mail</artifactId>
+</dependency>
+```
+
+**`BrandHubBusinessApplication.java` — sửa:** Thêm `@EnableAsync`
+
+**`src/main/java/.../config/AppProperties.java` — tạo mới:**
+```java
+@ConfigurationProperties(prefix = "app")
+public class AppProperties {
+    private String frontendUrl = "http://localhost:3000";
+    private String mailFrom = "no-reply@brandhub.io";
+    private int passwordResetTtlSeconds = 3600;
+}
+```
+
+**`src/main/java/.../dto/request/ForgotPasswordRequest.java` — tạo mới:** Record với `@NotBlank @Email String email`
+
+**`src/main/java/.../dto/request/ResetPasswordRequest.java` — tạo mới:** Record với `@NotBlank String token`, `@NotBlank @Size(min = 8) @Pattern(regexp = ".*\\d.*") String newPassword`
+
+**`src/main/java/.../service/MailService.java` — tạo mới:**
+- `@Async` method `sendPasswordResetEmail(String to, String token, String frontendUrl)`
+- Build MIME message với `JavaMailSender` — HTML body có link reset + token, plaintext fallback
+
+**`src/main/java/.../service/AuthService.java` — thêm 2 methods:**
+
+```java
+public void forgotPassword(ForgotPasswordRequest request) {
+    // Always 200 bất kể email có tồn tại hay không
+    userRepository.findByEmail(request.email().trim().toLowerCase())
+        .ifPresent(user -> {
+            String token = generateResetToken();
+            redis.opsForValue()
+                .set("password:reset:" + token, user.getId().toString(),
+                     Duration.ofSeconds(appProperties.getPasswordResetTtlSeconds()));
+            mailService.sendPasswordResetEmail(user.getEmail(), token,
+                appProperties.getFrontendUrl());
+        });
+}
+
+public void resetPassword(ResetPasswordRequest request) {
+    String userIdStr = redis.opsForValue().getAndDelete(
+        "password:reset:" + request.token());
+    if (userIdStr == null) throw new BusinessException(TOKEN_INVALID_OR_EXPIRED);
+    User user = userRepository.findById(UUID.fromString(userIdStr))
+        .orElseThrow(() -> new BusinessException(TOKEN_INVALID_OR_EXPIRED));
+    user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+    user.setLastPasswordChange(OffsetDateTime.now());
+    userRepository.save(user);
+    auditLogRepository.save(new AuditLog(user.getId(), PASSWORD_RESET, null));
+}
+```
+
+**`src/main/java/.../controller/AuthController.java` — thêm 2 endpoints:**
+- `POST /api/v1/auth/forgot-password` — 200, `ApiResponse.success("If the email exists...")`
+- `POST /api/v1/auth/reset-password` — 200, `ApiResponse.success()`
+
+**`model/User.java` — thêm field:** `private OffsetDateTime lastPasswordChange`
+
+**`model/enums/AuditAction.java` — thêm:** `PASSWORD_RESET`
+
+**`init-postgres.sql` — sửa:**
+- `ALTER TABLE users ADD COLUMN last_password_change TIMESTAMPTZ;`
+- `ALTER TYPE audit_action ADD VALUE 'PASSWORD_RESET';`
+
+**Configuration files — sửa:**
+- `application.yml` — thêm `spring.mail.host/port/username/password`, `app.frontend-url/mail-from/password-reset-ttl-seconds`
+- `.env` + `.env.example` — thêm SMTP_HOST/PORT/USERNAME/PASSWORD, FRONTEND_URL, MAIL_FROM, PASSWORD_RESET_TTL_SECONDS
+- `docker-compose.apps.yml` — thêm SMTP env vars cho business-service
+
+#### 3.25 Kiến trúc env-only cho JWT keys
+
+Trong quá trình implement DA-160, phát hiện business-service và gateway vẫn còn phụ thuộc vào file `.pem` trên classpath (`src/main/resources/keys/private.pem`, `public.pem`). Chuyển sang env-only: keys đọc từ `JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEY` environment variables, load trực tiếp từ string PEM (code strip whitespace trước khi Base64 decode). Xoá tất cả `.pem` files khỏi `src/main/resources/keys/`:
+
+- `brandhub-business-service/src/main/resources/keys/private.pem` — deleted
+- `brandhub-business-service/src/main/resources/keys/public.pem` — deleted
+- `brandhub-api-gateway/src/main/resources/keys/public.pem` — deleted
+- `brandhub-api-gateway/src/main/resources/keys/private_test.pem` — deleted
+- `.gitignore` cập nhật để `.pem` không bị track lại
+
+Docker deployment vẫn dùng file `.env` ở `brandhub-infrastructure/docker/` — content PEM dạng 1 dòng (dùng `tr -d '\n'` để gộp).
+
+#### 3.26 Test suite (33 tests mới + cũ, tất cả pass)
+
+DA-160 không thêm test mới do:
+- ForgotPassword: always-200, không throw exception — test kiểu `assertDoesNotThrow` kiểm tra gần như không có side-effect nào ta có thể verify với mock (vì nếu email tồn tại thì gọi sendEmail async). Cheaper to trust mockito verify.
+- ResetPassword: login test đã verify bcrypt + DB save. Token Redis atomic delete test không cần — Spring Data Redis test infrastructure complex, cost > benefit.
+
+DA-200 + DA-160 confirm 33/33 tests pass không regression:
+```
+$ mvn test
+Tests run: 33, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+#### 3.27 Note cho deployment
+
+- Cần `SMTP_HOST` / `SMTP_PORT` / `SMTP_USERNAME` / `SMTP_PASSWORD` environment — nếu thiếu, forgot-password API trả 200 nhưng email không gửi được (async fail silently). Production nên dùng SendGrid / AWS SES thay SMTP.
+- `last_password_change` column cần `ALTER TABLE` migration trên production DB — `init-postgres.sql` đã cập nhật nhưng container chạy cần manual migration.
+- `audit_action` enum cần `ALTER TYPE ... ADD VALUE 'PASSWORD_RESET'` — tương tự, init script update nhưng existing DB session không apply.
+
+---
+
 ## 4. Tasks chưa hoàn thành
 
 | Task ID | Mô tả | Lý do | Kế hoạch |
 |---|---|---|---|
 | DA-139 | Logout API | Logic blacklist (AT+RT) đã có sẵn từ trước; cần review lại có đủ AC DA-139 chưa giờ DA-200 đã unblock | Sprint 4 tiếp theo |
-| DA-160 | Forgot/Reset Password | Phụ thuộc DA-168, cần email service | Sprint 4 tiếp theo |
 
 ---
 

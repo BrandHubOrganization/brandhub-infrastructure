@@ -61,7 +61,7 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE audit_action AS ENUM ('LOGIN', 'LOGOUT', 'CREATE', 'UPDATE', 'DELETE', 'ROLE_CHANGE', 'PERMISSION_CHANGE');
+    CREATE TYPE audit_action AS ENUM ('LOGIN', 'LOGOUT', 'TOKEN_REFRESH', 'PASSWORD_RESET', 'CREATE', 'UPDATE', 'DELETE', 'ROLE_CHANGE', 'PERMISSION_CHANGE');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -99,6 +99,9 @@ CREATE TABLE IF NOT EXISTS users (
     preferences    JSONB        NOT NULL DEFAULT '{}',
     last_login_at  TIMESTAMPTZ,
     last_password_change TIMESTAMPTZ,
+    otp_code       VARCHAR(6),
+    otp_expiry     TIMESTAMPTZ,
+    email_verified_at TIMESTAMPTZ,
     created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
@@ -145,7 +148,7 @@ CREATE TABLE IF NOT EXISTS user_system_roles (
     system_role VARCHAR(50) NOT NULL DEFAULT 'ADMIN',
     granted_by  UUID        REFERENCES users(id) ON DELETE SET NULL,
     granted_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT chk_user_system_roles_role CHECK (system_role IN ('ADMIN', 'SUPPORT'))
+    CONSTRAINT chk_user_system_roles_role CHECK (system_role IN ('ADMIN', 'SUPPORT', 'USER'))
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_system_roles_user_id ON user_system_roles(user_id);

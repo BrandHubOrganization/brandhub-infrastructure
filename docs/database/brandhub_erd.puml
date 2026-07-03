@@ -25,6 +25,10 @@ entity "users" as users <<PostgreSQL>> {
   * is_active : boolean
   * preferences : jsonb
   last_login_at : timestamptz
+  last_password_change : timestamptz
+  otp_code : varchar(6)
+  otp_expiry : timestamptz
+  email_verified_at : timestamptz
   * created_at : timestamptz
   * updated_at : timestamptz
 }
