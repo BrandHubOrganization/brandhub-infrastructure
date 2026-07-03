@@ -6,7 +6,7 @@
 
 | Field | Value |
 |---|---|
-| Họ tên | Hà Thị Ân |
+| Họ tên | Hà Văn Ân |
 | GitHub | [@anha] |
 | Role | AI Engineer |
 | Sprint | Sprint 2 |
