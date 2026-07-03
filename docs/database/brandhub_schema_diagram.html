@@ -367,7 +367,74 @@ const SCHEMA = {
         { name: 'updated_at', type: 'timestamp', notNull: true },
       ]
     },
-    // ── PostgreSQL ──
+    // ── PostgreSQL Identity ──
+    {
+      name: 'users', db: 'postgres', note: 'business-service',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'email', type: 'varchar', unique: true, notNull: true },
+        { name: 'password_hash', type: 'varchar', note: 'bcrypt hash' },
+        { name: 'full_name', type: 'varchar', notNull: true },
+        { name: 'avatar_url', type: 'varchar' },
+        { name: 'status', type: 'user_status', notNull: true },
+        { name: 'is_active', type: 'boolean', notNull: true },
+        { name: 'preferences', type: 'jsonb', notNull: true },
+        { name: 'last_login_at', type: 'timestamptz' },
+        { name: 'last_password_change', type: 'timestamptz' },
+        { name: 'otp_code', type: 'varchar', note: '6-digit OTP for email verification' },
+        { name: 'otp_expiry', type: 'timestamptz', note: 'OTP expiration time' },
+        { name: 'email_verified_at', type: 'timestamptz', note: 'When email was verified' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'user_oauth_providers', db: 'postgres', note: 'business-service',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'user_id', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'provider', type: 'oauth_provider', notNull: true },
+        { name: 'provider_id', type: 'varchar', notNull: true },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'user_refresh_tokens', db: 'postgres', note: 'business-service',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'user_id', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'token_hash', type: 'varchar', unique: true, notNull: true },
+        { name: 'jti', type: 'varchar', unique: true, notNull: true },
+        { name: 'expires_at', type: 'timestamptz', notNull: true },
+        { name: 'ip_address', type: 'varchar' },
+        { name: 'user_agent', type: 'varchar' },
+        { name: 'device_info', type: 'jsonb', notNull: true },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'user_system_roles', db: 'postgres', note: 'business-service',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'user_id', type: 'uuid', fk: 'users.id', unique: true, notNull: true },
+        { name: 'system_role', type: 'varchar', notNull: true, note: 'ADMIN | SUPPORT | USER' },
+        { name: 'granted_by', type: 'uuid', fk: 'users.id' },
+        { name: 'granted_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'password_reset_tokens', db: 'postgres', note: 'business-service',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'user_id', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'token_hash', type: 'varchar', unique: true, notNull: true },
+        { name: 'used_at', type: 'timestamptz' },
+        { name: 'ip_address', type: 'varchar' },
+        { name: 'expires_at', type: 'timestamptz', notNull: true },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    // ── PostgreSQL Billing ──
     {
       name: 'subscription_plans', db: 'postgres', note: 'business-service',
       fields: [
@@ -480,6 +547,11 @@ const SCHEMA = {
     { from: 'report_jobs.workspace_id', to: 'workspaces._id' },
     { from: 'report_jobs.client_id', to: 'clients._id' },
     { from: 'report_jobs.requested_by', to: 'users._id' },
+    { from: 'user_oauth_providers.user_id', to: 'users.id' },
+    { from: 'user_refresh_tokens.user_id', to: 'users.id' },
+    { from: 'user_system_roles.user_id', to: 'users.id' },
+    { from: 'user_system_roles.granted_by', to: 'users.id' },
+    { from: 'password_reset_tokens.user_id', to: 'users.id' },
     { from: 'workspace_subscriptions.plan_id', to: 'subscription_plans.id' },
     { from: 'invoices.subscription_id', to: 'workspace_subscriptions.id' },
     { from: 'payments.invoice_id', to: 'invoices.id' },
