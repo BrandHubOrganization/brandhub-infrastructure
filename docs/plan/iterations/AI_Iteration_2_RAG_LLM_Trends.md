@@ -63,12 +63,14 @@
 | DA-AI04-06 | Implement regenerate with feedback (receive previous output + feedback → generate improved version) | Ân (AI) | 🟡 High |
 | DA-AI04-07 | Anti-hallucination test (verify 20 generated captions — every claim must be sourced from brand context) | All (Team) | 🔴 Critical |
 | DA-AI04-08 | Write Prompt Engineering Documentation (template design, system prompt best practices, tone guide) | Ân (AI) | 🟢 Medium |
+| DA-AI04-09 | AI team meeting: review Integration 1, progress, and finalize crawler & generation flows | All (AI Team) | 🔴 Critical |
 
 **Notes:**
 - DA-AI04-01 depends on DA-AI03-05 (RAG context builder) — prompt template needs context input format locked.
 - DA-AI04-02 and DA-AI04-03 can be developed in parallel; fallback switching logic added after both are working.
 - DA-AI04-07 is a **blocking quality gate** — schedule a team review session to manually verify 20 captions.
 - Groq free tier: 14,400 requests/day, 30 requests/minute — implement exponential backoff for rate limits.
+- DA-AI04-09 requires active participation of all AI team members to review Integration 1, check general progress, and align/finalize trend crawler & AI generation flows.
 
 ---
 
@@ -120,3 +122,4 @@ AI-05 (independent, feeds AI-04-01):
 - [ ] Trend crawler running, data cached in Redis with 6h TTL
 - [ ] `/ai/trends` endpoint returning normalized results
 - [ ] Prompt Engineering Documentation committed
+- [ ] AI team meeting completed (Integration 1 review, progress review, and crawl trend/AI generate flows finalized)

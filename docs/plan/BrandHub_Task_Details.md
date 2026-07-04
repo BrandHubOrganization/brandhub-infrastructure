@@ -2802,6 +2802,21 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 ---
 
+### DA-AI04-09 — AI team meeting: review Integration 1, progress, and finalize crawler & generation flows
+**Assignee:** All (AI Team) | **Priority:** 🔴 Critical
+
+**Goal:** Conduct an alignment meeting for the AI team to report and review Integration 1 outcomes, evaluate overall progress and upcoming plans, and finalize the integration flows for both the trend crawler and AI generation services.
+
+**Acceptance Criteria:**
+- [ ] Report and review on Integration 1 completed and documented
+- [ ] AI progress evaluated and plans for the next sprints/iterations aligned
+- [ ] Integration flows of the trend crawler and AI content generation reviewed, finalized, and signed off by the team
+- [ ] Meeting notes containing the decisions and finalized flows are stored in the project workspace
+
+**Dependencies:** Blocks: None. Blocked by: DA-AI01-08.
+
+---
+
 ### DA-AI05-01 — Implement Google Trends crawler using pytrends to fetch top trending keywords in Vietnam
 **Assignee:** Ân (AI) | **Priority:** 🟡 High
 
