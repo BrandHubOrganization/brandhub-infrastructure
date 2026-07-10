@@ -67,8 +67,9 @@ entity "user_system_roles" as system_roles <<PostgreSQL>> {
   * granted_at : timestamptz
 }
 note right of system_roles
-  CHECK system_role IN ('ADMIN','SUPPORT')
+  CHECK system_role IN ('ADMIN','USER')
   OOP discriminated type for system-level users
+  Default: USER
 end note
 
 entity "password_reset_tokens" as pwd_reset <<PostgreSQL>> {
