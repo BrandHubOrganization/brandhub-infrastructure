@@ -199,11 +199,11 @@ const SCHEMA = {
       ]
     },
     {
-      name: 'user_system_roles', db: 'postgres', note: 'PostgreSQL · Identity · ADMIN/SUPPORT only',
+      name: 'user_system_roles', db: 'postgres', note: 'PostgreSQL · Identity · ADMIN/USER only',
       fields: [
         { name: 'id', type: 'uuid', pk: true },
         { name: 'user_id', type: 'uuid', fk: 'users.id', unique: true, notNull: true },
-        { name: 'system_role', type: 'varchar(50)', notNull: true, note: 'ADMIN | SUPPORT' },
+        { name: 'system_role', type: 'varchar(50)', notNull: true, note: 'ADMIN | USER' },
         { name: 'granted_by', type: 'uuid', fk: 'users.id', note: 'nullable — self-bootstrap' },
         { name: 'granted_at', type: 'timestamptz', notNull: true },
       ]
