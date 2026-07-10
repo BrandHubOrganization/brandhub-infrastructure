@@ -8,6 +8,25 @@
 -- Safe to run on a database that already has data (does NOT drop the table).
 -- For a fresh/empty database, this is unnecessary — init-postgres.sql already
 -- creates the table with the new constraint.
+--
+-- Idempotent: safe to run multiple times.
+--   - DROP CONSTRAINT IF EXISTS → no-op if already dropped.
+--   - UPDATE ... WHERE system_role = 'SUPPORT' → no-op once no rows match.
+--   - Re-adding the constraint / changing the default just overwrites the
+--     same values if run again.
+--
+-- How to run (Windows PowerShell, container name brandhub-postgres):
+--   Get-Content brandhub-infrastructure\scripts\migrations\2026-07-10_user_system_roles_support_to_user.sql `
+--     | docker exec -i brandhub-postgres psql -U brandhub -d brandhub
+--
+-- How to run (bash/macOS/Linux):
+--   docker exec -i brandhub-postgres psql -U brandhub -d brandhub \
+--     < brandhub-infrastructure/scripts/migrations/2026-07-10_user_system_roles_support_to_user.sql
+--
+-- Verify after running:
+--   docker exec -i brandhub-postgres psql -U brandhub -d brandhub -c "\d user_system_roles"
+--   → Default should read 'USER'::character varying
+--   → Check constraint should read: system_role::text = ANY (ARRAY['ADMIN','USER']::text[])
 -- ============================================================
 
 BEGIN;
