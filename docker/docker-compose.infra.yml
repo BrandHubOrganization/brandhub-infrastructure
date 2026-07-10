@@ -11,11 +11,10 @@ services:
     container_name: brandhub-postgres
     restart: unless-stopped
     environment:
-      # Defaults keep local setup runnable without a .env file.
-      # Override these values from .env for shared or production-like environments.
-      POSTGRES_DB: ${POSTGRES_DB:-brandhub}
-      POSTGRES_USER: ${POSTGRES_USER:-brandhub}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      # Values must come from .env. Do not use default credentials here.
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ../scripts/init-postgres.sql:/docker-entrypoint-initdb.d/init-postgres.sql
@@ -37,20 +36,20 @@ services:
       - redis-server
       # Password protects local/shared Redis from accidental unauthenticated access.
       - --requirepass
-      - ${REDIS_PASSWORD:-password}
+      - ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
       # AOF keeps Redis data across restarts together with the mounted volume.
       - --appendonly
       - "yes"
       # Memory limit prevents Redis from consuming all container/host memory.
       - --maxmemory
-      - ${REDIS_MAXMEMORY:-256mb}
+      - ${REDIS_MAXMEMORY:?REDIS_MAXMEMORY is required}
       # Good default for cache-heavy usage: evict least recently used keys.
       - --maxmemory-policy
-      - ${REDIS_MAXMEMORY_POLICY:-allkeys-lru}
+      - ${REDIS_MAXMEMORY_POLICY:?REDIS_MAXMEMORY_POLICY is required}
     volumes:
       - redis-data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-password}", "ping"]
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:?REDIS_PASSWORD is required}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -64,8 +63,8 @@ services:
   #   image: rabbitmq:3.12-management-alpine
   #   container_name: brandhub-rabbitmq
   #   environment:
-  #     RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-brandhub}
-  #     RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-password}
+  #     RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:?RABBITMQ_USERNAME is required}
+  #     RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
   #   volumes:
   #     - rabbitmq-data:/var/lib/rabbitmq
   #   healthcheck:
