@@ -1,7 +1,10 @@
 @echo off
 setlocal
 
-cd /d "%~dp0"
+set SCRIPT_DIR=%~dp0
+set DOCKER_DIR=%SCRIPT_DIR%..
+
+cd /d "%DOCKER_DIR%"
 
 set MODE=%~1
 set PROJECT_NAME=brandhub
