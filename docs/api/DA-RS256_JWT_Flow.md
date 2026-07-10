@@ -134,7 +134,47 @@ graph TB
     AS -->|"save"| AUDIT
 
     GPUB -.->|"same key<br/>signed by BPRIV"| BPRIV
+
+    BROWSER -->|"request qua Gateway<br/>đến AI/Publisher path"| GF
+    GF -->|"verify RS256 + inject headers<br/>(giống Business)"| AI
+    GF -->|"verify RS256 + inject headers<br/>(giống Business)"| PUB
+
+    Business -->|"X-Internal-Key: INTERNAL_SERVICE_KEY<br/>(service-to-service, không qua Gateway)"| AI
+    Business -->|"X-Internal-Key: INTERNAL_SERVICE_KEY<br/>(service-to-service, không qua Gateway)"| PUB
+    AI -->|"X-Internal-Key: INTERNAL_SERVICE_KEY"| Business
+    PUB -->|"X-Internal-Key: INTERNAL_SERVICE_KEY"| Business
 ```
+
+### 1.1 Vai trò từng thành phần trong luồng JWT
+
+| Thành phần | Có JWT key gì? | Vai trò |
+|---|---|---|
+| **API Gateway** | Chỉ `JWT_PUBLIC_KEY` | Cổng duy nhất verify RS256 + check Redis blacklist cho **mọi** request từ client (Business, AI, Publisher đều qua đây). Không tự sinh token. |
+| **Business Service** | `JWT_PRIVATE_KEY` + `JWT_PUBLIC_KEY` | Nơi duy nhất **sinh** token (login/refresh) và **thu hồi** token (logout → ghi blacklist). Cũng verify nội bộ khi cần đọc claims (logout, refresh). |
+| **AI Service** | Không có JWT key nào | Không tự verify JWT — tin tưởng headers `X-User-Id`/`X-User-Role`/`X-Workspace-Id` do Gateway đã inject sau khi verify. Nhận request từ client **qua Gateway**, và nhận request nội bộ từ Business/Publisher **qua `INTERNAL_SERVICE_KEY`** (không qua Gateway, không dùng JWT). |
+| **Publisher Service** | Không có JWT key nào | Tương tự AI Service — tin headers từ Gateway cho request client-facing (nếu có), dùng `INTERNAL_SERVICE_KEY` cho lời gọi service-to-service (VD: Business gọi Publisher để đăng bài lên mạng xã hội). |
+
+### 1.2 Hai đường đi khác nhau qua hệ thống
+
+**Đường 1 — Client-facing (qua Gateway, dùng JWT RS256):**
+```
+Client → API Gateway (verify RS256 + Redis blacklist) → Business / AI / Publisher
+```
+Tất cả traffic từ Browser/Mobile đều bắt buộc qua Gateway trước, dù đích đến là Business, AI hay Publisher. Gateway là **single point of JWT verification** — AI và Publisher không tự parse JWT, chỉ đọc headers đã được Gateway xác thực sẵn.
+
+**Đường 2 — Service-to-service (nội bộ, dùng Internal Key, KHÔNG dùng JWT):**
+```
+Business Service ──X-Internal-Key──> AI Service   (VD: request generate content AI)
+Business Service ──X-Internal-Key──> Publisher     (VD: trigger đăng bài lên Facebook/TikTok)
+AI Service ──X-Internal-Key──> Business Service    (VD: callback kết quả generate)
+Publisher ──X-Internal-Key──> Business Service     (VD: callback publish status)
+```
+Lời gọi giữa các service backend với nhau **không đi qua Gateway** và **không dùng JWT** — vì đây là internal network, không có "user" thực sự đứng sau request. Dùng `INTERNAL_SERVICE_KEY` (symmetric, xem mục 3) để 2 bên xác thực lẫn nhau là service hợp lệ trong hệ thống, không phải request giả mạo từ bên ngoài.
+
+**Tại sao tách 2 cơ chế:**
+- JWT RS256 gắn với **user identity** (userId, role, workspaceId) — chỉ có ý nghĩa khi có người dùng thật đứng sau request.
+- Request AI Service tạo ảnh, hay Publisher đăng bài, thường được **Business Service khởi tạo thay mặt user** (đã xác thực JWT ở bước trước) — lúc này không cần re-verify JWT, chỉ cần biết "đây có đúng là Business Service gọi không" → Internal Key đủ dùng, nhẹ hơn nhiều so với RS256 verify.
+- Nếu AI/Publisher cần biết user nào đứng sau (VD: ghi `ai_usage_logs.userId`), Business Service **truyền userId trong request body/params**, không cần JWT lại.
 
 ---
 
