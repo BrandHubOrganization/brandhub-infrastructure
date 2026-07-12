@@ -1,8 +1,1125 @@
-# BrandHub — Task Details (Jira-Style)
+# BrandHub — Project Plan & Task Details (Hợp nhất)
 
-> Detailed descriptions for all ~270 tasks across 16 sprints + 4 AI iterations.
-> Format per task: Goal, Acceptance Criteria, Technical Notes, Dependencies.
-> Main plan: `BrandHub_Project_Plan.md` | Sprint files: `sprints/` | AI track: `iterations/`
+> Tài liệu gộp từ `BrandHub_Project_Plan.md` (tổng quan + bảng task) và `BrandHub_Task_Details.md` (chi tiết từng task: Goal, Acceptance Criteria, Technical Notes, Dependencies).
+> Click vào **Task ID** ở bất kỳ bảng nào trong Phần 1 để nhảy tới chi tiết tương ứng ở Phần 2.
+> Task đánh dấu 🆕 là task phát sinh ngoài 406 task gốc — xem giải thích ở Phần 3.
+
+## Mục lục
+
+- [Phần 1 — Tổng quan & Bảng Task](#phần-1--tổng-quan--bảng-task) — team info, tech stack, kiến trúc, 46+ epic theo sprint, sprint summary, workload
+- [Phần 2 — Chi tiết Task](#phần-2--chi-tiết-task) — Goal / Acceptance Criteria / Technical Notes / Dependencies cho từng task
+- [Phần 3 — Task phát sinh ngoài plan gốc](#phần-3--tổng-hợp-task-phát-sinh-ngoài-plan-gốc) — 17 task xuất hiện trên Jira nhưng không có trong kế hoạch 406 task ban đầu
+
+---
+
+# PHẦN 1 — TỔNG QUAN & BẢNG TASK
+
+
+---
+
+## TEAM & PROJECT INFO
+
+| Field | Detail |
+|---|---|
+| Project | BrandHub — AI-Powered Multi-Channel Content Platform |
+| Team | Trung (Leader), Lộc (Frontend), Tuấn (AI), Ân (AI), Phước (Publisher) |
+| Total Sprints | 16 Sprints (2 weeks each) + 4 AI Parallel Iterations |
+| Duration | ~32 weeks |
+| Stack | Java Spring Boot 3, Python FastAPI, React 18, React Native, MongoDB, PostgreSQL, Redis, ChromaDB, RabbitMQ, AWS S3 |
+
+---
+
+## TECH STACK SUMMARY
+
+| Layer | Technology |
+|---|---|
+| Web Frontend | React 18 + Vite + TypeScript + Tailwind CSS + shadcn/ui |
+| Mobile | React Native + Expo |
+| Backend Business | Java 21 + Spring Boot 3 + Spring Security |
+| Backend AI | Python 3.11 + FastAPI + LangChain |
+| Backend Publisher | Java 21 + Spring Boot 3 |
+| API Gateway | Spring Cloud Gateway |
+| Primary DB | MongoDB (documents, content, social accounts) |
+| Relational DB | PostgreSQL (payments, subscriptions, audit logs) |
+| Cache | Redis (JWT blacklist, rate limit, OAuth state, trending cache) |
+| Vector DB | ChromaDB (brand embeddings for RAG) |
+| Message Queue | RabbitMQ (async publishing queue) |
+| File Storage | AWS S3 |
+| LLM | Llama 3 via Groq API + Claude API (fallback) |
+| Image Gen | Stability AI API (SDXL) |
+| Video Gen | Google Veo API |
+| Virtual Ambassador | InstantID + InsightFace + ControlNet |
+| Auth | JWT (Access: 15 min, Refresh: 30 days) + Google OAuth |
+| Container | Docker + Docker Compose |
+| CI/CD | GitHub Actions |
+| Project Mgmt | Linear (sprints) + GitHub (code) |
+
+---
+
+## SYSTEM ARCHITECTURE
+
+```
+[Web Dashboard]  [Mobile App]
+       |               |
+   [API Gateway — Spring Cloud Gateway — Port 8080]
+       |         |              |
+[Business Svc] [AI Svc]  [Publisher Svc]
+   Port 8081   Port 8082    Port 8083
+       |           |              |
+  [MongoDB]  [ChromaDB]     [RabbitMQ]
+  [PostgreSQL] [AWS S3]     [Social APIs]
+  [Redis]
+```
+
+**7 Repositories:** brandhub-business-service, brandhub-ai-service, brandhub-publisher-service, brandhub-api-gateway, brandhub-web-dashboard, brandhub-mobile-app, brandhub-infrastructure
+
+---
+
+## ROLES
+
+| Role | Description |
+|---|---|
+| `ADMIN` | System admin — manages users, plans, platform |
+| `AGENCY_OWNER` | Creates workspace, manages team & clients, billing |
+| `ACCOUNT_MANAGER` | Manages assigned clients, reviews content, sends reports |
+| `CONTENT_CREATOR` | Creates AI content, manages knowledge base, schedules posts |
+| `BRAND_CLIENT` | View-only client portal: approve/reject content, view reports |
+| `GUEST` | Unauthenticated — landing page + register only |
+
+---
+
+## PRIORITY LEGEND
+
+| Symbol | Meaning |
+|---|---|
+| 🔴 Critical | Blocking other tasks, core architecture, auth, database schema |
+| 🟡 High | Important features, CI/CD, main API endpoints |
+| 🟢 Medium | Docs, testing, secondary features |
+
+---
+
+## PHASE 1 — Initiation & Documentation
+
+---
+
+## Sprint 1 — Project Kickoff (Weeks 1–2)
+
+### EPIC E01 — Project Initiation
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E01-01](#da-e01-01-brainstorm-and-align-on-brandhub-topic-idea-define-scope-and-mvp) | Brainstorm and align on BrandHub topic idea, define scope and MVP | All (Team) | 🔴 Critical |
+| [DA-E01-02](#da-e01-02-team-meeting-to-confirm-roles-and-responsibilities-of-each-member) | Team meeting to confirm roles and responsibilities of each member | Trung (Leader) | 🔴 Critical |
+| [DA-E01-03](#da-e01-03-find-and-contact-a-mentor-suitable-for-the-ai-microservices-topic) | Find and contact a mentor suitable for the AI + microservices topic | Trung (Leader) | 🔴 Critical |
+| [DA-E01-04](#da-e01-04-assess-each-team-members-technical-skills-java-python-react-ai-tools) | Assess each team member's technical skills (Java, Python, React, AI tools) | All (Team) | 🟡 High |
+| [DA-E01-05](#da-e01-05-submit-project-registration-form-on-the-call4project-system-insideunifpteduvn) | Submit project registration form on the Call4project system (insideuni.fpt.edu.vn) | Trung (Leader) | 🔴 Critical |
+
+### EPIC E02 — Project Management Setup
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E02-01](#da-e02-01-create-linear-workspace-set-up-2-week-sprint-cadence-create-issue-templates) | Create Linear workspace, set up 2-week sprint cadence, create issue templates | Trung (Leader) | 🔴 Critical |
+| [DA-E02-02](#da-e02-02-create-github-organization-and-7-repos-following-polyrepo-structure) | Create GitHub Organization and 7 repos following polyrepo structure | Trung (Leader) | 🔴 Critical |
+| [DA-E02-03](#da-e02-03-set-up-branch-protection-rules-pr-template-commit-convention-conventional-commits) | Set up branch protection rules, PR template, commit convention (Conventional Commits) | Trung (Leader) | 🔴 Critical |
+| [DA-E02-04](#da-e02-04-create-project-email-and-accounts-for-all-services-aws-github-actions-groq-stability-ai-etc) | Create project email and accounts for all services (AWS, GitHub Actions, Groq, Stability AI, etc.) | Trung (Leader) | 🔴 Critical |
+
+---
+
+## Sprint 2 — Requirements & Architecture (Weeks 3–4)
+
+### EPIC E03 — Use Case Documentation
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E03-01](#da-e03-01-list-and-group-all-60-use-cases-by-6-roles-admin-agency-owner-account-manager-content-creator-brand-client-guest) | List and group all 60 use cases by 6 roles (Admin, Agency Owner, Account Manager, Content Creator, Brand Client, Guest) | Phước (Publisher) | 🔴 Critical |
+| [DA-E03-02](#da-e03-02-write-detailed-descriptions-for-uc-0120-admin-agency-owner-flows) | Write detailed descriptions for UC 01–20 (Admin + Agency Owner flows) — actor, description, main flow, alt flows | Trung (Leader) | 🔴 Critical |
+| [DA-E03-03](#da-e03-03-write-detailed-descriptions-for-uc-2140-account-manager-content-creator-flows) | Write detailed descriptions for UC 21–40 (Account Manager + Content Creator flows) | Phước (Publisher) | 🔴 Critical |
+| [DA-E03-04](#da-e03-04-write-detailed-descriptions-for-uc-4160-brand-client-social-publishing-flows) | Write detailed descriptions for UC 41–60 (Brand Client + Social Publishing flows) | Phước (Publisher) | 🟡 High |
+| [DA-E03-05](#da-e03-05-review-uc-list-with-mentor-update-based-on-feedback) | Review UC list with mentor, update based on feedback | All (Team) | 🟡 High |
+| [DA-E03-06](#da-e03-06-finalize-uc-table-into-excel-file-brandhubusecasesxlsx) | Finalize UC table into Excel file (BrandHub_UseCases.xlsx) | Phước (Publisher) | 🟢 Medium |
+
+### EPIC E04 — Functional & Non-Functional Requirements
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E04-01](#da-e04-01-write-functional-objectives-per-role-6-roles-x-features) | Write functional objectives per role (6 roles x features) | Trung (Leader) | 🔴 Critical |
+| [DA-E04-02](#da-e04-02-write-non-functional-requirements-ui-performance-security-reliability-usability) | Write non-functional requirements (UI, Performance, Security, Reliability, Usability) | Trung (Leader) | 🔴 Critical |
+| [DA-E04-03](#da-e04-03-add-ai-performance-requirements-latency-throughput-model-accuracy-thresholds) | Add AI performance requirements (latency, throughput, model accuracy thresholds) to non-functional section | Ân (AI) | 🟡 High |
+| [DA-E04-04](#da-e04-04-add-mobile-requirements-fcm-offline-draft-camera-to-non-functional-section) | Add mobile requirements (FCM, offline draft, camera) to non-functional section | Lộc (Frontend) | 🟡 High |
+| [DA-E04-05](#da-e04-05-fill-in-and-finalize-the-capstone-register-form-brandhubcapstoneregisterdocx) | Fill in and finalize the Capstone Register form (BrandHub_Capstone_Register.docx) | Trung (Leader) | 🔴 Critical |
+
+### EPIC E05 — System Architecture Design
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E05-01](#da-e05-01-draw-system-architecture-overview-diagram-7-services-5-databases-rabbitmq-clients) | Draw system architecture overview diagram (7 services + 5 databases + RabbitMQ + clients) | Trung (Leader) | 🔴 Critical |
+| [DA-E05-02](#da-e05-02-define-service-responsibilities-and-boundaries-what-each-of-the-7-services-does-and-does-not-do) | Define service responsibilities and boundaries (what each of the 7 services does and does NOT do) | Trung (Leader) | 🔴 Critical |
+| [DA-E05-03](#da-e05-03-draw-database-ownership-diagram-which-service-owns-which-db-cross-db-reference-strategy) | Draw database ownership diagram (which service owns which DB, cross-DB reference strategy) | Trung (Leader) | 🔴 Critical |
+| [DA-E05-04](#da-e05-04-document-service-to-service-communication-rest-business-ai-rabbitmq-business-publisher-http-callback-publisher-business) | Document service-to-service communication (REST: business-ai, RabbitMQ: business-publisher, HTTP callback: publisher-business) | Trung (Leader) | 🔴 Critical |
+| [DA-E05-05](#da-e05-05-write-architecture-decision-records-adrs-for-4-key-decisions-polyrepo-mongodbpostgresql-split-rabbitmq-spring-cloud-gateway) | Write Architecture Decision Records (ADRs) for 4 key decisions: polyrepo, MongoDB+PostgreSQL split, RabbitMQ, Spring Cloud Gateway | Trung (Leader) | 🔴 Critical |
+| [DA-E05-06](#da-e05-06-draw-sequence-diagrams-for-4-core-flows-content-creation-approval-workflow-auto-publishing-oauth-token-refresh) | Draw sequence diagrams for 4 core flows: content creation, approval workflow, auto-publishing, OAuth token refresh | Tuấn (AI) | 🔴 Critical |
+| [DA-E05-07](#da-e05-07-write-the-ai-architecture-section-in-the-technical-document-ai-service-internal-design-chromadb-schema-llm-routing-strategy) | Write the AI architecture section in the Technical Document (ai-service internal design, ChromaDB schema, LLM routing strategy) | Tuấn (AI) | 🟡 High |
+| [DA-E05-08](#da-e05-08-compile-full-technical-document-brandhubtechnicaldocumentmd) | Compile full technical document (BrandHub_Technical_Document.md) | Trung (Leader) | 🟡 High |
+
+---
+
+## Sprint 3 — Database, API & UI Design (Weeks 5–6)
+
+### EPIC E06 — Database Design
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E06-01](#da-e06-01-define-database-strategy-which-data-goes-into-mongodb-vs-postgresql-and-why) | Define database strategy: which data goes into MongoDB, which into PostgreSQL, and why | Trung (Leader) | 🔴 Critical |
+| [DA-E06-02](#da-e06-02-design-12-mongodb-collections-with-full-field-types-requiredoptional-flags-default-values) | Design 12 MongoDB collections with full field types, required/optional flags, default values | Trung (Leader) | 🔴 Critical |
+| [DA-E06-03](#da-e06-03-design-5-postgresql-tables-with-constraints-and-internal-foreign-keys) | Design 5 PostgreSQL tables with constraints and internal foreign keys | Trung (Leader) | 🔴 Critical |
+| [DA-E06-04](#da-e06-04-define-indexing-strategy-for-mongodb-and-postgresql) | Define indexing strategy for MongoDB and PostgreSQL | Tuấn (AI) | 🟡 High |
+| [DA-E06-05](#da-e06-05-write-dbml-code-for-dbdiagramio-mongodb-postgresql-enums-refs-tablegroups) | Write DBML code for dbdiagram.io (MongoDB + PostgreSQL + Enums + Refs + TableGroups) | Tuấn (AI) | 🟡 High |
+| [DA-E06-06](#da-e06-06-document-redis-key-patterns-jwt-blacklist-rate-limit-oauth-state-trending-cache) | Document Redis key patterns (JWT blacklist, rate limit, OAuth state, trending cache) | Ân (AI) | 🟡 High |
+| [DA-E06-07](#da-e06-07-write-database-initialization-scripts-init-mongojs-init-postgressql) | Write database initialization scripts (init-mongo.js + init-postgres.sql) | Trung (Leader) | 🔴 Critical |
+| [DA-E06-08](#da-e06-08-write-database-access-rules-documentation-every-query-must-include-workspaceid-filter-brandclient-additionally-requires-clientid-filter) | Write database access rules documentation (every query must include workspaceId filter; BRAND_CLIENT additionally requires clientId filter) | Trung (Leader) | 🔴 Critical |
+
+### EPIC E07 — API Design & Swagger Spec
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E07-01](#da-e07-01-define-all-endpoints-for-business-service-auth-user-workspace-client-post-contentrequest-socialaccount-analytics-report-subscription-admin) | Define all endpoints for business-service (Auth, User, Workspace, Client, Post, ContentRequest, SocialAccount, Analytics, Report, Subscription, Admin) | Trung (Leader) | 🔴 Critical |
+| [DA-E07-02](#da-e07-02-define-endpoints-for-ai-service-aicontent-aiimage-aivideo-aiambassador-airag-aitrends) | Define endpoints for ai-service (/ai/content, /ai/image, /ai/video, /ai/ambassador, /ai/rag, /ai/trends) | Tuấn (AI) | 🔴 Critical |
+| [DA-E07-03](#da-e07-03-define-rabbitmq-message-format-for-publisher-service-publish-job-callback-message-contract) | Define RabbitMQ message format for publisher-service (publish job + callback message contract) | Phước (Publisher) | 🔴 Critical |
+| [DA-E07-04](#da-e07-04-write-standard-api-response-format-apiresponse-wrapper-error-codes-http-status-codes) | Write standard API response format (ApiResponse wrapper, error codes, HTTP status codes) | Trung (Leader) | 🔴 Critical |
+| [DA-E07-05](#da-e07-05-write-openapi-yaml-spec-for-business-service) | Write OpenAPI YAML spec for business-service | Trung (Leader) | 🟡 High |
+| [DA-E07-06](#da-e07-06-write-openapi-yaml-spec-for-ai-service-all-internal-public-endpoints) | Write OpenAPI YAML spec for ai-service (all internal + public endpoints) | Tuấn (AI) | 🟡 High |
+| [DA-E07-07](#da-e07-07-document-social-platform-api-specs-fb-graph-api-v19-tiktok-content-api-v2-threads-api-zalo-oa-api-versions-rate-limits-payload-formats) | Document social platform API specs: FB Graph API, TikTok Content API, Threads API, Zalo OA API (versions, rate limits, payload formats) | Phước (Publisher) | 🟡 High |
+
+### EPIC E08 — UI/UX Wireframe
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E08-01](#da-e08-01-create-figma-wireframes-for-all-main-screens-login-dashboard-workspace-content-editor-calendar-client-portal-analytics) | Create Figma wireframes for all main screens (Login, Dashboard, Workspace, Content Editor, Calendar, Client Portal, Analytics) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E08-02](#da-e08-02-design-component-system-button-input-modal-table-badge-toast-styles) | Design component system (Button, Input, Modal, Table, Badge, Toast styles) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E08-03](#da-e08-03-draw-user-flow-diagrams-for-3-main-flows-content-creation-approval-publishing) | Draw user flow diagrams for 3 main flows: content creation, approval, publishing | Lộc (Frontend) | 🟡 High |
+| [DA-E08-04](#da-e08-04-wireframe-client-portal-read-only-calendar-approvereject-analytics-view) | Wireframe Client Portal (read-only calendar, approve/reject, analytics view) | Lộc (Frontend) | 🟡 High |
+| [DA-E08-07](#da-e08-07-create-landing-page-ui-phát-sinh-ngoài-plan-gốc-prefix-jira-lỗi) 🆕 | Create landing page UI | Lộc (Frontend) | 🟡 High |
+| [DA-E08-05](#da-e08-05-create-a-view-local-document-website-automation-phát-sinh-ngoài-plan-gốc) 🆕 | Create a view-local document website automation | Lộc (Frontend) | 🟢 Medium |
+| [DA-E08-08](#da-e08-08-integrated-html-for-view-document-phát-sinh-ngoài-plan-gốc) 🆕 | Integrated .html for view document | Trung (Leader) | 🟢 Medium |
+
+---
+
+## PHASE 2 — Infrastructure Setup
+
+---
+
+## Sprint 4 — Infrastructure, CI/CD & Gateway (Weeks 7–8)
+
+### EPIC E09 — Development Environment Setup
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E09-01](#da-e09-01-write-docker-composeyml-to-run-the-full-infrastructure-stack-mongodb-postgresql-redis-rabbitmq-chromadb) | Write docker-compose.yml to run the full infrastructure stack: MongoDB, PostgreSQL, Redis, RabbitMQ, ChromaDB | Trung (Leader) | 🔴 Critical |
+| [DA-E09-02](#da-e09-02-write-init-postgressql-create-tables-seed-subscription-plans) | Write init-mongo.js (create collections + indexes) and init-postgres.sql (create tables + seed subscription plans) | Trung (Leader) | 🔴 Critical |
+| [DA-E09-03](#da-e09-03-write-envexample-consolidating-all-environment-variables-across-6-services) | Write .env.example consolidating all environment variables across 6 services | Trung (Leader) | 🔴 Critical |
+| [DA-E09-04](#da-e09-04-write-clone-allsh-script-to-clone-all-7-repos-locally-with-a-single-command) | Write clone-all.sh script to clone all 7 repos locally with a single command | Trung (Leader) | 🟡 High |
+| [DA-E09-05](#da-e09-05-write-readmemd-for-the-infrastructure-repo-step-by-step-setup-guide) | Write README.md for the infrastructure repo (step-by-step setup guide) | Phước (Publisher) | 🟢 Medium |
+| [DA-E09-06](#da-e09-06-infrastructure-business-service-keys) 🆕 | Infrastructure + Business Service keys | Trung (Leader) | 🔴 Critical |
+| [DA-E09-07](#da-e09-07-ai-service-llm-keys-payment-gateway) 🆕 | AI Service — LLM keys + Payment Gateway | Tuấn (AI) | 🔴 Critical |
+| [DA-E09-08](#da-e09-08-ai-service-imagevideo-gen-keys) 🆕 | AI Service — Image/Video Gen keys | Ân (AI) | 🔴 Critical |
+| [DA-E09-09](#da-e09-09-publisher-service-social-platform-oauth) 🆕 | Publisher Service — Social Platform OAuth | Phước (Publisher) | 🔴 Critical |
+| [DA-E09-10](#da-e09-10-frontend-google-oauth-app) 🆕 | Frontend — Google OAuth App | Lộc (Frontend) | 🔴 Critical |
+| [DA-E09-11](#da-e09-11-create-project-cost-sheet) 🆕 | Create project cost sheet | Trung (Leader) | 🟡 High |
+| [DA-E09-12](#da-e09-12-register-brandhub-domain-phát-sinh-ngoài-plan-gốc) 🆕 | Register brandhub domain | Lộc (Frontend) | 🟡 High |
+| [DA-E09-13](#da-e09-13-update-diagram-dbml-and-html-file-for-database-phát-sinh-ngoài-plan-gốc) 🆕 | Update diagram, DBML and HTML file for database | Trung (Leader) | 🟡 High |
+
+### EPIC E10 — CI/CD Pipeline
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E10-01](#da-e10-01-write-github-actions-workflow-for-business-service-mvn-test-docker-build-push-to-ghcrio) | Write GitHub Actions workflow for business-service (build + test + push Docker image) | Trung (Leader) | 🟡 High |
+| [DA-E10-02](#da-e10-02-write-github-actions-workflow-for-publisher-service-mvn-test-docker-build-push) | Write GitHub Actions workflow for publisher-service (build + test + push Docker image) | Phước (Publisher) | 🟡 High |
+| [DA-E10-03](#da-e10-03-write-github-actions-workflow-for-ai-service-flake8-pytest-docker-build-push) | Write GitHub Actions workflow for ai-service (lint + test + build Docker image) | Tuấn (AI) | 🟡 High |
+| [DA-E10-04](#da-e10-04-write-github-actions-workflow-for-web-dashboard-eslint-tsc-vite-build-deploy) | Write GitHub Actions workflow for web-dashboard (lint + build + deploy) | Lộc (Frontend) | 🟡 High |
+| [DA-E10-05](#da-e10-05-set-up-branch-protection-rules-require-1-approval-before-merging-into-develop) | Set up branch protection rules (require 1 approval before merging into develop) | Trung (Leader) | 🟢 Medium |
+| [DA-E10-06](#da-e10-06-write-github-actions-workflow-for-api-gateway-build-test-push-docker-image) 🆕 | Write GitHub Actions workflow for api-gateway (build + test + push Docker image) | Trung (Leader) | 🟡 High |
+
+### EPIC E11 — API Gateway
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E11-01](#da-e11-01-initialize-brandhub-api-gateway-project-with-spring-cloud-gateway) | Initialize brandhub-api-gateway project with Spring Cloud Gateway | Trung (Leader) | 🔴 Critical |
+| [DA-E11-02](#da-e11-02-write-jwt-validation-filter-verify-rs256-token-on-every-request-extract-userid-role-into-x-user-id-and-x-user-role-headers) | Write JWT validation filter (verify token on every request, extract userId + role into headers) | Trung (Leader) | 🔴 Critical |
+| [DA-E11-03](#da-e11-03-write-rate-limiting-filter-using-redis-100-requestsminuteuser-key-ratelimituseridminute) | Write rate limiting filter using Redis (100 requests/minute/user) | Trung (Leader) | 🔴 Critical |
+| [DA-E11-04](#da-e11-04-configure-routing-rules-map-url-paths-to-correct-downstream-service) | Configure routing rules (map URL paths to the correct service) | Trung (Leader) | 🔴 Critical |
+| [DA-E11-05](#da-e11-05-write-logging-filter-log-all-inbound-and-outbound-requests-for-debugging) | Write logging filter (log all inbound and outbound requests for debugging) | Trung (Leader) | 🟢 Medium |
+| [DA-E11-06](#da-e11-06-write-dockerfile-for-api-gateway) 🆕 | Write Dockerfile for api-gateway | Trung (Leader) | 🔴 Critical |
+| [DA-E11-07](#da-e11-07-write-global-error-response-handler-for-gateway) 🆕 | Write global error response handler for gateway | Trung (Leader) | 🟡 High |
+
+---
+
+## PHASE 3 — Backend Core
+
+---
+
+## Sprint 5 — Authentication & RBAC (Weeks 9–10)
+
+### EPIC E12 — Authentication
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E12-01](#da-e12-01-implement-register-api) | Implement Register API (validate email uniqueness, hash password with bcrypt cost=12) | Trung (Leader) | 🔴 Critical |
+| [DA-E12-02](#da-e12-02-implement-login-api) | Implement Login API (verify password, issue JWT access token 15 min + refresh token 30 days) | Trung (Leader) | 🔴 Critical |
+| [DA-E12-03](#da-e12-03-implement-refresh-token-api) | Implement Refresh Token API (verify refresh token, issue new access token) | Trung (Leader) | 🔴 Critical |
+| [DA-E12-04](#da-e12-04-implement-logout-api) | Implement Logout API (add JWT jti to Redis blacklist, clear cookie) | Trung (Leader) | 🔴 Critical |
+| [DA-E12-05](#da-e12-05-implement-forgot-password-reset-password-flow) | Implement Forgot Password & Reset Password flow (email link with time-limited token) | Trung (Leader) | 🔴 Critical |
+| [DA-E12-06](#da-e12-06-implement-google-oauth-login) | Implement Google OAuth login (callback, create user if not yet registered) | Trung (Leader) | 🟡 High |
+| [DA-E12-07](#da-e12-07-research-hs256-vs-rs256-vs-es256-for-jwt-signing-phát-sinh-ngoài-plan-gốc) 🆕 | Research HS256 vs RS256 vs ES256 for JWT signing | Trung (Leader) | 🔴 Critical |
+| [DA-E11-14](#da-e11-14-add-all-jpa-models-from-database-schema-for-business-service-repository-layer-phát-sinh-ngoài-plan-gốc-gắn-sai-epic-trên-jira) 🆕 ⚠️ | Add all JPA models from database schema for business-service + repository layer *(gắn sai epic trên Jira — nội dung thuộc data layer, không phải Gateway)* | Trung (Leader) | 🔴 Critical |
+
+### EPIC E13 — User & Profile Management
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E13-01](#da-e13-01-implement-getput-apiv1usersme) | Implement GET/PUT /api/v1/users/me (retrieve and update user profile) | Trung (Leader) | 🔴 Critical |
+| [DA-E13-02](#da-e13-02-implement-avatar-upload) | Implement avatar upload (receive file → upload to S3 → save URL to MongoDB) | Trung (Leader) | 🟡 High |
+| [DA-E13-03](#da-e13-03-implement-admin-get-apiv1adminusers) | Implement Admin: GET /api/v1/admin/users (list all users with filters) | Ân (AI) | 🟡 High |
+| [DA-E13-04](#da-e13-04-implement-admin-bansuspend-user) | Implement Admin: Ban/Suspend user (set isActive=false, send notification) | Ân (AI) | 🟡 High |
+
+### EPIC E14 — Role-Based Access Control (RBAC)
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E14-01](#da-e14-01-write-requirerole-annotation-and-aop-aspect) | Write RBAC annotation/middleware for business-service (@RequireRole) | Trung (Leader) | 🔴 Critical |
+| [DA-E14-02](#da-e14-02-implement-workspace-isolation-filter) | Implement workspace isolation filter (every MongoDB query must include workspaceId filter) | Trung (Leader) | 🔴 Critical |
+| [DA-E14-03](#da-e14-03-implement-client-isolation-for-brandclient-role) | Implement client isolation for BRAND_CLIENT (can only view data belonging to their own clientId) | Trung (Leader) | 🔴 Critical |
+| [DA-E14-04](#da-e14-04-write-permission-matrix-document) | Write permission matrix document (6 roles x all endpoints = allowed/not allowed) | Phước (Publisher) | 🟢 Medium |
+
+---
+
+## Sprint 6 — Workspace, Client & Subscription (Weeks 11–12)
+
+### EPIC E15 — Workspace Management
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E15-01](#da-e15-01-implement-post-apiv1workspaces) | Implement POST /api/v1/workspaces (create new workspace, AGENCY_OWNER role) | Trung (Leader) | 🔴 Critical |
+| [DA-E15-02](#da-e15-02-implement-get-apiv1workspacesmine) | Implement GET /api/v1/workspaces/mine (retrieve workspace of the current user) | Trung (Leader) | 🔴 Critical |
+| [DA-E15-03](#da-e15-03-implement-post-apiv1workspacesidmembers) | Implement POST /api/v1/workspaces/{id}/members (invite member via email) | Trung (Leader) | 🔴 Critical |
+| [DA-E15-04](#da-e15-04-implement-delete-apiv1workspacesidmembersuserid) | Implement DELETE /api/v1/workspaces/{id}/members/{userId} (remove a member) | Trung (Leader) | 🟡 High |
+| [DA-E15-05](#da-e15-05-implement-workspace-settings) | Implement workspace settings (timezone, default platforms, report frequency) | Trung (Leader) | 🟡 High |
+
+### EPIC E16 — Client & Agency Management
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E16-01](#da-e16-01-implement-post-apiv1clients) | Implement POST /api/v1/clients (AGENCY_OWNER creates a new brand client) | Trung (Leader) | 🔴 Critical |
+| [DA-E16-02](#da-e16-02-implement-put-apiv1clientsidassign) | Implement PUT /api/v1/clients/{id}/assign (AGENCY_OWNER assigns an Account Manager) | Trung (Leader) | 🔴 Critical |
+| [DA-E16-03](#da-e16-03-implement-put-apiv1clientsidservice-package) | Implement PUT /api/v1/clients/{id}/service-package (set monthly post limits and platforms) | Trung (Leader) | 🟡 High |
+| [DA-E16-04](#da-e16-04-implement-get-apiv1clients) | Implement GET /api/v1/clients (AGENCY_OWNER and ACCOUNT_MANAGER view client list) | Trung (Leader) | 🔴 Critical |
+
+### EPIC E17 — Subscription & Billing
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E17-01](#da-e17-01-implement-admin-crud-for-subscription-plans) | Implement Admin CRUD for subscription plans (Free/Basic/Pro/Enterprise) | Trung (Leader) | 🔴 Critical |
+| [DA-E17-02](#da-e17-02-implement-post-apiv1subscriptionssubscribe) | Implement POST /api/v1/subscriptions/subscribe (AGENCY_OWNER subscribes to a plan) | Trung (Leader) | 🔴 Critical |
+| [DA-E17-03](#da-e17-03-implement-stripe-payment-webhook-flow) | Implement payment flow (integrate payment gateway, create invoice) | Trung (Leader) | 🔴 Critical |
+| [DA-E17-04](#da-e17-04-implement-get-apiv1subscriptionsinvoices) | Implement GET /api/v1/subscriptions/invoices (billing history) | Ân (AI) | 🟡 High |
+
+---
+
+## PHASE 4 — Social Integration & AI Pipeline
+
+---
+
+## Sprint 7 — Social OAuth & Token Management (Weeks 13–14)
+
+### EPIC E18 — Meta OAuth (Facebook + Instagram)
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E18-01](#da-e18-01-implement-facebook-fanpage-oauth-flow) | Implement Facebook Fanpage OAuth flow (redirect → callback → token exchange) | Phước (Publisher) | 🔴 Critical |
+| [DA-E18-02](#da-e18-02-implement-instagram-business-account-connection) | Implement Instagram Business account connection (linked via Facebook Business) | Phước (Publisher) | 🔴 Critical |
+| [DA-E18-03](#da-e18-03-implement-aes-256-gcm-token-encryption) | Implement AES-256 encryption for access token + refresh token before saving to MongoDB | Trung (Leader) | 🔴 Critical |
+| [DA-E18-04](#da-e18-04-implement-social-account-disconnect-flow) | Implement disconnect flow (revoke token at Meta, remove from MongoDB) | Phước (Publisher) | 🟡 High |
+
+### EPIC E19 — TikTok, Threads & Zalo OA OAuth
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E19-01](#da-e19-01-implement-tiktok-for-business-oauth) | Implement TikTok for Business OAuth (Client Credentials Flow) | Phước (Publisher) | 🔴 Critical |
+| [DA-E19-02](#da-e19-02-implement-threads-oauth) | Implement Threads OAuth (using Meta Graph API, scope: threads_basic + threads_content_publish) | Phước (Publisher) | 🔴 Critical |
+| [DA-E19-03](#da-e19-03-implement-zalo-official-account-oauth) | Implement Zalo Official Account OAuth | Phước (Publisher) | 🔴 Critical |
+| [DA-E19-04](#da-e19-04-implement-token-status-api) | Implement token status dashboard API (view ACTIVE/EXPIRED/REVOKED status for all accounts) | Trung (Leader) | 🟡 High |
+
+### EPIC E20 — Token Lifecycle Management
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E20-01](#da-e20-01-implement-scheduled-token-refresh-job) | Implement scheduled token refresh job (runs at 2:00 AM daily, refreshes tokens expiring within 7 days) | Trung (Leader) | 🔴 Critical |
+| [DA-E20-02](#da-e20-02-implement-token-refresh-failure-alert) | Implement alert notification when token refresh fails (send notification to Account Manager) | Trung (Leader) | 🔴 Critical |
+| [DA-E20-03](#da-e20-03-implement-manual-token-refresh-api) | Implement manual token refresh API (Account Manager triggers refresh manually) | Phước (Publisher) | 🟡 High |
+
+---
+
+## Sprint 8 — Publisher Service (Weeks 15–16)
+
+### EPIC E21 — Publisher Service Core
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E21-01](#da-e21-01-initialize-brandhub-publisher-service-project-spring-boot-3-rabbitmq-consumer-bean-setup) | Initialize brandhub-publisher-service project (Spring Boot 3, RabbitMQ consumer setup) | Phước (Publisher) | 🔴 Critical |
+| [DA-E21-02](#da-e21-02-implement-rabbitmq-consumer-receive-publishjobmessage-and-route-to-correct-platform-adapter) | Implement RabbitMQ consumer: receive PublishJobMessage (postId, platform, content, mediaUrls, scheduledAt) | Phước (Publisher) | 🔴 Critical |
+| [DA-E21-03](#da-e21-03-implement-facebook-publish-adapter-graph-api-v19-mefeed-for-text-mephotos-for-image) | Implement Facebook publish adapter (Graph API v19: /me/feed + /me/photos) | Phước (Publisher) | 🔴 Critical |
+| [DA-E21-04](#da-e21-04-implement-instagram-publish-adapter-2-step-create-container-publish) | Implement Instagram publish adapter (Content Publishing API: create container → publish) | Phước (Publisher) | 🔴 Critical |
+| [DA-E21-05](#da-e21-05-implement-tiktok-publish-adapter-direct-post-60s-creator-upload-60s) | Implement TikTok publish adapter (Content Posting API v2) | Phước (Publisher) | 🔴 Critical |
+| [DA-E21-06](#da-e21-06-implement-threads-publish-adapter-2-step-create-container-publish-enforce-max-500-chars) | Implement Threads publish adapter (Threads API: create container → publish, max 500 chars) | Phước (Publisher) | 🔴 Critical |
+| [DA-E21-07](#da-e21-07-implement-zalo-oa-publish-adapter-article-api-for-textimage-posts-photo-api-for-image-only) | Implement Zalo OA publish adapter (Article API + Photo API) | Phước (Publisher) | 🔴 Critical |
+
+### EPIC E22 — Publish Callback & Error Handling
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E22-01](#da-e22-01-implement-http-callback-post-internalpostsidpublish-result-to-business-service) | Implement HTTP callback to business-service after publishing completes (POST /internal/posts/{id}/publish-result) | Phước (Publisher) | 🔴 Critical |
+| [DA-E22-02](#da-e22-02-implement-retry-logic-immediate-1min-5min-15min-dead-letter-queue) | Implement retry logic: on failure → retry up to 3 times with exponential backoff (1m, 5m, 15m) | Phước (Publisher) | 🔴 Critical |
+| [DA-E22-03](#da-e22-03-implement-business-service-handler-for-publish-callback-update-post-status-publishedfailed-create-notification) | Implement business-service handler for publish callback (update post status, create notification) | Trung (Leader) | 🔴 Critical |
+
+---
+
+## Sprint 9 — AI Service Wiring & Business Integration (Weeks 17–18)
+
+### EPIC E23 — AI Service Internal API Wiring
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E23-01](#da-e23-01-expose-internalaicontentgenerate) | Expose /internal/ai/content/generate endpoint (receive topic + clientId + platform → return caption + hashtags) | Tuấn (AI) | 🔴 Critical |
+| [DA-E23-02](#da-e23-02-expose-internalaiimagegenerate) | Expose /internal/ai/image/generate endpoint (receive prompt + style → return S3 URL) | Tuấn (AI) | 🔴 Critical |
+| [DA-E23-03](#da-e23-03-expose-internalaiambassadorgenerate) | Expose /internal/ai/ambassador/generate endpoint (receive faceImage + productImage → return S3 URL) | Tuấn (AI) | 🔴 Critical |
+| [DA-E23-04](#da-e23-04-expose-internalaivideogenerate) | Expose /internal/ai/video/generate endpoint (receive script + style → return S3 URL, async with polling) | Ân (AI) | 🔴 Critical |
+| [DA-E23-05](#da-e23-05-expose-internalaitrendsfetch) | Expose /internal/ai/trends/fetch endpoint (return top trending topics by platform + region) | Ân (AI) | 🟡 High |
+
+### EPIC E24 — Business Service AI Integration
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E24-01](#da-e24-01-implement-ai-content-generation-flow-in-business-service) | Implement AI content generation flow in business-service: ContentRequest → call ai-service → save draft Post | Trung (Leader) | 🔴 Critical |
+| [DA-E24-02](#da-e24-02-implement-image-and-ambassador-generation-trigger) | Implement image/ambassador generation trigger from Post editor (user selects AI generate image) | Trung (Leader) | 🔴 Critical |
+| [DA-E24-03](#da-e24-03-implement-ai-usage-tracking) | Implement AI usage tracking (count ai_credits_per_month against subscription plan limits) | Trung (Leader) | 🟡 High |
+
+---
+
+## AI PARALLEL TRACK — AI Research & Implementation
+
+> **Note:** AI Track runs in parallel alongside Sprints 5–12. Each AI Iteration is 2 weeks.
+
+---
+
+## AI Iteration 1 — Research & Evaluation (Parallel with Sprints 5–6)
+
+### EPIC AI-01 — AI Model Research & Evaluation
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-AI01-01](#da-ai01-01-research-and-compare-instantid-vs-ip-adapter-vs-controlnet-for-face-consistent-virtual-ambassador-generation) | Research and compare InstantID vs IP-Adapter vs ControlNet for face-consistent virtual ambassador generation | Tuấn (AI) | 🔴 Critical |
+| [DA-AI01-02](#da-ai01-02-test-3-virtual-ambassador-tools-on-5-sample-images-write-comparison-table-quality-speed-cost) | Test 3 virtual ambassador tools on 5 sample images, write comparison table (quality, speed, cost) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI01-03](#da-ai01-03-research-google-veo-api-capabilities-pricing-rate-limits-movement-parameters) | Research Google Veo API: capabilities, pricing, rate limits, movement parameters | Ân (AI) | 🔴 Critical |
+| [DA-AI01-04](#da-ai01-04-collect-and-test-20-video-generation-prompts-with-various-movement-parameters-classify-results) | Collect and test 20+ video generation prompts with various movement parameters, classify results | Ân (AI) | 🔴 Critical |
+| [DA-AI01-05](#da-ai01-05-research-product-model-image-compositing-techniques-controlnet-inpainting-dall-e-edit-rembg-composite) | Research product + model image compositing techniques: ControlNet inpainting, DALL-E edit, rembg + composite | Lộc (Frontend) | 🟡 High |
+| [DA-AI01-06](#da-ai01-06-test-3-compositing-methods-on-10-product-model-image-pairs-evaluate-naturalness-and-compute-cost) | Test 3 compositing methods on 10 product + model image pairs, evaluate naturalness and compute cost | Lộc (Frontend) | 🟡 High |
+| [DA-AI01-07](#da-ai01-07-compare-llama-3-groq-vs-claude-api-vietnamese-caption-quality-speed-cost-per-call) | Compare Llama 3 (Groq) vs Claude API: Vietnamese caption quality, speed, cost per call | All (Team) | 🔴 Critical |
+| [DA-AI01-08](#da-ai01-08-write-ai-research-summary-document-consolidating-results-from-all-3-tracks) | Write AI Research Summary Document consolidating results from all 3 tracks, save to docs/ repo | Ân (AI) | 🟢 Medium |
+
+### EPIC AI-02 — AI Service Infrastructure Setup
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-AI02-01](#da-ai02-01-initialize-brandhub-ai-service-project-fastapi-python-311-folder-structure) | Initialize brandhub-ai-service project: FastAPI + Python 3.11 + folder structure (api/services/models/utils) | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI02-02](#da-ai02-02-configure-4-api-clients-from-env-chromadb-groq-anthropic-stability-ai) | Configure 4 API clients from .env: ChromaDB client, Groq API client, Anthropic client, Stability AI client | Tuấn (AI) | 🔴 Critical |
+| [DA-AI02-03](#da-ai02-03-configure-aws-s3-client-with-boto3-write-uploadfile-getpresignedurl-deletefile-helpers) | Configure AWS S3 client with boto3, write 3 helper functions: upload_file(), get_presigned_url(), delete_file() | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI02-04](#da-ai02-04-set-up-pydantic-base-schemas-for-all-requestresponse-models) | Set up Pydantic base schemas for all request/response models | Ân (AI) | 🟡 High |
+| [DA-AI02-05](#da-ai02-05-write-dockerfile-for-ai-service-add-ai-service-to-docker-composeyml-in-infrastructure-repo) | Write Dockerfile for ai-service + add ai-service to docker-compose.yml in the infrastructure repo | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI02-06](#da-ai02-06-write-internal-api-key-authentication-middleware-validate-x-internal-key-header-on-all-internal-routes) | Write internal API key authentication middleware (validate X-Internal-Key header) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI02-07](#da-ai02-07-document-chromadb-collection-design-collection-naming-per-clientid-metadata-schema-query-patterns) | Document ChromaDB collection design (collection naming per client, metadata schema, query patterns) | Tuấn (AI) | 🟡 High |
+
+---
+
+## AI Iteration 2 — RAG, LLM & Trends (Parallel with Sprints 7–8)
+
+### EPIC AI-03 — RAG Knowledge Base Pipeline
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-AI03-01](#da-ai03-01-implement-document-upload-endpoint-accept-pdfdocxtxturl-save-file-to-s3) | Implement document upload endpoint (accept PDF/DOCX/TXT/URL, save file to S3) | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI03-02](#da-ai03-02-build-document-chunking-service-using-langchain-recursivecharactertextsplitter-chunksize500-overlap50) | Build document chunking service using LangChain RecursiveCharacterTextSplitter (chunk_size=500, overlap=50) | Ân (AI) | 🔴 Critical |
+| [DA-AI03-03](#da-ai03-03-build-embedding-pipeline-text-chunk-embedding-store-in-chromadb-with-metadata) | Build embedding pipeline (text chunk → vector via embedding model → store in ChromaDB with metadata: documentId, clientId, chunkIndex) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI03-04](#da-ai03-04-implement-semantic-search-query-embedding-top-k-retrieval-from-chromadb-filtered-by-clientid) | Implement semantic search (query → embedding → top-K retrieval from ChromaDB filtered by clientId) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI03-05](#da-ai03-05-build-rag-context-builder-format-top-k-chunks-into-context-string-for-llm-prompt) | Build RAG context builder (format top-K chunks into a context string for LLM prompt) | Ân (AI) | 🔴 Critical |
+| [DA-AI03-06](#da-ai03-06-document-deletion-endpoint-remove-chunks-from-chromadb-file-from-s3) | Document deletion endpoint (remove chunks from ChromaDB + file from S3) | Lộc (Frontend) | 🟡 High |
+| [DA-AI03-07](#da-ai03-07-test-rag-accuracy-upload-3-real-brand-documents-verify-retrieved-context-is-correct-and-does-not-hallucinate) | Test RAG accuracy (upload 3 real brand documents, verify retrieved context is correct and does not hallucinate) | Ân (AI) | 🔴 Critical |
+| [DA-AI03-08](#da-ai03-08-write-rag-pipeline-documentation-architecture-tuning-parameters-evaluation-methodology) | Write RAG pipeline documentation (architecture, tuning parameters, evaluation methodology) | Ân (AI) | 🟢 Medium |
+
+### EPIC AI-04 — LLM Content Generation
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-AI04-01](#da-ai04-01-build-prompt-template-system-topic-rag-context-trend-data-tone-platform-full-llm-prompt) | Build prompt template system (receive topic + RAG context + trend data + tone → generate full prompt) | Ân (AI) | 🔴 Critical |
+| [DA-AI04-02](#da-ai04-02-integrate-llama-3-via-groq-api-system-prompt-only-use-provided-context-do-not-fabricate) | Integrate Llama 3 via Groq API (system prompt enforces: only use provided context, do not fabricate) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI04-03](#da-ai04-03-integrate-claude-api-as-fallback-when-groq-is-rate-limited-or-quality-fails) | Integrate Claude API as fallback when Groq is rate-limited or quality is low | Tuấn (AI) | 🔴 Critical |
+| [DA-AI04-04](#da-ai04-04-implement-platform-specific-caption-truncation-fb-63k-threads-500-tiktok-4k-chars) | Implement platform-specific optimization (auto-truncate captions: FB 63k, Threads 500, TikTok 4k chars) | Lộc (Frontend) | 🟡 High |
+| [DA-AI04-05](#da-ai04-05-implement-hashtag-generation-endpoint-post-aicontenthashtags) | Implement hashtag generation endpoint (call Llama 3 with a simple prompt) | Lộc (Frontend) | 🟡 High |
+| [DA-AI04-06](#da-ai04-06-implement-regenerate-with-feedback-receive-previous-caption-user-feedback-generate-improved-version) | Implement regenerate with feedback (receive previous output + feedback → generate improved version) | Ân (AI) | 🟡 High |
+| [DA-AI04-07](#da-ai04-07-anti-hallucination-test-verify-20-generated-captions-every-claim-must-be-sourced-from-brand-context) | Anti-hallucination test (verify 20 generated captions — every claim must be sourced from brand context) | All (Team) | 🔴 Critical |
+| [DA-AI04-08](#da-ai04-08-write-prompt-engineering-documentation-template-design-system-prompt-guide-tone-examples) | Write Prompt Engineering Documentation (template design, system prompt best practices, tone guide) | Ân (AI) | 🟢 Medium |
+
+### EPIC AI-05 — Trend Crawler Service
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-AI05-01](#da-ai05-01-implement-google-trends-crawler-using-pytrends-to-fetch-top-trending-keywords-in-vietnam) | Implement Google Trends crawler (pytrends) to fetch top trending keywords in Vietnam | Ân (AI) | 🟡 High |
+| [DA-AI05-02](#da-ai05-02-implement-tiktok-trending-hashtag-crawler-web-scraping-or-unofficial-api-fallback-to-pytrends) | Implement TikTok trending hashtag crawler (web scraping or unofficial API) | Ân (AI) | 🟡 High |
+| [DA-AI05-03](#da-ai05-03-normalize-trend-data-into-standard-format-keyword-score-platform-relatedtopics) | Normalize trend data into a standard format: {keyword, score, platform, relatedTopics[]} | Ân (AI) | 🟡 High |
+| [DA-AI05-04](#da-ai05-04-implement-redis-cache-for-trend-data-key-trendsvndatecategory-ttl-6-hours) | Implement Redis cache for trend data (TTL 6 hours, key: trends:vn:{date}:{category}) | Ân (AI) | 🟡 High |
+| [DA-AI05-05](#da-ai05-05-implement-trend-suggestions-api-endpoint-get-aitrendscategoryfashionlimit20) | Implement trend suggestions API endpoint (GET /ai/trends?category=fashion&limit=20) | Ân (AI) | 🟡 High |
+| [DA-AI05-06](#da-ai05-06-set-up-apscheduler-to-auto-crawl-every-6-hours) | Set up APScheduler to auto-crawl every 6 hours | Ân (AI) | 🟢 Medium |
+| [DA-AI05-07](#da-ai05-07-brainstorm-ai-crawl-idea-phát-sinh-ngoài-plan-gốc) 🆕 | Brainstorm AI crawl idea | Trung (Leader) | 🟢 Medium |
+
+---
+
+## AI Iteration 3 — Image, Ambassador & Composition (Parallel with Sprints 9–10)
+
+### EPIC AI-06 — Image Generation Pipeline
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-AI06-01](#da-ai06-01-integrate-stability-ai-sdxl-api-text-to-image-with-style-aspect-ratio-negative-prompt-params) | Integrate Stability AI API (SDXL): text-to-image with style, aspect ratio, and negative prompt params | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI06-02](#da-ai06-02-build-post-aiimagegenerate-endpoint-upload-result-to-s3-return-imageurl) | Build image generation endpoint (POST /ai/image/generate → return S3 URL) | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI06-03](#da-ai06-03-implement-batch-generation-generate-3-variations-simultaneously-via-asynciogather) | Implement batch generation (generate 3 variations simultaneously for user to choose from) | Lộc (Frontend) | 🟡 High |
+| [DA-AI06-04](#da-ai06-04-brand-safety-filter-prepend-default-negative-prompts-to-avoid-inappropriate-content) | Brand safety filter (default negative prompts to avoid inappropriate content) | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI06-05](#da-ai06-05-test-20-real-product-prompts-evaluate-quality-and-generation-time-document-results) | Test 20 real product prompts, evaluate quality and generation time | Lộc (Frontend) | 🟡 High |
+
+### EPIC AI-07 — Virtual Brand Ambassador (InstantID)
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-AI07-01](#da-ai07-01-set-up-instantid-pipeline-load-model-insightface-buffalol-controlnet-depth-gpu-required) | Set up InstantID pipeline (load model, face encoder InsightFace, ControlNet depth) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI07-02](#da-ai07-02-implement-reference-photo-processing-face-detection-face-embedding-extraction-using-insightface) | Implement reference photo processing (face detection + face embedding extraction) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI07-03](#da-ai07-03-build-post-aiambassadorgenerate-1-reference-photo-prompt-generated-image-preserving-original-face) | Build face-consistent generation endpoint (POST /ai/ambassador/generate: 1 reference + prompt → generated image preserving the original face) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI07-04](#da-ai07-04-test-face-consistency-15-generated-images-from-1-reference-measure-cosine-similarity-target-085) | Test face consistency (generate 15 different images: varying pose/background/outfit from 1 reference → measure facial similarity score) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI07-05](#da-ai07-05-build-ambassador-gallery-management-save-reference-generated-images-to-s3-under-clientid-prefix) | Build ambassador gallery management (save reference + generated images to S3 by clientId) | Tuấn (AI) | 🟡 High |
+| [DA-AI07-06](#da-ai07-06-apply-ambassador-endpoint-post-aiambassadorapply-ambassador-key-background-s3-key-composed-image) | Apply ambassador endpoint (POST /ai/ambassador/apply: ambassador key + background key → composed image) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI07-07](#da-ai07-07-benchmark-instantid-vs-ip-adapter-on-20-test-images-document-final-decision-with-evidence) | Benchmark InstantID vs IP-Adapter on a test set of 20 images, document final decision | Tuấn (AI) | 🟡 High |
+| [DA-AI07-08](#da-ai07-08-write-implementation-guide-model-params-prompt-tips-gpu-memory-requirements) | Write implementation guide (parameters, tips for generating high-quality ambassadors) | Tuấn (AI) | 🟢 Low |
+
+### EPIC AI-08 — Image Composition Pipeline
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-AI08-01](#da-ai08-01-implement-background-removal-for-product-images-rembg-u2net-output-transparent-png) | Implement background removal for product images (rembg library, U2Net model) → output transparent PNG | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI08-02](#da-ai08-02-implement-background-removal-for-modelambassador-images) | Implement background removal for model/ambassador images | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI08-03](#da-ai08-03-build-layer-compositing-service-product-layer-model-layer-background-layer-pillow-composite) | Build layer compositing service (product layer + model layer + background layer → single image using Pillow) | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI08-04](#da-ai08-04-implement-shadow-lighting-adjustment-for-natural-looking-merges) | Implement shadow + lighting adjustment for natural-looking merges | Lộc (Frontend) | 🟡 High |
+| [DA-AI08-05](#da-ai08-05-build-post-aicompose-endpoint) | Build composition endpoint (POST /ai/compose: product S3 key + model S3 key + background S3 key → composed image) | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI08-06](#da-ai08-06-test-20-product-model-pairs-evaluate-realism-document-failure-cases) | Test 20 product + model pairs, evaluate realism score, document failure cases | Lộc (Frontend) | 🟡 High |
+| [DA-AI08-07](#da-ai08-07-write-composition-parameter-guide-optimal-image-sizes-best-practices-per-product-category) | Write composition parameter guide (optimal sizes, best practices per product type) | Lộc (Frontend) | 🟢 Low |
+
+---
+
+## AI Iteration 4 — Video, Integration & Documentation (Parallel with Sprints 11–12)
+
+### EPIC AI-09 — AI Video Generation
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-AI09-01](#da-ai09-01-integrate-google-veo-api-auth-post-generate-jobid-poll-get-status-s3-upload) | Integrate Google Veo API (authentication, generate request, async polling for status) | Ân (AI) | 🔴 Critical |
+| [DA-AI09-02](#da-ai09-02-build-video-prompt-template-system-topic-movement-type-duration-optimized-veo-prompt) | Build video prompt template system (receive topic + movement type + duration → generate optimized Veo prompt) | Ân (AI) | 🔴 Critical |
+| [DA-AI09-03](#da-ai09-03-implement-movement-parameter-mapping-camerapan-zoomin-zoomout-subjectwalk-veo-params) | Implement movement parameter mapping (camera_pan, zoom_in, zoom_out, subject_walk → Veo params) | Ân (AI) | 🟡 High |
+| [DA-AI09-04](#da-ai09-04-create-prompt-library-10-marketing-video-types-3-movement-styles-30-templates) | Create prompt library: 10 marketing video types x 3 movement styles = 30 prompt templates | Ân (AI) | 🔴 Critical |
+| [DA-AI09-05](#da-ai09-05-build-post-aivideogenerate-returns-jobid-get-aivideojobidstatus-for-polling) | Build video generation endpoint (POST /ai/video/generate → async, returns jobId → GET /ai/video/{jobId}/status for polling) | Ân (AI) | 🔴 Critical |
+| [DA-AI09-06](#da-ai09-06-upload-generated-video-to-s3-extract-thumbnail-return-videourl-thumbnailurl-duration) | Upload generated video to S3, extract thumbnail, return {videoUrl, thumbnailUrl, duration} | Ân (AI) | 🔴 Critical |
+| [DA-AI09-07](#da-ai09-07-benchmark-30-prompts-quality-generation-time-cost-per-video-document-results) | Benchmark 30 prompts (quality, generation time, cost per video) → document results | Ân (AI) | 🟡 High |
+| [DA-AI09-08](#da-ai09-08-write-video-generation-research-report-prompt-guide-parameter-cheat-sheet-best-practices) | Write Video Generation Research Report (prompt guide, parameter cheat sheet, best practices) | Ân (AI) | 🟡 High |
+
+### EPIC AI-10 — AI Service Integration & API Finalize
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-AI10-01](#da-ai10-01-finalize-all-fastapi-endpoints) | Finalize all FastAPI endpoints (/ai/content, /ai/image, /ai/video, /ai/ambassador, /ai/compose, /ai/rag/*, /ai/trends) | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI10-02](#da-ai10-02-error-handling-retry-for-external-ai-api-calls-exponential-backoff-fallback-provider-on-rate-limit) | Error handling & retry for external AI API calls (exponential backoff, fallback provider) | All (Team) | 🟡 High |
+| [DA-AI10-03](#da-ai10-03-integration-test-with-business-service-verify-all-ai-calls-from-business-service-reach-ai-service-correctly) | Integration test with business-service (verify all AI calls from business-service work correctly) | All (Team) | 🔴 Critical |
+| [DA-AI10-04](#da-ai10-04-write-postman-collection-for-all-ai-endpoints-with-example-requests-and-responses) | Write Postman collection for all AI endpoints with example requests | Lộc (Frontend) | 🟢 Medium |
+| [DA-AI10-05](#da-ai10-05-write-swaggeropenapi-documentation-for-ai-service-auto-generated-via-fastapi-docs) | Write Swagger/OpenAPI documentation for ai-service | Lộc (Frontend) | 🟢 Medium |
+
+### EPIC AI-11 — AI Research Documentation & Demo
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-AI11-01](#da-ai11-01-write-virtual-ambassador-technical-report) | Write Virtual Ambassador Technical Report (model comparison, implementation decisions, sample results gallery) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI11-02](#da-ai11-02-write-video-generation-research-report-full-prompt-library-movement-guide-cost-analysis) | Write Video Generation Research Report (full prompt library of 30 templates, movement parameter guide, cost analysis) | Ân (AI) | 🔴 Critical |
+| [DA-AI11-03](#da-ai11-03-write-image-composition-research-report) | Write Image Composition Research Report (technique comparison, best practices, quality evaluation) | Lộc (Frontend) | 🟡 High |
+| [DA-AI11-04](#da-ai11-04-compile-ai-cost-analysis-estimated-cost-per-feature-average-usage-1000-usersmonth) | Compile AI Cost Analysis (estimated cost per feature x average usage x 1000 users/month) | All (Team) | 🟡 High |
+| [DA-AI11-05](#da-ai11-05-record-ai-feature-demo-video-showcase-all-7-ai-features-working-end-to-end) | Record AI feature demo video (showcase all 7 AI features working in practice) | All (Team) | 🔴 Critical |
+| [DA-AI11-06](#da-ai11-06-present-ai-results-to-mentor-live-demo-qa-collect-feedback-for-final-report) | Present AI results to mentor (live demo + Q&A, collect feedback) | All (Team) | 🔴 Critical |
+
+---
+
+## PHASE 5 — Content Workflow & Publishing
+
+---
+
+## Sprint 10 — Content Requests & Calendar (Weeks 19–20)
+
+### EPIC E28 — Content Request Management
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E28-01](#da-e28-01-implement-post-apiv1content-requests) | Implement POST /api/v1/content-requests (BRAND_CLIENT submits request: topic, platform, tone, deadline) | Trung (Leader) | 🔴 Critical |
+| [DA-E28-02](#da-e28-02-implement-get-apiv1content-requests) | Implement GET /api/v1/content-requests (ACCOUNT_MANAGER views list of requests from their assigned clients) | Trung (Leader) | 🔴 Critical |
+| [DA-E28-03](#da-e28-03-implement-status-transition-logic) | Implement status tracking (SUBMITTED → ASSIGNED → IN_PROGRESS → PENDING_REVIEW → SENT_TO_CLIENT → APPROVED → REJECTED) | Trung (Leader) | 🔴 Critical |
+
+### EPIC E29 — Task Assignment & Tracking
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E29-01](#da-e29-01-implement-put-apiv1content-requestsidassign) | Implement PUT /api/v1/content-requests/{id}/assign (ACCOUNT_MANAGER assigns task to CONTENT_CREATOR) | Trung (Leader) | 🔴 Critical |
+| [DA-E29-02](#da-e29-02-implement-get-apiv1content-requestsmy-tasks) | Implement GET /api/v1/content-requests/my-tasks (CONTENT_CREATOR views their assigned tasks) | Trung (Leader) | 🔴 Critical |
+| [DA-E29-03](#da-e29-03-implement-deadline-alert-notification) | Implement deadline management (alert when a task is approaching its deadline) | Ân (AI) | 🟡 High |
+
+### EPIC E30 — Content Calendar & Scheduling
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E30-01](#da-e30-01-implement-get-apiv1postscalendar) | Implement GET /api/v1/posts/calendar (retrieve posts by date range, filter by platform/status) | Trung (Leader) | 🔴 Critical |
+| [DA-E30-02](#da-e30-02-implement-post-apiv1postsidschedule) | Implement POST /api/v1/posts/{id}/schedule (ACCOUNT_MANAGER sets schedule: scheduledAt + targetPlatforms) | Trung (Leader) | 🔴 Critical |
+| [DA-E30-03](#da-e30-03-build-contentcalendar-react-component) | Build ContentCalendar React component (drag-drop rescheduling, color-coded status indicators) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E30-04](#da-e30-04-build-platformpreview-component) | Build PlatformPreview component (display preview in the correct format for FB, IG, TikTok, Threads) | Lộc (Frontend) | 🟡 High |
+
+---
+
+## Sprint 11 — Approval Workflow & Full Publishing (Weeks 21–22)
+
+### EPIC E31 — Approval Workflow
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E31-01](#da-e31-01-implement-post-apiv1postsidsubmit) | Implement POST /api/v1/posts/{id}/submit (CONTENT_CREATOR submits → PENDING_REVIEW) | Trung (Leader) | 🔴 Critical |
+| [DA-E31-02](#da-e31-02-implement-post-apiv1postsidaccount-review) | Implement POST /api/v1/posts/{id}/account-review (ACCOUNT_MANAGER approves or rejects + note) | Trung (Leader) | 🔴 Critical |
+| [DA-E31-03](#da-e31-03-implement-post-apiv1postsidclient-approve) | Implement POST /api/v1/posts/{id}/client-approve (BRAND_CLIENT approves → SCHEDULED) | Trung (Leader) | 🔴 Critical |
+| [DA-E31-04](#da-e31-04-implement-post-apiv1postsidclient-reject) | Implement POST /api/v1/posts/{id}/client-reject (BRAND_CLIENT rejects + feedback) | Trung (Leader) | 🔴 Critical |
+
+### EPIC E32 — Publishing System
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E32-01](#da-e32-01-implement-smart-ingestion-publishjobmessage-packaging) | Implement Smart Ingestion (package post + encrypted token + platform configs into a RabbitMQ message) | Trung (Leader) | 🔴 Critical |
+| [DA-E32-02](#da-e32-02-implement-rabbitmq-consumer-in-publisher-service) | Implement RabbitMQ consumer in publisher-service (FIFO, exactly-once, acknowledgement) | Phước (Publisher) | 🔴 Critical |
+| [DA-E32-03](#da-e32-03-implement-facebook-adapter) | Implement Facebook adapter (Graph API: IMAGE post and REEL/VIDEO) | Phước (Publisher) | 🔴 Critical |
+| [DA-E32-04](#da-e32-04-implement-instagram-adapter) | Implement Instagram adapter (2-step: create container → publish) | Phước (Publisher) | 🔴 Critical |
+| [DA-E32-05](#da-e32-05-implement-tiktok-adapter) | Implement TikTok adapter (Direct Post for video ≤60s, Creator Upload for video >60s) | Phước (Publisher) | 🔴 Critical |
+| [DA-E32-06](#da-e32-06-implement-threads-adapter) | Implement Threads adapter (2-step: create container → publish, max 500 chars) | Phước (Publisher) | 🔴 Critical |
+| [DA-E32-07](#da-e32-07-implement-zalo-oa-adapter) | Implement Zalo OA adapter | Phước (Publisher) | 🔴 Critical |
+| [DA-E32-08](#da-e32-08-implement-http-callback-post-internalpostsidpublish-result) | Implement HTTP callback → business-service after publish completes (update post status: PUBLISHED/FAILED) | Phước (Publisher) | 🔴 Critical |
+
+### EPIC E33 — Publish Error Handling
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E33-01](#da-e33-01-implement-retry-logic) | Implement retry logic (up to 3 attempts, exponential backoff: 30s, 60s, 120s) | Phước (Publisher) | 🔴 Critical |
+| [DA-E33-02](#da-e33-02-implement-dead-letter-queue-admin-api) | Implement Dead Letter Queue handler (Admin can view and manually retry or discard failed posts) | Trung (Leader) | 🔴 Critical |
+| [DA-E33-03](#da-e33-03-implement-failure-notification) | Implement failure notification (send alert to Account Manager when a post fails after all retries) | Trung (Leader) | 🔴 Critical |
+
+---
+
+## PHASE 6 — Frontend & Analytics
+
+---
+
+## Sprint 12 — Design System & Core Pages (Weeks 23–24)
+
+### EPIC E34 — Design System & Base Components
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E34-01](#da-e34-01-set-up-shadcnui-tailwind-css-design-tokens) | Set up shadcn/ui + Tailwind CSS + custom design tokens in web-dashboard | Lộc (Frontend) | 🔴 Critical |
+| [DA-E34-02](#da-e34-02-build-common-ui-components) | Build common components: Button, Input, Modal, Toast, Table, Badge, Spinner, Dropdown | Lộc (Frontend) | 🔴 Critical |
+| [DA-E34-03](#da-e34-03-build-layout-components) | Build layout components: Sidebar, Navbar, PageWrapper, AuthGuard | Lộc (Frontend) | 🔴 Critical |
+| [DA-E34-04](#da-e34-04-set-up-axios-instance-with-interceptors) | Set up API service layer (Axios instance + interceptors + token refresh) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E34-05](#da-e34-05-set-up-zustand-stores) | Set up Zustand stores (authStore, workspaceStore, notificationStore) | Lộc (Frontend) | 🔴 Critical |
+
+### EPIC E35 — Auth & Dashboard Pages
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E35-01](#da-e35-01-build-login-and-register-pages) | Build Login/Register pages with Google OAuth button | Lộc (Frontend) | 🔴 Critical |
+| [DA-E35-02](#da-e35-02-build-main-dashboard-page) | Build main Dashboard page (overview: total posts, success rate, team activity) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E35-03](#da-e35-03-build-workspace-management-pages) | Build Workspace management pages (create, settings, members) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E35-04](#da-e35-04-build-client-management-pages) | Build Client management pages (list, create, edit, service package) | Lộc (Frontend) | 🔴 Critical |
+
+### EPIC E36 — Content Management Pages
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E36-01](#da-e36-01-build-content-request-list-page) | Build Content Request list page (filter by status, platform, deadline) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E36-02](#da-e36-02-build-content-editor-page-with-ai-generate-panel) | Build Content Editor page with AI Generate Panel (call ai-service, display caption + hashtag + image) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E36-03](#da-e36-03-build-content-calendar-page) | Build Content Calendar page (calendar view + drag-drop rescheduling) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E36-04](#da-e36-04-build-platform-preview-modal) | Build Platform Preview modal (accurately preview the format of each platform) | Lộc (Frontend) | 🟡 High |
+| [DA-E36-05](#da-e36-05-build-content-library-page) | Build Content Library page (media browser, template browser, hashtag groups) | Lộc (Frontend) | 🟡 High |
+
+---
+
+## Sprint 13 — Client Portal, Analytics & Notifications (Weeks 25–26)
+
+### EPIC E37 — Client Portal
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E37-01](#da-e37-01-build-client-portal-login) | Build Client Portal login (isolated, only shows data for the logged-in client) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E37-02](#da-e37-02-build-client-calendar) | Build Client Calendar (read-only, view only, no editing) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E37-03](#da-e37-03-build-client-approval-page) | Build Client Approval page (view preview → approve/reject with feedback) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E37-04](#da-e37-04-build-client-analytics-page) | Build Client Analytics page (publishing results, success rate, campaign summary) | Lộc (Frontend) | 🟡 High |
+
+### EPIC E38 — Analytics & Reporting
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E38-01](#da-e38-01-implement-analytics-aggregation-apis) | Implement analytics aggregation APIs (aggregate data from posts + publish_logs) | Trung (Leader) | 🔴 Critical |
+| [DA-E38-02](#da-e38-02-implement-automated-pdf-report-generation) | Implement automated report generation (weekly/monthly PDF report for clients) | Trung (Leader) | 🟡 High |
+| [DA-E38-03](#da-e38-03-implement-scheduled-report-email-sending) | Implement report email sending (automatically send email to Brand Client on schedule) | Ân (AI) | 🟡 High |
+| [DA-E38-04](#da-e38-04-build-analytics-dashboard) | Build Analytics Dashboard (charts: publishing success rate, platform breakdown, campaign performance) | Lộc (Frontend) | 🔴 Critical |
+
+### EPIC E39 — Notification System
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E39-01](#da-e39-01-implement-notification-crud-apis) | Implement notification CRUD APIs (/api/v1/notifications: GET, PUT read, PUT read-all) | Trung (Leader) | 🟡 High |
+| [DA-E39-02](#da-e39-02-implement-notification-creation-for-7-event-types) | Implement notification creation when events occur (post published, task assigned, token expiry, etc.) | Trung (Leader) | 🔴 Critical |
+| [DA-E39-03](#da-e39-03-build-notification-center-ui) | Build Notification Center UI (dropdown bell icon, unread badge, list with mark as read) | Lộc (Frontend) | 🟡 High |
+
+---
+
+## PHASE 7 — Testing, Deployment & Final Report
+
+---
+
+## Sprint 14 — Mobile App (Weeks 27–28)
+
+### EPIC E40 — Mobile App Core
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E40-01](#da-e40-01-set-up-react-native-expo-project) | Set up React Native project with Expo, navigation (React Navigation v6) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E40-02](#da-e40-02-build-auth-screens-mobile) | Build Auth screens (Login, Register, Forgot Password) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E40-03](#da-e40-03-build-dashboard-screen-mobile) | Build Dashboard screen (simplified overview) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E40-04](#da-e40-04-build-calendar-screen-mobile) | Build Calendar screen (calendar view, post status) | Lộc (Frontend) | 🟡 High |
+| [DA-E40-05](#da-e40-05-build-approval-screen-mobile) | Build Approval screen for BRAND_CLIENT (view preview, approve/reject) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E40-06](#da-e40-06-implement-offline-draft-mode) | Implement offline draft mode (save draft to AsyncStorage when offline, sync when back online) | Lộc (Frontend) | 🟡 High |
+
+### EPIC E41 — Mobile Notifications
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E41-01](#da-e41-01-integrate-fcm-push-notifications-mobile) | Integrate Firebase Cloud Messaging (FCM) for push notifications | Lộc (Frontend) | 🔴 Critical |
+| [DA-E41-02](#da-e41-02-set-up-fcm-server-side-in-business-service) | Set up FCM server-side (send notification when events occur in business-service) | Trung (Leader) | 🔴 Critical |
+| [DA-E41-03](#da-e41-03-build-notification-screen-mobile) | Build Notification screen (list notifications, deep link on tap) | Lộc (Frontend) | 🟡 High |
+| [DA-E41-04](#da-e41-04-integrate-expo-image-picker-and-expo-camera) | Integrate native camera + media gallery upload | Lộc (Frontend) | 🟡 High |
+
+---
+
+## Sprint 15 — Testing & Bug Fixes (Weeks 29–30)
+
+### EPIC E42 — Unit & Integration Testing
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E42-01](#da-e42-01-write-unit-tests-for-business-service) | Write unit tests for business-service (AuthService, WorkspaceService, PostService) | Trung (Leader) | 🔴 Critical |
+| [DA-E42-02](#da-e42-02-write-unit-tests-for-ai-service) | Write unit tests for ai-service (content generation, RAG pipeline, image generation) | Tuấn (AI) | 🔴 Critical |
+| [DA-E42-03](#da-e42-03-write-integration-tests-for-business-service) | Write integration tests for main API endpoints (business-service) | Phước (Publisher) | 🔴 Critical |
+| [DA-E42-04](#da-e42-04-performance-test) | Performance testing (load test with 200 concurrent users) | All (Team) | 🟡 High |
+| [DA-E42-05](#da-e42-05-e2e-publishing-test) | Test publishing flow E2E on sandbox accounts (FB/IG/TikTok/Threads/Zalo) | Phước (Publisher) | 🔴 Critical |
+
+### EPIC E43 — Bug Fixes & Polish
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E43-01](#da-e43-01-sprint-retrospective-and-bug-list-compilation) | Sprint retrospective, compile bug list from testing | All (Team) | 🔴 Critical |
+| [DA-E43-02](#da-e43-02-ui-responsive-fixes) | UI responsive fixes (test on various screen sizes: 1920px, 1440px, 1280px, mobile) | Lộc (Frontend) | 🟡 High |
+| [DA-E43-03](#da-e43-03-security-audit) | Security audit checklist (check SQL injection, XSS, CSRF, token handling) | Trung (Leader) | 🔴 Critical |
+
+---
+
+## Sprint 16 — Deployment, Docs & Final Presentation (Weeks 31–32)
+
+### EPIC E44 — Production Deployment
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E44-01](#da-e44-01-provision-ec2-and-configure-nginx) | Set up VPS/EC2 instance, install Docker, configure nginx | Trung (Leader) | 🔴 Critical |
+| [DA-E44-02](#da-e44-02-deploy-all-services-via-docker-composeprodyml) | Deploy all services via docker-compose.prod.yml, set up SSL with Let's Encrypt | Trung (Leader) | 🔴 Critical |
+| [DA-E44-03](#da-e44-03-set-up-uptimerobot-and-diskcpu-alerts) | Set up monitoring (uptime check, error alerts) | Trung (Leader) | 🟡 High |
+| [DA-E44-04](#da-e44-04-run-production-smoke-test) | Smoke test on production environment | All (Team) | 🔴 Critical |
+
+### EPIC E45 — Final Documentation
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E45-01](#da-e45-01-finalize-swaggeropenapi-documentation) | Finalize Swagger API docs for business-service | Trung (Leader) | 🔴 Critical |
+| [DA-E45-02](#da-e45-02-write-user-manual) | Write User Manual (usage guide for each role) | All (Team) | 🟡 High |
+| [DA-E45-03](#da-e45-03-write-deployment-guide) | Write Deployment Guide (step-by-step guide to deploy from scratch) | Trung (Leader) | 🔴 Critical |
+| [DA-E45-04](#da-e45-04-record-demo-video) | Record demo video (5–10 minute showcase of all features) | All (Team) | 🔴 Critical |
+
+### EPIC E46 — Final Report & Presentation
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E46-01](#da-e46-01-write-capstone-report) | Write Capstone report (following FPT's official template) | All (Team) | 🔴 Critical |
+| [DA-E46-02](#da-e46-02-consolidate-and-review-entire-report) | Consolidate and review the entire report before submission | Trung (Leader) | 🔴 Critical |
+| [DA-E46-03](#da-e46-03-prepare-slide-deck) | Prepare slide deck (15–20 slides, including demo screenshots) | All (Team) | 🔴 Critical |
+| [DA-E46-04](#da-e46-04-qa-preparation) | Q&A preparation (anticipate mentor questions on architecture, AI, and database design) | All (Team) | 🟡 High |
+
+---
+
+## PHASE 8 — Sprint Reporting
+
+---
+
+## EPIC E47 — Sprint Reports & Documentation
+
+> **Note:** Runs at the end of every sprint (Sprint 1–16). Each sprint has 7 tasks: 5 individual member reports, 1 team report review by Trung, 1 commit/finalize task.
+
+### Sprint 1 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E47-01](#da-e47-01-write-individual-sprint-report-for-sprint-1-trung) | Write individual sprint report for Sprint 1 — Trung | Trung (Leader) | 🟢 Medium |
+| [DA-E47-02](#da-e47-02-write-individual-sprint-report-for-sprint-1-lộc) | Write individual sprint report for Sprint 1 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-03](#da-e47-03-write-individual-sprint-report-for-sprint-1-tuấn) | Write individual sprint report for Sprint 1 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E47-04](#da-e47-04-write-individual-sprint-report-for-sprint-1-ân) | Write individual sprint report for Sprint 1 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E47-05](#da-e47-05-write-individual-sprint-report-for-sprint-1-phước) | Write individual sprint report for Sprint 1 — Phước | Phước (Publisher) | 🟢 Medium |
+| [DA-E47-06](#da-e47-06-review-all-member-reports-write-team-sprintreport-for-sprint-1) | Review all member reports + write team SPRINT_REPORT for Sprint 1 | Trung (Leader) | 🟢 Medium |
+| [DA-E47-07](#da-e47-07-finalize-and-commit-sprint-1-report-to-brandhub-infrastructure) | Finalize and commit Sprint 1 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 2 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E47-08](#da-e47-08-write-individual-sprint-report-for-sprint-2-trung) | Write individual sprint report for Sprint 2 — Trung | Trung (Leader) | 🟢 Medium |
+| [DA-E47-09](#da-e47-09-write-individual-sprint-report-for-sprint-2-lộc) | Write individual sprint report for Sprint 2 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-10](#da-e47-10-write-individual-sprint-report-for-sprint-2-tuấn) | Write individual sprint report for Sprint 2 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E47-11](#da-e47-11-write-individual-sprint-report-for-sprint-2-ân) | Write individual sprint report for Sprint 2 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E47-12](#da-e47-12-write-individual-sprint-report-for-sprint-2-phước) | Write individual sprint report for Sprint 2 — Phước | Phước (Publisher) | 🟢 Medium |
+| [DA-E47-13](#da-e47-13-review-all-member-reports-write-team-sprintreport-for-sprint-2) | Review all member reports + write team SPRINT_REPORT for Sprint 2 | Trung (Leader) | 🟢 Medium |
+| [DA-E47-14](#da-e47-14-finalize-and-commit-sprint-2-report-to-brandhub-infrastructure) | Finalize and commit Sprint 2 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 3 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E47-15](#da-e47-15-write-individual-sprint-report-for-sprint-3-trung) | Write individual sprint report for Sprint 3 — Trung | Trung (Leader) | 🟢 Medium |
+| [DA-E47-16](#da-e47-16-write-individual-sprint-report-for-sprint-3-lộc) | Write individual sprint report for Sprint 3 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-17](#da-e47-17-write-individual-sprint-report-for-sprint-3-tuấn) | Write individual sprint report for Sprint 3 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E47-18](#da-e47-18-write-individual-sprint-report-for-sprint-3-ân) | Write individual sprint report for Sprint 3 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E47-19](#da-e47-19-write-individual-sprint-report-for-sprint-3-phước) | Write individual sprint report for Sprint 3 — Phước | Phước (Publisher) | 🟢 Medium |
+| [DA-E47-20](#da-e47-20-review-all-member-reports-write-team-sprintreport-for-sprint-3) | Review all member reports + write team SPRINT_REPORT for Sprint 3 | Trung (Leader) | 🟢 Medium |
+| [DA-E47-21](#da-e47-21-finalize-and-commit-sprint-3-report-to-brandhub-infrastructure) | Finalize and commit Sprint 3 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 4 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E47-22](#da-e47-22-write-individual-sprint-report-for-sprint-4-trung) | Write individual sprint report for Sprint 4 — Trung | Trung (Leader) | 🟢 Medium |
+| [DA-E47-23](#da-e47-23-write-individual-sprint-report-for-sprint-4-lộc) | Write individual sprint report for Sprint 4 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-24](#da-e47-24-write-individual-sprint-report-for-sprint-4-tuấn) | Write individual sprint report for Sprint 4 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E47-25](#da-e47-25-write-individual-sprint-report-for-sprint-4-ân) | Write individual sprint report for Sprint 4 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E47-26](#da-e47-26-write-individual-sprint-report-for-sprint-4-phước) | Write individual sprint report for Sprint 4 — Phước | Phước (Publisher) | 🟢 Medium |
+| [DA-E47-27](#da-e47-27-review-all-member-reports-write-team-sprintreport-for-sprint-4) | Review all member reports + write team SPRINT_REPORT for Sprint 4 | Trung (Leader) | 🟢 Medium |
+| [DA-E47-28](#da-e47-28-finalize-and-commit-sprint-4-report-to-brandhub-infrastructure) | Finalize and commit Sprint 4 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 5 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E47-29](#da-e47-29-write-individual-sprint-report-for-sprint-5-trung) | Write individual sprint report for Sprint 5 — Trung | Trung (Leader) | 🟢 Medium |
+| [DA-E47-30](#da-e47-30-write-individual-sprint-report-for-sprint-5-lộc) | Write individual sprint report for Sprint 5 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-31](#da-e47-31-write-individual-sprint-report-for-sprint-5-tuấn) | Write individual sprint report for Sprint 5 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E47-32](#da-e47-32-write-individual-sprint-report-for-sprint-5-ân) | Write individual sprint report for Sprint 5 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E47-33](#da-e47-33-write-individual-sprint-report-for-sprint-5-phước) | Write individual sprint report for Sprint 5 — Phước | Phước (Publisher) | 🟢 Medium |
+| [DA-E47-34](#da-e47-34-review-all-member-reports-write-team-sprintreport-for-sprint-5) | Review all member reports + write team SPRINT_REPORT for Sprint 5 | Trung (Leader) | 🟢 Medium |
+| [DA-E47-35](#da-e47-35-finalize-and-commit-sprint-5-report-to-brandhub-infrastructure) | Finalize and commit Sprint 5 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 6 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E47-36](#da-e47-36-write-individual-sprint-report-for-sprint-6-trung) | Write individual sprint report for Sprint 6 — Trung | Trung (Leader) | 🟢 Medium |
+| [DA-E47-37](#da-e47-37-write-individual-sprint-report-for-sprint-6-lộc) | Write individual sprint report for Sprint 6 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-38](#da-e47-38-write-individual-sprint-report-for-sprint-6-tuấn) | Write individual sprint report for Sprint 6 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E47-39](#da-e47-39-write-individual-sprint-report-for-sprint-6-ân) | Write individual sprint report for Sprint 6 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E47-40](#da-e47-40-write-individual-sprint-report-for-sprint-6-phước) | Write individual sprint report for Sprint 6 — Phước | Phước (Publisher) | 🟢 Medium |
+| [DA-E47-41](#da-e47-41-review-all-member-reports-write-team-sprintreport-for-sprint-6) | Review all member reports + write team SPRINT_REPORT for Sprint 6 | Trung (Leader) | 🟢 Medium |
+| [DA-E47-42](#da-e47-42-finalize-and-commit-sprint-6-report-to-brandhub-infrastructure) | Finalize and commit Sprint 6 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 7 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E47-43](#da-e47-43-write-individual-sprint-report-for-sprint-7-trung) | Write individual sprint report for Sprint 7 — Trung | Trung (Leader) | 🟢 Medium |
+| [DA-E47-44](#da-e47-44-write-individual-sprint-report-for-sprint-7-lộc) | Write individual sprint report for Sprint 7 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-45](#da-e47-45-write-individual-sprint-report-for-sprint-7-tuấn) | Write individual sprint report for Sprint 7 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E47-46](#da-e47-46-write-individual-sprint-report-for-sprint-7-ân) | Write individual sprint report for Sprint 7 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E47-47](#da-e47-47-write-individual-sprint-report-for-sprint-7-phước) | Write individual sprint report for Sprint 7 — Phước | Phước (Publisher) | 🟢 Medium |
+| [DA-E47-48](#da-e47-48-review-all-member-reports-write-team-sprintreport-for-sprint-7) | Review all member reports + write team SPRINT_REPORT for Sprint 7 | Trung (Leader) | 🟢 Medium |
+| [DA-E47-49](#da-e47-49-finalize-and-commit-sprint-7-report-to-brandhub-infrastructure) | Finalize and commit Sprint 7 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 8 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E47-50](#da-e47-50-write-individual-sprint-report-for-sprint-8-trung) | Write individual sprint report for Sprint 8 — Trung | Trung (Leader) | 🟢 Medium |
+| [DA-E47-51](#da-e47-51-write-individual-sprint-report-for-sprint-8-lộc) | Write individual sprint report for Sprint 8 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-52](#da-e47-52-write-individual-sprint-report-for-sprint-8-tuấn) | Write individual sprint report for Sprint 8 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E47-53](#da-e47-53-write-individual-sprint-report-for-sprint-8-ân) | Write individual sprint report for Sprint 8 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E47-54](#da-e47-54-write-individual-sprint-report-for-sprint-8-phước) | Write individual sprint report for Sprint 8 — Phước | Phước (Publisher) | 🟢 Medium |
+| [DA-E47-55](#da-e47-55-review-all-member-reports-write-team-sprintreport-for-sprint-8) | Review all member reports + write team SPRINT_REPORT for Sprint 8 | Trung (Leader) | 🟢 Medium |
+| [DA-E47-56](#da-e47-56-finalize-and-commit-sprint-8-report-to-brandhub-infrastructure) | Finalize and commit Sprint 8 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 9 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E47-57](#da-e47-57-write-individual-sprint-report-for-sprint-9-trung) | Write individual sprint report for Sprint 9 — Trung | Trung (Leader) | 🟢 Medium |
+| [DA-E47-58](#da-e47-58-write-individual-sprint-report-for-sprint-9-lộc) | Write individual sprint report for Sprint 9 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-59](#da-e47-59-write-individual-sprint-report-for-sprint-9-tuấn) | Write individual sprint report for Sprint 9 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E47-60](#da-e47-60-write-individual-sprint-report-for-sprint-9-ân) | Write individual sprint report for Sprint 9 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E47-61](#da-e47-61-write-individual-sprint-report-for-sprint-9-phước) | Write individual sprint report for Sprint 9 — Phước | Phước (Publisher) | 🟢 Medium |
+| [DA-E47-62](#da-e47-62-review-all-member-reports-write-team-sprintreport-for-sprint-9) | Review all member reports + write team SPRINT_REPORT for Sprint 9 | Trung (Leader) | 🟢 Medium |
+| [DA-E47-63](#da-e47-63-finalize-and-commit-sprint-9-report-to-brandhub-infrastructure) | Finalize and commit Sprint 9 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 10 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E47-64](#da-e47-64-write-individual-sprint-report-for-sprint-10-trung) | Write individual sprint report for Sprint 10 — Trung | Trung (Leader) | 🟢 Medium |
+| [DA-E47-65](#da-e47-65-write-individual-sprint-report-for-sprint-10-lộc) | Write individual sprint report for Sprint 10 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-66](#da-e47-66-write-individual-sprint-report-for-sprint-10-tuấn) | Write individual sprint report for Sprint 10 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E47-67](#da-e47-67-write-individual-sprint-report-for-sprint-10-ân) | Write individual sprint report for Sprint 10 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E47-68](#da-e47-68-write-individual-sprint-report-for-sprint-10-phước) | Write individual sprint report for Sprint 10 — Phước | Phước (Publisher) | 🟢 Medium |
+| [DA-E47-69](#da-e47-69-review-all-member-reports-write-team-sprintreport-for-sprint-10) | Review all member reports + write team SPRINT_REPORT for Sprint 10 | Trung (Leader) | 🟢 Medium |
+| [DA-E47-70](#da-e47-70-finalize-and-commit-sprint-10-report-to-brandhub-infrastructure) | Finalize and commit Sprint 10 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 11 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E47-71](#da-e47-71-write-individual-sprint-report-for-sprint-11-trung) | Write individual sprint report for Sprint 11 — Trung | Trung (Leader) | 🟢 Medium |
+| [DA-E47-72](#da-e47-72-write-individual-sprint-report-for-sprint-11-lộc) | Write individual sprint report for Sprint 11 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-73](#da-e47-73-write-individual-sprint-report-for-sprint-11-tuấn) | Write individual sprint report for Sprint 11 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E47-74](#da-e47-74-write-individual-sprint-report-for-sprint-11-ân) | Write individual sprint report for Sprint 11 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E47-75](#da-e47-75-write-individual-sprint-report-for-sprint-11-phước) | Write individual sprint report for Sprint 11 — Phước | Phước (Publisher) | 🟢 Medium |
+| [DA-E47-76](#da-e47-76-review-all-member-reports-write-team-sprintreport-for-sprint-11) | Review all member reports + write team SPRINT_REPORT for Sprint 11 | Trung (Leader) | 🟢 Medium |
+| [DA-E47-77](#da-e47-77-finalize-and-commit-sprint-11-report-to-brandhub-infrastructure) | Finalize and commit Sprint 11 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 12 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E47-78](#da-e47-78-write-individual-sprint-report-for-sprint-12-trung) | Write individual sprint report for Sprint 12 — Trung | Trung (Leader) | 🟢 Medium |
+| [DA-E47-79](#da-e47-79-write-individual-sprint-report-for-sprint-12-lộc) | Write individual sprint report for Sprint 12 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-80](#da-e47-80-write-individual-sprint-report-for-sprint-12-tuấn) | Write individual sprint report for Sprint 12 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E47-81](#da-e47-81-write-individual-sprint-report-for-sprint-12-ân) | Write individual sprint report for Sprint 12 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E47-82](#da-e47-82-write-individual-sprint-report-for-sprint-12-phước) | Write individual sprint report for Sprint 12 — Phước | Phước (Publisher) | 🟢 Medium |
+| [DA-E47-83](#da-e47-83-review-all-member-reports-write-team-sprintreport-for-sprint-12) | Review all member reports + write team SPRINT_REPORT for Sprint 12 | Trung (Leader) | 🟢 Medium |
+| [DA-E47-84](#da-e47-84-finalize-and-commit-sprint-12-report-to-brandhub-infrastructure) | Finalize and commit Sprint 12 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 13 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E47-85](#da-e47-85-write-individual-sprint-report-for-sprint-13-trung) | Write individual sprint report for Sprint 13 — Trung | Trung (Leader) | 🟢 Medium |
+| [DA-E47-86](#da-e47-86-write-individual-sprint-report-for-sprint-13-lộc) | Write individual sprint report for Sprint 13 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-87](#da-e47-87-write-individual-sprint-report-for-sprint-13-tuấn) | Write individual sprint report for Sprint 13 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E47-88](#da-e47-88-write-individual-sprint-report-for-sprint-13-ân) | Write individual sprint report for Sprint 13 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E47-89](#da-e47-89-write-individual-sprint-report-for-sprint-13-phước) | Write individual sprint report for Sprint 13 — Phước | Phước (Publisher) | 🟢 Medium |
+| [DA-E47-90](#da-e47-90-review-all-member-reports-write-team-sprintreport-for-sprint-13) | Review all member reports + write team SPRINT_REPORT for Sprint 13 | Trung (Leader) | 🟢 Medium |
+| [DA-E47-91](#da-e47-91-finalize-and-commit-sprint-13-report-to-brandhub-infrastructure) | Finalize and commit Sprint 13 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 14 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E47-92](#da-e47-92-write-individual-sprint-report-for-sprint-14-trung) | Write individual sprint report for Sprint 14 — Trung | Trung (Leader) | 🟢 Medium |
+| [DA-E47-93](#da-e47-93-write-individual-sprint-report-for-sprint-14-lộc) | Write individual sprint report for Sprint 14 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-94](#da-e47-94-write-individual-sprint-report-for-sprint-14-tuấn) | Write individual sprint report for Sprint 14 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E47-95](#da-e47-95-write-individual-sprint-report-for-sprint-14-ân) | Write individual sprint report for Sprint 14 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E47-96](#da-e47-96-write-individual-sprint-report-for-sprint-14-phước) | Write individual sprint report for Sprint 14 — Phước | Phước (Publisher) | 🟢 Medium |
+| [DA-E47-97](#da-e47-97-review-all-member-reports-write-team-sprintreport-for-sprint-14) | Review all member reports + write team SPRINT_REPORT for Sprint 14 | Trung (Leader) | 🟢 Medium |
+| [DA-E47-98](#da-e47-98-finalize-and-commit-sprint-14-report-to-brandhub-infrastructure) | Finalize and commit Sprint 14 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 15 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E47-99](#da-e47-99-write-individual-sprint-report-for-sprint-15-trung) | Write individual sprint report for Sprint 15 — Trung | Trung (Leader) | 🟢 Medium |
+| [DA-E47-100](#da-e47-100-write-individual-sprint-report-for-sprint-15-lộc) | Write individual sprint report for Sprint 15 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-101](#da-e47-101-write-individual-sprint-report-for-sprint-15-tuấn) | Write individual sprint report for Sprint 15 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E47-102](#da-e47-102-write-individual-sprint-report-for-sprint-15-ân) | Write individual sprint report for Sprint 15 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E47-103](#da-e47-103-write-individual-sprint-report-for-sprint-15-phước) | Write individual sprint report for Sprint 15 — Phước | Phước (Publisher) | 🟢 Medium |
+| [DA-E47-104](#da-e47-104-review-all-member-reports-write-team-sprintreport-for-sprint-15) | Review all member reports + write team SPRINT_REPORT for Sprint 15 | Trung (Leader) | 🟢 Medium |
+| [DA-E47-105](#da-e47-105-finalize-and-commit-sprint-15-report-to-brandhub-infrastructure) | Finalize and commit Sprint 15 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+### Sprint 16 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E47-106](#da-e47-106-write-individual-sprint-report-for-sprint-16-trung) | Write individual sprint report for Sprint 16 — Trung | Trung (Leader) | 🟢 Medium |
+| [DA-E47-107](#da-e47-107-write-individual-sprint-report-for-sprint-16-lộc) | Write individual sprint report for Sprint 16 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-108](#da-e47-108-write-individual-sprint-report-for-sprint-16-tuấn) | Write individual sprint report for Sprint 16 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E47-109](#da-e47-109-write-individual-sprint-report-for-sprint-16-ân) | Write individual sprint report for Sprint 16 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E47-110](#da-e47-110-write-individual-sprint-report-for-sprint-16-phước) | Write individual sprint report for Sprint 16 — Phước | Phước (Publisher) | 🟢 Medium |
+| [DA-E47-111](#da-e47-111-review-all-member-reports-write-team-sprintreport-for-sprint-16) | Review all member reports + write team SPRINT_REPORT for Sprint 16 | Trung (Leader) | 🟢 Medium |
+| [DA-E47-112](#da-e47-112-finalize-and-commit-sprint-16-report-to-brandhub-infrastructure) | Finalize and commit Sprint 16 report to brandhub-infrastructure | Trung (Leader) | 🟢 Medium |
+
+---
+
+## EPIC E48 — AI Track Reports & Documentation
+
+> **Note:** Runs at the end of every AI Parallel Track iteration (Iteration 1–4). Each iteration has 5 tasks: 3 individual member reports (Tuấn, Ân, Lộc), 1 team report review by Lộc, 1 commit/finalize task. Mirrors E47's pattern but scoped to the AI track — Lộc plays the same aggregator role here that Trung plays in E47.
+
+### Iteration 1 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E48-01](#da-e48-01-write-individual-ai-iteration-report-for-iteration-1-tuấn) | Write individual AI iteration report for Iteration 1 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E48-02](#da-e48-02-write-individual-ai-iteration-report-for-iteration-1-ân) | Write individual AI iteration report for Iteration 1 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E48-03](#da-e48-03-write-individual-ai-iteration-report-for-iteration-1-lộc) | Write individual AI iteration report for Iteration 1 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E48-04](#da-e48-04-review-all-member-reports-write-team-iterationreport-for-iteration-1) | Review all member reports + write team ITERATION_REPORT for Iteration 1 | Lộc (Frontend) | 🟢 Medium |
+| [DA-E48-05](#da-e48-05-finalize-and-commit-iteration-1-report-to-brandhub-infrastructure) | Finalize and commit Iteration 1 report to brandhub-infrastructure | Lộc (Frontend) | 🟢 Medium |
+
+### Iteration 2 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E48-06](#da-e48-06-write-individual-ai-iteration-report-for-iteration-2-tuấn) | Write individual AI iteration report for Iteration 2 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E48-07](#da-e48-07-write-individual-ai-iteration-report-for-iteration-2-ân) | Write individual AI iteration report for Iteration 2 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E48-08](#da-e48-08-write-individual-ai-iteration-report-for-iteration-2-lộc) | Write individual AI iteration report for Iteration 2 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E48-09](#da-e48-09-review-all-member-reports-write-team-iterationreport-for-iteration-2) | Review all member reports + write team ITERATION_REPORT for Iteration 2 | Lộc (Frontend) | 🟢 Medium |
+| [DA-E48-10](#da-e48-10-finalize-and-commit-iteration-2-report-to-brandhub-infrastructure) | Finalize and commit Iteration 2 report to brandhub-infrastructure | Lộc (Frontend) | 🟢 Medium |
+
+### Iteration 3 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E48-11](#da-e48-11-write-individual-ai-iteration-report-for-iteration-3-tuấn) | Write individual AI iteration report for Iteration 3 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E48-12](#da-e48-12-write-individual-ai-iteration-report-for-iteration-3-ân) | Write individual AI iteration report for Iteration 3 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E48-13](#da-e48-13-write-individual-ai-iteration-report-for-iteration-3-lộc) | Write individual AI iteration report for Iteration 3 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E48-14](#da-e48-14-review-all-member-reports-write-team-iterationreport-for-iteration-3) | Review all member reports + write team ITERATION_REPORT for Iteration 3 | Lộc (Frontend) | 🟢 Medium |
+| [DA-E48-15](#da-e48-15-finalize-and-commit-iteration-3-report-to-brandhub-infrastructure) | Finalize and commit Iteration 3 report to brandhub-infrastructure | Lộc (Frontend) | 🟢 Medium |
+
+### Iteration 4 Report
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E48-16](#da-e48-16-write-individual-ai-iteration-report-for-iteration-4-tuấn) | Write individual AI iteration report for Iteration 4 — Tuấn | Tuấn (AI) | 🟢 Medium |
+| [DA-E48-17](#da-e48-17-write-individual-ai-iteration-report-for-iteration-4-ân) | Write individual AI iteration report for Iteration 4 — Ân | Ân (AI) | 🟢 Medium |
+| [DA-E48-18](#da-e48-18-write-individual-ai-iteration-report-for-iteration-4-lộc) | Write individual AI iteration report for Iteration 4 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E48-19](#da-e48-19-review-all-member-reports-write-team-iterationreport-for-iteration-4) | Review all member reports + write team ITERATION_REPORT for Iteration 4 | Lộc (Frontend) | 🟢 Medium |
+| [DA-E48-20](#da-e48-20-finalize-and-commit-iteration-4-report-to-brandhub-infrastructure) | Finalize and commit Iteration 4 report to brandhub-infrastructure | Lộc (Frontend) | 🟢 Medium |
+
+---
+
+## SPRINT SUMMARY TABLE
+
+| Sprint | Weeks | Phase | Key Deliverables |
+|---|---|---|---|
+| Sprint 1 | 1–2 | Initiation | Project registered, team roles confirmed, workspace + repos created |
+| Sprint 2 | 3–4 | Requirements | 60 Use Cases documented, architecture diagrams, ADRs, Capstone form |
+| Sprint 3 | 5–6 | Design | Database schema (MongoDB + PostgreSQL), API spec, Figma wireframes |
+| Sprint 4 | 7–8 | Infrastructure | Docker Compose running, CI/CD pipelines active, API Gateway running |
+| Sprint 5 | 9–10 | Auth & RBAC | Register/Login/OAuth working, JWT + refresh tokens, RBAC enforced |
+| Sprint 6 | 11–12 | Core Business | Workspace CRUD, Client management, Subscription plans working |
+| Sprint 7 | 13–14 | Social OAuth | All 5 platform OAuth flows working, AES-256 token encryption, token refresh job |
+| Sprint 8 | 15–16 | Publisher | All 5 platform adapters working, retry logic, DLQ, callback to business |
+| Sprint 9 | 17–18 | AI Wiring | All AI internal endpoints exposed and callable from business-service |
+| AI Iter 1 | 5–6 | AI Research | Model comparison reports (ambassador, video, composition), infrastructure scaffolded |
+| AI Iter 2 | 7–8 | AI RAG + LLM | RAG pipeline working, LLM content generation with anti-hallucination, trends crawler |
+| AI Iter 3 | 9–10 | AI Image | Image generation, InstantID ambassador, image composition pipeline |
+| AI Iter 4 | 11–12 | AI Video + API | Veo integration, all AI endpoints finalized, integration tests, research reports |
+| Sprint 10 | 19–20 | Content Flow | Content requests, task assignment, content calendar + scheduling |
+| Sprint 11 | 21–22 | Publishing | Approval workflow, full publishing system, error handling |
+| Sprint 12 | 23–24 | Frontend Core | Design system, auth pages, dashboard, content management pages |
+| Sprint 13 | 25–26 | Frontend Full | Client portal, analytics dashboard, notification center |
+| Sprint 14 | 27–28 | Mobile | React Native app: auth, dashboard, calendar, approval, FCM |
+| Sprint 15 | 29–30 | Testing | Unit + integration + E2E tests, bug fixes, security audit |
+| Sprint 16 | 31–32 | Launch | Production deploy, final docs, capstone report, presentation |
+
+---
+
+## WORKLOAD DISTRIBUTION TABLE
+
+| Member | Role | Tasks | Key Responsibilities |
+|---|---|---|---|
+| Trung | Leader / Business Service | 54 | Project init, system architecture, API Gateway, Auth, RBAC, Workspace, Client, Subscription, Content workflow, Approval, Notification, Deployment, Final report |
+| Lộc | Frontend / AI Infra | 55 | UI wireframes, web-dashboard (all pages), React Native mobile, AI service project setup, S3 helper, image composition pipeline, image generation UI, ai-service Dockerfile |
+| Tuấn | AI Engineer | 54 | Sequence diagrams, DB indexing strategy, API spec for ai-service, ChromaDB design, AI infra setup, RAG embedding, InstantID ambassador pipeline, unit tests for ai-service, CI/CD for ai-service |
+| Ân | AI Engineer | 54 | Non-functional AI requirements, Redis key doc, Admin user APIs, RAG chunking & context builder, LLM prompt system, trend crawler, video generation (Veo), AI research summaries |
+| Phước | Publisher Engineer | 53 | Use case docs (UC21–60), social platform API specs, RabbitMQ message contract, permission matrix, publisher-service setup, all 5 platform adapters, token manual refresh, integration tests for publisher |
+
+> **Total tasks:** 406 task gốc trong plan (chưa tính E47/E48 sprint report — xem bảng riêng ở trên) + **17 task phát sinh 🆕** (đánh dấu 🆕 trong các bảng epic ở trên) = 423 task hiện có trong Task Details. Xem [Phần 3 — Task phát sinh](#phần-3--tổng-hợp-task-phát-sinh-ngoài-plan-gốc) để biết chi tiết lý do phát sinh từng task.
+
+---
+
+## NOTES
+
+- English is the standard language for all task descriptions, documentation, and project artifacts to ensure consistency across tools such as Linear, GitHub Issues, and Excel.
+- "All (Team)" assignee means the task requires participation from all members (e.g., meetings, joint reviews, E2E testing).
+- AI Parallel Track epics run concurrently with main sprints; timelines are aligned by sprint week ranges.
+- Priority 🔴 Critical tasks must be unblocked first in each sprint before 🟡 High tasks begin.
+- Task IDs follow format: DA-{EPIC_ID}-{SEQ} (e.g., DA-E01-01, DA-AI07-03).
+
+---
+
+# PHẦN 3 — TỔNG HỢP TASK PHÁT SINH NGOÀI PLAN GỐC
+
+> Nguồn: đối soát toàn bộ Jira project `DA` (406 task) với plan gốc 406 task ID. 17 task dưới đây xuất hiện trên Jira / trong Task Details nhưng không nằm trong `BrandHub_Project_Plan.md` phiên bản gốc — đã bổ sung vào Phần 1 (đánh dấu 🆕) và Phần 2.
+
+| Task ID | Epic gắn vào | Assignee | Vì sao phát sinh | Chi tiết |
+|---|---|---|---|---|
+| DA-E08-05 | E08 (UI/UX Wireframe) | Lộc | Tooling phụ — tự động hoá trang xem tài liệu local | [Xem](#da-e08-05-create-a-view-local-document-website-automation-phát-sinh-ngoài-plan-gốc) |
+| DA-E08-08 | E08 | Trung | Tích hợp file HTML (diagram) vào doc site — đi cùng DA-E08-05 | [Xem](#da-e08-08-integrated-html-for-view-document-phát-sinh-ngoài-plan-gốc) |
+| DA-E08-07 | E08 (gán tạm — Jira ghi nhầm `E010`) | Lộc | Landing page public — không có trong 46 epic gốc; prefix Jira lỗi (`E010` thay vì epic UI thật) | [Xem](#da-e08-07-create-landing-page-ui-phát-sinh-ngoài-plan-gốc-prefix-jira-lỗi) |
+| DA-E09-06 | E09 (Dev Environment) | Trung | Sub-task thu thập key hạ tầng — tách từ DA-E09-03 để giao việc rõ theo người | [Xem](#da-e09-06-infrastructure-business-service-keys) |
+| DA-E09-07 | E09 | Tuấn | Sub-task thu thập key LLM + payment gateway | [Xem](#da-e09-07-ai-service-llm-keys-payment-gateway) |
+| DA-E09-08 | E09 | Ân | Sub-task thu thập key Image/Video Gen | [Xem](#da-e09-08-ai-service-imagevideo-gen-keys) |
+| DA-E09-09 | E09 | Phước | Sub-task thu thập OAuth credentials 5 platform | [Xem](#da-e09-09-publisher-service-social-platform-oauth) |
+| DA-E09-10 | E09 | Lộc | Sub-task tạo Google OAuth App | [Xem](#da-e09-10-frontend-google-oauth-app) |
+| DA-E09-11 | E09 | Trung | Cost sheet — không có trong plan gốc, cần cho báo cáo capstone/mentor | [Xem](#da-e09-11-create-project-cost-sheet) |
+| DA-E09-12 | E09 | Lộc | Đăng ký domain thật — cần cho OAuth redirect URI (không dùng được localhost với 1 số platform) | [Xem](#da-e09-12-register-brandhub-domain-phát-sinh-ngoài-plan-gốc) |
+| DA-E09-13 | E09 | Trung | Cập nhật lại DB diagram sau khi đổi schema (users/workspaces chuyển MongoDB→PostgreSQL) | [Xem](#da-e09-13-update-diagram-dbml-and-html-file-for-database-phát-sinh-ngoài-plan-gốc) |
+| DA-E10-06 | E10 (CI/CD) | Trung | CI/CD cho api-gateway bị thiếu trong plan gốc (chỉ có 4/5 service) | [Xem](#da-e10-06-write-github-actions-workflow-for-api-gateway-build-test-push-docker-image) |
+| DA-E11-06 | E11 (API Gateway) | Trung | Dockerfile api-gateway bị thiếu — cần để CI/CD build được | [Xem](#da-e11-06-write-dockerfile-for-api-gateway) |
+| DA-E11-07 | E11 | Trung | Global error handler chuẩn hoá `ApiResponse` — phát hiện gap khi review DA-E11-01 | [Xem](#da-e11-07-write-global-error-response-handler-for-gateway) |
+| DA-E12-07 | E12 (Authentication) | Trung | Nghiên cứu thuật toán JWT (HS256/RS256/ES256) — lẽ ra phải làm **trước** DA-E12-01 và DA-E11-02 vì cả 2 đều giả định RS256 sẵn | [Xem](#da-e12-07-research-hs256-vs-rs256-vs-es256-for-jwt-signing-phát-sinh-ngoài-plan-gốc) |
+| DA-E11-14 ⚠️ | Gắn `E11` trên Jira — **sai epic**, nội dung thực thuộc data layer | Trung | JPA models + repository cho 11 bảng PostgreSQL — code chạy trước khi plan cập nhật; nên gắn gần E13 mới đúng logic | [Xem](#da-e11-14-add-all-jpa-models-from-database-schema-for-business-service-repository-layer-phát-sinh-ngoài-plan-gốc-gắn-sai-epic-trên-jira) |
+| DA-AI05-07 | AI-05 (Trend Crawler) | Trung | Mở rộng ý tưởng crawl ngoài Google Trends/TikTok đã có | [Xem](#da-ai05-07-brainstorm-ai-crawl-idea-phát-sinh-ngoài-plan-gốc) |
+
+**Ghi chú khác phát hiện trong quá trình đối soát (không tạo task riêng):**
+- `DA-408 "Create git-commit-convention rule"` (Jira, Trung, Done) — **trùng nội dung** với acceptance criteria của DA-E02-03 (đã có sẵn "commit convention"). Không tạo task riêng, đã note trong DA-E02-03.
+- `DA-562 "test slack"` (Jira, Tuấn, To Do) — **rác**, không phải task dự án thật. Đề xuất xoá khỏi Jira, không đưa vào doc này.
+- `DA-561` trên Jira có prefix `Da-AI05-07` (chữ "a" thường) — đã chuẩn hoá thành `DA-AI05-07` trong doc này.
+- `DA-407` trên Jira có prefix `[DA-E010-07]` (thừa số 0, và epic E10 vốn là CI/CD không liên quan UI) — đã chuẩn hoá thành `DA-E08-07` trong doc này.
+
+**Việc cần làm:**
+1. Sửa lại prefix task trên Jira cho khớp: `DA-561` → `DA-AI05-07`, `DA-407` → đổi epic gắn đúng (không phải E010)
+2. Xác nhận lại DA-E11-14 nên thuộc epic nào chính thức (đề xuất: tạo epic mới "Business Service Data Layer" hoặc gộp vào E13)
+3. Xoá `DA-562` khỏi Jira backlog
+
+---
+
+# PHẦN 2 — CHI TIẾT TASK
+
+> Mỗi task gồm: Goal, Acceptance Criteria, Technical Notes, Dependencies. Task ID khớp với bảng ở Phần 1 — dùng trình duyệt "Find" (Ctrl+F) hoặc mục lục file để tra nhanh theo Task ID nếu không bấm được link.
+
+## How to use this section
+
+Each task section uses this structure:
+- **Goal** — what the task accomplishes and why it matters to the system
+- **Acceptance Criteria** — testable conditions for "done"
+- **Technical Notes** — libraries, patterns, config values, pitfalls to avoid
+- **Dependencies** — what this task blocks and what blocks it
 
 ---
 
@@ -142,6 +1259,8 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - Recommend enforcing commit message format via `commitlint` in a pre-commit hook or CI step
 
 **Dependencies:** Blocks: DA-E10-01, DA-E10-02, DA-E10-03, DA-E10-04, DA-E10-05. Blocked by: DA-E02-02.
+
+> **Ghi chú phát sinh:** Jira có task riêng `DA-408 "Create git-commit-convention rule"` (Trung, Done) — trùng nội dung với acceptance criteria thứ 3 ở trên (CONTRIBUTING.md/Conventional Commits). Không tạo task riêng trong doc này để tránh trùng lặp; đã gộp vào DA-E02-03.
 
 ---
 
@@ -830,6 +1949,50 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 ---
 
+### DA-E08-05 — Create a view-local document website automation *(phát sinh, ngoài plan gốc)*
+**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+
+**Goal:** Tự động hoá việc tạo trang xem tài liệu (docs) local để team và mentor có thể duyệt tài liệu dự án dưới dạng website thay vì đọc raw markdown/html rời rạc.
+
+**Acceptance Criteria:**
+- [ ] Script/tool sinh ra trang tổng hợp tài liệu từ `brandhub-infrastructure/docs/`
+- [ ] Chạy local được (không cần deploy), phục vụ việc review nội bộ
+
+**Ghi chú:** Task không có trong `BrandHub_Task_Details.md` gốc — phát sinh trong quá trình làm doc site. Jira: DA-405, status Done.
+
+**Dependencies:** Blocks: DA-E08-08. Blocked by: None.
+
+---
+
+### DA-E08-08 — Integrated .html for view document *(phát sinh, ngoài plan gốc)*
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Tích hợp các file `.html` (architecture diagrams, DB schema diagrams) vào trang xem tài liệu để duyệt trực quan thay vì mở từng file riêng lẻ.
+
+**Acceptance Criteria:**
+- [ ] Toàn bộ file `.html` trong `docs/architecture/` và `docs/database/` hiển thị được qua doc site
+
+**Ghi chú:** Task không có trong plan gốc, phát sinh cùng nhóm với DA-E08-05. Jira: DA-409, status Done.
+
+**Dependencies:** Blocks: None. Blocked by: DA-E08-05.
+
+---
+
+### DA-E08-07 — Create landing page UI *(phát sinh, ngoài plan gốc — prefix Jira lỗi)*
+**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+
+**Goal:** Thiết kế/code landing page public cho BrandHub (không phải dashboard nội bộ) — trang giới thiệu sản phẩm trước khi user đăng nhập.
+
+**Acceptance Criteria:**
+- [ ] Landing page hiển thị được, có CTA đăng ký/đăng nhập
+- [ ] Responsive cơ bản
+
+**Ghi chú:** Task không nằm trong 46 epic gốc — landing page không được lên kế hoạch từ đầu. Trên Jira prefix ghi `[DA-E010-07]` (thừa số 0, và epic E10 vốn là CI/CD chứ không liên quan UI) — đây rõ ràng là lỗi gõ, nội dung thực chất thuộc mảng UI/Frontend (gần E08). Đặt tại đây cho đúng logic, giữ nickname `DA-E08-07` để không trùng số thứ tự đã dùng. Jira: DA-407, status Done.
+
+**Dependencies:** Blocks: None. Blocked by: DA-E08-01.
+
+---
+
 ### DA-E09-01 — Write docker-compose.yml to run the full infrastructure stack: MongoDB, PostgreSQL, Redis, RabbitMQ, ChromaDB
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
@@ -1024,6 +2187,36 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - AWS S3: estimate storage (media files) + transfer cost separately
 
 **Dependencies:** Blocks: None. Blocked by: DA-E09-03.
+
+---
+
+### DA-E09-12 — Register brandhub domain *(phát sinh, ngoài plan gốc)*
+**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+
+**Goal:** Đăng ký domain thật cho BrandHub để phục vụ deploy, demo mentor và các redirect URI OAuth (Facebook, Google, Zalo... cần domain public thay vì localhost).
+
+**Acceptance Criteria:**
+- [ ] Domain đăng ký xong, trỏ DNS cơ bản (A/CNAME record placeholder cho production sau này)
+- [ ] Domain name cập nhật vào `.env.example` làm base cho các redirect URI
+
+**Ghi chú:** Không có trong plan gốc — phát sinh vì OAuth flow (E12, E18, E19) cần domain thật để test callback, không chỉ localhost. Jira: DA-423, status In Progress.
+
+**Dependencies:** Blocks: DA-E12-06, DA-E18-01, DA-E19-02. Blocked by: None.
+
+---
+
+### DA-E09-13 — Update diagram, DBML and HTML file for database *(phát sinh, ngoài plan gốc)*
+**Assignee:** Trung (Leader) | **Priority:** 🟡 High
+
+**Goal:** Cập nhật lại các diagram/DBML/HTML mô tả database sau khi schema thay đổi (users, workspaces, workspace_members, clients chuyển từ MongoDB sang PostgreSQL — xem `DA-E06-01_Database_Strategy.md`), để tài liệu khớp với schema thật.
+
+**Acceptance Criteria:**
+- [ ] `brandhub_dbml.dbml` phản ánh đúng 11 bảng PostgreSQL + 8 collection MongoDB hiện tại
+- [ ] `brandhub_db_ownership_diagram.html` và `brandhub_schema_diagram.html` cập nhật khớp DBML mới
+
+**Ghi chú:** Bảo trì tài liệu sau quyết định đổi schema — không có trong plan gốc vì thay đổi schema xảy ra sau khi DA-E06-05 đã hoàn thành. Jira: DA-558, status In Review.
+
+**Dependencies:** Blocks: None. Blocked by: DA-E06-01, DA-E06-05.
 
 ---
 
@@ -1403,6 +2596,37 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - Google ID token (`id_token`) can be decoded without a second API call to get email + name + picture
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E12-01, DA-E12-02].
+
+---
+
+### DA-E12-07 — Research HS256 vs RS256 vs ES256 for JWT signing *(phát sinh, ngoài plan gốc)*
+**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
+
+**Goal:** Chốt thuật toán ký JWT trước khi code Auth (DA-E12-01 đến DA-E12-06) và JWT filter ở Gateway (DA-E11-02), vì DA-E11-02 đã giả định RS256 nhưng chưa có task nào chính thức quyết định điều này.
+
+**Acceptance Criteria:**
+- [ ] So sánh HS256 (symmetric) vs RS256/ES256 (asymmetric) về: khả năng verify token ở Gateway mà không cần chia sẻ secret với business-service, performance, độ phức tạp key rotation
+- [ ] Quyết định cuối cùng + lý do ghi vào ADR hoặc note trong `DA-E05-05` (Architecture Decision Records)
+
+**Ghi chú:** Task lẽ ra nên đứng **trước** DA-E12-01 và DA-E11-02 (cả hai đều phụ thuộc kết quả nghiên cứu này), nhưng phát sinh muộn trên Jira sau khi DA-E11-02 đã viết sẵn giả định RS256. Không đổi thứ tự numbering để tránh xáo trộn — chỉ note dependency ngược tại đây. Jira: DA-560, status In Review.
+
+**Dependencies:** Blocks: DA-E12-01, DA-E12-02, DA-E12-03, DA-E11-02 (retroactive — các task này đã implement trước khi task nghiên cứu này xong). Blocked by: None.
+
+---
+
+### DA-E11-14 — Add all JPA models from database schema for business-service + repository layer *(phát sinh, ngoài plan gốc — gắn sai epic trên Jira)*
+**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
+
+**Goal:** Tạo toàn bộ JPA entity classes cho 11 bảng PostgreSQL (theo `brandhub_dbml.dbml`) và Spring Data JPA repository tương ứng cho từng entity, làm nền tảng data layer cho business-service trước khi code Auth/RBAC/Workspace.
+
+**Acceptance Criteria:**
+- [ ] 11 JPA entity classes tương ứng 11 bảng: `users`, `user_oauth_providers`, `user_refresh_tokens`, `workspaces`, `workspace_members`, `clients`, `subscription_plans`, `workspace_subscriptions`, `invoices`, `payments`, `audit_logs`
+- [ ] Mỗi entity có Spring Data JPA `Repository` interface riêng
+- [ ] Quan hệ FK ánh xạ đúng theo DBML (vd: `workspace_members` có FK tới `users` và `workspaces`)
+
+**Ghi chú:** Trên Jira task này gắn vào epic E11 (API Gateway) — **gắn sai epic**, nội dung thực chất thuộc business-service data layer, hợp lý hơn nếu đặt trước E13 (User & Profile Management) hoặc epic riêng cho data layer. Giữ nguyên task ID `DA-E11-14` theo Jira để tra cứu ngược, nhưng vị trí trong doc đặt ở đây (trước E13) cho đúng logic phụ thuộc. Jira: DA-559, status Done.
+
+**Dependencies:** Blocks: DA-E13-01, DA-E14-01, DA-E15-01, DA-E16-01, DA-E17-01. Blocked by: DA-E06-02, DA-E06-03.
 
 ---
 
@@ -2900,6 +4124,20 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - Add a manual trigger endpoint `POST /internal/trends/refresh` (protected by X-Internal-Key) for ad-hoc cache invalidation during demos
 
 **Dependencies:** Blocks: None. Blocked by: DA-AI05-04, DA-AI02-06.
+
+---
+
+### DA-AI05-07 — Brainstorm AI crawl idea *(phát sinh, ngoài plan gốc)*
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Mở rộng ý tưởng thu thập dữ liệu (crawl) ngoài Google Trends + TikTok hashtag đã có trong AI05-01/02, xem có nguồn trend/insight nào khác đáng tích hợp không.
+
+**Acceptance Criteria:**
+- [ ] Danh sách ý tưởng crawl bổ sung (nguồn dữ liệu, tính khả thi, chi phí) được ghi lại
+
+**Ghi chú:** Task không có trong plan gốc — mở rộng phạm vi AI05 sau khi đã có 2 crawler cơ bản. Lưu ý trên Jira prefix bị gõ sai `Da-AI05-07` (chữ thường "a") thay vì `DA-AI05-07` — nên sửa lại cho nhất quán khi báo cáo/thống kê. Jira: DA-561, status In Review.
+
+**Dependencies:** Blocks: None. Blocked by: DA-AI05-01, DA-AI05-02.
 
 ---
 
