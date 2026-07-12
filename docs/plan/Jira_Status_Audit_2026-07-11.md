@@ -164,6 +164,46 @@ So khớp toàn bộ 406 task Jira với plan gốc (415 task ID định nghĩa 
 
 ---
 
+## Rebalance Log — sau Sprint 4
+
+> Log quyết định tái phân bổ task, cho toàn team đọc để hiểu lý do thay đổi. Chi tiết task/sprint mới đã cập nhật trong `BrandHub_Master_Plan.md` (đánh dấu 🔀).
+
+### Nguyên nhân
+
+Kế hoạch đổi: **Lộc chuyển hẳn sang AI Sub-lead**, không làm Frontend nữa — tập trung nghiên cứu thuật toán crawl + AI sinh nội dung cùng Tuấn/Ân. Vấn đề phát sinh: 25 task Frontend/Mobile (E34–E41) và 12 task AI-image (AI-06, AI-08) đang gán cho Lộc cần chuyển cho người khác.
+
+### Các phương án đã xét
+
+| # | Phương án | Vì sao không chọn |
+|---|---|---|
+| 1 | Chuyển 25 task Frontend cho Trung hoặc Phước "học thêm" React song song backend | Trung đã 61 task (nặng nhất team) — không dư sức. Cả Trung/Phước đều 100% Java trong plan, học React giữa dự án tăng rủi ro chất lượng cả 2 phía |
+| 2 | Chia đều 25 task Frontend cho cả Trung + Phước | Không ai sở hữu trọn epic → dễ rời rạc, không ai chịu trách nhiệm UI xuyên suốt |
+| 3 | Trung/Phước làm full-stack theo feature (code Java xong tự code UI luôn) | Hợp lý cho Trung (feature Trung có UI tương ứng), nhưng Phước (OAuth/RabbitMQ/publish adapter) không có UI riêng map trực tiếp → không áp dụng được toàn bộ |
+| 4 | **Phước nhận full UI (có kinh nghiệm UI thật) + Trung phụ nhỏ khi cần** | ✅ **Chọn** — Phước có nền UI, giải quyết đúng gốc rễ: ai đó cần sở hữu trọn Frontend/Mobile |
+
+### Giải pháp cuối cùng
+
+1. **E34 (Design System) dời từ Sprint 12 → Sprint 5** — làm ngay từ đầu, tránh Phước phải chờ đến Sprint 12 mới có component base trong khi vẫn đang cày Publisher ở Sprint 7–8, 11
+2. **E35–E41 (toàn bộ Web Dashboard + Mobile App) chuyển từ Lộc → Phước** — Phước vừa làm Publisher Service (đúng vị trí sprint gốc: S7, S8, S11) vừa làm UI (rải vào các sprint Publisher rảnh: S5–S6, S9, S12–S14), tránh dồn cụm 2 việc nặng cùng lúc
+3. **AI-06 (Image Generation, 5 task) chuyển từ Lộc → Ân** — cùng nhóm "generative content" với AI-09 (Video) Ân đang làm, quen sẵn pattern async + S3 upload
+4. **AI-08 (Image Composition, 7 task) chuyển từ Lộc → Tuấn** — cùng nhóm "image pipeline" với AI-07 (Ambassador) Tuấn đang làm
+5. **E17 (Subscription & Billing) dời từ Sprint 6 → Sprint 9** — giảm tải Trung ở S5–S6 (25 task Auth+RBAC+Workspace+Client+Subscription dồn 2 sprint); Subscription không block gấp, S9 đang nhẹ (3 task)
+6. **Review UI**: không cần checkpoint riêng — Phước tự review + cả team chốt trạng thái In Review → Done trong buổi họp cuối mỗi sprint
+
+### Tác động khối lượng (tổng task không đổi, chỉ đổi người/vị trí)
+
+| Người | Trước | Sau | Thay đổi |
+|---|---|---|---|
+| Trung | 61 | ~63 | +2 (không đáng kể, chỉ dời vị trí S5-S6→S9 để giảm đỉnh tải) |
+| Phước | 27 | ~52 | **+25** (nhận toàn bộ Frontend/Mobile) |
+| Lộc | 57 | ~33 | **-24** (rút hết Frontend, chỉ còn AI thuần) |
+| Tuấn | 22 | ~29 | +7 (nhận AI-08) |
+| Ân | 33 | ~38 | +5 (nhận AI-06) |
+
+**Rủi ro cần theo dõi:** Phước từ ít task nhất (27, cuối bảng) nhảy lên gần bằng Trung (~52 vs ~63) — tải tăng gần gấp đôi. Cần theo sát Sprint 5–6 (giai đoạn Phước vừa học Design System vừa chưa đụng Publisher) xem có kịp không.
+
+---
+
 ## 9. Ghi chú phương pháp
 
 - Dữ liệu lấy qua Jira MCP `searchJiraIssuesUsingJql`, `ORDER BY key ASC`, phân trang qua `nextPageToken`, gộp toàn bộ 406/406 task (100% coverage — khác với audit lần 1 chỉ đọc được mẫu ~150/221 task unassigned)
