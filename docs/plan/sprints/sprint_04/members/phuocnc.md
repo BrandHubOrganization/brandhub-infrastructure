@@ -10,7 +10,7 @@
 | GitHub   | [@phuocnc]         |
 | Role     | Publisher Engineer |
 | Sprint   | Sprint 4           |
-| Ngày nộp | 2026-07-10         |
+| Ngày nộp | 2026-07-12         |
 
 ---
 
@@ -29,7 +29,7 @@
 | DA-213  | [DA-E21-01](https://letritrung2605.atlassian.net/browse/DA-213) | Khoi tao brandhub-publisher-service project          | 🔴 Critical | ✅ Done            |
 | DA-272  | [DA-E21-05](https://letritrung2605.atlassian.net/browse/DA-272) | Implement TikTok publish adapter                     | 🟡 High     | ✅ Done            |
 
-**Tổng:** 10 tasks | Done: 10 | In Review: 0 | Chưa hoàn thành: 0
+**Tổng:** 10 tasks | Done: 10 | In Review: 10 | Chưa hoàn thành: 0
 
 ---
 
