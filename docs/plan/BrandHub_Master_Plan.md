@@ -290,6 +290,16 @@
 | [DA-E14-03](#da-e14-03-implement-client-isolation-for-brandclient-role) | Implement client isolation for BRAND_CLIENT (can only view data belonging to their own clientId) | Trung (Leader) | 🔴 Critical |
 | [DA-E14-04](#da-e14-04-write-permission-matrix-document) | Write permission matrix document (6 roles x all endpoints = allowed/not allowed) | Phước (Publisher) | 🟢 Medium |
 
+### EPIC E34 — Design System & Base Components 🔀 *(dời từ Sprint 12 — xem [Rebalance Log](#rebalance-log--sau-sprint-4) trong Jira Audit)*
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E34-01](#da-e34-01-set-up-shadcnui-tailwind-css-design-tokens) | Set up shadcn/ui + Tailwind CSS + custom design tokens in web-dashboard | Phước (Publisher) | 🔴 Critical |
+| [DA-E34-02](#da-e34-02-build-common-ui-components) | Build common components: Button, Input, Modal, Toast, Table, Badge, Spinner, Dropdown | Phước (Publisher) | 🔴 Critical |
+| [DA-E34-03](#da-e34-03-build-layout-components) | Build layout components: Sidebar, Navbar, PageWrapper, AuthGuard | Phước (Publisher) | 🔴 Critical |
+| [DA-E34-04](#da-e34-04-set-up-axios-instance-with-interceptors) | Set up API service layer (Axios instance + interceptors + token refresh) | Phước (Publisher) | 🔴 Critical |
+| [DA-E34-05](#da-e34-05-set-up-zustand-stores) | Set up Zustand stores (authStore, workspaceStore, notificationStore) | Phước (Publisher) | 🔴 Critical |
+
 ---
 
 ## Sprint 6 — Workspace, Client & Subscription (Weeks 11–12)
@@ -313,14 +323,7 @@
 | [DA-E16-03](#da-e16-03-implement-put-apiv1clientsidservice-package) | Implement PUT /api/v1/clients/{id}/service-package (set monthly post limits and platforms) | Trung (Leader) | 🟡 High |
 | [DA-E16-04](#da-e16-04-implement-get-apiv1clients) | Implement GET /api/v1/clients (AGENCY_OWNER and ACCOUNT_MANAGER view client list) | Trung (Leader) | 🔴 Critical |
 
-### EPIC E17 — Subscription & Billing
-
-| Task ID | Description | Assignee | Priority |
-|---|---|---|---|
-| [DA-E17-01](#da-e17-01-implement-admin-crud-for-subscription-plans) | Implement Admin CRUD for subscription plans (Free/Basic/Pro/Enterprise) | Trung (Leader) | 🔴 Critical |
-| [DA-E17-02](#da-e17-02-implement-post-apiv1subscriptionssubscribe) | Implement POST /api/v1/subscriptions/subscribe (AGENCY_OWNER subscribes to a plan) | Trung (Leader) | 🔴 Critical |
-| [DA-E17-03](#da-e17-03-implement-stripe-payment-webhook-flow) | Implement payment flow (integrate payment gateway, create invoice) | Trung (Leader) | 🔴 Critical |
-| [DA-E17-04](#da-e17-04-implement-get-apiv1subscriptionsinvoices) | Implement GET /api/v1/subscriptions/invoices (billing history) | Ân (AI) | 🟡 High |
+> **EPIC E17 — Subscription & Billing đã dời sang Sprint 9** 🔀 (xem [Rebalance Log](#rebalance-log--sau-sprint-4) trong Jira Audit) — không block gì gấp, nhường chỗ cho Trung tập trung Auth/RBAC/Workspace/Client trước.
 
 ---
 
@@ -401,6 +404,15 @@
 | [DA-E24-01](#da-e24-01-implement-ai-content-generation-flow-in-business-service) | Implement AI content generation flow in business-service: ContentRequest → call ai-service → save draft Post | Trung (Leader) | 🔴 Critical |
 | [DA-E24-02](#da-e24-02-implement-image-and-ambassador-generation-trigger) | Implement image/ambassador generation trigger from Post editor (user selects AI generate image) | Trung (Leader) | 🔴 Critical |
 | [DA-E24-03](#da-e24-03-implement-ai-usage-tracking) | Implement AI usage tracking (count ai_credits_per_month against subscription plan limits) | Trung (Leader) | 🟡 High |
+
+### EPIC E17 — Subscription & Billing 🔀 *(dời từ Sprint 6 — xem [Rebalance Log](#rebalance-log--sau-sprint-4) trong Jira Audit)*
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E17-01](#da-e17-01-implement-admin-crud-for-subscription-plans) | Implement Admin CRUD for subscription plans (Free/Basic/Pro/Enterprise) | Trung (Leader) | 🔴 Critical |
+| [DA-E17-02](#da-e17-02-implement-post-apiv1subscriptionssubscribe) | Implement POST /api/v1/subscriptions/subscribe (AGENCY_OWNER subscribes to a plan) | Trung (Leader) | 🔴 Critical |
+| [DA-E17-03](#da-e17-03-implement-stripe-payment-webhook-flow) | Implement payment flow (integrate payment gateway, create invoice) | Trung (Leader) | 🔴 Critical |
+| [DA-E17-04](#da-e17-04-implement-get-apiv1subscriptionsinvoices) | Implement GET /api/v1/subscriptions/invoices (billing history) | Ân (AI) | 🟡 High |
 
 ---
 
@@ -483,15 +495,15 @@
 
 ## AI Iteration 3 — Image, Ambassador & Composition (Parallel with Sprints 9–10)
 
-### EPIC AI-06 — Image Generation Pipeline
+### EPIC AI-06 — Image Generation Pipeline 🔀 *(chuyển từ Lộc — xem [Rebalance Log](#rebalance-log--sau-sprint-4) trong Jira Audit)*
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-AI06-01](#da-ai06-01-integrate-stability-ai-sdxl-api-text-to-image-with-style-aspect-ratio-negative-prompt-params) | Integrate Stability AI API (SDXL): text-to-image with style, aspect ratio, and negative prompt params | Lộc (Frontend) | 🔴 Critical |
-| [DA-AI06-02](#da-ai06-02-build-post-aiimagegenerate-endpoint-upload-result-to-s3-return-imageurl) | Build image generation endpoint (POST /ai/image/generate → return S3 URL) | Lộc (Frontend) | 🔴 Critical |
-| [DA-AI06-03](#da-ai06-03-implement-batch-generation-generate-3-variations-simultaneously-via-asynciogather) | Implement batch generation (generate 3 variations simultaneously for user to choose from) | Lộc (Frontend) | 🟡 High |
-| [DA-AI06-04](#da-ai06-04-brand-safety-filter-prepend-default-negative-prompts-to-avoid-inappropriate-content) | Brand safety filter (default negative prompts to avoid inappropriate content) | Lộc (Frontend) | 🔴 Critical |
-| [DA-AI06-05](#da-ai06-05-test-20-real-product-prompts-evaluate-quality-and-generation-time-document-results) | Test 20 real product prompts, evaluate quality and generation time | Lộc (Frontend) | 🟡 High |
+| [DA-AI06-01](#da-ai06-01-integrate-stability-ai-sdxl-api-text-to-image-with-style-aspect-ratio-negative-prompt-params) | Integrate Stability AI API (SDXL): text-to-image with style, aspect ratio, and negative prompt params | Ân (AI) | 🔴 Critical |
+| [DA-AI06-02](#da-ai06-02-build-post-aiimagegenerate-endpoint-upload-result-to-s3-return-imageurl) | Build image generation endpoint (POST /ai/image/generate → return S3 URL) | Ân (AI) | 🔴 Critical |
+| [DA-AI06-03](#da-ai06-03-implement-batch-generation-generate-3-variations-simultaneously-via-asynciogather) | Implement batch generation (generate 3 variations simultaneously for user to choose from) | Ân (AI) | 🟡 High |
+| [DA-AI06-04](#da-ai06-04-brand-safety-filter-prepend-default-negative-prompts-to-avoid-inappropriate-content) | Brand safety filter (default negative prompts to avoid inappropriate content) | Ân (AI) | 🔴 Critical |
+| [DA-AI06-05](#da-ai06-05-test-20-real-product-prompts-evaluate-quality-and-generation-time-document-results) | Test 20 real product prompts, evaluate quality and generation time | Ân (AI) | 🟡 High |
 
 ### EPIC AI-07 — Virtual Brand Ambassador (InstantID)
 
@@ -506,17 +518,17 @@
 | [DA-AI07-07](#da-ai07-07-benchmark-instantid-vs-ip-adapter-on-20-test-images-document-final-decision-with-evidence) | Benchmark InstantID vs IP-Adapter on a test set of 20 images, document final decision | Tuấn (AI) | 🟡 High |
 | [DA-AI07-08](#da-ai07-08-write-implementation-guide-model-params-prompt-tips-gpu-memory-requirements) | Write implementation guide (parameters, tips for generating high-quality ambassadors) | Tuấn (AI) | 🟢 Low |
 
-### EPIC AI-08 — Image Composition Pipeline
+### EPIC AI-08 — Image Composition Pipeline 🔀 *(chuyển từ Lộc — xem [Rebalance Log](#rebalance-log--sau-sprint-4) trong Jira Audit)*
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-AI08-01](#da-ai08-01-implement-background-removal-for-product-images-rembg-u2net-output-transparent-png) | Implement background removal for product images (rembg library, U2Net model) → output transparent PNG | Lộc (Frontend) | 🔴 Critical |
-| [DA-AI08-02](#da-ai08-02-implement-background-removal-for-modelambassador-images) | Implement background removal for model/ambassador images | Lộc (Frontend) | 🔴 Critical |
-| [DA-AI08-03](#da-ai08-03-build-layer-compositing-service-product-layer-model-layer-background-layer-pillow-composite) | Build layer compositing service (product layer + model layer + background layer → single image using Pillow) | Lộc (Frontend) | 🔴 Critical |
-| [DA-AI08-04](#da-ai08-04-implement-shadow-lighting-adjustment-for-natural-looking-merges) | Implement shadow + lighting adjustment for natural-looking merges | Lộc (Frontend) | 🟡 High |
-| [DA-AI08-05](#da-ai08-05-build-post-aicompose-endpoint) | Build composition endpoint (POST /ai/compose: product S3 key + model S3 key + background S3 key → composed image) | Lộc (Frontend) | 🔴 Critical |
-| [DA-AI08-06](#da-ai08-06-test-20-product-model-pairs-evaluate-realism-document-failure-cases) | Test 20 product + model pairs, evaluate realism score, document failure cases | Lộc (Frontend) | 🟡 High |
-| [DA-AI08-07](#da-ai08-07-write-composition-parameter-guide-optimal-image-sizes-best-practices-per-product-category) | Write composition parameter guide (optimal sizes, best practices per product type) | Lộc (Frontend) | 🟢 Low |
+| [DA-AI08-01](#da-ai08-01-implement-background-removal-for-product-images-rembg-u2net-output-transparent-png) | Implement background removal for product images (rembg library, U2Net model) → output transparent PNG | Tuấn (AI) | 🔴 Critical |
+| [DA-AI08-02](#da-ai08-02-implement-background-removal-for-modelambassador-images) | Implement background removal for model/ambassador images | Tuấn (AI) | 🔴 Critical |
+| [DA-AI08-03](#da-ai08-03-build-layer-compositing-service-product-layer-model-layer-background-layer-pillow-composite) | Build layer compositing service (product layer + model layer + background layer → single image using Pillow) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI08-04](#da-ai08-04-implement-shadow-lighting-adjustment-for-natural-looking-merges) | Implement shadow + lighting adjustment for natural-looking merges | Tuấn (AI) | 🟡 High |
+| [DA-AI08-05](#da-ai08-05-build-post-aicompose-endpoint) | Build composition endpoint (POST /ai/compose: product S3 key + model S3 key + background S3 key → composed image) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI08-06](#da-ai08-06-test-20-product-model-pairs-evaluate-realism-document-failure-cases) | Test 20 product + model pairs, evaluate realism score, document failure cases | Tuấn (AI) | 🟡 High |
+| [DA-AI08-07](#da-ai08-07-write-composition-parameter-guide-optimal-image-sizes-best-practices-per-product-category) | Write composition parameter guide (optimal sizes, best practices per product type) | Tuấn (AI) | 🟢 Low |
 
 ---
 
@@ -629,36 +641,28 @@
 
 ---
 
-## Sprint 12 — Design System & Core Pages (Weeks 23–24)
+## Sprint 12 — Core Pages (Weeks 23–24)
 
-### EPIC E34 — Design System & Base Components
-
-| Task ID | Description | Assignee | Priority |
-|---|---|---|---|
-| [DA-E34-01](#da-e34-01-set-up-shadcnui-tailwind-css-design-tokens) | Set up shadcn/ui + Tailwind CSS + custom design tokens in web-dashboard | Lộc (Frontend) | 🔴 Critical |
-| [DA-E34-02](#da-e34-02-build-common-ui-components) | Build common components: Button, Input, Modal, Toast, Table, Badge, Spinner, Dropdown | Lộc (Frontend) | 🔴 Critical |
-| [DA-E34-03](#da-e34-03-build-layout-components) | Build layout components: Sidebar, Navbar, PageWrapper, AuthGuard | Lộc (Frontend) | 🔴 Critical |
-| [DA-E34-04](#da-e34-04-set-up-axios-instance-with-interceptors) | Set up API service layer (Axios instance + interceptors + token refresh) | Lộc (Frontend) | 🔴 Critical |
-| [DA-E34-05](#da-e34-05-set-up-zustand-stores) | Set up Zustand stores (authStore, workspaceStore, notificationStore) | Lộc (Frontend) | 🔴 Critical |
+> **EPIC E34 — Design System đã dời lên Sprint 5** 🔀 (xem [Rebalance Log](#rebalance-log--sau-sprint-4) trong Jira Audit).
 
 ### EPIC E35 — Auth & Dashboard Pages
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-E35-01](#da-e35-01-build-login-and-register-pages) | Build Login/Register pages with Google OAuth button | Lộc (Frontend) | 🔴 Critical |
-| [DA-E35-02](#da-e35-02-build-main-dashboard-page) | Build main Dashboard page (overview: total posts, success rate, team activity) | Lộc (Frontend) | 🔴 Critical |
-| [DA-E35-03](#da-e35-03-build-workspace-management-pages) | Build Workspace management pages (create, settings, members) | Lộc (Frontend) | 🔴 Critical |
-| [DA-E35-04](#da-e35-04-build-client-management-pages) | Build Client management pages (list, create, edit, service package) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E35-01](#da-e35-01-build-login-and-register-pages) | Build Login/Register pages with Google OAuth button | Phước (Publisher) | 🔴 Critical |
+| [DA-E35-02](#da-e35-02-build-main-dashboard-page) | Build main Dashboard page (overview: total posts, success rate, team activity) | Phước (Publisher) | 🔴 Critical |
+| [DA-E35-03](#da-e35-03-build-workspace-management-pages) | Build Workspace management pages (create, settings, members) | Phước (Publisher) | 🔴 Critical |
+| [DA-E35-04](#da-e35-04-build-client-management-pages) | Build Client management pages (list, create, edit, service package) | Phước (Publisher) | 🔴 Critical |
 
 ### EPIC E36 — Content Management Pages
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-E36-01](#da-e36-01-build-content-request-list-page) | Build Content Request list page (filter by status, platform, deadline) | Lộc (Frontend) | 🔴 Critical |
-| [DA-E36-02](#da-e36-02-build-content-editor-page-with-ai-generate-panel) | Build Content Editor page with AI Generate Panel (call ai-service, display caption + hashtag + image) | Lộc (Frontend) | 🔴 Critical |
-| [DA-E36-03](#da-e36-03-build-content-calendar-page) | Build Content Calendar page (calendar view + drag-drop rescheduling) | Lộc (Frontend) | 🔴 Critical |
-| [DA-E36-04](#da-e36-04-build-platform-preview-modal) | Build Platform Preview modal (accurately preview the format of each platform) | Lộc (Frontend) | 🟡 High |
-| [DA-E36-05](#da-e36-05-build-content-library-page) | Build Content Library page (media browser, template browser, hashtag groups) | Lộc (Frontend) | 🟡 High |
+| [DA-E36-01](#da-e36-01-build-content-request-list-page) | Build Content Request list page (filter by status, platform, deadline) | Phước (Publisher) | 🔴 Critical |
+| [DA-E36-02](#da-e36-02-build-content-editor-page-with-ai-generate-panel) | Build Content Editor page with AI Generate Panel (call ai-service, display caption + hashtag + image) | Phước (Publisher) | 🔴 Critical |
+| [DA-E36-03](#da-e36-03-build-content-calendar-page) | Build Content Calendar page (calendar view + drag-drop rescheduling) | Phước (Publisher) | 🔴 Critical |
+| [DA-E36-04](#da-e36-04-build-platform-preview-modal) | Build Platform Preview modal (accurately preview the format of each platform) | Phước (Publisher) | 🟡 High |
+| [DA-E36-05](#da-e36-05-build-content-library-page) | Build Content Library page (media browser, template browser, hashtag groups) | Phước (Publisher) | 🟡 High |
 
 ---
 
@@ -668,10 +672,10 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-E37-01](#da-e37-01-build-client-portal-login) | Build Client Portal login (isolated, only shows data for the logged-in client) | Lộc (Frontend) | 🔴 Critical |
-| [DA-E37-02](#da-e37-02-build-client-calendar) | Build Client Calendar (read-only, view only, no editing) | Lộc (Frontend) | 🔴 Critical |
-| [DA-E37-03](#da-e37-03-build-client-approval-page) | Build Client Approval page (view preview → approve/reject with feedback) | Lộc (Frontend) | 🔴 Critical |
-| [DA-E37-04](#da-e37-04-build-client-analytics-page) | Build Client Analytics page (publishing results, success rate, campaign summary) | Lộc (Frontend) | 🟡 High |
+| [DA-E37-01](#da-e37-01-build-client-portal-login) | Build Client Portal login (isolated, only shows data for the logged-in client) | Phước (Publisher) | 🔴 Critical |
+| [DA-E37-02](#da-e37-02-build-client-calendar) | Build Client Calendar (read-only, view only, no editing) | Phước (Publisher) | 🔴 Critical |
+| [DA-E37-03](#da-e37-03-build-client-approval-page) | Build Client Approval page (view preview → approve/reject with feedback) | Phước (Publisher) | 🔴 Critical |
+| [DA-E37-04](#da-e37-04-build-client-analytics-page) | Build Client Analytics page (publishing results, success rate, campaign summary) | Phước (Publisher) | 🟡 High |
 
 ### EPIC E38 — Analytics & Reporting
 
@@ -680,7 +684,7 @@
 | [DA-E38-01](#da-e38-01-implement-analytics-aggregation-apis) | Implement analytics aggregation APIs (aggregate data from posts + publish_logs) | Trung (Leader) | 🔴 Critical |
 | [DA-E38-02](#da-e38-02-implement-automated-pdf-report-generation) | Implement automated report generation (weekly/monthly PDF report for clients) | Trung (Leader) | 🟡 High |
 | [DA-E38-03](#da-e38-03-implement-scheduled-report-email-sending) | Implement report email sending (automatically send email to Brand Client on schedule) | Ân (AI) | 🟡 High |
-| [DA-E38-04](#da-e38-04-build-analytics-dashboard) | Build Analytics Dashboard (charts: publishing success rate, platform breakdown, campaign performance) | Lộc (Frontend) | 🔴 Critical |
+| [DA-E38-04](#da-e38-04-build-analytics-dashboard) | Build Analytics Dashboard (charts: publishing success rate, platform breakdown, campaign performance) | Phước (Publisher) | 🔴 Critical |
 
 ### EPIC E39 — Notification System
 
@@ -688,7 +692,7 @@
 |---|---|---|---|
 | [DA-E39-01](#da-e39-01-implement-notification-crud-apis) | Implement notification CRUD APIs (/api/v1/notifications: GET, PUT read, PUT read-all) | Trung (Leader) | 🟡 High |
 | [DA-E39-02](#da-e39-02-implement-notification-creation-for-7-event-types) | Implement notification creation when events occur (post published, task assigned, token expiry, etc.) | Trung (Leader) | 🔴 Critical |
-| [DA-E39-03](#da-e39-03-build-notification-center-ui) | Build Notification Center UI (dropdown bell icon, unread badge, list with mark as read) | Lộc (Frontend) | 🟡 High |
+| [DA-E39-03](#da-e39-03-build-notification-center-ui) | Build Notification Center UI (dropdown bell icon, unread badge, list with mark as read) | Phước (Publisher) | 🟡 High |
 
 ---
 
@@ -702,21 +706,21 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-E40-01](#da-e40-01-set-up-react-native-expo-project) | Set up React Native project with Expo, navigation (React Navigation v6) | Lộc (Frontend) | 🔴 Critical |
-| [DA-E40-02](#da-e40-02-build-auth-screens-mobile) | Build Auth screens (Login, Register, Forgot Password) | Lộc (Frontend) | 🔴 Critical |
-| [DA-E40-03](#da-e40-03-build-dashboard-screen-mobile) | Build Dashboard screen (simplified overview) | Lộc (Frontend) | 🔴 Critical |
-| [DA-E40-04](#da-e40-04-build-calendar-screen-mobile) | Build Calendar screen (calendar view, post status) | Lộc (Frontend) | 🟡 High |
-| [DA-E40-05](#da-e40-05-build-approval-screen-mobile) | Build Approval screen for BRAND_CLIENT (view preview, approve/reject) | Lộc (Frontend) | 🔴 Critical |
-| [DA-E40-06](#da-e40-06-implement-offline-draft-mode) | Implement offline draft mode (save draft to AsyncStorage when offline, sync when back online) | Lộc (Frontend) | 🟡 High |
+| [DA-E40-01](#da-e40-01-set-up-react-native-expo-project) | Set up React Native project with Expo, navigation (React Navigation v6) | Phước (Publisher) | 🔴 Critical |
+| [DA-E40-02](#da-e40-02-build-auth-screens-mobile) | Build Auth screens (Login, Register, Forgot Password) | Phước (Publisher) | 🔴 Critical |
+| [DA-E40-03](#da-e40-03-build-dashboard-screen-mobile) | Build Dashboard screen (simplified overview) | Phước (Publisher) | 🔴 Critical |
+| [DA-E40-04](#da-e40-04-build-calendar-screen-mobile) | Build Calendar screen (calendar view, post status) | Phước (Publisher) | 🟡 High |
+| [DA-E40-05](#da-e40-05-build-approval-screen-mobile) | Build Approval screen for BRAND_CLIENT (view preview, approve/reject) | Phước (Publisher) | 🔴 Critical |
+| [DA-E40-06](#da-e40-06-implement-offline-draft-mode) | Implement offline draft mode (save draft to AsyncStorage when offline, sync when back online) | Phước (Publisher) | 🟡 High |
 
 ### EPIC E41 — Mobile Notifications
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-E41-01](#da-e41-01-integrate-fcm-push-notifications-mobile) | Integrate Firebase Cloud Messaging (FCM) for push notifications | Lộc (Frontend) | 🔴 Critical |
+| [DA-E41-01](#da-e41-01-integrate-fcm-push-notifications-mobile) | Integrate Firebase Cloud Messaging (FCM) for push notifications | Phước (Publisher) | 🔴 Critical |
 | [DA-E41-02](#da-e41-02-set-up-fcm-server-side-in-business-service) | Set up FCM server-side (send notification when events occur in business-service) | Trung (Leader) | 🔴 Critical |
-| [DA-E41-03](#da-e41-03-build-notification-screen-mobile) | Build Notification screen (list notifications, deep link on tap) | Lộc (Frontend) | 🟡 High |
-| [DA-E41-04](#da-e41-04-integrate-expo-image-picker-and-expo-camera) | Integrate native camera + media gallery upload | Lộc (Frontend) | 🟡 High |
+| [DA-E41-03](#da-e41-03-build-notification-screen-mobile) | Build Notification screen (list notifications, deep link on tap) | Phước (Publisher) | 🟡 High |
+| [DA-E41-04](#da-e41-04-integrate-expo-image-picker-and-expo-camera) | Integrate native camera + media gallery upload | Phước (Publisher) | 🟡 High |
 
 ---
 
@@ -1050,15 +1054,17 @@
 
 ## WORKLOAD DISTRIBUTION TABLE
 
-| Member | Role | Tasks | Key Responsibilities |
-|---|---|---|---|
-| Trung | Leader / Business Service | 54 | Project init, system architecture, API Gateway, Auth, RBAC, Workspace, Client, Subscription, Content workflow, Approval, Notification, Deployment, Final report |
-| Lộc | Frontend / AI Infra | 55 | UI wireframes, web-dashboard (all pages), React Native mobile, AI service project setup, S3 helper, image composition pipeline, image generation UI, ai-service Dockerfile |
-| Tuấn | AI Engineer | 54 | Sequence diagrams, DB indexing strategy, API spec for ai-service, ChromaDB design, AI infra setup, RAG embedding, InstantID ambassador pipeline, unit tests for ai-service, CI/CD for ai-service |
-| Ân | AI Engineer | 54 | Non-functional AI requirements, Redis key doc, Admin user APIs, RAG chunking & context builder, LLM prompt system, trend crawler, video generation (Veo), AI research summaries |
-| Phước | Publisher Engineer | 53 | Use case docs (UC21–60), social platform API specs, RabbitMQ message contract, permission matrix, publisher-service setup, all 5 platform adapters, token manual refresh, integration tests for publisher |
+> **Cập nhật sau Sprint 4** 🔀 — bảng dưới phản ánh phân bổ **mới** sau khi tái cân bằng. Bảng gốc (trước rebalance) đã lưu trong [Rebalance Log](#rebalance-log--sau-sprint-4) của `Jira_Status_Audit_2026-07-11.md` để đối chiếu.
 
-> **Total tasks:** 406 task gốc trong plan (chưa tính E47/E48 sprint report — xem bảng riêng ở trên) + **17 task phát sinh 🆕** (đánh dấu 🆕 trong các bảng epic ở trên) = 423 task hiện có trong Task Details. Xem [Phần 3 — Task phát sinh](#phần-3--tổng-hợp-task-phát-sinh-ngoài-plan-gốc) để biết chi tiết lý do phát sinh từng task.
+| Member | Role | Tasks (mới) | Key Responsibilities |
+|---|---|---|---|
+| Trung | Leader / Business Service | ~63 | Project init, system architecture, API Gateway, Auth, RBAC, Workspace, Client, Subscription (dời S6→S9), Content workflow, Approval, Notification, Deployment, Final report |
+| Phước | Publisher Engineer / Frontend+Mobile UI | ~52 | Use case docs, social platform API specs, RabbitMQ, permission matrix, publisher-service + 5 platform adapters, **toàn bộ Web Dashboard UI (E34–E39) + Mobile App (E40–E41)** |
+| Lộc | AI Sub-lead | ~33 | AI service infra setup, S3 helper, RAG pipeline hỗ trợ, AI endpoint finalize/docs — **không còn task Frontend/Mobile** |
+| Tuấn | AI Engineer | ~29 | Sequence diagrams, DB indexing, ChromaDB design, RAG embedding, InstantID Ambassador (AI-07), **Image Composition Pipeline (AI-08, nhận từ Lộc)** |
+| Ân | AI Engineer | ~38 | Non-functional AI reqs, Redis key doc, RAG chunking, LLM prompt system, trend crawler, video generation (Veo), **Image Generation Pipeline (AI-06, nhận từ Lộc)** |
+
+> **Total tasks:** 406 task gốc + 17 task phát sinh 🆕 = 423 task (tổng không đổi sau rebalance — chỉ đổi người và vị trí sprint). Xem [Phần 3 — Task phát sinh](#phần-3--tổng-hợp-task-phát-sinh-ngoài-plan-gốc) để biết lý do phát sinh từng task, và [Rebalance Log](#rebalance-log--sau-sprint-4) trong Jira Audit để biết lý do tái phân bổ.
 
 ---
 
@@ -5740,12 +5746,10 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ### DA-E47-44 — Write individual sprint report for Sprint 7 — Lộc
 **Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
 
-**Goal:** Document Lộc's contributions in Sprint 7 in `sprint_07/members/locnv.md`. AI Iteration 3 tasks: DA-AI06-01 through 05 (Stability AI image generation pipeline), DA-AI08-01 through 07 (image composition pipeline with rembg + Pillow).
+**Goal:** Document Lộc's contributions in Sprint 7 in `sprint_07/members/locnv.md`. 🔀 *Nội dung gốc ghi nhầm AI-06/AI-08 (thực chất thuộc AI Iteration 3, song song Sprint 9–10, không phải Sprint 7) — đã sửa lại đúng vị trí, xem DA-E48-11/12/13. AI-06/AI-08 cũng đã chuyển sang Ân/Tuấn sau Sprint 4 rebalance (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4)).* Ghi các task AI-infra Lộc thực sự làm trong Sprint 7 nếu có.
 
 **Acceptance Criteria:**
-- [ ] Image generation endpoint documented with Stability AI params
-- [ ] Composition pipeline layers described (product + model + background)
-- [ ] Test results (20 product prompts, 20 composition pairs) referenced
+- [ ] All assigned tasks documented (có thể rỗng nếu không có task nào trong sprint này, ghi rõ "không có task")
 - [ ] Self-assessment filled
 
 **Technical Notes:** File: `sprint_07/members/locnv.md`
@@ -6277,13 +6281,10 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ### DA-E47-79 — Write individual sprint report for Sprint 12 — Lộc
 **Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
 
-**Goal:** Document Lộc's contributions in Sprint 12 in `sprint_12/members/locnv.md`. Tasks: DA-E34-01 through 05 (design system setup), DA-E35-01 through 04 (auth + dashboard + workspace + client pages), DA-E36-01 through 05 (content management pages).
+**Goal:** Document Lộc's contributions in Sprint 12 in `sprint_12/members/locnv.md`. 🔀 *E34/E35/E36 đã chuyển sang Phước sau Sprint 4 rebalance (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4)) — báo cáo tuỳ theo task AI Lộc đang làm song song trong sprint này.*
 
 **Acceptance Criteria:**
-- [ ] All 14 tasks documented with component names, file paths, and status
-- [ ] Design token setup described (color, spacing, typography)
-- [ ] Zustand store structure documented (authStore, workspaceStore, notificationStore)
-- [ ] Login/Register page Google OAuth flow described
+- [ ] All assigned tasks documented (có thể rỗng nếu không có task nào trong sprint này, ghi rõ "không có task")
 - [ ] Self-assessment filled
 
 **Technical Notes:** File: `sprint_12/members/locnv.md`
@@ -6325,10 +6326,12 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ### DA-E47-82 — Write individual sprint report for Sprint 12 — Phước
 **Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
 
-**Goal:** Document Phước's contributions in Sprint 12 in `sprint_12/members/phuocnc.md`. No Sprint 12 tasks assigned to Phước — note any support work.
+**Goal:** Document Phước's contributions in Sprint 12 in `sprint_12/members/phuocnc.md`. 🔀 *Nhận từ Lộc sau Sprint 4 rebalance (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4)):* Tasks: DA-E35-01 through 04 (auth + dashboard + workspace + client pages), DA-E36-01 through 05 (content management pages).
 
 **Acceptance Criteria:**
-- [ ] Any support work documented
+- [ ] All 9 tasks documented with component names, file paths, and status
+- [ ] Login/Register page Google OAuth flow described
+- [ ] Content Editor AI Generate Panel integration described
 - [ ] Self-assessment filled
 
 **Technical Notes:** File: `sprint_12/members/phuocnc.md`
@@ -6385,13 +6388,10 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ### DA-E47-86 — Write individual sprint report for Sprint 13 — Lộc
 **Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
 
-**Goal:** Document Lộc's contributions in Sprint 13 in `sprint_13/members/locnv.md`. Tasks: DA-E37-01 through 04 (Client Portal pages), DA-E38-04 (Analytics Dashboard), DA-E39-03 (Notification Center UI).
+**Goal:** Document Lộc's contributions in Sprint 13 in `sprint_13/members/locnv.md`. 🔀 *E37/E38-04/E39-03 đã chuyển sang Phước sau Sprint 4 rebalance (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4)) — báo cáo tuỳ theo task AI Lộc đang làm song song trong sprint này.*
 
 **Acceptance Criteria:**
-- [ ] All 6 tasks documented with component names, file paths, and status
-- [ ] Client Portal isolation described (no workspace sidebar, clientId-scoped data)
-- [ ] Analytics charts documented (libraries used, chart types)
-- [ ] Notification Center: bell icon, unread badge, mark-as-read
+- [ ] All assigned tasks documented (có thể rỗng nếu không có task nào trong sprint này, ghi rõ "không có task")
 - [ ] Self-assessment filled
 
 **Technical Notes:** File: `sprint_13/members/locnv.md`
@@ -6433,10 +6433,13 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ### DA-E47-89 — Write individual sprint report for Sprint 13 — Phước
 **Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
 
-**Goal:** Document Phước's contributions in Sprint 13 in `sprint_13/members/phuocnc.md`. No Sprint 13 tasks assigned to Phước — note any support work.
+**Goal:** Document Phước's contributions in Sprint 13 in `sprint_13/members/phuocnc.md`. 🔀 *Nhận từ Lộc sau Sprint 4 rebalance (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4)):* Tasks: DA-E37-01 through 04 (Client Portal pages), DA-E38-04 (Analytics Dashboard), DA-E39-03 (Notification Center UI).
 
 **Acceptance Criteria:**
-- [ ] Any support work documented
+- [ ] All 6 tasks documented with component names, file paths, and status
+- [ ] Client Portal isolation described (no workspace sidebar, clientId-scoped data)
+- [ ] Analytics charts documented (libraries used, chart types)
+- [ ] Notification Center: bell icon, unread badge, mark-as-read
 - [ ] Self-assessment filled
 
 **Technical Notes:** File: `sprint_13/members/phuocnc.md`
@@ -6492,13 +6495,10 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ### DA-E47-93 — Write individual sprint report for Sprint 14 — Lộc
 **Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
 
-**Goal:** Document Lộc's contributions in Sprint 14 in `sprint_14/members/locnv.md`. Tasks: DA-E40-01 through 06 (full React Native app setup + all screens), DA-E41-01/03/04 (FCM client-side, Notification screen, camera/gallery upload).
+**Goal:** Document Lộc's contributions in Sprint 14 in `sprint_14/members/locnv.md`. 🔀 *E40/E41 đã chuyển sang Phước sau Sprint 4 rebalance (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4)) — báo cáo tuỳ theo task AI Lộc đang làm song song trong sprint này.*
 
 **Acceptance Criteria:**
-- [ ] All 9 tasks documented with screen names, navigation structure, and status
-- [ ] Offline draft AsyncStorage key pattern documented
-- [ ] FCM permission flow described (first launch request → token save → handler setup)
-- [ ] Deep link navigation table included
+- [ ] All assigned tasks documented (có thể rỗng nếu không có task nào trong sprint này, ghi rõ "không có task")
 - [ ] Self-assessment filled
 
 **Technical Notes:** File: `sprint_14/members/locnv.md`
@@ -6540,10 +6540,13 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ### DA-E47-96 — Write individual sprint report for Sprint 14 — Phước
 **Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
 
-**Goal:** Document Phước's contributions in Sprint 14 in `sprint_14/members/phuocnc.md`. No Sprint 14 tasks assigned to Phước — note any support work.
+**Goal:** Document Phước's contributions in Sprint 14 in `sprint_14/members/phuocnc.md`. 🔀 *Nhận từ Lộc sau Sprint 4 rebalance (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4)):* Tasks: DA-E40-01 through 06 (full React Native app setup + all screens), DA-E41-01/03/04 (FCM client-side, Notification screen, camera/gallery upload).
 
 **Acceptance Criteria:**
-- [ ] Any support work documented
+- [ ] All 9 tasks documented with screen names, navigation structure, and status
+- [ ] Offline draft AsyncStorage key pattern documented
+- [ ] FCM permission flow described (first launch request → token save → handler setup)
+- [ ] Deep link navigation table included
 - [ ] Self-assessment filled
 
 **Technical Notes:** File: `sprint_14/members/phuocnc.md`
@@ -7015,7 +7018,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - [ ] Self-assessment filled
 
 **Technical Notes:**
-- Iteration 3 epics: AI-06 (Image Generation Pipeline), AI-07 (Virtual Brand Ambassador / InstantID), AI-08 (Image Composition Pipeline) — see `iterations/AI_Iteration_3_Image_Ambassador_Composition.md` for Tuấn's exact task assignments
+- Iteration 3 epics: AI-07 (Virtual Brand Ambassador / InstantID) + **AI-08 (Image Composition Pipeline) 🔀 nhận từ Lộc sau Sprint 4 rebalance** — see `iterations/AI_Iteration_3_Image_Ambassador_Composition.md` for Tuấn's exact task assignments
 - File: `iterations/iteration_3/members/tuannm.md`
 
 **Dependencies:** Blocks: [DA-E48-14]. Blocked by: AI Iteration 3 work completion.
@@ -7033,7 +7036,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - [ ] Self-assessment filled
 
 **Technical Notes:**
-- Iteration 3 epics: AI-06, AI-07, AI-08 — see `iterations/AI_Iteration_3_Image_Ambassador_Composition.md` for Ân's exact task assignments
+- **AI-06 (Image Generation Pipeline) 🔀 nhận từ Lộc sau Sprint 4 rebalance** — see `iterations/AI_Iteration_3_Image_Ambassador_Composition.md` for Ân's exact task assignments
 - File: `iterations/iteration_3/members/anha.md`
 
 **Dependencies:** Blocks: [DA-E48-14]. Blocked by: AI Iteration 3 work completion.
@@ -7043,15 +7046,15 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ### DA-E48-13 — Write individual AI iteration report for Iteration 3 — Lộc
 **Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
 
-**Goal:** Document Lộc's personal contributions in AI Iteration 3 in `iterations/iteration_3/members/locnv.md`, covering image generation UI and composition pipeline work.
+**Goal:** Document Lộc's personal contributions in AI Iteration 3 in `iterations/iteration_3/members/locnv.md`. 🔀 *AI-06 và AI-08 đã chuyển sang Ân/Tuấn sau Sprint 4 rebalance (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4)) — nội dung report của Lộc trong iteration này còn lại tuỳ theo task infra/hỗ trợ khác Lộc nhận, nếu không có việc gì trong iteration thì ghi rõ "không có task" thay vì để trống.*
 
 **Acceptance Criteria:**
-- [ ] All assigned tasks listed with Jira links and final status
+- [ ] All assigned tasks listed with Jira links and final status (có thể rỗng nếu không có task nào trong iteration này)
 - [ ] Each task has: branch name, commit hash, files changed, work description, time spent
 - [ ] Self-assessment filled
 
 **Technical Notes:**
-- Iteration 3 epics: AI-06, AI-07, AI-08 — see `iterations/AI_Iteration_3_Image_Ambassador_Composition.md` for Lộc's exact task assignments
+- Iteration 3 epics AI-06 (Image Generation) và AI-08 (Image Composition) đã chuyển sang Ân và Tuấn — xem DA-E48-11, DA-E48-12
 - File: `iterations/iteration_3/members/locnv.md`
 
 **Dependencies:** Blocks: [DA-E48-14]. Blocked by: AI Iteration 3 work completion.
