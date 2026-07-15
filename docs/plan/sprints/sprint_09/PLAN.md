@@ -15,6 +15,9 @@
 |---|---|---|
 | E23 | AI Service Internal API Wiring | Tuấn, Ân |
 | E24 | Business Service AI Integration | Trung |
+| E17 🔀 | Subscription & Billing (dời từ Sprint 6) | Trung, Ân |
+
+> 🔀 **Rebalance sau Sprint 4:** E17 dời từ Sprint 6 sang đây để giảm tải Trung ở Sprint 5–6. Subscription không block gấp, Sprint 9 vốn nhẹ tải hơn. Chi tiết: [Rebalance Log](../../Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4).
 
 **Prerequisites:**
 - AI Iteration 1 complete: ai-service project running, API clients configured
@@ -26,6 +29,7 @@
 - business-service calls ai-service for content generation
 - business-service calls ai-service for image/ambassador generation trigger
 - AI credit usage tracked per workspace per subscription plan
+- Subscription plans CRUD (Admin), subscribe flow + Stripe payment + invoice history
 
 ---
 
@@ -90,6 +94,32 @@ Response: {"trends": [{"keyword": "string", "score": 0.95, "relatedTopics": ["st
 
 ---
 
+## EPIC E17 — Subscription & Billing 🔀 *(dời từ Sprint 6)*
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E17-01 | Implement Admin CRUD for subscription plans (Free/Basic/Pro/Enterprise) | Trung (Leader) | 🔴 Critical |
+| DA-E17-02 | Implement POST /api/v1/subscriptions/subscribe (AGENCY_OWNER subscribes to a plan) | Trung (Leader) | 🔴 Critical |
+| DA-E17-03 | Implement payment flow (integrate payment gateway, create invoice) | Trung (Leader) | 🔴 Critical |
+| DA-E17-04 | Implement GET /api/v1/subscriptions/invoices (billing history) | Ân (AI) | 🟡 High |
+
+**Subscription plans (seed data from Sprint 4):**
+
+| Plan | Price | Clients | Posts/mo | AI Credits/mo |
+|---|---|---|---|---|
+| Free | $0 | 1 | 10 | 20 |
+| Basic | $29 | 5 | 50 | 100 |
+| Pro | $79 | 20 | 200 | 500 |
+| Enterprise | $199 | Unlimited | Unlimited | 2000 |
+
+**Payment gateway (DA-E17-03):** Use Stripe (test mode for capstone). Flow: `POST /subscribe` → create Stripe PaymentIntent → client confirms → webhook callback → create `invoices` record + activate subscription.
+
+**Notes:**
+- DA-E17-03 Stripe integration: store only Stripe customer ID and subscription ID in PostgreSQL, never raw card data.
+- Invoice PDF generation is out of scope for MVP — store invoice data as JSON, PDF generation in Sprint 16 if time permits.
+
+---
+
 ## Sprint 9 Checklist
 
 - [ ] `/internal/ai/content/generate` returns caption + hashtags with RAG context
@@ -104,3 +134,7 @@ Response: {"trends": [{"keyword": "string", "score": 0.95, "relatedTopics": ["st
 - [ ] AI credit deduction working per call type
 - [ ] Credit limit check: 429 returned when limit exceeded
 - [ ] End-to-end test: create ContentRequest → AI generate → see draft Post in DB
+- [ ] Admin can create/edit/delete subscription plans
+- [ ] AGENCY_OWNER can subscribe to a plan via Stripe test mode
+- [ ] Invoice record created after successful payment
+- [ ] GET /api/v1/subscriptions/invoices returns paginated invoice history

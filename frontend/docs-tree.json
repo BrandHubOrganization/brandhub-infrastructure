@@ -5,6 +5,12 @@
     "type": "directory",
     "children": [
       {
+        "name": "DA-59_AI_Fashion_Model_Generation_Platforms.md",
+        "path": "/AI_Models/DA-59_AI_Fashion_Model_Generation_Platforms",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
         "name": "Research_Model_Generate_Advertise_Image.md",
         "path": "/AI_Models/Research_Model_Generate_Advertise_Image",
         "type": "file",
@@ -93,6 +99,12 @@
             "path": "/api/endpoints/11_admin",
             "type": "file",
             "ext": ".md"
+          },
+          {
+            "name": "DA-E07-02_AI-service-endpoints.md",
+            "path": "/api/endpoints/DA-E07-02_AI-service-endpoints",
+            "type": "file",
+            "ext": ".md"
           }
         ]
       },
@@ -111,6 +123,18 @@
       {
         "name": "DA-E07-05_OpenAPI_Spec.md",
         "path": "/api/DA-E07-05_OpenAPI_Spec",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "DA-E07-06_OpenAPI_Spec.md",
+        "path": "/api/DA-E07-06_OpenAPI_Spec",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "DA-E11-03_Redis_Rate_Limiting_Filter.md",
+        "path": "/api/DA-E11-03_Redis_Rate_Limiting_Filter",
         "type": "file",
         "ext": ".md"
       }
@@ -183,6 +207,12 @@
         "ext": ".html"
       },
       {
+        "name": "DA-AI02-07_ChromaDB_Collection_Design.md",
+        "path": "/database/DA-AI02-07_ChromaDB_Collection_Design",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
         "name": "DA-E06-04_Indexing_Strategy.md",
         "path": "/database/DA-E06-04_Indexing_Strategy",
         "type": "file",
@@ -209,6 +239,18 @@
     ]
   },
   {
+    "name": "deployment",
+    "path": "/deployment",
+    "type": "directory",
+    "children": []
+  },
+  {
+    "name": "design",
+    "path": "/design",
+    "type": "directory",
+    "children": []
+  },
+  {
     "name": "plan",
     "path": "/plan",
     "type": "directory",
@@ -218,6 +260,158 @@
         "path": "/plan/iterations",
         "type": "directory",
         "children": [
+          {
+            "name": "iteration_1",
+            "path": "/plan/iterations/iteration_1",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/iterations/iteration_1/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "anha.md",
+                    "path": "/plan/iterations/iteration_1/members/anha",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "locnv.md",
+                    "path": "/plan/iterations/iteration_1/members/locnv",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "tuannm.md",
+                    "path": "/plan/iterations/iteration_1/members/tuannm",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "ITERATION_REPORT.md",
+                "path": "/plan/iterations/iteration_1/ITERATION_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "iteration_2",
+            "path": "/plan/iterations/iteration_2",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/iterations/iteration_2/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "anha.md",
+                    "path": "/plan/iterations/iteration_2/members/anha",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "locnv.md",
+                    "path": "/plan/iterations/iteration_2/members/locnv",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "tuannm.md",
+                    "path": "/plan/iterations/iteration_2/members/tuannm",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "ITERATION_REPORT.md",
+                "path": "/plan/iterations/iteration_2/ITERATION_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "iteration_3",
+            "path": "/plan/iterations/iteration_3",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/iterations/iteration_3/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "anha.md",
+                    "path": "/plan/iterations/iteration_3/members/anha",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "locnv.md",
+                    "path": "/plan/iterations/iteration_3/members/locnv",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "tuannm.md",
+                    "path": "/plan/iterations/iteration_3/members/tuannm",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "ITERATION_REPORT.md",
+                "path": "/plan/iterations/iteration_3/ITERATION_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "iteration_4",
+            "path": "/plan/iterations/iteration_4",
+            "type": "directory",
+            "children": [
+              {
+                "name": "members",
+                "path": "/plan/iterations/iteration_4/members",
+                "type": "directory",
+                "children": [
+                  {
+                    "name": "anha.md",
+                    "path": "/plan/iterations/iteration_4/members/anha",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "locnv.md",
+                    "path": "/plan/iterations/iteration_4/members/locnv",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "tuannm.md",
+                    "path": "/plan/iterations/iteration_4/members/tuannm",
+                    "type": "file",
+                    "ext": ".md"
+                  }
+                ]
+              },
+              {
+                "name": "ITERATION_REPORT.md",
+                "path": "/plan/iterations/iteration_4/ITERATION_REPORT",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
           {
             "name": "AI_Iteration_1_Research_Evaluation.md",
             "path": "/plan/iterations/AI_Iteration_1_Research_Evaluation",
@@ -1055,24 +1249,30 @@
         ]
       },
       {
-        "name": "BrandHub_Project_Plan_VI.md",
-        "path": "/plan/BrandHub_Project_Plan_VI",
+        "name": "BrandHub_Master_Plan.md",
+        "path": "/plan/BrandHub_Master_Plan",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "BrandHub_Project_Plan.md",
-        "path": "/plan/BrandHub_Project_Plan",
+        "name": "Jira_Status_Audit_2026-07-11.md",
+        "path": "/plan/Jira_Status_Audit_2026-07-11",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "BrandHub_Task_Details.md",
-        "path": "/plan/BrandHub_Task_Details",
+        "name": "jira_status.json",
+        "path": "/plan/jira_status.json",
         "type": "file",
-        "ext": ".md"
+        "ext": ".json"
       }
     ]
+  },
+  {
+    "name": "report",
+    "path": "/report",
+    "type": "directory",
+    "children": []
   },
   {
     "name": "rule",
@@ -1123,5 +1323,11 @@
         "ext": ".md"
       }
     ]
+  },
+  {
+    "name": "dashboard.md",
+    "path": "/dashboard",
+    "type": "file",
+    "ext": ".md"
   }
 ]

@@ -290,7 +290,9 @@
 | [DA-E14-03](#da-e14-03-implement-client-isolation-for-brandclient-role) | Implement client isolation for BRAND_CLIENT (can only view data belonging to their own clientId) | Trung (Leader) | 🔴 Critical |
 | [DA-E14-04](#da-e14-04-write-permission-matrix-document) | Write permission matrix document (6 roles x all endpoints = allowed/not allowed) | Phước (Publisher) | 🟢 Medium |
 
-### EPIC E34 — Design System & Base Components 🔀 *(dời từ Sprint 12 — xem [Rebalance Log](#rebalance-log--sau-sprint-4) trong Jira Audit)*
+### EPIC E34 — Design System & Base Components 🔀
+
+> Dời từ Sprint 12. Xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit.
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
@@ -323,7 +325,7 @@
 | [DA-E16-03](#da-e16-03-implement-put-apiv1clientsidservice-package) | Implement PUT /api/v1/clients/{id}/service-package (set monthly post limits and platforms) | Trung (Leader) | 🟡 High |
 | [DA-E16-04](#da-e16-04-implement-get-apiv1clients) | Implement GET /api/v1/clients (AGENCY_OWNER and ACCOUNT_MANAGER view client list) | Trung (Leader) | 🔴 Critical |
 
-> **EPIC E17 — Subscription & Billing đã dời sang Sprint 9** 🔀 (xem [Rebalance Log](#rebalance-log--sau-sprint-4) trong Jira Audit) — không block gì gấp, nhường chỗ cho Trung tập trung Auth/RBAC/Workspace/Client trước.
+> **EPIC E17 — Subscription & Billing đã dời sang Sprint 9** 🔀 (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit) — không block gì gấp, nhường chỗ cho Trung tập trung Auth/RBAC/Workspace/Client trước.
 
 ---
 
@@ -405,7 +407,9 @@
 | [DA-E24-02](#da-e24-02-implement-image-and-ambassador-generation-trigger) | Implement image/ambassador generation trigger from Post editor (user selects AI generate image) | Trung (Leader) | 🔴 Critical |
 | [DA-E24-03](#da-e24-03-implement-ai-usage-tracking) | Implement AI usage tracking (count ai_credits_per_month against subscription plan limits) | Trung (Leader) | 🟡 High |
 
-### EPIC E17 — Subscription & Billing 🔀 *(dời từ Sprint 6 — xem [Rebalance Log](#rebalance-log--sau-sprint-4) trong Jira Audit)*
+### EPIC E17 — Subscription & Billing 🔀
+
+> Dời từ Sprint 6. Xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit.
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
@@ -495,7 +499,9 @@
 
 ## AI Iteration 3 — Image, Ambassador & Composition (Parallel with Sprints 9–10)
 
-### EPIC AI-06 — Image Generation Pipeline 🔀 *(chuyển từ Lộc — xem [Rebalance Log](#rebalance-log--sau-sprint-4) trong Jira Audit)*
+### EPIC AI-06 — Image Generation Pipeline 🔀
+
+> Chuyển từ Lộc. Xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit.
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
@@ -518,7 +524,9 @@
 | [DA-AI07-07](#da-ai07-07-benchmark-instantid-vs-ip-adapter-on-20-test-images-document-final-decision-with-evidence) | Benchmark InstantID vs IP-Adapter on a test set of 20 images, document final decision | Tuấn (AI) | 🟡 High |
 | [DA-AI07-08](#da-ai07-08-write-implementation-guide-model-params-prompt-tips-gpu-memory-requirements) | Write implementation guide (parameters, tips for generating high-quality ambassadors) | Tuấn (AI) | 🟢 Low |
 
-### EPIC AI-08 — Image Composition Pipeline 🔀 *(chuyển từ Lộc — xem [Rebalance Log](#rebalance-log--sau-sprint-4) trong Jira Audit)*
+### EPIC AI-08 — Image Composition Pipeline 🔀
+
+> Chuyển từ Lộc. Xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit.
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
@@ -643,7 +651,7 @@
 
 ## Sprint 12 — Core Pages (Weeks 23–24)
 
-> **EPIC E34 — Design System đã dời lên Sprint 5** 🔀 (xem [Rebalance Log](#rebalance-log--sau-sprint-4) trong Jira Audit).
+> **EPIC E34 — Design System đã dời lên Sprint 5** 🔀 (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit).
 
 ### EPIC E35 — Auth & Dashboard Pages
 
@@ -1054,7 +1062,7 @@
 
 ## WORKLOAD DISTRIBUTION TABLE
 
-> **Cập nhật sau Sprint 4** 🔀 — bảng dưới phản ánh phân bổ **mới** sau khi tái cân bằng. Bảng gốc (trước rebalance) đã lưu trong [Rebalance Log](#rebalance-log--sau-sprint-4) của `Jira_Status_Audit_2026-07-11.md` để đối chiếu.
+> **Cập nhật sau Sprint 4** 🔀 — bảng dưới phản ánh phân bổ **mới** sau khi tái cân bằng. Bảng gốc (trước rebalance) đã lưu trong [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) của `Jira_Status_Audit_2026-07-11.md` để đối chiếu.
 
 | Member | Role | Tasks (mới) | Key Responsibilities |
 |---|---|---|---|
@@ -1064,7 +1072,7 @@
 | Tuấn | AI Engineer | ~29 | Sequence diagrams, DB indexing, ChromaDB design, RAG embedding, InstantID Ambassador (AI-07), **Image Composition Pipeline (AI-08, nhận từ Lộc)** |
 | Ân | AI Engineer | ~38 | Non-functional AI reqs, Redis key doc, RAG chunking, LLM prompt system, trend crawler, video generation (Veo), **Image Generation Pipeline (AI-06, nhận từ Lộc)** |
 
-> **Total tasks:** 406 task gốc + 17 task phát sinh 🆕 = 423 task (tổng không đổi sau rebalance — chỉ đổi người và vị trí sprint). Xem [Phần 3 — Task phát sinh](#phần-3--tổng-hợp-task-phát-sinh-ngoài-plan-gốc) để biết lý do phát sinh từng task, và [Rebalance Log](#rebalance-log--sau-sprint-4) trong Jira Audit để biết lý do tái phân bổ.
+> **Total tasks:** 406 task gốc + 17 task phát sinh 🆕 = 423 task (tổng không đổi sau rebalance — chỉ đổi người và vị trí sprint). Xem [Phần 3 — Task phát sinh](#phần-3--tổng-hợp-task-phát-sinh-ngoài-plan-gốc) để biết lý do phát sinh từng task, và [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit để biết lý do tái phân bổ.
 
 ---
 
