@@ -201,10 +201,10 @@ Table user_refresh_tokens [note: 'PostgreSQL — Identity — 1NF split from use
 
 // OOP discriminated type: user with a row here = SystemAdmin persona
 // ADMIN/SUPPORT are system-level — belong to no workspace
-Table user_system_roles [note: 'PostgreSQL — Identity — ADMIN/SUPPORT system-level only'] {
+Table user_system_roles [note: 'PostgreSQL — Identity — ADMIN/USER system-level only'] {
   id          uuid        [pk, default: `gen_random_uuid()`]
   user_id     uuid        [not null, unique, ref: > users.id]
-  system_role varchar(50) [not null, default: 'ADMIN', note: 'CHECK IN (ADMIN, SUPPORT)']
+  system_role varchar(50) [not null, default: 'USER', note: 'CHECK IN (ADMIN, USER)']
   granted_by  uuid        [ref: > users.id, note: 'nullable — self-bootstrap']
   granted_at  timestamptz [not null, default: `now()`]
 

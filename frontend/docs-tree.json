@@ -219,6 +219,12 @@
         "ext": ".html"
       },
       {
+        "name": "DA-AI02-07_ChromaDB_Collection_Design.md",
+        "path": "/database/DA-AI02-07_ChromaDB_Collection_Design",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
         "name": "DA-E06-04_Indexing_Strategy.md",
         "path": "/database/DA-E06-04_Indexing_Strategy",
         "type": "file",
@@ -1261,22 +1267,22 @@
         ]
       },
       {
-        "name": "BrandHub_Project_Plan_VI.md",
-        "path": "/plan/BrandHub_Project_Plan_VI",
+        "name": "BrandHub_Master_Plan.md",
+        "path": "/plan/BrandHub_Master_Plan",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "BrandHub_Project_Plan.md",
-        "path": "/plan/BrandHub_Project_Plan",
+        "name": "Jira_Status_Audit_2026-07-11.md",
+        "path": "/plan/Jira_Status_Audit_2026-07-11",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "BrandHub_Task_Details.md",
-        "path": "/plan/BrandHub_Task_Details",
+        "name": "jira_status.json",
+        "path": "/plan/jira_status.json",
         "type": "file",
-        "ext": ".md"
+        "ext": ".json"
       }
     ]
   },
@@ -1335,5 +1341,11 @@
         "ext": ".md"
       }
     ]
+  },
+  {
+    "name": "dashboard.md",
+    "path": "/dashboard",
+    "type": "file",
+    "ext": ".md"
   }
 ]
