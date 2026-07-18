@@ -94,7 +94,7 @@ db.posts.find({ workspaceId: ctx.workspaceId, clientId: ctx.clientId, status: 'P
 | `users` | `email` UNIQUE atomic; auth data cần ACID; core identity không có role/workspace | `UNIQUE(email)`, FK từ nhiều bảng |
 | `user_oauth_providers` | 1NF: tách từ `users.oauth_providers[]` — array không thể query/index hiệu quả | `UNIQUE(provider, provider_id)`, FK → users |
 | `user_refresh_tokens` | 1NF: tách từ `users.refresh_tokens[]` — cần index `jti`, `expires_at`; thêm device tracking | `UNIQUE(jti)`, FK → users ON DELETE CASCADE |
-| `user_system_roles` | ADMIN/SUPPORT là system-level, không thuộc workspace nào — OOP discriminated type | `UNIQUE(user_id)`, FK → users |
+| `user_system_roles` | ADMIN/USER là system-level, không thuộc workspace nào — OOP discriminated type | `UNIQUE(user_id)`, FK → users |
 | `password_reset_tokens` | Audit trail cho reset password — Redis giữ TTL runtime, PG giữ permanent record | `UNIQUE(token_hash)`, FK → users |
 
 #### Workspace (5 tables)

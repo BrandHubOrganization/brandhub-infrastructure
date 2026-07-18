@@ -1,4 +1,4 @@
-# brandhub-infrastructure
+# BrandHub Infrastructure Setup Guide
 
 Docker Compose stack, database initialization scripts, Dockerfiles, and environment templates for BrandHub.
 
@@ -18,46 +18,135 @@ brandhub-infrastructure/
     └── init-mongo.js           # Collections, validators, and performance indexes
 ```
 
-## Services
+## Step-by-Step Setup Guide
 
-| Service | Image | Port |
-|---|---|---|
-| `api-gateway` | Custom (JDK 21) | 8080 |
-| `business-service` | Custom (JDK 21) | 8081 |
-| `ai-service` | Custom (Python 3.13) | 8082 |
-| `publisher-service` | Custom (JDK 21) | 8083 |
-| `web-dashboard` | Custom (nginx) | 3000 |
-| `mongodb` | mongo:7 | 27017 |
-| `postgres` | postgres:16-alpine | 5432 |
-| `redis` | redis:7-alpine | 6379 |
-| `rabbitmq` | rabbitmq:3.13-management | 5672 / 15672 |
-| `chromadb` | chromadb/chroma | 8000 |
+Follow these steps to get the full local stack running.
 
-## Quick Start
+### 1. Prerequisites
+
+Ensure you have the following installed on your system:
+
+- **Docker & Docker Compose**: For running containerized services.
+- **Git**: For cloning the repository.
+- **Java 21**: Required if you plan to build or run Java services locally outside Docker.
+- **Python 3.11**: Required for AI services.
+- **Node 20**: Required for frontend and NodeJS services.
+
+### 2. Clone the Repository
+
+Clone the infrastructure repository to your local machine:
+
+```bash
+git clone https://github.com/your-org/brandhub-infrastructure.git
+cd brandhub-infrastructure
+```
+
+### 3. Environment Configuration
+
+Navigate to the `docker` directory and set up your `.env` file:
 
 ```bash
 cd docker
 cp .env.example .env
-# fill in secrets (JWT_SECRET, AES_SECRET_KEY, API keys, OAuth credentials)
+```
+
+Open the `.env` file in your preferred text editor and fill in the required secrets (JWT_SECRET, AES_SECRET_KEY, API keys, OAuth credentials, etc.).
+
+### 4. Start the Stack
+
+Start all services in detached mode:
+
+```bash
 docker compose up -d
 ```
 
-Health checks are configured on all infrastructure services. Application services wait for their dependencies via `depends_on: condition: service_healthy`.
+Docker will pull the necessary images and start both infrastructure and application services. It may take a few minutes for all services to become healthy.
+
+## Verification
+
+Once the stack is up, you can verify that each service is running correctly using the following health checks:
+
+- **MongoDB**:
+
+  ```bash
+  mongosh --eval "db.runCommand({ping:1})"
+  ```
+
+  _(Expected output includes `{ ok: 1 }`)_
+
+- **RabbitMQ Management UI**:
+  Open [http://localhost:15672](http://localhost:15672) in your browser.
+
+- **PostgreSQL**:
+
+  ```bash
+  pg_isready -h localhost -p 5432 -U postgres
+  ```
+
+  _(Expected output: `localhost:5432 - accepting connections`)_
+
+- **Redis**:
+
+  ```bash
+  redis-cli ping
+  ```
+
+  _(Expected output: `PONG`)_
+
+- **Web Dashboard**:
+  Open [http://localhost:3000](http://localhost:3000)
+
+## Troubleshooting
+
+Here are solutions to some common setup issues:
+
+### 1. Port Conflicts
+
+**Issue**: `docker compose up` fails with a "bind: address already in use" error.
+**Solution**: Another service on your machine is using the required port (e.g., 5432 for Postgres, 8080 for API Gateway). Stop the conflicting local service or change the exposed port on the host machine in the `docker-compose.yml` (e.g., `"5433:5432"`).
+
+Alternatively, you can find and kill the process using the port:
+
+- **Windows**:
+  ```powershell
+  netstat -ano | findstr :<PORT>
+  taskkill /PID <PID> /F
+  ```
+
+### 2. Docker Memory Limits
+
+**Issue**: Containers exit unexpectedly with OOMKilled (Out of Memory) or services crash during startup.
+**Solution**: The full stack requires significant memory. Open your Docker Desktop settings, navigate to Resources, and increase the Memory limit to at least 8GB (12GB+ recommended) and CPUs to at least 4.
+
+### 3. ChromaDB Startup Delay
+
+**Issue**: The AI service fails to connect to ChromaDB during initial startup.
+**Solution**: ChromaDB can take longer to initialize, especially on the first run. The AI service should eventually retry and connect, but you can also manually restart the AI service after ChromaDB is healthy:
+
+```bash
+docker compose restart ai-service
+```
+
+## Services Reference
+
+| Service             | Image                    | Port         |
+| ------------------- | ------------------------ | ------------ |
+| `api-gateway`       | Custom (JDK 21)          | 8080         |
+| `business-service`  | Custom (JDK 21)          | 8081         |
+| `ai-service`        | Custom (Python 3.11)     | 8082         |
+| `publisher-service` | Custom (JDK 21)          | 8083         |
+| `web-dashboard`     | Custom (nginx)           | 3000         |
+| `mongodb`           | mongo:7                  | 27017        |
+| `postgres`          | postgres:16-alpine       | 5432         |
+| `redis`             | redis:7-alpine           | 6379         |
+| `rabbitmq`          | rabbitmq:3.13-management | 5672 / 15672 |
+| `chromadb`          | chromadb/chroma          | 8000         |
 
 ## Database Initialization
 
-- **PostgreSQL**: `scripts/init-postgres.sql` creates `subscription_plans`, `subscriptions`, `payments`, `audit_logs` tables and seeds 4 plans (FREE / BASIC / PRO / ENTERPRISE).
-- **MongoDB**: `scripts/init-mongo.js` creates 9 collections with schema validators and indexes (`users`, `workspaces`, `clients`, `social_accounts`, `posts`, `campaigns`, `content_requests`, `knowledge_documents`, `notifications`).
+- **PostgreSQL**: `scripts/init-postgres.sql` creates `subscription_plans`, `subscriptions`, `payments`, `audit_logs` tables and seeds 4 plans.
+- **MongoDB**: `scripts/init-mongo.js` creates 9 collections with schema validators and indexes.
 
 ## Volumes
 
 Named volumes: `mongo_data`, `postgres_data`, `redis_data`, `rabbitmq_data`, `chroma_data` — persisted across restarts.
-
-## Environment Variables
-
-See [docker/.env.example](docker/.env.example) for all required variables including:
-- Database credentials
-- JWT & AES secrets
-- AWS S3 config
-- AI API keys (Groq, Anthropic, Stability AI, Google Veo)
-- Social OAuth credentials (Facebook, Instagram, TikTok, Threads, Zalo)
