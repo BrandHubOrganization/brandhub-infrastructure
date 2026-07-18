@@ -137,6 +137,18 @@
         "path": "/api/DA-E11-03_Redis_Rate_Limiting_Filter",
         "type": "file",
         "ext": ".md"
+      },
+      {
+        "name": "DA-RS256_JWT_Flow.html",
+        "path": "/view?file=api/DA-RS256_JWT_Flow.html",
+        "type": "file",
+        "ext": ".html"
+      },
+      {
+        "name": "DA-RS256_JWT_Flow.md",
+        "path": "/api/DA-RS256_JWT_Flow",
+        "type": "file",
+        "ext": ".md"
       }
     ]
   },
@@ -215,6 +227,12 @@
       {
         "name": "DA-E06-04_Indexing_Strategy.md",
         "path": "/database/DA-E06-04_Indexing_Strategy",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "DA-E06-06_Redis_Key_Patterns_vn.md",
+        "path": "/database/DA-E06-06_Redis_Key_Patterns_vn",
         "type": "file",
         "ext": ".md"
       },
