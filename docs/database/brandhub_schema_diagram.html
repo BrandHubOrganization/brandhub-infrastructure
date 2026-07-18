@@ -141,7 +141,7 @@
 
 <div id="canvas-wrap">
   <div id="canvas">
-    <svg id="svg-layer" width="4000" height="3000"></svg>
+    <svg id="svg-layer" width="5000" height="4000"></svg>
   </div>
 </div>
 
@@ -149,434 +149,453 @@
 <div id="tooltip"></div>
 
 <script>
-// ── Schema Data (parsed from DBML) ──
+// ── Schema Data — synced with init-postgres.sql + Database_Strategy.md ──
+// PostgreSQL: 15 tables (Identity×5, Workspace×5, Billing×5)
+// MongoDB: 8 collections (business-service×6, ai-service×2, publisher-service×1 → total 8 collections shared across services)
 const SCHEMA = {
   tables: [
+
+    // ══════════════════════════════════════════
+    // POSTGRESQL — IDENTITY GROUP (5 tables)
+    // ══════════════════════════════════════════
     {
-      name: 'users', db: 'mongo', note: 'business-service',
-      fields: [
-        { name: '_id', type: 'varchar', pk: true, note: 'ObjectId' },
-        { name: 'email', type: 'varchar', unique: true, notNull: true },
-        { name: 'password_hash', type: 'varchar', note: 'null if OAuth-only' },
-        { name: 'full_name', type: 'varchar', notNull: true },
-        { name: 'avatar_url', type: 'varchar' },
-        { name: 'role', type: 'user_role', notNull: true },
-        { name: 'status', type: 'user_status', notNull: true },
-        { name: 'is_active', type: 'boolean', notNull: true, note: 'false = banned by Admin' },
-        { name: 'workspace_id', type: 'varchar', note: 'One user belongs to one workspace only' },
-        { name: 'refresh_tokens', type: 'varchar', note: 'Array<{token, jti, expiresAt}> — refresh token store' },
-        { name: 'oauth_providers', type: 'varchar', note: 'Array<{provider, providerId}>' },
-        { name: 'preferences', type: 'varchar', note: 'Object: {language, timezone}' },
-        { name: 'last_login_at', type: 'timestamp' },
-        { name: 'created_at', type: 'timestamp', notNull: true },
-        { name: 'updated_at', type: 'timestamp', notNull: true },
-      ]
-    },
-    {
-      name: 'workspaces', db: 'mongo', note: 'business-service',
-      fields: [
-        { name: '_id', type: 'varchar', pk: true, note: 'ObjectId' },
-        { name: 'name', type: 'varchar', notNull: true },
-        { name: 'slug', type: 'varchar', unique: true, notNull: true },
-        { name: 'owner_id', type: 'varchar', fk: 'users._id', notNull: true },
-        { name: 'plan', type: 'workspace_plan', notNull: true },
-        { name: 'logo_url', type: 'varchar' },
-        { name: 'settings', type: 'varchar', note: 'Object: {brandColor, defaultLanguage, approvalRequired, timezone, defaultPlatforms, reportFrequency}' },
-        { name: 'subscription_id', type: 'varchar', note: 'Soft ref → PostgreSQL' },
-        { name: 'is_active', type: 'boolean', notNull: true },
-        { name: 'created_at', type: 'timestamp', notNull: true },
-        { name: 'updated_at', type: 'timestamp', notNull: true },
-      ]
-    },
-    {
-      name: 'workspace_members', db: 'mongo', note: 'business-service',
-      fields: [
-        { name: '_id', type: 'varchar', pk: true },
-        { name: 'workspace_id', type: 'varchar', fk: 'workspaces._id', notNull: true },
-        { name: 'user_id', type: 'varchar', fk: 'users._id', notNull: true },
-        { name: 'role', type: 'member_role', notNull: true },
-        { name: 'invited_by', type: 'varchar', fk: 'users._id' },
-        { name: 'joined_at', type: 'timestamp' },
-        { name: 'is_active', type: 'boolean', notNull: true, note: 'false = soft-deleted removed member' },
-        { name: 'created_at', type: 'timestamp', notNull: true },
-        { name: 'updated_at', type: 'timestamp', notNull: true },
-      ]
-    },
-    {
-      name: 'clients', db: 'mongo', note: 'business-service',
-      fields: [
-        { name: '_id', type: 'varchar', pk: true },
-        { name: 'workspace_id', type: 'varchar', fk: 'workspaces._id', notNull: true },
-        { name: 'name', type: 'varchar', notNull: true },
-        { name: 'brand_name', type: 'varchar' },
-        { name: 'industry', type: 'varchar' },
-        { name: 'logo_url', type: 'varchar' },
-        { name: 'contact_email', type: 'varchar' },
-        { name: 'assigned_manager_id', type: 'varchar', fk: 'users._id' },
-        { name: 'portal_access_enabled', type: 'boolean', notNull: true },
-        { name: 'portal_user_id', type: 'varchar', note: 'ref → users._id (BRAND_CLIENT)' },
-        { name: 'service_package', type: 'varchar', note: 'Object: {postsPerMonth, platforms[], aiCreditsPerMonth}' },
-        { name: 'metadata', type: 'varchar', note: 'Object: flexible per agency' },
-        { name: 'created_at', type: 'timestamp', notNull: true },
-        { name: 'updated_at', type: 'timestamp', notNull: true },
-      ]
-    },
-    {
-      name: 'social_accounts', db: 'mongo', note: 'business-service',
-      fields: [
-        { name: '_id', type: 'varchar', pk: true },
-        { name: 'workspace_id', type: 'varchar', fk: 'workspaces._id', notNull: true },
-        { name: 'client_id', type: 'varchar', fk: 'clients._id' },
-        { name: 'platform', type: 'social_platform', notNull: true },
-        { name: 'account_name', type: 'varchar', notNull: true },
-        { name: 'account_id', type: 'varchar', notNull: true },
-        { name: 'encrypted_token', type: 'varchar', notNull: true, note: 'AES-256-GCM encrypted access token' },
-        { name: 'encrypted_iv', type: 'varchar', notNull: true, note: 'AES-256-GCM IV for access token' },
-        { name: 'encrypted_refresh_token', type: 'varchar', note: 'AES-256-GCM encrypted refresh token' },
-        { name: 'encrypted_refresh_iv', type: 'varchar', note: 'AES-256-GCM IV for refresh token' },
-        { name: 'token_expires_at', type: 'timestamp', notNull: true },
-        { name: 'token_status', type: 'social_account_status', notNull: true },
-        { name: 'scopes', type: 'varchar', note: 'Array<string>' },
-        { name: 'is_active', type: 'boolean', notNull: true },
-        { name: 'created_at', type: 'timestamp', notNull: true },
-        { name: 'updated_at', type: 'timestamp', notNull: true },
-      ]
-    },
-    {
-      name: 'posts', db: 'mongo', note: 'business-service',
-      fields: [
-        { name: '_id', type: 'varchar', pk: true },
-        { name: 'workspace_id', type: 'varchar', fk: 'workspaces._id', notNull: true },
-        { name: 'client_id', type: 'varchar', fk: 'clients._id' },
-        { name: 'created_by', type: 'varchar', fk: 'users._id', notNull: true },
-        { name: 'title', type: 'varchar' },
-        { name: 'content_text', type: 'varchar', notNull: true },
-        { name: 'media_urls', type: 'varchar', note: 'Array<string> — S3 URLs' },
-        { name: 'platform', type: 'social_platform', notNull: true },
-        { name: 'social_account_id', type: 'varchar', fk: 'social_accounts._id' },
-        { name: 'status', type: 'post_status', notNull: true },
-        { name: 'scheduled_at', type: 'timestamp' },
-        { name: 'published_at', type: 'timestamp' },
-        { name: 'external_post_id', type: 'varchar' },
-        { name: 'ai_generated', type: 'boolean', notNull: true },
-        { name: 'ai_metadata', type: 'varchar', note: 'Object: {model, prompt}' },
-        { name: 'approval_history', type: 'varchar', note: 'Array<{userId, action, at}>' },
-        { name: 'content_request_id', type: 'varchar', fk: 'content_requests._id' },
-        { name: 'created_at', type: 'timestamp', notNull: true },
-        { name: 'updated_at', type: 'timestamp', notNull: true },
-      ]
-    },
-    {
-      name: 'content_requests', db: 'mongo', note: 'business-service',
-      fields: [
-        { name: '_id', type: 'varchar', pk: true },
-        { name: 'workspace_id', type: 'varchar', fk: 'workspaces._id', notNull: true },
-        { name: 'client_id', type: 'varchar', fk: 'clients._id' },
-        { name: 'requested_by', type: 'varchar', fk: 'users._id', notNull: true },
-        { name: 'assigned_to', type: 'varchar', fk: 'users._id', note: 'CONTENT_CREATOR assigned by ACCOUNT_MANAGER' },
-        { name: 'title', type: 'varchar', notNull: true },
-        { name: 'description', type: 'varchar' },
-        { name: 'tone', type: 'varchar', note: 'professional | casual | humorous | inspirational' },
-        { name: 'platforms', type: 'varchar', note: 'Array<social_platform>' },
-        { name: 'deadline', type: 'timestamp' },
-        { name: 'status', type: 'content_request_status', notNull: true },
-        { name: 'linked_post_id', type: 'varchar', note: 'ref → posts._id — post created from this request' },
-        { name: 'attachments', type: 'varchar', note: 'Array<string> — S3 URLs' },
-        { name: 'comments', type: 'varchar', note: 'Array<{userId, text, at}>' },
-        { name: 'created_at', type: 'timestamp', notNull: true },
-        { name: 'updated_at', type: 'timestamp', notNull: true },
-      ]
-    },
-    {
-      name: 'knowledge_documents', db: 'mongo', note: 'ai-service',
-      fields: [
-        { name: '_id', type: 'varchar', pk: true },
-        { name: 'workspace_id', type: 'varchar', notNull: true },
-        { name: 'client_id', type: 'varchar' },
-        { name: 'title', type: 'varchar', notNull: true },
-        { name: 'content', type: 'varchar', notNull: true, note: 'Raw text + ChromaDB' },
-        { name: 'source_url', type: 'varchar' },
-        { name: 'file_type', type: 'varchar', note: 'pdf | docx | txt | url' },
-        { name: 'chunk_ids', type: 'varchar', note: 'Array<string> — ChromaDB IDs' },
-        { name: 'tags', type: 'varchar', note: 'Array<string>' },
-        { name: 'created_by', type: 'varchar' },
-        { name: 'created_at', type: 'timestamp', notNull: true },
-        { name: 'updated_at', type: 'timestamp', notNull: true },
-      ]
-    },
-    {
-      name: 'notifications', db: 'mongo', note: 'business-service',
-      fields: [
-        { name: '_id', type: 'varchar', pk: true },
-        { name: 'workspace_id', type: 'varchar', fk: 'workspaces._id', notNull: true },
-        { name: 'user_id', type: 'varchar', fk: 'users._id', notNull: true },
-        { name: 'type', type: 'notification_type', notNull: true },
-        { name: 'title', type: 'varchar', notNull: true },
-        { name: 'body', type: 'varchar' },
-        { name: 'metadata', type: 'varchar', note: 'Object: {postId, clientId}' },
-        { name: 'is_read', type: 'boolean', notNull: true },
-        { name: 'created_at', type: 'timestamp', notNull: true },
-      ]
-    },
-    {
-      name: 'publish_logs', db: 'mongo', note: 'publisher-service',
-      fields: [
-        { name: '_id', type: 'varchar', pk: true },
-        { name: 'workspace_id', type: 'varchar', notNull: true },
-        { name: 'post_id', type: 'varchar', notNull: true, note: 'Soft ref → posts._id' },
-        { name: 'platform', type: 'social_platform', notNull: true },
-        { name: 'social_account_id', type: 'varchar' },
-        { name: 'result', type: 'publish_result', notNull: true },
-        { name: 'external_post_id', type: 'varchar' },
-        { name: 'error_message', type: 'varchar' },
-        { name: 'retry_count', type: 'int', notNull: true },
-        { name: 'published_at', type: 'timestamp' },
-        { name: 'created_at', type: 'timestamp', notNull: true },
-      ]
-    },
-    {
-      name: 'ai_usage_logs', db: 'mongo', note: 'ai-service',
-      fields: [
-        { name: '_id', type: 'varchar', pk: true },
-        { name: 'workspace_id', type: 'varchar', notNull: true },
-        { name: 'user_id', type: 'varchar' },
-        { name: 'feature', type: 'varchar', notNull: true, note: 'content_gen | image_gen | rag' },
-        { name: 'model', type: 'varchar', notNull: true, note: 'llama3 | sdxl | veo | instantid' },
-        { name: 'input_tokens', type: 'int' },
-        { name: 'output_tokens', type: 'int' },
-        { name: 'cost_usd', type: 'float' },
-        { name: 'latency_ms', type: 'int' },
-        { name: 'success', type: 'boolean', notNull: true },
-        { name: 'error_code', type: 'varchar' },
-        { name: 'created_at', type: 'timestamp', notNull: true },
-      ]
-    },
-    {
-      name: 'report_jobs', db: 'mongo', note: 'business-service',
-      fields: [
-        { name: '_id', type: 'varchar', pk: true },
-        { name: 'workspace_id', type: 'varchar', fk: 'workspaces._id', notNull: true },
-        { name: 'client_id', type: 'varchar', fk: 'clients._id' },
-        { name: 'requested_by', type: 'varchar', fk: 'users._id', notNull: true },
-        { name: 'status', type: 'report_job_status', notNull: true },
-        { name: 'date_from', type: 'timestamp', notNull: true },
-        { name: 'date_to', type: 'timestamp', notNull: true },
-        { name: 'file_url', type: 'varchar', note: 'S3 URL — populated when DONE' },
-        { name: 'error_message', type: 'varchar' },
-        { name: 'created_at', type: 'timestamp', notNull: true },
-        { name: 'updated_at', type: 'timestamp', notNull: true },
-      ]
-    },
-    // ── PostgreSQL Identity ──
-    {
-      name: 'users', db: 'postgres', note: 'business-service',
+      name: 'users', db: 'postgres', note: 'PostgreSQL · Identity · business-service',
       fields: [
         { name: 'id', type: 'uuid', pk: true },
-        { name: 'email', type: 'varchar', unique: true, notNull: true },
-        { name: 'password_hash', type: 'varchar', note: 'bcrypt hash' },
-        { name: 'full_name', type: 'varchar', notNull: true },
+        { name: 'email', type: 'varchar(255)', unique: true, notNull: true },
+        { name: 'password_hash', type: 'varchar', note: 'null if OAuth-only' },
+        { name: 'full_name', type: 'varchar(255)', notNull: true },
         { name: 'avatar_url', type: 'varchar' },
-        { name: 'status', type: 'user_status', notNull: true },
-        { name: 'is_active', type: 'boolean', notNull: true },
-        { name: 'preferences', type: 'jsonb', notNull: true },
+        { name: 'status', type: 'user_status', notNull: true, note: 'ACTIVE | SUSPENDED | DELETED' },
+        { name: 'is_active', type: 'boolean', notNull: true, note: 'false = banned by Admin' },
+        { name: 'preferences', type: 'jsonb', notNull: true, note: '{language, timezone, notifications}' },
         { name: 'last_login_at', type: 'timestamptz' },
-        { name: 'last_password_change', type: 'timestamptz' },
-        { name: 'otp_code', type: 'varchar', note: '6-digit OTP for email verification' },
-        { name: 'otp_expiry', type: 'timestamptz', note: 'OTP expiration time' },
-        { name: 'email_verified_at', type: 'timestamptz', note: 'When email was verified' },
         { name: 'created_at', type: 'timestamptz', notNull: true },
         { name: 'updated_at', type: 'timestamptz', notNull: true },
       ]
     },
     {
-      name: 'user_oauth_providers', db: 'postgres', note: 'business-service',
+      name: 'user_oauth_providers', db: 'postgres', note: 'PostgreSQL · Identity · business-service',
       fields: [
         { name: 'id', type: 'uuid', pk: true },
         { name: 'user_id', type: 'uuid', fk: 'users.id', notNull: true },
-        { name: 'provider', type: 'oauth_provider', notNull: true },
-        { name: 'provider_id', type: 'varchar', notNull: true },
+        { name: 'provider', type: 'oauth_provider', notNull: true, note: 'GOOGLE | FACEBOOK' },
+        { name: 'provider_id', type: 'varchar(255)', notNull: true },
         { name: 'created_at', type: 'timestamptz', notNull: true },
       ]
     },
     {
-      name: 'user_refresh_tokens', db: 'postgres', note: 'business-service',
+      name: 'user_refresh_tokens', db: 'postgres', note: 'PostgreSQL · Identity · business-service',
       fields: [
         { name: 'id', type: 'uuid', pk: true },
         { name: 'user_id', type: 'uuid', fk: 'users.id', notNull: true },
-        { name: 'token_hash', type: 'varchar', unique: true, notNull: true },
-        { name: 'jti', type: 'varchar', unique: true, notNull: true },
+        { name: 'token_hash', type: 'varchar(255)', unique: true, notNull: true },
+        { name: 'jti', type: 'varchar(255)', unique: true, notNull: true },
         { name: 'expires_at', type: 'timestamptz', notNull: true },
-        { name: 'ip_address', type: 'varchar' },
+        { name: 'ip_address', type: 'varchar(45)' },
         { name: 'user_agent', type: 'varchar' },
         { name: 'device_info', type: 'jsonb', notNull: true },
         { name: 'created_at', type: 'timestamptz', notNull: true },
       ]
     },
     {
-      name: 'user_system_roles', db: 'postgres', note: 'business-service',
+      name: 'user_system_roles', db: 'postgres', note: 'PostgreSQL · Identity · ADMIN/USER only',
       fields: [
         { name: 'id', type: 'uuid', pk: true },
         { name: 'user_id', type: 'uuid', fk: 'users.id', unique: true, notNull: true },
-        { name: 'system_role', type: 'varchar', notNull: true, note: 'ADMIN | SUPPORT | USER' },
-        { name: 'granted_by', type: 'uuid', fk: 'users.id' },
+        { name: 'system_role', type: 'varchar(50)', notNull: true, note: 'ADMIN | USER' },
+        { name: 'granted_by', type: 'uuid', fk: 'users.id', note: 'nullable — self-bootstrap' },
         { name: 'granted_at', type: 'timestamptz', notNull: true },
       ]
     },
     {
-      name: 'password_reset_tokens', db: 'postgres', note: 'business-service',
+      name: 'password_reset_tokens', db: 'postgres', note: 'PostgreSQL · Identity · business-service',
       fields: [
         { name: 'id', type: 'uuid', pk: true },
         { name: 'user_id', type: 'uuid', fk: 'users.id', notNull: true },
-        { name: 'token_hash', type: 'varchar', unique: true, notNull: true },
-        { name: 'used_at', type: 'timestamptz' },
-        { name: 'ip_address', type: 'varchar' },
+        { name: 'token_hash', type: 'varchar(255)', unique: true, notNull: true },
+        { name: 'used_at', type: 'timestamptz', note: 'null = not yet used' },
+        { name: 'ip_address', type: 'varchar(45)' },
         { name: 'expires_at', type: 'timestamptz', notNull: true },
         { name: 'created_at', type: 'timestamptz', notNull: true },
       ]
     },
-    // ── PostgreSQL Billing ──
+
+    // ══════════════════════════════════════════
+    // POSTGRESQL — WORKSPACE GROUP (5 tables)
+    // ══════════════════════════════════════════
     {
-      name: 'subscription_plans', db: 'postgres', note: 'business-service',
+      name: 'workspaces', db: 'postgres', note: 'PostgreSQL · Workspace · business-service',
       fields: [
-        { name: 'id', type: 'serial', pk: true },
-        { name: 'name', type: 'workspace_plan', unique: true, notNull: true },
-        { name: 'display_name', type: 'varchar', notNull: true },
-        { name: 'price_monthly', type: 'decimal', notNull: true },
-        { name: 'price_yearly', type: 'decimal', notNull: true },
-        { name: 'max_workspaces', type: 'int', notNull: true },
-        { name: 'max_members', type: 'int', notNull: true },
-        { name: 'max_clients', type: 'int', notNull: true },
-        { name: 'max_posts_month', type: 'int', notNull: true },
-        { name: 'ai_credits_month', type: 'int', notNull: true },
-        { name: 'features', type: 'varchar', note: 'JSONB array of feature flags' },
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'name', type: 'varchar(255)', notNull: true },
+        { name: 'slug', type: 'varchar(100)', unique: true, notNull: true },
+        { name: 'owner_id', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'logo_url', type: 'varchar' },
+        { name: 'settings', type: 'jsonb', notNull: true, note: '{brandColor, defaultLanguage, approvalRequired, timezone, defaultPlatforms, reportFrequency}' },
         { name: 'is_active', type: 'boolean', notNull: true },
-        { name: 'created_at', type: 'timestamp', notNull: true },
-        { name: 'updated_at', type: 'timestamp', notNull: true },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
       ]
     },
     {
-      name: 'workspace_subscriptions', db: 'postgres', note: 'business-service',
+      name: 'workspace_members', db: 'postgres', note: 'PostgreSQL · Workspace · business-service',
       fields: [
-        { name: 'id', type: 'serial', pk: true },
-        { name: 'workspace_id', type: 'varchar', notNull: true, note: 'Soft ref → MongoDB' },
-        { name: 'plan_id', type: 'int', fk: 'subscription_plans.id', notNull: true },
-        { name: 'status', type: 'subscription_status', notNull: true },
-        { name: 'trial_ends_at', type: 'timestamp' },
-        { name: 'current_period_start', type: 'timestamp', notNull: true },
-        { name: 'current_period_end', type: 'timestamp', notNull: true },
-        { name: 'cancelled_at', type: 'timestamp' },
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'workspace_id', type: 'uuid', fk: 'workspaces.id', notNull: true },
+        { name: 'user_id', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'role', type: 'member_role', notNull: true, note: 'OWNER | MANAGER | CREATOR | VIEWER' },
+        { name: 'invited_by', type: 'uuid', fk: 'users.id' },
+        { name: 'joined_at', type: 'timestamptz' },
+        { name: 'is_active', type: 'boolean', notNull: true, note: 'false = soft-deleted member' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'workspace_invitations', db: 'postgres', note: 'PostgreSQL · Workspace · pending invites',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'workspace_id', type: 'uuid', fk: 'workspaces.id', notNull: true },
+        { name: 'invited_email', type: 'varchar(255)', notNull: true },
+        { name: 'role', type: 'member_role', notNull: true },
+        { name: 'invited_by', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'token', type: 'varchar(255)', unique: true, notNull: true, note: 'UUID in email link — single-use' },
+        { name: 'status', type: 'varchar(20)', notNull: true, note: 'PENDING | ACCEPTED | EXPIRED | REVOKED' },
+        { name: 'expires_at', type: 'timestamptz', notNull: true },
+        { name: 'accepted_at', type: 'timestamptz' },
+        { name: 'accepted_by', type: 'uuid', fk: 'users.id' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'workspace_member_permissions', db: 'postgres', note: 'PostgreSQL · Workspace · fine-grained overrides',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'workspace_member_id', type: 'uuid', fk: 'workspace_members.id', notNull: true },
+        { name: 'permission', type: 'varchar(100)', notNull: true, note: 'ai:image_gen | post:publish | report:view | ...' },
+        { name: 'granted', type: 'boolean', notNull: true, note: 'true=allow, false=deny' },
+        { name: 'granted_by', type: 'uuid', fk: 'users.id' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'clients', db: 'postgres', note: 'PostgreSQL · Workspace · business-service',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'workspace_id', type: 'uuid', fk: 'workspaces.id', notNull: true },
+        { name: 'name', type: 'varchar(255)', notNull: true },
+        { name: 'brand_name', type: 'varchar(255)' },
+        { name: 'industry', type: 'varchar(100)' },
+        { name: 'logo_url', type: 'varchar' },
+        { name: 'contact_email', type: 'varchar(255)' },
+        { name: 'contact_phone', type: 'varchar(50)' },
+        { name: 'assigned_manager_id', type: 'uuid', fk: 'users.id' },
+        { name: 'portal_access_enabled', type: 'boolean', notNull: true },
+        { name: 'portal_user_id', type: 'uuid', fk: 'users.id', note: 'FK → users — BRAND_CLIENT role' },
+        { name: 'service_package', type: 'jsonb', notNull: true, note: '{postsPerMonth, platforms[], aiCreditsPerMonth}' },
+        { name: 'metadata', type: 'jsonb', notNull: true, note: 'Flexible per agency' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+
+    // ══════════════════════════════════════════
+    // POSTGRESQL — BILLING GROUP (5 tables)
+    // ══════════════════════════════════════════
+    {
+      name: 'subscription_plans', db: 'postgres', note: 'PostgreSQL · Billing · master data global',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'name', type: 'workspace_plan', unique: true, notNull: true, note: 'FREE | BASIC | PRO | ENTERPRISE' },
+        { name: 'display_name', type: 'varchar(100)', notNull: true },
+        { name: 'price_monthly', type: 'decimal(12,2)', notNull: true },
+        { name: 'price_yearly', type: 'decimal(12,2)', notNull: true },
+        { name: 'max_members', type: 'integer', notNull: true },
+        { name: 'max_clients', type: 'integer', notNull: true },
+        { name: 'max_posts_month', type: 'integer', notNull: true, note: '-1 = unlimited' },
+        { name: 'ai_credits_month', type: 'integer', notNull: true, note: '-1 = unlimited' },
+        { name: 'features', type: 'jsonb', notNull: true, note: 'Array of feature flag strings' },
+        { name: 'is_active', type: 'boolean', notNull: true },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'workspace_subscriptions', db: 'postgres', note: 'PostgreSQL · Billing · billing state per workspace',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'workspace_id', type: 'uuid', fk: 'workspaces.id', unique: true, notNull: true, note: 'Real FK — workspaces moved to PG' },
+        { name: 'plan_id', type: 'uuid', fk: 'subscription_plans.id', notNull: true },
+        { name: 'status', type: 'subscription_status', notNull: true, note: 'ACTIVE | EXPIRED | CANCELLED | TRIALING' },
+        { name: 'trial_ends_at', type: 'timestamptz' },
+        { name: 'current_period_start', type: 'timestamptz', notNull: true },
+        { name: 'current_period_end', type: 'timestamptz', notNull: true },
+        { name: 'cancelled_at', type: 'timestamptz' },
         { name: 'cancel_reason', type: 'varchar' },
-        { name: 'created_at', type: 'timestamp', notNull: true },
-        { name: 'updated_at', type: 'timestamp', notNull: true },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
       ]
     },
     {
-      name: 'invoices', db: 'postgres', note: 'business-service',
+      name: 'invoices', db: 'postgres', note: 'PostgreSQL · Billing · immutable after ISSUED',
       fields: [
-        { name: 'id', type: 'serial', pk: true },
-        { name: 'workspace_id', type: 'varchar', notNull: true, note: 'Soft ref → MongoDB' },
-        { name: 'subscription_id', type: 'int', fk: 'workspace_subscriptions.id', notNull: true },
-        { name: 'invoice_number', type: 'varchar', unique: true, notNull: true },
-        { name: 'status', type: 'invoice_status', notNull: true },
-        { name: 'amount', type: 'decimal', notNull: true },
-        { name: 'currency', type: 'varchar', notNull: true },
-        { name: 'period_start', type: 'timestamp', notNull: true },
-        { name: 'period_end', type: 'timestamp', notNull: true },
-        { name: 'issued_at', type: 'timestamp' },
-        { name: 'due_at', type: 'timestamp' },
-        { name: 'paid_at', type: 'timestamp' },
-        { name: 'created_at', type: 'timestamp', notNull: true },
-        { name: 'updated_at', type: 'timestamp', notNull: true },
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'workspace_id', type: 'uuid', fk: 'workspaces.id', notNull: true },
+        { name: 'subscription_id', type: 'uuid', fk: 'workspace_subscriptions.id', notNull: true },
+        { name: 'invoice_number', type: 'varchar(50)', unique: true, notNull: true },
+        { name: 'status', type: 'invoice_status', notNull: true, note: 'DRAFT | ISSUED | PAID | OVERDUE | VOID' },
+        { name: 'amount', type: 'decimal(12,2)', notNull: true },
+        { name: 'currency', type: 'varchar(3)', notNull: true, note: 'default VND' },
+        { name: 'period_start', type: 'timestamptz', notNull: true },
+        { name: 'period_end', type: 'timestamptz', notNull: true },
+        { name: 'issued_at', type: 'timestamptz' },
+        { name: 'due_at', type: 'timestamptz' },
+        { name: 'paid_at', type: 'timestamptz' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
       ]
     },
     {
-      name: 'payments', db: 'postgres', note: 'business-service',
+      name: 'payments', db: 'postgres', note: 'PostgreSQL · Billing · atomic, no duplicate',
       fields: [
-        { name: 'id', type: 'serial', pk: true },
-        { name: 'workspace_id', type: 'varchar', notNull: true, note: 'Soft ref → MongoDB' },
-        { name: 'invoice_id', type: 'int', fk: 'invoices.id', notNull: true },
-        { name: 'amount', type: 'decimal', notNull: true },
-        { name: 'currency', type: 'varchar', notNull: true },
-        { name: 'status', type: 'payment_status', notNull: true },
-        { name: 'payment_method', type: 'varchar', note: 'momo | vnpay | bank_transfer' },
-        { name: 'transaction_id', type: 'varchar', unique: true },
-        { name: 'paid_at', type: 'timestamp' },
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'workspace_id', type: 'uuid', fk: 'workspaces.id', notNull: true },
+        { name: 'invoice_id', type: 'uuid', fk: 'invoices.id', notNull: true },
+        { name: 'amount', type: 'decimal(12,2)', notNull: true },
+        { name: 'currency', type: 'varchar(3)', notNull: true },
+        { name: 'status', type: 'payment_status', notNull: true, note: 'PENDING | COMPLETED | FAILED | REFUNDED' },
+        { name: 'payment_method', type: 'varchar(50)', note: 'bank_transfer | momo | vnpay | stripe' },
+        { name: 'transaction_id', type: 'varchar(255)', unique: true, note: 'External gateway TX ID' },
+        { name: 'paid_at', type: 'timestamptz' },
         { name: 'failed_reason', type: 'varchar' },
-        { name: 'created_at', type: 'timestamp', notNull: true },
-        { name: 'updated_at', type: 'timestamp', notNull: true },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
       ]
     },
     {
-      name: 'audit_logs', db: 'postgres', note: 'business-service — Append-only',
+      name: 'audit_logs', db: 'postgres', note: 'PostgreSQL · Billing · append-only, no UPDATE/DELETE',
       fields: [
         { name: 'id', type: 'bigserial', pk: true },
-        { name: 'workspace_id', type: 'varchar', note: 'Nullable for ADMIN actions' },
-        { name: 'user_id', type: 'varchar', notNull: true, note: 'Soft ref → MongoDB' },
-        { name: 'action', type: 'audit_action', notNull: true },
-        { name: 'resource_type', type: 'varchar', notNull: true },
-        { name: 'resource_id', type: 'varchar' },
-        { name: 'old_value', type: 'varchar', note: 'JSONB — state before' },
-        { name: 'new_value', type: 'varchar', note: 'JSONB — state after' },
-        { name: 'ip_address', type: 'varchar' },
+        { name: 'workspace_id', type: 'uuid', note: 'Nullable — ADMIN global actions have no workspace' },
+        { name: 'user_id', type: 'uuid', notNull: true, note: 'Soft ref — kept even if user deleted (compliance)' },
+        { name: 'action', type: 'audit_action', notNull: true, note: 'LOGIN | LOGOUT | CREATE | UPDATE | DELETE | ...' },
+        { name: 'resource_type', type: 'varchar(50)', notNull: true, note: 'User | Post | Workspace | Client | ...' },
+        { name: 'resource_id', type: 'varchar(255)' },
+        { name: 'old_value', type: 'jsonb', note: 'State before change' },
+        { name: 'new_value', type: 'jsonb', note: 'State after change' },
+        { name: 'ip_address', type: 'varchar(45)' },
         { name: 'user_agent', type: 'varchar' },
-        { name: 'created_at', type: 'timestamp', notNull: true },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+
+    // ══════════════════════════════════════════
+    // MONGODB — 8 COLLECTIONS
+    // ══════════════════════════════════════════
+    {
+      name: 'social_accounts', db: 'mongo', note: 'MongoDB · business-service',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'clientId', type: 'string', note: 'Soft ref → clients.id (PG)' },
+        { name: 'platform', type: 'social_platform', notNull: true, note: 'FACEBOOK | INSTAGRAM | TIKTOK | THREADS | ZALO_OA' },
+        { name: 'accountName', type: 'string', notNull: true },
+        { name: 'accountId', type: 'string', notNull: true, note: 'Platform user/page ID' },
+        { name: 'encryptedToken', type: 'string', notNull: true, note: 'AES-256-GCM encrypted access token' },
+        { name: 'encryptedIv', type: 'string', notNull: true, note: 'AES-256-GCM IV' },
+        { name: 'encryptedRefreshToken', type: 'string' },
+        { name: 'encryptedRefreshIv', type: 'string' },
+        { name: 'tokenExpiresAt', type: 'date', notNull: true },
+        { name: 'tokenStatus', type: 'social_account_status', notNull: true, note: 'ACTIVE | EXPIRING_SOON | EXPIRED | REVOKED' },
+        { name: 'scopes', type: 'string[]' },
+        { name: 'isActive', type: 'boolean', notNull: true },
+        { name: 'createdAt', type: 'date', notNull: true },
+        { name: 'updatedAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'posts', db: 'mongo', note: 'MongoDB · business-service',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'clientId', type: 'string', note: 'Soft ref → clients.id (PG)' },
+        { name: 'createdBy', type: 'string', notNull: true, note: 'Soft ref → users.id (PG)' },
+        { name: 'title', type: 'string' },
+        { name: 'contentText', type: 'string', notNull: true },
+        { name: 'mediaUrls', type: 'string[]', note: 'S3 URLs' },
+        { name: 'platform', type: 'social_platform', notNull: true },
+        { name: 'socialAccountId', type: 'string', note: 'Soft ref → social_accounts._id' },
+        { name: 'status', type: 'post_status', notNull: true, note: 'DRAFT | PENDING_APPROVAL | APPROVED | REJECTED | SCHEDULED | PUBLISHING | PUBLISHED | FAILED | CANCELLED' },
+        { name: 'scheduledAt', type: 'date' },
+        { name: 'publishedAt', type: 'date' },
+        { name: 'externalPostId', type: 'string' },
+        { name: 'aiGenerated', type: 'boolean', notNull: true },
+        { name: 'aiMetadata', type: 'object', note: '{model, prompt}' },
+        { name: 'approvalHistory', type: 'object[]', note: '[{userId, action, at}]' },
+        { name: 'contentRequestId', type: 'string', note: 'Soft ref → content_requests._id' },
+        { name: 'createdAt', type: 'date', notNull: true },
+        { name: 'updatedAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'content_requests', db: 'mongo', note: 'MongoDB · business-service',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'clientId', type: 'string', note: 'Soft ref → clients.id (PG)' },
+        { name: 'requestedBy', type: 'string', notNull: true, note: 'Soft ref → users.id (PG)' },
+        { name: 'assignedTo', type: 'string', note: 'Soft ref → users.id (PG) — CONTENT_CREATOR' },
+        { name: 'title', type: 'string', notNull: true },
+        { name: 'description', type: 'string' },
+        { name: 'tone', type: 'string', note: 'professional | casual | humorous | inspirational' },
+        { name: 'platforms', type: 'string[]', note: 'Array<social_platform>' },
+        { name: 'deadline', type: 'date' },
+        { name: 'status', type: 'content_request_status', notNull: true, note: 'SUBMITTED | ASSIGNED | IN_PROGRESS | PENDING_REVIEW | SENT_TO_CLIENT | APPROVED | REJECTED | CANCELLED' },
+        { name: 'linkedPostId', type: 'string', note: 'Soft ref → posts._id' },
+        { name: 'attachments', type: 'string[]', note: 'S3 URLs' },
+        { name: 'comments', type: 'object[]', note: '[{userId, text, at}]' },
+        { name: 'createdAt', type: 'date', notNull: true },
+        { name: 'updatedAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'knowledge_documents', db: 'mongo', note: 'MongoDB · ai-service',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'clientId', type: 'string', note: 'Soft ref → clients.id (PG)' },
+        { name: 'title', type: 'string', notNull: true },
+        { name: 'content', type: 'string', notNull: true, note: 'Raw text; vectors in ChromaDB' },
+        { name: 'sourceUrl', type: 'string' },
+        { name: 'fileType', type: 'string', note: 'pdf | docx | txt | url' },
+        { name: 'chunkIds', type: 'string[]', note: 'ChromaDB chunk IDs' },
+        { name: 'tags', type: 'string[]' },
+        { name: 'createdBy', type: 'string', note: 'Soft ref → users.id (PG)' },
+        { name: 'createdAt', type: 'date', notNull: true },
+        { name: 'updatedAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'notifications', db: 'mongo', note: 'MongoDB · business-service · TTL 30d',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'userId', type: 'string', notNull: true, note: 'Soft ref → users.id (PG)' },
+        { name: 'type', type: 'notification_type', notNull: true, note: 'POST_APPROVED | POST_REJECTED | POST_FAILED | POST_PUBLISHED | REPORT_READY | MEMBER_INVITED | SUBSCRIPTION_EXPIRING | CONTENT_REQUEST_ASSIGNED' },
+        { name: 'title', type: 'string', notNull: true },
+        { name: 'body', type: 'string' },
+        { name: 'metadata', type: 'object', note: '{postId, clientId}' },
+        { name: 'isRead', type: 'boolean', notNull: true },
+        { name: 'createdAt', type: 'date', notNull: true, note: 'TTL index — auto-expire 30 days' },
+      ]
+    },
+    {
+      name: 'publish_logs', db: 'mongo', note: 'MongoDB · publisher-service · append-only',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'postId', type: 'string', notNull: true, note: 'Soft ref → posts._id' },
+        { name: 'platform', type: 'social_platform', notNull: true },
+        { name: 'socialAccountId', type: 'string' },
+        { name: 'result', type: 'publish_result', notNull: true, note: 'SUCCESS | FAILED | RETRYING' },
+        { name: 'externalPostId', type: 'string' },
+        { name: 'errorMessage', type: 'string' },
+        { name: 'retryCount', type: 'int', notNull: true },
+        { name: 'publishedAt', type: 'date' },
+        { name: 'createdAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'ai_usage_logs', db: 'mongo', note: 'MongoDB · ai-service · append-only',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'userId', type: 'string', note: 'Soft ref → users.id (PG)' },
+        { name: 'feature', type: 'string', notNull: true, note: 'content_gen | image_gen | video_gen | rag' },
+        { name: 'model', type: 'string', notNull: true, note: 'llama3 | sdxl | veo | instantid' },
+        { name: 'inputTokens', type: 'int' },
+        { name: 'outputTokens', type: 'int' },
+        { name: 'costUsd', type: 'float' },
+        { name: 'latencyMs', type: 'int' },
+        { name: 'success', type: 'boolean', notNull: true },
+        { name: 'errorCode', type: 'string' },
+        { name: 'createdAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'report_jobs', db: 'mongo', note: 'MongoDB · business-service · transient job state',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'clientId', type: 'string', note: 'Soft ref → clients.id (PG)' },
+        { name: 'requestedBy', type: 'string', notNull: true, note: 'Soft ref → users.id (PG)' },
+        { name: 'status', type: 'report_job_status', notNull: true, note: 'PENDING | RUNNING | DONE | FAILED' },
+        { name: 'dateFrom', type: 'date', notNull: true },
+        { name: 'dateTo', type: 'date', notNull: true },
+        { name: 'fileUrl', type: 'string', note: 'S3 URL — populated when DONE' },
+        { name: 'errorMessage', type: 'string' },
+        { name: 'createdAt', type: 'date', notNull: true },
+        { name: 'updatedAt', type: 'date', notNull: true },
       ]
     },
   ],
 
   refs: [
-    { from: 'workspaces.owner_id', to: 'users._id' },
-    { from: 'workspace_members.workspace_id', to: 'workspaces._id' },
-    { from: 'workspace_members.user_id', to: 'users._id' },
-    { from: 'workspace_members.invited_by', to: 'users._id' },
-    { from: 'clients.workspace_id', to: 'workspaces._id' },
-    { from: 'clients.assigned_manager_id', to: 'users._id' },
-    { from: 'social_accounts.workspace_id', to: 'workspaces._id' },
-    { from: 'social_accounts.client_id', to: 'clients._id' },
-    { from: 'posts.workspace_id', to: 'workspaces._id' },
-    { from: 'posts.client_id', to: 'clients._id' },
-    { from: 'posts.created_by', to: 'users._id' },
-    { from: 'posts.social_account_id', to: 'social_accounts._id' },
-    { from: 'posts.content_request_id', to: 'content_requests._id' },
-    { from: 'content_requests.workspace_id', to: 'workspaces._id' },
-    { from: 'content_requests.client_id', to: 'clients._id' },
-    { from: 'content_requests.requested_by', to: 'users._id' },
-    { from: 'content_requests.assigned_to', to: 'users._id' },
-    { from: 'notifications.workspace_id', to: 'workspaces._id' },
-    { from: 'notifications.user_id', to: 'users._id' },
-    { from: 'report_jobs.workspace_id', to: 'workspaces._id' },
-    { from: 'report_jobs.client_id', to: 'clients._id' },
-    { from: 'report_jobs.requested_by', to: 'users._id' },
+    // Identity FK chains
     { from: 'user_oauth_providers.user_id', to: 'users.id' },
     { from: 'user_refresh_tokens.user_id', to: 'users.id' },
     { from: 'user_system_roles.user_id', to: 'users.id' },
-    { from: 'user_system_roles.granted_by', to: 'users.id' },
     { from: 'password_reset_tokens.user_id', to: 'users.id' },
+    // Workspace FK chains
+    { from: 'workspaces.owner_id', to: 'users.id' },
+    { from: 'workspace_members.workspace_id', to: 'workspaces.id' },
+    { from: 'workspace_members.user_id', to: 'users.id' },
+    { from: 'workspace_invitations.workspace_id', to: 'workspaces.id' },
+    { from: 'workspace_invitations.invited_by', to: 'users.id' },
+    { from: 'workspace_member_permissions.workspace_member_id', to: 'workspace_members.id' },
+    { from: 'clients.workspace_id', to: 'workspaces.id' },
+    { from: 'clients.assigned_manager_id', to: 'users.id' },
+    { from: 'clients.portal_user_id', to: 'users.id' },
+    // Billing FK chains (all real FKs — workspaces now in PG)
+    { from: 'workspace_subscriptions.workspace_id', to: 'workspaces.id' },
     { from: 'workspace_subscriptions.plan_id', to: 'subscription_plans.id' },
+    { from: 'invoices.workspace_id', to: 'workspaces.id' },
     { from: 'invoices.subscription_id', to: 'workspace_subscriptions.id' },
+    { from: 'payments.workspace_id', to: 'workspaces.id' },
     { from: 'payments.invoice_id', to: 'invoices.id' },
   ]
 };
 
 // ── Layout positions ──
 const LAYOUT = {
-  users:                   { x: 60,   y: 60 },
-  workspaces:              { x: 400,  y: 60 },
-  workspace_members:       { x: 60,   y: 520 },
-  clients:                 { x: 760,  y: 60 },
-  social_accounts:         { x: 1100, y: 60 },
-  posts:                   { x: 1440, y: 60 },
-  content_requests:        { x: 1440, y: 560 },
-  knowledge_documents:     { x: 60,   y: 940 },
-  notifications:           { x: 400,  y: 520 },
-  publish_logs:            { x: 760,  y: 520 },
-  ai_usage_logs:           { x: 400,  y: 940 },
-  report_jobs:             { x: 760,  y: 940 },
-  subscription_plans:      { x: 1100, y: 560 },
-  workspace_subscriptions: { x: 1100, y: 940 },
-  invoices:                { x: 1440, y: 1060 },
-  payments:                { x: 1800, y: 1060 },
-  audit_logs:              { x: 1800, y: 560 },
+  // PostgreSQL Identity (top-left cluster)
+  users:                         { x: 60,   y: 60 },
+  user_oauth_providers:          { x: 60,   y: 480 },
+  user_refresh_tokens:           { x: 60,   y: 780 },
+  user_system_roles:             { x: 360,  y: 480 },
+  password_reset_tokens:         { x: 360,  y: 780 },
+  // PostgreSQL Workspace (center cluster)
+  workspaces:                    { x: 700,  y: 60 },
+  workspace_members:             { x: 700,  y: 500 },
+  workspace_invitations:         { x: 1040, y: 500 },
+  workspace_member_permissions:  { x: 700,  y: 860 },
+  clients:                       { x: 1040, y: 60 },
+  // PostgreSQL Billing (right cluster)
+  subscription_plans:            { x: 1420, y: 60 },
+  workspace_subscriptions:       { x: 1420, y: 440 },
+  invoices:                      { x: 1420, y: 820 },
+  payments:                      { x: 1760, y: 820 },
+  audit_logs:                    { x: 1760, y: 60 },
+  // MongoDB (bottom half)
+  social_accounts:               { x: 60,   y: 1200 },
+  posts:                         { x: 420,  y: 1200 },
+  content_requests:              { x: 840,  y: 1200 },
+  knowledge_documents:           { x: 1260, y: 1200 },
+  notifications:                 { x: 60,   y: 1680 },
+  publish_logs:                  { x: 420,  y: 1680 },
+  ai_usage_logs:                 { x: 840,  y: 1680 },
+  report_jobs:                   { x: 1260, y: 1680 },
 };
 
 // ── State ──
@@ -593,7 +612,6 @@ const tooltip = document.getElementById('tooltip');
 
 // ── Build cards ──
 function buildCards() {
-  // Remove existing cards
   document.querySelectorAll('.table-card,.group-label').forEach(e => e.remove());
 
   SCHEMA.tables.forEach(table => {
@@ -638,16 +656,10 @@ function buildCards() {
       <div class="card-footer"><span class="field-count">${table.fields.length} fields</span></div>
     `;
 
-    // Drag
     card.addEventListener('mousedown', onCardMouseDown);
-
-    // Tooltip on field hover
     card.addEventListener('mouseover', e => {
       const row = e.target.closest('.field-row[data-note]');
-      if (row) {
-        tooltip.textContent = row.dataset.note;
-        tooltip.style.display = 'block';
-      }
+      if (row) { tooltip.textContent = row.dataset.note; tooltip.style.display = 'block'; }
     });
     card.addEventListener('mousemove', e => {
       tooltip.style.left = (e.clientX + 14) + 'px';
@@ -671,8 +683,6 @@ function onCardMouseDown(e) {
   const rect = card.getBoundingClientRect();
   dragOffset.x = (e.clientX - rect.left) / scale;
   dragOffset.y = (e.clientY - rect.top) / scale;
-
-  // Highlight connected cards
   const tname = card.id.replace('card-', '');
   highlightConnected(tname);
 }
@@ -698,18 +708,10 @@ window.addEventListener('mousemove', e => {
 });
 
 window.addEventListener('mouseup', () => {
-  if (draggingCard) {
-    draggingCard.classList.remove('dragging');
-    draggingCard = null;
-    clearHighlights();
-  }
-  if (isPanning) {
-    isPanning = false;
-    wrap.classList.remove('panning');
-  }
+  if (draggingCard) { draggingCard.classList.remove('dragging'); draggingCard = null; clearHighlights(); }
+  if (isPanning) { isPanning = false; wrap.classList.remove('panning'); }
 });
 
-// ── Canvas pan ──
 wrap.addEventListener('mousedown', e => {
   if (e.button === 0 && !draggingCard) {
     isPanning = true;
@@ -738,7 +740,7 @@ function applyTransform() {
 
 function zoomIn() { scale = Math.min(2.5, scale * 1.15); applyTransform(); }
 function zoomOut() { scale = Math.max(0.2, scale / 1.15); applyTransform(); }
-function resetView() { scale = 0.65; panX = 20; panY = 20; applyTransform(); }
+function resetView() { scale = 0.45; panX = 20; panY = 20; applyTransform(); }
 function toggleRefs() {
   showRefs = !showRefs;
   document.getElementById('btn-refs').classList.toggle('active', showRefs);
@@ -754,17 +756,13 @@ function toggleCompact() {
 function getFieldRowCenter(tableName, fieldName) {
   const card = document.getElementById('card-' + tableName);
   if (!card) return null;
-  const rows = card.querySelectorAll('.field-row');
   const table = SCHEMA.tables.find(t => t.name === tableName);
   if (!table) return null;
-
   const visibleFields = compactMode
     ? table.fields.filter(f => f.pk || f.fk || f.notNull)
     : table.fields;
-
   const idx = visibleFields.findIndex(f => f.name === fieldName);
   if (idx < 0) return null;
-
   const cardRect = { x: cardPositions[tableName].x, y: cardPositions[tableName].y };
   const headerH = 78;
   const fieldH = 24;
@@ -775,36 +773,26 @@ function getFieldRowCenter(tableName, fieldName) {
 function updateSVG() {
   if (!showRefs) return;
   svg.innerHTML = '';
-  if (!showRefs) return;
-
   SCHEMA.refs.forEach(ref => {
     const [fTable, fField] = ref.from.split('.');
     const [tTable, tField] = ref.to.split('.');
-
     const from = getFieldRowCenter(fTable, fField);
     const to = getFieldRowCenter(tTable, tField);
     if (!from || !to) return;
-
     const fromRight = from.x + (document.getElementById('card-' + fTable)?.offsetWidth || 240);
     const toRight = to.x + (document.getElementById('card-' + tTable)?.offsetWidth || 240);
-
-    // Pick left or right connector
     const fromIsRight = from.x < to.x;
     const x1 = fromIsRight ? fromRight : from.x;
     const x2 = fromIsRight ? to.x : toRight;
     const y1 = from.y;
     const y2 = to.y;
-
     const cp = Math.abs(x2 - x1) * 0.4 + 20;
     const d = `M ${x1} ${y1} C ${x1 + (fromIsRight ? cp : -cp)} ${y1}, ${x2 + (fromIsRight ? -cp : cp)} ${y2}, ${x2} ${y2}`;
-
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', d);
     path.setAttribute('class', 'ref-line');
     path.setAttribute('data-from', fTable);
     path.setAttribute('data-to', tTable);
-
-    // Arrow marker
     const markerId = `arr-${fTable}-${fField}`.replace(/[^a-z0-9]/gi, '_');
     const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
     marker.setAttribute('id', markerId);
@@ -819,7 +807,6 @@ function updateSVG() {
     marker.appendChild(arrow);
     svg.appendChild(marker);
     path.setAttribute('marker-end', `url(#${markerId})`);
-
     svg.appendChild(path);
   });
 }
@@ -844,8 +831,6 @@ function clearHighlights() {
 // ── Init ──
 buildCards();
 resetView();
-
-// Redraw refs after cards render (need offsetWidth)
 setTimeout(updateSVG, 100);
 </script>
 </body>

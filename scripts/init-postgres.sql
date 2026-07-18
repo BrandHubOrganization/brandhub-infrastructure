@@ -145,10 +145,10 @@ CREATE INDEX IF NOT EXISTS idx_rt_expires_at ON user_refresh_tokens(expires_at);
 CREATE TABLE IF NOT EXISTS user_system_roles (
     id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id     UUID        NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-    system_role VARCHAR(50) NOT NULL DEFAULT 'ADMIN',
+    system_role VARCHAR(50) NOT NULL DEFAULT 'USER',
     granted_by  UUID        REFERENCES users(id) ON DELETE SET NULL,
     granted_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT chk_user_system_roles_role CHECK (system_role IN ('ADMIN', 'SUPPORT', 'USER'))
+    CONSTRAINT chk_user_system_roles_role CHECK (system_role IN ('ADMIN', 'USER'))
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_system_roles_user_id ON user_system_roles(user_id);
