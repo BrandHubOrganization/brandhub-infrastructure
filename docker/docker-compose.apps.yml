@@ -1,4 +1,4 @@
-services:
+﻿services:
   api-gateway:
     build:
       context: ../../brandhub-api-gateway
@@ -16,6 +16,8 @@ services:
       AI_SERVICE_URL: http://ai-service:8082
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
       RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-100}
+      RATE_LIMIT_TTL_SECONDS: ${RATE_LIMIT_TTL_SECONDS:-60}
+      RATE_LIMIT_FAIL_OPEN: ${RATE_LIMIT_FAIL_OPEN:-true}
       AUTH_RATE_LIMIT_PER_MINUTE: ${AUTH_RATE_LIMIT_PER_MINUTE:-5}
       AI_TEXT_RATE_LIMIT_PER_MINUTE: ${AI_TEXT_RATE_LIMIT_PER_MINUTE:-20}
       AI_IMAGE_RATE_LIMIT_PER_MINUTE: ${AI_IMAGE_RATE_LIMIT_PER_MINUTE:-5}
@@ -194,3 +196,6 @@ networks:
   brandhub-network:
     name: brandhub-network
     driver: bridge
+
+
+

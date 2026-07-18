@@ -11,7 +11,7 @@ skinparam entity {
 }
 
 ' ============================================================
-' POSTGRESQL — IDENTITY GROUP
+' POSTGRESQL — IDENTITY GROUP (5 tables)
 ' ============================================================
 
 entity "users" as users <<PostgreSQL>> {
@@ -35,7 +35,12 @@ entity "user_oauth_providers" as oauth <<PostgreSQL>> {
   * user_id : uuid <<FK>>
   * provider : oauth_provider
   * provider_id : varchar(255)
+  * created_at : timestamptz
 }
+note right of oauth
+  UNIQUE(provider, provider_id)
+  ON DELETE CASCADE
+end note
 
 entity "user_refresh_tokens" as refresh_tokens <<PostgreSQL>> {
   * id : uuid <<PK>>
@@ -49,6 +54,9 @@ entity "user_refresh_tokens" as refresh_tokens <<PostgreSQL>> {
   * device_info : jsonb
   * created_at : timestamptz
 }
+note right of refresh_tokens
+  ON DELETE CASCADE
+end note
 
 entity "user_system_roles" as system_roles <<PostgreSQL>> {
   * id : uuid <<PK>>
@@ -58,6 +66,11 @@ entity "user_system_roles" as system_roles <<PostgreSQL>> {
   granted_by : uuid <<FK>>
   * granted_at : timestamptz
 }
+note right of system_roles
+  CHECK system_role IN ('ADMIN','USER')
+  OOP discriminated type for system-level users
+  Default: USER
+end note
 
 entity "password_reset_tokens" as pwd_reset <<PostgreSQL>> {
   * id : uuid <<PK>>
@@ -69,9 +82,13 @@ entity "password_reset_tokens" as pwd_reset <<PostgreSQL>> {
   * expires_at : timestamptz
   * created_at : timestamptz
 }
+note right of pwd_reset
+  Redis holds runtime TTL
+  PG holds permanent audit trail
+end note
 
 ' ============================================================
-' POSTGRESQL — WORKSPACE GROUP
+' POSTGRESQL — WORKSPACE GROUP (5 tables)
 ' ============================================================
 
 entity "workspaces" as workspaces <<PostgreSQL>> {
@@ -86,6 +103,10 @@ entity "workspaces" as workspaces <<PostgreSQL>> {
   * created_at : timestamptz
   * updated_at : timestamptz
 }
+note right of workspaces
+  Anchor for all FK chains.
+  plan removed — read from workspace_subscriptions
+end note
 
 entity "workspace_members" as wm <<PostgreSQL>> {
   * id : uuid <<PK>>
@@ -99,6 +120,10 @@ entity "workspace_members" as wm <<PostgreSQL>> {
   * created_at : timestamptz
   * updated_at : timestamptz
 }
+note right of wm
+  UNIQUE(workspace_id, user_id)
+  is_active=false = soft-deleted member
+end note
 
 entity "workspace_invitations" as invitations <<PostgreSQL>> {
   * id : uuid <<PK>>
@@ -114,6 +139,11 @@ entity "workspace_invitations" as invitations <<PostgreSQL>> {
   accepted_by : uuid <<FK>>
   * created_at : timestamptz
 }
+note right of invitations
+  UNIQUE(workspace_id, invited_email)
+  status: PENDING|ACCEPTED|EXPIRED|REVOKED
+  token = single-use UUID in email link
+end note
 
 entity "workspace_member_permissions" as perms <<PostgreSQL>> {
   * id : uuid <<PK>>
@@ -124,6 +154,11 @@ entity "workspace_member_permissions" as perms <<PostgreSQL>> {
   granted_by : uuid <<FK>>
   * created_at : timestamptz
 }
+note right of perms
+  UNIQUE(workspace_member_id, permission)
+  granted=true: explicit allow
+  granted=false: explicit deny (override role)
+end note
 
 entity "clients" as clients <<PostgreSQL>> {
   * id : uuid <<PK>>
@@ -143,9 +178,14 @@ entity "clients" as clients <<PostgreSQL>> {
   * created_at : timestamptz
   * updated_at : timestamptz
 }
+note right of clients
+  portal_user_id -> users (BRAND_CLIENT role)
+  service_package: {postsPerMonth, platforms[], aiCreditsPerMonth}
+  metadata: flexible per agency
+end note
 
 ' ============================================================
-' POSTGRESQL — BILLING GROUP
+' POSTGRESQL — BILLING GROUP (5 tables)
 ' ============================================================
 
 entity "subscription_plans" as plans <<PostgreSQL>> {
@@ -164,6 +204,10 @@ entity "subscription_plans" as plans <<PostgreSQL>> {
   * created_at : timestamptz
   * updated_at : timestamptz
 }
+note right of plans
+  -1 = unlimited (ENTERPRISE)
+  features: Array of feature flag strings
+end note
 
 entity "workspace_subscriptions" as subscriptions <<PostgreSQL>> {
   * id : uuid <<PK>>
@@ -179,6 +223,10 @@ entity "workspace_subscriptions" as subscriptions <<PostgreSQL>> {
   * created_at : timestamptz
   * updated_at : timestamptz
 }
+note right of subscriptions
+  workspace_id is a REAL FK (not soft ref)
+  workspaces was moved from MongoDB to PostgreSQL
+end note
 
 entity "invoices" as invoices <<PostgreSQL>> {
   * id : uuid <<PK>>
@@ -197,6 +245,10 @@ entity "invoices" as invoices <<PostgreSQL>> {
   * created_at : timestamptz
   * updated_at : timestamptz
 }
+note right of invoices
+  Immutable after status = ISSUED
+  currency default: VND
+end note
 
 entity "payments" as payments <<PostgreSQL>> {
   * id : uuid <<PK>>
@@ -213,6 +265,10 @@ entity "payments" as payments <<PostgreSQL>> {
   * created_at : timestamptz
   * updated_at : timestamptz
 }
+note right of payments
+  payment_method: bank_transfer|momo|vnpay|stripe
+  UNIQUE(transaction_id) prevents double-charge
+end note
 
 entity "audit_logs" as audit <<PostgreSQL>> {
   * id : bigserial <<PK>>
@@ -228,16 +284,21 @@ entity "audit_logs" as audit <<PostgreSQL>> {
   user_agent : varchar
   * created_at : timestamptz
 }
+note right of audit
+  Append-only: UPDATE/DELETE trigger RAISE EXCEPTION
+  workspace_id nullable (ADMIN global actions)
+  user_id = soft ref intentional (compliance: log must persist after user deleted)
+end note
 
 ' ============================================================
-' MONGODB COLLECTIONS
+' MONGODB COLLECTIONS (8 collections)
 ' ============================================================
 
 entity "social_accounts" as social <<MongoDB>> {
   * _id : ObjectId <<PK>>
   --
-  * workspaceId : string <<soft ref PG>>
-  clientId : string <<soft ref PG>>
+  * workspaceId : string <<soft ref PG workspaces>>
+  clientId : string <<soft ref PG clients>>
   * platform : social_platform
   * accountName : string
   * accountId : string
@@ -252,13 +313,17 @@ entity "social_accounts" as social <<MongoDB>> {
   * createdAt : date
   * updatedAt : date
 }
+note bottom of social
+  AES-256-GCM encrypted tokens
+  Index: {workspaceId, platform, accountId} UNIQUE
+end note
 
 entity "posts" as posts <<MongoDB>> {
   * _id : ObjectId <<PK>>
   --
-  * workspaceId : string <<soft ref PG>>
-  clientId : string <<soft ref PG>>
-  * createdBy : string <<soft ref PG>>
+  * workspaceId : string <<soft ref PG workspaces>>
+  clientId : string <<soft ref PG clients>>
+  * createdBy : string <<soft ref PG users>>
   title : string
   * contentText : string
   mediaUrls : string[]
@@ -275,14 +340,18 @@ entity "posts" as posts <<MongoDB>> {
   * createdAt : date
   * updatedAt : date
 }
+note bottom of posts
+  approvalHistory: [{userId, action, at}] inline
+  Index: {workspaceId, status}, {workspaceId, scheduledAt}
+end note
 
 entity "content_requests" as cr <<MongoDB>> {
   * _id : ObjectId <<PK>>
   --
-  * workspaceId : string <<soft ref PG>>
-  clientId : string <<soft ref PG>>
-  * requestedBy : string <<soft ref PG>>
-  assignedTo : string <<soft ref PG>>
+  * workspaceId : string <<soft ref PG workspaces>>
+  clientId : string <<soft ref PG clients>>
+  * requestedBy : string <<soft ref PG users>>
+  assignedTo : string <<soft ref PG users>>
   * title : string
   description : string
   tone : string
@@ -299,8 +368,8 @@ entity "content_requests" as cr <<MongoDB>> {
 entity "knowledge_documents" as kdocs <<MongoDB>> {
   * _id : ObjectId <<PK>>
   --
-  * workspaceId : string <<soft ref PG>>
-  clientId : string <<soft ref PG>>
+  * workspaceId : string <<soft ref PG workspaces>>
+  clientId : string <<soft ref PG clients>>
   * title : string
   * content : string
   sourceUrl : string
@@ -311,12 +380,17 @@ entity "knowledge_documents" as kdocs <<MongoDB>> {
   * createdAt : date
   * updatedAt : date
 }
+note bottom of kdocs
+  content = raw text stored here
+  chunkIds = vector IDs in ChromaDB
+  ai-service only
+end note
 
 entity "notifications" as notifs <<MongoDB>> {
   * _id : ObjectId <<PK>>
   --
-  * workspaceId : string <<soft ref PG>>
-  * userId : string <<soft ref PG>>
+  * workspaceId : string <<soft ref PG workspaces>>
+  * userId : string <<soft ref PG users>>
   * type : notification_type
   * title : string
   body : string
@@ -324,12 +398,16 @@ entity "notifications" as notifs <<MongoDB>> {
   * isRead : boolean
   * createdAt : date <<TTL 30d>>
 }
+note bottom of notifs
+  TTL index on createdAt (30 days)
+  High volume — no JOIN needed
+end note
 
 entity "publish_logs" as pub_logs <<MongoDB>> {
   * _id : ObjectId <<PK>>
   --
-  * workspaceId : string <<soft ref PG>>
-  * postId : string <<soft ref>>
+  * workspaceId : string <<soft ref PG workspaces>>
+  * postId : string <<soft ref posts>>
   * platform : social_platform
   socialAccountId : string
   * result : publish_result
@@ -339,12 +417,16 @@ entity "publish_logs" as pub_logs <<MongoDB>> {
   publishedAt : date
   * createdAt : date
 }
+note bottom of pub_logs
+  publisher-service only
+  Append-only, high write, retry tracking
+end note
 
 entity "ai_usage_logs" as ai_logs <<MongoDB>> {
   * _id : ObjectId <<PK>>
   --
-  * workspaceId : string <<soft ref PG>>
-  userId : string <<soft ref PG>>
+  * workspaceId : string <<soft ref PG workspaces>>
+  userId : string <<soft ref PG users>>
   * feature : string
   * model : string
   inputTokens : int
@@ -355,13 +437,18 @@ entity "ai_usage_logs" as ai_logs <<MongoDB>> {
   errorCode : string
   * createdAt : date
 }
+note bottom of ai_logs
+  ai-service only
+  feature: content_gen|image_gen|video_gen|rag
+  model: llama3|sdxl|veo|instantid
+end note
 
 entity "report_jobs" as report_jobs <<MongoDB>> {
   * _id : ObjectId <<PK>>
   --
-  * workspaceId : string <<soft ref PG>>
-  clientId : string <<soft ref PG>>
-  * requestedBy : string <<soft ref PG>>
+  * workspaceId : string <<soft ref PG workspaces>>
+  clientId : string <<soft ref PG clients>>
+  * requestedBy : string <<soft ref PG users>>
   * status : report_job_status
   * dateFrom : date
   * dateTo : date
@@ -372,34 +459,34 @@ entity "report_jobs" as report_jobs <<MongoDB>> {
 }
 
 ' ============================================================
-' RELATIONSHIPS — PostgreSQL
+' RELATIONSHIPS — PostgreSQL (real FK lines)
+' Rule: one line per table pair to avoid crossing arrows.
+' Secondary FKs (invited_by, accepted_by, granted_by, portal_user_id,
+' assigned_manager_id) annotated inside entity body — not drawn as lines.
 ' ============================================================
-' Rule: only 1 line per table pair to avoid crossing arrows.
-' Secondary FKs (invited_by, accepted_by, granted_by, portal_user, manager)
-' are annotated as <<FK>> inside the entity body — not drawn as lines.
 
-' Identity chain — all radiate out from users
-users           ||--o{ oauth            : " "
-users           ||--o{ refresh_tokens   : " "
-users           ||--o| system_roles     : " "
-users           ||--o{ pwd_reset        : " "
+' Identity chain — radiate from users
+users           ||--o{ oauth            : "user_id"
+users           ||--o{ refresh_tokens   : "user_id"
+users           ||--o| system_roles     : "user_id"
+users           ||--o{ pwd_reset        : "user_id"
 
-' Workspace hub — workspaces connects to everything in workspace group
-workspaces      }o--||  users           : "owner"
-workspaces      ||--o{ wm               : " "
-workspaces      ||--o{ invitations      : " "
-workspaces      ||--|{ clients          : " "
-workspaces      ||--||  subscriptions   : " "
-workspaces      ||--o{ invoices         : " "
-workspaces      ||--o{ payments         : " "
+' Workspace hub
+workspaces      }o--||  users           : "owner_id"
+workspaces      ||--o{ wm               : "workspace_id"
+workspaces      ||--o{ invitations      : "workspace_id"
+workspaces      ||--|{ clients          : "workspace_id"
+workspaces      ||--||  subscriptions   : "workspace_id"
+workspaces      ||--o{ invoices         : "workspace_id"
+workspaces      ||--o{ payments         : "workspace_id"
 
-' workspace_members chains
-wm              }o--||  users           : "member"
-wm              ||--o{ perms            : " "
+' Workspace members chain
+wm              }o--||  users           : "user_id"
+wm              ||--o{ perms            : "workspace_member_id"
 
 ' Billing chain
-subscriptions   }o--||  plans           : " "
-invoices        }o--||  subscriptions   : " "
-payments        }o--||  invoices        : " "
+subscriptions   }o--||  plans           : "plan_id"
+invoices        }o--||  subscriptions   : "subscription_id"
+payments        }o--||  invoices        : "invoice_id"
 
 @enduml
