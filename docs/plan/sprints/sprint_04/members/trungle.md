@@ -10,7 +10,7 @@
 | GitHub | [@trungle] |
 | Role | Leader / Backend Engineer |
 | Sprint | Sprint 4 |
-| Ngày nộp | 2026-07-03 (update: 2026-07-03)
+| Ngày nộp | 2026-07-01 |
 
 ---
 
