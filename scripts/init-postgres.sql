@@ -61,7 +61,7 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE audit_action AS ENUM ('LOGIN', 'LOGOUT', 'CREATE', 'UPDATE', 'DELETE', 'ROLE_CHANGE', 'PERMISSION_CHANGE');
+    CREATE TYPE audit_action AS ENUM ('LOGIN', 'LOGOUT', 'TOKEN_REFRESH', 'PASSWORD_RESET', 'CREATE', 'UPDATE', 'DELETE', 'ROLE_CHANGE', 'PERMISSION_CHANGE');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -99,6 +99,9 @@ CREATE TABLE IF NOT EXISTS users (
     preferences    JSONB        NOT NULL DEFAULT '{}',
     last_login_at  TIMESTAMPTZ,
     last_password_change TIMESTAMPTZ,
+    otp_code       VARCHAR(6),
+    otp_expiry     TIMESTAMPTZ,
+    email_verified_at TIMESTAMPTZ,
     created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
