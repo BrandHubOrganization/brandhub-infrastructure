@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS users (
     is_active      BOOLEAN      NOT NULL DEFAULT TRUE,
     preferences    JSONB        NOT NULL DEFAULT '{}',
     last_login_at  TIMESTAMPTZ,
+    last_password_change TIMESTAMPTZ,
     created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
