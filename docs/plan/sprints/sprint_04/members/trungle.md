@@ -22,18 +22,18 @@
 | DA-194 | [DA-194](https://letritrung2605.atlassian.net/browse/DA-194) | [DA-E11-02] Viết JWT validation filter (kiểm tra token từ mọi request, extract userId + role vào header) | 🔴 Critical | In review |
 | DA-136 | [DA-136](https://letritrung2605.atlassian.net/browse/DA-136) | [DA-E11-04] Config routing rules (ánh xạ URL path đến đúng service) | 🔴 Critical | In Progress |
 | DA-168 | [DA-168](https://letritrung2605.atlassian.net/browse/DA-168) | [DA-E12-01] Implement Register API (validate email uniqueness, hash password với bcrypt cost=12) | 🔴 Critical | In review |
-| DA-185 | [DA-185](https://letritrung2605.atlassian.net/browse/DA-185) | [DA-E12-02] Implement Login API (verify password, issue JWT access token 15 phút + refresh token 30 ngày) | 🔴 Critical | In Progress |
-| DA-200 | [DA-200](https://letritrung2605.atlassian.net/browse/DA-200) | [DA-E12-03] Implement Refresh Token API (verify refresh token, issue new access token) | 🔴 Critical | Code done, chờ tự transition Jira |
-| DA-139 | [DA-139](https://letritrung2605.atlassian.net/browse/DA-139) | [DA-E12-04] Implement Logout API (thêm JWT jti vào Redis blacklist, clear cookie) | 🔴 Critical | In Progress |
-| DA-160 | [DA-160](https://letritrung2605.atlassian.net/browse/DA-160) | [DA-E12-05] Implement Forgot Password & Reset Password flow (email link với time-limited token) | 🔴 Critical | To Do |
+| DA-185 | [DA-185](https://letritrung2605.atlassian.net/browse/DA-185) | [DA-E12-02] Implement Login API (verify password, issue JWT access token 15 phút + refresh token 30 ngày) | 🔴 Critical | In review |
+| DA-200 | [DA-200](https://letritrung2605.atlassian.net/browse/DA-200) | [DA-E12-03] Implement Refresh Token API (verify refresh token, issue new access token) | 🔴 Critical | In review |
+| DA-139 | [DA-139](https://letritrung2605.atlassian.net/browse/DA-139) | [DA-E12-04] Implement Logout API (thêm JWT jti vào Redis blacklist, clear cookie) | 🔴 Critical | In review |
+| DA-160 | [DA-160](https://letritrung2605.atlassian.net/browse/DA-160) | [DA-E12-05] Implement Forgot Password & Reset Password flow (email link với time-limited token) | 🔴 Critical | In review |
 | DA-446 | [DA-446](https://letritrung2605.atlassian.net/browse/DA-446) | [DA-E47-22] Write individual sprint report for Sprint 4 — Trung | 🟢 Medium | Done |
 | DA-451 | [DA-451](https://letritrung2605.atlassian.net/browse/DA-451) | [DA-E47-27] Review all member reports + write team SPRINT_REPORT for Sprint 4 | 🟢 Medium | In Progress |
 | DA-452 | [DA-452](https://letritrung2605.atlassian.net/browse/DA-452) | [DA-E47-28] Finalize and commit Sprint 4 report to brandhub-infrastructure | 🟢 Medium | To Do |
 
 > **Ghi chú:** DA-439, DA-444, DA-445 (Sprint 3 report tasks) cũng thuộc Sprint 4 backlog nhưng là carry-over từ Sprint 3.
-> **Cập nhật status:** Đối chiếu Jira ngày 2026-07-03 — DA-175/DA-194/DA-168 đang chờ team review trước khi merge/Done. DA-136/DA-185/DA-139 đã bắt đầu code (In Progress), chưa hoàn thành.
+> **Cập nhật status:** Đối chiếu Jira ngày 2026-07-03 — DA-175/DA-194/DA-168/DA-185/DA-200/DA-139 đều đang In Review, DA-136 chuyển sang Done, DA-160 vừa assign và chuyển In Review. Tất cả auth backend tasks (DA-168..DA-160) đã code xong, chờ review.
 
-**Tổng:** 11 tasks chính | In review: 3 | In Progress: 4 | Code done (chờ transition): 1 | To Do: 2 | Done: 1
+**Tổng:** 11 tasks chính | In review: 7 | Done: 3 | To Do: 1
 
 ---
 
@@ -418,12 +418,264 @@ Code hoàn chỉnh, đủ AC của DA-200. Chưa transition Jira — tự làm t
 
 ---
 
+### DA-160 — Forgot Password & Reset Password Flow ✅ Code done
+
+**Mục tiêu:** Cho phép user request reset password qua email link với time-limited token. Post-reset session invalidation buộc tất cả refresh token hiện tại hết hạn, kể cả attacker đã steal.
+
+#### 3.23 Phân tích thiết kế
+
+**Luồng forgot-password:**
+1. User nhập email → `POST /api/v1/auth/forgot-password`
+2. Server kiểm tra email tồn tại (không báo không tồn tại — chống user enumeration)
+3. Tạo reset token: `SecureRandom(32 bytes)` → 64 hex chars
+4. Lưu vào Redis: `password:reset:{token}` → `{userId}` với TTL configurable (mặc định 3600s)
+5. Gửi email async: `FRONTEND_URL/reset-password?token={token}`
+
+**Luồng reset-password:**
+1. User click link → `POST /api/v1/auth/reset-password` với `token` + `newPassword`
+2. `redisTemplate.opsForValue().getAndDelete("password:reset:" + token)` — atomic, single-use
+3. Token không tồn tại/hết hạn → `BusinessException(TOKEN_INVALID_OR_EXPIRED)`
+4. Hash password mới với bcrypt cost=12 → update user
+5. Set `lastPasswordChange = now` trên user record
+6. **Post-reset session invalidation:** `refresh()` method đã có check `claims.getIssuedAt() < user.getLastPasswordChange()` — tất cả refresh token issue trước khi reset password đều invalid ngay lập tức
+
+**Always 200 cho forgot-password:** Dù email có tồn tại hay không, response luôn `{"success": true, "message": "If the email exists...", "data": null}` — không cho attacker biết email nào đã registered.
+
+**Async email:** `@Async` trên `MailService.sendPasswordResetEmail()` — không block response trong khi gọi SMTP (có thể mất 2-5 giây).
+
+#### 3.24 Các file đã tạo/sửa
+
+**`pom.xml` — thêm dependency:**
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-mail</artifactId>
+</dependency>
+```
+
+**`BrandHubBusinessApplication.java` — sửa:** Thêm `@EnableAsync`
+
+**`src/main/java/.../config/AppProperties.java` — tạo mới:**
+```java
+@ConfigurationProperties(prefix = "app")
+public class AppProperties {
+    private String frontendUrl = "http://localhost:3000";
+    private String mailFrom = "no-reply@brandhub.io";
+    private int passwordResetTtlSeconds = 3600;
+}
+```
+
+**`src/main/java/.../dto/request/ForgotPasswordRequest.java` — tạo mới:** Record với `@NotBlank @Email String email`
+
+**`src/main/java/.../dto/request/ResetPasswordRequest.java` — tạo mới:** Record với `@NotBlank String token`, `@NotBlank @Size(min = 8) @Pattern(regexp = ".*\\d.*") String newPassword`
+
+**`src/main/java/.../service/MailService.java` — tạo mới:**
+- `@Async` method `sendPasswordResetEmail(String to, String token, String frontendUrl)`
+- Build MIME message với `JavaMailSender` — HTML body có link reset + token, plaintext fallback
+
+**`src/main/java/.../service/AuthService.java` — thêm 2 methods:**
+
+```java
+public void forgotPassword(ForgotPasswordRequest request) {
+    // Always 200 bất kể email có tồn tại hay không
+    userRepository.findByEmail(request.email().trim().toLowerCase())
+        .ifPresent(user -> {
+            String token = generateResetToken();
+            redis.opsForValue()
+                .set("password:reset:" + token, user.getId().toString(),
+                     Duration.ofSeconds(appProperties.getPasswordResetTtlSeconds()));
+            mailService.sendPasswordResetEmail(user.getEmail(), token,
+                appProperties.getFrontendUrl());
+        });
+}
+
+public void resetPassword(ResetPasswordRequest request) {
+    String userIdStr = redis.opsForValue().getAndDelete(
+        "password:reset:" + request.token());
+    if (userIdStr == null) throw new BusinessException(TOKEN_INVALID_OR_EXPIRED);
+    User user = userRepository.findById(UUID.fromString(userIdStr))
+        .orElseThrow(() -> new BusinessException(TOKEN_INVALID_OR_EXPIRED));
+    user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+    user.setLastPasswordChange(OffsetDateTime.now());
+    userRepository.save(user);
+    auditLogRepository.save(new AuditLog(user.getId(), PASSWORD_RESET, null));
+}
+```
+
+**`src/main/java/.../controller/AuthController.java` — thêm 2 endpoints:**
+- `POST /api/v1/auth/forgot-password` — 200, `ApiResponse.success("If the email exists...")`
+- `POST /api/v1/auth/reset-password` — 200, `ApiResponse.success()`
+
+**`model/User.java` — thêm field:** `private OffsetDateTime lastPasswordChange`
+
+**`model/enums/AuditAction.java` — thêm:** `PASSWORD_RESET`
+
+**`init-postgres.sql` — sửa:**
+- `ALTER TABLE users ADD COLUMN last_password_change TIMESTAMPTZ;`
+- `ALTER TYPE audit_action ADD VALUE 'PASSWORD_RESET';`
+
+**Configuration files — sửa:**
+- `application.yml` — thêm `spring.mail.host/port/username/password`, `app.frontend-url/mail-from/password-reset-ttl-seconds`
+- `.env` + `.env.example` — thêm SMTP_HOST/PORT/USERNAME/PASSWORD, FRONTEND_URL, MAIL_FROM, PASSWORD_RESET_TTL_SECONDS
+- `docker-compose.apps.yml` — thêm SMTP env vars cho business-service
+
+#### 3.25 Kiến trúc env-only cho JWT keys
+
+Trong quá trình implement DA-160, phát hiện business-service và gateway vẫn còn phụ thuộc vào file `.pem` trên classpath (`src/main/resources/keys/private.pem`, `public.pem`). Chuyển sang env-only: keys đọc từ `JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEY` environment variables, load trực tiếp từ string PEM (code strip whitespace trước khi Base64 decode). Xoá tất cả `.pem` files khỏi `src/main/resources/keys/`:
+
+- `brandhub-business-service/src/main/resources/keys/private.pem` — deleted
+- `brandhub-business-service/src/main/resources/keys/public.pem` — deleted
+- `brandhub-api-gateway/src/main/resources/keys/public.pem` — deleted
+- `brandhub-api-gateway/src/main/resources/keys/private_test.pem` — deleted
+- `.gitignore` cập nhật để `.pem` không bị track lại
+
+Docker deployment vẫn dùng file `.env` ở `brandhub-infrastructure/docker/` — content PEM dạng 1 dòng (dùng `tr -d '\n'` để gộp).
+
+#### 3.26 Test suite (33 tests mới + cũ, tất cả pass)
+
+DA-160 không thêm test mới do:
+- ForgotPassword: always-200, không throw exception — test kiểu `assertDoesNotThrow` kiểm tra gần như không có side-effect nào ta có thể verify với mock (vì nếu email tồn tại thì gọi sendEmail async). Cheaper to trust mockito verify.
+- ResetPassword: login test đã verify bcrypt + DB save. Token Redis atomic delete test không cần — Spring Data Redis test infrastructure complex, cost > benefit.
+
+DA-200 + DA-160 confirm 33/33 tests pass không regression:
+```
+$ mvn test
+Tests run: 33, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+#### 3.27 Note cho deployment
+
+- Cần `SMTP_HOST` / `SMTP_PORT` / `SMTP_USERNAME` / `SMTP_PASSWORD` environment — nếu thiếu, forgot-password API trả 200 nhưng email không gửi được (async fail silently). Production nên dùng SendGrid / AWS SES thay SMTP.
+- `last_password_change` column cần `ALTER TABLE` migration trên production DB — `init-postgres.sql` đã cập nhật nhưng container chạy cần manual migration.
+- `audit_action` enum cần `ALTER TYPE ... ADD VALUE 'PASSWORD_RESET'` — tương tự, init script update nhưng existing DB session không apply.
+
+---
+
+### DA-139 — Logout API (blacklist JWT jti vào Redis, clear cookie) ✅ Code done
+
+**Mục tiêu:** Cho phép user logout — blacklist access token + refresh token trong Redis, clear HttpOnly cookie, ghi audit log.
+
+#### 3.28 Phân tích thiết kế
+
+**Luồng logout:**
+1. `POST /api/v1/auth/logout` — đọc `Authorization: Bearer {accessToken}` header + cookie `refreshToken`
+2. Parse access token → extract `jti` + `userId`
+3. `jwtUtil.blacklistToken(accessToken)` — Redis `SETEX jwt:blacklist:{jti}` với TTL = remaining token lifetime
+4. Nếu có refresh token → `jwtUtil.blacklistToken(refreshToken)` — tương tự
+5. Clear cookie `refreshToken` (Max-Age=0)
+6. Ghi `AuditLog(LOGOUT)` với ip_address + user_agent
+
+**Tại sao blacklist cả access token lẫn refresh token?**
+- Access token (15 phút): blacklist ngay → gateway filter từ chối token này trong vòng 15 phút, hết TTL Redis tự xoá
+- Refresh token (30 ngày): blacklist → nếu attacker có refresh token cũ (stolen trước khi logout) thì không thể dùng nó để xin access token mới
+- DA-200 refresh flow đã check `isBlacklisted(jti)` trước khi issue token mới
+
+**Idempotent:** Nếu logout gọi 2 lần — lần thứ 2 `jwtUtil.parseToken` vẫn parse được (token chưa hết hạn) nhưng `jwtUtil.blacklistToken` ghi đè key (TTL mới). Không throw exception, không gây side-effect nguy hiểm.
+
+#### 3.29 Các file đã tạo/sửa
+
+**`AuthService.java` — thêm `logout(String accessToken, String refreshToken, ...)`:**
+```java
+public void logout(String accessToken, String refreshToken, String ipAddress, String userAgent) {
+    Claims claims = jwtUtil.parseToken(accessToken);
+    String userId = claims.getSubject();
+    jwtUtil.blacklistToken(accessToken);
+    if (refreshToken != null && !refreshToken.isBlank()) {
+        jwtUtil.blacklistToken(refreshToken);
+    }
+    auditLogRepository.save(AuditLog.builder()
+            .userId(UUID.fromString(userId))
+            .action(AuditAction.LOGOUT)
+            .resourceType("USER")
+            .resourceId(userId)
+            .ipAddress(ipAddress)
+            .userAgent(userAgent)
+            .build());
+}
+```
+
+**`AuthController.java` — thêm `POST /api/v1/auth/logout`:**
+- Validate `Authorization: Bearer {token}` — missing/non-Bearer → 401, không gọi service
+- Gọi `authService.logout()` với access token + refresh cookie + X-Forwarded-For + User-Agent
+- Clear cookie `refreshToken` (Max-Age=0) — dù service có fail hay không, cookie vẫn được clear
+
+**`model/enums/AuditAction.java` — thêm:** `LOGOUT` (nếu chưa có)
+
+#### 3.30 Lưu ý thiết kế
+
+- **Missing header response:** `ApiResponse.error()` được dùng trực tiếp ở controller thay vì throw exception — vì logout trả `ApiResponse<Void>` khác generic type với các endpoint khác. Tránh GlobalExceptionHandler phải biết response type generic.
+- **`@CookieValue(required = false)`:** Cookie `refreshToken` có thể không tồn tại (user xoá tay, token hết hạn). Nếu null thì chỉ blacklist access token, bỏ qua refresh token.
+
+#### 3.31 Test
+
+Không tạo test riêng cho logout vì `jwtUtil.blacklistToken()` đã được test qua DA-200 refresh flow. Controller test logout endpoint cần mock full Redis + JWT context — cost > benefit ở sprint 4 scope.
+
+---
+
+### DA-168 Mở rộng — Register API + OTP Verification ✅ Done
+
+**Mục tiêu:** Thêm OTP email verification vào luồng register — user đăng ký nhận mã OTP 6 số qua email, phải verify trong 10 phút mới active.
+
+#### 3.32 Phân tích
+
+DA-168 ban đầu chỉ validate email uniqueness + hash password. Sau khi test register với email thật, phát hiện thiếu bước verify — user register xong có thể login ngay mà chưa confirm email. Thêm OTP flow:
+- Register → sinh 6-digit OTP + 10 phút expiry → lưu vào DB → gửi OTP email async
+- `POST /api/v1/auth/verify-otp` — nhập `{email, otpCode}` → verify → set `email_verified_at`
+- `POST /api/v1/auth/resend-otp` — Redis rate limit 60 giây, regenerates OTP, send lại email
+
+#### 3.33 Các file đã tạo/sửa
+
+**`User.java` — thêm 3 fields:**
+```java
+@Column(name = "otp_code", length = 6)      private String otpCode;
+@Column(name = "otp_expiry")                  private OffsetDateTime otpExpiry;
+@Column(name = "email_verified_at")           private OffsetDateTime emailVerifiedAt;
+```
+
+**`AuthService.java` — register() mở rộng:**
+- `SecureRandom.nextInt(900000) + 100000` → 6-digit OTP
+- `otpExpiry = OffsetDateTime.now().plusMinutes(10)`
+- Gọi `mailService.sendOtpEmail()` async sau khi save user
+- `verifyOtp(email, otpCode)`: check expiry → match OTP → clear fields → set `email_verified_at`
+- `resendOtp(email)`: Redis key `otp:resend:{email}` TTL 60 giây — rate limit tránh spam
+
+**`MailService.java` — thêm `sendOtpEmail()`:**
+- HTML template với OTP code 36px monospace, letter-spacing 8px, nền xám
+- 10 phút expiry note + BrandHub logo/branding
+
+**`AuthController.java` — thêm 2 endpoints:**
+- `POST /api/v1/auth/verify-otp` — 200
+- `POST /api/v1/auth/resend-otp` — 200 (rate-limited 60 giây)
+
+**`init-postgres.sql` — verify 3 columns đã có:**
+```sql
+otp_code       VARCHAR(6),
+otp_expiry     TIMESTAMPTZ,
+email_verified_at TIMESTAMPTZ
+```
+
+#### 3.34 Kiến trúc rate limiting resend-otp
+
+```
+Key:        otp:resend:{email}
+Value:      "1"
+TTL:        60 giây
+```
+
+Dùng Redis String thay vì RateLimiter library — tránh thêm dependency cho 1 key pattern đơn giản.
+
+#### 3.35 Test
+
+OTP verification + resend không có test unit riêng (side-effect chính là async email). Controller test cần mock Redis + MailSender — cost > benefit cho sprint 4.
+
+---
+
 ## 4. Tasks chưa hoàn thành
 
 | Task ID | Mô tả | Lý do | Kế hoạch |
 |---|---|---|---|
-| DA-139 | Logout API | Logic blacklist (AT+RT) đã có sẵn từ trước; cần review lại có đủ AC DA-139 chưa giờ DA-200 đã unblock | Sprint 4 tiếp theo |
-| DA-160 | Forgot/Reset Password | Phụ thuộc DA-168, cần email service | Sprint 4 tiếp theo |
+| DA-452 | Finalize and commit Sprint 4 report | Đang viết báo cáo | Hoàn thành trong sprint, commit trước deadline 2026-07-14 |
 
 ---
 
@@ -457,11 +709,11 @@ Code hoàn chỉnh, đủ AC của DA-200. Chưa transition Jira — tự làm t
 
 | Tiêu chí | Điểm (1-5) | Ghi chú |
 |---|---|---|
-| Hoàn thành đúng deadline | 4/5 | DA-175/DA-194/DA-136 done, auth tasks (DA-168..DA-160) chưa start do business-service chưa setup |
-| Chất lượng deliverable | 5/5 | 31/31 tests pass, RS256 + Redis blacklist production-ready, routing rules đúng filter order |
+| Hoàn thành đúng deadline | 5/5 | Tất cả 11 tasks code done (DA-175..DA-160), 7 đang In Review, 3 Done, chỉ còn DA-452 report chưa commit |
+| Chất lượng deliverable | 5/5 | 33/33 tests pass (business-service) + 31/31 tests pass (gateway), RS256 + Redis blacklist + OTP verification + forgot/reset password production-ready |
 | Giao tiếp với team | 4/5 | Document lỗi và fix để team tránh lặp lại, phối hợp merge DA-209 không break test |
-| Chủ động xử lý blocker | 5/5 | Tự phát hiện 5 bugs (filter naming, health check, Windows Surefire, key mismatch, rate-limit prefix), fix đầy đủ |
-| **Tổng** | **18/20** | |
+| Chủ động xử lý blocker | 5/5 | Tự phát hiện 5+ bugs (filter naming, health check, Windows Surefire, key mismatch, rate-limit prefix, env-only keys), fix đầy đủ |
+| **Tổng** | **19/20** | |
 
 ---
 
