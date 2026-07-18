@@ -15,13 +15,12 @@
 |---|---|---|
 | E15 | Workspace Management | Trung |
 | E16 | Client & Agency Management | Trung |
-| E17 | Subscription & Billing | Trung, Ân |
+
+> 🔀 **E17 (Subscription & Billing) đã dời sang Sprint 9** để giảm tải Trung ở Sprint 5–6 (25 task Auth+RBAC+Workspace+Client+Subscription dồn 2 sprint liên tiếp). Subscription không block gì gấp. Chi tiết: [Rebalance Log](../../Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4).
 
 **Deliverables by end of Sprint 6:**
 - Full workspace CRUD: create, get, invite member, remove member, settings
 - Client management: create, assign account manager, set service package, list
-- Subscription plans CRUD (Admin)
-- Subscribe to plan + payment flow + invoice history
 
 ---
 
@@ -65,31 +64,7 @@
 
 ---
 
-## EPIC E17 — Subscription & Billing
-
-| Task ID | Description | Assignee | Priority |
-|---|---|---|---|
-| DA-E17-01 | Implement Admin CRUD for subscription plans (Free/Basic/Pro/Enterprise) | Trung (Leader) | 🔴 Critical |
-| DA-E17-02 | Implement POST /api/v1/subscriptions/subscribe (AGENCY_OWNER subscribes to a plan) | Trung (Leader) | 🔴 Critical |
-| DA-E17-03 | Implement payment flow (integrate payment gateway, create invoice) | Trung (Leader) | 🔴 Critical |
-| DA-E17-04 | Implement GET /api/v1/subscriptions/invoices (billing history) | Ân (AI) | 🟡 High |
-
-**Subscription plans (seed data from Sprint 4):**
-
-| Plan | Price | Clients | Posts/mo | AI Credits/mo |
-|---|---|---|---|---|
-| Free | $0 | 1 | 10 | 20 |
-| Basic | $29 | 5 | 50 | 100 |
-| Pro | $79 | 20 | 200 | 500 |
-| Enterprise | $199 | Unlimited | Unlimited | 2000 |
-
-**Payment gateway (DA-E17-03):** Use Stripe (test mode for capstone). Flow: `POST /subscribe` → create Stripe PaymentIntent → client confirms → webhook callback → create `invoices` record + activate subscription.
-
-**Notes:**
-- DA-E17-03 Stripe integration: store only Stripe customer ID and subscription ID in PostgreSQL, never raw card data.
-- Invoice PDF generation is out of scope for MVP — store invoice data as JSON, PDF generation in Sprint 16 if time permits.
-
----
+> 🔀 **EPIC E17 (Subscription & Billing) đã dời sang Sprint 9** — xem PLAN.md của Sprint 9 để biết chi tiết task, subscription plans seed data, và Stripe payment flow.
 
 ## Sprint 6 Checklist
 
@@ -100,7 +75,3 @@
 - [ ] POST /api/v1/clients creates client under workspace
 - [ ] Assign account manager: client.assignedAccountManagerId updated
 - [ ] Service package set: postsPerMonth + platforms enforced
-- [ ] Admin can create/edit/delete subscription plans
-- [ ] AGENCY_OWNER can subscribe to a plan via Stripe test mode
-- [ ] Invoice record created after successful payment
-- [ ] GET /api/v1/subscriptions/invoices returns paginated invoice history

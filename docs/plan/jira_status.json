@@ -1,0 +1,2251 @@
+{
+  "exportedAt": "2026-07-15 05:46:41",
+  "project": "DA",
+  "total": 374,
+  "tasks": [
+    {
+      "taskId": "DA-E06-03",
+      "jiraKey": "DA-132",
+      "status": "Done",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E14-04",
+      "jiraKey": "DA-135",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E11-04",
+      "jiraKey": "DA-136",
+      "status": "In review",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E12-04",
+      "jiraKey": "DA-139",
+      "status": "In review",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E10-04",
+      "jiraKey": "DA-140",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E13-03",
+      "jiraKey": "DA-141",
+      "status": "In review",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E09-04",
+      "jiraKey": "DA-142",
+      "status": "In review",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E07-05",
+      "jiraKey": "DA-143",
+      "status": "Done",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E06-08",
+      "jiraKey": "DA-146",
+      "status": "Done",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E06-04",
+      "jiraKey": "DA-149",
+      "status": "Done",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E09-05",
+      "jiraKey": "DA-152",
+      "status": "In review",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E15-01",
+      "jiraKey": "DA-154",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E07-06",
+      "jiraKey": "DA-155",
+      "status": "In review",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E11-05",
+      "jiraKey": "DA-156",
+      "status": "In review",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E08-04",
+      "jiraKey": "DA-157",
+      "status": "Done",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E13-04",
+      "jiraKey": "DA-158",
+      "status": "In review",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E10-05",
+      "jiraKey": "DA-159",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E12-05",
+      "jiraKey": "DA-160",
+      "status": "In review",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E07-01",
+      "jiraKey": "DA-162",
+      "status": "Done",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E15-02",
+      "jiraKey": "DA-165",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E06-05",
+      "jiraKey": "DA-166",
+      "status": "Done",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E12-01",
+      "jiraKey": "DA-168",
+      "status": "In review",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E10-01",
+      "jiraKey": "DA-170",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E07-07",
+      "jiraKey": "DA-172",
+      "status": "In review",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E09-01",
+      "jiraKey": "DA-173",
+      "status": "In review",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E11-01",
+      "jiraKey": "DA-175",
+      "status": "In review",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E14-01",
+      "jiraKey": "DA-176",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E12-06",
+      "jiraKey": "DA-177",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E07-02",
+      "jiraKey": "DA-179",
+      "status": "In review",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E15-03",
+      "jiraKey": "DA-181",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E10-02",
+      "jiraKey": "DA-183",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E06-06",
+      "jiraKey": "DA-184",
+      "status": "In review",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E12-02",
+      "jiraKey": "DA-185",
+      "status": "In review",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E09-02",
+      "jiraKey": "DA-187",
+      "status": "In review",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E06-01",
+      "jiraKey": "DA-188",
+      "status": "Done",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E13-01",
+      "jiraKey": "DA-191",
+      "status": "In review",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E08-01",
+      "jiraKey": "DA-192",
+      "status": "Done",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E14-02",
+      "jiraKey": "DA-193",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E11-02",
+      "jiraKey": "DA-194",
+      "status": "In review",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E07-03",
+      "jiraKey": "DA-196",
+      "status": "In review",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E15-04",
+      "jiraKey": "DA-198",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E10-03",
+      "jiraKey": "DA-199",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E12-03",
+      "jiraKey": "DA-200",
+      "status": "In review",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E06-07",
+      "jiraKey": "DA-201",
+      "status": "Done",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E09-03",
+      "jiraKey": "DA-203",
+      "status": "In review",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E06-02",
+      "jiraKey": "DA-204",
+      "status": "Done",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E13-02",
+      "jiraKey": "DA-206",
+      "status": "In review",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E08-02",
+      "jiraKey": "DA-207",
+      "status": "In review",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E14-03",
+      "jiraKey": "DA-208",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E11-03",
+      "jiraKey": "DA-209",
+      "status": "In review",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E07-04",
+      "jiraKey": "DA-210",
+      "status": "Done",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E15-05",
+      "jiraKey": "DA-211",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E18-02",
+      "jiraKey": "DA-212",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E21-01",
+      "jiraKey": "DA-213",
+      "status": "In review",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E21-06",
+      "jiraKey": "DA-214",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E17-01",
+      "jiraKey": "DA-215",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E19-03",
+      "jiraKey": "DA-216",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E23-01",
+      "jiraKey": "DA-218",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI03-03",
+      "jiraKey": "DA-219",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E16-01",
+      "jiraKey": "DA-220",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E24-01",
+      "jiraKey": "DA-221",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI03-08",
+      "jiraKey": "DA-222",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI02-05",
+      "jiraKey": "DA-223",
+      "status": "Done",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-AI06-01",
+      "jiraKey": "DA-224",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI05-02",
+      "jiraKey": "DA-225",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E21-02",
+      "jiraKey": "DA-227",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E18-03",
+      "jiraKey": "DA-228",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E21-07",
+      "jiraKey": "DA-229",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E17-02",
+      "jiraKey": "DA-230",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI04-05",
+      "jiraKey": "DA-231",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E19-04",
+      "jiraKey": "DA-232",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI03-04",
+      "jiraKey": "DA-233",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E23-02",
+      "jiraKey": "DA-234",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI02-01",
+      "jiraKey": "DA-235",
+      "status": "Done",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E16-02",
+      "jiraKey": "DA-236",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI02-06",
+      "jiraKey": "DA-237",
+      "status": "Done",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E24-02",
+      "jiraKey": "DA-238",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI05-03",
+      "jiraKey": "DA-239",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI04-01",
+      "jiraKey": "DA-240",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI06-02",
+      "jiraKey": "DA-241",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E21-03",
+      "jiraKey": "DA-242",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E18-04",
+      "jiraKey": "DA-244",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E22-01",
+      "jiraKey": "DA-245",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI04-06",
+      "jiraKey": "DA-246",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E17-03",
+      "jiraKey": "DA-247",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E23-03",
+      "jiraKey": "DA-248",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E16-03",
+      "jiraKey": "DA-249",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E20-01",
+      "jiraKey": "DA-250",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI02-02",
+      "jiraKey": "DA-251",
+      "status": "Done",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-AI05-04",
+      "jiraKey": "DA-252",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI04-02",
+      "jiraKey": "DA-253",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI02-07",
+      "jiraKey": "DA-254",
+      "status": "Done",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-AI06-03",
+      "jiraKey": "DA-255",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI03-05",
+      "jiraKey": "DA-256",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E21-04",
+      "jiraKey": "DA-257",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E24-03",
+      "jiraKey": "DA-258",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E19-01",
+      "jiraKey": "DA-259",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI04-07",
+      "jiraKey": "DA-261",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E23-04",
+      "jiraKey": "DA-262",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E17-04",
+      "jiraKey": "DA-263",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E22-02",
+      "jiraKey": "DA-264",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI05-05",
+      "jiraKey": "DA-265",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E16-04",
+      "jiraKey": "DA-266",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E20-02",
+      "jiraKey": "DA-267",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI02-03",
+      "jiraKey": "DA-268",
+      "status": "Done",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-AI03-06",
+      "jiraKey": "DA-269",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI06-04",
+      "jiraKey": "DA-270",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI04-03",
+      "jiraKey": "DA-271",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E21-05",
+      "jiraKey": "DA-272",
+      "status": "In review",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-AI03-01",
+      "jiraKey": "DA-273",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI04-08",
+      "jiraKey": "DA-274",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E19-02",
+      "jiraKey": "DA-275",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E23-05",
+      "jiraKey": "DA-278",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI05-06",
+      "jiraKey": "DA-279",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E18-01",
+      "jiraKey": "DA-280",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI06-05",
+      "jiraKey": "DA-281",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E20-03",
+      "jiraKey": "DA-282",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E22-03",
+      "jiraKey": "DA-283",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI02-04",
+      "jiraKey": "DA-284",
+      "status": "Done",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-AI03-07",
+      "jiraKey": "DA-285",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI04-04",
+      "jiraKey": "DA-286",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI05-01",
+      "jiraKey": "DA-287",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI03-02",
+      "jiraKey": "DA-288",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI07-01",
+      "jiraKey": "DA-291",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI08-03",
+      "jiraKey": "DA-292",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E28-02",
+      "jiraKey": "DA-293",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI07-06",
+      "jiraKey": "DA-294",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI11-03",
+      "jiraKey": "DA-295",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI07-02",
+      "jiraKey": "DA-296",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI09-01",
+      "jiraKey": "DA-297",
+      "status": "Done",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-AI10-03",
+      "jiraKey": "DA-298",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI09-06",
+      "jiraKey": "DA-299",
+      "status": "In review",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E30-01",
+      "jiraKey": "DA-300",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E31-02",
+      "jiraKey": "DA-301",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E32-03",
+      "jiraKey": "DA-302",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E34-02",
+      "jiraKey": "DA-303",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E32-08",
+      "jiraKey": "DA-304",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E35-02",
+      "jiraKey": "DA-305",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI08-04",
+      "jiraKey": "DA-306",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E28-03",
+      "jiraKey": "DA-307",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI07-07",
+      "jiraKey": "DA-308",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI10-04",
+      "jiraKey": "DA-309",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI09-07",
+      "jiraKey": "DA-310",
+      "status": "In review",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E36-03",
+      "jiraKey": "DA-311",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI11-04",
+      "jiraKey": "DA-312",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI09-02",
+      "jiraKey": "DA-313",
+      "status": "In review",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E31-03",
+      "jiraKey": "DA-314",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E37-03",
+      "jiraKey": "DA-315",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI07-03",
+      "jiraKey": "DA-316",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E30-02",
+      "jiraKey": "DA-317",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E32-04",
+      "jiraKey": "DA-318",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E34-03",
+      "jiraKey": "DA-319",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-AI08-05",
+      "jiraKey": "DA-320",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E33-01",
+      "jiraKey": "DA-321",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E29-01",
+      "jiraKey": "DA-322",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E35-03",
+      "jiraKey": "DA-323",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI10-05",
+      "jiraKey": "DA-324",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI07-08",
+      "jiraKey": "DA-325",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI09-08",
+      "jiraKey": "DA-326",
+      "status": "In review",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E36-04",
+      "jiraKey": "DA-327",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI09-03",
+      "jiraKey": "DA-328",
+      "status": "In review",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E31-04",
+      "jiraKey": "DA-329",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI11-05",
+      "jiraKey": "DA-330",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E37-04",
+      "jiraKey": "DA-331",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI07-04",
+      "jiraKey": "DA-332",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E32-05",
+      "jiraKey": "DA-333",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E30-03",
+      "jiraKey": "DA-334",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E29-02",
+      "jiraKey": "DA-335",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E34-04",
+      "jiraKey": "DA-336",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-AI11-01",
+      "jiraKey": "DA-337",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI08-06",
+      "jiraKey": "DA-338",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E35-04",
+      "jiraKey": "DA-339",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E33-02",
+      "jiraKey": "DA-340",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI08-01",
+      "jiraKey": "DA-341",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI11-06",
+      "jiraKey": "DA-342",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI09-04",
+      "jiraKey": "DA-343",
+      "status": "In review",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-AI07-05",
+      "jiraKey": "DA-344",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI10-01",
+      "jiraKey": "DA-345",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E36-05",
+      "jiraKey": "DA-346",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E32-06",
+      "jiraKey": "DA-347",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E38-01",
+      "jiraKey": "DA-348",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E32-01",
+      "jiraKey": "DA-349",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E30-04",
+      "jiraKey": "DA-350",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI11-02",
+      "jiraKey": "DA-351",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI08-07",
+      "jiraKey": "DA-352",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E34-05",
+      "jiraKey": "DA-353",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E29-03",
+      "jiraKey": "DA-354",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI08-02",
+      "jiraKey": "DA-355",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E36-01",
+      "jiraKey": "DA-356",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E33-03",
+      "jiraKey": "DA-357",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI09-05",
+      "jiraKey": "DA-358",
+      "status": "In review",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E28-01",
+      "jiraKey": "DA-359",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-AI10-02",
+      "jiraKey": "DA-360",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E32-07",
+      "jiraKey": "DA-361",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E37-01",
+      "jiraKey": "DA-362",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E31-01",
+      "jiraKey": "DA-363",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E38-02",
+      "jiraKey": "DA-364",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E32-02",
+      "jiraKey": "DA-365",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E35-01",
+      "jiraKey": "DA-366",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E34-01",
+      "jiraKey": "DA-367",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E36-02",
+      "jiraKey": "DA-368",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E37-02",
+      "jiraKey": "DA-369",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E38-04",
+      "jiraKey": "DA-370",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E38-03",
+      "jiraKey": "DA-371",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E41-01",
+      "jiraKey": "DA-372",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E42-02",
+      "jiraKey": "DA-373",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E40-02",
+      "jiraKey": "DA-374",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E43-02",
+      "jiraKey": "DA-375",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E46-01",
+      "jiraKey": "DA-376",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E44-04",
+      "jiraKey": "DA-377",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E39-01",
+      "jiraKey": "DA-378",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E41-02",
+      "jiraKey": "DA-379",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E40-03",
+      "jiraKey": "DA-380",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E42-03",
+      "jiraKey": "DA-381",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E43-03",
+      "jiraKey": "DA-382",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E45-01",
+      "jiraKey": "DA-383",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E46-02",
+      "jiraKey": "DA-384",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E39-02",
+      "jiraKey": "DA-385",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E40-04",
+      "jiraKey": "DA-386",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E41-03",
+      "jiraKey": "DA-387",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E42-04",
+      "jiraKey": "DA-388",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E45-02",
+      "jiraKey": "DA-389",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E44-01",
+      "jiraKey": "DA-390",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E46-03",
+      "jiraKey": "DA-391",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E41-04",
+      "jiraKey": "DA-392",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E40-05",
+      "jiraKey": "DA-393",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E39-03",
+      "jiraKey": "DA-394",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E42-05",
+      "jiraKey": "DA-395",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E44-02",
+      "jiraKey": "DA-396",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E40-06",
+      "jiraKey": "DA-397",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E40-01",
+      "jiraKey": "DA-398",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E42-01",
+      "jiraKey": "DA-399",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E43-01",
+      "jiraKey": "DA-400",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E46-04",
+      "jiraKey": "DA-401",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E44-03",
+      "jiraKey": "DA-402",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E45-03",
+      "jiraKey": "DA-403",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E45-04",
+      "jiraKey": "DA-404",
+      "status": "To Do",
+      "assignee": null
+    },
+    {
+      "taskId": "DA-E08-05",
+      "jiraKey": "DA-405",
+      "status": "Done",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E09-06",
+      "jiraKey": "DA-406",
+      "status": "Done",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E010-07",
+      "jiraKey": "DA-407",
+      "status": "Done",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E08-08",
+      "jiraKey": "DA-409",
+      "status": "Done",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E09-06",
+      "jiraKey": "DA-414",
+      "status": "In review",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E09-07",
+      "jiraKey": "DA-415",
+      "status": "In review",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E09-08",
+      "jiraKey": "DA-416",
+      "status": "Done",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E09-09",
+      "jiraKey": "DA-417",
+      "status": "In review",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E09-10",
+      "jiraKey": "DA-418",
+      "status": "In review",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E11-06",
+      "jiraKey": "DA-419",
+      "status": "In review",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E11-07",
+      "jiraKey": "DA-420",
+      "status": "In review",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E10-06",
+      "jiraKey": "DA-421",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E09-11",
+      "jiraKey": "DA-422",
+      "status": "In Progress",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E09-12",
+      "jiraKey": "DA-423",
+      "status": "In review",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E47-15",
+      "jiraKey": "DA-439",
+      "status": "In review",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-16",
+      "jiraKey": "DA-440",
+      "status": "In review",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E47-17",
+      "jiraKey": "DA-441",
+      "status": "In review",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E47-18",
+      "jiraKey": "DA-442",
+      "status": "In Progress",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E47-19",
+      "jiraKey": "DA-443",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E47-20",
+      "jiraKey": "DA-444",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-21",
+      "jiraKey": "DA-445",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-22",
+      "jiraKey": "DA-446",
+      "status": "In Progress",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-23",
+      "jiraKey": "DA-447",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E47-24",
+      "jiraKey": "DA-448",
+      "status": "In review",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E47-25",
+      "jiraKey": "DA-449",
+      "status": "In Progress",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E47-26",
+      "jiraKey": "DA-450",
+      "status": "In review",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E47-27",
+      "jiraKey": "DA-451",
+      "status": "In Progress",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-28",
+      "jiraKey": "DA-452",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-29",
+      "jiraKey": "DA-453",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-30",
+      "jiraKey": "DA-454",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E47-31",
+      "jiraKey": "DA-455",
+      "status": "To Do",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E47-32",
+      "jiraKey": "DA-456",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E47-33",
+      "jiraKey": "DA-457",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E47-34",
+      "jiraKey": "DA-458",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-35",
+      "jiraKey": "DA-459",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-36",
+      "jiraKey": "DA-460",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-37",
+      "jiraKey": "DA-461",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E47-38",
+      "jiraKey": "DA-462",
+      "status": "To Do",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E47-39",
+      "jiraKey": "DA-463",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E47-40",
+      "jiraKey": "DA-464",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E47-41",
+      "jiraKey": "DA-465",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-42",
+      "jiraKey": "DA-466",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-43",
+      "jiraKey": "DA-467",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-44",
+      "jiraKey": "DA-468",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E47-45",
+      "jiraKey": "DA-469",
+      "status": "To Do",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E47-46",
+      "jiraKey": "DA-470",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E47-47",
+      "jiraKey": "DA-471",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E47-48",
+      "jiraKey": "DA-472",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-49",
+      "jiraKey": "DA-473",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-50",
+      "jiraKey": "DA-474",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-51",
+      "jiraKey": "DA-475",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E47-52",
+      "jiraKey": "DA-476",
+      "status": "To Do",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E47-53",
+      "jiraKey": "DA-477",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E47-54",
+      "jiraKey": "DA-478",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E47-55",
+      "jiraKey": "DA-479",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-56",
+      "jiraKey": "DA-480",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-57",
+      "jiraKey": "DA-481",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-58",
+      "jiraKey": "DA-482",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E47-59",
+      "jiraKey": "DA-483",
+      "status": "To Do",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E47-60",
+      "jiraKey": "DA-484",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E47-61",
+      "jiraKey": "DA-485",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E47-62",
+      "jiraKey": "DA-486",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-63",
+      "jiraKey": "DA-487",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-64",
+      "jiraKey": "DA-488",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-65",
+      "jiraKey": "DA-489",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E47-66",
+      "jiraKey": "DA-490",
+      "status": "To Do",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E47-67",
+      "jiraKey": "DA-491",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E47-68",
+      "jiraKey": "DA-492",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E47-69",
+      "jiraKey": "DA-493",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-70",
+      "jiraKey": "DA-494",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-71",
+      "jiraKey": "DA-495",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-72",
+      "jiraKey": "DA-496",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E47-73",
+      "jiraKey": "DA-497",
+      "status": "To Do",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E47-74",
+      "jiraKey": "DA-498",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E47-75",
+      "jiraKey": "DA-499",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E47-76",
+      "jiraKey": "DA-500",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-77",
+      "jiraKey": "DA-501",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-78",
+      "jiraKey": "DA-502",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-79",
+      "jiraKey": "DA-503",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E47-80",
+      "jiraKey": "DA-504",
+      "status": "To Do",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E47-81",
+      "jiraKey": "DA-505",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E47-82",
+      "jiraKey": "DA-506",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E47-83",
+      "jiraKey": "DA-507",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-84",
+      "jiraKey": "DA-508",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-85",
+      "jiraKey": "DA-509",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-86",
+      "jiraKey": "DA-510",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E47-87",
+      "jiraKey": "DA-511",
+      "status": "To Do",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E47-88",
+      "jiraKey": "DA-512",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E47-89",
+      "jiraKey": "DA-513",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E47-90",
+      "jiraKey": "DA-514",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-91",
+      "jiraKey": "DA-515",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-92",
+      "jiraKey": "DA-516",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-93",
+      "jiraKey": "DA-517",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E47-94",
+      "jiraKey": "DA-518",
+      "status": "To Do",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E47-95",
+      "jiraKey": "DA-519",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E47-96",
+      "jiraKey": "DA-520",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E47-97",
+      "jiraKey": "DA-521",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-98",
+      "jiraKey": "DA-522",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-99",
+      "jiraKey": "DA-523",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-100",
+      "jiraKey": "DA-524",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E47-101",
+      "jiraKey": "DA-525",
+      "status": "To Do",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E47-102",
+      "jiraKey": "DA-526",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E47-103",
+      "jiraKey": "DA-527",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E47-104",
+      "jiraKey": "DA-528",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-105",
+      "jiraKey": "DA-529",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-106",
+      "jiraKey": "DA-530",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-107",
+      "jiraKey": "DA-531",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E47-108",
+      "jiraKey": "DA-532",
+      "status": "To Do",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E47-109",
+      "jiraKey": "DA-533",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E47-110",
+      "jiraKey": "DA-534",
+      "status": "To Do",
+      "assignee": "Phước"
+    },
+    {
+      "taskId": "DA-E47-111",
+      "jiraKey": "DA-535",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-112",
+      "jiraKey": "DA-536",
+      "status": "To Do",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E48-01",
+      "jiraKey": "DA-537",
+      "status": "In Progress",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E48-02",
+      "jiraKey": "DA-538",
+      "status": "In Progress",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E48-03",
+      "jiraKey": "DA-539",
+      "status": "In review",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E48-04",
+      "jiraKey": "DA-540",
+      "status": "In Progress",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E48-05",
+      "jiraKey": "DA-541",
+      "status": "In Progress",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E48-06",
+      "jiraKey": "DA-542",
+      "status": "To Do",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E48-07",
+      "jiraKey": "DA-543",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E48-08",
+      "jiraKey": "DA-544",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E48-09",
+      "jiraKey": "DA-545",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E48-10",
+      "jiraKey": "DA-546",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E48-11",
+      "jiraKey": "DA-547",
+      "status": "To Do",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E48-12",
+      "jiraKey": "DA-548",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E48-13",
+      "jiraKey": "DA-549",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E48-14",
+      "jiraKey": "DA-550",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E48-15",
+      "jiraKey": "DA-551",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E48-16",
+      "jiraKey": "DA-552",
+      "status": "To Do",
+      "assignee": "Tuấn"
+    },
+    {
+      "taskId": "DA-E48-17",
+      "jiraKey": "DA-553",
+      "status": "To Do",
+      "assignee": "Ân"
+    },
+    {
+      "taskId": "DA-E48-18",
+      "jiraKey": "DA-554",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E48-19",
+      "jiraKey": "DA-555",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E48-20",
+      "jiraKey": "DA-556",
+      "status": "To Do",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-E09-13",
+      "jiraKey": "DA-558",
+      "status": "In review",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E11-14",
+      "jiraKey": "DA-559",
+      "status": "Done",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E12-07",
+      "jiraKey": "DA-560",
+      "status": "In review",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-AI05-07",
+      "jiraKey": "DA-561",
+      "status": "In review",
+      "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-E47-113",
+      "jiraKey": "DA-563",
+      "status": "To Do",
+      "assignee": "Trung"
+    }
+  ]
+}

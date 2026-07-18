@@ -38,3 +38,6 @@ dist/
 !.env.example
 !docker/.env.example
 >>>>>>> c9b66c9611f3b0935033442cc97c249b7ff11f9f
+
+# ── Dashboard (docs/dashboard) ──────────────────────────────────
+docs/dashboard/jira_status.json
