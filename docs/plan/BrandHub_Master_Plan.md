@@ -22,7 +22,7 @@
 | Field | Detail |
 |---|---|
 | Project | BrandHub — AI-Powered Multi-Channel Content Platform |
-| Team | Trung (Leader), Lộc (Frontend), Tuấn (AI), Ân (AI), Phước (Publisher) |
+| Team | Trung (Leader), Lộc (AI Sub-lead), Tuấn (AI), Ân (AI), Phước (Publisher) |
 | Total Sprints | 16 Sprints (2 weeks each) + 4 AI Parallel Iterations |
 | Duration | ~32 weeks |
 | Stack | Java Spring Boot 3, Python FastAPI, React 18, React Native, MongoDB, PostgreSQL, Redis, ChromaDB, RabbitMQ, AWS S3 |
@@ -145,7 +145,7 @@
 | [DA-E04-01](#da-e04-01-write-functional-objectives-per-role-6-roles-x-features) | Write functional objectives per role (6 roles x features) | Trung (Leader) | 🔴 Critical |
 | [DA-E04-02](#da-e04-02-write-non-functional-requirements-ui-performance-security-reliability-usability) | Write non-functional requirements (UI, Performance, Security, Reliability, Usability) | Trung (Leader) | 🔴 Critical |
 | [DA-E04-03](#da-e04-03-add-ai-performance-requirements-latency-throughput-model-accuracy-thresholds) | Add AI performance requirements (latency, throughput, model accuracy thresholds) to non-functional section | Ân (AI) | 🟡 High |
-| [DA-E04-04](#da-e04-04-add-mobile-requirements-fcm-offline-draft-camera-to-non-functional-section) | Add mobile requirements (FCM, offline draft, camera) to non-functional section | Lộc (Frontend) | 🟡 High |
+| [DA-E04-04](#da-e04-04-add-mobile-requirements-fcm-offline-draft-camera-to-non-functional-section) | Add mobile requirements (FCM, offline draft, camera) to non-functional section | Lộc (AI Sub-lead) | 🟡 High |
 | [DA-E04-05](#da-e04-05-fill-in-and-finalize-the-capstone-register-form-brandhubcapstoneregisterdocx) | Fill in and finalize the Capstone Register form (BrandHub_Capstone_Register.docx) | Trung (Leader) | 🔴 Critical |
 
 ### EPIC E05 — System Architecture Design
@@ -194,12 +194,12 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-E08-01](#da-e08-01-create-figma-wireframes-for-all-main-screens-login-dashboard-workspace-content-editor-calendar-client-portal-analytics) | Create Figma wireframes for all main screens (Login, Dashboard, Workspace, Content Editor, Calendar, Client Portal, Analytics) | Lộc (Frontend) | 🔴 Critical |
-| [DA-E08-02](#da-e08-02-design-component-system-button-input-modal-table-badge-toast-styles) | Design component system (Button, Input, Modal, Table, Badge, Toast styles) | Lộc (Frontend) | 🔴 Critical |
-| [DA-E08-03](#da-e08-03-draw-user-flow-diagrams-for-3-main-flows-content-creation-approval-publishing) | Draw user flow diagrams for 3 main flows: content creation, approval, publishing | Lộc (Frontend) | 🟡 High |
-| [DA-E08-04](#da-e08-04-wireframe-client-portal-read-only-calendar-approvereject-analytics-view) | Wireframe Client Portal (read-only calendar, approve/reject, analytics view) | Lộc (Frontend) | 🟡 High |
-| [DA-E08-07](#da-e08-07-create-landing-page-ui-phát-sinh-ngoài-plan-gốc-prefix-jira-lỗi) 🆕 | Create landing page UI | Lộc (Frontend) | 🟡 High |
-| [DA-E08-05](#da-e08-05-create-a-view-local-document-website-automation-phát-sinh-ngoài-plan-gốc) 🆕 | Create a view-local document website automation | Lộc (Frontend) | 🟢 Medium |
+| [DA-E08-01](#da-e08-01-create-figma-wireframes-for-all-main-screens-login-dashboard-workspace-content-editor-calendar-client-portal-analytics) | Create Figma wireframes for all main screens (Login, Dashboard, Workspace, Content Editor, Calendar, Client Portal, Analytics) | Lộc (AI Sub-lead) | 🔴 Critical |
+| [DA-E08-02](#da-e08-02-design-component-system-button-input-modal-table-badge-toast-styles) | Design component system (Button, Input, Modal, Table, Badge, Toast styles) | Lộc (AI Sub-lead) | 🔴 Critical |
+| [DA-E08-03](#da-e08-03-draw-user-flow-diagrams-for-3-main-flows-content-creation-approval-publishing) | Draw user flow diagrams for 3 main flows: content creation, approval, publishing | Lộc (AI Sub-lead) | 🟡 High |
+| [DA-E08-04](#da-e08-04-wireframe-client-portal-read-only-calendar-approvereject-analytics-view) | Wireframe Client Portal (read-only calendar, approve/reject, analytics view) | Lộc (AI Sub-lead) | 🟡 High |
+| [DA-E08-07](#da-e08-07-create-landing-page-ui-phát-sinh-ngoài-plan-gốc-prefix-jira-lỗi) 🆕 | Create landing page UI | Lộc (AI Sub-lead) | 🟡 High |
+| [DA-E08-05](#da-e08-05-create-a-view-local-document-website-automation-phát-sinh-ngoài-plan-gốc) 🆕 | Create a view-local document website automation | Lộc (AI Sub-lead) | 🟢 Medium |
 | [DA-E08-08](#da-e08-08-integrated-html-for-view-document-phát-sinh-ngoài-plan-gốc) 🆕 | Integrated .html for view document | Trung (Leader) | 🟢 Medium |
 
 ---
@@ -223,9 +223,9 @@
 | [DA-E09-07](#da-e09-07-ai-service-llm-keys-payment-gateway) 🆕 | AI Service — LLM keys + Payment Gateway | Tuấn (AI) | 🔴 Critical |
 | [DA-E09-08](#da-e09-08-ai-service-imagevideo-gen-keys) 🆕 | AI Service — Image/Video Gen keys | Ân (AI) | 🔴 Critical |
 | [DA-E09-09](#da-e09-09-publisher-service-social-platform-oauth) 🆕 | Publisher Service — Social Platform OAuth | Phước (Publisher) | 🔴 Critical |
-| [DA-E09-10](#da-e09-10-frontend-google-oauth-app) 🆕 | Frontend — Google OAuth App | Lộc (Frontend) | 🔴 Critical |
+| [DA-E09-10](#da-e09-10-frontend-google-oauth-app) 🆕 | Frontend — Google OAuth App | Lộc (AI Sub-lead) | 🔴 Critical |
 | [DA-E09-11](#da-e09-11-create-project-cost-sheet) 🆕 | Create project cost sheet | Trung (Leader) | 🟡 High |
-| [DA-E09-12](#da-e09-12-register-brandhub-domain-phát-sinh-ngoài-plan-gốc) 🆕 | Register brandhub domain | Lộc (Frontend) | 🟡 High |
+| [DA-E09-12](#da-e09-12-register-brandhub-domain-phát-sinh-ngoài-plan-gốc) 🆕 | Register brandhub domain | Lộc (AI Sub-lead) | 🟡 High |
 | [DA-E09-13](#da-e09-13-update-diagram-dbml-and-html-file-for-database-phát-sinh-ngoài-plan-gốc) 🆕 | Update diagram, DBML and HTML file for database | Trung (Leader) | 🟡 High |
 
 ### EPIC E10 — CI/CD Pipeline
@@ -235,7 +235,7 @@
 | [DA-E10-01](#da-e10-01-write-github-actions-workflow-for-business-service-mvn-test-docker-build-push-to-ghcrio) | Write GitHub Actions workflow for business-service (build + test + push Docker image) | Trung (Leader) | 🟡 High |
 | [DA-E10-02](#da-e10-02-write-github-actions-workflow-for-publisher-service-mvn-test-docker-build-push) | Write GitHub Actions workflow for publisher-service (build + test + push Docker image) | Phước (Publisher) | 🟡 High |
 | [DA-E10-03](#da-e10-03-write-github-actions-workflow-for-ai-service-flake8-pytest-docker-build-push) | Write GitHub Actions workflow for ai-service (lint + test + build Docker image) | Tuấn (AI) | 🟡 High |
-| [DA-E10-04](#da-e10-04-write-github-actions-workflow-for-web-dashboard-eslint-tsc-vite-build-deploy) | Write GitHub Actions workflow for web-dashboard (lint + build + deploy) | Lộc (Frontend) | 🟡 High |
+| [DA-E10-04](#da-e10-04-write-github-actions-workflow-for-web-dashboard-eslint-tsc-vite-build-deploy) | Write GitHub Actions workflow for web-dashboard (lint + build + deploy) | Lộc (AI Sub-lead) | 🟡 High |
 | [DA-E10-05](#da-e10-05-set-up-branch-protection-rules-require-1-approval-before-merging-into-develop) | Set up branch protection rules (require 1 approval before merging into develop) | Trung (Leader) | 🟢 Medium |
 | [DA-E10-06](#da-e10-06-write-github-actions-workflow-for-api-gateway-build-test-push-docker-image) 🆕 | Write GitHub Actions workflow for api-gateway (build + test + push Docker image) | Trung (Leader) | 🟡 High |
 
@@ -436,8 +436,8 @@
 | [DA-AI01-02](#da-ai01-02-test-3-virtual-ambassador-tools-on-5-sample-images-write-comparison-table-quality-speed-cost) | Test 3 virtual ambassador tools on 5 sample images, write comparison table (quality, speed, cost) | Tuấn (AI) | 🔴 Critical |
 | [DA-AI01-03](#da-ai01-03-research-google-veo-api-capabilities-pricing-rate-limits-movement-parameters) | Research Google Veo API: capabilities, pricing, rate limits, movement parameters | Ân (AI) | 🔴 Critical |
 | [DA-AI01-04](#da-ai01-04-collect-and-test-20-video-generation-prompts-with-various-movement-parameters-classify-results) | Collect and test 20+ video generation prompts with various movement parameters, classify results | Ân (AI) | 🔴 Critical |
-| [DA-AI01-05](#da-ai01-05-research-product-model-image-compositing-techniques-controlnet-inpainting-dall-e-edit-rembg-composite) | Research product + model image compositing techniques: ControlNet inpainting, DALL-E edit, rembg + composite | Lộc (Frontend) | 🟡 High |
-| [DA-AI01-06](#da-ai01-06-test-3-compositing-methods-on-10-product-model-image-pairs-evaluate-naturalness-and-compute-cost) | Test 3 compositing methods on 10 product + model image pairs, evaluate naturalness and compute cost | Lộc (Frontend) | 🟡 High |
+| [DA-AI01-05](#da-ai01-05-research-product-model-image-compositing-techniques-controlnet-inpainting-dall-e-edit-rembg-composite) | Research product + model image compositing techniques: ControlNet inpainting, DALL-E edit, rembg + composite | Lộc (AI Sub-lead) | 🟡 High |
+| [DA-AI01-06](#da-ai01-06-test-3-compositing-methods-on-10-product-model-image-pairs-evaluate-naturalness-and-compute-cost) | Test 3 compositing methods on 10 product + model image pairs, evaluate naturalness and compute cost | Lộc (AI Sub-lead) | 🟡 High |
 | [DA-AI01-07](#da-ai01-07-compare-llama-3-groq-vs-claude-api-vietnamese-caption-quality-speed-cost-per-call) | Compare Llama 3 (Groq) vs Claude API: Vietnamese caption quality, speed, cost per call | All (Team) | 🔴 Critical |
 | [DA-AI01-08](#da-ai01-08-write-ai-research-summary-document-consolidating-results-from-all-3-tracks) | Write AI Research Summary Document consolidating results from all 3 tracks, save to docs/ repo | Ân (AI) | 🟢 Medium |
 
@@ -445,11 +445,11 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-AI02-01](#da-ai02-01-initialize-brandhub-ai-service-project-fastapi-python-311-folder-structure) | Initialize brandhub-ai-service project: FastAPI + Python 3.11 + folder structure (api/services/models/utils) | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI02-01](#da-ai02-01-initialize-brandhub-ai-service-project-fastapi-python-311-folder-structure) | Initialize brandhub-ai-service project: FastAPI + Python 3.11 + folder structure (api/services/models/utils) | Lộc (AI Sub-lead) | 🔴 Critical |
 | [DA-AI02-02](#da-ai02-02-configure-4-api-clients-from-env-chromadb-groq-anthropic-stability-ai) | Configure 4 API clients from .env: ChromaDB client, Groq API client, Anthropic client, Stability AI client | Tuấn (AI) | 🔴 Critical |
-| [DA-AI02-03](#da-ai02-03-configure-aws-s3-client-with-boto3-write-uploadfile-getpresignedurl-deletefile-helpers) | Configure AWS S3 client with boto3, write 3 helper functions: upload_file(), get_presigned_url(), delete_file() | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI02-03](#da-ai02-03-configure-aws-s3-client-with-boto3-write-uploadfile-getpresignedurl-deletefile-helpers) | Configure AWS S3 client with boto3, write 3 helper functions: upload_file(), get_presigned_url(), delete_file() | Lộc (AI Sub-lead) | 🔴 Critical |
 | [DA-AI02-04](#da-ai02-04-set-up-pydantic-base-schemas-for-all-requestresponse-models) | Set up Pydantic base schemas for all request/response models | Ân (AI) | 🟡 High |
-| [DA-AI02-05](#da-ai02-05-write-dockerfile-for-ai-service-add-ai-service-to-docker-composeyml-in-infrastructure-repo) | Write Dockerfile for ai-service + add ai-service to docker-compose.yml in the infrastructure repo | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI02-05](#da-ai02-05-write-dockerfile-for-ai-service-add-ai-service-to-docker-composeyml-in-infrastructure-repo) | Write Dockerfile for ai-service + add ai-service to docker-compose.yml in the infrastructure repo | Lộc (AI Sub-lead) | 🔴 Critical |
 | [DA-AI02-06](#da-ai02-06-write-internal-api-key-authentication-middleware-validate-x-internal-key-header-on-all-internal-routes) | Write internal API key authentication middleware (validate X-Internal-Key header) | Tuấn (AI) | 🔴 Critical |
 | [DA-AI02-07](#da-ai02-07-document-chromadb-collection-design-collection-naming-per-clientid-metadata-schema-query-patterns) | Document ChromaDB collection design (collection naming per client, metadata schema, query patterns) | Tuấn (AI) | 🟡 High |
 
@@ -461,12 +461,12 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-AI03-01](#da-ai03-01-implement-document-upload-endpoint-accept-pdfdocxtxturl-save-file-to-s3) | Implement document upload endpoint (accept PDF/DOCX/TXT/URL, save file to S3) | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI03-01](#da-ai03-01-implement-document-upload-endpoint-accept-pdfdocxtxturl-save-file-to-s3) | Implement document upload endpoint (accept PDF/DOCX/TXT/URL, save file to S3) | Lộc (AI Sub-lead) | 🔴 Critical |
 | [DA-AI03-02](#da-ai03-02-build-document-chunking-service-using-langchain-recursivecharactertextsplitter-chunksize500-overlap50) | Build document chunking service using LangChain RecursiveCharacterTextSplitter (chunk_size=500, overlap=50) | Ân (AI) | 🔴 Critical |
 | [DA-AI03-03](#da-ai03-03-build-embedding-pipeline-text-chunk-embedding-store-in-chromadb-with-metadata) | Build embedding pipeline (text chunk → vector via embedding model → store in ChromaDB with metadata: documentId, clientId, chunkIndex) | Tuấn (AI) | 🔴 Critical |
 | [DA-AI03-04](#da-ai03-04-implement-semantic-search-query-embedding-top-k-retrieval-from-chromadb-filtered-by-clientid) | Implement semantic search (query → embedding → top-K retrieval from ChromaDB filtered by clientId) | Tuấn (AI) | 🔴 Critical |
 | [DA-AI03-05](#da-ai03-05-build-rag-context-builder-format-top-k-chunks-into-context-string-for-llm-prompt) | Build RAG context builder (format top-K chunks into a context string for LLM prompt) | Ân (AI) | 🔴 Critical |
-| [DA-AI03-06](#da-ai03-06-document-deletion-endpoint-remove-chunks-from-chromadb-file-from-s3) | Document deletion endpoint (remove chunks from ChromaDB + file from S3) | Lộc (Frontend) | 🟡 High |
+| [DA-AI03-06](#da-ai03-06-document-deletion-endpoint-remove-chunks-from-chromadb-file-from-s3) | Document deletion endpoint (remove chunks from ChromaDB + file from S3) | Lộc (AI Sub-lead) | 🟡 High |
 | [DA-AI03-07](#da-ai03-07-test-rag-accuracy-upload-3-real-brand-documents-verify-retrieved-context-is-correct-and-does-not-hallucinate) | Test RAG accuracy (upload 3 real brand documents, verify retrieved context is correct and does not hallucinate) | Ân (AI) | 🔴 Critical |
 | [DA-AI03-08](#da-ai03-08-write-rag-pipeline-documentation-architecture-tuning-parameters-evaluation-methodology) | Write RAG pipeline documentation (architecture, tuning parameters, evaluation methodology) | Ân (AI) | 🟢 Medium |
 
@@ -477,8 +477,8 @@
 | [DA-AI04-01](#da-ai04-01-build-prompt-template-system-topic-rag-context-trend-data-tone-platform-full-llm-prompt) | Build prompt template system (receive topic + RAG context + trend data + tone → generate full prompt) | Ân (AI) | 🔴 Critical |
 | [DA-AI04-02](#da-ai04-02-integrate-llama-3-via-groq-api-system-prompt-only-use-provided-context-do-not-fabricate) | Integrate Llama 3 via Groq API (system prompt enforces: only use provided context, do not fabricate) | Tuấn (AI) | 🔴 Critical |
 | [DA-AI04-03](#da-ai04-03-integrate-claude-api-as-fallback-when-groq-is-rate-limited-or-quality-fails) | Integrate Claude API as fallback when Groq is rate-limited or quality is low | Tuấn (AI) | 🔴 Critical |
-| [DA-AI04-04](#da-ai04-04-implement-platform-specific-caption-truncation-fb-63k-threads-500-tiktok-4k-chars) | Implement platform-specific optimization (auto-truncate captions: FB 63k, Threads 500, TikTok 4k chars) | Lộc (Frontend) | 🟡 High |
-| [DA-AI04-05](#da-ai04-05-implement-hashtag-generation-endpoint-post-aicontenthashtags) | Implement hashtag generation endpoint (call Llama 3 with a simple prompt) | Lộc (Frontend) | 🟡 High |
+| [DA-AI04-04](#da-ai04-04-implement-platform-specific-caption-truncation-fb-63k-threads-500-tiktok-4k-chars) | Implement platform-specific optimization (auto-truncate captions: FB 63k, Threads 500, TikTok 4k chars) | Lộc (AI Sub-lead) | 🟡 High |
+| [DA-AI04-05](#da-ai04-05-implement-hashtag-generation-endpoint-post-aicontenthashtags) | Implement hashtag generation endpoint (call Llama 3 with a simple prompt) | Lộc (AI Sub-lead) | 🟡 High |
 | [DA-AI04-06](#da-ai04-06-implement-regenerate-with-feedback-receive-previous-caption-user-feedback-generate-improved-version) | Implement regenerate with feedback (receive previous output + feedback → generate improved version) | Ân (AI) | 🟡 High |
 | [DA-AI04-07](#da-ai04-07-anti-hallucination-test-verify-20-generated-captions-every-claim-must-be-sourced-from-brand-context) | Anti-hallucination test (verify 20 generated captions — every claim must be sourced from brand context) | All (Team) | 🔴 Critical |
 | [DA-AI04-08](#da-ai04-08-write-prompt-engineering-documentation-template-design-system-prompt-guide-tone-examples) | Write Prompt Engineering Documentation (template design, system prompt best practices, tone guide) | Ân (AI) | 🟢 Medium |
@@ -499,13 +499,13 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-AI04-99-01](#da-ai04-99-01-phân-tích-và-thiết-kế-tầng-thu-thập-dữ-liệu-google-trends-tiktok-crawlers-social-firehose) | Phân tích và thiết kế Tầng thu thập dữ liệu (Google Trends & TikTok Crawlers, Social Firehose) | Tuấn (AI) | 🔴 Critical |
-| [DA-AI04-99-02](#da-ai04-99-02-nghiên-cứu-thuật-toán-động-cơ-dự-đoán-xu-hướng-tách-từ-bm25-anomaly-detection) | Nghiên cứu thuật toán Động cơ dự đoán xu hướng (Tách từ & BM25 Anomaly Detection) | Ân (AI) | 🔴 Critical |
-| [DA-AI04-99-03](#da-ai04-99-03-phân-tích-đồ-thị-tương-tác-thuật-toán-centrality-tính-điểm-lan-truyền) | Phân tích đồ thị tương tác & Thuật toán Centrality tính Điểm lan truyền | Ân (AI) | 🔴 Critical |
-| [DA-AI04-99-04](#da-ai04-99-04-thiết-kế-quy-trình-chuẩn-hóa-và-cắt-nhỏ-văn-bản-text-normalization-chunking) | Thiết kế quy trình Chuẩn hóa và Cắt nhỏ văn bản (Text Normalization & Chunking) | Ân (AI) + Trung (Leader) | 🟡 High |
-| [DA-AI04-99-05](#da-ai04-99-05-thiết-kế-cấu-trúc-cơ-sở-dữ-liệu-lai-chromadb-neo4j-ner-graph-schema) | Thiết kế cấu trúc cơ sở dữ liệu lai (ChromaDB + Neo4j NER Graph Schema) | Lộc (Frontend) | 🔴 Critical |
-| [DA-AI04-99-06](#da-ai04-99-06-thiết-kế-luồng-lưu-trữ-đệm-redis-và-ghi-de-ket-quả-neo4j-upsert-flow) | Thiết kế luồng lưu trữ đệm Redis và Ghi đè kết quả Neo4j (Upsert Flow) | Lộc (Frontend) | 🟡 High |
-| [DA-AI04-99-07](#da-ai04-99-07-tổng-hợp-tài-liệu-blueprint-thiết-kế-hệ-thống-cào-dữ-liệu-xu-hướng-final-blueprint) | Tổng hợp tài liệu Blueprint thiết kế hệ thống cào dữ liệu xu hướng (Final Blueprint) | Tuấn (AI) | 🟡 High |
+| [DA-AI04-99-01](#da-ai04-99-01--design--research-data-collection-layer-google-trends-tiktok-crawlers-social-firehose) | Design & research data collection layer (Google Trends, TikTok crawlers, Social firehose) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI04-99-02](#da-ai04-99-02--research-trend-prediction-engine-algorithm-word-tokenization--bm25-anomaly-detection) | Research trend prediction engine algorithm (Word tokenization & BM25 Anomaly Detection) | Ân (AI) | 🔴 Critical |
+| [DA-AI04-99-03](#da-ai04-99-03--design-interaction-graph-analysis--centrality-algorithm-for-virality-score) | Design interaction graph analysis & Centrality algorithm for Virality Score | Ân (AI) | 🔴 Critical |
+| [DA-AI04-99-04](#da-ai04-99-04--design-text-normalization--chunking-pipeline) | Design text normalization & chunking pipeline | Ân (AI) + Trung (Leader) | 🟡 High |
+| [DA-AI04-99-05](#da-ai04-99-05--design-hybrid-database-schema-chromadb--neo4j-ner-graph) | Design hybrid database schema (ChromaDB + Neo4j NER Graph) | Lộc (AI Sub-lead) | 🔴 Critical |
+| [DA-AI04-99-06](#da-ai04-99-06--design-redis-cache--neo4j-upsert-flow) | Design Redis cache & Neo4j upsert flow | Lộc (AI Sub-lead) | 🟡 High |
+| [DA-AI04-99-07](#da-ai04-99-07--compile-final-crawl-trend-analysis-blueprint-document) | Compile final crawl trend analysis blueprint document | Tuấn (AI) | 🟡 High |
 
 ---
 
@@ -571,11 +571,11 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-AI10-01](#da-ai10-01-finalize-all-fastapi-endpoints) | Finalize all FastAPI endpoints (/ai/content, /ai/image, /ai/video, /ai/ambassador, /ai/compose, /ai/rag/*, /ai/trends) | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI10-01](#da-ai10-01-finalize-all-fastapi-endpoints) | Finalize all FastAPI endpoints (/ai/content, /ai/image, /ai/video, /ai/ambassador, /ai/compose, /ai/rag/*, /ai/trends) | Lộc (AI Sub-lead) | 🔴 Critical |
 | [DA-AI10-02](#da-ai10-02-error-handling-retry-for-external-ai-api-calls-exponential-backoff-fallback-provider-on-rate-limit) | Error handling & retry for external AI API calls (exponential backoff, fallback provider) | All (Team) | 🟡 High |
 | [DA-AI10-03](#da-ai10-03-integration-test-with-business-service-verify-all-ai-calls-from-business-service-reach-ai-service-correctly) | Integration test with business-service (verify all AI calls from business-service work correctly) | All (Team) | 🔴 Critical |
-| [DA-AI10-04](#da-ai10-04-write-postman-collection-for-all-ai-endpoints-with-example-requests-and-responses) | Write Postman collection for all AI endpoints with example requests | Lộc (Frontend) | 🟢 Medium |
-| [DA-AI10-05](#da-ai10-05-write-swaggeropenapi-documentation-for-ai-service-auto-generated-via-fastapi-docs) | Write Swagger/OpenAPI documentation for ai-service | Lộc (Frontend) | 🟢 Medium |
+| [DA-AI10-04](#da-ai10-04-write-postman-collection-for-all-ai-endpoints-with-example-requests-and-responses) | Write Postman collection for all AI endpoints with example requests | Lộc (AI Sub-lead) | 🟢 Medium |
+| [DA-AI10-05](#da-ai10-05-write-swaggeropenapi-documentation-for-ai-service-auto-generated-via-fastapi-docs) | Write Swagger/OpenAPI documentation for ai-service | Lộc (AI Sub-lead) | 🟢 Medium |
 
 ### EPIC AI-11 — AI Research Documentation & Demo
 
@@ -583,7 +583,7 @@
 |---|---|---|---|
 | [DA-AI11-01](#da-ai11-01-write-virtual-ambassador-technical-report) | Write Virtual Ambassador Technical Report (model comparison, implementation decisions, sample results gallery) | Tuấn (AI) | 🔴 Critical |
 | [DA-AI11-02](#da-ai11-02-write-video-generation-research-report-full-prompt-library-movement-guide-cost-analysis) | Write Video Generation Research Report (full prompt library of 30 templates, movement parameter guide, cost analysis) | Ân (AI) | 🔴 Critical |
-| [DA-AI11-03](#da-ai11-03-write-image-composition-research-report) | Write Image Composition Research Report (technique comparison, best practices, quality evaluation) | Lộc (Frontend) | 🟡 High |
+| [DA-AI11-03](#da-ai11-03-write-image-composition-research-report) | Write Image Composition Research Report (technique comparison, best practices, quality evaluation) | Lộc (AI Sub-lead) | 🟡 High |
 | [DA-AI11-04](#da-ai11-04-compile-ai-cost-analysis-estimated-cost-per-feature-average-usage-1000-usersmonth) | Compile AI Cost Analysis (estimated cost per feature x average usage x 1000 users/month) | All (Team) | 🟡 High |
 | [DA-AI11-05](#da-ai11-05-record-ai-feature-demo-video-showcase-all-7-ai-features-working-end-to-end) | Record AI feature demo video (showcase all 7 AI features working in practice) | All (Team) | 🔴 Critical |
 | [DA-AI11-06](#da-ai11-06-present-ai-results-to-mentor-live-demo-qa-collect-feedback-for-final-report) | Present AI results to mentor (live demo + Q&A, collect feedback) | All (Team) | 🔴 Critical |
@@ -618,8 +618,8 @@
 |---|---|---|---|
 | [DA-E30-01](#da-e30-01-implement-get-apiv1postscalendar) | Implement GET /api/v1/posts/calendar (retrieve posts by date range, filter by platform/status) | Trung (Leader) | 🔴 Critical |
 | [DA-E30-02](#da-e30-02-implement-post-apiv1postsidschedule) | Implement POST /api/v1/posts/{id}/schedule (ACCOUNT_MANAGER sets schedule: scheduledAt + targetPlatforms) | Trung (Leader) | 🔴 Critical |
-| [DA-E30-03](#da-e30-03-build-contentcalendar-react-component) | Build ContentCalendar React component (drag-drop rescheduling, color-coded status indicators) | Lộc (Frontend) | 🔴 Critical |
-| [DA-E30-04](#da-e30-04-build-platformpreview-component) | Build PlatformPreview component (display preview in the correct format for FB, IG, TikTok, Threads) | Lộc (Frontend) | 🟡 High |
+| [DA-E30-03](#da-e30-03-build-contentcalendar-react-component) | Build ContentCalendar React component (drag-drop rescheduling, color-coded status indicators) | Lộc (AI Sub-lead) | 🔴 Critical |
+| [DA-E30-04](#da-e30-04-build-platformpreview-component) | Build PlatformPreview component (display preview in the correct format for FB, IG, TikTok, Threads) | Lộc (AI Sub-lead) | 🟡 High |
 
 ---
 
@@ -761,7 +761,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E43-01](#da-e43-01-sprint-retrospective-and-bug-list-compilation) | Sprint retrospective, compile bug list from testing | All (Team) | 🔴 Critical |
-| [DA-E43-02](#da-e43-02-ui-responsive-fixes) | UI responsive fixes (test on various screen sizes: 1920px, 1440px, 1280px, mobile) | Lộc (Frontend) | 🟡 High |
+| [DA-E43-02](#da-e43-02-ui-responsive-fixes) | UI responsive fixes (test on various screen sizes: 1920px, 1440px, 1280px, mobile) | Lộc (AI Sub-lead) | 🟡 High |
 | [DA-E43-03](#da-e43-03-security-audit) | Security audit checklist (check SQL injection, XSS, CSRF, token handling) | Trung (Leader) | 🔴 Critical |
 
 ---
@@ -810,7 +810,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E47-01](#da-e47-01-write-individual-sprint-report-for-sprint-1-trung) | Write individual sprint report for Sprint 1 — Trung | Trung (Leader) | 🟢 Medium |
-| [DA-E47-02](#da-e47-02-write-individual-sprint-report-for-sprint-1-lộc) | Write individual sprint report for Sprint 1 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-02](#da-e47-02-write-individual-sprint-report-for-sprint-1-lộc) | Write individual sprint report for Sprint 1 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
 | [DA-E47-03](#da-e47-03-write-individual-sprint-report-for-sprint-1-tuấn) | Write individual sprint report for Sprint 1 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E47-04](#da-e47-04-write-individual-sprint-report-for-sprint-1-ân) | Write individual sprint report for Sprint 1 — Ân | Ân (AI) | 🟢 Medium |
 | [DA-E47-05](#da-e47-05-write-individual-sprint-report-for-sprint-1-phước) | Write individual sprint report for Sprint 1 — Phước | Phước (Publisher) | 🟢 Medium |
@@ -822,7 +822,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E47-08](#da-e47-08-write-individual-sprint-report-for-sprint-2-trung) | Write individual sprint report for Sprint 2 — Trung | Trung (Leader) | 🟢 Medium |
-| [DA-E47-09](#da-e47-09-write-individual-sprint-report-for-sprint-2-lộc) | Write individual sprint report for Sprint 2 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-09](#da-e47-09-write-individual-sprint-report-for-sprint-2-lộc) | Write individual sprint report for Sprint 2 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
 | [DA-E47-10](#da-e47-10-write-individual-sprint-report-for-sprint-2-tuấn) | Write individual sprint report for Sprint 2 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E47-11](#da-e47-11-write-individual-sprint-report-for-sprint-2-ân) | Write individual sprint report for Sprint 2 — Ân | Ân (AI) | 🟢 Medium |
 | [DA-E47-12](#da-e47-12-write-individual-sprint-report-for-sprint-2-phước) | Write individual sprint report for Sprint 2 — Phước | Phước (Publisher) | 🟢 Medium |
@@ -834,7 +834,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E47-15](#da-e47-15-write-individual-sprint-report-for-sprint-3-trung) | Write individual sprint report for Sprint 3 — Trung | Trung (Leader) | 🟢 Medium |
-| [DA-E47-16](#da-e47-16-write-individual-sprint-report-for-sprint-3-lộc) | Write individual sprint report for Sprint 3 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-16](#da-e47-16-write-individual-sprint-report-for-sprint-3-lộc) | Write individual sprint report for Sprint 3 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
 | [DA-E47-17](#da-e47-17-write-individual-sprint-report-for-sprint-3-tuấn) | Write individual sprint report for Sprint 3 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E47-18](#da-e47-18-write-individual-sprint-report-for-sprint-3-ân) | Write individual sprint report for Sprint 3 — Ân | Ân (AI) | 🟢 Medium |
 | [DA-E47-19](#da-e47-19-write-individual-sprint-report-for-sprint-3-phước) | Write individual sprint report for Sprint 3 — Phước | Phước (Publisher) | 🟢 Medium |
@@ -846,7 +846,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E47-22](#da-e47-22-write-individual-sprint-report-for-sprint-4-trung) | Write individual sprint report for Sprint 4 — Trung | Trung (Leader) | 🟢 Medium |
-| [DA-E47-23](#da-e47-23-write-individual-sprint-report-for-sprint-4-lộc) | Write individual sprint report for Sprint 4 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-23](#da-e47-23-write-individual-sprint-report-for-sprint-4-lộc) | Write individual sprint report for Sprint 4 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
 | [DA-E47-24](#da-e47-24-write-individual-sprint-report-for-sprint-4-tuấn) | Write individual sprint report for Sprint 4 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E47-25](#da-e47-25-write-individual-sprint-report-for-sprint-4-ân) | Write individual sprint report for Sprint 4 — Ân | Ân (AI) | 🟢 Medium |
 | [DA-E47-26](#da-e47-26-write-individual-sprint-report-for-sprint-4-phước) | Write individual sprint report for Sprint 4 — Phước | Phước (Publisher) | 🟢 Medium |
@@ -858,7 +858,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E47-29](#da-e47-29-write-individual-sprint-report-for-sprint-5-trung) | Write individual sprint report for Sprint 5 — Trung | Trung (Leader) | 🟢 Medium |
-| [DA-E47-30](#da-e47-30-write-individual-sprint-report-for-sprint-5-lộc) | Write individual sprint report for Sprint 5 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-30](#da-e47-30-write-individual-sprint-report-for-sprint-5-lộc) | Write individual sprint report for Sprint 5 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
 | [DA-E47-31](#da-e47-31-write-individual-sprint-report-for-sprint-5-tuấn) | Write individual sprint report for Sprint 5 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E47-32](#da-e47-32-write-individual-sprint-report-for-sprint-5-ân) | Write individual sprint report for Sprint 5 — Ân | Ân (AI) | 🟢 Medium |
 | [DA-E47-33](#da-e47-33-write-individual-sprint-report-for-sprint-5-phước) | Write individual sprint report for Sprint 5 — Phước | Phước (Publisher) | 🟢 Medium |
@@ -870,7 +870,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E47-36](#da-e47-36-write-individual-sprint-report-for-sprint-6-trung) | Write individual sprint report for Sprint 6 — Trung | Trung (Leader) | 🟢 Medium |
-| [DA-E47-37](#da-e47-37-write-individual-sprint-report-for-sprint-6-lộc) | Write individual sprint report for Sprint 6 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-37](#da-e47-37-write-individual-sprint-report-for-sprint-6-lộc) | Write individual sprint report for Sprint 6 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
 | [DA-E47-38](#da-e47-38-write-individual-sprint-report-for-sprint-6-tuấn) | Write individual sprint report for Sprint 6 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E47-39](#da-e47-39-write-individual-sprint-report-for-sprint-6-ân) | Write individual sprint report for Sprint 6 — Ân | Ân (AI) | 🟢 Medium |
 | [DA-E47-40](#da-e47-40-write-individual-sprint-report-for-sprint-6-phước) | Write individual sprint report for Sprint 6 — Phước | Phước (Publisher) | 🟢 Medium |
@@ -882,7 +882,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E47-43](#da-e47-43-write-individual-sprint-report-for-sprint-7-trung) | Write individual sprint report for Sprint 7 — Trung | Trung (Leader) | 🟢 Medium |
-| [DA-E47-44](#da-e47-44-write-individual-sprint-report-for-sprint-7-lộc) | Write individual sprint report for Sprint 7 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-44](#da-e47-44-write-individual-sprint-report-for-sprint-7-lộc) | Write individual sprint report for Sprint 7 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
 | [DA-E47-45](#da-e47-45-write-individual-sprint-report-for-sprint-7-tuấn) | Write individual sprint report for Sprint 7 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E47-46](#da-e47-46-write-individual-sprint-report-for-sprint-7-ân) | Write individual sprint report for Sprint 7 — Ân | Ân (AI) | 🟢 Medium |
 | [DA-E47-47](#da-e47-47-write-individual-sprint-report-for-sprint-7-phước) | Write individual sprint report for Sprint 7 — Phước | Phước (Publisher) | 🟢 Medium |
@@ -894,7 +894,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E47-50](#da-e47-50-write-individual-sprint-report-for-sprint-8-trung) | Write individual sprint report for Sprint 8 — Trung | Trung (Leader) | 🟢 Medium |
-| [DA-E47-51](#da-e47-51-write-individual-sprint-report-for-sprint-8-lộc) | Write individual sprint report for Sprint 8 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-51](#da-e47-51-write-individual-sprint-report-for-sprint-8-lộc) | Write individual sprint report for Sprint 8 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
 | [DA-E47-52](#da-e47-52-write-individual-sprint-report-for-sprint-8-tuấn) | Write individual sprint report for Sprint 8 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E47-53](#da-e47-53-write-individual-sprint-report-for-sprint-8-ân) | Write individual sprint report for Sprint 8 — Ân | Ân (AI) | 🟢 Medium |
 | [DA-E47-54](#da-e47-54-write-individual-sprint-report-for-sprint-8-phước) | Write individual sprint report for Sprint 8 — Phước | Phước (Publisher) | 🟢 Medium |
@@ -906,7 +906,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E47-57](#da-e47-57-write-individual-sprint-report-for-sprint-9-trung) | Write individual sprint report for Sprint 9 — Trung | Trung (Leader) | 🟢 Medium |
-| [DA-E47-58](#da-e47-58-write-individual-sprint-report-for-sprint-9-lộc) | Write individual sprint report for Sprint 9 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-58](#da-e47-58-write-individual-sprint-report-for-sprint-9-lộc) | Write individual sprint report for Sprint 9 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
 | [DA-E47-59](#da-e47-59-write-individual-sprint-report-for-sprint-9-tuấn) | Write individual sprint report for Sprint 9 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E47-60](#da-e47-60-write-individual-sprint-report-for-sprint-9-ân) | Write individual sprint report for Sprint 9 — Ân | Ân (AI) | 🟢 Medium |
 | [DA-E47-61](#da-e47-61-write-individual-sprint-report-for-sprint-9-phước) | Write individual sprint report for Sprint 9 — Phước | Phước (Publisher) | 🟢 Medium |
@@ -918,7 +918,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E47-64](#da-e47-64-write-individual-sprint-report-for-sprint-10-trung) | Write individual sprint report for Sprint 10 — Trung | Trung (Leader) | 🟢 Medium |
-| [DA-E47-65](#da-e47-65-write-individual-sprint-report-for-sprint-10-lộc) | Write individual sprint report for Sprint 10 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-65](#da-e47-65-write-individual-sprint-report-for-sprint-10-lộc) | Write individual sprint report for Sprint 10 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
 | [DA-E47-66](#da-e47-66-write-individual-sprint-report-for-sprint-10-tuấn) | Write individual sprint report for Sprint 10 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E47-67](#da-e47-67-write-individual-sprint-report-for-sprint-10-ân) | Write individual sprint report for Sprint 10 — Ân | Ân (AI) | 🟢 Medium |
 | [DA-E47-68](#da-e47-68-write-individual-sprint-report-for-sprint-10-phước) | Write individual sprint report for Sprint 10 — Phước | Phước (Publisher) | 🟢 Medium |
@@ -930,7 +930,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E47-71](#da-e47-71-write-individual-sprint-report-for-sprint-11-trung) | Write individual sprint report for Sprint 11 — Trung | Trung (Leader) | 🟢 Medium |
-| [DA-E47-72](#da-e47-72-write-individual-sprint-report-for-sprint-11-lộc) | Write individual sprint report for Sprint 11 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-72](#da-e47-72-write-individual-sprint-report-for-sprint-11-lộc) | Write individual sprint report for Sprint 11 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
 | [DA-E47-73](#da-e47-73-write-individual-sprint-report-for-sprint-11-tuấn) | Write individual sprint report for Sprint 11 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E47-74](#da-e47-74-write-individual-sprint-report-for-sprint-11-ân) | Write individual sprint report for Sprint 11 — Ân | Ân (AI) | 🟢 Medium |
 | [DA-E47-75](#da-e47-75-write-individual-sprint-report-for-sprint-11-phước) | Write individual sprint report for Sprint 11 — Phước | Phước (Publisher) | 🟢 Medium |
@@ -942,7 +942,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E47-78](#da-e47-78-write-individual-sprint-report-for-sprint-12-trung) | Write individual sprint report for Sprint 12 — Trung | Trung (Leader) | 🟢 Medium |
-| [DA-E47-79](#da-e47-79-write-individual-sprint-report-for-sprint-12-lộc) | Write individual sprint report for Sprint 12 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-79](#da-e47-79-write-individual-sprint-report-for-sprint-12-lộc) | Write individual sprint report for Sprint 12 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
 | [DA-E47-80](#da-e47-80-write-individual-sprint-report-for-sprint-12-tuấn) | Write individual sprint report for Sprint 12 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E47-81](#da-e47-81-write-individual-sprint-report-for-sprint-12-ân) | Write individual sprint report for Sprint 12 — Ân | Ân (AI) | 🟢 Medium |
 | [DA-E47-82](#da-e47-82-write-individual-sprint-report-for-sprint-12-phước) | Write individual sprint report for Sprint 12 — Phước | Phước (Publisher) | 🟢 Medium |
@@ -954,7 +954,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E47-85](#da-e47-85-write-individual-sprint-report-for-sprint-13-trung) | Write individual sprint report for Sprint 13 — Trung | Trung (Leader) | 🟢 Medium |
-| [DA-E47-86](#da-e47-86-write-individual-sprint-report-for-sprint-13-lộc) | Write individual sprint report for Sprint 13 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-86](#da-e47-86-write-individual-sprint-report-for-sprint-13-lộc) | Write individual sprint report for Sprint 13 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
 | [DA-E47-87](#da-e47-87-write-individual-sprint-report-for-sprint-13-tuấn) | Write individual sprint report for Sprint 13 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E47-88](#da-e47-88-write-individual-sprint-report-for-sprint-13-ân) | Write individual sprint report for Sprint 13 — Ân | Ân (AI) | 🟢 Medium |
 | [DA-E47-89](#da-e47-89-write-individual-sprint-report-for-sprint-13-phước) | Write individual sprint report for Sprint 13 — Phước | Phước (Publisher) | 🟢 Medium |
@@ -966,7 +966,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E47-92](#da-e47-92-write-individual-sprint-report-for-sprint-14-trung) | Write individual sprint report for Sprint 14 — Trung | Trung (Leader) | 🟢 Medium |
-| [DA-E47-93](#da-e47-93-write-individual-sprint-report-for-sprint-14-lộc) | Write individual sprint report for Sprint 14 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-93](#da-e47-93-write-individual-sprint-report-for-sprint-14-lộc) | Write individual sprint report for Sprint 14 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
 | [DA-E47-94](#da-e47-94-write-individual-sprint-report-for-sprint-14-tuấn) | Write individual sprint report for Sprint 14 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E47-95](#da-e47-95-write-individual-sprint-report-for-sprint-14-ân) | Write individual sprint report for Sprint 14 — Ân | Ân (AI) | 🟢 Medium |
 | [DA-E47-96](#da-e47-96-write-individual-sprint-report-for-sprint-14-phước) | Write individual sprint report for Sprint 14 — Phước | Phước (Publisher) | 🟢 Medium |
@@ -978,7 +978,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E47-99](#da-e47-99-write-individual-sprint-report-for-sprint-15-trung) | Write individual sprint report for Sprint 15 — Trung | Trung (Leader) | 🟢 Medium |
-| [DA-E47-100](#da-e47-100-write-individual-sprint-report-for-sprint-15-lộc) | Write individual sprint report for Sprint 15 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-100](#da-e47-100-write-individual-sprint-report-for-sprint-15-lộc) | Write individual sprint report for Sprint 15 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
 | [DA-E47-101](#da-e47-101-write-individual-sprint-report-for-sprint-15-tuấn) | Write individual sprint report for Sprint 15 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E47-102](#da-e47-102-write-individual-sprint-report-for-sprint-15-ân) | Write individual sprint report for Sprint 15 — Ân | Ân (AI) | 🟢 Medium |
 | [DA-E47-103](#da-e47-103-write-individual-sprint-report-for-sprint-15-phước) | Write individual sprint report for Sprint 15 — Phước | Phước (Publisher) | 🟢 Medium |
@@ -990,7 +990,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E47-106](#da-e47-106-write-individual-sprint-report-for-sprint-16-trung) | Write individual sprint report for Sprint 16 — Trung | Trung (Leader) | 🟢 Medium |
-| [DA-E47-107](#da-e47-107-write-individual-sprint-report-for-sprint-16-lộc) | Write individual sprint report for Sprint 16 — Lộc | Lộc (Frontend) | 🟢 Medium |
+| [DA-E47-107](#da-e47-107-write-individual-sprint-report-for-sprint-16-lộc) | Write individual sprint report for Sprint 16 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
 | [DA-E47-108](#da-e47-108-write-individual-sprint-report-for-sprint-16-tuấn) | Write individual sprint report for Sprint 16 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E47-109](#da-e47-109-write-individual-sprint-report-for-sprint-16-ân) | Write individual sprint report for Sprint 16 — Ân | Ân (AI) | 🟢 Medium |
 | [DA-E47-110](#da-e47-110-write-individual-sprint-report-for-sprint-16-phước) | Write individual sprint report for Sprint 16 — Phước | Phước (Publisher) | 🟢 Medium |
@@ -1009,9 +1009,9 @@
 |---|---|---|---|
 | [DA-E48-01](#da-e48-01-write-individual-ai-iteration-report-for-iteration-1-tuấn) | Write individual AI iteration report for Iteration 1 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E48-02](#da-e48-02-write-individual-ai-iteration-report-for-iteration-1-ân) | Write individual AI iteration report for Iteration 1 — Ân | Ân (AI) | 🟢 Medium |
-| [DA-E48-03](#da-e48-03-write-individual-ai-iteration-report-for-iteration-1-lộc) | Write individual AI iteration report for Iteration 1 — Lộc | Lộc (Frontend) | 🟢 Medium |
-| [DA-E48-04](#da-e48-04-review-all-member-reports-write-team-iterationreport-for-iteration-1) | Review all member reports + write team ITERATION_REPORT for Iteration 1 | Lộc (Frontend) | 🟢 Medium |
-| [DA-E48-05](#da-e48-05-finalize-and-commit-iteration-1-report-to-brandhub-infrastructure) | Finalize and commit Iteration 1 report to brandhub-infrastructure | Lộc (Frontend) | 🟢 Medium |
+| [DA-E48-03](#da-e48-03-write-individual-ai-iteration-report-for-iteration-1-lộc) | Write individual AI iteration report for Iteration 1 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
+| [DA-E48-04](#da-e48-04-review-all-member-reports-write-team-iterationreport-for-iteration-1) | Review all member reports + write team ITERATION_REPORT for Iteration 1 | Lộc (AI Sub-lead) | 🟢 Medium |
+| [DA-E48-05](#da-e48-05-finalize-and-commit-iteration-1-report-to-brandhub-infrastructure) | Finalize and commit Iteration 1 report to brandhub-infrastructure | Lộc (AI Sub-lead) | 🟢 Medium |
 
 ### Iteration 2 Report
 
@@ -1019,9 +1019,9 @@
 |---|---|---|---|
 | [DA-E48-06](#da-e48-06-write-individual-ai-iteration-report-for-iteration-2-tuấn) | Write individual AI iteration report for Iteration 2 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E48-07](#da-e48-07-write-individual-ai-iteration-report-for-iteration-2-ân) | Write individual AI iteration report for Iteration 2 — Ân | Ân (AI) | 🟢 Medium |
-| [DA-E48-08](#da-e48-08-write-individual-ai-iteration-report-for-iteration-2-lộc) | Write individual AI iteration report for Iteration 2 — Lộc | Lộc (Frontend) | 🟢 Medium |
-| [DA-E48-09](#da-e48-09-review-all-member-reports-write-team-iterationreport-for-iteration-2) | Review all member reports + write team ITERATION_REPORT for Iteration 2 | Lộc (Frontend) | 🟢 Medium |
-| [DA-E48-10](#da-e48-10-finalize-and-commit-iteration-2-report-to-brandhub-infrastructure) | Finalize and commit Iteration 2 report to brandhub-infrastructure | Lộc (Frontend) | 🟢 Medium |
+| [DA-E48-08](#da-e48-08-write-individual-ai-iteration-report-for-iteration-2-lộc) | Write individual AI iteration report for Iteration 2 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
+| [DA-E48-09](#da-e48-09-review-all-member-reports-write-team-iterationreport-for-iteration-2) | Review all member reports + write team ITERATION_REPORT for Iteration 2 | Lộc (AI Sub-lead) | 🟢 Medium |
+| [DA-E48-10](#da-e48-10-finalize-and-commit-iteration-2-report-to-brandhub-infrastructure) | Finalize and commit Iteration 2 report to brandhub-infrastructure | Lộc (AI Sub-lead) | 🟢 Medium |
 
 ### Iteration 3 Report
 
@@ -1029,9 +1029,9 @@
 |---|---|---|---|
 | [DA-E48-11](#da-e48-11-write-individual-ai-iteration-report-for-iteration-3-tuấn) | Write individual AI iteration report for Iteration 3 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E48-12](#da-e48-12-write-individual-ai-iteration-report-for-iteration-3-ân) | Write individual AI iteration report for Iteration 3 — Ân | Ân (AI) | 🟢 Medium |
-| [DA-E48-13](#da-e48-13-write-individual-ai-iteration-report-for-iteration-3-lộc) | Write individual AI iteration report for Iteration 3 — Lộc | Lộc (Frontend) | 🟢 Medium |
-| [DA-E48-14](#da-e48-14-review-all-member-reports-write-team-iterationreport-for-iteration-3) | Review all member reports + write team ITERATION_REPORT for Iteration 3 | Lộc (Frontend) | 🟢 Medium |
-| [DA-E48-15](#da-e48-15-finalize-and-commit-iteration-3-report-to-brandhub-infrastructure) | Finalize and commit Iteration 3 report to brandhub-infrastructure | Lộc (Frontend) | 🟢 Medium |
+| [DA-E48-13](#da-e48-13-write-individual-ai-iteration-report-for-iteration-3-lộc) | Write individual AI iteration report for Iteration 3 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
+| [DA-E48-14](#da-e48-14-review-all-member-reports-write-team-iterationreport-for-iteration-3) | Review all member reports + write team ITERATION_REPORT for Iteration 3 | Lộc (AI Sub-lead) | 🟢 Medium |
+| [DA-E48-15](#da-e48-15-finalize-and-commit-iteration-3-report-to-brandhub-infrastructure) | Finalize and commit Iteration 3 report to brandhub-infrastructure | Lộc (AI Sub-lead) | 🟢 Medium |
 
 ### Iteration 4 Report
 
@@ -1039,9 +1039,9 @@
 |---|---|---|---|
 | [DA-E48-16](#da-e48-16-write-individual-ai-iteration-report-for-iteration-4-tuấn) | Write individual AI iteration report for Iteration 4 — Tuấn | Tuấn (AI) | 🟢 Medium |
 | [DA-E48-17](#da-e48-17-write-individual-ai-iteration-report-for-iteration-4-ân) | Write individual AI iteration report for Iteration 4 — Ân | Ân (AI) | 🟢 Medium |
-| [DA-E48-18](#da-e48-18-write-individual-ai-iteration-report-for-iteration-4-lộc) | Write individual AI iteration report for Iteration 4 — Lộc | Lộc (Frontend) | 🟢 Medium |
-| [DA-E48-19](#da-e48-19-review-all-member-reports-write-team-iterationreport-for-iteration-4) | Review all member reports + write team ITERATION_REPORT for Iteration 4 | Lộc (Frontend) | 🟢 Medium |
-| [DA-E48-20](#da-e48-20-finalize-and-commit-iteration-4-report-to-brandhub-infrastructure) | Finalize and commit Iteration 4 report to brandhub-infrastructure | Lộc (Frontend) | 🟢 Medium |
+| [DA-E48-18](#da-e48-18-write-individual-ai-iteration-report-for-iteration-4-lộc) | Write individual AI iteration report for Iteration 4 — Lộc | Lộc (AI Sub-lead) | 🟢 Medium |
+| [DA-E48-19](#da-e48-19-review-all-member-reports-write-team-iterationreport-for-iteration-4) | Review all member reports + write team ITERATION_REPORT for Iteration 4 | Lộc (AI Sub-lead) | 🟢 Medium |
+| [DA-E48-20](#da-e48-20-finalize-and-commit-iteration-4-report-to-brandhub-infrastructure) | Finalize and commit Iteration 4 report to brandhub-infrastructure | Lộc (AI Sub-lead) | 🟢 Medium |
 
 ---
 
@@ -1460,7 +1460,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E04-04 — Add mobile requirements (FCM, offline draft, camera) to non-functional section
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Document mobile-specific requirements so the React Native app is built with the correct offline, notification, and device capability behaviors from the start.
 
@@ -1904,7 +1904,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E08-01 — Create Figma wireframes for all main screens (Login, Dashboard, Workspace, Content Editor, Calendar, Client Portal, Analytics)
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Produce low-to-mid fidelity wireframes for all primary screens so frontend developers can begin component implementation without waiting for high-fidelity design, and so the UX flow can be validated with the mentor early.
 
@@ -1922,7 +1922,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E08-02 — Design component system (Button, Input, Modal, Table, Badge, Toast styles)
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Define the visual design tokens and component variants that will be used across the web-dashboard so that all UI components have a consistent look without per-developer style decisions.
 
@@ -1940,7 +1940,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E08-03 — Draw user flow diagrams for 3 main flows: content creation, approval, publishing
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Produce UX-layer user flow diagrams (screen-to-screen, not sequence diagrams) for the three most critical end-user journeys so frontend developers know which screens connect to which and what triggers each navigation.
 
@@ -1958,7 +1958,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E08-04 — Wireframe Client Portal (read-only calendar, approve/reject, analytics view)
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Design the BRAND_CLIENT-facing portal screens so the team has a clear, minimal interface target for the client-facing features that differ significantly from the internal agency dashboard.
 
@@ -1976,7 +1976,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E08-05 — Create a view-local document website automation *(phát sinh, ngoài plan gốc)*
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Tự động hoá việc tạo trang xem tài liệu (docs) local để team và mentor có thể duyệt tài liệu dự án dưới dạng website thay vì đọc raw markdown/html rời rạc.
 
@@ -2005,7 +2005,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E08-07 — Create landing page UI *(phát sinh, ngoài plan gốc — prefix Jira lỗi)*
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Thiết kế/code landing page public cho BrandHub (không phải dashboard nội bộ) — trang giới thiệu sản phẩm trước khi user đăng nhập.
 
@@ -2147,7 +2147,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E09-10 — Frontend — Google OAuth App
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Tạo Google OAuth 2.0 Client và cung cấp credentials cho cả frontend và backend để tổng hợp vào `.env`.
 
@@ -2217,7 +2217,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E09-12 — Register brandhub domain *(phát sinh, ngoài plan gốc)*
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Đăng ký domain thật cho BrandHub để phục vụ deploy, demo mentor và các redirect URI OAuth (Facebook, Google, Zalo... cần domain public thay vì localhost).
 
@@ -2303,7 +2303,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E10-04 — Write GitHub Actions workflow for web-dashboard (eslint + tsc + vite build + deploy)
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Automate the frontend CI pipeline so that TypeScript errors and lint violations are caught on every PR and a production-ready Vite build is verified before merge.
 
@@ -3568,7 +3568,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI01-05 — Research product + model image compositing techniques: ControlNet inpainting, DALL-E edit, rembg + composite
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Identify the compositing approach that best balances output realism, compute cost, and implementation complexity before building the composition service.
 
@@ -3586,7 +3586,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI01-06 — Test 3 compositing methods on 10 product + model image pairs, evaluate naturalness and compute cost
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Validate the compositing technique recommendation with real product images representative of BrandHub's target clientele (fashion, beauty, F&B).
 
@@ -3637,7 +3637,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI02-01 — Initialize brandhub-ai-service project: FastAPI + Python 3.11 + folder structure
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Create the canonical project skeleton so all AI developers work in a consistent directory layout from day one.
 
@@ -3674,7 +3674,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI02-03 — Configure AWS S3 client with boto3, write upload_file(), get_presigned_url(), delete_file() helpers
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Provide a tested S3 utility layer that every AI feature can use without reimplementing boto3 boilerplate or handling credentials directly.
 
@@ -3710,7 +3710,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI02-05 — Write Dockerfile for ai-service + add ai-service to docker-compose.yml in infrastructure repo
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Make the ai-service runnable in the shared development environment with one `docker-compose up` command alongside all other BrandHub services.
 
@@ -3765,7 +3765,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI03-01 — Implement document upload endpoint (accept PDF/DOCX/TXT/URL, save file to S3)
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Provide the entry point for brand knowledge ingestion so that clients can upload brand documents that the RAG pipeline will index.
 
@@ -3858,7 +3858,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI03-06 — Document deletion endpoint (remove chunks from ChromaDB + file from S3)
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Allow clients to remove brand documents and ensure all associated vectors and stored files are fully purged to meet data hygiene requirements.
 
@@ -3966,7 +3966,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI04-04 — Implement platform-specific caption truncation (FB 63k, Threads 500, TikTok 4k chars)
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Guarantee that generated captions are never rejected by platform APIs due to exceeding character limits.
 
@@ -3984,7 +3984,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI04-05 — Implement hashtag generation endpoint (POST /ai/content/hashtags)
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Provide a standalone hashtag generation feature so users can request platform-optimized hashtags independently of caption generation.
 
@@ -4167,18 +4167,22 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 ---
 
-### DA-AI04-99-01 — Phân tích và thiết kế Tầng thu thập dữ liệu (Google Trends & TikTok Crawlers, Social Firehose)
+### DA-AI04-99-01 — Design & research data collection layer (Google Trends, TikTok crawlers, Social firehose)
 **Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
 
-**Goal:** Nghiên cứu và tài liệu hóa cơ chế hoạt động, giao thức cào, giải pháp chống chặn (anti-blocking) và cơ chế lập lịch cào dữ liệu từ Google Trends (`pytrends`), TikTok Creative Center và các nguồn social.
+**Goal:** Research and document crawling mechanisms, anti-blocking solutions, and scheduling for data collection from Google Trends (`pytrends`), TikTok Creative Center, and Facebook Public Groups to gather raw posts with interaction metadata (likes, shares, comments).
 
-**Input:**
-- Cấu hình Google Trends: Khu vực (`geo='VN'`), từ khóa hoặc category, khoảng thời gian (`timeframe='now 7-d'`).
-- Danh sách cào có mục tiêu (Targeted List): 50-100 usernames/IDs của các KOLs và đường dẫn của các group cộng đồng Facebook công khai cần giám sát.
+**Acceptance Criteria:**
+- [ ] Document Google Trends configuration via `pytrends` (geo='VN', timeframe='now 7-d') including rate limits
+- [ ] Research and document TikTok Creative Center crawl mechanism (Playwright headless) and KOL post feed API (RapidAPI TikTok Scraper)
+- [ ] Design Facebook public group crawl flow with rotating proxy service (Bright Data / Webshare) for anti-blocking
+- [ ] Configure `APScheduler` to run background jobs every 6 hours, output cached to Redis as JSON
 
-**Output:**
-- Danh sách bài đăng thô dạng văn bản kèm metadata tương tác.
-- Định dạng JSON Output mẫu:
+**Technical Notes:**
+- IP anti-blocking (Proxy Rotation, Spoofing Headers, Random User-Agents) mandatory for TikTok and Facebook scrapers
+- Google Trends: `TrendReq.realtime_trending_searches(pn='VN')`
+- Targeted list: 50-100 KOL usernames/IDs + Facebook public group URLs
+- Sample crawl JSON output:
   ```json
   {
     "source": "tiktok/facebook/google",
@@ -4187,225 +4191,159 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
       {
         "post_id": "tt_738291038102",
         "author": "ninheating",
-        "content": "Hé lô mọi người, hôm nay đi uống thử trà sữa đất nung Hàng Bồ ngon lắm nha! #trasuadatnung",
+        "content": "Sample Vietnamese post content about trà sữa đất nung #trasuadatnung",
         "interactions": { "likes": 45000, "shares": 1200, "comments_count": 850 },
         "comments": [
-          { "user": "reviewer_A", "text": "Quán này ở số 10 Hàng Bồ đúng không anh?" }
+          { "user": "reviewer_A", "text": "Is this the place at 10 Hàng Bồ?" }
         ]
       }
     ]
   }
   ```
 
-**Detailed Solution (Giải pháp chi tiết):**
-1. **Google Trends (`pytrends`):** Sử dụng class `TrendReq` gọi API của Google. Định kỳ chạy hàm `realtime_trending_searches(pn='VN')` mỗi 6 giờ để lấy các từ khóa đang tìm kiếm thịnh hành nhất Việt Nam.
-2. **TikTok Creative Center & KOL Crawler:** Sử dụng headless browser `Playwright` truy cập vào TikTok Creative Center lấy danh sách hashtag hot. Đối với các KOLs trong danh sách mục tiêu, gọi API không chính thức (qua dịch vụ RapidAPI TikTok Scraper) để lấy feed bài đăng mới nhất dựa trên `uniqueId` hoặc `secUid`.
-3. **Facebook Public Groups Scraper:** Sử dụng `Scrapy` kết hợp với dịch vụ Proxy xoay vòng (Proxy Rotation như Bright Data hoặc Webshare) để liên tục cào bài viết mới nhất từ các nhóm công khai mà không cần đăng nhập tài khoản nhằm tránh bị khóa tài khoản/checkpoint.
-4. **Cơ chế lập lịch:** Sử dụng `APScheduler` tích hợp sẵn trong FastAPI chạy ngầm định kỳ mỗi 6 giờ dưới nền. Kết quả thô được ghi đệm tạm thời thành file JSON hoặc đẩy vào hàng đợi trong Redis.
-
-**Acceptance Criteria:**
-- [ ] Tài liệu hóa cách cấu hình và giới hạn tần suất (rate limits) của Google Trends qua thư viện `pytrends`.
-- [ ] Nghiên cứu và tài liệu hóa cơ chế cào dữ liệu từ TikTok Creative Center và API lấy bài đăng KOLs.
-- [ ] Thiết kế luồng cào các Group Facebook công khai kết hợp dịch vụ proxy xoay vòng để chống chặn.
-- [ ] Cấu hình scheduler chạy ngầm thông qua thư viện `APScheduler` chạy định kỳ mỗi 6 giờ.
-
-**Technical Notes:**
-- Việc sử dụng các giải pháp chống chặn IP (Proxy Rotation, Spoofing Headers, Random User-Agents) là bắt buộc đối với TikTok và Facebook Scraper để đảm bảo hệ thống hoạt động liên tục.
-- Thiết kế phương án lưu trữ văn bản thô tạm thời trước khi đẩy vào động cơ dự đoán xu hướng.
-
 **Dependencies:** Blocks: DA-AI04-99-02.
 
 ---
 
-### DA-AI04-99-02 — Nghiên cứu thuật toán Động cơ dự đoán xu hướng (Tách từ & BM25 Anomaly Detection)
+### DA-AI04-99-02 — Research trend prediction engine algorithm (Word tokenization & BM25 Anomaly Detection)
 **Assignee:** Ân (AI) | **Priority:** 🔴 Critical
 
-**Goal:** Thiết kế công thức toán học và logic lập trình cho việc tách từ tiếng Việt và tính toán điểm đột biến BM25 để lọc ra 100 ứng cử viên xu hướng.
+**Goal:** Design the mathematical formula and programming logic for Vietnamese word tokenization and BM25 anomaly scoring on raw crawled posts, filtering the Top 100 candidate keywords/phrases with the highest anomaly scores.
 
-**Input:**
-- Danh sách bài đăng thô dạng văn bản kèm metadata tương tác [Output từ `DA-AI04-99-01`].
+**Acceptance Criteria:**
+- [ ] Select Vietnamese tokenization library (`Underthesea` or `PyVi`) and set up custom dictionary for compound/neologism recognition
+- [ ] Define BM25 formula for anomaly detection: compare TF of current 6h window against IDF of 30-day history
+- [ ] Determine filtering thresholds and BM25 score normalization mechanism to select Top 100 candidates
 
-**Output:**
-- Danh sách Top 100 từ khóa/cụm từ ứng cử viên có điểm bất thường cao nhất.
-- Định dạng JSON mẫu:
+**Technical Notes:**
+- Pipeline: Regex cleaning (emoji, URL) → `Underthesea.word_tokenize()` → BM25 scoring
+- BM25 input is output from `DA-AI04-99-01`
+- JSON output format:
   ```json
   [
     { "keyword": "trà sữa đất nung", "anomaly_score": 8.45 },
     { "keyword": "capybara", "anomaly_score": 7.12 }
   ]
   ```
-
-**Detailed Solution (Giải pháp chi tiết):**
-1. **Làm sạch thô:** Sử dụng Regex loại bỏ các ký tự đặc biệt, link URL và emoji.
-2. **Tách từ tiếng Việt:** Sử dụng thư viện `Underthesea` (hàm `word_tokenize`) để phân tách văn bản thô thành các cụm từ ghép có nghĩa. Nạp bộ từ điển custom để nhận diện các từ lóng mới.
-3. **Tính toán chỉ số BM25:** So sánh tần suất xuất hiện của từ khóa hôm nay (TF) so với mức độ hiếm của nó trong lịch sử 30 ngày trước (IDF).
-   - Công thức: \(\text{Anomaly\_Score}(D, q_i) = \text{IDF}(q_i) \cdot \frac{f(q_i, D) \cdot (k_1 + 1)}{f(q_i, D) + k_1 \cdot \left(1 - b + b \cdot \frac{|D|}{\text{avgdl}}\right)}\)
-
-**Acceptance Criteria:**
-- [ ] Xác định thư viện tách từ tiếng Việt (`Underthesea` hoặc `PyVi`) và thiết lập bộ từ điển tùy chỉnh (custom dictionary) để nhận diện các từ ghép/từ mới.
-- [ ] Định nghĩa công thức toán học BM25 áp dụng cho phát hiện bất thường: tính toán tần suất $TF$ của chu kỳ 6h hiện tại so với chỉ số nghịch đảo $IDF$ của lịch sử 30 ngày trước.
-- [ ] Xác định các ngưỡng lọc (thresholds) và cơ chế chuẩn hóa điểm số BM25 để chọn ra Top 100 Candidates.
-
-**Technical Notes:**
-- Thuật toán BM25 cần xử lý được các từ tiếng Việt có dấu/không dấu và loại bỏ chính xác danh sách Stop words (từ đệm, từ vô nghĩa) để tránh nhiễu dữ liệu.
+- Formula: \(\text{Anomaly\_Score}(D, q_i) = \text{IDF}(q_i) \cdot \frac{f(q_i, D) \cdot (k_1 + 1)}{f(q_i, D) + k_1 \cdot \left(1 - b + b \cdot \frac{|D|}{\text{avgdl}}\right)}\)
+- Handle Vietnamese text with/without diacritics; strip stop words
 
 **Dependencies:** Blocked by: DA-AI04-99-01. Blocks: DA-AI04-99-03.
 
 ---
 
-### DA-AI04-99-03 — Phân tích đồ thị tương tác & Thuật toán Centrality tính Điểm lan truyền
+### DA-AI04-99-03 — Design interaction graph analysis & Centrality algorithm for Virality Score
 **Assignee:** Ân (AI) | **Priority:** 🔴 Critical
 
-**Goal:** Thiết kế cấu trúc đồ thị tương tác Neo4j cho các ứng cử viên xu hướng và áp dụng các thuật toán đồ thị của Neo4j GDS để tính toán điểm lan truyền (Virality Score).
+**Goal:** Design Neo4j interaction graph for 100 trend candidates, apply Degree Centrality and Betweenness Centrality (Neo4j GDS) to compute a Virality Score, and produce the final Top 10-20 official trend ranking.
 
-**Input:**
-- Danh sách Top 100 ứng cử viên xu hướng [Output từ `DA-AI04-99-02`].
-- Danh sách thông tin tài khoản người dùng/KOL và tương tác chéo từ Tầng cào thô [lấy từ `DA-AI04-99-01`].
+**Acceptance Criteria:**
+- [ ] Define raw interaction graph schema (Nodes: `User`, `Trend`, `Community`; Edges: `POSTED`, `INTERACTED`)
+- [ ] Write Cypher queries to run Degree Centrality and Betweenness Centrality via Neo4j GDS
+- [ ] Establish final scoring formula: $Final\_Trend\_Score = Anomaly\_Score \times Graph\_Virality\_Score$
+- [ ] Implement botnet filtering mechanism using Clustering Coefficient
 
-**Output:**
-- Bảng xếp hạng Top 10 - 20 xu hướng chính thức cuối cùng kèm điểm số tích hợp.
-- Định dạng JSON mẫu:
+**Technical Notes:**
+- Input: Top 100 candidates from `DA-AI04-99-02` + user/KOL interaction data from `DA-AI04-99-01`
+- Graph construction: Nodes (`:User`, `:Trend`, `:Community`), Edges (`:POSTED`, `:INTERACTED`)
+- Graph projection: `gds.graph.project`
+- Centrality: Degree (Reach) + Betweenness (Cross-community virality) → `Graph_Virality_Score ∈ [0, 1]`
+- Final score: \[\text{Final\_Trend\_Score} = \text{Anomaly\_Score} \times \text{Graph\_Virality\_Score}\]
+- JSON output format:
   ```json
   [
     { "rank": 1, "trend": "trà sữa đất nung", "final_score": 7.52, "anomaly_score": 8.45, "virality_score": 0.89 }
   ]
   ```
-
-**Detailed Solution (Giải pháp chi tiết):**
-1. **Dựng đồ thị tương tác (Graph Construction):** Đẩy thông tin tương tác của 100 ứng cử viên vào Neo4j dưới dạng Node (`:User`, `:Trend`, `:Community`) và Edge (`:POSTED`, `:INTERACTED`).
-2. **Chiếu đồ thị (Graph Projection):** Sử dụng Neo4j GDS để tạo một đồ thị ảo trong RAM (`gds.graph.project`).
-3. **Chạy thuật toán Centrality:**
-   - Chạy **Degree Centrality** để đo mức độ tiếp cận (Reach/Coverage).
-   - Chạy **Betweenness Centrality** để đo khả năng lan truyền xuyên cộng đồng (Cross-community Virality).
-   - Tổng hợp thành `Graph_Virality_Score` trong khoảng `[0, 1]`.
-4. **Tính điểm cuối cùng:** Nhân điểm số bất thường với điểm lan truyền đồ thị:
-   \[Final\_Trend\_Score = Anomaly\_Score \times Graph\_Virality\_Score\]
-   Lọc lấy Top 10 - 20 xu hướng có điểm số cao nhất.
-
-**Acceptance Criteria:**
-- [ ] Định nghĩa cấu trúc Schema đồ thị tương tác thô (Nodes: `User`, `Trend`, `Community`; Edges: `POSTED`, `INTERACTED`).
-- [ ] Viết sẵn các câu lệnh Cypher để chạy thuật toán Degree Centrality và Betweenness Centrality thông qua thư viện Neo4j GDS.
-- [ ] Thiết lập công thức tính điểm tổng hợp cuối cùng: $Final\_Trend\_Score = Anomaly\_Score \times Graph\_Virality\_Score$.
-- [ ] Thiết lập cơ chế lọc botnet bằng thuật toán Clustering Coefficient trên đồ thị.
-
-**Technical Notes:**
-- Đảm bảo cơ chế chiếu đồ thị ảo (Graph Projection) trong Neo4j GDS chạy tối ưu trên RAM để không gây trễ hệ thống khi chạy tính toán định kỳ.
+- Ensure Graph Projection is RAM-efficient for periodic execution
 
 **Dependencies:** Blocked by: DA-AI04-99-02. Blocks: DA-AI04-99-06, DA-AI04-99-07.
 
 ---
 
-### DA-AI04-99-04 — Thiết kế quy trình Chuẩn hóa và Cắt nhỏ văn bản (Text Normalization & Chunking)
+### DA-AI04-99-04 — Design text normalization & chunking pipeline
 **Assignee:** Ân (AI) + Trung (Leader) | **Priority:** 🟡 High
 
-**Goal:** Định nghĩa bộ quy tắc làm sạch văn bản tiếng Việt và thiết lập thông số chia nhỏ văn bản tri thức phục vụ cho khâu nạp dữ liệu tri thức của trend.
+**Goal:** Define Vietnamese text cleaning rules (slang normalization, emoji/junk URL removal) and configure LangChain `RecursiveCharacterTextSplitter` (chunk_size=500, overlap=50) for knowledge base ingestion in trend analysis.
 
-**Input:**
-- Tên các xu hướng chính thức trong Top 10 - 20 [từ `DA-AI04-99-06`].
-- Văn bản thô của các bài đăng và comments chi tiết liên quan đến các xu hướng này [do bot tiếp tục cào sâu].
+**Acceptance Criteria:**
+- [ ] Build Regex rules and normalization dictionary for Vietnamese slang/abbreviations (e.g. "khum" → "không", "k" → "không", "ly" → "cốc")
+- [ ] Configure LangChain `RecursiveCharacterTextSplitter` with chunk_size=500, overlap=50, split priority `\n` → `.` → `,` → whitespace
 
-**Output:**
-- Danh sách các text chunks sạch đã chuẩn hóa ngôn ngữ.
-- Định dạng JSON mẫu:
+**Technical Notes:**
+- Input: Top 10-20 trend names from `DA-AI04-99-06` + raw posts/comments from deep crawl bot
+- Output: Clean text chunks as JSON:
   ```json
   {
     "trendName": "trà sữa đất nung",
     "chunks": [
-      { "chunk_id": "chunk_0", "text": "Quán Trà Sữa Đất Nung Hàng Bồ nằm tại số 10 Hàng Bồ, Hoàn Kiếm, Hà Nội. Trà được nướng trực tiếp trên ấm đất..." }
+      { "chunk_id": "chunk_0", "text": "Trà Sữa Đất Nung at 10 Hàng Bồ, Hoàn Kiếm, Hà Nội..." }
     ]
   }
   ```
+- Ensure chunk boundaries do not break Vietnamese sentence semantics
 
-**Detailed Solution (Giải pháp chi tiết):**
-1. **Chuẩn hóa từ lóng/viết tắt:** Thay thế các từ viết tắt và từ lóng phổ biến trên MXH bằng bộ từ điển ánh xạ (synonyms map). Loại bỏ hoàn toàn các emoji rác và URL quảng cáo.
-2. **Chia nhỏ (Chunking):** Chạy thư viện LangChain `RecursiveCharacterTextSplitter` với các tham số: `chunk_size=500`, `chunk_overlap=50`. Cấu hình cắt theo độ ưu tiên: dấu xuống dòng `\n`, dấu chấm `.`, dấu phẩy `,`, và khoảng trắng để tránh đứt câu.
-
-**Acceptance Criteria:**
-- [ ] Xây dựng bộ quy tắc Regex và từ điển chuẩn hóa viết tắt/từ lóng tiếng Việt (ví dụ: "khum" -> "không", "k" -> "không", "ly" -> "cốc").
-- [ ] Xác định cấu hình chia nhỏ văn bản bằng LangChain `RecursiveCharacterTextSplitter` (chunk_size=500, overlap=50).
-
-**Technical Notes:**
-- Phải đảm bảo các vết cắt chunk không làm đứt đoạn ngữ nghĩa của câu tiếng Việt (ưu tiên cắt theo dấu chấm, dấu phẩy, dấu xuống dòng).
-
-**Dependencies:** Blocks: DA-AI04-99-05.
+**Dependencies:** Blocked by: DA-AI04-99-06. Blocks: DA-AI04-99-05.
 
 ---
 
-### DA-AI04-99-05 — Thiết kế cấu trúc cơ sở dữ liệu lai (ChromaDB + Neo4j NER Graph Schema)
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+### DA-AI04-99-05 — Design hybrid database schema (ChromaDB + Neo4j NER Graph)
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
-**Goal:** Thiết kế sơ đồ dữ liệu (Schema) và cơ chế liên kết đồng bộ giữa Vector DB (ChromaDB) và Graph DB (Neo4j) đối với dữ liệu tri thức chi tiết của xu hướng.
-
-**Input:**
-- Danh sách các text chunks sạch kèm trendName liên kết [Output từ `DA-AI04-99-04`].
-
-**Output:**
-- Cơ sở dữ liệu ChromaDB được nạp vector embeddings.
-- Neo4j được bổ sung các Node thực thể (`:KOL`, `:Dish`, `:Location`) và liên kết quan hệ (`:PROMOTED`, `:ASSOCIATED_WITH`, `:LOCATED_IN`) trỏ về Node `:Trend`.
-
-**Detailed Solution (Giải pháp chi tiết):**
-1. **Nạp ChromaDB (Vector DB):** Sử dụng mô hình `all-MiniLM-L6-v2` chuyển đổi từng text chunk thành vector 384 chiều. Lưu trữ vào ChromaDB kèm theo metadata lọc `trendName`.
-2. **Trích thực thể & Nạp Neo4j (NER):** Gửi text chunk sang LLM (Llama 3 qua API) với prompt trích xuất thực thể có cấu trúc. Nhận về danh sách thực thể và chạy các câu lệnh Cypher `MERGE` để tạo mối quan hệ trên đồ thị Neo4j.
-3. **Khớp nối dữ liệu (Linkage):** Đảm bảo cả bản ghi ChromaDB (qua metadata `trendName`) và các node thực thể trong Neo4j đều kết nối trực tiếp với node `:Trend` gốc để luồng GraphRAG sau này có thể truy vấn lai đồng bộ.
+**Goal:** Design schema and sync mechanism between Vector DB (ChromaDB with `all-MiniLM-L6-v2` 384-dim embeddings) and Graph DB (Neo4j with entity nodes `KOL`, `Dish`, `Location`), linked via `:Trend` node to support GraphRAG queries.
 
 **Acceptance Criteria:**
-- [ ] Định nghĩa Schema lưu trữ trong ChromaDB (Cấu trúc ID, nội dung document, cấu hình mô hình embedding và các trường metadata như `trendName` để filter).
-- [ ] Định nghĩa Schema đồ thị tri thức trong Neo4j (Nodes: `KOL`, `Dish`, `Location`, `Trend`; Edges: `PROMOTED`, `ASSOCIATED_WITH`, `LOCATED_IN`).
-- [ ] Thiết kế giải thuật chạy nền (Background Job) xử lý trùng lặp thực thể (Entity Resolution) để gộp các node tương tự ngữ nghĩa trong Neo4j.
+- [ ] Define ChromaDB schema: ID, document content, embedding model, metadata filter (`trendName`)
+- [ ] Define Neo4j schema: Nodes (`KOL`, `Dish`, `Location`, `Trend`), Edges (`PROMOTED`, `ASSOCIATED_WITH`, `LOCATED_IN`)
+- [ ] Design background Entity Resolution job to merge semantically similar Neo4j nodes
+- [ ] Ensure ChromaDB `trendName` metadata + Neo4j relationships both point to the same root `:Trend` node (supporting Hybrid Retrieval latency < 100ms)
 
 **Technical Notes:**
-- ChromaDB cần được cấu hình index tối ưu cho việc lọc theo thuộc tính metadata `trendName` để phục vụ khâu truy vấn lai (Hybrid Retrieval) đạt latency dưới 100ms.
+- Input: clean text chunks with `trendName` from `DA-AI04-99-04`
+- NER pipeline: text chunk → LLM (Llama 3 API) → entity list → Cypher `MERGE`
+- Chroma config: `all-MiniLM-L6-v2`, 384-dim vector, metadata field `trendName`
+- ChromaDB needs optimized index for `trendName` metadata filter → latency < 100ms
 
 **Dependencies:** Blocked by: DA-AI04-99-04. Blocks: DA-AI04-99-07.
 
 ---
 
-### DA-AI04-99-06 — Thiết kế luồng lưu trữ đệm Redis và Ghi đè kết quả Neo4j (Upsert Flow)
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+### DA-AI04-99-06 — Design Redis cache & Neo4j upsert flow
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
-**Goal:** Thiết kế cấu trúc dữ liệu lưu đệm trong Redis và viết các truy vấn Cypher ghi đè/tạo mới (Upsert) điểm số xu hướng vào Neo4j.
-
-**Input:**
-- Bảng xếp hạng Top 10 - 20 xu hướng chính thức [Output từ `DA-AI04-99-03`].
-
-**Output:**
-- Dữ liệu được đồng bộ hóa thành công xuống Redis (Sorted Set) và Neo4j (Trend Nodes).
-- API `/ai/trends` có thể đọc trực tiếp dữ liệu từ Redis để hiển thị lên Dashboard.
-
-**Detailed Solution (Giải pháp chi tiết):**
-1. **Redis Caching:** Ghi danh sách xu hướng vào Redis dưới dạng Sorted Set (ZSET) với key `trends:vn:{date}:{category}`. Điểm score của ZSET chính là `final_score` để dashboard truy vấn và sắp xếp tự động. Thiết lập TTL là 6 giờ.
-2. **Neo4j Upsert:** Thực thi câu lệnh Cypher sử dụng mệnh đề `MERGE` kết hợp `ON CREATE SET` và `ON MATCH SET` để cập nhật/ghi đè chỉ số xếp hạng và điểm số lên Node `:Trend` trong database.
+**Goal:** Design Redis cache structure (Sorted Set ZSET, TTL 6h) and Cypher upsert queries (`MERGE` + `ON CREATE SET` / `ON MATCH SET`) for trend scores to Neo4j, ensuring `/ai/trends` API reads directly from Redis.
 
 **Acceptance Criteria:**
-- [ ] Thiết kế cấu trúc lưu trữ bảng xếp hạng trend trong Redis (cấu trúc key `trends:vn:{date}:{category}`, sử dụng kiểu dữ liệu Sorted Set hoặc JSON String) kèm TTL 6 giờ.
-- [ ] Viết câu lệnh Cypher sử dụng `MERGE` kết hợp `ON CREATE SET` và `ON MATCH SET` để thực hiện upsert điểm số, thứ hạng của Top 10-20 Trend vào Neo4j mà không làm mất lịch sử ngày tạo.
+- [ ] Design Redis structure: key `trends:vn:{date}:{category}`, Sorted Set type, score = `final_score`, TTL 6h
+- [ ] Write Cypher `MERGE` + `ON CREATE SET` / `ON MATCH SET` to upsert score/rank into `:Trend` node without losing creation history
+- [ ] Ensure Redis and Neo4j writes are transactional to prevent dashboard sync issues
 
 **Technical Notes:**
-- Đảm bảo việc ghi vào Redis và Neo4j diễn ra đồng thời để tránh bất đồng bộ dữ liệu hiển thị trên Dashboard.
+- Input: Top 10-20 trend ranking from `DA-AI04-99-03`
+- Output: Redis (sync cache, hot read) + Neo4j (historical storage, graph query)
 
 **Dependencies:** Blocked by: DA-AI04-99-03. Blocks: DA-AI04-99-07.
 
 ---
 
-### DA-AI04-99-07 — Tổng hợp tài liệu Blueprint thiết kế hệ thống cào dữ liệu xu hướng (Final Blueprint)
+### DA-AI04-99-07 — Compile final crawl trend analysis blueprint document
 **Assignee:** Tuấn (AI) | **Priority:** 🟡 High
 
-**Goal:** Tổng hợp toàn bộ các phân tích, thuật toán, công thức toán học, sơ đồ database và thiết kế API từ các task trước thành một tài liệu Blueprint hoàn chỉnh bàn giao cho đội phát triển.
+**Goal:** Consolidate all analysis, algorithms (BM25, Centrality), mathematical formulas, database schemas (ChromaDB, Neo4j, Redis), and API designs from tasks DA-AI04-99-01 → 06 into a complete blueprint document `report_crawl_trend_analysis.md` for handoff to the development team.
 
 **Acceptance Criteria:**
-- [ ] Hoàn thành tài liệu thiết kế hệ thống chi tiết `report_crawl_trend_analysis.md`.
-- [ ] Tích hợp đầy đủ các sơ đồ luồng dữ liệu (Mermaid) và ví dụ JSON thô/vector/graph properties thực tế.
-- [ ] Bàn giao thành công và họp thống nhất (Alignment) tài liệu thiết kế với toàn bộ thành viên trong đội phát triển AI.
+- [ ] Complete `report_crawl_trend_analysis.md` with full Mermaid diagrams and real JSON/vector/graph property examples
+- [ ] Handoff and alignment meeting with all AI team members
 
 **Technical Notes:**
-- Tài liệu Blueprint cần lưu trực tiếp trong thư mục tài liệu thiết kế của dự án để làm tài liệu đối chiếu (Reference) trong suốt quá trình code.
+- Blueprint stored in the project design docs directory, used as reference throughout development
 
 **Dependencies:** Blocked by: DA-AI04-99-03, DA-AI04-99-05, DA-AI04-99-06.
 
 ---
 
 ### DA-AI06-01 — Integrate Stability AI SDXL API: text-to-image with style, aspect ratio, negative prompt params
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Connect to Stability AI's image generation service and expose its key parameters through a clean internal function.
 
@@ -4424,7 +4362,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI06-02 — Build POST /ai/image/generate endpoint → upload result to S3 → return {imageUrl}
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Deliver the complete image generation user flow from prompt input to a publicly accessible (presigned) image URL.
 
@@ -4443,7 +4381,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI06-03 — Implement batch generation (generate 3 variations simultaneously via asyncio.gather)
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Allow users to request multiple image variations in a single API call by parallelizing Stability AI requests.
 
@@ -4462,7 +4400,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI06-04 — Brand safety filter (prepend default negative prompts to avoid inappropriate content)
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Prevent the image generation pipeline from producing content that could damage client brands or violate platform content policies.
 
@@ -4480,7 +4418,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI06-05 — Test 20 real product prompts, evaluate quality and generation time, document results
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Validate SDXL image quality against real BrandHub use cases and identify prompt patterns that produce reliably high-quality marketing visuals.
 
@@ -4633,7 +4571,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI08-01 — Implement background removal for product images (rembg + U2Net, output transparent PNG)
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Automatically remove product image backgrounds to produce clean transparent PNGs ready for composition onto marketing backgrounds.
 
@@ -4652,7 +4590,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI08-02 — Implement background removal for model/ambassador images
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Apply background removal to human model and ambassador images, which present harder edge cases (hair, skin tones) than product images.
 
@@ -4670,7 +4608,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI08-03 — Build layer compositing service (product layer + model layer + background layer → Pillow composite)
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Combine the three image layers (product cutout, model cutout, background) into a single cohesive marketing image using Pillow.
 
@@ -4689,7 +4627,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI08-04 — Implement shadow + lighting adjustment for natural-looking merges
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Reduce the "cutout" appearance of composited elements by adding subtle shadow and brightness matching so subjects look photographically integrated.
 
@@ -4708,7 +4646,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI08-05 — Build POST /ai/compose endpoint
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Expose the full composition pipeline as a single API endpoint that accepts S3 keys and returns the composed image URL.
 
@@ -4727,7 +4665,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI08-06 — Test 20 product + model pairs, evaluate realism, document failure cases
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Validate composition quality across the range of product categories and model types that BrandHub clients will submit.
 
@@ -4742,7 +4680,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI08-07 — Write composition parameter guide (optimal image sizes, best practices per product category)
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Low
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Low
 
 **Goal:** Give BrandHub clients clear guidance on how to prepare input images to get the best possible composition results.
 
@@ -4889,7 +4827,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI10-01 — Finalize all FastAPI endpoints
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Ensure every AI endpoint is production-ready with consistent request validation, error handling, and response shapes before integration testing.
 
@@ -4946,7 +4884,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI10-04 — Write Postman collection for all AI endpoints with example requests and responses
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Give business-service developers and the mentor a ready-to-run set of API examples that work against the local Docker environment.
 
@@ -4960,7 +4898,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI10-05 — Write Swagger/OpenAPI documentation for ai-service (auto-generated via FastAPI /docs)
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Ensure every endpoint has complete, accurate Swagger documentation that a developer can use without reading source code.
 
@@ -5006,7 +4944,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI11-03 — Write Image Composition Research Report
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Document the composition technique evaluation and implementation decisions for mentor review and future reference.
 
@@ -5333,7 +5271,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E47-02 — Write individual sprint report for Sprint 1 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's personal contributions in Sprint 1 in `sprint_01/members/locnv.md`. Sprint 1 had no tasks assigned to Lộc, so this report confirms participation in team meetings and skill assessment only.
 
@@ -5458,7 +5396,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E47-09 — Write individual sprint report for Sprint 2 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's personal contributions in Sprint 2 in `sprint_02/members/locnv.md`. Sprint 2 tasks for Lộc: DA-E04-04 (mobile non-functional requirements).
 
@@ -5570,7 +5508,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E47-16 — Write individual sprint report for Sprint 3 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's contributions in Sprint 3 in `sprint_03/members/locnv.md`. Tasks: DA-E08-01/02/03/04 (Figma wireframes and component system).
 
@@ -5677,7 +5615,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E47-23 — Write individual sprint report for Sprint 4 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's contributions in Sprint 4 in `sprint_04/members/locnv.md`. Tasks: DA-E10-04 (CI/CD for web-dashboard).
 
@@ -5785,7 +5723,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E47-30 — Write individual sprint report for Sprint 5 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's contributions in Sprint 5 in `sprint_05/members/locnv.md`. AI Iteration 1 tasks: DA-AI01-05/06 (image compositing research), DA-AI02-01/03/05 (ai-service project init, S3 helper, Dockerfile).
 
@@ -5894,7 +5832,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E47-37 — Write individual sprint report for Sprint 6 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's AI Iteration 1 carry-over or Sprint 6 parallel work in `sprint_06/members/locnv.md`.
 
@@ -6001,7 +5939,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E47-44 — Write individual sprint report for Sprint 7 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's contributions in Sprint 7 in `sprint_07/members/locnv.md`. 🔀 *Nội dung gốc ghi nhầm AI-06/AI-08 (thực chất thuộc AI Iteration 3, song song Sprint 9–10, không phải Sprint 7) — đã sửa lại đúng vị trí, xem DA-E48-11/12/13. AI-06/AI-08 cũng đã chuyển sang Ân/Tuấn sau Sprint 4 rebalance (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4)).* Ghi các task AI-infra Lộc thực sự làm trong Sprint 7 nếu có.
 
@@ -6108,7 +6046,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E47-51 — Write individual sprint report for Sprint 8 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's contributions in Sprint 8 in `sprint_08/members/locnv.md`. AI Iteration 4 tasks: DA-AI10-01/04/05 (finalize all FastAPI endpoints, Postman collection, Swagger docs), DA-AI11-03 (Image Composition Research Report).
 
@@ -6219,7 +6157,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E47-58 — Write individual sprint report for Sprint 9 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's contributions in Sprint 9 in `sprint_09/members/locnv.md`. No Sprint 9 tasks assigned to Lộc in main plan — note any support work or prep for Sprint 10.
 
@@ -6325,7 +6263,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E47-65 — Write individual sprint report for Sprint 10 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's contributions in Sprint 10 in `sprint_10/members/locnv.md`. Tasks: DA-E30-03/04 (ContentCalendar React component with drag-drop, PlatformPreview component).
 
@@ -6431,7 +6369,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E47-72 — Write individual sprint report for Sprint 11 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's contributions in Sprint 11 in `sprint_11/members/locnv.md`. No Sprint 11 tasks assigned to Lộc in main plan — note any support or prep work.
 
@@ -6536,7 +6474,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E47-79 — Write individual sprint report for Sprint 12 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's contributions in Sprint 12 in `sprint_12/members/locnv.md`. 🔀 *E34/E35/E36 đã chuyển sang Phước sau Sprint 4 rebalance (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4)) — báo cáo tuỳ theo task AI Lộc đang làm song song trong sprint này.*
 
@@ -6643,7 +6581,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E47-86 — Write individual sprint report for Sprint 13 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's contributions in Sprint 13 in `sprint_13/members/locnv.md`. 🔀 *E37/E38-04/E39-03 đã chuyển sang Phước sau Sprint 4 rebalance (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4)) — báo cáo tuỳ theo task AI Lộc đang làm song song trong sprint này.*
 
@@ -6750,7 +6688,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E47-93 — Write individual sprint report for Sprint 14 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's contributions in Sprint 14 in `sprint_14/members/locnv.md`. 🔀 *E40/E41 đã chuyển sang Phước sau Sprint 4 rebalance (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4)) — báo cáo tuỳ theo task AI Lộc đang làm song song trong sprint này.*
 
@@ -6861,7 +6799,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E47-100 — Write individual sprint report for Sprint 15 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's contributions in Sprint 15 in `sprint_15/members/locnv.md`. Task: DA-E43-02 (UI responsive fixes across 4 breakpoints).
 
@@ -6975,7 +6913,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E47-107 — Write individual sprint report for Sprint 16 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's contributions in Sprint 16 in `sprint_16/members/locnv.md`. Tasks: DA-E44-04 (smoke test on production), DA-E45-02 (User Manual contribution), DA-E45-04 (demo video), DA-E46-01/03/04 (capstone report, slide deck, Q&A prep).
 
@@ -7118,7 +7056,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E48-03 — Write individual AI iteration report for Iteration 1 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's personal contributions in AI Iteration 1 in `iterations/iteration_1/members/locnv.md`, covering AI-01 compositing research and AI-02 service scaffolding.
 
@@ -7137,7 +7075,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E48-04 — Review all member reports + write team ITERATION_REPORT for Iteration 1
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Read all 3 member reports for AI Iteration 1, verify claims against git history, then write the team-level `iterations/iteration_1/ITERATION_REPORT.md` covering overall iteration outcome, completion rate, and retrospective.
 
@@ -7157,7 +7095,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E48-05 — Finalize and commit Iteration 1 report to brandhub-infrastructure
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Commit all AI Iteration 1 report files (`ITERATION_REPORT.md` + all member `.md` files) to `brandhub-infrastructure` on the correct branch and merge to `develop`.
 
@@ -7212,7 +7150,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E48-08 — Write individual AI iteration report for Iteration 2 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's personal contributions in AI Iteration 2 in `iterations/iteration_2/members/locnv.md`.
 
@@ -7230,7 +7168,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E48-09 — Review all member reports + write team ITERATION_REPORT for Iteration 2
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Read all 3 member reports for AI Iteration 2, verify claims against git history, then write `iterations/iteration_2/ITERATION_REPORT.md`.
 
@@ -7248,7 +7186,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E48-10 — Finalize and commit Iteration 2 report to brandhub-infrastructure
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Commit all AI Iteration 2 report files to `brandhub-infrastructure` on the correct branch and merge to `develop`.
 
@@ -7301,7 +7239,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E48-13 — Write individual AI iteration report for Iteration 3 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's personal contributions in AI Iteration 3 in `iterations/iteration_3/members/locnv.md`. 🔀 *AI-06 và AI-08 đã chuyển sang Ân/Tuấn sau Sprint 4 rebalance (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4)) — nội dung report của Lộc trong iteration này còn lại tuỳ theo task infra/hỗ trợ khác Lộc nhận, nếu không có việc gì trong iteration thì ghi rõ "không có task" thay vì để trống.*
 
@@ -7319,7 +7257,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E48-14 — Review all member reports + write team ITERATION_REPORT for Iteration 3
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Read all 3 member reports for AI Iteration 3, verify claims against git history, then write `iterations/iteration_3/ITERATION_REPORT.md`.
 
@@ -7337,7 +7275,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E48-15 — Finalize and commit Iteration 3 report to brandhub-infrastructure
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Commit all AI Iteration 3 report files to `brandhub-infrastructure` on the correct branch and merge to `develop`.
 
@@ -7390,7 +7328,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E48-18 — Write individual AI iteration report for Iteration 4 — Lộc
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Document Lộc's personal contributions in AI Iteration 4 in `iterations/iteration_4/members/locnv.md`.
 
@@ -7408,7 +7346,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E48-19 — Review all member reports + write team ITERATION_REPORT for Iteration 4
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Read all 3 member reports for AI Iteration 4, verify claims against git history, then write `iterations/iteration_4/ITERATION_REPORT.md`. This is the final AI track report, consolidating the full 4-iteration AI track outcome.
 
@@ -7427,7 +7365,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E48-20 — Finalize and commit Iteration 4 report to brandhub-infrastructure
-**Assignee:** Lộc (Frontend) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Commit all AI Iteration 4 report files on branch `docs/ai-iteration-4-report` and merge to `develop`. This is the final commit of the AI track documentation.
 
@@ -7566,7 +7504,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E30-03 — Build ContentCalendar React component
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Deliver an interactive monthly/weekly content calendar that visually represents post schedules and allows drag-and-drop rescheduling.
 
@@ -7588,7 +7526,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E30-04 — Build PlatformPreview component
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Provide accurate per-platform post previews so content creators and clients can visualize how a post will appear before publishing.
 
@@ -7922,7 +7860,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E34-01 — Set up shadcn/ui + Tailwind CSS + design tokens
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Establish the design system foundation with consistent color tokens, typography scale, and spacing so all UI components share a unified visual language.
 
@@ -7943,7 +7881,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E34-02 — Build common UI components
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Deliver a library of reusable, typed UI primitives that all feature pages can compose without duplicating UI code.
 
@@ -7966,7 +7904,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E34-03 — Build layout components
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Deliver the app shell (sidebar, navbar, page wrapper) and route-level auth guard so all authenticated pages share a consistent layout and enforce role-based access.
 
@@ -7987,7 +7925,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E34-04 — Set up Axios instance with interceptors
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Configure a singleton Axios instance that automatically attaches auth tokens and handles token refresh transparently so all API calls in the app are authenticated without per-call boilerplate.
 
@@ -8008,7 +7946,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E34-05 — Set up Zustand stores
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Establish centralized client-side state management for authentication, workspace context, and notifications using Zustand so components share state without prop drilling.
 
@@ -8029,7 +7967,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E35-01 — Build Login and Register pages
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Deliver the entry points for user authentication with email/password and Google OAuth, implementing proper validation and error handling.
 
@@ -8050,7 +7988,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E35-02 — Build main Dashboard page
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Deliver the post-login landing page with KPI cards and activity feed so users immediately see the health of their content operations.
 
@@ -8071,7 +8009,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E35-03 — Build Workspace management pages
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Allow AGENCY_OWNER to create and configure their workspace and manage team members through a dedicated settings UI.
 
@@ -8092,7 +8030,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E35-04 — Build Client management pages
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Provide ACCOUNT_MANAGER and AGENCY_OWNER with CRUD pages for managing brand clients and their service packages.
 
@@ -8113,7 +8051,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E36-01 — Build Content Request list page
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Provide ACCOUNT_MANAGER and CONTENT_CREATOR with a filterable, paginated view of all content requests relevant to their role.
 
@@ -8135,7 +8073,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E36-02 — Build Content Editor page with AI Generate Panel
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Deliver the primary content creation interface where CONTENT_CREATOR writes or AI-generates captions, selects hashtags, attaches media, and submits for review.
 
@@ -8157,7 +8095,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E36-03 — Build Content Calendar page
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Provide a visual, interactive calendar for scheduling and managing posts across all platforms with drag-and-drop rescheduling.
 
@@ -8179,7 +8117,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E36-04 — Build Platform Preview modal
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Give content creators and clients a realistic visual mockup of how each post will appear on each social platform before publishing.
 
@@ -8199,7 +8137,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E36-05 — Build Content Library page
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Provide a centralized media and content asset browser so teams can reuse uploaded images, saved hashtag groups, and approved content templates.
 
@@ -8220,7 +8158,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E37-01 — Build Client Portal login
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Provide BRAND_CLIENT users with a dedicated, isolated portal entry point that enforces role-based access and prevents cross-client data exposure.
 
@@ -8241,7 +8179,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E37-02 — Build Client Calendar
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Give BRAND_CLIENT a read-only calendar view of their scheduled and published posts so they have visibility into their content plan without editing capabilities.
 
@@ -8261,7 +8199,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E37-03 — Build Client Approval page
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Allow BRAND_CLIENT to review posts sent for their approval, see platform previews, and approve or reject with written feedback.
 
@@ -8282,7 +8220,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E37-04 — Build Client Analytics page
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Provide BRAND_CLIENT with a self-service analytics view showing their campaign performance so they can assess ROI without requiring an agency report.
 
@@ -8368,7 +8306,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E38-04 — Build Analytics Dashboard
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Deliver the agency-facing analytics page with interactive charts giving AGENCY_OWNER and ACCOUNT_MANAGER a comprehensive view of content performance.
 
@@ -8435,7 +8373,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E39-03 — Build Notification Center UI
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Deliver an in-app notification center that keeps users aware of important events without requiring them to refresh or navigate away.
 
@@ -8456,7 +8394,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E40-01 — Set up React Native + Expo project
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Initialize the mobile app project with navigation structure, shared API client, and Expo configuration so all subsequent mobile screens can be built on a stable foundation.
 
@@ -8477,7 +8415,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E40-02 — Build Auth screens (mobile)
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Deliver Login, Register, and Forgot Password screens for the mobile app with the same API integration as the web counterparts.
 
@@ -8499,7 +8437,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E40-03 — Build Dashboard screen (mobile)
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Deliver a simplified mobile dashboard showing KPI cards and recent activity so users get a quick status overview on their phone.
 
@@ -8520,7 +8458,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E40-04 — Build Calendar screen (mobile)
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Provide mobile users with a calendar view of their posts where they can tap a day to see what's scheduled or published.
 
@@ -8541,7 +8479,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E40-05 — Build Approval screen (mobile)
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Allow BRAND_CLIENT to approve or reject posts directly from their phone, making the approval workflow accessible without a desktop browser.
 
@@ -8563,7 +8501,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E40-06 — Implement offline draft mode
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Allow CONTENT_CREATOR to save post drafts on mobile without internet connectivity and automatically sync them when connectivity is restored.
 
@@ -8584,7 +8522,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E41-01 — Integrate FCM push notifications (mobile)
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Enable the mobile app to receive push notifications from FCM so users are alerted of important events in real time.
 
@@ -8627,7 +8565,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E41-03 — Build Notification screen (mobile)
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Provide a dedicated mobile screen listing all notifications with deep-link navigation and read-state management.
 
@@ -8649,7 +8587,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E41-04 — Integrate expo-image-picker and expo-camera
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Enable CONTENT_CREATOR to attach media from their phone gallery or camera to posts directly from the mobile app.
 
@@ -8793,7 +8731,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-E43-02 — UI responsive fixes
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Ensure all web UI pages are correctly displayed at all target breakpoints so the product is usable for agency staff on any screen size.
 
