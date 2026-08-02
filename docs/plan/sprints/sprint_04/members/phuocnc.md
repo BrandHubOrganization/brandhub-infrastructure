@@ -29,11 +29,30 @@
 | DA-213  | [DA-E21-01](https://letritrung2605.atlassian.net/browse/DA-213) | Khoi tao brandhub-publisher-service project          | 🔴 Critical | ✅ Done            |
 | DA-272  | [DA-E21-05](https://letritrung2605.atlassian.net/browse/DA-272) | Implement TikTok publish adapter                     | 🟡 High     | ✅ Done            |
 
-**Tổng:** 10 tasks | Done: 10 | In Review: 10 | Chưa hoàn thành: 0
+**Tổng:** 10 tasks | Done: 10 | In Review: 0 | Chưa hoàn thành: 0
 
 ---
 
 ## 3. Chi tiết công việc đã làm
+
+### DA-E07-03 — RabbitMQ Message Format (Publisher Contract)
+
+**Jira status:** Done
+**File tạo ra:**
+- `docs/architecture/rabbitmq_publisher_contract.html`
+
+**Mô tả công việc đã làm:**
+- Thiết kế và document PublishJobMessage contract — định dạng message RabbitMQ giữa business-service (producer) và publisher-service (consumer).
+- Xác định cấu trúc message JSON: `postId`, `platform` (facebook/instagram/tiktok/threads/zalo), `content` (caption + hashtags), `mediaUrls[]`, `scheduledAt`, `workspaceId`, `clientId`.
+- Định nghĩa queue name, exchange type (direct), routing key pattern, và dead-letter queue cho failed publish jobs.
+- Document flow: business-service → RabbitMQ exchange → platform-specific queue → publisher-service adapter → social API → callback kết quả về business-service.
+- Thiết kế retry strategy: 3 lần retry với exponential backoff (1m, 5m, 15m) → dead-letter queue nếu vẫn fail.
+
+**Kết quả đạt được:**
+- [x] Contract rõ ràng cho DA-E21-02 (RabbitMQ consumer implementation) và DA-E22-01/02 (publish callback + retry).
+- [x] HTML visualization trực quan cho team dễ reference.
+
+---
 
 ### [DA-172] — Document social platform API specs
 
@@ -247,9 +266,14 @@ Phát triển một Global Error Response Handler cấp API Gateway, dùng để
 
 ## 4. Tasks chưa hoàn thành
 
+*Không có task nào chưa hoàn thành.*
+
 ---
 
 ## 5. Đóng góp ngoài tasks chính
+
+- Hỗ trợ team review docker-compose structure và góp ý về cách tổ chức multi-file compose (infra core + dev override + app stack).
+- Các file HTML architecture docs (rabbitmq_publisher_contract, social_platforms_api_specs) được thiết kế dạng card-based visualization — dễ reference hơn markdown thuần cho technical specs phức tạp.
 
 ---
 
