@@ -290,6 +290,8 @@
 | [DA-E14-03](#da-e14-03-implement-client-isolation-for-brandclient-role) | Implement client isolation for BRAND_CLIENT (can only view data belonging to their own clientId) | Trung (Leader) | 🔴 Critical |
 | [DA-E14-04](#da-e14-04-write-permission-matrix-document) | Write permission matrix document (6 roles x all endpoints = allowed/not allowed) | Phước (Publisher) | 🟢 Medium |
 
+> 🔀 **E14 đã dời sang Sprint 6** do Sprint 5 tập trung hoàn thành auth core (E12).
+
 ### EPIC E34 — Design System & Base Components 🔀
 
 > Dời từ Sprint 12. Xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit.
@@ -304,7 +306,18 @@
 
 ---
 
-## Sprint 6 — Workspace, Client & Subscription (Weeks 11–12)
+## Sprint 6 — Workspace, Client, RBAC & Core Pages (Weeks 11–12)
+
+### EPIC E14 — Role-Based Access Control (RBAC) 🔀 *(dời từ Sprint 5)*
+
+> Sprint 5 tập trung hoàn thành auth core (E12), RBAC chưa làm được → dời sang Sprint 6. Đây là foundational epic, block E15/E16.
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E14-01](#da-e14-01-write-requirerole-annotation-and-aop-aspect) | Write RBAC annotation/middleware for business-service (@RequireRole) | Trung (Leader) | 🔴 Critical |
+| [DA-E14-02](#da-e14-02-implement-workspace-isolation-filter) | Implement workspace isolation filter (every MongoDB query must include workspaceId filter) | Trung (Leader) | 🔴 Critical |
+| [DA-E14-03](#da-e14-03-implement-client-isolation-for-brandclient-role) | Implement client isolation for BRAND_CLIENT (can only view data belonging to their own clientId) | Trung (Leader) | 🔴 Critical |
+| [DA-E14-04](#da-e14-04-write-permission-matrix-document) | Write permission matrix document (6 roles x all endpoints = allowed/not allowed) | Phước (Publisher) | 🟢 Medium |
 
 ### EPIC E15 — Workspace Management
 
@@ -320,12 +333,53 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-E16-01](#da-e16-01-implement-post-apiv1clients) | Implement POST /api/v1/clients (AGENCY_OWNER creates a new brand client) | Trung (Leader) | 🔴 Critical |
-| [DA-E16-02](#da-e16-02-implement-put-apiv1clientsidassign) | Implement PUT /api/v1/clients/{id}/assign (AGENCY_OWNER assigns an Account Manager) | Trung (Leader) | 🔴 Critical |
-| [DA-E16-03](#da-e16-03-implement-put-apiv1clientsidservice-package) | Implement PUT /api/v1/clients/{id}/service-package (set monthly post limits and platforms) | Trung (Leader) | 🟡 High |
-| [DA-E16-04](#da-e16-04-implement-get-apiv1clients) | Implement GET /api/v1/clients (AGENCY_OWNER and ACCOUNT_MANAGER view client list) | Trung (Leader) | 🔴 Critical |
+| [DA-E16-01](#da-e16-01-implement-post-apiv1clients) | Implement POST /api/v1/clients (AGENCY_OWNER creates a new brand client) | Phước (Publisher) | 🔴 Critical |
+| [DA-E16-02](#da-e16-02-implement-put-apiv1clientsidassign) | Implement PUT /api/v1/clients/{id}/assign (AGENCY_OWNER assigns an Account Manager) | Phước (Publisher) | 🔴 Critical |
+| [DA-E16-03](#da-e16-03-implement-put-apiv1clientsidservice-package) | Implement PUT /api/v1/clients/{id}/service-package (set monthly post limits and platforms) | Phước (Publisher) | 🟡 High |
+| [DA-E16-04](#da-e16-04-implement-get-apiv1clients) | Implement GET /api/v1/clients (AGENCY_OWNER and ACCOUNT_MANAGER view client list) | Phước (Publisher) | 🔴 Critical |
 
-> **EPIC E17 — Subscription & Billing đã dời sang Sprint 9** 🔀 (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit) — không block gì gấp, nhường chỗ cho Trung tập trung Auth/RBAC/Workspace/Client trước.
+> **EPIC E17 — Subscription & Billing đã dời sang Sprint 9** 🔀 (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit).
+
+### EPIC E35 — Auth & Dashboard Pages 🔀 *(dời từ Sprint 12)*
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| **Trung — Auth Pages** |
+| [DA-E35-01](#da-e35-01-build-login-page) | Build Login page (email/password form, error states, redirect to dashboard) | Trung (Leader) | 🔴 Critical |
+| [DA-E35-05](#da-e35-05-build-register-page) 🆕 | Build Register page (account creation form, validation, redirect to dashboard) | Trung (Leader) | 🔴 Critical |
+| [DA-E35-06](#da-e35-06-build-google-oauth-button) 🆕 | Build Google OAuth button + callback page (OAuth flow, handle new vs existing user) | Trung (Leader) | 🔴 Critical |
+| **Phước — Dashboard** |
+| [DA-E35-02](#da-e35-02-build-main-dashboard-page) | Build main Dashboard page (overview: total posts, success rate, team activity, AI credits, connected accounts) | Phước (Publisher) | 🔴 Critical |
+| **Trung — Workspace Pages** |
+| [DA-E35-03](#da-e35-03-build-create-workspace-page) | Build Create Workspace page (form: name, industry; redirect to workspace after create) | Trung (Leader) | 🔴 Critical |
+| [DA-E35-07](#da-e35-07-build-workspace-settings-page) 🆕 | Build Workspace Settings page (timezone selector, default platforms, report frequency) | Trung (Leader) | 🟡 High |
+| [DA-E35-08](#da-e35-08-build-workspace-members-page) 🆕 | Build Workspace Members page (member table, invite button, remove action with confirm) | Trung (Leader) | 🔴 Critical |
+| **Phước — Client Pages** |
+| [DA-E35-04](#da-e35-04-build-client-list-page) | Build Client List page (table with search, filter by status, role-based visibility) | Phước (Publisher) | 🔴 Critical |
+| [DA-E35-09](#da-e35-09-build-create-client-page) 🆕 | Build Create Client page (form: name, industry, brand color picker, logo upload) | Phước (Publisher) | 🔴 Critical |
+| [DA-E35-10](#da-e35-10-build-edit-client-page) 🆕 | Build Edit Client page (pre-filled form: name, industry, brand color, logo) | Phước (Publisher) | 🟡 High |
+| [DA-E35-11](#da-e35-11-build-client-service-package-page) 🆕 | Build Client Service Package page (posts/month input, platform checkboxes, AI credits slider) | Phước (Publisher) | 🟡 High |
+
+### EPIC E36 — Content Management Pages 🔀 *(dời từ Sprint 12)*
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| **Phước — Content Request** |
+| [DA-E36-01](#da-e36-01-build-content-request-list-page) | Build Content Request list page (filter by status, platform, deadline; table with pagination) | Phước (Publisher) | 🔴 Critical |
+| **Phước — Content Editor** |
+| [DA-E36-02](#da-e36-02-build-content-editor-page) | Build Content Editor page (form: caption textarea, hashtag input, platform selector, image upload, schedule date) | Phước (Publisher) | 🔴 Critical |
+| [DA-E36-06](#da-e36-06-build-ai-generate-panel) 🆕 | Build AI Generate Panel ("Generate with AI" button → call ai-service → display caption + hashtag + image; regenerate with feedback; "Use this" inserts into editor) | Phước (Publisher) | 🔴 Critical |
+| **Phước — Calendar & Preview** |
+| [DA-E36-03](#da-e36-03-build-content-calendar-page) | Build Content Calendar page (calendar view + drag-drop rescheduling) | Phước (Publisher) | 🔴 Critical |
+| [DA-E36-04](#da-e36-04-build-platform-preview-modal) | Build Platform Preview modal (accurately preview the format of each platform) | Phước (Publisher) | 🟡 High |
+| **Phước — Content Library** |
+| [DA-E36-05](#da-e36-05-build-media-browser-page) | Build Media Browser page (S3 file browser, upload, folder view) | Phước (Publisher) | 🟡 High |
+| [DA-E36-07](#da-e36-07-build-template-browser-page) 🆕 | Build Template Browser page (saved post drafts list, search, preview, use template) | Phước (Publisher) | 🟡 High |
+| [DA-E36-08](#da-e36-08-build-hashtag-groups-page) 🆕 | Build Hashtag Groups page (CRUD hashtag groups, assign to posts) | Phước (Publisher) | 🟡 High |
+
+> 🆕 = task mới tách từ task gốc để granularity tốt hơn.
+
+> 🔀 **E35 & E36 dời từ Sprint 12 lên Sprint 6** để có UI sớm cho auth + workspace + client + content, tận dụng Design System foundation đã có từ Sprint 5 (E34). Backend APIs (E15, E16) làm song song → UI có dữ liệu thật ngay.
 
 ---
 
@@ -664,17 +718,18 @@
 ## Sprint 12 — Core Pages (Weeks 23–24)
 
 > **EPIC E34 — Design System đã dời lên Sprint 5** 🔀 (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit).
+> **EPIC E35 & E36 đã dời lên Sprint 6** 🔀 (2026-08-02) — UI auth + workspace + client + content cần có sớm để song song với backend APIs.
 
-### EPIC E35 — Auth & Dashboard Pages
+### EPIC E35 — Auth & Dashboard Pages 🔀 *(đã dời lên Sprint 6)*
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-E35-01](#da-e35-01-build-login-and-register-pages) | Build Login/Register pages with Google OAuth button | Phước (Publisher) | 🔴 Critical |
+| [DA-E35-01](#da-e35-01-build-login-and-register-pages) | Build Login/Register pages with Google OAuth button | Trung (Leader) | 🔴 Critical |
 | [DA-E35-02](#da-e35-02-build-main-dashboard-page) | Build main Dashboard page (overview: total posts, success rate, team activity) | Phước (Publisher) | 🔴 Critical |
-| [DA-E35-03](#da-e35-03-build-workspace-management-pages) | Build Workspace management pages (create, settings, members) | Phước (Publisher) | 🔴 Critical |
+| [DA-E35-03](#da-e35-03-build-workspace-management-pages) | Build Workspace management pages (create, settings, members) | Trung (Leader) | 🔴 Critical |
 | [DA-E35-04](#da-e35-04-build-client-management-pages) | Build Client management pages (list, create, edit, service package) | Phước (Publisher) | 🔴 Critical |
 
-### EPIC E36 — Content Management Pages
+### EPIC E36 — Content Management Pages 🔀 *(đã dời lên Sprint 6)*
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
@@ -1054,7 +1109,7 @@
 | Sprint 3 | 5–6 | Design | Database schema (MongoDB + PostgreSQL), API spec, Figma wireframes |
 | Sprint 4 | 7–8 | Infrastructure | Docker Compose running, CI/CD pipelines active, API Gateway running |
 | Sprint 5 | 9–10 | Auth & RBAC | Register/Login/OAuth working, JWT + refresh tokens, RBAC enforced |
-| Sprint 6 | 11–12 | Core Business | Workspace CRUD, Client management, Subscription plans working |
+| Sprint 6 | 11–12 | Core Business | Workspace CRUD, Client management, Auth/Dashboard/Workspace/Client/Content pages |
 | Sprint 7 | 13–14 | Social OAuth | All 5 platform OAuth flows working, AES-256 token encryption, token refresh job |
 | Sprint 8 | 15–16 | Publisher | All 5 platform adapters working, retry logic, DLQ, callback to business |
 | Sprint 9 | 17–18 | AI Wiring | All AI internal endpoints exposed and callable from business-service |
@@ -5818,11 +5873,13 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ### DA-E47-36 — Write individual sprint report for Sprint 6 — Trung
 **Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
 
-**Goal:** Document Trung's contributions in Sprint 6 in `sprint_06/members/trungle.md`. Tasks: DA-E15-01 through 05 (Workspace CRUD), DA-E16-01 through 04 (Client management), DA-E17-01/02/03 (Subscription + billing).
+**Goal:** Document Trung's contributions in Sprint 6 in `sprint_06/members/trungle.md`. Tasks: DA-E14-01/02/03 (RBAC), DA-E15-01 through 05 (Workspace CRUD), DA-E35-01 (Login page), DA-E35-05/06 (Register + OAuth), DA-E35-03 (Create Workspace page), DA-E35-07/08 (Workspace Settings + Members).
 
 **Acceptance Criteria:**
-- [ ] All 12 tasks documented with API endpoints, commit hashes, and status
-- [ ] Payment gateway integration approach documented
+- [ ] All 14 tasks documented with API endpoints/UI pages, commit hashes, and status
+- [ ] RBAC implementation documented (@RequireRole, workspace/client isolation)
+- [ ] Workspace CRUD flow documented
+- [ ] Auth pages documented (Login/Register/OAuth button)
 - [ ] Self-assessment filled
 
 **Technical Notes:** File: `sprint_06/members/trungle.md`
@@ -5865,11 +5922,10 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ### DA-E47-39 — Write individual sprint report for Sprint 6 — Ân
 **Assignee:** Ân (AI) | **Priority:** 🟢 Medium
 
-**Goal:** Document Ân's contributions in Sprint 6 in `sprint_06/members/anha.md`. Tasks: DA-E17-04 (billing history API), DA-AI03-02/05/07/08 (RAG chunking, context builder, accuracy test, docs), DA-AI04-01/06/07/08 (prompt template, regenerate with feedback, anti-hallucination test, docs).
+**Goal:** Document Ân's contributions in Sprint 6 in `sprint_06/members/anha.md`. Không có task nào trong Sprint 6 epics. Nếu có đóng góp ngoài (AI Iteration 1, hỗ trợ team) thì ghi nhận.
 
 **Acceptance Criteria:**
-- [ ] RAG accuracy test results referenced (3 brand documents tested)
-- [ ] Anti-hallucination test results documented (20 captions verified)
+- [ ] Contributions (if any) documented
 - [ ] Self-assessment filled
 
 **Technical Notes:** File: `sprint_06/members/anha.md`
@@ -5881,11 +5937,14 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ### DA-E47-40 — Write individual sprint report for Sprint 6 — Phước
 **Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
 
-**Goal:** Document Phước's contributions in Sprint 6 in `sprint_06/members/phuocnc.md`. Tasks: DA-AI03-01/06 (document upload endpoint, deletion endpoint), DA-AI04-04/05 (platform caption truncation, hashtag generation), DA-AI05-01 through 06 (trend crawler).
+**Goal:** Document Phước's contributions in Sprint 6 in `sprint_06/members/phuocnc.md`. Tasks: DA-E14-04 (Permission matrix), DA-E16-01 through 04 (Client APIs), DA-E35-02 (Dashboard), DA-E35-04/09/10/11 (Client pages), DA-E36-01/02/06/03/04/05/07/08 (Content pages).
 
 **Acceptance Criteria:**
-- [ ] Trend crawler design documented (pytrends, TikTok scraping approach)
-- [ ] Redis cache key pattern for trends noted
+- [ ] All 18 tasks documented with API endpoints/UI pages, commit hashes, and status
+- [ ] Permission matrix document referenced
+- [ ] Client CRUD APIs documented
+- [ ] Dashboard + Client management UI pages documented
+- [ ] Content management UI pages documented
 - [ ] Self-assessment filled
 
 **Technical Notes:** File: `sprint_06/members/phuocnc.md`
@@ -5900,9 +5959,9 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Goal:** Read all 5 Sprint 6 member reports, verify against git history, write `sprint_06/SPRINT_REPORT.md`.
 
 **Acceptance Criteria:**
-- [ ] Covers E15 (5), E16 (4), E17 (4), AI-03 (8), AI-04 (8), AI-05 (6) tasks
-- [ ] Core business deliverables verified: Workspace + Client + Subscription APIs working
-- [ ] RAG pipeline and LLM content generation working end-to-end
+- [ ] Covers E14 (4), E15 (5), E16 (4), E35 (11), E36 (8) = 32 tasks
+- [ ] Core business deliverables verified: RBAC + Workspace + Client APIs working
+- [ ] Web-dashboard pages verified: Auth + Dashboard + Workspace + Client + Content
 - [ ] Retrospective + action items for Sprint 7
 
 **Dependencies:** Blocks: [DA-E47-42]. Blocked by: [DA-E47-36] through [DA-E47-40].
