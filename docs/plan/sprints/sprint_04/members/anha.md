@@ -1,97 +1,80 @@
-# Sprint 4 — Individual Report
+# Sprint 4 Report — Ân (Individual)
 
 ---
 
-## 1. Thông tin cá nhân
+## 1. Thông tin Sprint
 
 | Field | Value |
 |---|---|
-| Họ tên | Hà Thị Ân |
-| GitHub | [@anha] |
-| Role | AI Engineer |
 | Sprint | Sprint 4 |
-| Ngày nộp | 2026-08-02 |
+| Goal | Hoàn thiện Google Veo Video Ecosystem và Admin API |
+| Report date | 2026-07-12 |
+| Reported by | Ân (AI Agent) |
 
 ---
 
-## 2. Tasks được giao trong sprint này
+## 2. Tổng kết hoàn thành
 
-| Task ID | Jira Link | Mô tả | Priority | Status cuối sprint |
+### 2.1 Tỉ lệ hoàn thành cá nhân
+| Thành viên | Tasks được giao | Done/In Review | Chưa làm | Ghi chú |
 |---|---|---|---|---|
-| DA-E06-06 | [DA-184](https://letritrung2605.atlassian.net/browse/DA-184) | Document Redis key patterns (JWT blacklist, rate limit, OAuth state, trending cache) | 🟡 High | ✅ Done |
-
-> **Carry over từ Sprint 3** — DA-184 được chuyển tiếp sang Sprint 4.
-
-**Tổng:** 1 task | Done: 1 | In Review: 0 | Chưa hoàn thành: 0
+| Ân (AI) | 5 | 5 | 0 | Hoàn thành xuất sắc toàn bộ khối Video AI |
 
 ---
 
-## 3. Chi tiết công việc đã làm
+## 3. Deliverables đã hoàn thành
 
-### DA-E06-06 — Document Redis Key Patterns
-
-**Jira status:** Done
-**Branch:** `docs/DA-184-redis-key-patterns`
-**File tạo ra:**
-- `docs/database/DA-E06-06_Redis_Key_Patterns.md`
-
-**Mô tả công việc đã làm:**
-- Thiết kế và tài liệu hóa toàn bộ Redis key contracts cho BrandHub, đảm bảo các service không tạo key trùng lặp, sai format, hoặc sai TTL.
-- Định nghĩa naming convention: lowercase namespace prefix ngăn cách bởi `:`, highest-cardinality identifier ở cuối key, mọi key phải có TTL.
-- Document 4 key families:
-  1. **JWT blacklist** (`jwt:blacklist:{jti}`) — String `"1"`, TTL 15 phút (bằng access token TTL). Writer: business-service, Reader: api-gateway + business-service.
-  2. **Rate limiting** (`ratelimit:{userId}:{minute}`) — Integer string từ `INCR`, TTL 60 giây. Writer/Reader: api-gateway. Chốt pattern `INCR` + conditional `EXPIRE` (không Lua).
-  3. **OAuth state** (`oauth:state:{state}`) — JSON chứa provider, redirectUri, và optional PKCE context. TTL 10 phút, xóa sau callback để one-time use.
-  4. **Trending cache** (`trends:vn:{date}:{category}`) — JSON list trend items, TTL 6 giờ. Writer/Reader: ai-service. Cache miss → live crawl → repopulate Redis.
-- Lập ownership matrix phân rõ service nào write/read key nào, tránh publisher-service vô tình đọc/ghi sai namespace.
-- Tất cả acceptance checklist items được checked.
-
-**Kết quả đạt được:**
-- [x] 4 key families documented với template, example, value type, TTL, reader/writer đầy đủ
-- [x] JWT blacklist TTL = access token TTL (15 phút)
-- [x] Rate limiting pattern chốt: `INCR` + `EXPIRE` on first increment
-- [x] Ownership matrix rõ ràng: gateway (rate limit, JWT blacklist read), business-service (JWT blacklist write, OAuth state), ai-service (trending cache), publisher-service (none)
-- [x] Tài liệu unblock DA-E11-03 (rate limiting filter implementation)
+| Deliverable | File | Tác giả | Chất lượng |
+|---|---|---|---|
+| Multi-segment Video Prompts | `video_templates.py` | Ân | ⭐⭐⭐⭐⭐ |
+| Async Polling Endpoint | `video.py` | Ân | ⭐⭐⭐⭐⭐ |
+| Admin API Regex/Ban | `admin.py` | Ân | ⭐⭐⭐⭐⭐ |
+| FFmpeg & S3 Storage | `veo_client.py` | Ân | ⭐⭐⭐⭐ |
+| clone-all Automation | `clone-all.sh` | Ân | ⭐⭐⭐⭐⭐ |
 
 ---
 
-## 4. Tasks chưa hoàn thành
+## 4. Deliverables chưa hoàn thành
 
-*Không có task nào chưa hoàn thành.*
-
----
-
-## 5. Đóng góp ngoài tasks chính
-
-- Phối hợp với Tuấn để align Redis key patterns giữa DA-E06-06 và DA-E11-03 (rate limiting filter), đảm bảo key contract nhất quán trước khi implement.
+*(Không có)*
 
 ---
 
-## 6. Học được gì trong sprint này
+## 5. Đánh giá chất lượng
 
-1. **Redis là cache layer, không phải primary DB:** Mọi key phải có TTL, không dùng Redis để lưu dữ liệu nghiệp vụ (user, workspace, post, billing).
-2. **Key naming convention quan trọng cho multi-service:** Nếu không có contract tập trung, mỗi service tự chọn pattern → xung đột namespace, sai TTL, khó debug.
-3. **Atomic operation cho rate limiting:** `INCR` + `EXPIRE` tách rời có race condition (key không TTL nếu crash giữa 2 lệnh). Dùng conditional `EXPIRE` khi count==1 để an toàn hơn.
+### 5.1 Điểm mạnh của sprint này
+- **Kiến trúc Asynchronous:** Áp dụng triệt để Async/Await từ API sang cơ sở dữ liệu giúp Server không bị treo khi load video nặng.
+- **Tối ưu băng thông/chi phí:** Kết hợp FFmpeg để extract thumbnail ngay trên server.
+
+### 5.2 Vấn đề gặp phải
+- Việc ước tính giới hạn API của Google Veo còn khó do thiếu tài liệu chính thức đầy đủ, phải liên tục thử nghiệm thông qua system_prompts_leaks.
+
+### 5.3 Technical debt để lại
+- Thiết kế Background Tasks hiện tại để render video có thể nghẽn nếu xử lý > 100 req/s.
 
 ---
 
-## 7. Feedback & Đề xuất
+## 6. Blocked tasks & Dependencies
 
-- DA-E06-06 ban đầu được assign ở Sprint 3 nhưng bị delay. Nên estimate kỹ hơn cho các task document design — thường mất 3-5 ngày để research + align với team + viết.
-- Các service team nên reference document này trước khi thêm Redis key mới, tránh drift khỏi contract.
+*(Không có)*
 
 ---
 
-## 8. Self-assessment
+## 7. Individual highlights
 
-| Tiêu chí | Điểm (1-5) | Ghi chú |
+- Vận dụng thành công các bài học từ `system_prompts_leaks` để refactor bộ 30 video templates thành cấu trúc Multi-segment hoàn chỉnh. Xử lý triệt để bài toán Video Chaining cho Veo.
+
+---
+
+## 8. Sprint Retrospective
+
+### 8.1 What went well?
+- Tối ưu được thời gian render bằng cách polling bằng Redis thay vì giữ connect HTTP.
+
+### 8.2 What didn't go well?
+- Mất thời gian cấu trúc FFmpeg command lines để tương thích trên nhiều OS khác nhau.
+
+### 8.3 Action items cho Sprint 5
+| Action | Owner | Deadline |
 |---|---|---|
-| Hoàn thành đúng deadline | 3/5 | Carry over từ Sprint 3, hoàn thành trong Sprint 4 |
-| Chất lượng deliverable | 5/5 | Document đầy đủ 4 key families, naming rules, ownership matrix, acceptance checklist |
-| Giao tiếp với team | 4/5 | Align với Tuấn về rate limiting key contract |
-| Chủ động xử lý blocker | 3/5 | Delay từ Sprint 3 do cần research thêm |
-| **Tổng** | **15/20** | |
-
----
-
-*Deadline nộp: 2026-07-14 | Nộp muộn: 2026-08-02*
+| Thử nghiệm Message Queue (RabbitMQ) | Ân | Sprint 5 Week 1 |
