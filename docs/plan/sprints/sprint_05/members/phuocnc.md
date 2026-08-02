@@ -8,7 +8,7 @@
 |---|---|
 | Họ tên | Nguyễn Chơn Phước |
 | GitHub | [@phuocnc] |
-| Role | Publisher Engineer |
+| Role | Publisher Engineer / Frontend (Web Dashboard) |
 | Sprint | Sprint 5 |
 | Ngày nộp | *(Chưa nộp — deadline: 2026-07-28)* |
 
@@ -23,8 +23,15 @@
 | Task ID | Jira Link | Mô tả | Priority | Status cuối sprint |
 |---|---|---|---|---|
 | DA-E14-04 | [DA-E14-04](https://letritrung2605.atlassian.net/browse/DA-E14-04) | Permission matrix document (6 roles × all endpoints) | 🟢 Medium | |
+| DA-E34-01 | [DA-E34-01](https://letritrung2605.atlassian.net/browse/DA-E34-01) | Set up shadcn/ui + Tailwind CSS + custom design tokens | 🔴 Critical | |
+| DA-E34-02 | [DA-E34-02](https://letritrung2605.atlassian.net/browse/DA-E34-02) | Build common components: Button, Input, Modal, Toast, Table, Badge, Spinner, Dropdown | 🔴 Critical | |
+| DA-E34-03 | [DA-E34-03](https://letritrung2605.atlassian.net/browse/DA-E34-03) | Build layout components: Sidebar, Navbar, PageWrapper, AuthGuard | 🔴 Critical | |
+| DA-E34-04 | [DA-E34-04](https://letritrung2605.atlassian.net/browse/DA-E34-04) | Set up API service layer (Axios instance + interceptors + token refresh) | 🔴 Critical | |
+| DA-E34-05 | [DA-E34-05](https://letritrung2605.atlassian.net/browse/DA-E34-05) | Set up Zustand stores (authStore, workspaceStore, notificationStore) | 🔴 Critical | |
 
-**Tổng:** 1 task | Done: | In Review: | Chưa hoàn thành:
+> 🔀 E34 được dời từ Sprint 12 lên Sprint 5 sau rebalance.
+
+**Tổng:** 6 tasks | Done: | In Review: | Chưa hoàn thành:
 
 ---
 
