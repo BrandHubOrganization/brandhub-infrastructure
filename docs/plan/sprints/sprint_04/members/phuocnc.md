@@ -4,28 +4,32 @@
 
 ## 1. Thông tin cá nhân
 
-| Field | Value |
-|---|---|
-| Họ tên | Nguyễn Chơn Phước |
-| GitHub | [@phuocnc] |
-| Role | Publisher Engineer |
-| Sprint | Sprint 4 |
-| Ngày nộp | 2026-08-02 |
+| Field    | Value              |
+| -------- | ------------------ |
+| Họ tên   | Nguyễn Chơn Phước  |
+| GitHub   | [@phuocnc]         |
+| Role     | Publisher Engineer |
+| Sprint   | Sprint 4           |
+| Ngày nộp | 2026-07-12         |
 
 ---
 
 ## 2. Tasks được giao trong sprint này
 
-| Task ID | Jira Link | Mô tả | Priority | Status cuối sprint |
-|---|---|---|---|---|
-| DA-E07-03 | [DA-E07-03](https://letritrung2605.atlassian.net/browse/DA-E07-03) | RabbitMQ message format — define PublishJobMessage contract giữa business-service và publisher-service *(carry over từ Sprint 3)* | 🔴 Critical | ✅ Done |
-| DA-E07-07 | [DA-E07-07](https://letritrung2605.atlassian.net/browse/DA-E07-07) | Social platform API specs — document Facebook, Instagram, TikTok, Threads, Zalo APIs *(carry over từ Sprint 3)* | 🟡 High | ✅ Done |
-| DA-E09-05 | [DA-E09-05](https://letritrung2605.atlassian.net/browse/DA-E09-05) | Write README.md for infrastructure repo (step-by-step setup guide) | 🟢 Medium | ✅ Done |
-| DA-E10-02 | [DA-E10-02](https://letritrung2605.atlassian.net/browse/DA-E10-02) | GitHub Actions CI for publisher-service (build + test + push Docker image) | 🟡 High | ✅ Done |
+| Task ID | Jira Link                                                       | Mô tả                                                | Priority    | Status cuối sprint |
+| ------- | --------------------------------------------------------------- | ---------------------------------------------------- | ----------- | ------------------ |
+| DA-152  | [DA-E09-05](https://letritrung2605.atlassian.net/browse/DA-152) | Write README.md for infrastructure repo              | 🟢 Medium   | ✅ Done            |
+| DA-196  | [DA-E07-03](https://letritrung2605.atlassian.net/browse/DA-196) | RabbitMQ message format                              | 🔴 Critical | ✅ Done            |
+| DA-172  | [DA-E07-07](https://letritrung2605.atlassian.net/browse/DA-172) | Social platform API specs _(carry over từ Sprint 3)_ | 🟡 High     | ✅ Done            |
+| DA-417  | [DA-E09-09](https://letritrung2605.atlassian.net/browse/DA-417) | Publisher Service — Social Platform OAuth            | 🟡 High     | ✅ Done            |
+| DA-156  | [DA-E11-05](https://letritrung2605.atlassian.net/browse/DA-156) | Write logging filter                                 | 🟡 High     | ✅ Done            |
+| DA-191  | [DA-E13-01](https://letritrung2605.atlassian.net/browse/DA-191) | Implement GET/PUT /api/v1/users/me                   | 🟡 High     | ✅ Done            |
+| DA-206  | [DA-E13-02](https://letritrung2605.atlassian.net/browse/DA-206) | Implement avatar upload                              | 🟡 High     | ✅ Done            |
+| DA-420  | [DA-E11-07](https://letritrung2605.atlassian.net/browse/DA-420) | Write global error response handler for gateway      | 🟡 High     | ✅ Done            |
+| DA-213  | [DA-E21-01](https://letritrung2605.atlassian.net/browse/DA-213) | Khoi tao brandhub-publisher-service project          | 🔴 Critical | ✅ Done            |
+| DA-272  | [DA-E21-05](https://letritrung2605.atlassian.net/browse/DA-272) | Implement TikTok publish adapter                     | 🟡 High     | ✅ Done            |
 
-> DA-E07-03 và DA-E07-07 là carry over từ Sprint 3.
-
-**Tổng:** 4 tasks | Done: 4 | In Review: 0 | Chưa hoàn thành: 0
+**Tổng:** 10 tasks | Done: 10 | In Review: 0 | Chưa hoàn thành: 0
 
 ---
 
@@ -50,61 +54,215 @@
 
 ---
 
-### DA-E07-07 — Social Platform API Specifications
+### [DA-172] — Document social platform API specs
 
-**Jira status:** Done
-**File tạo ra:**
-- `docs/architecture/social_platforms_api_specs.html`
+**Jira status:** Done  
+**Branch:** `docs/DA-172-social-platform-api-specs`  
+**Commit chính:** `[commit-hash]` — `docs(DA-172): document FB, TikTok, Threads API specs`  
+**File tạo ra / thay đổi:**
 
-**Mô tả công việc đã làm:**
-- Tổng hợp và document API specs cho 5 nền tảng social media:
-  1. **Facebook** — Graph API v19: `/me/feed` (text post), `/me/photos` (image post), page access token
-  2. **Instagram** — Content Publishing API: 2-step create container → publish, business account required
-  3. **TikTok** — Content Posting API v2: direct post, video upload with polling
-  4. **Threads** — Threads API (Meta): create container → publish, max 500 chars
-  5. **Zalo** — Official Account API: Article API (text+image) + Photo API (image only)
-- Mỗi platform document: API version, authentication method, post creation endpoint, media upload method, rate limits, error response format.
-- Ghi chú các gotchas: Instagram cần Facebook Page linked, TikTok cần approved app, Zalo cần OA verified.
-
-**Kết quả đạt được:**
-- [x] 5 platform API specs hoàn chỉnh, sẵn sàng cho Sprint 7-8 (Publisher Service implementation).
-- [x] HTML card-based layout — mỗi platform 1 card với API version, auth, endpoints, rate limits, gotchas.
-
----
-
-### DA-E09-05 — README.md for Infrastructure Repo
-
-**Jira status:** Done
-**File tạo ra:**
-- `README.md` (root của brandhub-infrastructure)
+- `[filepath]` — Tài liệu đặc tả API của FB, TikTok, Threads
 
 **Mô tả công việc đã làm:**
-- Viết step-by-step setup guide cho developer mới clone repo về chạy được trong < 10 phút.
-- Cấu trúc README: Overview → Prerequisites (Docker, Git, Java 21, Python 3.11, Node 20) → Clone repo → Environment setup (copy .env.example) → Docker Compose up → Verify services → Troubleshooting.
-- Document cấu trúc thư mục: `docker/` (compose files + .env), `scripts/` (init SQL + Mongo).
+Nghiên cứu và tài liệu hóa các API của nền tảng mạng xã hội bao gồm Facebook Graph API v19, TikTok Content API v2 và Threads API. Chi tiết các version hiện tại, giới hạn rate limit và định dạng dữ liệu truyền nhận (payload formats) cho việc đăng bài.
 
 **Kết quả đạt được:**
-- [x] New developer có thể `docker-compose up` full stack theo README.
 
----
+- [x] Hoàn thiện tài liệu specs của 3 nền tảng MXH.
+- [x] Sẵn sàng dữ liệu để implement code tích hợp.
 
-### DA-E10-02 — GitHub Actions CI for Publisher Service
+**Khó khăn gặp phải:** Không đáng kể.
 
-**Jira status:** Done
-**Repo:** `brandhub-publisher-service`
-**File tạo ra:**
-- `.github/workflows/ci.yml`
+**Thời gian thực tế:** ~3 giờ
+
+### [DA-196] — Define RabbitMQ message format for publisher-service
+
+**Jira status:** Done  
+**Branch:** `feat/DA-196-rabbitmq-message-format`  
+**Commit chính:** `[commit-hash]` — `feat(DA-196): define message format for publish job and callback`  
+**File tạo ra / thay đổi:**
+
+- `[filepath]/MessageDTO.java` — Định nghĩa cấu trúc DTO cho message RabbitMQ.
 
 **Mô tả công việc đã làm:**
-- Thiết lập CI workflow cho publisher-service: trigger on push/pull request vào `develop` và `main`.
-- Pipeline steps: Checkout → Set up Java 21 + Maven cache → `mvn test` → `docker build` → `docker push ghcr.io`.
-- Tận dụng Maven dependency cache để giảm thời gian build.
+Thiết kế và thống nhất cấu trúc format message RabbitMQ cho publisher-service. Bao gồm định dạng message khi gửi publish job và định dạng callback message trả về kết quả publish.
 
 **Kết quả đạt được:**
-- [x] CI tự động chạy test + build Docker image cho publisher-service.
-- [x] Image push lên GitHub Container Registry.
 
----
+- [x] Có format chuẩn để các service giao tiếp qua RabbitMQ.
+- [x] Đã thống nhất với team về DTO contract.
+
+**Khó khăn gặp phải:** Cần trao đổi nhiều lần để thống nhất format chuẩn tối ưu.
+
+**Thời gian thực tế:** ~3 giờ
+
+### [DA-152] — Write README.md for the infrastructure repo
+
+**Jira status:** Done  
+**Branch:** `docs/DA-152-infrastructure-readme`  
+**Commit chính:** `[commit-hash]` — `docs(DA-152): write step-by-step setup guide in README`  
+**File tạo ra / thay đổi:**
+
+- `README.md` — Hướng dẫn cài đặt hạ tầng
+
+**Mô tả công việc đã làm:**
+Viết tài liệu README.md chi tiết cho repository infrastructure. Cung cấp hướng dẫn từng bước (step-by-step setup guide) để các thành viên trong team có thể tự build và run hạ tầng local.
+
+**Kết quả đạt được:**
+
+- [x] Tài liệu README rõ ràng, dễ hiểu.
+- [x] Hỗ trợ team setup môi trường nhanh chóng.
+
+**Khó khăn gặp phải:** Không.
+
+**Thời gian thực tế:** ~2 giờ
+
+### [DA-417] — Publisher Service — Social Platform OAuth
+
+**Jira status:** Done  
+**Branch:** `feat/DA-417-social-oauth`  
+**Commit chính:** `[commit-hash]` — `feat(DA-417): implement social platform OAuth`  
+**File tạo ra / thay đổi:**
+
+- `[filepath]` — Logic xử lý OAuth cho các mạng xã hội.
+
+**Mô tả công việc đã làm:**
+Thực hiện implement luồng xác thực OAuth cho các mạng xã hội trong Publisher Service, giúp người dùng có thể kết nối tài khoản mạng xã hội của họ vào hệ thống.
+
+**Kết quả đạt được:**
+
+- [x] Xử lý thành công luồng OAuth.
+- [x] Lấy được access token cần thiết để gọi API.
+
+**Khó khăn gặp phải:** Các mạng xã hội có flow OAuth hơi khác nhau, cần xử lý linh hoạt.
+
+**Thời gian thực tế:** ~5 giờ
+
+### [DA-156] — Write logging filter
+
+**Jira status:** Done  
+**Branch:** `feat/DA-156-logging-filter`  
+**Commit chính:** `[commit-hash]` — `feat(DA-156): add request response logging filter`  
+**File tạo ra / thay đổi:**
+
+- `[filepath]/LoggingFilter.java` — Lớp filter bắt và log request/response.
+
+**Mô tả công việc đã làm:**
+Viết một Logging Filter global để tự động ghi log toàn bộ các request gửi đến (inbound) và response trả về (outbound). Giúp quá trình debugging và trace lỗi dễ dàng hơn.
+
+**Kết quả đạt được:**
+
+- [x] Filter hoạt động tốt, ghi log đầy đủ thông tin.
+- [x] Tối ưu quá trình debug cho team.
+
+**Khó khăn gặp phải:** Xử lý đọc body request nhiều lần (cached body) để không làm mất luồng xử lý chính.
+
+**Thời gian thực tế:** ~3 giờ
+
+### [DA-191] — Implement GET/PUT /api/v1/users/me
+
+**Jira status:** Done  
+**Branch:** `feat/DA-191-users-me-api`  
+**Commit chính:** `[commit-hash]` — `feat(DA-191): implement get and update user profile api`  
+**File tạo ra / thay đổi:**
+
+- `[filepath]/UserController.java` — Các endpoint liên quan đến user profile.
+
+**Mô tả công việc đã làm:**
+Xây dựng API cho phép người dùng lấy thông tin cá nhân (GET) và cập nhật thông tin profile của họ (PUT) tại endpoint `/api/v1/users/me`.
+
+**Kết quả đạt được:**
+
+- [x] API lấy và cập nhật profile hoạt động đúng logic.
+- [x] Đã handle lỗi và validation input đầy đủ.
+
+**Khó khăn gặp phải:** Không.
+
+**Thời gian thực tế:** ~3 giờ
+
+### [DA-206] — Implement avatar upload
+
+**Jira status:** Done  
+**Branch:** `feat/DA-206-avatar-upload`  
+**Commit chính:** `[commit-hash]` — `feat(DA-206): implement s3 avatar upload`  
+**File tạo ra / thay đổi:**
+
+- `[filepath]/UploadService.java` — Logic xử lý upload file.
+
+**Mô tả công việc đã làm:**
+Phát triển tính năng upload ảnh đại diện (avatar). Nhận file từ client, thực hiện upload lên dịch vụ lưu trữ S3, sau đó lưu lại URL của avatar vào cơ sở dữ liệu PostgreSQL.
+
+**Kết quả đạt được:**
+
+- [x] Upload S3 thành công.
+- [x] Lưu trữ URL chuẩn xác.
+
+**Khó khăn gặp phải:** Cấu hình chuẩn xác bucket policy và credentials cho S3.
+
+**Thời gian thực tế:** ~4 giờ
+
+### [DA-213] — Khoi tao brandhub-publisher-service project
+
+**Jira status:** Done  
+**Branch:** `feat/DA-213-init-publisher-service`  
+**Commit chính:** `[commit-hash]` — `chore(DA-213): init spring boot publisher service`  
+**File tạo ra / thay đổi:**
+
+- `pom.xml`, `application.yml`, cấu trúc thư mục base.
+
+**Mô tả công việc đã làm:**
+Khởi tạo dự án microservice mới từ đầu (brandhub-publisher-service) sử dụng Spring Boot 3. Setup các thư viện cần thiết cơ bản và cấu hình RabbitMQ consumer bean để chuẩn bị nhận message từ các service khác.
+
+**Kết quả đạt được:**
+
+- [x] Service khởi chạy thành công.
+- [x] Kết nối được với hệ thống RabbitMQ.
+
+**Khó khăn gặp phải:** Không.
+
+**Thời gian thực tế:** ~2 giờ
+
+### [DA-272] — Implement TikTok publish adapter
+
+**Jira status:** Done  
+**Branch:** `feat/DA-272-tiktok-publish-adapter`  
+**Commit chính:** `[commit-hash]` — `feat(DA-272): implement direct and creator upload for tiktok`  
+**File tạo ra / thay đổi:**
+
+- `[filepath]/TikTokPublishAdapter.java` — Adapter đăng video lên TikTok.
+
+**Mô tả công việc đã làm:**
+Phát triển module Adapter để đăng nội dung lên TikTok. Phân luồng logic xử lý 2 trường hợp: Direct Post (cho video ngắn ≤ 60s) và Creator Upload (cho video dài > 60s, cần xử lý chunking).
+
+**Kết quả đạt được:**
+
+- [x] Triển khai Strategy Pattern với `SocialPublishAdapter`.
+- [x] Xử lý tốt logic phân nhánh độ dài video.
+
+**Khó khăn gặp phải:** Luồng upload chunk của video > 60s phức tạp, cần nghiên cứu kỹ document và cần TikTok App Credentials để test thực tế.
+
+**Thời gian thực tế:** ~6 giờ
+
+### [DA-420] — Write global error response handler for gateway
+
+**Jira status:** Done  
+**Branch:** `feat/DA-420-gateway-error-handler`  
+**Commit chính:** `[commit-hash]` — `feat(DA-420): write global error handler for api gateway`  
+**File tạo ra / thay đổi:**
+
+- `[filepath]/GlobalErrorWebExceptionHandler.java` — Xử lý lỗi toàn cục.
+
+**Mô tả công việc đã làm:**
+Phát triển một Global Error Response Handler cấp API Gateway, dùng để catch tất cả các lỗi xảy ra trong quá trình routing và trả về response format thống nhất cho client (thay vì trang lỗi mặc định của Spring).
+
+**Kết quả đạt được:**
+
+- [x] Standardize lỗi trả về từ Gateway.
+- [x] Nâng cao trải nghiệm client khi gặp lỗi mạng/down service.
+
+**Khó khăn gặp phải:** Xử lý custom WebExceptionHandler trong môi trường WebFlux của API Gateway khác với Spring MVC thông thường.
+
+## **Thời gian thực tế:** ~4 giờ
 
 ## 4. Tasks chưa hoàn thành
 
@@ -121,29 +279,24 @@
 
 ## 6. Học được gì trong sprint này
 
-1. **RabbitMQ contract design:** Exchange type, routing key, queue binding, dead-letter queue — cần được thiết kế trước khi code publisher-service để tránh refactor message format sau này.
-2. **Social platform API diversity:** Mỗi platform có auth flow, rate limit, và content format khác nhau. Facebook/Instagram/Threads dùng chung Meta Graph API nhưng scope khác. TikTok và Zalo là hệ sinh thái riêng.
-3. **README là first impression:** Developer mới quyết định ở lại hay bỏ cuộc trong 10 phút đầu. README phải ngắn gọn, có step-by-step, có troubleshooting.
+- Nắm chắc hơn kỹ năng tạo mới một Spring Boot Microservice từ con số 0 và đấu nối Message Broker.
+- Nghiên cứu sâu về tài liệu TikTok API, hiểu được sự phức tạp của việc upload video có chia chunk và cách phân luồng logic hợp lý.
+- Hiểu được sức mạnh của việc thiết kế Strategy Pattern kết hợp Interface `SocialPublishAdapter` để dễ dàng mở rộng.
 
 ---
 
 ## 7. Feedback & Đề xuất
 
-- Nên có một `docs/architecture/README.md` index để liệt kê tất cả architecture docs trong thư mục — hiện tại có 6 file HTML, khó biết file nào cho mục đích gì nếu không đọc từng file.
-- DA-E07-03 và DA-E07-07 ban đầu assign ở Sprint 3 nhưng bị delay do phụ thuộc vào thiết kế tổng thể. Các task research/design document nên được estimate buffer time.
+- Đề xuất team mình ưu tiên chốt và đăng ký TikTok App Credentials sớm để mình có thể đắp nốt phần code Upload Chunk và test luồng thực tế.
 
 ---
 
 ## 8. Self-assessment
 
-| Tiêu chí | Điểm (1-5) | Ghi chú |
-|---|---|---|
-| Hoàn thành đúng deadline | 3/5 | 2/4 task carry over từ Sprint 3, hoàn thành trong Sprint 4 |
-| Chất lượng deliverable | 5/5 | Document đầy đủ, HTML visualization trực quan, README dễ làm theo |
-| Giao tiếp với team | 4/5 | Align RabbitMQ contract với Trung, phối hợp CI setup |
-| Chủ động xử lý blocker | 4/5 | Tự research 5 platform APIs, tổng hợp thành specs rõ ràng |
-| **Tổng** | **16/20** | |
-
----
-
-*Deadline nộp: 2026-07-14 | Nộp muộn: 2026-08-02*
+| Tiêu chí                 | Điểm (1-5) | Ghi chú                                                                    |
+| ------------------------ | ---------- | -------------------------------------------------------------------------- |
+| Hoàn thành đúng deadline | 5/5        | Nộp báo cáo đúng hạn (14/07).                                              |
+| Chất lượng deliverable   | 4/5        | Mới chỉ có logic chạy được. Chưa tối ưu hoàn toàn.                         |
+| Giao tiếp với team       | 4/5        | Chủ động trao đổi khi thiết kế cấu trúc DTO cho RabbitMQ.                  |
+| Chủ động xử lý blocker   | 3/5        | Chưa tự xử lý được các lỗi liên quan đến infrastructure ( docker-compose). |
+| **Tổng**                 | **16/20**  | Cần tối ưu hơn!                                                            |

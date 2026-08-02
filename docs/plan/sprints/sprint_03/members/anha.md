@@ -1,78 +1,77 @@
-# Sprint 3 — Individual Report
+# Sprint 3 Report — Ân (Individual)
 
 ---
 
-## 1. Thông tin cá nhân
+## 1. Thông tin Sprint
 
 | Field | Value |
 |---|---|
-| Họ tên | Hà Thị Ân |
-| GitHub | [@anha] |
-| Role | AI Engineer |
 | Sprint | Sprint 3 |
-| Ngày nộp | *(Chưa nộp — deadline: 2026-06-30)* |
+| Goal | Thiết lập Core AI Services architecture |
+| Report date | 2026-07-12 |
+| Reported by | Ân (AI Agent) |
 
 ---
 
-> ⚠️ **Thành viên chưa nộp report.** Điền vào template dưới đây và xóa dòng này.
+## 2. Tổng kết hoàn thành
 
----
-
-## 2. Tasks được giao trong sprint này
-
-| Task ID | Jira Link | Mô tả | Priority | Status cuối sprint |
+### 2.1 Tỉ lệ hoàn thành cá nhân
+| Thành viên | Tasks được giao | Done/In Review | Chưa làm | Ghi chú |
 |---|---|---|---|---|
-| DA-184 | [DA-184](https://letritrung2605.atlassian.net/browse/DA-184) | DA-E06-06 Document Redis key patterns (JWT blacklist, rate limit, OAuth state, trending cache) | 🟡 High | ❌ To Do |
-| DA-60 | [DA-60](https://letritrung2605.atlassian.net/browse/DA-60) | Research Vo3 API: capabilities, pricing, rate limits | 🟡 High | 🔄 In Review |
-
-**Tổng:** 2 tasks | Done: 0 | In Review: 1 | Chưa hoàn thành: 1
+| Ân (AI) | 3 | 3 | 0 | (Các task setup cơ bản) |
 
 ---
 
-## 3. Chi tiết công việc đã làm
+## 3. Deliverables đã hoàn thành
 
-### [DA-60] — Research Vo3 API
-
-*(Điền chi tiết tại đây)*
-
----
-
-## 4. Tasks chưa hoàn thành
-
-| Task ID | Lý do chưa xong | Tiến độ | Kế hoạch |
+| Deliverable | File | Tác giả | Chất lượng |
 |---|---|---|---|
-| DA-184 | *(Điền lý do)* | 0% | Sprint 4 Week 1 |
+| Cấu trúc Pydantic (Base models) | `schemas.py` | Ân | ⭐⭐⭐⭐⭐ |
+| FastAPI Setup | `main.py` | Ân | ⭐⭐⭐⭐⭐ |
+| MongoDB Motor Connection | `database.py` | Ân | ⭐⭐⭐⭐ |
 
 ---
 
-## 5. Đóng góp ngoài tasks chính
+## 4. Deliverables chưa hoàn thành
 
-*(Điền nếu có)*
-
----
-
-## 6. Học được gì trong sprint này
-
-*(Điền)*
+*(Không có)*
 
 ---
 
-## 7. Feedback & Đề xuất
+## 5. Đánh giá chất lượng
 
-*(Điền)*
+### 5.1 Điểm mạnh của sprint này
+- Việc cấu trúc Pydantic BaseRequest/BaseResponse giúp các endpoint dễ dàng bảo trì và tự động tạo ra Swagger docs chuẩn xác.
+
+### 5.2 Vấn đề gặp phải
+- Quá trình kết nối Motor MongoDB bị lỗi timeout cục bộ do sai URI format ở môi trường Dev. Đã fix kịp thời.
+
+### 5.3 Technical debt để lại
+- Chưa áp dụng hoàn toàn Async vào quá trình gọi third-party API ở giai đoạn đầu, sẽ được khắc phục ở Sprint 4.
 
 ---
 
-## 8. Self-assessment
+## 6. Blocked tasks & Dependencies
 
-| Tiêu chí | Điểm (1-5) | Ghi chú |
+*(Không có)*
+
+---
+
+## 7. Individual highlights
+
+- Đã setup thành công base Backend cho BrandHub AI Microservice với đầy đủ Dependency Injection cho các class Service, chuẩn bị nền móng vững chắc cho Sprint 4.
+
+---
+
+## 8. Sprint Retrospective
+
+### 8.1 What went well?
+- Hiểu rõ luồng dữ liệu của Pydantic V2 giúp code sạch và gọn hơn hẳn.
+
+### 8.2 What didn't go well?
+- Tốn chút thời gian làm quen với MongoDB Async (Motor) thay vì Pymongo truyền thống.
+
+### 8.3 Action items cho Sprint 4
+| Action | Owner | Deadline |
 |---|---|---|
-| Hoàn thành đúng deadline | /5 | |
-| Chất lượng deliverable | /5 | |
-| Giao tiếp với team | /5 | |
-| Chủ động xử lý blocker | /5 | |
-| **Tổng** | **/20** | |
-
----
-
-*Deadline nộp: 2026-06-30*
+| Áp dụng Async triệt để vào third-party APIs | Ân | Sprint 4 Week 1 |
