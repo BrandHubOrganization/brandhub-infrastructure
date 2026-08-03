@@ -18,20 +18,31 @@
 
 | Task ID | Jira Link | Mô tả | Priority | Status cuối sprint |
 |---|---|---|---|---|
+### Backend — RBAC (E14)
+| DA-E14-01 | [DA-E14-01](https://letritrung2605.atlassian.net/browse/DA-E14-01) | @RequireRole annotation/middleware for RBAC | 🔴 Critical | |
+| DA-E14-02 | [DA-E14-02](https://letritrung2605.atlassian.net/browse/DA-E14-02) | Workspace isolation filter (workspaceId on every query) | 🔴 Critical | |
+| DA-E14-03 | [DA-E14-03](https://letritrung2605.atlassian.net/browse/DA-E14-03) | BRAND_CLIENT isolation (clientId filter) | 🔴 Critical | |
+
+### Backend — Workspace (E15)
 | DA-E15-01 | [DA-E15-01](https://letritrung2605.atlassian.net/browse/DA-E15-01) | POST /workspaces (create workspace) | 🔴 Critical | |
 | DA-E15-02 | [DA-E15-02](https://letritrung2605.atlassian.net/browse/DA-E15-02) | GET /workspaces/mine | 🔴 Critical | |
 | DA-E15-03 | [DA-E15-03](https://letritrung2605.atlassian.net/browse/DA-E15-03) | POST /workspaces/{id}/members (invite) | 🔴 Critical | |
 | DA-E15-04 | [DA-E15-04](https://letritrung2605.atlassian.net/browse/DA-E15-04) | DELETE /workspaces/{id}/members/{userId} | 🟡 High | |
-| DA-E15-05 | [DA-E15-05](https://letritrung2605.atlassian.net/browse/DA-E15-05) | Workspace settings | 🟡 High | |
-| DA-E16-01 | [DA-E16-01](https://letritrung2605.atlassian.net/browse/DA-E16-01) | POST /clients (create client) | 🔴 Critical | |
-| DA-E16-02 | [DA-E16-02](https://letritrung2605.atlassian.net/browse/DA-E16-02) | PUT /clients/{id}/assign | 🔴 Critical | |
-| DA-E16-03 | [DA-E16-03](https://letritrung2605.atlassian.net/browse/DA-E16-03) | PUT /clients/{id}/service-package | 🟡 High | |
-| DA-E16-04 | [DA-E16-04](https://letritrung2605.atlassian.net/browse/DA-E16-04) | GET /clients | 🔴 Critical | |
-| DA-E17-01 | [DA-E17-01](https://letritrung2605.atlassian.net/browse/DA-E17-01) | Admin CRUD subscription plans | 🔴 Critical | |
-| DA-E17-02 | [DA-E17-02](https://letritrung2605.atlassian.net/browse/DA-E17-02) | POST /subscriptions/subscribe | 🔴 Critical | |
-| DA-E17-03 | [DA-E17-03](https://letritrung2605.atlassian.net/browse/DA-E17-03) | Payment flow (Stripe integration) | 🔴 Critical | |
+| DA-E15-05 | [DA-E15-05](https://letritrung2605.atlassian.net/browse/DA-E15-05) | Workspace settings (timezone, default platforms, report frequency) | 🟡 High | |
 
-**Tổng:** 12 tasks | Done: | In Review: | Chưa hoàn thành:
+### Frontend — Auth Pages (E35)
+| DA-E35-01 | [DA-E35-01](https://letritrung2605.atlassian.net/browse/DA-E35-01) | Build Login page (email/password form, error states) | 🔴 Critical | |
+| DA-E35-05 🆕 | [DA-574](https://letritrung2605.atlassian.net/browse/DA-574) | Build Register page (account creation form, validation) | 🔴 Critical | |
+| DA-E35-06 🆕 | [DA-575](https://letritrung2605.atlassian.net/browse/DA-575) | Build Google OAuth button + callback page | 🔴 Critical | |
+
+### Frontend — Workspace Pages (E35)
+| DA-E35-03 | [DA-E35-03](https://letritrung2605.atlassian.net/browse/DA-E35-03) | Build Create Workspace page (form: name, industry) | 🔴 Critical | |
+| DA-E35-07 🆕 | [DA-576](https://letritrung2605.atlassian.net/browse/DA-576) | Build Workspace Settings page (timezone, platforms, report freq) | 🟡 High | |
+| DA-E35-08 🆕 | [DA-577](https://letritrung2605.atlassian.net/browse/DA-577) | Build Workspace Members page (member table, invite, remove) | 🔴 Critical | |
+
+> 🔀 E14 dời từ Sprint 5. E35 dời từ Sprint 12. 🆕 = task tách từ task gốc (E35-01→3 phần, E35-03→3 phần).
+
+**Tổng:** 14 tasks | Done: | In Review: | Chưa hoàn thành:
 
 ---
 
