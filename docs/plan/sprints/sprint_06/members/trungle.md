@@ -40,9 +40,20 @@
 | DA-E35-07 🆕 | [DA-576](https://letritrung2605.atlassian.net/browse/DA-576) | Build Workspace Settings page (timezone, platforms, report freq) | 🟡 High | |
 | DA-E35-08 🆕 | [DA-577](https://letritrung2605.atlassian.net/browse/DA-577) | Build Workspace Members page (member table, invite, remove) | 🔴 Critical | |
 
-> 🔀 E14 dời từ Sprint 5. E35 dời từ Sprint 12. 🆕 = task tách từ task gốc (E35-01→3 phần, E35-03→3 phần).
+### Frontend — Public Landing Page (E49) 🆕
+| DA-E49-01 🆕 | *(Jira key từ script)* | Build Cinematic Hero section (GSAP scroll: 4 platform posts → MacBook → CTA) | 🔴 Critical | Done |
+| DA-E49-02 🆕 | *(Jira key từ script)* | Build Features section (6 feature cards, icons, hover, scroll animations) | 🟡 High | Done |
+| DA-E49-03 🆕 | *(Jira key từ script)* | Build How It Works section (4-step timeline, alternating layout) | 🟡 High | Done |
+| DA-E49-04 🆕 | *(Jira key từ script)* | Build Stats Counter + LogoWall sections (count-up + 12 brand logos) | 🟢 Medium | Done |
+| DA-E49-05 🆕 | *(Jira key từ script)* | Build Templates + Testimonials sections (3 templates + 3 quotes) | 🟢 Medium | Done |
+| DA-E49-06 🆕 | *(Jira key từ script)* | Build Pricing section (3-tier: Starter, Pro, Enterprise) | 🟡 High | Done |
+| DA-E49-07 🆕 | *(Jira key từ script)* | Build FAQ + CTA + Footer sections (accordion + banner + 5-col footer) | 🟡 High | Done |
+| DA-E49-08 🆕 | *(Jira key từ script)* | Set up i18n translation keys (landing.* EN+VI) | 🟡 High | Done |
+| DA-E49-09 🆕 | *(Jira key từ script)* | Wire DashboardPage with auth-gating (guest→landing, auth→redirect) | 🔴 Critical | Done |
 
-**Tổng:** 14 tasks | Done: | In Review: | Chưa hoàn thành:
+> 🔀 E14 dời từ Sprint 5. E35 dời từ Sprint 12. 🆕 = task tách từ task gốc (E35-01→3 phần, E35-03→3 phần). E49 = epic mới cho landing page public (phát sinh ngoài plan gốc, code đã commit 2026-08-02).
+
+**Tổng:** 23 tasks (14 Sprint 6 gốc + 9 E49 Landing Page phát sinh) | Done: 9 (E49) | In Review: | Chưa hoàn thành:
 
 ---
 
