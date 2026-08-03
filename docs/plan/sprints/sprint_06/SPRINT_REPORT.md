@@ -1,4 +1,4 @@
-# Sprint 6 Report — Workspace, Client & Subscription
+# Sprint 6 Report — Workspace, Client, RBAC & Core Pages
 
 ---
 
@@ -9,7 +9,7 @@
 | Sprint | Sprint 6 |
 | Timeline | Weeks 11–12 (Jul 29–Aug 11, 2026) |
 | Phase | Phase 3 — Backend Core |
-| Goal | Workspace CRUD, client/agency management, and subscription/billing APIs |
+| Goal | Workspace CRUD, client/agency management, and core web-dashboard pages (auth, dashboard, workspace, client, content management) |
 | Report date | *(Điền ngày nộp)* |
 | Reported by | Lê Trí Trung (Leader) |
 
@@ -23,17 +23,22 @@
 
 | Epic | Tổng tasks | Done | In Review | In Progress | To Do | % Done |
 |---|---|---|---|---|---|---|
+| E14 🔀 — Role-Based Access Control | 4 | | | | | |
 | E15 — Workspace Management | 5 | | | | | |
 | E16 — Client & Agency Management | 4 | | | | | |
-| E17 — Subscription & Billing | 4 | | | | | |
-| **Tổng** | **13** | | | | | |
+| E35 🔀 — Auth & Dashboard Pages | 11 | | | | | |
+| E36 🔀 — Content Management Pages | 8 | | | | | |
+| **Tổng** | **32** | | | | | |
+
+> 🔀 E17 (Subscription & Billing) đã dời sang Sprint 9. E14 (RBAC) dời từ Sprint 5 sang Sprint 6. E35 & E36 dời từ Sprint 12 lên Sprint 6.
 
 ### 2.2 Tỉ lệ hoàn thành theo thành viên
 
 | Thành viên | Tasks được giao | Done/In Review | Chưa làm | Ghi chú |
 |---|---|---|---|---|
-| Trung (Leader) | — | — | — | |
-| Ân (AI) | — | — | — | |
+| Trung (Leader) | 14 | — | — | E14-01/02/03 + E15 + E35-01/05/06 + E35-03/07/08 |
+| Phước (Frontend) | 18 | — | — | E14-04 + E16 + E35-02/04/09/10/11 + E36 |
+| Ân (AI) | 0 | — | — | Không có task Sprint 6 epics |
 
 ---
 

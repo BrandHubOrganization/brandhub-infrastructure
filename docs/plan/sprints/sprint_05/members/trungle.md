@@ -28,13 +28,10 @@
 | DA-E11-14 🆕 | — | Add all JPA models + repository layer (11 PostgreSQL tables) | 🔴 Critical | ✅ Done |
 | DA-E13-01 | [DA-E13-01](https://letritrung2605.atlassian.net/browse/DA-E13-01) | GET/PUT /api/v1/users/me (view & update own profile) | 🔴 Critical | ❌ To Do |
 | DA-E13-02 | [DA-E13-02](https://letritrung2605.atlassian.net/browse/DA-E13-02) | Avatar upload (file → S3 → save URL to MongoDB) | 🟡 High | ❌ To Do |
-| DA-E14-01 | [DA-E14-01](https://letritrung2605.atlassian.net/browse/DA-E14-01) | @RequireRole annotation/middleware for RBAC | 🔴 Critical | ❌ To Do |
-| DA-E14-02 | [DA-E14-02](https://letritrung2605.atlassian.net/browse/DA-E14-02) | Workspace isolation filter (workspaceId on every query) | 🔴 Critical | ❌ To Do |
-| DA-E14-03 | [DA-E14-03](https://letritrung2605.atlassian.net/browse/DA-E14-03) | BRAND_CLIENT isolation (clientId filter) | 🔴 Critical | ❌ To Do |
-
 > 🆕 DA-E12-07 và DA-E11-14 là task phát sinh ngoài plan gốc — phát hiện trong quá trình implement.
+> 🔀 DA-E14-01/02/03 (RBAC) dời sang Sprint 6.
 
-**Tổng:** 13 tasks | Done: 8 | To Do: 5 | In Review: 0
+**Tổng:** 10 tasks | Done: 8 | To Do: 2 | In Review: 0
 
 ---
 
@@ -207,9 +204,8 @@
 | DA-E12-06 | Google OAuth — mới có model + enum scaffold, chưa implement OAuth2 flow (token exchange, callback, user creation) | 20% | Sprint 6 Week 1 |
 | DA-E13-01 | GET/PUT /users/me — chưa có UserController | 0% | Sprint 6 Week 1 |
 | DA-E13-02 | Avatar upload — chưa có S3 integration trong business-service | 0% | Sprint 6 Week 2 |
-| DA-E14-01 | @RequireRole — SecurityConfig đang `.anyRequest().permitAll()`, chưa có method security | 0% | Sprint 6 Week 1 — **Critical path** |
-| DA-E14-02 | Workspace isolation — gateway injects `X-Workspace-Id` nhưng business-service chưa consume/enforce | 0% | Sprint 6 Week 2 |
-| DA-E14-03 | BRAND_CLIENT isolation — chưa implement | 0% | Sau DA-E14-01 và E14-02 |
+
+> 🔀 DA-E14-01/02/03 (RBAC) đã dời sang Sprint 6.
 
 > **Nguyên nhân chính:** 8/13 tasks Done (auth core + models) là phần quan trọng nhất. RBAC + OAuth + profile bị dồn sang Sprint 6 do auth core chiếm nhiều thời gian hơn estimate (RS256 research, JPA models phát sinh, multi-device refresh token rotation).
 

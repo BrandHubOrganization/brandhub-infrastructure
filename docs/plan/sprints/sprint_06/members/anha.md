@@ -14,23 +14,19 @@
 
 ---
 
-> ⚠️ **Thành viên chưa nộp report.** Điền vào template dưới đây và xóa dòng này.
-
----
-
 ## 2. Tasks được giao trong sprint này
 
-| Task ID | Jira Link | Mô tả | Priority | Status cuối sprint |
-|---|---|---|---|---|
-| DA-E17-04 | [DA-E17-04](https://letritrung2605.atlassian.net/browse/DA-E17-04) | GET /subscriptions/invoices (billing history) | 🟡 High | |
+Không có task nào trong Sprint 6 epics (E15, E16 đều do Trung đảm nhận).
 
-**Tổng:** 1 task | Done: | In Review: | Chưa hoàn thành:
+> 🔀 E17 (Subscription & Billing) đã dời sang Sprint 9. Các task carry-over từ Sprint 5 (E13-03, E13-04) do Jira tự chuyển sprint — không thuộc plan gốc Sprint 6.
+
+**Tổng:** 0 tasks | Done: — | In Review: — | Chưa hoàn thành: —
 
 ---
 
 ## 3. Chi tiết công việc đã làm
 
-*(Điền chi tiết tại đây)*
+*(Điền nếu có đóng góp nào khác)*
 
 ---
 
@@ -42,7 +38,7 @@
 
 ## 5. Đóng góp ngoài tasks chính
 
-*(Điền nếu có)*
+*(Điền)*
 
 ---
 
