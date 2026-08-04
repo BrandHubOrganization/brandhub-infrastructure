@@ -270,6 +270,9 @@
 | [DA-E12-05](#da-e12-05-implement-forgot-password-reset-password-flow) | Implement Forgot Password & Reset Password flow (email link with time-limited token) | Trung (Leader) | 🔴 Critical |
 | [DA-E12-06](#da-e12-06-implement-google-oauth-login) | Implement Google OAuth login (callback, create user if not yet registered) | Trung (Leader) | 🟡 High |
 | [DA-E12-07](#da-e12-07-research-hs256-vs-rs256-vs-es256-for-jwt-signing-phát-sinh-ngoài-plan-gốc) 🆕 | Research HS256 vs RS256 vs ES256 for JWT signing | Trung (Leader) | 🔴 Critical |
+| [DA-E12-08](#da-e12-08-implement-change-password-phát-sinh-ngoài-plan-gốc) 🆕 | Implement Change Password (authenticated user updates their own password) | Trung (Leader) | 🟡 High |
+| [DA-E12-09](#da-e12-09-implement-facebook-oauth-login-phát-sinh-ngoài-plan-gốc) 🆕 | Implement Facebook OAuth login (callback, create user if not yet registered) | Trung (Leader) | 🟡 High |
+| [DA-E12-10](#da-e12-10-implement-github-oauth-login-phát-sinh-ngoài-plan-gốc) 🆕 | Implement GitHub OAuth login (callback, create user if not yet registered) | Trung (Leader) | 🟡 High |
 | [DA-E11-14](#da-e11-14-add-all-jpa-models-from-database-schema-for-business-service-repository-layer-phát-sinh-ngoài-plan-gốc-gắn-sai-epic-trên-jira) 🆕 ⚠️ | Add all JPA models from database schema for business-service + repository layer *(gắn sai epic trên Jira — nội dung thuộc data layer, không phải Gateway)* | Trung (Leader) | 🔴 Critical |
 
 ### EPIC E13 — User & Profile Management
@@ -2725,6 +2728,63 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Ghi chú:** Task lẽ ra nên đứng **trước** DA-E12-01 và DA-E11-02 (cả hai đều phụ thuộc kết quả nghiên cứu này), nhưng phát sinh muộn trên Jira sau khi DA-E11-02 đã viết sẵn giả định RS256. Không đổi thứ tự numbering để tránh xáo trộn — chỉ note dependency ngược tại đây. Jira: DA-560, status In Review.
 
 **Dependencies:** Blocks: DA-E12-01, DA-E12-02, DA-E12-03, DA-E11-02 (retroactive — các task này đã implement trước khi task nghiên cứu này xong). Blocked by: None.
+
+---
+
+### DA-E12-08 — Implement Change Password *(phát sinh, ngoài plan gốc)*
+**Assignee:** Trung (Leader) | **Priority:** 🟡 High
+
+**Goal:** Cho phép user đã đăng nhập tự đổi mật khẩu (khác với Forgot/Reset Password ở DA-E12-05, vốn dành cho user quên mật khẩu và chưa đăng nhập được).
+
+**Acceptance Criteria:**
+- [ ] `POST /api/v1/auth/change-password` yêu cầu access token hợp lệ (Authorization header)
+- [ ] `ChangePasswordRequest` DTO nhận `currentPassword` + `newPassword`, validate `newPassword` theo cùng rule độ mạnh với Register
+- [ ] Verify `currentPassword` khớp với hash hiện tại trước khi cho đổi (401/400 nếu sai)
+- [ ] Hash `newPassword` bằng bcrypt cost=12, ghi đè password hiện tại
+- [ ] Không tự động logout các session khác (out of scope — chỉ đổi password)
+
+**Ghi chú:** Code đã implement và commit (`AuthController.changePassword`, `AuthService.changePassword`, `ChangePasswordRequest` DTO) nhưng commit message gắn nhầm key `DA-160` — DA-160 trên Jira thực chất là Forgot/Reset Password (DA-E12-05), một task khác. Không sửa lại commit cũ (đã push); task Jira mới này (DA-E12-08) là task đúng đại diện cho tính năng Change Password.
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E12-01, DA-E12-02].
+
+---
+
+### DA-E12-09 — Implement Facebook OAuth login *(phát sinh, ngoài plan gốc)*
+**Assignee:** Trung (Leader) | **Priority:** 🟡 High
+
+**Goal:** Cho phép user đăng nhập bằng tài khoản Facebook, dùng chung `OAuthController`/`OAuthService` backend-driven flow với Google OAuth (DA-E12-06) và GitHub OAuth (DA-E12-10).
+
+**Acceptance Criteria:**
+- [ ] `GET /api/v1/auth/oauth/facebook` redirect sang Facebook authorization URL
+- [ ] `GET /api/v1/auth/oauth/facebook/callback` exchange code, tạo user mới nếu email chưa tồn tại, issue JWT + refresh cookie, redirect về FE `/oauth-callback?token=...`
+- [ ] `OAuthProvider` enum có giá trị `FACEBOOK` (đã tồn tại từ trước)
+- [ ] Existing email đăng ký qua password login được link với tài khoản Facebook (merge, không tạo duplicate)
+
+**Technical Notes:**
+- Dùng chung `OAuthController` unified endpoint `/api/v1/auth/oauth/{provider}` — không tạo controller riêng cho từng provider
+- Cấu hình `OAuthProperties` cho `clientId`/`clientSecret`/`redirectUri` của Facebook trong `application.yml` + `.env`
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E12-01, DA-E12-02].
+
+---
+
+### DA-E12-10 — Implement GitHub OAuth login *(phát sinh, ngoài plan gốc)*
+**Assignee:** Trung (Leader) | **Priority:** 🟡 High
+
+**Goal:** Cho phép user đăng nhập bằng tài khoản GitHub, dùng chung `OAuthController`/`OAuthService` backend-driven flow với Google OAuth (DA-E12-06) và Facebook OAuth (DA-E12-09).
+
+**Acceptance Criteria:**
+- [ ] `GET /api/v1/auth/oauth/github` redirect sang GitHub authorization URL
+- [ ] `GET /api/v1/auth/oauth/github/callback` exchange code, tạo user mới nếu email chưa tồn tại, issue JWT + refresh cookie, redirect về FE `/oauth-callback?token=...`
+- [ ] `OAuthProvider` enum bổ sung giá trị `GITHUB` (mới thêm trong thay đổi này)
+- [ ] Existing email đăng ký qua password login được link với tài khoản GitHub (merge, không tạo duplicate)
+
+**Technical Notes:**
+- Dùng chung `OAuthController` unified endpoint `/api/v1/auth/oauth/{provider}` — không tạo controller riêng cho từng provider
+- Cấu hình `OAuthProperties` cho `clientId`/`clientSecret`/`redirectUri` của GitHub trong `application.yml` + `.env`
+- GitHub OAuth không trả email trực tiếp trong token response mặc định nếu user để private — cần gọi thêm `GET /user/emails` API của GitHub nếu email null từ profile response
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E12-01, DA-E12-02].
 
 ---
 

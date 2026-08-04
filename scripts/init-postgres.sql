@@ -31,7 +31,7 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE oauth_provider AS ENUM ('GOOGLE', 'FACEBOOK');
+    CREATE TYPE oauth_provider AS ENUM ('GOOGLE', 'FACEBOOK', 'GITHUB');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
