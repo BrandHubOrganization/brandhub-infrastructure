@@ -42,9 +42,16 @@ tôi muốn đăng nhập bằng tài khoản Google/GitHub/LinkedIn/Microsoft c
 ## 5. API Contract
 
 ```
-GET  /api/v1/auth/oauth/{provider}                  # provider ∈ google|github|linkedin|microsoft
-GET  /api/v1/auth/oauth/{provider}/callback?code=&state=
+GET  /api/v1/auth/oauth/google                      # redirect sang Google
+GET  /api/v1/auth/oauth/google/callback?code=&state=
+GET  /api/v1/auth/oauth/github                      # redirect sang GitHub
+GET  /api/v1/auth/oauth/github/callback?code=&state=
+GET  /api/v1/auth/oauth/linkedin                    # redirect sang LinkedIn
+GET  /api/v1/auth/oauth/linkedin/callback?code=&state=
+GET  /api/v1/auth/oauth/microsoft                   # redirect sang Microsoft
+GET  /api/v1/auth/oauth/microsoft/callback?code=&state=
 ```
+- Mỗi provider có controller riêng với static path (không dynamic `/{provider}`).
 - Redirect URI đăng ký trên provider console:
   `{OAUTH_REDIRECT_BASE_URL}/api/v1/auth/oauth/{provider}/callback`
 - Callback thành công → 302 về `{FRONTEND_URL}/oauth-callback?token={accessToken}`.

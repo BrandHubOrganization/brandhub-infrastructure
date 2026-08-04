@@ -14,7 +14,7 @@ Implement `POST /auth/change-password` (authenticated) xác nhận currentPasswo
 ## Luồng dữ liệu
 1. Lấy userId từ JWT.
 2. Load user.
-3. Verify `currentPassword` bằng BCrypt → sai → `INVALID_CURRENT_PASSWORD`.
+3. Verify `currentPassword` bằng BCrypt → sai → `WRONG_CURRENT_PASSWORD`.
 4. Hash `newPassword` → set `passwordHash`, `lastPasswordChange`.
 5. Trả success.
 

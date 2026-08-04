@@ -60,7 +60,7 @@ Response 200: `{ "success": true }`.
 
 - OTP sai / hết hạn → 400 `INVALID_OTP`.
 - Email không tồn tại → vẫn trả success (chống rò email).
-- Gửi lại quá nhanh → có thể chặn (cooldown).
+- Gửi lại quá nhanh → bị chặn 60 giây cooldown (Redis `otp:resend:{email}`, TTL 60s).
 
 ## 7. Edge Cases
 
@@ -76,7 +76,7 @@ Response 200: `{ "success": true }`.
 
 ## 9. Test Cases
 
-- verify OTP đúng → 200, `email_verified_at` set.
+- verify OTP đúng → 200, `email_verified_at` set. Idempotent: đã verify → trả success luôn.
 - verify OTP sai → 400.
 - verify OTP hết hạn → 400.
 - verify OTP dùng 2 lần → lần 2 lỗi.
