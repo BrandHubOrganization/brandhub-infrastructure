@@ -6,7 +6,7 @@ Triển khai OAuth 2.0 Authorization Code backend-driven cho Google/GitHub/Linke
 ## Thành phần liên quan
 - `OAuthService` (abstract) — framework chung: state CSRF (Redis), link/create user, JWT.
 - `GoogleOAuthService`, `GitHubOAuthService`, `LinkedInOAuthService`, `MicrosoftOAuthService` — build URL + fetch profile.
-- Controller per provider: `/oauth/{provider}`, `/oauth/{provider}/callback`.
+- Controller per provider với static path: `/oauth/google`, `/oauth/github`, `/oauth/linkedin`, `/oauth/microsoft` (không dùng dynamic `/{provider}`).
 - `OAuthProperties` + `.env` — client-id/secret per provider.
 - `UserOAuthProvider` model — map user ↔ (provider, providerId).
 - `StringRedisTemplate` — `oauth:state:{state}` TTL 10 phút.

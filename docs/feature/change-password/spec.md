@@ -21,7 +21,7 @@ tôi muốn đổi mật khẩu của mình (cần nhập mật khẩu hiện t�
 
 - `change-password` cần xác thực (JWT hợp lệ).
 - Nhận `{currentPassword, newPassword}`.
-- `currentPassword` sai → lỗi 400, không đổi.
+- `currentPassword` sai → lỗi 400 `WRONG_CURRENT_PASSWORD`, không đổi.
 - Đúng → hash `newPassword` bằng BCrypt, cập nhật `passwordHash` + `last_password_change`.
 - Không dùng lại password hiện tại làm password mới (tùy policy).
 
@@ -44,13 +44,13 @@ Authorization: Bearer <token>
 Response 200: `{ "success": true }`.
 Response 400:
 ```json
-{ "success": false, "error": { "code": "INVALID_CURRENT_PASSWORD", "message": "Mật khẩu hiện tại không đúng" } }
+{ "success": false, "error": { "code": "WRONG_CURRENT_PASSWORD", "message": "Current password is incorrect" } }
 ```
 
 ## 6. Error Handling
 
 - Không có JWT → 401.
-- `currentPassword` sai → 400 `INVALID_CURRENT_PASSWORD`.
+- `currentPassword` sai → 400 `WRONG_CURRENT_PASSWORD`.
 - Password mới yếu → 400 `VALIDATION_ERROR`.
 
 ## 7. Edge Cases

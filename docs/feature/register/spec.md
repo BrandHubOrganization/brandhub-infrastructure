@@ -30,7 +30,7 @@ tôi muốn đăng ký bằng email, mật khẩu và họ tên,
 - Form Register: field email, password, xác nhận password, fullName, nút "Đăng ký".
 - Validate: email hợp lệ, password tối thiểu độ dài, 2 password khớp.
 - Link "Đã có tài khoản? Đăng nhập" → sang login.
-- Sau đăng ký → chuyển sang verify OTP (xác thực email) hoặc login tùy thiết kế.
+- Sau đăng ký, OTP 6 số tự động gửi về email → chuyển sang verify OTP (xác thực email).
 
 ### UI States
 - Loading: disable nút.
@@ -48,7 +48,7 @@ Content-Type: application/json
   "fullName": "string"
 }
 ```
-Response 200:
+Response 201 (Created):
 ```json
 { "success": true, "data": { "userId": "string" } }
 ```
