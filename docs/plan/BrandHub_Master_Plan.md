@@ -461,12 +461,12 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-AI03-01](#da-ai03-01-implement-document-upload-endpoint-accept-pdfdocxtxturl-save-file-to-s3) | Implement document upload endpoint (accept PDF/DOCX/TXT/URL, save file to S3) | Lộc (Frontend) | 🔴 Critical |
+| [DA-AI03-01](#da-ai03-01-implement-document-upload-endpoint-accept-pdfdocxtxturl-save-file-to-s3) | Implement document upload endpoint (accept PDF/DOCX/TXT/URL, save file to S3) | Lộc (Sub-lead) | 🔴 Critical |
 | [DA-AI03-02](#da-ai03-02-build-document-chunking-service-using-langchain-recursivecharactertextsplitter-chunksize500-overlap50) | Build document chunking service using LangChain RecursiveCharacterTextSplitter (chunk_size=500, overlap=50) | Ân (AI) | 🔴 Critical |
 | [DA-AI03-03](#da-ai03-03-build-embedding-pipeline-text-chunk-embedding-store-in-chromadb-with-metadata) | Build embedding pipeline (text chunk → vector via embedding model → store in ChromaDB with metadata: documentId, clientId, chunkIndex) | Tuấn (AI) | 🔴 Critical |
 | [DA-AI03-04](#da-ai03-04-implement-semantic-search-query-embedding-top-k-retrieval-from-chromadb-filtered-by-clientid) | Implement semantic search (query → embedding → top-K retrieval from ChromaDB filtered by clientId) | Tuấn (AI) | 🔴 Critical |
 | [DA-AI03-05](#da-ai03-05-build-rag-context-builder-format-top-k-chunks-into-context-string-for-llm-prompt) | Build RAG context builder (format top-K chunks into a context string for LLM prompt) | Ân (AI) | 🔴 Critical |
-| [DA-AI03-06](#da-ai03-06-document-deletion-endpoint-remove-chunks-from-chromadb-file-from-s3) | Document deletion endpoint (remove chunks from ChromaDB + file from S3) | Lộc (Frontend) | 🟡 High |
+| [DA-AI03-06](#da-ai03-06-document-deletion-endpoint-remove-chunks-from-chromadb-file-from-s3) | Document deletion endpoint (remove chunks from ChromaDB + file from S3) | Lộc (Sub-lead) | 🟡 High |
 | [DA-AI03-07](#da-ai03-07-test-rag-accuracy-upload-3-real-brand-documents-verify-retrieved-context-is-correct-and-does-not-hallucinate) | Test RAG accuracy (upload 3 real brand documents, verify retrieved context is correct and does not hallucinate) | Ân (AI) | 🔴 Critical |
 | [DA-AI03-08](#da-ai03-08-write-rag-pipeline-documentation-architecture-tuning-parameters-evaluation-methodology) | Write RAG pipeline documentation (architecture, tuning parameters, evaluation methodology) | Ân (AI) | 🟢 Medium |
 
@@ -477,22 +477,22 @@
 | [DA-AI04-01](#da-ai04-01-build-prompt-template-system-topic-rag-context-trend-data-tone-platform-full-llm-prompt) | Build prompt template system (receive topic + RAG context + trend data + tone → generate full prompt) | Ân (AI) | 🔴 Critical |
 | [DA-AI04-02](#da-ai04-02-integrate-llama-3-via-groq-api-system-prompt-only-use-provided-context-do-not-fabricate) | Integrate Llama 3 via Groq API (system prompt enforces: only use provided context, do not fabricate) | Tuấn (AI) | 🔴 Critical |
 | [DA-AI04-03](#da-ai04-03-integrate-claude-api-as-fallback-when-groq-is-rate-limited-or-quality-fails) | Integrate Claude API as fallback when Groq is rate-limited or quality is low | Tuấn (AI) | 🔴 Critical |
-| [DA-AI04-04](#da-ai04-04-implement-platform-specific-caption-truncation-fb-63k-threads-500-tiktok-4k-chars) | Implement platform-specific optimization (auto-truncate captions: FB 63k, Threads 500, TikTok 4k chars) | Lộc (Frontend) | 🟡 High |
-| [DA-AI04-05](#da-ai04-05-implement-hashtag-generation-endpoint-post-aicontenthashtags) | Implement hashtag generation endpoint (call Llama 3 with a simple prompt) | Lộc (Frontend) | 🟡 High |
+| [DA-AI04-04](#da-ai04-04-implement-platform-specific-caption-truncation-fb-63k-threads-500-tiktok-4k-chars) | Implement platform-specific optimization (auto-truncate captions: FB 63k, Threads 500, TikTok 4k chars) | Lộc (Sub-lead) | 🟡 High |
+| [DA-AI04-05](#da-ai04-05-implement-hashtag-generation-endpoint-post-aicontenthashtags) | Implement hashtag generation endpoint (call Llama 3 with a simple prompt) | Lộc (Sub-lead) | 🟡 High |
 | [DA-AI04-06](#da-ai04-06-implement-regenerate-with-feedback-receive-previous-caption-user-feedback-generate-improved-version) | Implement regenerate with feedback (receive previous output + feedback → generate improved version) | Ân (AI) | 🟡 High |
-| [DA-AI04-07](#da-ai04-07-anti-hallucination-test-verify-20-generated-captions-every-claim-must-be-sourced-from-brand-context) | Anti-hallucination test (verify 20 generated captions — every claim must be sourced from brand context) | All (Team) | 🔴 Critical |
+| [DA-AI04-07](#da-ai04-07-anti-hallucination-test-verify-20-generated-captions-every-claim-must-be-sourced-from-brand-context) | Anti-hallucination test (verify 20 generated captions — every claim must be sourced from brand context) | Tuấn (AI) | 🔴 Critical |
 | [DA-AI04-08](#da-ai04-08-write-prompt-engineering-documentation-template-design-system-prompt-guide-tone-examples) | Write Prompt Engineering Documentation (template design, system prompt best practices, tone guide) | Ân (AI) | 🟢 Medium |
 
 ### EPIC AI-05 — Trend Crawler Service
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-AI05-01](#da-ai05-01-implement-google-trends-crawler-using-pytrends-to-fetch-top-trending-keywords-in-vietnam) | Implement Google Trends crawler (pytrends) to fetch top trending keywords in Vietnam | Ân (AI) | 🟡 High |
-| [DA-AI05-02](#da-ai05-02-implement-tiktok-trending-hashtag-crawler-web-scraping-or-unofficial-api-fallback-to-pytrends) | Implement TikTok trending hashtag crawler (web scraping or unofficial API) | Ân (AI) | 🟡 High |
+| [DA-AI05-01](#da-ai05-01-setup-n8n-flow-to-crawl-trend-data-from-google-trends) | Setup n8n flow to crawl trend data from Google Trends (scheduled, self-hosted) | Tuấn (AI) | 🟡 High |
+| [DA-AI05-02](#da-ai05-02-implement-tiktok-trending-hashtag-crawler-web-scraping-or-unofficial-api-fallback-to-pytrends) | Implement TikTok trending hashtag crawler (web scraping or unofficial API) | Tuấn (AI) | 🟡 High |
 | [DA-AI05-03](#da-ai05-03-normalize-trend-data-into-standard-format-keyword-score-platform-relatedtopics) | Normalize trend data into a standard format: {keyword, score, platform, relatedTopics[]} | Ân (AI) | 🟡 High |
-| [DA-AI05-04](#da-ai05-04-implement-redis-cache-for-trend-data-key-trendsvndatecategory-ttl-6-hours) | Implement Redis cache for trend data (TTL 6 hours, key: trends:vn:{date}:{category}) | Ân (AI) | 🟡 High |
-| [DA-AI05-05](#da-ai05-05-implement-trend-suggestions-api-endpoint-get-aitrendscategoryfashionlimit20) | Implement trend suggestions API endpoint (GET /ai/trends?category=fashion&limit=20) | Ân (AI) | 🟡 High |
-| [DA-AI05-06](#da-ai05-06-set-up-apscheduler-to-auto-crawl-every-6-hours) | Set up APScheduler to auto-crawl every 6 hours | Ân (AI) | 🟢 Medium |
+| [DA-AI05-04](#da-ai05-04-implement-redis-cache-for-trend-data-key-trendsvndatecategory-ttl-6-hours) | Implement Redis cache for trend data (TTL 6 hours, key: trends:vn:{date}:{category}) | Lộc (Sub-lead) | 🟡 High |
+| [DA-AI05-05](#da-ai05-05-implement-trend-suggestions-api-endpoint-get-aitrendscategoryfashionlimit20) | Implement trend suggestions API endpoint (GET /ai/trends?category=fashion&limit=20) | Lộc (Sub-lead) | 🟡 High |
+| [DA-AI05-06](#da-ai05-06-set-up-apscheduler-to-auto-crawl-every-6-hours) | Set up APScheduler to auto-crawl every 6 hours | Lộc (Sub-lead) | 🟢 Medium |
 | [DA-AI05-07](#da-ai05-07-brainstorm-ai-crawl-idea-phát-sinh-ngoài-plan-gốc) 🆕 | Brainstorm AI crawl idea | Trung (Leader) | 🟢 Medium |
 
 ### EPIC AI-4.99 — Analyze deeply crawl trend flow
@@ -1120,7 +1120,7 @@
 | DA-E11-07 | E11 | Trung | Global error handler chuẩn hoá `ApiResponse` — phát hiện gap khi review DA-E11-01 | [Xem](#da-e11-07-write-global-error-response-handler-for-gateway) |
 | DA-E12-07 | E12 (Authentication) | Trung | Nghiên cứu thuật toán JWT (HS256/RS256/ES256) — lẽ ra phải làm **trước** DA-E12-01 và DA-E11-02 vì cả 2 đều giả định RS256 sẵn | [Xem](#da-e12-07-research-hs256-vs-rs256-vs-es256-for-jwt-signing-phát-sinh-ngoài-plan-gốc) |
 | DA-E11-14 ⚠️ | Gắn `E11` trên Jira — **sai epic**, nội dung thực thuộc data layer | Trung | JPA models + repository cho 11 bảng PostgreSQL — code chạy trước khi plan cập nhật; nên gắn gần E13 mới đúng logic | [Xem](#da-e11-14-add-all-jpa-models-from-database-schema-for-business-service-repository-layer-phát-sinh-ngoài-plan-gốc-gắn-sai-epic-trên-jira) |
-| DA-AI05-07 | AI-05 (Trend Crawler) | Trung | Mở rộng ý tưởng crawl ngoài Google Trends/TikTok đã có | [Xem](#da-ai05-07-brainstorm-ai-crawl-idea-phát-sinh-ngoài-plan-gốc) |
+| DA-AI05-07 | AI-05 (Trend Crawler) | Tuấn (AI) | Mở rộng ý tưởng crawl ngoài Google Trends/TikTok đã có | [Xem](#da-ai05-07-brainstorm-ai-crawl-idea-phát-sinh-ngoài-plan-gốc) |
 
 **Ghi chú khác phát hiện trong quá trình đối soát (không tạo task riêng):**
 - `DA-408 "Create git-commit-convention rule"` (Jira, Trung, Done) — **trùng nội dung** với acceptance criteria của DA-E02-03 (đã có sẵn "commit convention"). Không tạo task riêng, đã note trong DA-E02-03.
@@ -3765,7 +3765,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ---
 
 ### DA-AI03-01 — Implement document upload endpoint (accept PDF/DOCX/TXT/URL, save file to S3)
-**Assignee:** Lộc (Frontend) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Provide the entry point for brand knowledge ingestion so that clients can upload brand documents that the RAG pipeline will index.
 
@@ -3780,6 +3780,58 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - Trigger chunking pipeline (DA-AI03-02) asynchronously via `BackgroundTasks` so the upload endpoint returns immediately without waiting for embedding
 
 **Dependencies:** Blocks: DA-AI03-02, DA-AI03-07. Blocked by: DA-AI02-03, DA-AI02-04.
+
+**Implementation Details:**
+*   **Files affected:** `app/api/v1/documents.py` and `app/models/response.py`
+*   **Functions/Classes to create:** `async def upload_document(file: UploadFile = File(None), url: str = Form(None), client_id: str = Form(...), background_tasks: BackgroundTasks)`
+*   **Processing flow:**
+    1. Verify file format (only allow `.pdf`, `.docx`, `.txt`). If invalid, return HTTP 400.
+    2. Upload file to S3 via helper in `app/core/s3.py`.
+    3. If URL: fetch HTML, clean with BeautifulSoup to extract raw text, save as a temporary `.txt` file, and upload to S3.
+    4. Generate `document_id = str(uuid.uuid4())`.
+    5. Register background task `process_document_background_task(s3_key, client_id, document_id)`.
+    6. Return JSON status response immediately.
+*   **Code Skeleton:**
+```python
+# app/api/v1/documents.py
+from fastapi import APIRouter, UploadFile, File, Form, BackgroundTasks, HTTPException
+from app.models.response import IngestionResponse
+import uuid
+
+router = APIRouter()
+
+@router.post("/upload", response_model=IngestionResponse)
+async def upload_document(
+    client_id: str = Form(...),
+    file: UploadFile = File(None),
+    url: str = Form(None),
+    background_tasks: BackgroundTasks = BackgroundTasks()
+):
+    if not file and not url:
+        raise HTTPException(status_code=400, detail="Must provide either file or URL")
+    
+    document_id = str(uuid.uuid4())
+    s3_key = f"rag/{client_id}/{document_id}/source_file"
+    
+    # Kích hoạt xử lý bất đồng bộ qua BackgroundTasks
+    background_tasks.add_task(
+        process_document_background_task, 
+        s3_key=s3_key, 
+        client_id=client_id, 
+        document_id=document_id
+    )
+    
+    return IngestionResponse(
+        documentId=document_id,
+        clientId=client_id,
+        s3Key=s3_key,
+        status="processing"
+    )
+
+async def process_document_background_task(s3_key: str, client_id: str, document_id: str):
+    # Luồng ngầm: Chunking -> Embedding & ChromaDB -> NER & Neo4j
+    pass
+```
 
 ---
 
@@ -3798,6 +3850,40 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - Log chunk count per document at INFO level for monitoring; this is the only way to detect degenerate inputs (e.g., 1-chunk PDFs that are actually scanned images)
 
 **Dependencies:** Blocks: DA-AI03-03. Blocked by: DA-AI03-01, DA-AI02-07.
+
+**Implementation Details:**
+*   **Files affected:** `app/services/chunking.py`
+*   **Functions/Classes to create:** `class DocumentChunker` with function `def chunk_document(self, file_bytes: bytes, file_type: str) -> List[str]`
+*   **Processing flow:**
+    1. Based on `file_type` (pdf, docx, txt), use the corresponding library (`pdfplumber` or `python-docx`) to extract text.
+    2. Initialize `RecursiveCharacterTextSplitter` with parameters `chunk_size=500` and `chunk_overlap=50`.
+    3. Return list of raw text chunks with extra whitespace removed.
+*   **Code Skeleton:**
+```python
+# app/services/chunking.py
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+import pdfplumber
+from io import BytesIO
+
+class DocumentChunker:
+    def __init__(self):
+        self.splitter = RecursiveCharacterTextSplitter(
+            chunk_size=500,
+            chunk_overlap=50,
+            separators=["\n\n", "\n", ".", ",", " ", ""]
+        )
+
+    def extract_text(self, file_bytes: bytes, file_type: str) -> str:
+        if file_type == "pdf":
+            with pdfplumber.open(BytesIO(file_bytes)) as pdf:
+                return "".join([page.extract_text() or "" for page in pdf.pages])
+        return file_bytes.decode("utf-8")
+
+    def chunk_document(self, file_bytes: bytes, file_type: str) -> list[str]:
+        text = self.extract_text(file_bytes, file_type)
+        chunks = self.splitter.split_text(text)
+        return [c.strip() for c in chunks if c.strip()]
+```
 
 ---
 
@@ -3818,7 +3904,162 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Dependencies:** Blocks: DA-AI03-04. Blocked by: DA-AI03-02, DA-AI02-02, DA-AI02-07.
 
+**Implementation Details:**
+*   **Files affected:** `app/services/embedding.py`
+*   **Functions/Classes to create:** `class EmbeddingService` with function `def store_chunks(self, client_id: str, document_id: str, chunks: List[str])`
+*   **Processing flow:**
+    1. Initialize ChromaDB client connecting to host/port from configuration.
+    2. Retrieve or create collection named `client_{client_id}`.
+    3. Load the local `sentence-transformers/all-MiniLM-L6-v2` model.
+    4. Perform batch insert (50 chunks/batch) inserting vector list with metadata into ChromaDB.
+*   **Code Skeleton:**
+```python
+# app/services/embedding.py
+import chromadb
+from sentence_transformers import SentenceTransformer
+
+class EmbeddingService:
+    def __init__(self, chromadb_host: str, chromadb_port: int):
+        self.chroma_client = chromadb.HttpClient(host=chromadb_host, port=chromadb_port)
+        self.embed_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+
+    def store_chunks(self, client_id: str, document_id: str, chunks: list[str]):
+        collection = self.chroma_client.get_or_create_collection(name=f"client_{client_id}")
+        
+        batch_size = 50
+        for i in range(0, len(chunks), batch_size):
+            batch_chunks = chunks[i:i+batch_size]
+            embeddings = self.embed_model.encode(batch_chunks).tolist()
+            ids = [f"{document_id}_{idx}" for idx in range(i, i+len(batch_chunks))]
+            metadatas = [{"documentId": document_id, "clientId": client_id, "chunkIndex": idx} for idx in range(i, i+len(batch_chunks))]
+            
+            collection.add(
+                documents=batch_chunks,
+                embeddings=embeddings,
+                metadatas=metadatas,
+                ids=ids
+            )
+```
+
 ---
+
+### DA-AI03-03.1 — Build Neo4j connection pool management (app/core/neo4j.py)
+**Assignee:** Lộc (Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Create a Singleton connection manager to Neo4j to ensure thread-safe, fast graph DB queries.
+
+**Acceptance Criteria:**
+- [ ] Implement Singleton `Neo4jDatabase` in `app/core/neoj4.py`
+- [ ] Support context-managed sessions for query execution
+
+**Dependencies:** Blocks: DA-AI03-03.2, DA-AI03-04.1. Blocked by: DA-AI03-03.
+
+**Implementation Details:**
+*   **Files affected:** `app/core/neoj4.py`
+*   **Functions/Classes to create:** `class Neo4jDatabase` (Singleton Pattern) with context-managed functions.
+*   **Processing flow:**
+    1. Read URI/User/Password config from `.env` and create a `GraphDatabase.driver()` instance.
+    2. Provide safe Cypher query execution via session context managers (`execute_read`, `execute_write`).
+*   **Code Skeleton:**
+```python
+# app/core/neoj4.py
+from neo4j import GraphDatabase
+
+class Neo4jDatabase:
+    _instance = None
+
+    def __new__(cls, uri=None, user=None, password=None):
+        if cls._instance is None:
+            cls._instance = super(Neo4jDatabase, cls).__new__(cls)
+            cls._instance.driver = GraphDatabase.driver(uri, auth=(user, password))
+        return cls._instance
+
+    def query(self, cypher_query: str, parameters: dict = None):
+        with self.driver.session() as session:
+            result = session.run(cypher_query, parameters or {})
+            return [record.data() for record in result]
+```
+
+---
+
+### DA-AI03-03.2 — NER extraction and relations ingestion into Neo4j using Cypher
+**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Extract entities and relations from text chunks and insert them into Neo4j using `MERGE` statements.
+
+**Acceptance Criteria:**
+- [ ] Implement `NERGraphService` in `app/services/graph_ingestion.py`
+- [ ] Write Cypher queries using `MERGE` to store Nodes (`User`, `Trend`, `Community`) and Edges (`POSTED`, `INTERACTED`)
+
+**Dependencies:** Blocks: DA-AI03-04.1. Blocked by: DA-AI03-03.1.
+
+**Implementation Details:**
+*   **Files affected:** `app/services/graph_ingestion.py`
+*   **Functions/Classes to create:** `class NERGraphService` with function `def inject_relation(self, client_id: str, document_id: str, relation: dict)`
+*   **Processing flow:**
+    1. Send chunk to LLM to extract entities and relations (JSON format).
+    2. Execute Cypher queries using `MERGE` clause to insert into Neo4j (using `clientId` and `documentId` labels for tenant isolation).
+*   **Code Skeleton:**
+```python
+# app/services/graph_ingestion.py
+from app.core.neoj4 import Neo4jDatabase
+
+class NERGraphService:
+    def __init__(self, db: Neo4jDatabase):
+        self.db = db
+
+    def inject_relation(self, client_id: str, document_id: str, relation: dict):
+        query = f"""
+        MERGE (s:{relation['source_type']} {{name: $source, clientId: $clientId}})
+        MERGE (t:{relation['target_type']} {{name: $target, clientId: $clientId}})
+        MERGE (s)-[r:{relation['relation']} {{documentId: $documentId}}]->(t)
+        """
+        self.db.query(query, {
+            "source": relation["source"],
+            "target": relation["target"],
+            "clientId": client_id,
+            "documentId": document_id
+        })
+```
+
+---
+
+### DA-AI03-03.3 — Implement query normalization (lowercase, remove emoji, slang replacement)
+**Assignee:** Lộc (Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Clean user query text to match entities in database by removing emoji, punctuation, and correcting abbreviations.
+
+**Acceptance Criteria:**
+- [ ] Implement `QueryNormalizer` in `app/services/normalization.py` using synonym map
+
+**Dependencies:** Blocks: DA-AI03-04. Blocked by: DA-AI03-03.
+
+**Implementation Details:**
+*   **Files affected:** `app/services/normalization.py`
+*   **Functions/Classes to create:** `class QueryNormalizer` with function `def normalize_query(self, query: str) -> str`
+*   **Processing flow:**
+    1. Remove emojis and special characters using Regex.
+    2. Replace abbreviations and slang with standard Vietnamese words using a pre-configured JSON dictionary.
+*   **Code Skeleton:**
+```python
+# app/services/normalization.py
+import re
+import json
+
+class QueryNormalizer:
+    def __init__(self, dict_path: str):
+        with open(dict_path, 'r', encoding='utf-8') as f:
+            self.synonyms = json.load(f)
+
+    def normalize_query(self, query: str) -> str:
+        query = re.sub(r'[^\w\s]', '', query).lower().strip()
+        words = query.split()
+        normalized_words = [self.synonyms.get(w, w) for w in words]
+        return " ".join(normalized_words)
+```
+
+---
+
 
 ### DA-AI03-04 — Implement semantic search (query → embedding → top-K retrieval from ChromaDB filtered by clientId)
 **Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
@@ -3837,7 +4078,108 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Dependencies:** Blocks: DA-AI03-05. Blocked by: DA-AI03-03.
 
+**Implementation Details:**
+*   **Files affected:** `app/services/search.py`
+*   **Functions/Classes to create:** `def search(self, query: str, client_id: str, k: int = 5) -> List[str]`
+*   **Processing flow:**
+    1. Vectorize query using `all-MiniLM-L6-v2` model.
+    2. Query ChromaDB collection `client_{client_id}` filtering by metadata `clientId == client_id`.
+    3. Retrieve Top-K nearest results.
+*   **Code Skeleton:**
+```python
+# app/services/search.py
+class SemanticSearchService:
+    def __init__(self, chroma_client, embed_model):
+        self.chroma_client = chroma_client
+        self.embed_model = embed_model
+
+    def search(self, query: str, client_id: str, k: int = 5) -> list:
+        collection = self.chroma_client.get_collection(name=f"client_{client_id}")
+        query_vector = self.embed_model.encode(query).tolist()
+        
+        results = collection.query(
+            query_embeddings=[query_vector],
+            n_results=k,
+            where={"clientId": client_id}
+        )
+        return results["documents"][0] if results["documents"] else []
+```
+
 ---
+
+### DA-AI03-04.1 — Build graph traversal service (1-2 hops BFS/DFS in Neo4j)
+**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Traverse local interaction graph 1-2 hops from starting entity nodes to fetch related context.
+
+**Acceptance Criteria:**
+- [ ] Implement `GraphTraversalService` in `app/services/graph_traversal.py`
+
+**Dependencies:** Blocks: DA-AI03-04.2. Blocked by: DA-AI03-04, DA-AI03-03.2.
+
+**Implementation Details:**
+*   **Files affected:** `app/services/graph_traversal.py`
+*   **Functions/Classes to create:** `class GraphTraversalService` with function `def traverse(self, entry_points: List[str], client_id: str) -> List[dict]`
+*   **Processing flow:**
+    1. From the list of `entry_points`, run Cypher to traverse Neo4j within 1-2 hops (Limit 50).
+    2. Aggregate the list of related entities and return.
+*   **Code Skeleton:**
+```python
+# app/services/graph_traversal.py
+from app.core.neoj4 import Neo4jDatabase
+
+class GraphTraversalService:
+    def __init__(self, db: Neo4jDatabase):
+        self.db = db
+
+    def traverse(self, entry_points: list[str], client_id: str) -> list[dict]:
+        query = """
+        MATCH (start:Entity {clientId: $clientId})
+        WHERE start.name IN $entryPoints
+        MATCH path = (start)-[r:PROMOTED|CHECK_IN_AT|BELONGS_TO*1..2]-(connected:Entity)
+        RETURN start.name AS source, type(r[0]) AS rel, connected.name AS target
+        LIMIT 50
+        """
+        return self.db.query(query, {"entryPoints": entry_points, "clientId": client_id})
+```
+
+---
+
+### DA-AI03-04.2 — Implement BM25 scoring & graph node pruning
+**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Prune traversal output nodes using BM25 relevance score against query to filter noise.
+
+**Acceptance Criteria:**
+- [ ] Implement `GraphPruningService` in `app/services/pruning.py` using `rank_bm25`
+
+**Dependencies:** Blocks: DA-AI03-05. Blocked by: DA-AI03-04.1.
+
+**Implementation Details:**
+*   **Files affected:** `app/services/pruning.py`
+*   **Functions/Classes to create:** `class GraphPruningService` with function `def prune(self, query: str, traversed_nodes: List[dict]) -> List[dict]`
+*   **Processing flow:**
+    1. Tokenize query and node descriptions.
+    2. Score BM25 for each node against the query using `rank_bm25` library.
+    3. Prune nodes below threshold (threshold < 1.0) and return.
+*   **Code Skeleton:**
+```python
+# app/services/pruning.py
+from rank_bm25 import BM25Okapi
+
+class GraphPruningService:
+    def prune(self, query: str, traversed_nodes: list[dict], threshold: float = 1.0) -> list[dict]:
+        if not traversed_nodes:
+            return []
+        corpus = [node["target"].split() for node in traversed_nodes]
+        bm25 = BM25Okapi(corpus)
+        
+        scores = bm25.get_scores(query.split())
+        return [traversed_nodes[idx] for idx, score in enumerate(scores) if score >= threshold]
+```
+
+---
+
 
 ### DA-AI03-05 — Build RAG context builder (format top-K chunks into context string for LLM prompt)
 **Assignee:** Ân (AI) | **Priority:** 🔴 Critical
@@ -3855,10 +4197,33 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Dependencies:** Blocks: DA-AI04-01. Blocked by: DA-AI03-04.
 
+**Implementation Details:**
+*   **Files affected:** `app/services/context_builder.py`
+*   **Functions/Classes to create:** `class RAGContextBuilder` with function `def build(self, chunks: List[str], relations: List[dict]) -> str`
+*   **Processing flow:**
+    1. Group ChromaDB chunks into indexed lists `[1]`, `[2]`.
+    2. Format Neo4j relations logically: `- Entity [source] has relation [rel] to [target]`.
+    3. Concatenate into a single context string, capped at 3000 characters.
+*   **Code Skeleton:**
+```python
+# app/services/context_builder.py
+class RAGContextBuilder:
+    def build(self, chunks: list[str], relations: list[dict]) -> str:
+        context_parts = ["=== Brand Document Content ==="]
+        for idx, chunk in enumerate(chunks):
+            context_parts.append(f"[{idx+1}] {chunk}")
+            
+        context_parts.append("\n=== Brand Graph Connections ===")
+        for rel in relations:
+            context_parts.append(f"- Entity [{rel['source']}] has relation [{rel['rel']}] to [{rel['target']}]")
+            
+        return "\n".join(context_parts)
+```
+
 ---
 
 ### DA-AI03-06 — Document deletion endpoint (remove chunks from ChromaDB + file from S3)
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Allow clients to remove brand documents and ensure all associated vectors and stored files are fully purged to meet data hygiene requirements.
 
@@ -3908,6 +4273,63 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 ---
 
+### DA-AI03-09 — Create Entity Resolution background cron job (merge duplicate nodes)
+**Assignee:** Ân (AI) | **Priority:** 🟡 High
+
+**Goal:** Automatically clean duplicate entities (e.g. synonyms) in Neo4j database periodically.
+
+**Acceptance Criteria:**
+- [ ] Implement `EntityResolutionService` in `app/services/entity_resolution.py`
+- [ ] Merge nodes with cosine similarity > 85% using Neo4j APOC `apoc.refactor.mergeNodes`
+
+**Dependencies:** Blocks: None. Blocked by: DA-AI03-03.2.
+
+**Implementation Details:**
+*   **Files affected:** `app/services/entity_resolution.py` and `app/core/scheduler.py`
+*   **Functions/Classes to create:** `class EntityResolutionService` with function `def resolve(self, client_id: str)`
+*   **Processing flow:**
+    1. Fetch entity node names within Neo4j database.
+    2. Embed names using MiniLM and compute cosine similarity.
+    3. For node pairs with similarity > 85% (e.g., "HN" and "Hà Nội"), execute APOC merge Cypher query `apoc.refactor.mergeNodes`.
+*   **Code Skeleton:**
+```python
+# app/services/entity_resolution.py
+from app.core.neoj4 import Neo4jDatabase
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+
+class EntityResolutionService:
+    def __init__(self, db: Neo4jDatabase):
+        self.db = db
+        self.model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+
+    def resolve(self, client_id: str):
+        nodes = self.db.query("MATCH (n:Location {clientId: $clientId}) RETURN n.name as name", {"clientId": client_id})
+        names = [n["name"] for n in nodes]
+        if len(names) < 2: return
+        
+        embeddings = self.model.encode(names)
+        sim_matrix = cosine_similarity(embeddings)
+        
+        for i in range(len(names)):
+            for j in range(i+1, len(names)):
+                if sim_matrix[i][j] > 0.85:
+                    merge_query = """
+                    MATCH (n1:Location {name: $name1, clientId: $clientId})
+                    MATCH (n2:Location {name: $name2, clientId: $clientId})
+                    CALL apoc.refactor.mergeNodes([n1, n2]) YIELD node
+                    RETURN node
+                    """
+                    self.db.query(merge_query, {"name1": names[i], "name2": names[j], "clientId": client_id})
+```
+
+---
+
+## PHẦN II: CHI TIẾT CÀI ĐẶT EPIC AI-04 (LLM CONTENT GENERATION)
+
+---
+
+
 ### DA-AI04-01 — Build prompt template system (topic + RAG context + trend data + tone + platform → full LLM prompt)
 **Assignee:** Ân (AI) | **Priority:** 🔴 Critical
 
@@ -3924,6 +4346,39 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - Tone values to support at minimum: `professional`, `playful`, `urgent`, `inspirational` — map each to a short instruction phrase injected into the prompt
 
 **Dependencies:** Blocks: DA-AI04-02. Blocked by: DA-AI03-05, DA-AI02-04.
+
+**Implementation Details:**
+*   **Files affected:** `app/services/prompt_builder.py`
+*   **Functions/Classes to create:** `class PromptBuilder` with function `def build(self, topic: str, context: str, tone: str, platform: str) -> str`
+*   **Processing flow:**
+    1. Read prompt template using `Jinja2`.
+    2. Assign hook formula based on `tone` and `platform` (Curiosity, Direct Benefit, FOMO).
+    3. Render and return the complete prompt expecting a JSON response structure (Hook, Body, CTA).
+*   **Code Skeleton:**
+```python
+# app/services/prompt_builder.py
+from jinja2 import Template
+
+PROMPT_TEMPLATE = """
+Write a social media post for {{ platform }} based on the context.
+[CONTEXT]
+{{ context }}
+[USER REQUEST]
+Topic: {{ topic }} | Tone: {{ tone }}
+[REQUIREMENTS]
+Return strictly a JSON object:
+{"hook_3s": "Compelling hook using the {{ hook_formula }} formula under 15 words.", "body": "Post body.", "cta": "CTA"}
+"""
+
+class PromptBuilder:
+    def build(self, topic: str, context: str, tone: str, platform: str) -> str:
+        hook_formula = "Curiosity"
+        if tone == "urgent": hook_formula = "FOMO"
+        elif tone == "professional": hook_formula = "Direct Benefit"
+            
+        template = Template(PROMPT_TEMPLATE)
+        return template.render(platform=platform, context=context, topic=topic, tone=tone, hook_formula=hook_formula)
+```
 
 ---
 
@@ -3944,6 +4399,44 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Dependencies:** Blocks: DA-AI04-07, DA-AI03-07. Blocked by: DA-AI04-01, DA-AI02-02, DA-AI01-07.
 
+**Implementation Details:**
+*   **Files affected:** `app/services/llm_coordinator.py`
+*   **Functions/Classes to create:** `class LLMCoordinator` with function `async def generate(self, prompt: str) -> dict`
+*   **Processing flow:**
+    1. Send request to Groq API (`llama-3.1-70b-versatile`, `temperature=0.3`, JSON response format).
+    2. Catch 429 rate limit or timeout errors and automatically failover to Claude API (`claude-3-5-sonnet`).
+    3. Ensure clean JSON output format parsing and return.
+*   **Code Skeleton:**
+```python
+# app/services/llm_coordinator.py
+from groq import Groq
+from anthropic import Anthropic
+import json
+
+class LLMCoordinator:
+    def __init__(self, groq_key: str, anthropic_key: str):
+        self.groq_client = Groq(api_key=groq_key)
+        self.claude_client = Anthropic(api_key=anthropic_key)
+
+    async def generate(self, prompt: str) -> dict:
+        try:
+            completion = self.groq_client.chat.completions.create(
+                model="llama-3.1-70b-versatile",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+                response_format={"type": "json_object"}
+            )
+            return json.loads(completion.choices[0].message.content)
+        except Exception as e:
+            message = self.claude_client.messages.create(
+                model="claude-3-5-sonnet-20241022",
+                max_tokens=1000,
+                temperature=0.3,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return json.loads(message.content[0].text)
+```
+
 ---
 
 ### DA-AI04-03 — Integrate Claude API as fallback when Groq is rate-limited or quality fails
@@ -3963,10 +4456,48 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Dependencies:** Blocks: DA-AI04-07. Blocked by: DA-AI04-02, DA-AI02-02, DA-AI01-07.
 
+**Implementation Details:**
+*   **Files affected:** `app/services/llm_coordinator.py`
+*   **Functions/Classes to create:** `class ClaudeFallbackService`
+*   **Processing flow:**
+    1. Trigger Claude API (`claude-3-5-sonnet`) when Groq API raises `RateLimitError` or timeout.
+    2. Pass the exact same prompt context and JSON formatting instructions.
+    3. Log the failover event to monitoring.
+*   **Code Skeleton:**
+```python
+# app/services/llm_coordinator.py
+from groq import Groq
+from anthropic import Anthropic
+import json
+
+class LLMCoordinator:
+    def __init__(self, groq_key: str, anthropic_key: str):
+        self.groq_client = Groq(api_key=groq_key)
+        self.claude_client = Anthropic(api_key=anthropic_key)
+
+    async def generate(self, prompt: str) -> dict:
+        try:
+            completion = self.groq_client.chat.completions.create(
+                model="llama-3.1-70b-versatile",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+                response_format={"type": "json_object"}
+            )
+            return json.loads(completion.choices[0].message.content)
+        except Exception as e:
+            message = self.claude_client.messages.create(
+                model="claude-3-5-sonnet-20241022",
+                max_tokens=1000,
+                temperature=0.3,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return json.loads(message.content[0].text)
+```
+
 ---
 
 ### DA-AI04-04 — Implement platform-specific caption truncation (FB 63k, Threads 500, TikTok 4k chars)
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Guarantee that generated captions are never rejected by platform APIs due to exceeding character limits.
 
@@ -3981,10 +4512,38 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Dependencies:** Blocks: DA-AI10-01. Blocked by: DA-AI02-04.
 
+**Implementation Details:**
+*   **Files affected:** `app/services/length_optimizer.py`
+*   **Functions/Classes to create:** `class LengthOptimizer` with function `def optimize(self, content: dict, platform: str) -> dict`
+*   **Processing flow:**
+    1. Validate generated post length against platform limits (FB: 63k, Threads: 500, TikTok: 4k chars).
+    2. If limits are exceeded, request LLM to summarize/shorten while retaining core brand context.
+    3. Return modified JSON payload.
+*   **Code Skeleton:**
+```python
+# app/services/length_optimizer.py
+class LengthOptimizer:
+    def optimize(self, post_data: dict, platform: str) -> dict:
+        body = post_data["body"]
+        if platform == "threads" and len(body) > 500:
+            # Gọi LLM tóm tắt cô đọng (Call Haiku summarize)
+            pass
+        elif platform == "tiktok" and len(body) > 4000:
+            body = self.smart_truncate(body, max_chars=3950)
+        post_data["body"] = body
+        return post_data
+
+    def smart_truncate(self, text: str, max_chars: int) -> str:
+        if len(text) <= max_chars: return text
+        truncated = text[:max_chars]
+        last_end = max(truncated.rfind('.'), truncated.rfind('!'), truncated.rfind('?'))
+        return truncated[:last_end + 1] + "..." if last_end != -1 else truncated + "..."
+```
+
 ---
 
 ### DA-AI04-05 — Implement hashtag generation endpoint (POST /ai/content/hashtags)
-**Assignee:** Lộc (Frontend) | **Priority:** 🟡 High
+**Assignee:** Lộc (Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Provide a standalone hashtag generation feature so users can request platform-optimized hashtags independently of caption generation.
 
@@ -3998,6 +4557,33 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - Include trend data from Redis cache (DA-AI05-04) in the hashtag prompt context if available for the given category
 
 **Dependencies:** Blocks: None. Blocked by: DA-AI04-02, DA-AI02-04.
+
+**Implementation Details:**
+*   **Files affected:** `app/api/v1/generate.py` and `app/services/hashtag_extractor.py`
+*   **Functions/Classes to create:** `class HashtagExtractor` with function `def extract_hashtags(self, content: str, brand_name: str, trend_name: str) -> List[str]`
+*   **Processing flow:**
+    1. LLM extracts distinctive keywords from text.
+    2. Normalize Vietnamese text to remove spaces, accents, and special characters, formatting as CamelCase hashtags (e.g. `#trasuanuong`).
+    3. Append brand hashtags and trending hashtags, deduplicate and return.
+*   **Code Skeleton:**
+```python
+# app/services/hashtag_extractor.py
+import re
+import unicodedata
+
+class HashtagExtractor:
+    def normalize(self, text: str) -> str:
+        text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('utf-8')
+        return re.sub(r'[^a-zA-Z0-9]', '', text).lower()
+
+    def extract_hashtags(self, content: str, brand_name: str, trend_name: str) -> list[str]:
+        # Trích lọc từ khóa
+        keywords = ["do uong", "mua dong"]
+        hashtags = [f"#{self.normalize(kw)}" for kw in keywords]
+        hashtags.append(f"#{self.normalize(brand_name)}")
+        hashtags.append(f"#{self.normalize(trend_name)}")
+        return list(set(hashtags))
+```
 
 ---
 
@@ -4017,10 +4603,38 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Dependencies:** Blocks: None. Blocked by: DA-AI04-02, DA-AI03-04.
 
+**Implementation Details:**
+*   **Files affected:** `app/api/v1/generate.py`
+*   **Functions/Classes to create:** Endpoint `POST /ai/generate/refine` accepting `RefineRequest`
+*   **Processing flow:**
+    1. Receive original post, feedback prompt, and `clientId`.
+    2. Construct refinement prompt instructing LLM to shift tone/style according to feedback while strictly respecting initial RAG context.
+    3. Call LLMCoordinator and return refined JSON.
+*   **Code Skeleton:**
+```python
+# app/api/v1/generate.py (Mục Refine)
+from fastapi import APIRouter
+from app.models.request import RefineRequest
+
+router = APIRouter()
+
+@router.post("/refine")
+async def refine_content(req: RefineRequest):
+    # 1. Khởi dựng prompt chỉnh sửa
+    # prompt = render(REFINE_TEMPLATE, original_post=req.previousCaption, feedback=req.feedback)
+    # 2. Gọi LLM Coordinator
+    # return await llm_coordinator.generate(prompt)
+    pass
+```
+
+---
+
+## PHẦN III: CHI TIẾT CÀI ĐẶT EPIC AI-05 (TREND CRAWLER & SCORING SERVICE)
+
 ---
 
 ### DA-AI04-07 — Anti-hallucination test (verify 20 generated captions — every claim must be sourced from brand context)
-**Assignee:** All (Team) | **Priority:** 🔴 Critical
+**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
 
 **Goal:** Validate that the anti-hallucination system prompt and RAG pipeline together prevent the LLM from inventing product claims, prices, or brand facts.
 
@@ -4052,26 +4666,86 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 ---
 
-### DA-AI05-01 — Implement Google Trends crawler using pytrends to fetch top trending keywords in Vietnam
-**Assignee:** Ân (AI) | **Priority:** 🟡 High
+### DA-AI05-01 — Setup n8n flow to crawl trend data from Google Trends
+**Assignee:** Tuấn (AI) | **Priority:** 🟡 High
 
-**Goal:** Automate collection of real-time Vietnamese trend data to enrich caption generation prompts with culturally relevant keywords.
+**Goal:** Move trend collection out of hand-written Python and into a scheduled n8n workflow, so crawl frequency, sources, and retry policy can be changed from the n8n UI without redeploying the AI service.
 
 **Acceptance Criteria:**
-- [ ] `services/trends/google_trends.py` uses `pytrends` to fetch top 20 trending keywords for Vietnam (`geo='VN'`)
-- [ ] Function `fetch_google_trends(category: str) -> List[{keyword: str, score: int}]` returns normalized results
-- [ ] Handles `pytrends` rate limiting (429/503) with exponential backoff; returns empty list rather than raising on persistent failure
+- [ ] `n8n` service added to `docker/docker-compose.infra.yml` (image `n8nio/n8n` pinned to a concrete tag, joined to `brandhub-network`, named volume `n8n-data:/home/node/.n8n`); editor port `5678` exposed only from `docker/docker-compose.dev.yml`
+- [ ] `N8N_ENCRYPTION_KEY`, `N8N_BASIC_AUTH_USER`, `N8N_BASIC_AUTH_PASSWORD`, `GENERIC_TIMEZONE=Asia/Ho_Chi_Minh` declared in `docker/.env.example` and marked required (`:?`) in the compose file, matching the existing variable style
+- [ ] Workflow `brandhub-trend-crawler` runs on a Schedule Trigger every 6 hours (aligned with the Redis TTL in DA-AI05-04)
+- [ ] Workflow fetches Vietnam trending keywords through an HTTP Request node against the Google Trends daily-trends feed (`geo=VN`, `hl=vi`); a manual run returns ≥ 20 keywords
+- [ ] A Code node normalizes every item to `{keyword: str, score: int, source: "google", crawledAt: ISO8601}` — the shape DA-AI05-03 consumes
+- [ ] Workflow POSTs the batch to `POST /internal/trends/ingest` on the AI service with a shared-secret header; the node retries 3× with exponential backoff, and a failing run routes to an n8n Error Workflow that notifies the team channel
+- [ ] Workflow exported with credentials excluded and committed at `docker/n8n/workflows/trend_crawler.json` so it can be re-imported on any environment
+- [ ] Runbook documented (import workflow → set credentials → manual run → read execution log)
 
 **Technical Notes:**
-- `pytrends` is an unofficial scraper and can break when Google changes response format; pin the version and add an integration test that alerts on unexpected response shape
-- Use `TrendReq(hl='vi-VN', tz=420)` for Vietnamese locale and ICT timezone
+- `pytrends` is dropped for this task: it is an unofficial client that breaks whenever Google changes its response shape. Hitting the RSS feed directly from an HTTP Request node is easier to keep alive, and a format change is fixed in the n8n UI instead of via a redeploy.
+- Never commit a raw export — n8n writes credential references into workflow JSON. Export with credentials excluded and keep secrets in n8n Credentials backed by `N8N_ENCRYPTION_KEY`.
+- Without a persistent `/home/node/.n8n` volume **and** a fixed `N8N_ENCRYPTION_KEY`, every stored credential becomes unreadable the next time the container is recreated.
+- n8n reaches the AI service by container name on `brandhub-network` (e.g. `http://brandhub-ai-service:8000`), not `localhost`.
+- Community edition (fair-code / Sustainable Use License) is free for internal self-hosted use — no license cost for this deployment.
+- If Google blocks the VPS IP, add a proxy to the HTTP Request node rather than moving the logic back into Python.
 
 **Dependencies:** Blocks: DA-AI05-03. Blocked by: DA-AI02-01.
+
+**Implementation Details:**
+*   **Files affected:** `docker/docker-compose.infra.yml`, `docker/docker-compose.dev.yml`, `docker/.env.example`, `docker/n8n/workflows/trend_crawler.json`, `app/api/internal/trends.py`
+*   **Nodes to create (workflow `brandhub-trend-crawler`):** `Schedule Trigger` → `HTTP Request (Google Trends RSS)` → `XML` → `Code (normalize)` → `HTTP Request (POST ingest)`
+*   **Processing flow:**
+    1. Schedule Trigger fires every 6 hours in `Asia/Ho_Chi_Minh`.
+    2. HTTP Request node GETs `https://trends.google.com/trending/rss?geo=VN` with a browser-like `User-Agent`.
+    3. XML node converts the RSS payload into JSON items.
+    4. Code node maps each item to `{keyword, score, source, crawledAt}`, scoring linearly by rank so the output stays comparable with the TikTok crawler in DA-AI05-02.
+    5. HTTP Request node POSTs the array to the ingest endpoint with header `X-Internal-Token`; on non-2xx it retries 3× with exponential backoff, then hands off to the Error Workflow.
+*   **Code Skeleton:**
+```yaml
+# docker/docker-compose.infra.yml — thêm service n8n vào stack hiện có
+  n8n:
+    image: n8nio/n8n:1.75.2
+    container_name: brandhub-n8n
+    restart: unless-stopped
+    environment:
+      # Mất key này là mất toàn bộ credentials đã lưu -> bắt buộc set từ .env
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:?N8N_ENCRYPTION_KEY is required}
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: ${N8N_BASIC_AUTH_USER:?N8N_BASIC_AUTH_USER is required}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_BASIC_AUTH_PASSWORD:?N8N_BASIC_AUTH_PASSWORD is required}
+      GENERIC_TIMEZONE: Asia/Ho_Chi_Minh
+    volumes:
+      - n8n-data:/home/node/.n8n
+    networks:
+      - brandhub-network
+
+# Khai báo thêm vào block volumes có sẵn ở cuối file
+volumes:
+  n8n-data:
+    name: brandhub-n8n-data
+```
+```javascript
+// Code node "normalize" — chạy sau XML node, trả về đúng shape DA-AI05-03 cần
+const crawledAt = new Date().toISOString();
+
+// RSS trả về rss.channel.item; ép về array vì 1 item sẽ không phải array
+const raw = $input.first().json.rss?.channel?.item ?? [];
+const items = Array.isArray(raw) ? raw : [raw];
+
+return items.slice(0, 20).map((item, rank) => ({
+  json: {
+    keyword: (item.title ?? '').toString().trim(),
+    score: 100 - rank * 5, // điểm tuyến tính theo rank, làm volume base tạm thời
+    source: 'google',
+    crawledAt,
+  },
+}));
+```
 
 ---
 
 ### DA-AI05-02 — Implement TikTok trending hashtag crawler (web scraping or unofficial API, fallback to pytrends)
-**Assignee:** Ân (AI) | **Priority:** 🟡 High
+**Assignee:** Tuấn (AI) | **Priority:** 🟡 High
 
 **Goal:** Supplement Google Trends data with TikTok-specific trending hashtags, which are the primary discovery mechanism for BrandHub's target demographic.
 
@@ -4085,6 +4759,48 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - If all scraping is blocked, the fallback is acceptable for MVP — document this limitation explicitly
 
 **Dependencies:** Blocks: DA-AI05-03. Blocked by: DA-AI02-01.
+
+**Implementation Details:**
+*   **Files affected:** `app/services/crawlers/tiktok_scraper.py`
+*   **Functions/Classes to create:** `class TikTokScraper` with function `def fetch_tiktok_trends(self) -> List[dict]`
+*   **Processing flow:**
+    1. Launch Playwright scraper targeting TikTok Creative Center (Vietnam region).
+    2. Scrape top trending hashtags, popularity score, and related video views.
+    3. If blocked or rate-limited, fall back to pytrends search with `tiktok trending vietnam`.
+*   **Code Skeleton:**
+```python
+# app/services/crawlers/tiktok_scraper.py
+from playwright.async_api import async_playwright
+import logging
+
+logger = logging.getLogger(__name__)
+
+class TikTokCreativeCenterCrawler:
+    def __init__(self):
+        self.url = "https://ads.tiktok.com/business/creativecenter/trends/vietnam"
+
+    async def fetch_tiktok_trends(self) -> list[dict]:
+        results = []
+        try:
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(headless=True)
+                page = await browser.new_page()
+                await page.goto(self.url, wait_until="networkidle")
+                
+                # Selector giả định cho các phần tử chứa hashtag thịnh hành
+                elements = await page.query_selector_all(".trend-hashtag-name")
+                for rank, el in enumerate(elements[:20]):
+                    name = await el.inner_text()
+                    results.append({
+                        "keyword": name.strip().replace("#", ""),
+                        "score": 100 - rank * 5,
+                        "source": "tiktok"
+                    })
+                await browser.close()
+        except Exception as e:
+            logger.error(f"Error crawling TikTok Creative Center: {str(e)}")
+        return results
+```
 
 ---
 
@@ -4100,10 +4816,52 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Dependencies:** Blocks: DA-AI05-04. Blocked by: DA-AI05-01, DA-AI05-02.
 
+**Implementation Details:**
+*   **Files affected:** `app/services/word_segmentation.py`
+*   **Functions/Classes to create:** `class VietnameseSegmenter` with function `def segment_and_clean(self, raw_text: str) -> List[str]`
+*   **Processing flow:**
+    1. Filter out URLs, special characters, and emojis using regex.
+    2. Segment raw text into meaningful Vietnamese word compounds using `underthesea` library (`word_tokenize`).
+    3. Filter out Vietnamese stop words and return clean tokens.
+*   **Code Skeleton:**
+```python
+# app/services/word_segmentation.py
+from underthesea import word_tokenize
+import re
+
+class VietnameseSegmenter:
+    def __init__(self, stop_words_path: str = None):
+        # Nạp bộ từ điển stop words
+        self.stop_words = set()
+        if stop_words_path:
+            with open(stop_words_path, 'r', encoding='utf-8') as f:
+                self.stop_words = set([line.strip() for line in f])
+
+    def clean_text(self, text: str) -> str:
+        # Lọc URL
+        text = re.sub(r'http\S+|www\S+|https\S+', '', text, flags=re.MULTILINE)
+        # Lọc ký tự đặc biệt
+        text = re.sub(r'[^\w\s]', '', text)
+        return text.lower().strip()
+
+    def segment_and_clean(self, raw_text: str) -> list[str]:
+        cleaned = self.clean_text(raw_text)
+        tokens = word_tokenize(cleaned, format="text").split()
+        
+        # Format của underthesea trả về dấu gạch dưới "_" cho từ ghép, ví dụ: "trà_sữa"
+        # Ta khôi phục lại dấu cách và lọc stop words
+        result_tokens = []
+        for token in tokens:
+            word = token.replace("_", " ")
+            if word not in self.stop_words and len(word) > 1:
+                result_tokens.append(word)
+        return result_tokens
+```
+
 ---
 
 ### DA-AI05-04 — Implement Redis cache for trend data (key: trends:vn:{date}:{category}, TTL 6 hours)
-**Assignee:** Ân (AI) | **Priority:** 🟡 High
+**Assignee:** Lộc (Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Prevent excessive crawling and rate-limit exposure by caching trend data for 6 hours per category per day.
 
@@ -4118,10 +4876,52 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Dependencies:** Blocks: DA-AI05-05. Blocked by: DA-AI05-03, DA-AI02-01.
 
+**Implementation Details:**
+*   **Files affected:** `app/services/trend_predictor.py` and `app/core/redis.py`
+*   **Functions/Classes to create:** `class TrendSyncService` with function `def sync_trends(self, top_trends: List[dict], category: str)`
+*   **Processing flow:**
+    1. Connect to Redis and store trend list as Sorted Set (ZSET) with key `trends:vn:{category}` using `final_score` as member score.
+    2. Set key TTL to 6 hours.
+    3. Upsert results into Neo4j using Cypher `MERGE ... ON CREATE SET ... ON MATCH SET`.
+*   **Code Skeleton:**
+```python
+# app/services/trend_sync.py
+import redis
+from app.core.neoj4 import Neo4jDatabase
+
+class TrendSyncService:
+    def __init__(self, redis_client: redis.Redis, neodb: Neo4jDatabase):
+        self.redis = redis_client
+        self.neodb = neodb
+
+    def sync_trends(self, top_trends: list[dict], category: str):
+        # 1. Sync Redis Sorted Set
+        redis_key = f"trends:vn:{category}"
+        self.redis.delete(redis_key)  # Reset cache cũ
+        
+        for rank, item in enumerate(top_trends):
+            # ZADD key score member
+            self.redis.zadd(redis_key, {item["trend"]: item["final_score"]})
+        self.redis.expire(redis_key, 21600)  # Thiết lập TTL 6 tiếng (21600 giây)
+        
+        # 2. Sync Neo4j (MERGE & ON MATCH SET)
+        for rank, item in enumerate(top_trends):
+            query = """
+            MERGE (t:Trend {name: $name})
+            ON CREATE SET t.created_at = timestamp(), t.final_score = $score, t.rank = $rank
+            ON MATCH SET t.final_score = $score, t.rank = $rank
+            """
+            self.neodb.query(query, {
+                "name": item["trend"],
+                "score": item["final_score"],
+                "rank": rank + 1
+            })
+```
+
 ---
 
 ### DA-AI05-05 — Implement trend suggestions API endpoint (GET /ai/trends?category=fashion&limit=20)
-**Assignee:** Ân (AI) | **Priority:** 🟡 High
+**Assignee:** Lộc (Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Expose trend data to the frontend and to the caption generation pipeline via a stable, cacheable API endpoint.
 
@@ -4133,10 +4933,51 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Dependencies:** Blocks: DA-AI04-01 (trend data injection into prompts). Blocked by: DA-AI05-04.
 
+**Implementation Details:**
+*   **Files affected:** `app/api/v1/trends.py`
+*   **Functions/Classes to create:** Endpoint `GET /ai/trends` accepting `category` and `limit`
+*   **Processing flow:**
+    1. Retrieve category trends from Redis cache.
+    2. If cache miss, fetch trends from Neo4j DB and trigger async background reload task.
+    3. Return trend keywords and scores.
+*   **Code Skeleton:**
+```python
+# app/api/v1/trends.py
+from fastapi import APIRouter, Query, HTTPException
+from app.core.redis import get_redis_client
+from app.core.neoj4 import Neo4jDatabase
+
+router = APIRouter()
+
+@router.get("")
+async def get_top_trends(
+    category: str = Query("fnb"),
+    limit: int = Query(10)
+):
+    redis_client = get_redis_client()
+    redis_key = f"trends:vn:{category}"
+    
+    # 1. Đọc từ Redis cache
+    cached_trends = redis_client.zrevrange(redis_key, 0, limit - 1, withscores=True)
+    if cached_trends:
+        return [{"trend": item[0].decode("utf-8"), "score": item[1]} for item in cached_trends]
+        
+    # 2. Fallback sang Neo4j nếu Redis trống
+    neodb = Neo4jDatabase()
+    query = "MATCH (t:Trend) RETURN t.name as name, t.final_score as score ORDER BY t.final_score DESC LIMIT $limit"
+    db_results = neodb.query(query, {"limit": limit})
+    
+    if not db_results:
+        return []
+        
+    # Trả về kết quả và kích hoạt nạp lại cache Redis (Chạy ngầm)
+    return [{"trend": item["name"], "score": item["score"]} for item in db_results]
+```
+
 ---
 
 ### DA-AI05-06 — Set up APScheduler to auto-crawl every 6 hours
-**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+**Assignee:** Lộc (Sub-lead) | **Priority:** 🟢 Medium
 
 **Goal:** Keep the trend cache warm by proactively refreshing all tracked categories on a schedule rather than relying on user requests to trigger crawls.
 
@@ -4151,10 +4992,58 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Dependencies:** Blocks: None. Blocked by: DA-AI05-04, DA-AI02-06.
 
+**Implementation Details:**
+*   **Files affected:** `app/core/scheduler.py` and `app/main.py`
+*   **Functions/Classes to create:** `class TrendScheduler`
+*   **Processing flow:**
+    1. Initialize `APScheduler` (`AsyncIOScheduler`) on application startup.
+    2. Schedule background job `run_trend_crawl_job` to execute every 6 hours.
+    3. Job triggers crawlers, normalizer, scoring engine, and syncs cache/Neo4j.
+*   **Code Skeleton:**
+```python
+# app/core/scheduler.py
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from app.services.crawlers.google_trends import GoogleTrendsCrawler
+from app.services.crawlers.tiktok_scraper import TikTokCreativeCenterCrawler
+from app.services.trend_predictor import BM25AnomalyDetector, GraphViralityEngine
+from app.services.trend_sync import TrendSyncService
+
+scheduler = AsyncIOScheduler()
+
+async def run_crawlers_and_predict_trends():
+    # 1. Chạy các Crawler lấy dữ liệu thô
+    google_crawler = GoogleTrendsCrawler()
+    tiktok_crawler = TikTokCreativeCenterCrawler()
+    
+    google_data = google_crawler.fetch_google_trends()
+    tiktok_data = await tiktok_crawler.fetch_tiktok_trends()
+    
+    # Gom tất cả token thô
+    raw_tokens = [item["keyword"] for item in google_data + tiktok_data]
+    
+    # 2. Phát hiện bất thường bằng BM25
+    detector = BM25AnomalyDetector()
+    # Giả định lấy baseline corpus từ DB lịch sử
+    baseline_corpus = [["trà", "sữa", "đất", "nung"], ["capybara"], ["mỳ", "quảng"]] 
+    candidates = detector.calculate_anomaly_scores(raw_tokens, baseline_corpus)
+    
+    # 3. Chấm điểm lan truyền qua đồ thị Neo4j
+    # graph_engine = GraphViralityEngine(neodb)
+    # top_trends = graph_engine.calculate_virality_and_final_scores(candidates, "system")
+    
+    # 4. Lưu trữ cache và Database
+    # trend_sync_service.sync_trends(top_trends, "fnb")
+
+def init_scheduler():
+    # Cấu hình scheduler chạy định kỳ mỗi 6 tiếng
+    scheduler.add_job(run_crawlers_and_predict_trends, 'interval', hours=6)
+    scheduler.start()
+```
+
 ---
 
 ### DA-AI05-07 — Brainstorm AI crawl idea *(phát sinh, ngoài plan gốc)*
-**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Medium
 
 **Goal:** Mở rộng ý tưởng thu thập dữ liệu (crawl) ngoài Google Trends + TikTok hashtag đã có trong AI05-01/02, xem có nguồn trend/insight nào khác đáng tích hợp không.
 
