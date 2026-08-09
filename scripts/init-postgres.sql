@@ -31,7 +31,7 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE oauth_provider AS ENUM ('GOOGLE', 'FACEBOOK');
+    CREATE TYPE oauth_provider AS ENUM ('GOOGLE', 'GITHUB', 'LINKEDIN', 'MICROSOFT');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -91,6 +91,7 @@ $$ LANGUAGE plpgsql;
 CREATE TABLE IF NOT EXISTS users (
     id             UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
     email          VARCHAR(255) NOT NULL UNIQUE,
+    phone          VARCHAR(20)  UNIQUE,
     password_hash  VARCHAR,
     full_name      VARCHAR(255) NOT NULL,
     avatar_url     VARCHAR,
