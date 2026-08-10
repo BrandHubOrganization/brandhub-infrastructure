@@ -59,40 +59,70 @@ services:
 
   # Message broker for async jobs and publisher-service workflows.
   # The management UI port is exposed only by docker-compose.dev.yml.
-  # rabbitmq:
-  #   image: rabbitmq:3.12-management-alpine
-  #   container_name: brandhub-rabbitmq
-  #   environment:
-  #     RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:?RABBITMQ_USERNAME is required}
-  #     RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
-  #   volumes:
-  #     - rabbitmq-data:/var/lib/rabbitmq
-  #   healthcheck:
-  #     test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #     start_period: 20s
-  #   networks:
-  #     - brandhub-network
-  #   restart: unless-stopped
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: brandhub-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:?RABBITMQ_USERNAME is required}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - brandhub-network
+    restart: unless-stopped
 
-  # Vector database for AI/RAG features.
-  # TODO: pin a concrete ChromaDB image version when the team confirms compatibility.
-  # chromadb:
-  #   image: chromadb/chroma:latest
-  #   container_name: brandhub-chromadb
-  #   volumes:
-  #     - chroma-data:/chroma/chroma
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "wget -qO- http://localhost:8000/api/v1/heartbeat || exit 1"]
-  #     interval: 15s
-  #     timeout: 5s
-  #     retries: 3
-  #     start_period: 10s
-  #   networks:
-  #     - brandhub-network
-  #   restart: unless-stopped
+  # Vector database for AI/RAG features and raw collected data storage.
+  # Auth: ChromaDB local does not support built-in auth (cloud-only feature).
+  # Security relies on internal network isolation — no host port exposed in infra compose.
+  chromadb:
+    image: brandhub-chromadb:0.6.3
+    build:
+      context: .
+      dockerfile: Dockerfile.chromadb
+    container_name: brandhub-chromadb
+    environment:
+      # Persist data to the mounted volume (default is /chroma/chroma).
+      IS_PERSISTENT: "TRUE"
+      # Disable telemetry in local development.
+      ANONYMIZED_TELEMETRY: "FALSE"
+    volumes:
+      - chroma-data:/chroma/chroma
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/api/v1/heartbeat || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+  # Graph database for knowledge graphs, relationship analysis, and raw collected data.
+  # Neo4j 5.26 runs as the neo4j user by default — non-root, no custom Dockerfile needed.
+  neo4j:
+    image: neo4j:5.26-community
+    container_name: brandhub-neo4j
+    environment:
+      # Auth is set via NEO4J_AUTH in .env: neo4j/<password>
+      NEO4J_AUTH: ${NEO4J_AUTH:?NEO4J_AUTH is required}
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - brandhub-network
+    restart: unless-stopped
 
 # Named volumes keep data stable even if containers are recreated.
 volumes:
@@ -100,10 +130,14 @@ volumes:
     name: brandhub-postgres-data
   redis-data:
     name: brandhub-redis-data
-  # rabbitmq-data:
-  #   name: brandhub-rabbitmq-data
-  # chroma-data:
-  #   name: brandhub-chroma-data
+  rabbitmq-data:
+    name: brandhub-rabbitmq-data
+  chroma-data:
+    name: brandhub-chroma-data
+  neo4j-data:
+    name: brandhub-neo4j-data
+  neo4j-logs:
+    name: brandhub-neo4j-logs
 
 # Shared bridge network used by infra, app, and dev compose files.
 networks:

@@ -1,0 +1,10 @@
+# Custom ChromaDB image with non-root user (per BrandHub docker conventions).
+# Upstream chromadb/chroma runs as root — this extends it with a dedicated user.
+FROM chromadb/chroma:0.6.3
+
+# ChromaDB base image uses Alpine. Create non-root user and grant ownership
+# of the default data directory so persistence works without root.
+RUN addgroup -S chroma && adduser -S chroma -G chroma \
+    && chown -R chroma:chroma /chroma
+
+USER chroma
