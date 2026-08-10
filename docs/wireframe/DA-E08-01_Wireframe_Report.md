@@ -6,7 +6,7 @@
 ### I. THÔNG TIN CHUNG (METADATA)
 * **Mã Task:** DA-E08-01
 * **Tên Task:** Create Figma wireframes for all main screens (Login, Dashboard, Workspace, Content Editor, Calendar, Client Portal, Analytics)
-* **Người thực hiện (Assignee):** Nguyễn Văn Lộc (Frontend Developer)
+* **Người thực hiện (Assignee):** Nguyễn Thành Lộc (Frontend Developer)
 * **Độ ưu tiên (Priority):** 🔴 Critical (Nghiêm trọng)
 * **Trạng thái (Status):** Hoàn thành (Dự thảo Low-to-Mid Fidelity bàn giao cho Frontend & Mentor)
 * **Nền tảng mục tiêu:** 
