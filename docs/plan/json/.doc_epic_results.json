@@ -1,0 +1,785 @@
+{
+  "epics": {
+    "D01": {
+      "key": "DA-615",
+      "title": "EPIC D01 — Context & Architecture Diagrams"
+    },
+    "D02": {
+      "key": "DA-616",
+      "title": "EPIC D02 — Use Case, ERD & Config Diagrams"
+    },
+    "D03": {
+      "key": "DA-617",
+      "title": "EPIC D03 — Screen Flows, Authorization Matrix & Mockups"
+    },
+    "D04": {
+      "key": "DA-618",
+      "title": "EPIC D04 — Diagram Review"
+    },
+    "D05": {
+      "key": "DA-619",
+      "title": "EPIC D05 — R1 §2-3: Product Background & Existing Systems"
+    },
+    "D06": {
+      "key": "DA-620",
+      "title": "EPIC D06 — R1 §4-5: Business Opportunity & Vision"
+    },
+    "D07": {
+      "key": "DA-621",
+      "title": "EPIC D07 — R1 §6-7: Scope, Limitations & References"
+    },
+    "D08": {
+      "key": "DA-622",
+      "title": "EPIC D08 — R2 §1: Overview (WBS, Objectives, Risks)"
+    },
+    "D09": {
+      "key": "DA-623",
+      "title": "EPIC D09 — R2 §2: Management Approach & Quality"
+    },
+    "D10": {
+      "key": "DA-624",
+      "title": "EPIC D10 — R2 §3, §5, §6: Deliverables, Communications, Config"
+    },
+    "D11": {
+      "key": "DA-625",
+      "title": "EPIC D11 — R2 §2.3, §4, §6.3: Training, Responsibility, Tools"
+    },
+    "D12": {
+      "key": "DA-626",
+      "title": "EPIC D12 — R3 §1: Product Overview & System Context"
+    },
+    "D13": {
+      "key": "DA-627",
+      "title": "EPIC D13 — R3 §2: User Requirements (Actors & Use Cases)"
+    },
+    "D14": {
+      "key": "DA-628",
+      "title": "EPIC D14 — R3 §3.1: System Functional Overview"
+    },
+    "D15": {
+      "key": "DA-629",
+      "title": "EPIC D15 — R3 §3.2-3.5: FR — Auth & Core Business"
+    },
+    "D16": {
+      "key": "DA-630",
+      "title": "EPIC D16 — R3 §3.6-3.10: FR — Content & Workflow"
+    },
+    "D17": {
+      "key": "DA-631",
+      "title": "EPIC D17 — R3 §3.11-3.16: FR — AI Features"
+    },
+    "D18": {
+      "key": "DA-632",
+      "title": "EPIC D18 — R3 §3.17-3.23: FR — Publishing & Social"
+    },
+    "D19": {
+      "key": "DA-633",
+      "title": "EPIC D19 — R3 §3.24-3.27: FR — Sub, Analytics, Admin, Mobile"
+    },
+    "D20": {
+      "key": "DA-634",
+      "title": "EPIC D20 — R3 §4-5: NFR & Appendices"
+    },
+    "D21": {
+      "key": "DA-635",
+      "title": "EPIC D21 — Review & Feedback"
+    },
+    "D22": {
+      "key": "DA-636",
+      "title": "EPIC D22 — Merge & Format"
+    },
+    "D23": {
+      "key": "DA-637",
+      "title": "EPIC D23 — Final Package & Submission"
+    }
+  },
+  "tasks": [
+    {
+      "task_id": "DA-D01-01",
+      "jira_key": "DA-638",
+      "epic": "D01",
+      "assignee": "Tuan",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D01-02",
+      "jira_key": "DA-639",
+      "epic": "D01",
+      "assignee": "Phuoc",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D01-03",
+      "jira_key": "DA-640",
+      "epic": "D01",
+      "assignee": "Phuoc",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D01-04",
+      "jira_key": "DA-641",
+      "epic": "D01",
+      "assignee": "Phuoc",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D02-01",
+      "jira_key": "DA-642",
+      "epic": "D02",
+      "assignee": "Tuan",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D02-02",
+      "jira_key": "DA-643",
+      "epic": "D02",
+      "assignee": "Tuan",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D02-03",
+      "jira_key": "DA-644",
+      "epic": "D02",
+      "assignee": "Loc",
+      "priority": "Medium"
+    },
+    {
+      "task_id": "DA-D02-04",
+      "jira_key": "DA-645",
+      "epic": "D02",
+      "assignee": "Loc",
+      "priority": "Medium"
+    },
+    {
+      "task_id": "DA-D03-01",
+      "jira_key": "DA-646",
+      "epic": "D03",
+      "assignee": "Loc",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D03-02",
+      "jira_key": "DA-647",
+      "epic": "D03",
+      "assignee": "Loc",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D03-03",
+      "jira_key": "DA-648",
+      "epic": "D03",
+      "assignee": "Phuoc",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D03-04",
+      "jira_key": "DA-649",
+      "epic": "D03",
+      "assignee": "Phuoc",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D03-05",
+      "jira_key": "DA-650",
+      "epic": "D03",
+      "assignee": "Tuan",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D03-06",
+      "jira_key": "DA-651",
+      "epic": "D03",
+      "assignee": "Tuan",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D03-07",
+      "jira_key": "DA-652",
+      "epic": "D03",
+      "assignee": "Loc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D03-08",
+      "jira_key": "DA-653",
+      "epic": "D03",
+      "assignee": "Loc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D04-01",
+      "jira_key": "DA-654",
+      "epic": "D04",
+      "assignee": "Trung",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D05-01",
+      "jira_key": "DA-655",
+      "epic": "D05",
+      "assignee": "Loc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D05-02",
+      "jira_key": "DA-656",
+      "epic": "D05",
+      "assignee": "Loc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D06-01",
+      "jira_key": "DA-657",
+      "epic": "D06",
+      "assignee": "Tuan",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D06-02",
+      "jira_key": "DA-658",
+      "epic": "D06",
+      "assignee": "Tuan",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D07-01",
+      "jira_key": "DA-659",
+      "epic": "D07",
+      "assignee": "An",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D07-02",
+      "jira_key": "DA-660",
+      "epic": "D07",
+      "assignee": "An",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D07-03",
+      "jira_key": "DA-661",
+      "epic": "D07",
+      "assignee": "An",
+      "priority": "Medium"
+    },
+    {
+      "task_id": "DA-D08-01",
+      "jira_key": "DA-662",
+      "epic": "D08",
+      "assignee": "Trung",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D08-02",
+      "jira_key": "DA-663",
+      "epic": "D08",
+      "assignee": "Trung",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D08-03",
+      "jira_key": "DA-664",
+      "epic": "D08",
+      "assignee": "Trung",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D09-01",
+      "jira_key": "DA-665",
+      "epic": "D09",
+      "assignee": "Phuoc",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D09-02",
+      "jira_key": "DA-666",
+      "epic": "D09",
+      "assignee": "Phuoc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D10-01",
+      "jira_key": "DA-667",
+      "epic": "D10",
+      "assignee": "Phuoc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D10-02",
+      "jira_key": "DA-668",
+      "epic": "D10",
+      "assignee": "Phuoc",
+      "priority": "Medium"
+    },
+    {
+      "task_id": "DA-D10-03",
+      "jira_key": "DA-669",
+      "epic": "D10",
+      "assignee": "Phuoc",
+      "priority": "Medium"
+    },
+    {
+      "task_id": "DA-D11-01",
+      "jira_key": "DA-670",
+      "epic": "D11",
+      "assignee": "Tuan",
+      "priority": "Medium"
+    },
+    {
+      "task_id": "DA-D11-02",
+      "jira_key": "DA-671",
+      "epic": "D11",
+      "assignee": "An",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D11-03",
+      "jira_key": "DA-672",
+      "epic": "D11",
+      "assignee": "An",
+      "priority": "Medium"
+    },
+    {
+      "task_id": "DA-D12-01",
+      "jira_key": "DA-673",
+      "epic": "D12",
+      "assignee": "Trung",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D12-02",
+      "jira_key": "DA-674",
+      "epic": "D12",
+      "assignee": "Trung",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D12-03",
+      "jira_key": "DA-675",
+      "epic": "D12",
+      "assignee": "Trung",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D13-01",
+      "jira_key": "DA-676",
+      "epic": "D13",
+      "assignee": "Tuan",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D13-02",
+      "jira_key": "DA-677",
+      "epic": "D13",
+      "assignee": "Loc",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D13-03",
+      "jira_key": "DA-678",
+      "epic": "D13",
+      "assignee": "Tuan",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D14-01",
+      "jira_key": "DA-679",
+      "epic": "D14",
+      "assignee": "Loc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D14-02",
+      "jira_key": "DA-680",
+      "epic": "D14",
+      "assignee": "Phuoc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D14-03",
+      "jira_key": "DA-681",
+      "epic": "D14",
+      "assignee": "Tuan",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D14-04",
+      "jira_key": "DA-682",
+      "epic": "D14",
+      "assignee": "Tuan",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D15-01",
+      "jira_key": "DA-683",
+      "epic": "D15",
+      "assignee": "Trung",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D15-02",
+      "jira_key": "DA-684",
+      "epic": "D15",
+      "assignee": "Trung",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D15-03",
+      "jira_key": "DA-685",
+      "epic": "D15",
+      "assignee": "Trung",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D15-04",
+      "jira_key": "DA-686",
+      "epic": "D15",
+      "assignee": "Trung",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D16-01",
+      "jira_key": "DA-687",
+      "epic": "D16",
+      "assignee": "Loc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D16-02",
+      "jira_key": "DA-688",
+      "epic": "D16",
+      "assignee": "Loc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D16-03",
+      "jira_key": "DA-689",
+      "epic": "D16",
+      "assignee": "Loc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D16-04",
+      "jira_key": "DA-690",
+      "epic": "D16",
+      "assignee": "Loc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D16-05",
+      "jira_key": "DA-691",
+      "epic": "D16",
+      "assignee": "Loc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D17-01",
+      "jira_key": "DA-692",
+      "epic": "D17",
+      "assignee": "Tuan",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D17-02",
+      "jira_key": "DA-693",
+      "epic": "D17",
+      "assignee": "Tuan",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D17-03",
+      "jira_key": "DA-694",
+      "epic": "D17",
+      "assignee": "Tuan",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D17-04",
+      "jira_key": "DA-695",
+      "epic": "D17",
+      "assignee": "Tuan",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D17-05",
+      "jira_key": "DA-696",
+      "epic": "D17",
+      "assignee": "Tuan",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D17-06",
+      "jira_key": "DA-697",
+      "epic": "D17",
+      "assignee": "Tuan",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D18-01",
+      "jira_key": "DA-698",
+      "epic": "D18",
+      "assignee": "Phuoc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D18-02",
+      "jira_key": "DA-699",
+      "epic": "D18",
+      "assignee": "Phuoc",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D18-03",
+      "jira_key": "DA-700",
+      "epic": "D18",
+      "assignee": "Phuoc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D18-04",
+      "jira_key": "DA-701",
+      "epic": "D18",
+      "assignee": "Phuoc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D18-05",
+      "jira_key": "DA-702",
+      "epic": "D18",
+      "assignee": "Phuoc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D18-06",
+      "jira_key": "DA-703",
+      "epic": "D18",
+      "assignee": "Phuoc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D18-07",
+      "jira_key": "DA-704",
+      "epic": "D18",
+      "assignee": "Phuoc",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D19-01",
+      "jira_key": "DA-705",
+      "epic": "D19",
+      "assignee": "An",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D19-02",
+      "jira_key": "DA-706",
+      "epic": "D19",
+      "assignee": "An",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D19-03",
+      "jira_key": "DA-707",
+      "epic": "D19",
+      "assignee": "An",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D19-04",
+      "jira_key": "DA-708",
+      "epic": "D19",
+      "assignee": "An",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D20-01",
+      "jira_key": "DA-709",
+      "epic": "D20",
+      "assignee": "Trung",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D20-02",
+      "jira_key": "DA-710",
+      "epic": "D20",
+      "assignee": "An",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D20-03",
+      "jira_key": "DA-711",
+      "epic": "D20",
+      "assignee": "An",
+      "priority": "High"
+    },
+    {
+      "task_id": "DA-D21-01",
+      "jira_key": "DA-712",
+      "epic": "D21",
+      "assignee": "Trung",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D21-02",
+      "jira_key": "DA-713",
+      "epic": "D21",
+      "assignee": "Loc",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D21-03",
+      "jira_key": "DA-714",
+      "epic": "D21",
+      "assignee": "Tuan",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D21-04",
+      "jira_key": "DA-715",
+      "epic": "D21",
+      "assignee": "An",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D21-05",
+      "jira_key": "DA-716",
+      "epic": "D21",
+      "assignee": "Trung",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D21-06",
+      "jira_key": "DA-717",
+      "epic": "D21",
+      "assignee": "Phuoc",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D21-07",
+      "jira_key": "DA-718",
+      "epic": "D21",
+      "assignee": "Tuan",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D21-08",
+      "jira_key": "DA-719",
+      "epic": "D21",
+      "assignee": "An",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D21-09",
+      "jira_key": "DA-720",
+      "epic": "D21",
+      "assignee": "Trung",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D21-10",
+      "jira_key": "DA-721",
+      "epic": "D21",
+      "assignee": "Loc",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D21-11",
+      "jira_key": "DA-722",
+      "epic": "D21",
+      "assignee": "Phuoc",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D21-12",
+      "jira_key": "DA-723",
+      "epic": "D21",
+      "assignee": "Tuan",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D21-13",
+      "jira_key": "DA-724",
+      "epic": "D21",
+      "assignee": "An",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D21-14",
+      "jira_key": "DA-725",
+      "epic": "D21",
+      "assignee": "Trung",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D21-15",
+      "jira_key": "DA-726",
+      "epic": "D21",
+      "assignee": "Loc",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D21-16",
+      "jira_key": "DA-727",
+      "epic": "D21",
+      "assignee": "Phuoc",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D21-17",
+      "jira_key": "DA-728",
+      "epic": "D21",
+      "assignee": "Tuan",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D21-18",
+      "jira_key": "DA-729",
+      "epic": "D21",
+      "assignee": "An",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D22-01",
+      "jira_key": "DA-730",
+      "epic": "D22",
+      "assignee": "Trung",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D22-02",
+      "jira_key": "DA-731",
+      "epic": "D22",
+      "assignee": "Trung",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D22-03",
+      "jira_key": "DA-732",
+      "epic": "D22",
+      "assignee": "Trung",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D22-04",
+      "jira_key": "DA-733",
+      "epic": "D22",
+      "assignee": "Trung",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D23-01",
+      "jira_key": "DA-734",
+      "epic": "D23",
+      "assignee": "Trung",
+      "priority": "Critical"
+    },
+    {
+      "task_id": "DA-D23-02",
+      "jira_key": "DA-735",
+      "epic": "D23",
+      "assignee": "Trung",
+      "priority": "High"
+    }
+  ],
+  "errors": []
+}

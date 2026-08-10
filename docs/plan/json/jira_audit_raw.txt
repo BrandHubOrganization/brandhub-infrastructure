@@ -1,0 +1,433 @@
+DA-1|DA-2|Find list of available ideas|team|Done
+DA-4|DA-2|Find mentor|team|Done
+DA-5|DA-2|Define each person's capacity|team|Done
+DA-6|DA-2|Meeting confirm idea|team|Done
+DA-10|DA-55|Find an AI model to generate images|Nguyễn Minh Tuấn|Done
+DA-12|DA-33|Create mail -> register media platform|27.Nguyễn Chơn Phước|Done
+DA-19|DA-33|Create GitHub organization|Lê Trí Trung|Done
+DA-23|DA-55|Fashion AI Data Pipeline|Nguyễn Minh Tuấn|Done
+DA-28|DA-18|Format UC document of project|27.Nguyễn Chơn Phước|Done
+DA-30|DA-39|Recheck Non-Functional Requirements|27.Nguyễn Chơn Phước|Done
+DA-32|DA-2|Capstone register|team|Done
+DA-34|DA-33|Create Drive storage and other document|Lê Trí Trung|Done
+DA-35|DA-33|Establish zalo, discord group|Lê Trí Trung|Done
+DA-36|DA-33|Set up Jira|Nguyễn Minh Tuấn|Done
+DA-37|DA-18|List all UC of project|Lê Trí Trung|Done
+DA-38|DA-18|Team check UC|team|Done
+DA-40|DA-39|Non-functional (UI, Performance, Security, Reliability)|team|Done
+DA-41|DA-33|Create 7 repo and push on github|Lê Trí Trung|Done
+DA-42|DA-27|Draw system architecture overview diagram|Lê Trí Trung|Done
+DA-43|DA-27|Define service responsibilities & boundarie|Lê Trí Trung|Done
+DA-44|DA-27|Design database ownership diagram|Lê Trí Trung|Done
+DA-45|DA-27|Document repository folder structure|Lê Trí Trung|Done
+DA-57|DA-55|Evaluate 3 model: InstantID vs IP-Adapter vs ControlNet|Nguyễn Minh Tuấn|Done
+DA-58|DA-55|Test 3 virtual ambassador tools with 5 different image|Nguyễn Minh Tuấn|Done
+DA-59|DA-55|Investigate and Analyze 3 AI Fashion Model Generation Platforms|Nguyễn Minh Tuấn|Done
+DA-60|DA-55|Research Vo3 API: capabilities, pricing, rate limits, supported parameters (duration, resolution, motion style)|ân hà|Done
+DA-62|DA-55|Research how to combine produce + model|Nguyen Thanh Loc (K18 DN)|Done
+DA-63|DA-55|Test 3 model with different sample|Nguyen Thanh Loc (K18 DN)|Done
+DA-64|DA-55|Write report about 3 model (produce + model) and analyze|Nguyen Thanh Loc (K18 DN)|Done
+DA-132|DA-47|[DA-E06-03] Design 15 PostgreSQL tables with constraints and internal foreign keys|Lê Trí Trung|Done
+DA-135|DA-93|[DA-E14-04] Viet permission matrix document (6 roles x tat ca endpoints = duoc/khong duoc)|27.Nguyễn Chơn Phước|To Do
+DA-136|DA-91|[DA-E11-04] Config routing rules (anh xa URL path den dung service)|Lê Trí Trung|Done
+DA-139|DA-92|[DA-E12-04] Implement Logout API (them JWT jti vao Redis blacklist, clear cookie)|Lê Trí Trung|In review
+DA-140|DA-90|[DA-E10-04] Viet GitHub Actions workflow cho web-dashboard (lint + build + deploy)|ân hà|To Do
+DA-141|DA-106|[DA-E13-03] Implement Admin: GET /api/v1/admin/users (list tat ca users voi filter)|ân hà|In review
+DA-142|DA-89|[DA-E09-04] Write clone-all.sh script to clone all 7 repos locally with a single command|ân hà|Done
+DA-143|DA-87|[DA-E07-05] Viet OpenAPI YAML spec cho business-service|Lê Trí Trung|Done
+DA-144|DA-88|DA-E08-03 — Draw user flow diagrams for 3 main flows: content creation, approval, publishing|Nguyen Thanh Loc (K18 DN)|Done
+DA-146|DA-47|[DA-E06-08] Write database access rules documentation (every query must include workspaceId filter; BRAND_CLIENT additionally requires clientId filter)|Lê Trí Trung|Done
+DA-149|DA-47|[DA-E06-04] Dinh nghia indexing strategy cho MongoDB va PostgreSQL|Lê Trí Trung|Done
+DA-152|DA-89|[DA-E09-05] Write README.md for the infrastructure repo (step-by-step setup guide)|27.Nguyễn Chơn Phước|In review
+DA-154|DA-94|[DA-E15-01] Implement POST /api/v1/workspaces (tao workspace moi, AGENCY_OWNER role)|Lê Trí Trung|To Do
+DA-155|DA-87|[DA-E07-06] Viet OpenAPI YAML spec cho ai-service (tat ca internal + public endpoints)|Nguyễn Minh Tuấn|Done
+DA-156|DA-91|[DA-E11-05] Viet logging filter (log tat ca requests vao/ra de debug)|27.Nguyễn Chơn Phước|In review
+DA-157|DA-88|[DA-E08-04] Wireframe Client Portal (read-only calendar, approve/reject, analytics view)|Nguyen Thanh Loc (K18 DN)|Done
+DA-158|DA-106|[DA-E13-04] Implement Admin: Ban/Suspend user (cap nhat isActive=false, gui notification)|ân hà|In review
+DA-159|DA-90|[DA-E10-05] Thiet lap branch protection rules (require 1 approval truoc khi merge vao develop)|ân hà|To Do
+DA-160|DA-92|[DA-E12-05] Implement Forgot Password & Reset Password flow (email link voi time-limited token)|Lê Trí Trung|In review
+DA-162|DA-87|[DA-E07-01] Dinh nghia tat ca endpoints cho business-service (Auth, User, Workspace, Client, Post, ContentRequest, SocialAccount, Analytics, Report, Subscription, Admin)|Lê Trí Trung|Done
+DA-165|DA-94|[DA-E15-02] Implement GET /api/v1/workspaces/mine (lay workspace cua user hien tai)|Lê Trí Trung|To Do
+DA-166|DA-47|[DA-E06-05] Viet DBML code cho dbdiagram.io (MongoDB + PostgreSQL + Enums + Refs + TableGroups)|Lê Trí Trung|Done
+DA-168|DA-92|[DA-E12-01] Implement Register API (validate email uniqueness, hash password voi bcrypt cost=12)|Lê Trí Trung|In review
+DA-170|DA-90|[DA-E10-01] Viet GitHub Actions workflow cho business-service (build + test + push Docker image)|27.Nguyễn Chơn Phước|To Do
+DA-172|DA-87|[DA-E07-07] Document social platform API specs: FB Rest API, TikTok Content API, Threads API(versions, rate limits, payload formats)|27.Nguyễn Chơn Phước|In review
+DA-173|DA-89|[DA-E09-01] Write docker-compose.yml to run the full infrastructure stack: PostgreSQL, Redis, RabbitMQ, ChromaDB|Nguyễn Minh Tuấn|Done
+DA-175|DA-91|[DA-E11-01] Khoi tao brandhub-api-gateway project voi Spring Cloud Gateway|Lê Trí Trung|Done
+DA-176|DA-93|[DA-E14-01] Viet RBAC annotation/middleware cho business-service (@RequireRole)|Lê Trí Trung|To Do
+DA-177|DA-92|[DA-E12-06] Implement Google OAuth login (callback, tao user neu chua co)|Lê Trí Trung|To Do
+DA-179|DA-87|[DA-E07-02] Dinh nghia endpoints cho ai-service (/ai/content, /ai/image, /ai/video, /ai/ambassador, /ai/rag, /ai/trends)|Nguyễn Minh Tuấn|Done
+DA-181|DA-94|[DA-E15-03] Implement POST /api/v1/workspaces/{id}/members (invite thanh vien qua email)|Lê Trí Trung|To Do
+DA-183|DA-90|[DA-E10-02] Viet GitHub Actions workflow cho publisher-service (build + test + push Docker image)|27.Nguyễn Chơn Phước|To Do
+DA-184|DA-47|[DA-E06-06] Document Redis key patterns (JWT blacklist, rate limit, OAuth state, trending cache)|Nguyễn Minh Tuấn|Done
+DA-185|DA-92|[DA-E12-02] Implement Login API (verify password, issue JWT access token 15 phut + refresh token 30 ngay)|Lê Trí Trung|In review
+DA-187|DA-89|[DA-E09-02] Integrated init-postgres.sql (create tables + seed subscription plans)|Nguyễn Minh Tuấn|Done
+DA-188|DA-47|[DA-E06-01] Define database strategy: which data goes into MongoDB vs PostgreSQL and why|Lê Trí Trung|Done
+DA-191|DA-106|[DA-E13-01] Implement GET/PUT /api/v1/users/me (lay va cap nhat profile)|27.Nguyễn Chơn Phước|In review
+DA-192|DA-88|[DA-E08-01] Create wireframes for all main screens (Login, Dashboard, Workspace, Content Editor, Calendar, Client Portal, Analytics)|Nguyen Thanh Loc (K18 DN)|Done
+DA-193|DA-93|[DA-E14-02] Implement workspace isolation filter (moi query MongoDB phai co workspaceId filter)|Lê Trí Trung|To Do
+DA-194|DA-91|[DA-E11-02] Viet JWT validation filter (kiem tra token tu moi request, extract userId + role vao header)|Lê Trí Trung|Done
+DA-196|DA-87|[DA-E07-03] Dinh nghia RabbitMQ message format cho publisher-service (publish job + callback message contract)|27.Nguyễn Chơn Phước|In review
+DA-198|DA-94|[DA-E15-04] Implement DELETE /api/v1/workspaces/{id}/members/{userId} (remove thanh vien)|Lê Trí Trung|To Do
+DA-199|DA-90|[DA-E10-03] Viet GitHub Actions workflow cho ai-service (lint + test + build Docker image)|ân hà|To Do
+DA-200|DA-92|[DA-E12-03] Implement Refresh Token API (verify refresh token, issue new access token)|Lê Trí Trung|In review
+DA-201|DA-47|[DA-E06-07] Viet database initialization scripts ( init-postgres.sql)|Lê Trí Trung|Done
+DA-203|DA-89|[DA-E09-03] Write .env.example consolidating all environment variables across 6 services|Nguyễn Minh Tuấn|Done
+DA-204|DA-47|[DA-E06-02] Design 8 MongoDB collection with all field types, required/optional, default values|Lê Trí Trung|Done
+DA-206|DA-106|[DA-E13-02] Implement avatar upload (nhan file → upload S3 → luu URL vao Postgresql)|27.Nguyễn Chơn Phước|In review
+DA-207|DA-88|[DA-E08-02] Thiet ke component system (Button, Input, Modal, Table, Badge, Toast styles)|Nguyen Thanh Loc (K18 DN)|Done
+DA-208|DA-93|[DA-E14-03] Implement client isolation cho BRAND_CLIENT (chi duoc xem data cua clientId minh)|Lê Trí Trung|To Do
+DA-209|DA-91|[DA-E11-03] Write rate limiting filter dung Redis (100 requests/minute/user)|Nguyễn Minh Tuấn|Done
+DA-210|DA-87|[DA-E07-04] Viet API response format chuan (ApiResponse wrapper, error codes, HTTP status codes)|Lê Trí Trung|Done
+DA-211|DA-94|[DA-E15-05] Implement workspace settings (timezone, default platforms, report frequency)|Lê Trí Trung|To Do
+DA-212|DA-103|[DA-E18-02] Implement Instagram Business account connection (linked via Facebook Business)|27.Nguyễn Chơn Phước|To Do
+DA-213|DA-105|[DA-E21-01] Khoi tao brandhub-publisher-service project (Spring Boot 3, RabbitMQ consumer setup)|27.Nguyễn Chơn Phước|In review
+DA-214|DA-105|[DA-E21-06] Implement Threads publish adapter (Threads API: tao container → publish, max 500 chars)|27.Nguyễn Chơn Phước|To Do
+DA-215|DA-107|[DA-E17-01] Implement Admin CRUD cho subscription plans (Free/Basic/Pro/Enterprise)|Lê Trí Trung|To Do
+DA-216|DA-108|[DA-E19-03] Implement Zalo Official Account OAuth|27.Nguyễn Chơn Phước|To Do
+DA-218|DA-96|[DA-E23-01] Expose /internal/ai/content/generate endpoint (nhan topic + clientId + platform → tra caption + hashtags)|Unassigned|To Do
+DA-219|DA-26|[DA-AI03-03] Build embedding pipeline (text chunk → vector via embedding model → store ChromaDB voi metadata: documentId, clientId, chunkIndex)|Unassigned|To Do
+DA-220|DA-102|[DA-E16-01] Implement POST /api/v1/clients (AGENCY_OWNER tao brand client moi)|27.Nguyễn Chơn Phước|To Do
+DA-221|DA-101|[DA-E24-01] Implement AI content generation flow trong business-service: ContentRequest → call ai-service → luu draft Post|Unassigned|To Do
+DA-222|DA-26|[DA-AI03-08] Viet RAG pipeline documentation (architecture, tuning parameters, evaluation methodology)|Unassigned|To Do
+DA-223|DA-56|[DA-AI02-05] Viet Dockerfile cho ai-service + them service ai-service vao docker-compose.yml of infrastructure repo|Nguyen Thanh Loc (K18 DN)|Done
+DA-224|DA-97|[DA-AI06-01] Integrate Stability AI API (SDXL): text-to-image voi style, aspect ratio, negative prompt params|Unassigned|To Do
+DA-225|DA-98|[DA-AI05-02] Implement TikTok trending hashtag crawler (web scraping hoac unofficial API)|Unassigned|To Do
+DA-227|DA-105|[DA-E21-02] Implement RabbitMQ consumer: nhan PublishJobMessage (postId, platform, content, mediaUrls, scheduledAt)|27.Nguyễn Chơn Phước|To Do
+DA-228|DA-103|[DA-E18-03] Implement AES-256 encryption cho access token + refresh token truoc khi luu MongoDB|Lê Trí Trung|To Do
+DA-230|DA-107|[DA-E17-02] Implement POST /api/v1/subscriptions/subscribe (AGENCY_OWNER dang ky goi)|Lê Trí Trung|To Do
+DA-231|DA-79|[DA-AI04-05] Implement hashtag generation endpoint (goi Llama 3 voi prompt don gian)|Unassigned|To Do
+DA-232|DA-108|[DA-E19-04] Implement token status dashboard API (xem trang thai ACTIVE/EXPIRED/REVOKED cho moi accounts)|Lê Trí Trung|To Do
+DA-233|DA-26|[DA-AI03-04] Implement semantic search (query → embedding → top-K retrieval tu ChromaDB theo clientId)|Unassigned|To Do
+DA-234|DA-96|[DA-E23-02] Expose /internal/ai/image/generate endpoint (nhan prompt + style → tra S3 URL)|Unassigned|To Do
+DA-235|DA-56|[DA-AI02-01] Khoi tao brandhub-ai-service project: FastAPI + Python 3.13 + folder structure (api/services/models/utils)|Nguyen Thanh Loc (K18 DN)|Done
+DA-236|DA-102|[DA-E16-02] Implement PUT /api/v1/clients/{id}/assign (AGENCY_OWNER assign Account Manager)|27.Nguyễn Chơn Phước|To Do
+DA-237|DA-56|[DA-AI02-06] Viet Internal API key authentication middleware (kiem tra X-Internal-Key header)|ân hà|Done
+DA-238|DA-101|[DA-E24-02] Implement image/ambassador generation trigger tu Post editor (user chon AI generate image)|Unassigned|To Do
+DA-239|DA-98|[DA-AI05-03] Normalize trend data thanh format chuan: {keyword, score, platform, relatedTopics[]}|Unassigned|To Do
+DA-240|DA-79|[DA-AI04-01] Build prompt template system (nhan topic + RAG context + trend data + tone → tao full prompt)|Unassigned|To Do
+DA-241|DA-97|[DA-AI06-02] Build image generation endpoint (POST /ai/image/generate → tra ve S3 URL)|Unassigned|To Do
+DA-242|DA-105|[DA-E21-03] Implement Facebook publish adapter (Graph API v19: /me/feed + /me/photos)|27.Nguyễn Chơn Phước|To Do
+DA-244|DA-103|[DA-E18-04] Implement disconnect flow (revoke token tai Meta, xoa khoi MongoDB)|27.Nguyễn Chơn Phước|To Do
+DA-245|DA-95|[DA-E22-01] Implement HTTP callback ve business-service sau khi publish xong (POST /internal/posts/{id}/publish-result)|27.Nguyễn Chơn Phước|To Do
+DA-246|DA-79|[DA-AI04-06] Implement regenerate with feedback (nhan previous output + feedback → tao cai tien)|Unassigned|To Do
+DA-247|DA-107|[DA-E17-03] Implement payment flow (tich hop payment gateway, tao invoice)|Lê Trí Trung|To Do
+DA-248|DA-96|[DA-E23-03] Expose /internal/ai/ambassador/generate endpoint (nhan faceImage + productImage → tra S3 URL)|Unassigned|To Do
+DA-249|DA-102|[DA-E16-03] Implement PUT /api/v1/clients/{id}/service-package (set gioi han bai/thang, platforms)|27.Nguyễn Chơn Phước|To Do
+DA-250|DA-100|[DA-E20-01] Implement scheduled token refresh job (chay luc 2:00 AM moi ngay, refresh tokens het han trong 7 ngay)|Lê Trí Trung|To Do
+DA-251|DA-56|[DA-AI02-02] Configure 4 API clients from .env: ChromaDB client, Groq API client, Anthropic client, Stability AI client|ân hà|Done
+DA-252|DA-98|[DA-AI05-04] Implement Redis cache cho trend data (TTL 6 gio, key: trends:vn:{date}:{category})|Unassigned|To Do
+DA-253|DA-79|[DA-AI04-02] Integrate Llama 3 via Groq API (system prompt enforce: only use provided context, do not fabricate)|Unassigned|To Do
+DA-254|DA-56|[DA-AI02-07] Document ChromaDB collection design (collection naming per client, metadata schema, query patterns)|Nguyễn Minh Tuấn|Done
+DA-255|DA-97|[DA-AI06-03] Implement batch generation (tao 3 variations cung luc de user chon)|Unassigned|To Do
+DA-256|DA-26|[DA-AI03-05] Build RAG context builder (format top-K chunks thanh context string cho LLM prompt)|Unassigned|To Do
+DA-257|DA-105|[DA-E21-04] Implement Instagram publish adapter (Content Publishing API: create container → publish)|27.Nguyễn Chơn Phước|To Do
+DA-258|DA-101|[DA-E24-03] Implement AI usage tracking (dem ai_credits_per_month theo subscription plan)|Unassigned|To Do
+DA-259|DA-108|[DA-E19-01] Implement TikTok for Business OAuth (Client Credentials Flow)|27.Nguyễn Chơn Phước|To Do
+DA-261|DA-79|[DA-AI04-07] Anti-hallucination test (verify 20 generated captions — moi claim deu co nguon tu brand context)|Unassigned|To Do
+DA-262|DA-96|[DA-E23-04] Expose /internal/ai/video/generate endpoint (nhan script + style → tra S3 URL, async with polling)|Unassigned|To Do
+DA-263|DA-107|[DA-E17-04] Implement GET /api/v1/subscriptions/invoices (lich su hoa don)|ân hà|To Do
+DA-264|DA-95|[DA-E22-02] Implement retry logic: that bai → retry toi da 3 lan voi exponential backoff (1m, 5m, 15m)|27.Nguyễn Chơn Phước|To Do
+DA-265|DA-98|[DA-AI05-05] Implement trend suggestions API endpoint (GET /ai/trends?category=fashion&limit=20)|Unassigned|To Do
+DA-266|DA-102|[DA-E16-04] Implement GET /api/v1/clients (AGENCY_OWNER va ACCOUNT_MANAGER xem danh sach)|27.Nguyễn Chơn Phước|To Do
+DA-267|DA-100|[DA-E20-02] Implement alert notification khi token refresh fail (gui thong bao cho Account Manager)|Lê Trí Trung|To Do
+DA-268|DA-56|[DA-AI02-03] Configure AWS S3 client voi boto3, viet 3 helper functions: upload_file(), get_presigned_url(), delete_file()|Nguyen Thanh Loc (K18 DN)|Done
+DA-269|DA-26|[DA-AI03-06] Document deletion endpoint (xoa chunks khoi ChromaDB + file khoi S3)|Unassigned|To Do
+DA-270|DA-97|[DA-AI06-04] Brand safety filter (negative prompts mac dinh tranh content khong phu hop)|Unassigned|To Do
+DA-271|DA-79|[DA-AI04-03] Integrate Claude API lam fallback khi Groq rate limit hoac quality thap|Unassigned|To Do
+DA-272|DA-105|[DA-E21-05] Implement TikTok publish adapter (Content Posting API v2)|27.Nguyễn Chơn Phước|In review
+DA-273|DA-26|[DA-AI03-01] Implement document upload endpoint (nhan PDF/DOCX/TXT/URL, luu file len S3)|Unassigned|To Do
+DA-274|DA-79|[DA-AI04-08] Viet Prompt Engineering Documentation (template design, system prompt best practices, tone guide)|Unassigned|To Do
+DA-275|DA-108|[DA-E19-02] Implement Threads OAuth (dung Meta Graph API, scope: threads_basic + threads_content_publish)|27.Nguyễn Chơn Phước|To Do
+DA-278|DA-96|[DA-E23-05] Expose /internal/ai/trends/fetch endpoint (tra top trending topics theo platform + region)|Unassigned|To Do
+DA-279|DA-98|[DA-AI05-06] Setup APScheduler de auto-crawl moi 6 gio|Unassigned|To Do
+DA-280|DA-103|[DA-E18-01] Implement Facebook Fanpage OAuth flow (redirect → callback → token exchange)|27.Nguyễn Chơn Phước|To Do
+DA-281|DA-97|[DA-AI06-05] Test 20 product prompts thuc te, danh gia chat luong va thoi gian generate|Unassigned|To Do
+DA-282|DA-100|[DA-E20-03] Implement manual token refresh API (Account Manager trigger thu cong)|27.Nguyễn Chơn Phước|To Do
+DA-283|DA-95|[DA-E22-03] Implement business-service handler cho publish callback (cap nhat post status, tao notification)|Lê Trí Trung|To Do
+DA-284|DA-56|[DA-AI02-04] Setup Pydantic base schemas cho tat ca request/response models|ân hà|Done
+DA-285|DA-26|[DA-AI03-07] Test RAG accuracy (upload 3 brand documents thuc te, verify retrieved context dung va khong hallucinate)|Unassigned|To Do
+DA-286|DA-79|[DA-AI04-04] Implement platform-specific optimization (tu dong truncate caption: FB 63k, Threads 500, TikTok 4k chars)|Unassigned|To Do
+DA-287|DA-98|[DA-AI05-01] Implement Google Trends crawler (pytrends) lay top trending keywords tai Vietnam|Unassigned|To Do
+DA-288|DA-26|[DA-AI03-02] Build document chunking service dung LangChain RecursiveCharacterTextSplitter (chunk_size=500, overlap=50)|Unassigned|To Do
+DA-291|DA-99|[DA-AI07-01] Setup InstantID pipeline (load model, face encoder InsightFace, ControlNet depth)|Unassigned|To Do
+DA-292|DA-104|[DA-AI08-03] Build layer compositing service (product layer + model layer + background layer → single image dung Pillow)|Unassigned|To Do
+DA-293|DA-112|[DA-E28-02] Implement GET /api/v1/content-requests (ACCOUNT_MANAGER xem danh sach requests cua clients minh)|Lê Trí Trung|To Do
+DA-294|DA-99|[DA-AI07-06] Apply ambassador endpoint (POST /ai/ambassador/apply: ambassador key + background key → composed image)|Unassigned|To Do
+DA-295|DA-109|[DA-AI11-03] Viet Image Composition Research Report (technique comparison, best practices, quality evaluation)|Unassigned|To Do
+DA-296|DA-99|[DA-AI07-02] Implement reference photo processing (face detection + face embedding extraction)|Unassigned|To Do
+DA-297|DA-110|[DA-AI09-01] Integrate Google Veo API (authentication, generate request, async polling cho status)|ân hà|Done
+DA-298|DA-111|[DA-AI10-03] Integration test voi business-service (verify tat ca AI calls tu business hoat dong dung)|Unassigned|To Do
+DA-299|DA-110|[DA-AI09-06] Upload generated video len S3, extract thumbnail, tra ve {videoUrl, thumbnailUrl, duration}|ân hà|In review
+DA-300|DA-114|[DA-E30-01] Implement GET /api/v1/posts/calendar (lay posts theo date range, filter theo platform/status)|Lê Trí Trung|To Do
+DA-301|DA-115|[DA-E31-02] Implement POST /api/v1/posts/{id}/account-review (ACCOUNT_MANAGER approve hoac reject + note)|Lê Trí Trung|To Do
+DA-302|DA-113|[DA-E32-03] Implement Facebook adapter (Graph API: IMAGE post va REEL/VIDEO)|27.Nguyễn Chơn Phước|To Do
+DA-303|DA-122|[DA-E34-02] Build common components: Button, Input, Modal, Toast, Table, Badge, Spinner, Dropdown|Nguyen Thanh Loc (K18 DN)|In review
+DA-304|DA-113|[DA-E32-08] Implement HTTP callback → business-service sau khi publish (update post status: PUBLISHED/FAILED)|27.Nguyễn Chơn Phước|To Do
+DA-305|DA-117|[DA-E35-02] Build main Dashboard page (overview: tong posts, success rate, team activity)|27.Nguyễn Chơn Phước|To Do
+DA-306|DA-104|[DA-AI08-04] Implement shadow + lighting adjustment de merge trong tu nhien|Unassigned|To Do
+DA-307|DA-112|[DA-E28-03] Implement status tracking (SUBMITTED → ASSIGNED → IN_PROGRESS → PENDING_REVIEW → SENT_TO_CLIENT → APPROVED → REJECTED)|Lê Trí Trung|To Do
+DA-308|DA-99|[DA-AI07-07] Benchmark InstantID vs IP-Adapter tren bo test 20 anh, document final decision|Unassigned|To Do
+DA-309|DA-111|[DA-AI10-04] Viet Postman collection cho tat ca AI endpoints voi example requests|Unassigned|To Do
+DA-310|DA-110|[DA-AI09-07] Benchmark 30 prompts (quality, generation time, cost per video) → document ket qua|ân hà|Done
+DA-311|DA-119|[DA-E36-03] Build Content Calendar page (calendar view + drag-drop rescheduling)|27.Nguyễn Chơn Phước|To Do
+DA-312|DA-109|[DA-AI11-04] Compile AI Cost Analysis (chi phi uoc tinh per feature x average usage x 1000 users/month)|Unassigned|To Do
+DA-313|DA-110|[DA-AI09-02] Build video prompt template system (nhan topic + movement type + duration → tao optimized Veo prompt)|ân hà|Done
+DA-314|DA-115|[DA-E31-03] Implement POST /api/v1/posts/{id}/client-approve (BRAND_CLIENT approve → SCHEDULED)|Lê Trí Trung|To Do
+DA-315|DA-116|[DA-E37-03] Build Client Approval page (xem preview → approve/reject voi feedback)|27.Nguyễn Chơn Phước|To Do
+DA-316|DA-99|[DA-AI07-03] Build face-consistent generation endpoint (POST /ai/ambassador/generate: 1 reference + prompt → generated image giu nguyen khuon mat)|Unassigned|To Do
+DA-317|DA-114|[DA-E30-02] Implement POST /api/v1/posts/{id}/schedule (ACCOUNT_MANAGER dat lich: scheduledAt + targetPlatforms)|Lê Trí Trung|To Do
+DA-318|DA-113|[DA-E32-04] Implement Instagram adapter (2-step: create container → publish)|27.Nguyễn Chơn Phước|To Do
+DA-319|DA-122|[DA-E34-03] Build layout components: Sidebar, Navbar, PageWrapper, AuthGuard|Nguyen Thanh Loc (K18 DN)|In review
+DA-320|DA-104|[DA-AI08-05] Build composition endpoint (POST /ai/compose: product S3 key + model S3 key + background S3 key → composed image)|Unassigned|To Do
+DA-321|DA-118|[DA-E33-01] Implement retry logic (toi da 3 lan, exponential backoff: 30s, 60s, 120s)|27.Nguyễn Chơn Phước|To Do
+DA-322|DA-120|[DA-E29-01] Implement PUT /api/v1/content-requests/{id}/assign (ACCOUNT_MANAGER assign cho CONTENT_CREATOR)|Lê Trí Trung|To Do
+DA-323|DA-117|[DA-E35-03] Build Create Workspace page (form: name, industry)|Lê Trí Trung|To Do
+DA-324|DA-111|[DA-AI10-05] Viet Swagger/OpenAPI documentation cho ai-service|Unassigned|To Do
+DA-325|DA-99|[DA-AI07-08] Viet implementation guide (parameters, tips de tao ambassador chat luong cao)|Unassigned|To Do
+DA-326|DA-110|[DA-AI09-08] Viet Video Generation Research Report (prompt guide, parameter cheat sheet, best practices)|ân hà|Done
+DA-327|DA-119|[DA-E36-04] Build Platform Preview modal (preview chinh xac format cua tung platform)|27.Nguyễn Chơn Phước|To Do
+DA-328|DA-110|[DA-AI09-03] Implement movement parameter mapping (camera_pan, zoom_in, zoom_out, subject_walk → Veo params)|ân hà|Done
+DA-329|DA-115|[DA-E31-04] Implement POST /api/v1/posts/{id}/client-reject (BRAND_CLIENT reject + feedback)|Lê Trí Trung|To Do
+DA-330|DA-109|[DA-AI11-05] Record AI feature demo video (showcase 7 AI features hoat dong thuc te)|Unassigned|To Do
+DA-331|DA-116|[DA-E37-04] Build Client Analytics page (publishing results, success rate, campaign summary)|27.Nguyễn Chơn Phước|To Do
+DA-332|DA-99|[DA-AI07-04] Test face consistency (generate 15 anh khac nhau: pose/background/outfit tu 1 reference → do facial similarity score)|Unassigned|To Do
+DA-333|DA-113|[DA-E32-05] Implement TikTok adapter (Direct Post cho video ≤60s, Creator Upload cho video >60s)|27.Nguyễn Chơn Phước|To Do
+DA-334|DA-114|[DA-E30-03] Build ContentCalendar React component (drag-drop rescheduling, color-coded status indicators)|Nguyen Thanh Loc (K18 DN)|To Do
+DA-335|DA-120|[DA-E29-02] Implement GET /api/v1/content-requests/my-tasks (CONTENT_CREATOR xem tasks duoc assign)|Lê Trí Trung|To Do
+DA-336|DA-122|[DA-E34-04] Setup API service layer (Axios instance + interceptors + token refresh)|Nguyen Thanh Loc (K18 DN)|In review
+DA-337|DA-109|[DA-AI11-01] Viet Virtual Ambassador Technical Report (model comparison, implementation decisions, sample results gallery)|Unassigned|To Do
+DA-338|DA-104|[DA-AI08-06] Test 20 cap product + model, evaluate realistic score, document cac case fail|Unassigned|To Do
+DA-339|DA-117|[DA-E35-04] Build Client List page (table, search, role filter)|27.Nguyễn Chơn Phước|To Do
+DA-340|DA-118|[DA-E33-02] Implement Dead Letter Queue handler (Admin co the xem va manual retry/discard failed posts)|Lê Trí Trung|To Do
+DA-341|DA-104|[DA-AI08-01] Implement background removal cho product images (rembg library, U2Net model) → output PNG transparent|Unassigned|To Do
+DA-342|DA-109|[DA-AI11-06] Present AI results to mentor (demo live + Q&A, thu thap feedback)|Unassigned|To Do
+DA-343|DA-110|[DA-AI09-04] Tao prompt library: 10 loai marketing video x 3 movement styles = 30 prompt templates|ân hà|Done
+DA-344|DA-99|[DA-AI07-05] Build ambassador gallery management (luu reference + generated images vao S3 theo clientId)|Unassigned|To Do
+DA-345|DA-111|[DA-AI10-01] Finalize tat ca FastAPI endpoints (/ai/content, /ai/image, /ai/video, /ai/ambassador, /ai/compose, /ai/rag/*, /ai/trends)|Unassigned|To Do
+DA-346|DA-119|[DA-E36-05] Build Media Browser page (S3 file browser, upload, folders)|27.Nguyễn Chơn Phước|To Do
+DA-347|DA-113|[DA-E32-06] Implement Threads adapter (2-step: create container → publish, max 500 chars)|27.Nguyễn Chơn Phước|To Do
+DA-348|DA-125|[DA-E38-01] Implement analytics aggregation APIs (tong hop data tu posts + publish_logs)|Lê Trí Trung|To Do
+DA-349|DA-113|[DA-E32-01] Implement Smart Ingestion (dong goi post + encrypted token + platform configs thanh RabbitMQ message)|27.Nguyễn Chơn Phước|To Do
+DA-350|DA-114|[DA-E30-04] Build PlatformPreview component (hien thi preview dung format cua FB, IG, TikTok, Threads)|Nguyen Thanh Loc (K18 DN)|To Do
+DA-351|DA-109|[DA-AI11-02] Viet Video Generation Research Report (full prompt library 30 templates, movement parameter guide, cost analysis)|Unassigned|To Do
+DA-352|DA-104|[DA-AI08-07] Viet composition parameter guide (optimal sizes, best practices cho tung loai san pham)|Unassigned|To Do
+DA-353|DA-122|[DA-E34-05] Setup Zustand stores (authStore, workspaceStore, notificationStore)|Nguyen Thanh Loc (K18 DN)|In review
+DA-354|DA-120|[DA-E29-03] Implement deadline management (alert khi task sap qua han)|ân hà|To Do
+DA-355|DA-104|[DA-AI08-02] Implement background removal cho model/ambassador images|Unassigned|To Do
+DA-356|DA-119|[DA-E36-01] Build Content Request list page (filter theo status, platform, deadline)|27.Nguyễn Chơn Phước|To Do
+DA-357|DA-118|[DA-E33-03] Implement failure notification (gui alert cho Account Manager khi post fail sau tat ca retries)|27.Nguyễn Chơn Phước|To Do
+DA-358|DA-110|[DA-AI09-05] Build video generation endpoint (POST /ai/video/generate → async, tra ve jobId → GET /ai/video/{jobId}/status de poll)|ân hà|In review
+DA-359|DA-112|[DA-E28-01] Implement POST /api/v1/content-requests (BRAND_CLIENT submit yeu cau: topic, platform, tone, deadline)|Lê Trí Trung|To Do
+DA-360|DA-111|[DA-AI10-02] Error handling & retry cho external AI API calls (exponential backoff, fallback provider)|Unassigned|To Do
+DA-361|DA-113|[DA-E32-07] Implement Zalo OA adapter|27.Nguyễn Chơn Phước|To Do
+DA-362|DA-116|[DA-E37-01] Build Client Portal login (isolated, chi thay data cua client minh)|27.Nguyễn Chơn Phước|To Do
+DA-363|DA-115|[DA-E31-01] Implement POST /api/v1/posts/{id}/submit (CONTENT_CREATOR submit → PENDING_REVIEW)|Lê Trí Trung|To Do
+DA-364|DA-125|[DA-E38-02] Implement automated report generation (weekly/monthly PDF report cho clients)|Lê Trí Trung|To Do
+DA-365|DA-113|[DA-E32-02] Implement RabbitMQ consumer trong publisher-service (FIFO, exactly-once, acknowledgement)|27.Nguyễn Chơn Phước|To Do
+DA-366|DA-117|[DA-E35-01] Build Login page (email/password form, error states)|Lê Trí Trung|In review
+DA-367|DA-122|[DA-E34-01] Setup shadcn/ui + Tailwind CSS + custom design tokens trong web-dashboard|Nguyen Thanh Loc (K18 DN)|In review
+DA-368|DA-119|[DA-E36-02] Build Content Editor page (caption, hashtag, platform, image, schedule)|27.Nguyễn Chơn Phước|To Do
+DA-369|DA-116|[DA-E37-02] Build Client Calendar (read-only, chi xem khong edit)|27.Nguyễn Chơn Phước|To Do
+DA-370|DA-125|[DA-E38-04] Build Analytics Dashboard (charts: publishing success rate, platform breakdown, campaign performance)|27.Nguyễn Chơn Phước|To Do
+DA-371|DA-125|[DA-E38-03] Implement report email sending (tu dong gui email cho Brand Client theo schedule)|ân hà|To Do
+DA-372|DA-127|[DA-E41-01] Integrate Firebase Cloud Messaging (FCM) cho push notifications|27.Nguyễn Chơn Phước|To Do
+DA-373|DA-124|[DA-E42-02] Viet unit tests cho ai-service (content generation, RAG pipeline, image generation)|Nguyễn Minh Tuấn|To Do
+DA-374|DA-123|[DA-E40-02] Build Auth screens (Login, Register, Forgot Password)|27.Nguyễn Chơn Phước|To Do
+DA-375|DA-126|[DA-E43-02] UI responsive fixes (test tren cac screen sizes: 1920px, 1440px, 1280px, mobile)|Nguyen Thanh Loc (K18 DN)|To Do
+DA-376|DA-129|[DA-E46-01] Viet Capstone report (theo dung template cua FPT)|Lê Trí Trung|To Do
+DA-377|DA-128|[DA-E44-04] Smoke test tren production environment|Lê Trí Trung|To Do
+DA-378|DA-121|[DA-E39-01] Implement notification CRUD APIs (/api/v1/notifications: GET, PUT read, PUT read-all)|Lê Trí Trung|To Do
+DA-379|DA-127|[DA-E41-02] Setup FCM server-side (gui notification khi events xay ra trong business-service)|Lê Trí Trung|To Do
+DA-380|DA-123|[DA-E40-03] Build Dashboard screen (simplified overview)|27.Nguyễn Chơn Phước|To Do
+DA-381|DA-124|[DA-E42-03] Viet integration tests cho cac API endpoints chinh (business-service)|27.Nguyễn Chơn Phước|To Do
+DA-382|DA-126|[DA-E43-03] Security audit checklist (check SQL injection, XSS, CSRF, token handling)|Lê Trí Trung|To Do
+DA-383|DA-130|[DA-E45-01] Finalize Swagger API docs cho business-service|Lê Trí Trung|To Do
+DA-384|DA-129|[DA-E46-02] Tong hop va review toan bo bao cao truoc khi nop|Lê Trí Trung|To Do
+DA-385|DA-121|[DA-E39-02] Implement notification creation khi cac events xay ra (post published, task assigned, token expiry, etc.)|Lê Trí Trung|To Do
+DA-386|DA-123|[DA-E40-04] Build Calendar screen (calendar view, post status)|27.Nguyễn Chơn Phước|To Do
+DA-387|DA-127|[DA-E41-03] Build Notification screen (list notifications, deep link khi tap)|27.Nguyễn Chơn Phước|To Do
+DA-388|DA-124|[DA-E42-04] Performance testing (load test voi 200 concurrent users)|Lê Trí Trung|To Do
+DA-389|DA-130|[DA-E45-02] Viet User Manual (huong dan su dung cho tung role)|Lê Trí Trung|To Do
+DA-390|DA-128|[DA-E44-01] Setup VPS/EC2 instance, install Docker, configure nginx|Lê Trí Trung|To Do
+DA-391|DA-129|[DA-E46-03] Chuan bi slide deck (15-20 slides, co demo screenshots)|Lê Trí Trung|To Do
+DA-392|DA-127|[DA-E41-04] Integrate native camera + media gallery upload|27.Nguyễn Chơn Phước|To Do
+DA-393|DA-123|[DA-E40-05] Build Approval screen cho BRAND_CLIENT (xem preview, approve/reject)|27.Nguyễn Chơn Phước|To Do
+DA-394|DA-121|[DA-E39-03] Build Notification Center UI (dropdown bell icon, unread badge, list voi mark as read)|27.Nguyễn Chơn Phước|To Do
+DA-395|DA-124|[DA-E42-05] Test publishing flow E2E tren sandbox accounts (FB/IG/TikTok/Threads/Zalo)|Lê Trí Trung|To Do
+DA-396|DA-128|[DA-E44-02] Deploy all services via docker-compose.prod.yml, setup SSL voi Let's Encrypt|Lê Trí Trung|To Do
+DA-397|DA-123|[DA-E40-06] Implement offline draft mode (luu draft vao AsyncStorage khi mat mang, sync khi co mang)|27.Nguyễn Chơn Phước|To Do
+DA-398|DA-123|[DA-E40-01] Setup React Native project voi Expo, navigation (React Navigation v6)|27.Nguyễn Chơn Phước|To Do
+DA-399|DA-124|[DA-E42-01] Viet unit tests cho business-service (AuthService, WorkspaceService, PostService)|Lê Trí Trung|To Do
+DA-400|DA-126|[DA-E43-01] Sprint retrospective, compile bug list tu testing|Lê Trí Trung|To Do
+DA-401|DA-129|[DA-E46-04] Q&A preparation (anticipate cau hoi tu mentor ve kien truc, AI, database design)|Lê Trí Trung|To Do
+DA-402|DA-128|[DA-E44-03] Setup monitoring (uptime check, error alerts)|Lê Trí Trung|To Do
+DA-403|DA-130|[DA-E45-03] Viet Deployment Guide (step-by-step de deploy tu dau)|Lê Trí Trung|To Do
+DA-404|DA-130|[DA-E45-04] Record demo video (5-10 phut showcase tat ca features)|Lê Trí Trung|To Do
+DA-405|DA-88|[DA-E08-05] Create a view local document website automaition|Nguyen Thanh Loc (K18 DN)|Done
+DA-406|DA-88|[DA-E09-06] Built base desgin.md|Lê Trí Trung|Done
+DA-407|DA-88|[DA-E010-07] Create landing page UI|Nguyen Thanh Loc (K18 DN)|Done
+DA-408|DA-33|Create git-commit-convention rule|Lê Trí Trung|Done
+DA-409|DA-88|[DA-E08-08] Integrated .html for view document|Lê Trí Trung|Done
+DA-410|DA-55|Research Google OMI API: capabilities, pricing, rate limits, supported parameters (duration, resolution, motion style)|ân hà|Done
+DA-414|DA-89|[DA-E09-06] Infrastructure + Business Service keys|Lê Trí Trung|Done
+DA-415|DA-89|[DA-E09-07] AI Service — LLM keys + Payment Gateway|Nguyễn Minh Tuấn|Done
+DA-416|DA-89|[DA-E09-08] AI Service — Image/Video Gen keys|ân hà|Done
+DA-417|DA-89|[DA-E09-09] Publisher Service — Social Platform OAuth|27.Nguyễn Chơn Phước|In review
+DA-418|DA-89|[DA-E09-10] Frontend key|Nguyen Thanh Loc (K18 DN)|Done
+DA-419|DA-91|[DA-E11-06] Write Dockerfile for api-gateway|Nguyễn Minh Tuấn|Done
+DA-420|DA-91|[DA-E11-07] Write global error response handler for gateway|27.Nguyễn Chơn Phước|In review
+DA-421|DA-90|[DA-E10-06] Write GitHub Actions workflow for api-gateway (build + test + push Docker image)|ân hà|To Do
+DA-422|DA-89|[DA-E09-11] Create project cost sheet|ân hà|Done
+DA-423|DA-89|[DA-E09-12] Register brandhub domain|Nguyen Thanh Loc (K18 DN)|Done
+DA-439|DA-424|[DA-E47-15] Write individual sprint report for Sprint 3 — Trung|Lê Trí Trung|Done
+DA-440|DA-424|[DA-E47-16] Write individual sprint report for Sprint 3 — Lộc|Nguyen Thanh Loc (K18 DN)|Done
+DA-441|DA-424|[DA-E47-17] Write individual sprint report for Sprint 3 — Tuấn|Nguyễn Minh Tuấn|Done
+DA-442|DA-424|[DA-E47-18] Write individual sprint report for Sprint 3 — Ân|ân hà|Done
+DA-443|DA-424|[DA-E47-19] Write individual sprint report for Sprint 3 — Phước|27.Nguyễn Chơn Phước|Done
+DA-444|DA-424|[DA-E47-20] Review all member reports + write team SPRINT_REPORT for Sprint 3|Lê Trí Trung|Done
+DA-445|DA-424|[DA-E47-21] Finalize and commit Sprint 3 report to brandhub-infrastructure|Lê Trí Trung|Done
+DA-446|DA-424|[DA-E47-22] Write individual sprint report for Sprint 4 — Trung|Lê Trí Trung|Done
+DA-447|DA-424|[DA-E47-23] Write individual sprint report for Sprint 4 — Lộc|Nguyen Thanh Loc (K18 DN)|Done
+DA-448|DA-424|[DA-E47-24] Write individual sprint report for Sprint 4 — Tuấn|Nguyễn Minh Tuấn|Done
+DA-449|DA-424|[DA-E47-25] Write individual sprint report for Sprint 4 — Ân|ân hà|Done
+DA-450|DA-424|[DA-E47-26] Write individual sprint report for Sprint 4 — Phước|27.Nguyễn Chơn Phước|Done
+DA-451|DA-424|[DA-E47-27] Review all member reports + write team SPRINT_REPORT for Sprint 4|Lê Trí Trung|Done
+DA-452|DA-424|[DA-E47-28] Finalize and commit Sprint 4 report to brandhub-infrastructure|Lê Trí Trung|Done
+DA-453|DA-424|[DA-E47-29] Write individual sprint report for Sprint 5 — Trung|Lê Trí Trung|To Do
+DA-454|DA-424|[DA-E47-30] Write individual sprint report for Sprint 5 — Lộc|Nguyen Thanh Loc (K18 DN)|To Do
+DA-455|DA-424|[DA-E47-31] Write individual sprint report for Sprint 5 — Tuấn|Nguyễn Minh Tuấn|To Do
+DA-456|DA-424|[DA-E47-32] Write individual sprint report for Sprint 5 — Ân|ân hà|To Do
+DA-457|DA-424|[DA-E47-33] Write individual sprint report for Sprint 5 — Phước|27.Nguyễn Chơn Phước|To Do
+DA-458|DA-424|[DA-E47-34] Review all member reports + write team SPRINT_REPORT for Sprint 5|Lê Trí Trung|To Do
+DA-459|DA-424|[DA-E47-35] Finalize and commit Sprint 5 report to brandhub-infrastructure|Lê Trí Trung|To Do
+DA-460|DA-424|[DA-E47-36] Write individual sprint report for Sprint 6 — Trung|Lê Trí Trung|To Do
+DA-461|DA-424|[DA-E47-37] Write individual sprint report for Sprint 6 — Lộc|Nguyen Thanh Loc (K18 DN)|To Do
+DA-462|DA-424|[DA-E47-38] Write individual sprint report for Sprint 6 — Tuấn|Nguyễn Minh Tuấn|To Do
+DA-463|DA-424|[DA-E47-39] Write individual sprint report for Sprint 6 — Ân|ân hà|To Do
+DA-464|DA-424|[DA-E47-40] Write individual sprint report for Sprint 6 — Phước|27.Nguyễn Chơn Phước|To Do
+DA-465|DA-424|[DA-E47-41] Review all member reports + write team SPRINT_REPORT for Sprint 6|Lê Trí Trung|To Do
+DA-466|DA-424|[DA-E47-42] Finalize and commit Sprint 6 report to brandhub-infrastructure|Lê Trí Trung|To Do
+DA-467|DA-424|[DA-E47-43] Write individual sprint report for Sprint 7 — Trung|Lê Trí Trung|To Do
+DA-468|DA-424|[DA-E47-44] Write individual sprint report for Sprint 7 — Lộc|Nguyen Thanh Loc (K18 DN)|To Do
+DA-469|DA-424|[DA-E47-45] Write individual sprint report for Sprint 7 — Tuấn|Nguyễn Minh Tuấn|To Do
+DA-470|DA-424|[DA-E47-46] Write individual sprint report for Sprint 7 — Ân|ân hà|To Do
+DA-471|DA-424|[DA-E47-47] Write individual sprint report for Sprint 7 — Phước|27.Nguyễn Chơn Phước|To Do
+DA-472|DA-424|[DA-E47-48] Review all member reports + write team SPRINT_REPORT for Sprint 7|Lê Trí Trung|To Do
+DA-473|DA-424|[DA-E47-49] Finalize and commit Sprint 7 report to brandhub-infrastructure|Lê Trí Trung|To Do
+DA-474|DA-424|[DA-E47-50] Write individual sprint report for Sprint 8 — Trung|Lê Trí Trung|To Do
+DA-475|DA-424|[DA-E47-51] Write individual sprint report for Sprint 8 — Lộc|Nguyen Thanh Loc (K18 DN)|To Do
+DA-476|DA-424|[DA-E47-52] Write individual sprint report for Sprint 8 — Tuấn|Nguyễn Minh Tuấn|To Do
+DA-477|DA-424|[DA-E47-53] Write individual sprint report for Sprint 8 — Ân|ân hà|To Do
+DA-478|DA-424|[DA-E47-54] Write individual sprint report for Sprint 8 — Phước|27.Nguyễn Chơn Phước|To Do
+DA-479|DA-424|[DA-E47-55] Review all member reports + write team SPRINT_REPORT for Sprint 8|Lê Trí Trung|To Do
+DA-480|DA-424|[DA-E47-56] Finalize and commit Sprint 8 report to brandhub-infrastructure|Lê Trí Trung|To Do
+DA-481|DA-424|[DA-E47-57] Write individual sprint report for Sprint 9 — Trung|Lê Trí Trung|To Do
+DA-482|DA-424|[DA-E47-58] Write individual sprint report for Sprint 9 — Lộc|Nguyen Thanh Loc (K18 DN)|To Do
+DA-483|DA-424|[DA-E47-59] Write individual sprint report for Sprint 9 — Tuấn|Nguyễn Minh Tuấn|To Do
+DA-484|DA-424|[DA-E47-60] Write individual sprint report for Sprint 9 — Ân|ân hà|To Do
+DA-485|DA-424|[DA-E47-61] Write individual sprint report for Sprint 9 — Phước|27.Nguyễn Chơn Phước|To Do
+DA-486|DA-424|[DA-E47-62] Review all member reports + write team SPRINT_REPORT for Sprint 9|Lê Trí Trung|To Do
+DA-487|DA-424|[DA-E47-63] Finalize and commit Sprint 9 report to brandhub-infrastructure|Lê Trí Trung|To Do
+DA-488|DA-424|[DA-E47-64] Write individual sprint report for Sprint 10 — Trung|Lê Trí Trung|To Do
+DA-489|DA-424|[DA-E47-65] Write individual sprint report for Sprint 10 — Lộc|Nguyen Thanh Loc (K18 DN)|To Do
+DA-490|DA-424|[DA-E47-66] Write individual sprint report for Sprint 10 — Tuấn|Nguyễn Minh Tuấn|To Do
+DA-491|DA-424|[DA-E47-67] Write individual sprint report for Sprint 10 — Ân|ân hà|To Do
+DA-492|DA-424|[DA-E47-68] Write individual sprint report for Sprint 10 — Phước|27.Nguyễn Chơn Phước|To Do
+DA-493|DA-424|[DA-E47-69] Review all member reports + write team SPRINT_REPORT for Sprint 10|Lê Trí Trung|To Do
+DA-494|DA-424|[DA-E47-70] Finalize and commit Sprint 10 report to brandhub-infrastructure|Lê Trí Trung|To Do
+DA-495|DA-424|[DA-E47-71] Write individual sprint report for Sprint 11 — Trung|Lê Trí Trung|To Do
+DA-496|DA-424|[DA-E47-72] Write individual sprint report for Sprint 11 — Lộc|Nguyen Thanh Loc (K18 DN)|To Do
+DA-497|DA-424|[DA-E47-73] Write individual sprint report for Sprint 11 — Tuấn|Nguyễn Minh Tuấn|To Do
+DA-498|DA-424|[DA-E47-74] Write individual sprint report for Sprint 11 — Ân|ân hà|To Do
+DA-499|DA-424|[DA-E47-75] Write individual sprint report for Sprint 11 — Phước|27.Nguyễn Chơn Phước|To Do
+DA-500|DA-424|[DA-E47-76] Review all member reports + write team SPRINT_REPORT for Sprint 11|Lê Trí Trung|To Do
+DA-501|DA-424|[DA-E47-77] Finalize and commit Sprint 11 report to brandhub-infrastructure|Lê Trí Trung|To Do
+DA-502|DA-424|[DA-E47-78] Write individual sprint report for Sprint 12 — Trung|Lê Trí Trung|To Do
+DA-503|DA-424|[DA-E47-79] Write individual sprint report for Sprint 12 — Lộc|Nguyen Thanh Loc (K18 DN)|To Do
+DA-504|DA-424|[DA-E47-80] Write individual sprint report for Sprint 12 — Tuấn|Nguyễn Minh Tuấn|To Do
+DA-505|DA-424|[DA-E47-81] Write individual sprint report for Sprint 12 — Ân|ân hà|To Do
+DA-506|DA-424|[DA-E47-82] Write individual sprint report for Sprint 12 — Phước|27.Nguyễn Chơn Phước|To Do
+DA-507|DA-424|[DA-E47-83] Review all member reports + write team SPRINT_REPORT for Sprint 12|Lê Trí Trung|To Do
+DA-508|DA-424|[DA-E47-84] Finalize and commit Sprint 12 report to brandhub-infrastructure|Lê Trí Trung|To Do
+DA-509|DA-424|[DA-E47-85] Write individual sprint report for Sprint 13 — Trung|Lê Trí Trung|To Do
+DA-510|DA-424|[DA-E47-86] Write individual sprint report for Sprint 13 — Lộc|Nguyen Thanh Loc (K18 DN)|To Do
+DA-511|DA-424|[DA-E47-87] Write individual sprint report for Sprint 13 — Tuấn|Nguyễn Minh Tuấn|To Do
+DA-512|DA-424|[DA-E47-88] Write individual sprint report for Sprint 13 — Ân|ân hà|To Do
+DA-513|DA-424|[DA-E47-89] Write individual sprint report for Sprint 13 — Phước|27.Nguyễn Chơn Phước|To Do
+DA-514|DA-424|[DA-E47-90] Review all member reports + write team SPRINT_REPORT for Sprint 13|Lê Trí Trung|To Do
+DA-515|DA-424|[DA-E47-91] Finalize and commit Sprint 13 report to brandhub-infrastructure|Lê Trí Trung|To Do
+DA-516|DA-424|[DA-E47-92] Write individual sprint report for Sprint 14 — Trung|Lê Trí Trung|To Do
+DA-517|DA-424|[DA-E47-93] Write individual sprint report for Sprint 14 — Lộc|Nguyen Thanh Loc (K18 DN)|To Do
+DA-518|DA-424|[DA-E47-94] Write individual sprint report for Sprint 14 — Tuấn|Nguyễn Minh Tuấn|To Do
+DA-519|DA-424|[DA-E47-95] Write individual sprint report for Sprint 14 — Ân|ân hà|To Do
+DA-520|DA-424|[DA-E47-96] Write individual sprint report for Sprint 14 — Phước|27.Nguyễn Chơn Phước|To Do
+DA-521|DA-424|[DA-E47-97] Review all member reports + write team SPRINT_REPORT for Sprint 14|Lê Trí Trung|To Do
+DA-522|DA-424|[DA-E47-98] Finalize and commit Sprint 14 report to brandhub-infrastructure|Lê Trí Trung|To Do
+DA-523|DA-424|[DA-E47-99] Write individual sprint report for Sprint 15 — Trung|Lê Trí Trung|To Do
+DA-524|DA-424|[DA-E47-100] Write individual sprint report for Sprint 15 — Lộc|Nguyen Thanh Loc (K18 DN)|To Do
+DA-525|DA-424|[DA-E47-101] Write individual sprint report for Sprint 15 — Tuấn|Nguyễn Minh Tuấn|To Do
+DA-526|DA-424|[DA-E47-102] Write individual sprint report for Sprint 15 — Ân|ân hà|To Do
+DA-527|DA-424|[DA-E47-103] Write individual sprint report for Sprint 15 — Phước|27.Nguyễn Chơn Phước|To Do
+DA-528|DA-424|[DA-E47-104] Review all member reports + write team SPRINT_REPORT for Sprint 15|Lê Trí Trung|To Do
+DA-529|DA-424|[DA-E47-105] Finalize and commit Sprint 15 report to brandhub-infrastructure|Lê Trí Trung|To Do
+DA-530|DA-424|[DA-E47-106] Write individual sprint report for Sprint 16 — Trung|Lê Trí Trung|To Do
+DA-531|DA-424|[DA-E47-107] Write individual sprint report for Sprint 16 — Lộc|Nguyen Thanh Loc (K18 DN)|To Do
+DA-532|DA-424|[DA-E47-108] Write individual sprint report for Sprint 16 — Tuấn|Nguyễn Minh Tuấn|To Do
+DA-533|DA-424|[DA-E47-109] Write individual sprint report for Sprint 16 — Ân|ân hà|To Do
+DA-534|DA-424|[DA-E47-110] Write individual sprint report for Sprint 16 — Phước|27.Nguyễn Chơn Phước|To Do
+DA-535|DA-424|[DA-E47-111] Review all member reports + write team SPRINT_REPORT for Sprint 16|Lê Trí Trung|To Do
+DA-536|DA-424|[DA-E47-112] Finalize and commit Sprint 16 report to brandhub-infrastructure|Lê Trí Trung|To Do
+DA-537|DA-557|[DA-E48-01] Write individual AI iteration report for Iteration 1 — Tuấn|Nguyễn Minh Tuấn|Done
+DA-538|DA-557|[DA-E48-02] Write individual AI iteration report for Iteration 1 — Ân|ân hà|Done
+DA-539|DA-557|[DA-E48-03] Write individual AI iteration report for Iteration 1 — Lộc|Nguyen Thanh Loc (K18 DN)|Done
+DA-540|DA-557|[DA-E48-04] Review all member reports + write team ITERATION_REPORT for Iteration 1|Nguyen Thanh Loc (K18 DN)|Done
+DA-541|DA-557|[DA-E48-05] Finalize and commit Iteration 1 report to brandhub-infrastructure|Nguyen Thanh Loc (K18 DN)|Done
+DA-542|DA-557|[DA-E48-06] Write individual AI iteration report for Iteration 2 — Tuấn|Nguyễn Minh Tuấn|To Do
+DA-543|DA-557|[DA-E48-07] Write individual AI iteration report for Iteration 2 — Ân|ân hà|To Do
+DA-544|DA-557|[DA-E48-08] Write individual AI iteration report for Iteration 2 — Lộc|Nguyen Thanh Loc (K18 DN)|To Do
+DA-545|DA-557|[DA-E48-09] Review all member reports + write team ITERATION_REPORT for Iteration 2|Nguyen Thanh Loc (K18 DN)|To Do
+DA-546|DA-557|[DA-E48-10] Finalize and commit Iteration 2 report to brandhub-infrastructure|Nguyen Thanh Loc (K18 DN)|To Do
+DA-547|DA-557|[DA-E48-11] Write individual AI iteration report for Iteration 3 — Tuấn|Nguyễn Minh Tuấn|To Do
+DA-548|DA-557|[DA-E48-12] Write individual AI iteration report for Iteration 3 — Ân|ân hà|To Do
+DA-549|DA-557|[DA-E48-13] Write individual AI iteration report for Iteration 3 — Lộc|Nguyen Thanh Loc (K18 DN)|To Do
+DA-550|DA-557|[DA-E48-14] Review all member reports + write team ITERATION_REPORT for Iteration 3|Nguyen Thanh Loc (K18 DN)|To Do
+DA-551|DA-557|[DA-E48-15] Finalize and commit Iteration 3 report to brandhub-infrastructure|Nguyen Thanh Loc (K18 DN)|To Do
+DA-552|DA-557|[DA-E48-16] Write individual AI iteration report for Iteration 4 — Tuấn|Nguyễn Minh Tuấn|To Do
+DA-553|DA-557|[DA-E48-17] Write individual AI iteration report for Iteration 4 — Ân|ân hà|To Do
+DA-554|DA-557|[DA-E48-18] Write individual AI iteration report for Iteration 4 — Lộc|Nguyen Thanh Loc (K18 DN)|To Do
+DA-555|DA-557|[DA-E48-19] Review all member reports + write team ITERATION_REPORT for Iteration 4|Nguyen Thanh Loc (K18 DN)|To Do
+DA-556|DA-557|[DA-E48-20] Finalize and commit Iteration 4 report to brandhub-infrastructure|Nguyen Thanh Loc (K18 DN)|To Do
+DA-558|DA-89|[DA-E09-13] Update diagram, dbml and html file for database|Lê Trí Trung|Done
+DA-559|DA-89|[DA-E11-14] Add all model from database for business repo and make repository file for each model |Lê Trí Trung|Done
+DA-560|DA-92|[DA-E12-07] Research the HS256 vs RS256 vs ES256|Lê Trí Trung|Done
+DA-561|DA-98|[Da-AI05-07] Brainstorm AI craw idea|Lê Trí Trung|In review
+DA-562|DA-2|[DA-E01-10] Set up Slack workspace for BrandHub development team|Nguyễn Minh Tuấn|Done
+DA-563|DA-424|[DA-E47-113] Recheck team plan after 4 sprint|Lê Trí Trung|Done
+DA-565|-|[DA-AI4.99-01]|Lê Trí Trung|To Do
+DA-567|DA-566|[DA-AI04-99-01] Design & research data collection layer (Google Trends, TikTok crawlers, Social firehose)|Nguyễn Minh Tuấn|In Progress
+DA-568|DA-566|[DA-AI04-99-02] Research trend prediction engine algorithm (Word tokenization & BM25 Anomaly Detection)|ân hà|To Do
+DA-569|DA-566|[DA-AI04-99-03] Design interaction graph analysis & Centrality algorithm for Virality Score|ân hà|To Do
+DA-570|DA-566|[DA-AI04-99-04] Design text normalization & chunking pipeline|ân hà|To Do
+DA-571|DA-566|[DA-AI04-99-05] Design hybrid database schema (ChromaDB + Neo4j NER Graph)|Nguyen Thanh Loc (K18 DN)|In review
+DA-572|DA-566|[DA-AI04-99-06] Design Redis cache & Neo4j upsert flow|Nguyen Thanh Loc (K18 DN)|In review
+DA-573|DA-566|[DA-AI04-99-07] Compile final crawl trend analysis blueprint document|Nguyễn Minh Tuấn|To Do
+DA-574|DA-117|[DA-E35-05] Build Register page (account creation form, validation, redirect to dashboard)|Lê Trí Trung|To Do
+DA-575|DA-117|[DA-E35-06] Build Google OAuth button + callback page (OAuth flow, handle new vs existing user)|Lê Trí Trung|To Do
+DA-576|DA-117|[DA-E35-07] Build Workspace Settings page (timezone selector, default platforms, report frequency)|Lê Trí Trung|To Do
+DA-577|DA-117|[DA-E35-08] Build Workspace Members page (member table, invite button, remove action with confirm)|Lê Trí Trung|To Do
+DA-578|DA-117|[DA-E35-09] Build Create Client page (form: name, industry, brand color picker, logo upload)|27.Nguyễn Chơn Phước|To Do
+DA-579|DA-117|[DA-E35-10] Build Edit Client page (pre-filled form: name, industry, brand color, logo)|27.Nguyễn Chơn Phước|To Do
+DA-580|DA-117|[DA-E35-11] Build Client Service Package page (posts/month input, platform checkboxes, AI credits slider)|27.Nguyễn Chơn Phước|To Do
+DA-581|DA-119|[DA-E36-06] Build AI Generate Panel (call ai-service, display caption + hashtag + image, regenerate with feedback)|27.Nguyễn Chơn Phước|To Do
+DA-582|DA-119|[DA-E36-07] Build Template Browser page (saved drafts list, search, preview, use template)|27.Nguyễn Chơn Phước|To Do
+DA-583|DA-119|[DA-E36-08] Build Hashtag Groups page (CRUD hashtag groups, assign to posts)|27.Nguyễn Chơn Phước|To Do
+DA-585|DA-584|[DA-E49-01] Build Cinematic Hero section (GSAP scroll animation: 4 platform posts → BrandHub MacBook reveal → CTA)|Lê Trí Trung|To Do
+DA-586|DA-584|[DA-E49-02] Build Features section (6 feature cards with icons, hover effects, scroll animations)|Lê Trí Trung|To Do
+DA-587|DA-584|[DA-E49-03] Build How It Works section (4-step timeline with alternating layout, scroll slide-in)|Lê Trí Trung|To Do
+DA-588|DA-584|[DA-E49-04] Build Stats Counter + LogoWall sections (animated count-up + 12 trusted-by brand logos)|Lê Trí Trung|To Do
+DA-589|DA-584|[DA-E49-05] Build Templates + Testimonials sections (3 template cards + 3 customer quotes with stars)|Lê Trí Trung|To Do
+DA-590|DA-584|[DA-E49-06] Build Pricing section (3-tier plans: Starter, Pro, Enterprise with feature checklists)|Lê Trí Trung|To Do
+DA-591|DA-584|[DA-E49-07] Build FAQ + CTA + Footer sections (accordion FAQ, conversion CTA banner, 5-column footer)|Lê Trí Trung|To Do
+DA-592|DA-584|[DA-E49-08] Set up i18n translation keys for all landing page sections (EN + VI)|Lê Trí Trung|To Do
+DA-593|DA-584|[DA-E49-09] Wire DashboardPage with auth-gating (guest → landing page, authenticated → role-based redirect)|Lê Trí Trung|To Do
