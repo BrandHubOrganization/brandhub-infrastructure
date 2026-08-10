@@ -81,10 +81,7 @@ services:
   # Auth: ChromaDB local does not support built-in auth (cloud-only feature).
   # Security relies on internal network isolation — no host port exposed in infra compose.
   chromadb:
-    image: brandhub-chromadb:0.6.3
-    build:
-      context: .
-      dockerfile: Dockerfile.chromadb
+    image: chromadb/chroma:0.6.3
     container_name: brandhub-chromadb
     environment:
       # Persist data to the mounted volume (default is /chroma/chroma).
