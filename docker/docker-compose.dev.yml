@@ -7,14 +7,21 @@ services:
     ports:
       - "${REDIS_HOST_PORT:-6379}:6379"
 
-  # rabbitmq:
-  #   ports:
-  #     - "${RABBITMQ_AMQP_HOST_PORT:-5672}:5672"
-  #     - "${RABBITMQ_MANAGEMENT_HOST_PORT:-15672}:15672"
+  rabbitmq:
+    ports:
+      - "${RABBITMQ_AMQP_HOST_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_HOST_PORT:-15672}:15672"
 
-  # chromadb:
-  #   ports:
-  #     - "${CHROMADB_HOST_PORT:-8000}:8000"
+  chromadb:
+    ports:
+      - "${CHROMADB_HOST_PORT:-8000}:8000"
+    depends_on: {}
+
+  neo4j:
+    ports:
+      - "${NEO4J_HOST_PORT_HTTP:-7474}:7474"
+      - "${NEO4J_HOST_PORT_BOLT:-7687}:7687"
+    depends_on: {}
 
   pgadmin:
     image: dpage/pgadmin4:9
