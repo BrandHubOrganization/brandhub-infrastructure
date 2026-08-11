@@ -40,6 +40,20 @@ Gồm: Objective, User Story, Acceptance Criteria, UI/UX, API Contract, Error
 Handling, Edge Cases, UI States, Test Cases (sơ bộ), Definition of Done, Out of
 Scope.
 
+**Với mọi feature có UI** (`brandhub-web-dashboard`, `brandhub-mobile-app`), spec.md
+BẮT BUỘC có thêm 2 mục sau trong Acceptance Criteria / UI States — không được bỏ qua:
+
+- **Đa ngôn ngữ (i18n):** liệt kê toàn bộ text hiển thị mới sẽ dùng key nào (namespace,
+  vd `landing.features.demoLabel`), xác nhận key được thêm đồng thời vào **cả**
+  `vi.json` và `en.json` (key-parallel), không hardcode chuỗi tiếng Việt/Anh trong JSX.
+- **Light/Dark mode:** xác nhận UI mới hoạt động đúng ở cả 2 theme — dùng token/biến
+  theme hoặc class `dark:` variant sẵn có, không hardcode màu cố định (hex/rgb) không
+  có cặp dark tương ứng. Nêu rõ nếu có màu đặc thù cần thêm token mới.
+
+`plan.md` phải liệt kê các file i18n locale sẽ đổi; `task.md` phải có task riêng
+"cập nhật vi.json + en.json" và "kiểm tra light/dark mode"; `test.md` phải có test
+case xác nhận đổi ngôn ngữ không vỡ UI và chuyển theme không vỡ contrast/màu sắc.
+
 ### plan.md — Kế hoạch kỹ thuật
 Trả lời **LÀM THẾ NÀO**. Phân rã giải pháp kỹ thuật dựa trên spec:
 thành phần, file chạm tới, DB schema thay đổi, luồng dữ liệu, thứ tự build, rủi ro.
