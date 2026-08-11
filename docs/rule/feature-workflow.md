@@ -16,18 +16,24 @@ làm lan man, tránh làm lại nhiều lần.
 
 ## 2. Cấu trúc thư mục feature
 
+**Vị trí bắt buộc:** `brandhub-infrastructure/docs/feature/` — TẬP TRUNG, không
+đặt trong `docs/feature/` của từng repo con (`brandhub-web-dashboard`,
+`brandhub-mobile-app`, ...). Lý do giống `feature-workflow.md` — infra là
+nguồn sự thật duy nhất, tránh doc phân tán và mất đồng bộ giữa các repo khi
+nhiều người cùng làm feature liên quan nhiều service.
+
 Mỗi tính năng là **một thư mục**, chứa đúng 4 file bắt buộc:
 
 ```
-docs/feature/<ten-tinh-nang>/
+brandhub-infrastructure/docs/feature/<ten-tinh-nang>/
 ├── spec.md   # Đặc tả nghiệp vụ — LÀM TRƯỚC
 ├── plan.md   # Kế hoạch triển khai kỹ thuật
 ├── task.md   # Phân rã công việc (checklist thực thi)
 └── test.md   # Kịch bản / test case kiểm chứng
 ```
 
-- Thư mục đặt theo **tên tính năng** (kebab-case, tiếng Anh), không theo mã UC.
-  Vd: `multi-method-login`, `content-scheduler`.
+- Thư mục đặt theo **tên tính năng** (kebab-case, tiếng Anh), không theo mã UC,
+  không phân theo tên repo. Vd: `multi-method-login`, `content-scheduler`.
 - Mỗi file có **trách nhiệm duy nhất**, không trộn lẫn.
 
 ## 3. Nội dung từng file
