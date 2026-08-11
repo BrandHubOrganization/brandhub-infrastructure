@@ -16,18 +16,24 @@ làm lan man, tránh làm lại nhiều lần.
 
 ## 2. Cấu trúc thư mục feature
 
+**Vị trí bắt buộc:** `brandhub-infrastructure/docs/feature/` — TẬP TRUNG, không
+đặt trong `docs/feature/` của từng repo con (`brandhub-web-dashboard`,
+`brandhub-mobile-app`, ...). Lý do giống `feature-workflow.md` — infra là
+nguồn sự thật duy nhất, tránh doc phân tán và mất đồng bộ giữa các repo khi
+nhiều người cùng làm feature liên quan nhiều service.
+
 Mỗi tính năng là **một thư mục**, chứa đúng 4 file bắt buộc:
 
 ```
-docs/feature/<ten-tinh-nang>/
+brandhub-infrastructure/docs/feature/<ten-tinh-nang>/
 ├── spec.md   # Đặc tả nghiệp vụ — LÀM TRƯỚC
 ├── plan.md   # Kế hoạch triển khai kỹ thuật
 ├── task.md   # Phân rã công việc (checklist thực thi)
 └── test.md   # Kịch bản / test case kiểm chứng
 ```
 
-- Thư mục đặt theo **tên tính năng** (kebab-case, tiếng Anh), không theo mã UC.
-  Vd: `multi-method-login`, `content-scheduler`.
+- Thư mục đặt theo **tên tính năng** (kebab-case, tiếng Anh), không theo mã UC,
+  không phân theo tên repo. Vd: `multi-method-login`, `content-scheduler`.
 - Mỗi file có **trách nhiệm duy nhất**, không trộn lẫn.
 
 ## 3. Nội dung từng file
@@ -39,6 +45,20 @@ Trả lời **LÀM CÁI GÌ và VÌ SAO**. Tham chiếu mẫu:
 Gồm: Objective, User Story, Acceptance Criteria, UI/UX, API Contract, Error
 Handling, Edge Cases, UI States, Test Cases (sơ bộ), Definition of Done, Out of
 Scope.
+
+**Với mọi feature có UI** (`brandhub-web-dashboard`, `brandhub-mobile-app`), spec.md
+BẮT BUỘC có thêm 2 mục sau trong Acceptance Criteria / UI States — không được bỏ qua:
+
+- **Đa ngôn ngữ (i18n):** liệt kê toàn bộ text hiển thị mới sẽ dùng key nào (namespace,
+  vd `landing.features.demoLabel`), xác nhận key được thêm đồng thời vào **cả**
+  `vi.json` và `en.json` (key-parallel), không hardcode chuỗi tiếng Việt/Anh trong JSX.
+- **Light/Dark mode:** xác nhận UI mới hoạt động đúng ở cả 2 theme — dùng token/biến
+  theme hoặc class `dark:` variant sẵn có, không hardcode màu cố định (hex/rgb) không
+  có cặp dark tương ứng. Nêu rõ nếu có màu đặc thù cần thêm token mới.
+
+`plan.md` phải liệt kê các file i18n locale sẽ đổi; `task.md` phải có task riêng
+"cập nhật vi.json + en.json" và "kiểm tra light/dark mode"; `test.md` phải có test
+case xác nhận đổi ngôn ngữ không vỡ UI và chuyển theme không vỡ contrast/màu sắc.
 
 ### plan.md — Kế hoạch kỹ thuật
 Trả lời **LÀM THẾ NÀO**. Phân rã giải pháp kỹ thuật dựa trên spec:
