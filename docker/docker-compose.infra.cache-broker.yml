@@ -1,0 +1,76 @@
+# Infrastructure group 3/3 — Cache & Broker.
+# Self-hosted on EC2: Redis (cache / JWT blacklist / rate limiting) + RabbitMQ (message broker).
+#
+# Run this group alone:
+#   docker compose -f docker-compose.infra.cache-broker.yml up -d
+# Run all three infra groups together (local dev):
+#   docker compose -f docker-compose.infra.databases.yml \
+#                  -f docker-compose.infra.ai-data.yml \
+#                  -f docker-compose.infra.cache-broker.yml up -d
+
+services:
+  # Shared Redis instance for cache, JWT blacklist, OAuth state, and rate limiting.
+  redis:
+    image: redis:7.2-alpine
+    container_name: brandhub-redis
+    ports:
+      - "${REDIS_HOST_PORT:-6379}:6379"
+    command:
+      - redis-server
+      # Password protects local/shared Redis from accidental unauthenticated access.
+      - --requirepass
+      - ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      # AOF keeps Redis data across restarts together with the mounted volume.
+      - --appendonly
+      - "yes"
+      # Memory limit prevents Redis from consuming all container/host memory.
+      - --maxmemory
+      - ${REDIS_MAXMEMORY:?REDIS_MAXMEMORY is required}
+      # Good default for cache-heavy usage: evict least recently used keys.
+      - --maxmemory-policy
+      - ${REDIS_MAXMEMORY_POLICY:?REDIS_MAXMEMORY_POLICY is required}
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:?REDIS_PASSWORD is required}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+  # Message broker for async jobs and publisher-service workflows.
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: brandhub-rabbitmq
+    ports:
+      - "${RABBITMQ_AMQP_HOST_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_HOST_PORT:-15672}:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:?RABBITMQ_USERNAME is required}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+# Named volumes keep data stable even if containers are recreated.
+volumes:
+  redis-data:
+    name: brandhub-redis-data
+  rabbitmq-data:
+    name: brandhub-rabbitmq-data
+
+# Shared bridge network used by infra, app, and dev compose files.
+networks:
+  brandhub-network:
+    name: brandhub-network
+    driver: bridge

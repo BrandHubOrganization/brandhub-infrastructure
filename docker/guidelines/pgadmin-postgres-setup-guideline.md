@@ -55,7 +55,7 @@ Ly do: pgAdmin chay trong container. `localhost` ben trong pgAdmin la chinh cont
 
 ## 3. Database Mac Dinh
 
-Database mac dinh duoc tao boi `docker-compose.infra.yml`:
+Database mac dinh duoc tao boi `docker-compose.infra.databases.yml`:
 
 ```env
 POSTGRES_DB=brandhub
@@ -105,7 +105,7 @@ Script nay chi chay lan dau khi volume `brandhub-postgres-data` duoc tao.
 Neu sua init script nhung database khong thay doi, do volume cu van con. Muon chay lai init script thi reset volume:
 
 ```powershell
-docker compose -f docker-compose.infra.yml -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.infra.databases.yml -f docker-compose.infra.ai-data.yml -f docker-compose.infra.cache-broker.yml -f docker-compose.dev.yml down -v
 .\run-compose.bat
 ```
 
