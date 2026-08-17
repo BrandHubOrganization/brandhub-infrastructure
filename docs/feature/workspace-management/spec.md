@@ -64,6 +64,10 @@ Toàn bộ text mới dùng key namespace `workspace.*`, thêm song song cả `v
 ## 5. API Contract (dự kiến, backend cần xây mới hoàn toàn)
 
 ```
+GET /api/v1/workspaces
+(list toàn bộ workspace mà user hiện tại đang là active member — phát hiện thiếu lúc code WorkspacePage.tsx, bổ sung sau bản đầu)
+→ 200 { "success": true, "data": [{ "id", "name", "slug", "logoUrl", "settings", "isActive", "createdAt" }] }
+
 POST /api/v1/workspaces
 { "name": "string", "industry": "string" }
 → 201 { "success": true, "data": { "id", "name", "slug", "ownerId" } }
