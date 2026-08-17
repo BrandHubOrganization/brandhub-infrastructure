@@ -124,4 +124,4 @@ Xem `test.md`.
 - Không có backend API cho Workspace/Board/Timeline — toàn bộ là demo data
   trong `CinematicHero.tsx`.
 - Theme toggle (light/dark switch) cho landing page — xem feature riêng
-  `docs/feature/landing-page-theme-toggle/`.
+  `docs/feature/landing/landing-page-theme-toggle/`.
