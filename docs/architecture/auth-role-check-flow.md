@@ -23,7 +23,7 @@ Sau khi verify xong, gateway **inject 3 header** (`X-User-Id`, `X-User-Role`, `X
 
 `JwtAuthenticationFilter` trong business-service **tự parse lại JWT từ đầu** (đọc thẳng header `Authorization`, không dùng header `X-User-*` gateway đã nhét) — verify độc lập, dựng `AuthenticatedUser` (id, workspaceId) từ claim.
 
-`RequireRoleAspect` (mới build, xem docs/feature/rbac-middleware) sau đó:
+`RequireRoleAspect` (mới build, xem docs/feature/workspace/rbac-middleware) sau đó:
 1. Check `SystemRole` (ADMIN bypass hết).
 2. Query trực tiếp `WorkspaceMemberRepository` theo `(workspaceId, userId)` hiện tại → lấy `MemberRole` **mới nhất từ DB**, không tin claim cũ trong JWT.
 3. So với danh sách role cho phép trong `@RequireRole(...)` trên method — không đủ quyền → 403.
