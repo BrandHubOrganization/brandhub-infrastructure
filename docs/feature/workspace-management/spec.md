@@ -34,6 +34,7 @@ tôi muốn tạo workspace mới, cấu hình cài đặt, và quản lý thàn
 ### Workspace Members (DA-577)
 - Bảng danh sách member: tên, email, role, ngày tham gia, trạng thái active.
 - Nút "Mời thành viên" → tạo `WorkspaceInvitation` (email + role), gửi email mời (tái dùng hạ tầng email đã có ở forgot-password nếu có sẵn service gửi mail — kiểm tra trước khi build mới).
+- Người được mời bấm link trong email (`/invitations/accept?token=...`) → nếu chưa đăng nhập, redirect `/login` rồi quay lại đúng URL sau khi login; gọi `POST /api/v1/workspaces/invitations/accept` tạo `WorkspaceMember` với role đã mời, đánh dấu invitation `ACCEPTED`.
 - Nút xoá member (có confirm dialog) → set `workspace_members.isActive=false` (soft delete, giữ lịch sử) — không xoá cứng record.
 - Chỉ `OWNER`/`ACCOUNT` thấy nút mời/xoá; `CREATOR`/`VIEWER`/`CLIENT` chỉ xem danh sách (RBAC).
 - Không cho xoá `OWNER` cuối cùng của workspace (luôn phải còn ít nhất 1 OWNER).
@@ -88,6 +89,12 @@ POST /api/v1/workspaces/{id}/members/invite
 
 DELETE /api/v1/workspaces/{id}/members/{memberId}
 → 200 { "success": true, "data": null }
+
+POST /api/v1/workspaces/invitations/accept
+(phát hiện thiếu lúc trả lời câu hỏi nghiệp vụ "mời member khác role" — flow mời không có cách hoàn tất nếu thiếu endpoint này. Bổ sung, không mở task Jira riêng theo quyết định của Trung — code trực tiếp trên spec này.)
+{ "token": "string" }
+→ 200 { "success": true, "data": { "id", "workspaceId", "userId", "fullName", "email", "role", "joinedAt", "isActive" } }
+Yêu cầu đăng nhập (@AuthenticationPrincipal); nếu invitedEmail không khớp email user hiện tại → 400 INVALID_INVITATION.
 ```
 
 Tất cả endpoint trừ `POST /workspaces` yêu cầu `@RequireRole` phù hợp — phụ thuộc rbac-middleware feature đã build trước hoặc song song.
@@ -103,7 +110,7 @@ Tất cả endpoint trừ `POST /workspaces` yêu cầu `@RequireRole` phù hợ
 ## 7. Edge Cases
 
 - User tạo workspace đầu tiên — chưa có `workspaceId` trong JWT trước đó → sau khi tạo cần refresh token hoặc trả kèm `workspaceId` mới để frontend cập nhật `authStore` (JWT hiện tại mang 1 `workspaceId` cố định — cần xác nhận flow refresh khi build, ghi trong plan.md).
-- Mời lại email đã từng bị remove (isActive=false) trước đó → cho phép, tạo lại invitation, khi accept thì set `isActive=true` lại trên record cũ (không tạo record `WorkspaceMember` trùng).
+- Mời lại email đã từng bị remove (isActive=false) trước đó → cho phép, tạo invitation mới; khi accept, `acceptInvitation` tạo `WorkspaceMember` mới (không tái sử dụng record cũ đã soft-delete) — chấp nhận nhiều record lịch sử cho cùng `(workspaceId, userId)`, không có unique constraint chặn việc này.
 - `defaultPlatforms` rỗng → cho phép lưu rỗng, không bắt buộc.
 
 ## 8. Definition of Done
@@ -118,4 +125,4 @@ Tất cả endpoint trừ `POST /workspaces` yêu cầu `@RequireRole` phù hợ
 
 - Upload logo workspace (giữ `logoUrl` field nhưng chưa làm UI upload — theo dõi task riêng nếu cần).
 - Billing/subscription liên kết workspace (`WorkspaceSubscription`) — feature riêng.
-- Chấp nhận lời mời (accept invitation flow, trang riêng cho người được mời) — out of scope 3 task này, cần task riêng nếu chưa có.
+- ~~Chấp nhận lời mời~~ — đã build (`POST /api/v1/workspaces/invitations/accept` + `AcceptInvitationPage.tsx`), không còn out of scope.
