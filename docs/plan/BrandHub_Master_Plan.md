@@ -270,6 +270,9 @@
 | [DA-E12-05](#da-e12-05-implement-forgot-password-reset-password-flow) | Implement Forgot Password & Reset Password flow (email link with time-limited token) | Trung (Leader) | 🔴 Critical |
 | [DA-E12-06](#da-e12-06-implement-google-oauth-login) | Implement Google OAuth login (callback, create user if not yet registered) | Trung (Leader) | 🟡 High |
 | [DA-E12-07](#da-e12-07-research-hs256-vs-rs256-vs-es256-for-jwt-signing-phát-sinh-ngoài-plan-gốc) 🆕 | Research HS256 vs RS256 vs ES256 for JWT signing | Trung (Leader) | 🔴 Critical |
+| [DA-E12-08](#da-e12-08-implement-change-password-phát-sinh-ngoài-plan-gốc) 🆕 | Implement Change Password (authenticated user updates their own password) | Trung (Leader) | 🟡 High |
+| [DA-E12-09](#da-e12-09-implement-facebook-oauth-login-phát-sinh-ngoài-plan-gốc) 🆕 | Implement Facebook OAuth login (callback, create user if not yet registered) | Trung (Leader) | 🟡 High |
+| [DA-E12-10](#da-e12-10-implement-github-oauth-login-phát-sinh-ngoài-plan-gốc) 🆕 | Implement GitHub OAuth login (callback, create user if not yet registered) | Trung (Leader) | 🟡 High |
 | [DA-E11-14](#da-e11-14-add-all-jpa-models-from-database-schema-for-business-service-repository-layer-phát-sinh-ngoài-plan-gốc-gắn-sai-epic-trên-jira) 🆕 ⚠️ | Add all JPA models from database schema for business-service + repository layer *(gắn sai epic trên Jira — nội dung thuộc data layer, không phải Gateway)* | Trung (Leader) | 🔴 Critical |
 
 ### EPIC E13 — User & Profile Management
@@ -290,6 +293,8 @@
 | [DA-E14-03](#da-e14-03-implement-client-isolation-for-brandclient-role) | Implement client isolation for BRAND_CLIENT (can only view data belonging to their own clientId) | Trung (Leader) | 🔴 Critical |
 | [DA-E14-04](#da-e14-04-write-permission-matrix-document) | Write permission matrix document (6 roles x all endpoints = allowed/not allowed) | Phước (Publisher) | 🟢 Medium |
 
+> 🔀 **E14 đã dời sang Sprint 6** do Sprint 5 tập trung hoàn thành auth core (E12).
+
 ### EPIC E34 — Design System & Base Components 🔀
 
 > Dời từ Sprint 12. Xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit.
@@ -304,7 +309,18 @@
 
 ---
 
-## Sprint 6 — Workspace, Client & Subscription (Weeks 11–12)
+## Sprint 6 — Workspace, Client, RBAC & Core Pages (Weeks 11–12)
+
+### EPIC E14 — Role-Based Access Control (RBAC) 🔀 *(dời từ Sprint 5)*
+
+> Sprint 5 tập trung hoàn thành auth core (E12), RBAC chưa làm được → dời sang Sprint 6. Đây là foundational epic, block E15/E16.
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E14-01](#da-e14-01-write-requirerole-annotation-and-aop-aspect) | Write RBAC annotation/middleware for business-service (@RequireRole) | Trung (Leader) | 🔴 Critical |
+| [DA-E14-02](#da-e14-02-implement-workspace-isolation-filter) | Implement workspace isolation filter (every MongoDB query must include workspaceId filter) | Trung (Leader) | 🔴 Critical |
+| [DA-E14-03](#da-e14-03-implement-client-isolation-for-brandclient-role) | Implement client isolation for BRAND_CLIENT (can only view data belonging to their own clientId) | Trung (Leader) | 🔴 Critical |
+| [DA-E14-04](#da-e14-04-write-permission-matrix-document) | Write permission matrix document (6 roles x all endpoints = allowed/not allowed) | Phước (Publisher) | 🟢 Medium |
 
 ### EPIC E15 — Workspace Management
 
@@ -320,12 +336,53 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-E16-01](#da-e16-01-implement-post-apiv1clients) | Implement POST /api/v1/clients (AGENCY_OWNER creates a new brand client) | Trung (Leader) | 🔴 Critical |
-| [DA-E16-02](#da-e16-02-implement-put-apiv1clientsidassign) | Implement PUT /api/v1/clients/{id}/assign (AGENCY_OWNER assigns an Account Manager) | Trung (Leader) | 🔴 Critical |
-| [DA-E16-03](#da-e16-03-implement-put-apiv1clientsidservice-package) | Implement PUT /api/v1/clients/{id}/service-package (set monthly post limits and platforms) | Trung (Leader) | 🟡 High |
-| [DA-E16-04](#da-e16-04-implement-get-apiv1clients) | Implement GET /api/v1/clients (AGENCY_OWNER and ACCOUNT_MANAGER view client list) | Trung (Leader) | 🔴 Critical |
+| [DA-E16-01](#da-e16-01-implement-post-apiv1clients) | Implement POST /api/v1/clients (AGENCY_OWNER creates a new brand client) | Phước (Publisher) | 🔴 Critical |
+| [DA-E16-02](#da-e16-02-implement-put-apiv1clientsidassign) | Implement PUT /api/v1/clients/{id}/assign (AGENCY_OWNER assigns an Account Manager) | Phước (Publisher) | 🔴 Critical |
+| [DA-E16-03](#da-e16-03-implement-put-apiv1clientsidservice-package) | Implement PUT /api/v1/clients/{id}/service-package (set monthly post limits and platforms) | Phước (Publisher) | 🟡 High |
+| [DA-E16-04](#da-e16-04-implement-get-apiv1clients) | Implement GET /api/v1/clients (AGENCY_OWNER and ACCOUNT_MANAGER view client list) | Phước (Publisher) | 🔴 Critical |
 
-> **EPIC E17 — Subscription & Billing đã dời sang Sprint 9** 🔀 (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit) — không block gì gấp, nhường chỗ cho Trung tập trung Auth/RBAC/Workspace/Client trước.
+> **EPIC E17 — Subscription & Billing đã dời sang Sprint 9** 🔀 (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit).
+
+### EPIC E35 — Auth & Dashboard Pages 🔀 *(dời từ Sprint 12)*
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| **Trung — Auth Pages** |
+| [DA-E35-01](#da-e35-01-build-login-page) | Build Login page (email/password form, error states, redirect to dashboard) | Trung (Leader) | 🔴 Critical |
+| [DA-E35-05](#da-e35-05-build-register-page) 🆕 | Build Register page (account creation form, validation, redirect to dashboard) | Trung (Leader) | 🔴 Critical |
+| [DA-E35-06](#da-e35-06-build-google-oauth-button) 🆕 | Build Google OAuth button + callback page (OAuth flow, handle new vs existing user) | Trung (Leader) | 🔴 Critical |
+| **Phước — Dashboard** |
+| [DA-E35-02](#da-e35-02-build-main-dashboard-page) | Build main Dashboard page (overview: total posts, success rate, team activity, AI credits, connected accounts) | Phước (Publisher) | 🔴 Critical |
+| **Trung — Workspace Pages** |
+| [DA-E35-03](#da-e35-03-build-create-workspace-page) | Build Create Workspace page (form: name, industry; redirect to workspace after create) | Trung (Leader) | 🔴 Critical |
+| [DA-E35-07](#da-e35-07-build-workspace-settings-page) 🆕 | Build Workspace Settings page (timezone selector, default platforms, report frequency) | Trung (Leader) | 🟡 High |
+| [DA-E35-08](#da-e35-08-build-workspace-members-page) 🆕 | Build Workspace Members page (member table, invite button, remove action with confirm) | Trung (Leader) | 🔴 Critical |
+| **Phước — Client Pages** |
+| [DA-E35-04](#da-e35-04-build-client-list-page) | Build Client List page (table with search, filter by status, role-based visibility) | Phước (Publisher) | 🔴 Critical |
+| [DA-E35-09](#da-e35-09-build-create-client-page) 🆕 | Build Create Client page (form: name, industry, brand color picker, logo upload) | Phước (Publisher) | 🔴 Critical |
+| [DA-E35-10](#da-e35-10-build-edit-client-page) 🆕 | Build Edit Client page (pre-filled form: name, industry, brand color, logo) | Phước (Publisher) | 🟡 High |
+| [DA-E35-11](#da-e35-11-build-client-service-package-page) 🆕 | Build Client Service Package page (posts/month input, platform checkboxes, AI credits slider) | Phước (Publisher) | 🟡 High |
+
+### EPIC E36 — Content Management Pages 🔀 *(dời từ Sprint 12)*
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| **Phước — Content Request** |
+| [DA-E36-01](#da-e36-01-build-content-request-list-page) | Build Content Request list page (filter by status, platform, deadline; table with pagination) | Phước (Publisher) | 🔴 Critical |
+| **Phước — Content Editor** |
+| [DA-E36-02](#da-e36-02-build-content-editor-page) | Build Content Editor page (form: caption textarea, hashtag input, platform selector, image upload, schedule date) | Phước (Publisher) | 🔴 Critical |
+| [DA-E36-06](#da-e36-06-build-ai-generate-panel) 🆕 | Build AI Generate Panel ("Generate with AI" button → call ai-service → display caption + hashtag + image; regenerate with feedback; "Use this" inserts into editor) | Phước (Publisher) | 🔴 Critical |
+| **Phước — Calendar & Preview** |
+| [DA-E36-03](#da-e36-03-build-content-calendar-page) | Build Content Calendar page (calendar view + drag-drop rescheduling) | Phước (Publisher) | 🔴 Critical |
+| [DA-E36-04](#da-e36-04-build-platform-preview-modal) | Build Platform Preview modal (accurately preview the format of each platform) | Phước (Publisher) | 🟡 High |
+| **Phước — Content Library** |
+| [DA-E36-05](#da-e36-05-build-media-browser-page) | Build Media Browser page (S3 file browser, upload, folder view) | Phước (Publisher) | 🟡 High |
+| [DA-E36-07](#da-e36-07-build-template-browser-page) 🆕 | Build Template Browser page (saved post drafts list, search, preview, use template) | Phước (Publisher) | 🟡 High |
+| [DA-E36-08](#da-e36-08-build-hashtag-groups-page) 🆕 | Build Hashtag Groups page (CRUD hashtag groups, assign to posts) | Phước (Publisher) | 🟡 High |
+
+> 🆕 = task mới tách từ task gốc để granularity tốt hơn.
+
+> 🔀 **E35 & E36 dời từ Sprint 12 lên Sprint 6** để có UI sớm cho auth + workspace + client + content, tận dụng Design System foundation đã có từ Sprint 5 (E34). Backend APIs (E15, E16) làm song song → UI có dữ liệu thật ngay.
 
 ---
 
@@ -664,17 +721,18 @@
 ## Sprint 12 — Core Pages (Weeks 23–24)
 
 > **EPIC E34 — Design System đã dời lên Sprint 5** 🔀 (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit).
+> **EPIC E35 & E36 đã dời lên Sprint 6** 🔀 (2026-08-02) — UI auth + workspace + client + content cần có sớm để song song với backend APIs.
 
-### EPIC E35 — Auth & Dashboard Pages
+### EPIC E35 — Auth & Dashboard Pages 🔀 *(đã dời lên Sprint 6)*
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-E35-01](#da-e35-01-build-login-and-register-pages) | Build Login/Register pages with Google OAuth button | Phước (Publisher) | 🔴 Critical |
+| [DA-E35-01](#da-e35-01-build-login-and-register-pages) | Build Login/Register pages with Google OAuth button | Trung (Leader) | 🔴 Critical |
 | [DA-E35-02](#da-e35-02-build-main-dashboard-page) | Build main Dashboard page (overview: total posts, success rate, team activity) | Phước (Publisher) | 🔴 Critical |
-| [DA-E35-03](#da-e35-03-build-workspace-management-pages) | Build Workspace management pages (create, settings, members) | Phước (Publisher) | 🔴 Critical |
+| [DA-E35-03](#da-e35-03-build-workspace-management-pages) | Build Workspace management pages (create, settings, members) | Trung (Leader) | 🔴 Critical |
 | [DA-E35-04](#da-e35-04-build-client-management-pages) | Build Client management pages (list, create, edit, service package) | Phước (Publisher) | 🔴 Critical |
 
-### EPIC E36 — Content Management Pages
+### EPIC E36 — Content Management Pages 🔀 *(đã dời lên Sprint 6)*
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
@@ -1045,6 +1103,39 @@
 
 ---
 
+## EPIC E49 — Public Landing Page 🆕 *(phát sinh ngoài plan gốc)*
+
+> **Note:** Landing page không nằm trong 46 epic gốc của BrandHub. Task gốc là DA-407 (`[DA-E010-07] Create landing page UI`) bị sai prefix và chỉ có 1 task đơn lẻ không phản ánh đúng khối lượng công việc. Epic E49 này được tạo để formalize toàn bộ 11 sections của landing page public thành 9 task. Code đã commit ngày 2026-08-02 (commit `c697568`, gắn nhãn sai `DA-305` — đúng ra phải là DA-E49).
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E49-01](#da-e49-01-build-cinematic-hero-section) | Build Cinematic Hero section (GSAP scroll animation: 4 platform posts → BrandHub MacBook reveal → CTA) | Trung (Leader) | 🔴 Critical |
+| [DA-E49-02](#da-e49-02-build-features-section) | Build Features section (6 feature cards with icons, hover effects, scroll animations) | Trung (Leader) | 🟡 High |
+| [DA-E49-03](#da-e49-03-build-how-it-works-section) | Build How It Works section (4-step timeline with alternating layout, scroll slide-in) | Trung (Leader) | 🟡 High |
+| [DA-E49-04](#da-e49-04-build-stats-counter--logowall-sections) | Build Stats Counter + LogoWall sections (animated count-up + 12 trusted-by brand logos) | Trung (Leader) | 🟢 Medium |
+| [DA-E49-05](#da-e49-05-build-templates--testimonials-sections) | Build Templates + Testimonials sections (3 template cards + 3 customer quotes with stars) | Trung (Leader) | 🟢 Medium |
+| [DA-E49-06](#da-e49-06-build-pricing-section) | Build Pricing section (3-tier plans: Starter, Pro, Enterprise with feature checklists) | Trung (Leader) | 🟡 High |
+| [DA-E49-07](#da-e49-07-build-faq--cta--footer-sections) | Build FAQ + CTA + Footer sections (accordion FAQ, conversion CTA banner, 5-column footer) | Trung (Leader) | 🟡 High |
+| [DA-E49-08](#da-e49-08-set-up-i18n-translation-keys) | Set up i18n translation keys for all landing page sections (EN + VI) | Trung (Leader) | 🟡 High |
+| [DA-E49-09](#da-e49-09-wire-dashboardpage-with-auth-gating) | Wire DashboardPage with auth-gating (guest → landing page, authenticated → role-based redirect) | Trung (Leader) | 🔴 Critical |
+
+**Landing page sections:**
+- Cinematic Hero: GSAP ScrollTrigger, pin 3500px, 4 social platform post cards → BrandHub MacBook Air reveal → CTA overlay
+- MacBook mockup: aluminum chassis + macOS Sonoma wallpaper + Safari window with 4 interactive dashboard tabs + macOS Dock (12 app icons)
+- Social proof: animated stat counters + 12 brand logo names
+- Features: 6 cards (Planning, Creation, Publishing, Analytics, Collaboration, Automation)
+- How It Works: 4-step alternating timeline (Plan → Create → Schedule → Publish)
+- Templates: 3 cards (Social, Blog, Email) with gradient previews
+- Testimonials: 3 customer quotes with 5-star ratings
+- Pricing: 3-tier (Starter, Pro highlighted, Enterprise) with feature checklists
+- FAQ: 5-item accordion, CTA banner, 5-column footer with social SVG icons
+- Full i18n: all text via react-i18next, EN+VI translation keys
+- Auth-gating: DashboardPage.tsx dual-purpose (guest→landing, authenticated→role redirect)
+
+> 🆕 = epic mới, không có trong plan gốc. Tất cả 9 task đã code xong → status = Done.
+
+---
+
 ## SPRINT SUMMARY TABLE
 
 | Sprint | Weeks | Phase | Key Deliverables |
@@ -1054,7 +1145,7 @@
 | Sprint 3 | 5–6 | Design | Database schema (MongoDB + PostgreSQL), API spec, Figma wireframes |
 | Sprint 4 | 7–8 | Infrastructure | Docker Compose running, CI/CD pipelines active, API Gateway running |
 | Sprint 5 | 9–10 | Auth & RBAC | Register/Login/OAuth working, JWT + refresh tokens, RBAC enforced |
-| Sprint 6 | 11–12 | Core Business | Workspace CRUD, Client management, Subscription plans working |
+| Sprint 6 | 11–12 | Core Business | Workspace CRUD, Client management, Auth/Dashboard/Workspace/Client/Content pages |
 | Sprint 7 | 13–14 | Social OAuth | All 5 platform OAuth flows working, AES-256 token encryption, token refresh job |
 | Sprint 8 | 15–16 | Publisher | All 5 platform adapters working, retry logic, DLQ, callback to business |
 | Sprint 9 | 17–18 | AI Wiring | All AI internal endpoints exposed and callable from business-service |
@@ -2637,6 +2728,63 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Ghi chú:** Task lẽ ra nên đứng **trước** DA-E12-01 và DA-E11-02 (cả hai đều phụ thuộc kết quả nghiên cứu này), nhưng phát sinh muộn trên Jira sau khi DA-E11-02 đã viết sẵn giả định RS256. Không đổi thứ tự numbering để tránh xáo trộn — chỉ note dependency ngược tại đây. Jira: DA-560, status In Review.
 
 **Dependencies:** Blocks: DA-E12-01, DA-E12-02, DA-E12-03, DA-E11-02 (retroactive — các task này đã implement trước khi task nghiên cứu này xong). Blocked by: None.
+
+---
+
+### DA-E12-08 — Implement Change Password *(phát sinh, ngoài plan gốc)*
+**Assignee:** Trung (Leader) | **Priority:** 🟡 High
+
+**Goal:** Cho phép user đã đăng nhập tự đổi mật khẩu (khác với Forgot/Reset Password ở DA-E12-05, vốn dành cho user quên mật khẩu và chưa đăng nhập được).
+
+**Acceptance Criteria:**
+- [ ] `POST /api/v1/auth/change-password` yêu cầu access token hợp lệ (Authorization header)
+- [ ] `ChangePasswordRequest` DTO nhận `currentPassword` + `newPassword`, validate `newPassword` theo cùng rule độ mạnh với Register
+- [ ] Verify `currentPassword` khớp với hash hiện tại trước khi cho đổi (401/400 nếu sai)
+- [ ] Hash `newPassword` bằng bcrypt cost=12, ghi đè password hiện tại
+- [ ] Không tự động logout các session khác (out of scope — chỉ đổi password)
+
+**Ghi chú:** Code đã implement và commit (`AuthController.changePassword`, `AuthService.changePassword`, `ChangePasswordRequest` DTO) nhưng commit message gắn nhầm key `DA-160` — DA-160 trên Jira thực chất là Forgot/Reset Password (DA-E12-05), một task khác. Không sửa lại commit cũ (đã push); task Jira mới này (DA-E12-08) là task đúng đại diện cho tính năng Change Password.
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E12-01, DA-E12-02].
+
+---
+
+### DA-E12-09 — Implement Facebook OAuth login *(phát sinh, ngoài plan gốc)*
+**Assignee:** Trung (Leader) | **Priority:** 🟡 High
+
+**Goal:** Cho phép user đăng nhập bằng tài khoản Facebook, dùng chung `OAuthController`/`OAuthService` backend-driven flow với Google OAuth (DA-E12-06) và GitHub OAuth (DA-E12-10).
+
+**Acceptance Criteria:**
+- [ ] `GET /api/v1/auth/oauth/facebook` redirect sang Facebook authorization URL
+- [ ] `GET /api/v1/auth/oauth/facebook/callback` exchange code, tạo user mới nếu email chưa tồn tại, issue JWT + refresh cookie, redirect về FE `/oauth-callback?token=...`
+- [ ] `OAuthProvider` enum có giá trị `FACEBOOK` (đã tồn tại từ trước)
+- [ ] Existing email đăng ký qua password login được link với tài khoản Facebook (merge, không tạo duplicate)
+
+**Technical Notes:**
+- Dùng chung `OAuthController` unified endpoint `/api/v1/auth/oauth/{provider}` — không tạo controller riêng cho từng provider
+- Cấu hình `OAuthProperties` cho `clientId`/`clientSecret`/`redirectUri` của Facebook trong `application.yml` + `.env`
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E12-01, DA-E12-02].
+
+---
+
+### DA-E12-10 — Implement GitHub OAuth login *(phát sinh, ngoài plan gốc)*
+**Assignee:** Trung (Leader) | **Priority:** 🟡 High
+
+**Goal:** Cho phép user đăng nhập bằng tài khoản GitHub, dùng chung `OAuthController`/`OAuthService` backend-driven flow với Google OAuth (DA-E12-06) và Facebook OAuth (DA-E12-09).
+
+**Acceptance Criteria:**
+- [ ] `GET /api/v1/auth/oauth/github` redirect sang GitHub authorization URL
+- [ ] `GET /api/v1/auth/oauth/github/callback` exchange code, tạo user mới nếu email chưa tồn tại, issue JWT + refresh cookie, redirect về FE `/oauth-callback?token=...`
+- [ ] `OAuthProvider` enum bổ sung giá trị `GITHUB` (mới thêm trong thay đổi này)
+- [ ] Existing email đăng ký qua password login được link với tài khoản GitHub (merge, không tạo duplicate)
+
+**Technical Notes:**
+- Dùng chung `OAuthController` unified endpoint `/api/v1/auth/oauth/{provider}` — không tạo controller riêng cho từng provider
+- Cấu hình `OAuthProperties` cho `clientId`/`clientSecret`/`redirectUri` của GitHub trong `application.yml` + `.env`
+- GitHub OAuth không trả email trực tiếp trong token response mặc định nếu user để private — cần gọi thêm `GET /user/emails` API của GitHub nếu email null từ profile response
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E12-01, DA-E12-02].
 
 ---
 
@@ -5818,11 +5966,13 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ### DA-E47-36 — Write individual sprint report for Sprint 6 — Trung
 **Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
 
-**Goal:** Document Trung's contributions in Sprint 6 in `sprint_06/members/trungle.md`. Tasks: DA-E15-01 through 05 (Workspace CRUD), DA-E16-01 through 04 (Client management), DA-E17-01/02/03 (Subscription + billing).
+**Goal:** Document Trung's contributions in Sprint 6 in `sprint_06/members/trungle.md`. Tasks: DA-E14-01/02/03 (RBAC), DA-E15-01 through 05 (Workspace CRUD), DA-E35-01 (Login page), DA-E35-05/06 (Register + OAuth), DA-E35-03 (Create Workspace page), DA-E35-07/08 (Workspace Settings + Members).
 
 **Acceptance Criteria:**
-- [ ] All 12 tasks documented with API endpoints, commit hashes, and status
-- [ ] Payment gateway integration approach documented
+- [ ] All 14 tasks documented with API endpoints/UI pages, commit hashes, and status
+- [ ] RBAC implementation documented (@RequireRole, workspace/client isolation)
+- [ ] Workspace CRUD flow documented
+- [ ] Auth pages documented (Login/Register/OAuth button)
 - [ ] Self-assessment filled
 
 **Technical Notes:** File: `sprint_06/members/trungle.md`
@@ -5865,11 +6015,10 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ### DA-E47-39 — Write individual sprint report for Sprint 6 — Ân
 **Assignee:** Ân (AI) | **Priority:** 🟢 Medium
 
-**Goal:** Document Ân's contributions in Sprint 6 in `sprint_06/members/anha.md`. Tasks: DA-E17-04 (billing history API), DA-AI03-02/05/07/08 (RAG chunking, context builder, accuracy test, docs), DA-AI04-01/06/07/08 (prompt template, regenerate with feedback, anti-hallucination test, docs).
+**Goal:** Document Ân's contributions in Sprint 6 in `sprint_06/members/anha.md`. Không có task nào trong Sprint 6 epics. Nếu có đóng góp ngoài (AI Iteration 1, hỗ trợ team) thì ghi nhận.
 
 **Acceptance Criteria:**
-- [ ] RAG accuracy test results referenced (3 brand documents tested)
-- [ ] Anti-hallucination test results documented (20 captions verified)
+- [ ] Contributions (if any) documented
 - [ ] Self-assessment filled
 
 **Technical Notes:** File: `sprint_06/members/anha.md`
@@ -5881,11 +6030,14 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ### DA-E47-40 — Write individual sprint report for Sprint 6 — Phước
 **Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
 
-**Goal:** Document Phước's contributions in Sprint 6 in `sprint_06/members/phuocnc.md`. Tasks: DA-AI03-01/06 (document upload endpoint, deletion endpoint), DA-AI04-04/05 (platform caption truncation, hashtag generation), DA-AI05-01 through 06 (trend crawler).
+**Goal:** Document Phước's contributions in Sprint 6 in `sprint_06/members/phuocnc.md`. Tasks: DA-E14-04 (Permission matrix), DA-E16-01 through 04 (Client APIs), DA-E35-02 (Dashboard), DA-E35-04/09/10/11 (Client pages), DA-E36-01/02/06/03/04/05/07/08 (Content pages).
 
 **Acceptance Criteria:**
-- [ ] Trend crawler design documented (pytrends, TikTok scraping approach)
-- [ ] Redis cache key pattern for trends noted
+- [ ] All 18 tasks documented with API endpoints/UI pages, commit hashes, and status
+- [ ] Permission matrix document referenced
+- [ ] Client CRUD APIs documented
+- [ ] Dashboard + Client management UI pages documented
+- [ ] Content management UI pages documented
 - [ ] Self-assessment filled
 
 **Technical Notes:** File: `sprint_06/members/phuocnc.md`
@@ -5900,9 +6052,9 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Goal:** Read all 5 Sprint 6 member reports, verify against git history, write `sprint_06/SPRINT_REPORT.md`.
 
 **Acceptance Criteria:**
-- [ ] Covers E15 (5), E16 (4), E17 (4), AI-03 (8), AI-04 (8), AI-05 (6) tasks
-- [ ] Core business deliverables verified: Workspace + Client + Subscription APIs working
-- [ ] RAG pipeline and LLM content generation working end-to-end
+- [ ] Covers E14 (4), E15 (5), E16 (4), E35 (11), E36 (8) = 32 tasks
+- [ ] Core business deliverables verified: RBAC + Workspace + Client APIs working
+- [ ] Web-dashboard pages verified: Auth + Dashboard + Workspace + Client + Content
 - [ ] Retrospective + action items for Sprint 7
 
 **Dependencies:** Blocks: [DA-E47-42]. Blocked by: [DA-E47-36] through [DA-E47-40].
@@ -9049,5 +9201,176 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - Prepare a "backup slide" appendix (slides 16–22) with deeper technical diagrams for each question in case a visual aid is needed
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E46-03].
+
+---
+
+## EPIC E49 — Public Landing Page (Task Details)
+
+### DA-E49-01 — Build Cinematic Hero section
+**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
+
+**Goal:** Deliver the hero section — a scroll-driven cinematic animation: 4 platform posts (IG, TT, FB, LI) → BrandHub dashboard on MacBook Air → Register/Login CTA.
+
+**Acceptance Criteria:**
+- [ ] GSAP ScrollTrigger timeline: IG(0-15%)→TT(15-35%)→FB(35-55%)→LI(55-75%)→BrandHub(75-90%)→CTA(90-100%), pin 3500px, scrub:1
+- [ ] 4 platform post components: InstagramPost, TikTokPost, FacebookPost, LinkedInPost — realistic social cards
+- [ ] MacBook Air M5 aluminum chassis + macOS Sonoma wallpaper + menubar + notch
+- [ ] Safari browser: 4 interactive tabs (Overview/Content/Schedule/Analytics) with working navigation
+- [ ] macOS Dock: 12 app icons as inline SVG glyphs
+- [ ] Mini posts burst to 4 corners — staggered back.out easing, idle drift animation
+- [ ] CTA buttons overlay after animation: Register + Login
+- [ ] Locked forward-only — scroll-back does NOT reverse
+
+**Technical Notes:**
+- pin:true, anticipatePin:1. onComplete sets locked=true, onUpdate clamps progress(1).
+- Platform posts ~100-160 lines each — realistic profile pics, content, engagement buttons, timestamps.
+- Dashboard tabs use useState switching, remount on key change for GSAP enter animations.
+- Mini post idle: gsap.to y:'+=6', yoyo:true, repeat:-1, out-of-phase delays.
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E34-02, DA-E34-03].
+
+---
+
+### DA-E49-02 — Build Features section
+**Assignee:** Trung (Leader) | **Priority:** 🟡 High
+
+**Goal:** Deliver 6-card feature grid: Planning (CalendarDays), Creation (FileEdit), Publishing (LayoutDashboard), Analytics (BarChart3), Collaboration (Users), Automation (Zap).
+
+**Acceptance Criteria:**
+- [ ] 6 cards responsive grid (1/2/3 cols): orange icon container, title, description from i18n
+- [ ] Hover: border orange-200, bg orange-50/30, shadow-lg, icon container scale 110%
+- [ ] Scroll: fade in + slide up y:32→0, staggered 80ms via framer-motion whileInView once:true
+- [ ] Dark mode: border zinc-800, bg zinc-900/50
+
+**Technical Notes:**
+- Uses framer-motion, not GSAP. All text via i18n keys.
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E34-02].
+
+---
+
+### DA-E49-03 — Build How It Works section
+**Assignee:** Trung (Leader) | **Priority:** 🟡 High
+
+**Goal:** Deliver 4-step timeline: Plan→Create→Schedule→Publish — alternating left/right cards with connecting line.
+
+**Acceptance Criteria:**
+- [ ] 4 numbered orange circles connected by vertical line (desktop center, mobile left)
+- [ ] Alternating layout: odd steps left, even steps right on desktop
+- [ ] Each step: colored icon, title, description
+- [ ] Scroll: cards slide in from left/right (x:±40→0), stagger 100ms
+
+**Technical Notes:**
+- Connecting line: absolute div w-0.5, hidden on mobile.
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E34-02].
+
+---
+
+### DA-E49-04 — Build Stats Counter + LogoWall sections
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Deliver animated counters (1.2M+ contents, 50K+ brands, 12 platforms, 99.9% uptime) + 12 brand logo names.
+
+**Acceptance Criteria:**
+- [ ] Stats: 4 counters on brand-orange bg, custom useCountUp hook (rAF + cubic ease-out, 2s)
+- [ ] Vietnamese locale formatting, decimal support, suffix support
+- [ ] LogoWall: 12 brands as bold text, staggered fade-in
+
+**Technical Notes:**
+- useCountUp: useEffect + rAF, cancelAnimationFrame cleanup. Returns formatted string.
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E34-02].
+
+---
+
+### DA-E49-05 — Build Templates + Testimonials sections
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Deliver Templates showcase (Social, Blog, Email) with gradient previews + Testimonials (3 quotes, 5-star ratings, avatars).
+
+**Acceptance Criteria:**
+- [ ] Templates: 3 cards with gradient-top preview, frosted icon circle, hover shadow-xl
+- [ ] Testimonials: 3 cards with 5 gold stars, quoted text, avatar initials circle, name+role
+- [ ] Responsive: 1 col mobile, 3 col desktop. Scroll fade-in + slide up.
+
+**Technical Notes:**
+- Avatar initials: name.split(' ').map(n=>n[0]).join('')
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E34-02].
+
+---
+
+### DA-E49-06 — Build Pricing section
+**Assignee:** Trung (Leader) | **Priority:** 🟡 High
+
+**Goal:** Deliver 3-tier pricing: Starter, Pro (highlighted), Enterprise — feature checklists, CTAs.
+
+**Acceptance Criteria:**
+- [ ] 3 plan cards responsive grid. Pro: ring-1 ring-brand-orange, shadow-xl, 'Pho bien nhat' badge
+- [ ] Each: plan name, price (4xl bold), feature list with Check icons, CTA button
+- [ ] Features from i18n (returnObjects:true). CTAs: Starter/Pro→/register, Enterprise→/contact
+
+**Technical Notes:**
+- Enterprise CTA uses /contact, no /thang suffix.
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E34-02, DA-E35-01].
+
+---
+
+### DA-E49-07 — Build FAQ + CTA + Footer sections
+**Assignee:** Trung (Leader) | **Priority:** 🟡 High
+
+**Goal:** Deliver 5-item FAQ accordion, full-width CTA banner, 5-column footer with social SVG icons.
+
+**Acceptance Criteria:**
+- [ ] FAQ: 5 items accordion — AnimatePresence height animation, ChevronDown rotates 180deg
+- [ ] CTA: dark bg, heading+subtitle+2 buttons, orange glow blurs at corners
+- [ ] Footer: 5-col grid — Brand + Product + Resources + Company + copyright
+- [ ] Social icons: GitHub/Twitter/LinkedIn as inline SVG components
+
+**Technical Notes:**
+- FAQ open state: useState<string|null>. Social icons: hand-coded SVG paths.
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E34-02].
+
+---
+
+### DA-E49-08 — Set up i18n translation keys
+**Assignee:** Trung (Leader) | **Priority:** 🟡 High
+
+**Goal:** Define all landing.* i18n keys so 11 sections are fully EN+VI translatable.
+
+**Acceptance Criteria:**
+- [ ] All user text uses t('landing.*') — no hardcoded Vietnamese in JSX
+- [ ] Namespaces: trustedBy, features.*, stats.*, howItWorks.*, templates.*, testimonials.*, pricing.*, faq.*, cta.*, footer.*
+- [ ] Hero CTA buttons use i18n keys
+- [ ] CinematicHero hardcoded text moved to i18n
+- [ ] Both EN and VI translation files have all keys
+
+**Technical Notes:**
+- Footer links + pricing features use returnObjects:true for array values.
+
+**Dependencies:** Blocks: [DA-E49-01 through DA-E49-07]. Blocked by: [DA-E34-05].
+
+---
+
+### DA-E49-09 — Wire DashboardPage with auth-gating
+**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
+
+**Goal:** Integrate 11 landing sections into DashboardPage with auth-aware routing.
+
+**Acceptance Criteria:**
+- [ ] Guest: renders 11 sections (Hero→LogoWall→Features→Stats→HowItWorks→Templates→Testimonials→Pricing→FAQ→CTA→Footer)
+- [ ] AGENCY_OWNER/ACCOUNT_MANAGER/CONTENT_CREATOR: navigate('/workspace', {replace:true})
+- [ ] BRAND_CLIENT: navigate('/portal', {replace:true}). ADMIN: navigate('/admin', {replace:true})
+- [ ] Fallback roles: dashboard with welcome + KPI placeholder + task checklist
+- [ ] useAuthStore() + useNavigate() with replace:true
+
+**Technical Notes:**
+- DashboardPage.tsx dual purpose: landing (guest) + dashboard (authenticated). No separate /landing route.
+- Redirect on mount — no flash of landing page for authenticated users.
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E35-01, DA-E35-05, DA-E35-02, DA-E49-01 through DA-E49-08].
 
 ---

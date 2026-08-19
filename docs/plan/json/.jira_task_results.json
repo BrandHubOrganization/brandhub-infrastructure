@@ -1094,5 +1094,45 @@
   {
     "task_id": "DA-E46-04",
     "jira_key": "DA-401"
+  },
+  {
+    "task_id": "DA-E35-05",
+    "jira_key": "DA-574"
+  },
+  {
+    "task_id": "DA-E35-06",
+    "jira_key": "DA-575"
+  },
+  {
+    "task_id": "DA-E35-07",
+    "jira_key": "DA-576"
+  },
+  {
+    "task_id": "DA-E35-08",
+    "jira_key": "DA-577"
+  },
+  {
+    "task_id": "DA-E35-09",
+    "jira_key": "DA-578"
+  },
+  {
+    "task_id": "DA-E35-10",
+    "jira_key": "DA-579"
+  },
+  {
+    "task_id": "DA-E35-11",
+    "jira_key": "DA-580"
+  },
+  {
+    "task_id": "DA-E36-06",
+    "jira_key": "DA-581"
+  },
+  {
+    "task_id": "DA-E36-07",
+    "jira_key": "DA-582"
+  },
+  {
+    "task_id": "DA-E36-08",
+    "jira_key": "DA-583"
   }
 ]
