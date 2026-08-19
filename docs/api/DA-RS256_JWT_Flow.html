@@ -434,7 +434,7 @@
         <li><code>X-User-Role</code> = claims.role (quyền workspace)</li>
         <li><code>X-Workspace-Id</code> = claims.workspaceId</li>
       </ul>
-      <p>Sau đó forward đến Business Service — service này đọc headers để biết user, <strong>không cần xác thực lại JWT</strong>. Nếu token không hợp lệ, Gateway không forward đi đâu cả, chỉ trả 401.</p>
+      <p>Sau đó forward đến Business/AI/Publisher. <strong>Thực tế đã kiểm chứng với code:</strong> AI và Publisher Service đọc headers này để biết user, không tự verify JWT. Nhưng Business Service <strong>tự parse lại JWT từ header <code>Authorization</code> và verify RS256 độc lập</strong> (<code>JwtAuthenticationFilter.java</code>) — không dùng các header Gateway vừa inject. Nếu token không hợp lệ, Gateway không forward đi đâu cả, chỉ trả 401.</p>
     </div>
   </div>
 </div>
@@ -1305,7 +1305,7 @@ Redis EXISTS jwt:blacklist:{jti}?
       <pre class="inline-code">X-User-Id:      claims.sub       → userId
 X-User-Role:    claims.role      → quyền
 X-Workspace-Id: claims.workspaceId → workspace</pre>
-      <p>Business Service nhận request với các headers này, <strong>không cần xác thực lại JWT</strong>. Gateway đã làm việc đó rồi.</p>
+      <p>AI/Publisher Service nhận request với các headers này, không tự verify JWT — Gateway đã làm việc đó rồi. <strong>Business Service thì khác:</strong> nó tự parse lại JWT từ header <code>Authorization</code> và verify RS256 độc lập (<code>JwtAuthenticationFilter</code>), không dùng các header này — verify 2 lần (Gateway rồi tới chính nó).</p>
     </div>
   </div>
 </div>
