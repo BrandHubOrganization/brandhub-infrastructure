@@ -1121,7 +1121,7 @@
 
 - **Goal:** Mô tả đăng nhập bằng Google OAuth — redirect consent screen, callback handler, tạo user nếu chưa tồn tại.
 - **Business Rules:** scope `openid email profile`, tạo user role AGENCY_OWNER nếu mới.
-- **Source References:** `docs/feature/oauth-social-login/spec.md`, `docs/api/endpoints/01_auth.md`, `docs/plan/sprints/sprint_05/PLAN.md`
+- **Source References:** `docs/feature/auth/oauth-social-login/spec.md`, `docs/api/endpoints/01_auth.md`, `docs/plan/sprints/sprint_05/PLAN.md`
 - **Dependencies:** DA-D14-01 through DA-D14-04
 
 ---
