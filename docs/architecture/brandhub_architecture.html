@@ -181,6 +181,21 @@ body {
 }
 .leg-i { display: flex; align-items: center; gap: 5px; }
 .leg-line { width: 20px; height: 2.5px; border-radius: 1px; }
+
+/* ── Info sections (auth flow / local run) ── */
+.info-sec { max-width: 1140px; margin: 22px auto 0; }
+.info-sec h2 { font-size: 14px; font-weight: 700; color: #222; margin-bottom: 4px; }
+.info-sec .info-sub { font-size: 11px; color: #999; margin-bottom: 12px; }
+.info-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.info-card { background: #fff; border: 1px solid #E8E8E8; border-radius: 10px; padding: 14px 16px; font-size: 11.5px; color: #444; line-height: 1.6; }
+.info-card h3 { font-size: 11.5px; font-weight: 700; color: #333; margin: 10px 0 4px; }
+.info-card h3:first-child { margin-top: 0; }
+.info-card p { margin-bottom: 6px; }
+.info-card code { background: #F3F3F3; border-radius: 3px; padding: 1px 4px; font-size: 10.5px; font-family: 'SFMono-Regular', Consolas, monospace; }
+.info-card pre { background: #1a1a2e; color: #d5d5e8; border-radius: 6px; padding: 10px 12px; font-size: 10px; overflow-x: auto; margin: 6px 0; line-height: 1.5; }
+.info-card .note { background: #FFF8E1; border: 1px solid #FFE082; border-radius: 6px; padding: 8px 10px; font-size: 10.5px; color: #7A5C00; margin-top: 8px; }
+.info-card ul { margin: 4px 0 6px 16px; }
+.info-card li { margin-bottom: 3px; }
 </style>
 </head>
 <body>
@@ -368,6 +383,110 @@ body {
   <div class="leg-i"><div class="leg-line" style="background:#AAB8D0;border-top:2px dashed #AAB8D0;height:0"></div>api-gateway fan-out</div>
   <div class="leg-i" style="color:#BDBDBD"><i class="ti ti-send" style="font-size:12px"></i>publisher-service — no direct DB (RabbitMQ consumer)</div>
   <span style="margin-left:auto;color:#ccc">BrandHub v1.0 · 2026</span>
+</div>
+
+<div class="info-sec">
+  <h2>Auth Role-Check Flow</h2>
+  <div class="info-sub">Vì sao role-check nằm ở business-service, không phải api-gateway</div>
+  <div class="info-cols">
+    <div class="info-card">
+      <h3>Gateway làm gì</h3>
+      <p><code>brandhub-api-gateway</code> (Spring Cloud Gateway) chỉ làm 2 việc bảo mật:</p>
+      <ul>
+        <li><b>Verify JWT hợp lệ</b> — <code>JwtAuthFilterGatewayFilterFactory</code> check chữ ký RS256 + check revoke (Redis blacklist). Sai → 401, chặn tại gateway.</li>
+        <li><b>Rate limiting</b> — giới hạn request theo <code>X-User-Id</code>.</li>
+      </ul>
+      <p>Sau verify, gateway inject 3 header (<code>X-User-Id</code>, <code>X-User-Role</code>, <code>X-Workspace-Id</code>) rồi forward. Gateway <b>không</b> đọc <code>X-User-Role</code> để rẽ nhánh cho phép/từ chối — chỉ nhét header rồi đi tiếp.</p>
+      <h3>Vì sao gateway không check role</h3>
+      <ul>
+        <li>Chỉ giữ public key (verify chữ ký) — private key chỉ business-service giữ.</li>
+        <li>Không có DB access tới <code>workspace_members</code> — không biết role hiện tại, chỉ biết role lúc JWT issue (claim có thể stale nếu vừa bị đổi role).</li>
+        <li>RBAC theo nghiệp vụ là domain logic của service hiểu nghiệp vụ, không phải trách nhiệm lớp routing/perimeter.</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>business-service làm gì</h3>
+      <p><code>JwtAuthenticationFilter</code> tự parse lại JWT từ đầu (đọc thẳng header <code>Authorization</code>, không dùng header gateway đã nhét) — verify độc lập, dựng <code>AuthenticatedUser</code>.</p>
+      <p><code>RequireRoleAspect</code>:</p>
+      <ul>
+        <li>Check <code>SystemRole</code> (ADMIN bypass hết).</li>
+        <li>Query <code>WorkspaceMemberRepository</code> theo <code>(workspaceId, userId)</code> → lấy <code>MemberRole</code> mới nhất từ DB, không tin claim cũ.</li>
+        <li>So với <code>@RequireRole(...)</code> — không đủ quyền → 403.</li>
+      </ul>
+      <pre>Client → api-gateway
+  1. verify chữ ký (public key) + check revoke
+  2. rate limit
+  3. inject X-User-* (chỉ log/debug)
+  4. forward nguyên request
+→ business-service
+  1. JwtAuthenticationFilter tự parse lại JWT
+  2. RequireRoleAspect query DB lấy role hiện tại
+  3. 403 nếu không đủ quyền</pre>
+      <div class="note">README gateway mô tả "downstream đọc header X-User-*, không re-verify" — thực tế business-service re-verify JWT độc lập, bỏ qua header gateway. Doc cũ chưa cập nhật theo code thật; không ảnh hưởng RBAC middleware.</div>
+    </div>
+  </div>
+</div>
+
+<div class="info-sec">
+  <h2>Local Run Setup</h2>
+  <div class="info-sub">Cách stack local thực sự lắp ráp — khác README gốc (không có <code>docker-compose.yml</code> gộp)</div>
+  <div class="info-cols">
+    <div class="info-card">
+      <h3>3 file compose tách rời</h3>
+      <ul>
+        <li><code>docker-compose.infra.yml</code> — postgres, redis, rabbitmq, chromadb, neo4j. Không mở port host trừ khi có overlay dev.</li>
+        <li><code>docker-compose.dev.yml</code> — overlay thêm <code>ports:</code> cho infra + service <code>pgadmin</code>.</li>
+        <li><code>docker-compose.apps.yml</code> — 5 service app, build từ Dockerfile sibling repo (<code>../../brandhub-*</code>).</li>
+      </ul>
+      <pre># scripts/run-compose.bat
+docker compose -f infra.yml -f dev.yml up -d          # mặc định
+docker compose -f infra.yml -f apps.yml -f dev.yml up -d   # mode "full"</pre>
+      <p>Tách để dev không cần build lại 5 app image — chạy <code>mvn spring-boot:run</code>/<code>npm run dev</code> trực tiếp hot-reload. <code>full</code> dùng khi test nguyên cụm Docker (staging-like).</p>
+    </div>
+    <div class="info-card">
+      <h3>MongoDB không có trong compose</h3>
+      <p><code>business-service</code> có biến <code>MONGODB_URI</code> nhưng không service <code>mongo</code> nào trong infra compose — Mongo dùng Atlas cloud, không self-host local. <code>init-mongo.js</code> chạy tay nhắm Atlas, không qua entrypoint init.</p>
+      <h3>Dependency chain (full stack)</h3>
+      <pre>postgres/redis/rabbitmq (healthy)
+  → business-service (Postgres, Redis, RabbitMQ, Mongo Atlas)
+  → api-gateway (chờ business+ai service_started)
+  → web-dashboard (chỉ chờ container start, không chờ healthy)
+ai-service → chromadb (service_started)
+publisher-service → rabbitmq (healthy)</pre>
+      <p>api-gateway là entrypoint duy nhất từ ngoài (8080). Local vẫn mở port 8081/8082/8083 để debug trực tiếp — production không expose.</p>
+      <div class="note">README hiện tại nói sai: có 1 <code>docker-compose.yml</code> gộp (thực tế 3 file), Mongo container local (thực tế Atlas), version image cũ (<code>postgres:16</code>/<code>rabbitmq:3.13</code> thay vì <code>17</code>/<code>3.12</code>).</div>
+    </div>
+  </div>
+</div>
+
+<div class="info-sec">
+  <h2>API mới có tự sync qua Gateway không?</h2>
+  <div class="info-sub">Có — với điều kiện. Cơ chế: wildcard path predicate, không phải service discovery động</div>
+  <div class="info-cols">
+    <div class="info-card">
+      <h3>Cơ chế thật</h3>
+      <p><code>brandhub-api-gateway/src/main/resources/application.yml</code> chỉ có 2 route cho business-service:</p>
+      <pre>- id: auth-public
+  uri: business-service
+  predicates: [Path=/api/v1/auth/**]        # không cần JWT
+
+- id: business-protected
+  uri: business-service
+  predicates: [Path=/api/v1/**]             # JWT + rate-limit
+  filters: [JwtAuthFilter, RateLimit]</pre>
+      <p>Route <code>business-protected</code> match theo <b>path prefix wildcard</b>, không liệt kê từng endpoint. Controller mới trong business-service dùng <code>@RequestMapping("/api/v1/...")</code> → tự động match, tự động đi qua JWT filter + rate limit, <b>không cần sửa gateway config</b>.</p>
+      <div class="note">Đây không phải service discovery (Eureka/Consul) hay dynamic route registration — chỉ là 1 route Spring Cloud Gateway match theo prefix cố định. "Tự sync" = do path đã nằm trong prefix đã khai báo sẵn, không phải gateway quét code business-service.</div>
+    </div>
+    <div class="info-card">
+      <h3>Khi nào PHẢI sửa gateway config</h3>
+      <ul>
+        <li><b>Endpoint cần public</b> (không JWT) — phải thêm path vào route <code>auth-public</code> hoặc tạo route mới loại trừ <code>JwtAuthFilter</code>. Route <code>business-protected</code> áp JWT cho mọi thứ dưới <code>/api/v1/**</code> trừ khi path đã match route auth-public trước.</li>
+        <li><b>Thêm service mới</b> (khác business-service) — ai-service, publisher-service hiện <b>chưa</b> có route riêng qua gateway trong <code>application.yml</code> này (chỉ business-service có 2 route). Muốn public qua gateway phải khai báo route + <code>uri</code> mới trỏ service đó.</li>
+        <li><b>Rate-limit riêng cho nhóm endpoint</b> — cần route/filter config riêng (gateway đã có sẵn biến rate-limit riêng cho AI text/image/video/publish trong <code>docker-compose.apps.yml</code>, nhưng đó là env var đọc bởi filter, không phải route mới).</li>
+      </ul>
+      <p>Tóm lại: thêm API bình thường (có auth, thuộc business-service, dưới <code>/api/v1/</code>) → chỉ code bên service, gateway tự cover. Ngoài phạm vi đó → phải sửa <code>application.yml</code> gateway.</p>
+    </div>
+  </div>
 </div>
 
 <script>

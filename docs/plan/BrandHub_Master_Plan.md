@@ -514,43 +514,62 @@
 
 ## AI Iteration 2 — RAG, LLM & Trends (Parallel with Sprints 7–8)
 
-### EPIC AI-03 — RAG Knowledge Base Pipeline
+### EPIC AI-03 — Brand Knowledge Base & Ingestion Pipeline
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-AI03-01](#da-ai03-01-implement-document-upload-endpoint-accept-pdfdocxtxturl-save-file-to-s3) | Implement document upload endpoint (accept PDF/DOCX/TXT/URL, save file to S3) | Lộc (AI Sub-lead) | 🔴 Critical |
-| [DA-AI03-02](#da-ai03-02-build-document-chunking-service-using-langchain-recursivecharactertextsplitter-chunksize500-overlap50) | Build document chunking service using LangChain RecursiveCharacterTextSplitter (chunk_size=500, overlap=50) | Ân (AI) | 🔴 Critical |
-| [DA-AI03-03](#da-ai03-03-build-embedding-pipeline-text-chunk-embedding-store-in-chromadb-with-metadata) | Build embedding pipeline (text chunk → vector via embedding model → store in ChromaDB with metadata: documentId, clientId, chunkIndex) | Tuấn (AI) | 🔴 Critical |
-| [DA-AI03-04](#da-ai03-04-implement-semantic-search-query-embedding-top-k-retrieval-from-chromadb-filtered-by-clientid) | Implement semantic search (query → embedding → top-K retrieval from ChromaDB filtered by clientId) | Tuấn (AI) | 🔴 Critical |
-| [DA-AI03-05](#da-ai03-05-build-rag-context-builder-format-top-k-chunks-into-context-string-for-llm-prompt) | Build RAG context builder (format top-K chunks into a context string for LLM prompt) | Ân (AI) | 🔴 Critical |
-| [DA-AI03-06](#da-ai03-06-document-deletion-endpoint-remove-chunks-from-chromadb-file-from-s3) | Document deletion endpoint (remove chunks from ChromaDB + file from S3) | Lộc (AI Sub-lead) | 🟡 High |
-| [DA-AI03-07](#da-ai03-07-test-rag-accuracy-upload-3-real-brand-documents-verify-retrieved-context-is-correct-and-does-not-hallucinate) | Test RAG accuracy (upload 3 real brand documents, verify retrieved context is correct and does not hallucinate) | Ân (AI) | 🔴 Critical |
-| [DA-AI03-08](#da-ai03-08-write-rag-pipeline-documentation-architecture-tuning-parameters-evaluation-methodology) | Write RAG pipeline documentation (architecture, tuning parameters, evaluation methodology) | Ân (AI) | 🟢 Medium |
+| [DA-AI03-01](#da-ai03-01--brand-document-upload-api-post-apiv1airagdocuments) | Brand Document Upload API (`POST /api/v1/ai/rag/documents`) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI03-02](#da-ai03-02--object-storage-ingestion-ragclientiddocidfilename--document-deletion) | Object Storage Ingestion (`rag/{clientId}/{docId}/{filename}`) & Document Deletion | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI03-03](#da-ai03-03--document-chunking--multi-tenant-tagging-engine-clientid-security-isolation) | Document Chunking & Multi-tenant Tagging Engine (`clientId` Security Isolation) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI03-04](#da-ai03-04--test-rag-accuracy-for-brand-knowledge-base) | Test RAG Accuracy for Brand Knowledge Base | Ân (AI) | 🔴 Critical |
+| [DA-AI03-05](#da-ai03-05--write-rag-pipeline--multi-tenant-isolation-documentation) | Write RAG Pipeline & Multi-tenant Isolation Documentation | Ân (AI) | 🟢 Medium |
 
 ### EPIC AI-04 — LLM Content Generation
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-AI04-01](#da-ai04-01-build-prompt-template-system-topic-rag-context-trend-data-tone-platform-full-llm-prompt) | Build prompt template system (receive topic + RAG context + trend data + tone → generate full prompt) | Ân (AI) | 🔴 Critical |
-| [DA-AI04-02](#da-ai04-02-integrate-llama-3-via-groq-api-system-prompt-only-use-provided-context-do-not-fabricate) | Integrate Llama 3 via Groq API (system prompt enforces: only use provided context, do not fabricate) | Tuấn (AI) | 🔴 Critical |
-| [DA-AI04-03](#da-ai04-03-integrate-claude-api-as-fallback-when-groq-is-rate-limited-or-quality-fails) | Integrate Claude API as fallback when Groq is rate-limited or quality is low | Tuấn (AI) | 🔴 Critical |
-| [DA-AI04-04](#da-ai04-04-implement-platform-specific-caption-truncation-fb-63k-threads-500-tiktok-4k-chars) | Implement platform-specific optimization (auto-truncate captions: FB 63k, Threads 500, TikTok 4k chars) | Lộc (AI Sub-lead) | 🟡 High |
-| [DA-AI04-05](#da-ai04-05-implement-hashtag-generation-endpoint-post-aicontenthashtags) | Implement hashtag generation endpoint (call Llama 3 with a simple prompt) | Lộc (AI Sub-lead) | 🟡 High |
-| [DA-AI04-06](#da-ai04-06-implement-regenerate-with-feedback-receive-previous-caption-user-feedback-generate-improved-version) | Implement regenerate with feedback (receive previous output + feedback → generate improved version) | Ân (AI) | 🟡 High |
-| [DA-AI04-07](#da-ai04-07-anti-hallucination-test-verify-20-generated-captions-every-claim-must-be-sourced-from-brand-context) | Anti-hallucination test (verify 20 generated captions — every claim must be sourced from brand context) | All (Team) | 🔴 Critical |
-| [DA-AI04-08](#da-ai04-08-write-prompt-engineering-documentation-template-design-system-prompt-guide-tone-examples) | Write Prompt Engineering Documentation (template design, system prompt best practices, tone guide) | Ân (AI) | 🟢 Medium |
+| [DA-AI04-01](#da-ai04-01--build-prompt-template-system-topic--rag-context--trend-data--tone--platform--full-llm-prompt) | Build prompt template system (receive topic + RAG context + trend data + tone → generate full prompt) | Ân (AI) | 🔴 Critical |
+| [DA-AI04-02](#da-ai04-02--integrate-llama-3-via-groq-api-system-prompt-enforces-only-use-provided-context-do-not-fabricate) | Integrate Llama 3 via Groq API (system prompt enforces: only use provided context, do not fabricate) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI04-03](#da-ai04-03--integrate-claude-api-as-fallback-when-groq-is-rate-limited-or-quality-fails) | Integrate Claude API as fallback when Groq is rate-limited or quality is low | Tuấn (AI) | 🔴 Critical |
+| [DA-AI04-04](#da-ai04-04--implement-platform-specific-caption-truncation-fb-63k-threads-500-tiktok-4k-chars) | Implement platform-specific optimization (auto-truncate captions: FB 63k, Threads 500, TikTok 4k chars) | Lộc (Sub-lead) | 🟡 High |
+| [DA-AI04-05](#da-ai04-05--implement-hashtag-generation-endpoint-post-apiv1aicontenthashtags) | Implement hashtag generation endpoint (`POST /api/v1/ai/content/hashtags`) | Lộc (Sub-lead) | 🟡 High |
+| [DA-AI04-06](#da-ai04-06--implement-regenerate-with-feedback-receive-previous-caption--user-feedback--generate-improved-version) | Implement regenerate with feedback (receive previous output + feedback → generate improved version) | Ân (AI) | 🟡 High |
+| [DA-AI04-07](#da-ai04-07--anti-hallucination-test-verify-20-generated-captions--every-claim-must-be-sourced-from-brand-context) | Anti-hallucination test (verify 20 generated captions — every claim must be sourced from brand context) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI04-08](#da-ai04-08--write-prompt-engineering-documentation-template-design-system-prompt-guide-tone-examples) | Write Prompt Engineering Documentation (template design, system prompt best practices, tone guide) | Ân (AI) | 🟢 Medium |
 
-### EPIC AI-05 — Trend Crawler Service
+### EPIC AI-05 — Trend Crawler, Prediction Engine & Storage Service
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-AI05-01](#da-ai05-01-implement-google-trends-crawler-using-pytrends-to-fetch-top-trending-keywords-in-vietnam) | Implement Google Trends crawler (pytrends) to fetch top trending keywords in Vietnam | Ân (AI) | 🟡 High |
-| [DA-AI05-02](#da-ai05-02-implement-tiktok-trending-hashtag-crawler-web-scraping-or-unofficial-api-fallback-to-pytrends) | Implement TikTok trending hashtag crawler (web scraping or unofficial API) | Ân (AI) | 🟡 High |
-| [DA-AI05-03](#da-ai05-03-normalize-trend-data-into-standard-format-keyword-score-platform-relatedtopics) | Normalize trend data into a standard format: {keyword, score, platform, relatedTopics[]} | Ân (AI) | 🟡 High |
-| [DA-AI05-04](#da-ai05-04-implement-redis-cache-for-trend-data-key-trendsvndatecategory-ttl-6-hours) | Implement Redis cache for trend data (TTL 6 hours, key: trends:vn:{date}:{category}) | Ân (AI) | 🟡 High |
-| [DA-AI05-05](#da-ai05-05-implement-trend-suggestions-api-endpoint-get-aitrendscategoryfashionlimit20) | Implement trend suggestions API endpoint (GET /ai/trends?category=fashion&limit=20) | Ân (AI) | 🟡 High |
-| [DA-AI05-06](#da-ai05-06-set-up-apscheduler-to-auto-crawl-every-6-hours) | Set up APScheduler to auto-crawl every 6 hours | Ân (AI) | 🟢 Medium |
-| [DA-AI05-07](#da-ai05-07-brainstorm-ai-crawl-idea-phát-sinh-ngoài-plan-gốc) 🆕 | Brainstorm AI crawl idea | Trung (Leader) | 🟢 Medium |
+| [DA-AI05-01](#da-ai05-01--aggregate-and-select-required-scraping-apis-on-apify--scrape-creators-for-social-media-data-collection) | Aggregate and Select Required Scraping APIs on Apify & Scrape Creators for Social Media Data Collection | Tuấn (AI) | 🔴 Critical |
+| [DA-AI05-02](#da-ai05-02--demo-crawled-social-media-data-on-google-sheets) | Demo Crawled Social Media Data on Google Sheets | Tuấn (AI) | 🟡 High |
+| [DA-AI05-03](#da-ai05-03--complete-end-to-end-social-media-crawl-workflow-via-n8n-or-custom-code) | Complete End-to-End Social Media Crawl Workflow via N8N or Custom Code | Tuấn (AI) | 🔴 Critical |
+| [DA-AI05-04](#da-ai05-04--host-and-set-up-chromadb-or-neo4j-database-instance-for-storing-raw-collected-data) | Host and Set Up ChromaDB or Neo4j Database Instance for Storing Raw Collected Data | Tuấn (AI) | 🔴 Critical |
+| [DA-AI05-05](#da-ai05-05--message-queue--buffer-layer-integration-redis-queue--kafka) | Message Queue / Buffer Layer Integration (Redis Queue / Kafka) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI05-06](#da-ai05-06--underthesea-nlp-tokenization) | Underthesea NLP Tokenization | Ân (AI) | 🔴 Critical |
+| [DA-AI05-07](#da-ai05-07--slang-map--text-normalization-engine) | Slang Map & Text Normalization Engine | Ân (AI) | 🔴 Critical |
+| [DA-AI05-08](#da-ai05-08--bm25-anomaly-calculation-spike-detection) | BM25 Anomaly Calculation (Spike Detection) | Ân (AI) | 🔴 Critical |
+| [DA-AI05-09](#da-ai05-09--neo4j-interaction-graph-construction) | Neo4j Interaction Graph Construction | Ân (AI) | 🔴 Critical |
+| [DA-AI05-10](#da-ai05-10--gds-engine-scheduled-execution-run-periodic-algorithms-nightly-or-every-few-hours) | GDS Engine Scheduled Execution (Run periodic algorithms nightly or every few hours) | Ân (AI) | 🔴 Critical |
+| [DA-AI05-11](#da-ai05-11--degree-filter--botnet-detection-calculate-in-degree---flag-isstopwordtrue-if-spam) | Degree Filter & Botnet Detection (Calculate In-Degree -> Flag isStopWord=true if Spam) | Ân (AI) | 🔴 Critical |
+| [DA-AI05-12](#da-ai05-12--personalized-pagerank-engine-calculate-niche-virality-score-for-posts) | Personalized PageRank Engine (Calculate Niche Virality Score for Posts) | Ân (AI) | 🔴 Critical |
+| [DA-AI05-13](#da-ai05-13--betweenness-centrality-engine-find-bridge-keywords-between-communities---trending-keywords) | Betweenness Centrality Engine (Find Bridge Keywords between Communities -> Trending Keywords) | Ân (AI) | 🔴 Critical |
+| [DA-AI05-14](#da-ai05-14--final-scoring-engine-bm25-anomaly-x-virality) | Final Scoring Engine (BM25 Anomaly x Virality) | Ân (AI) | 🔴 Critical |
+| [DA-AI05-15](#da-ai05-15--filter-top-10-20-trends-engine) | Filter Top 10-20 Trends Engine | Ân (AI) | 🔴 Critical |
+| [DA-AI05-16](#da-ai05-16--redis-zset-caching-engine-trendsvndatecategory-ttl-6h) | Redis ZSET Caching Engine (`trends:vn:{date}:{category}`, TTL 6h) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-17](#da-ai05-17--upsert-neo4j-node-trend) | Upsert Neo4j Node `:Trend` | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-18](#da-ai05-18--deep-crawl-trigger-engine-posts--comments-collector) | Deep Crawl Trigger Engine (Posts & Comments Collector) | Lộc (Sub-lead) | 🟡 High |
+| [DA-AI05-19](#da-ai05-19--langchain-text-chunking-size-500-overlap-50) | LangChain Text Chunking (Size 500, Overlap 50) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-20](#da-ai05-20--text-embedding-pipeline-all-minilm-l6-v2-384d) | Text Embedding Pipeline (`all-MiniLM-L6-v2`, 384d) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-21](#da-ai05-21--chromadb-vector-store-integration-hnsw-index-engine) | ChromaDB Vector Store Integration (HNSW Index Engine) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-22](#da-ai05-22--llm-ner--relation-extraction-engine) | LLM NER & Relation Extraction Engine | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-23](#da-ai05-23--neo4j-knowledge-graph-ingestion-engine) | Neo4j Knowledge Graph Ingestion Engine | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-24](#da-ai05-24--entity-resolution-job-knowledge-graph-fusion) | Entity Resolution Job (Knowledge Graph Fusion) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-25](#da-ai05-25--raw-data-ingestion-json-parsing-object-normalization--hash-deduplication-engine-t0) | Raw Data Ingestion, JSON Parsing, Object Normalization & Hash Deduplication Engine (T0) | Ân (AI) | 🔴 Critical |
+| [DA-AI05-26](#da-ai05-26--bot-clone--spam-filter-engine-rule-kb1-kb2-kb3ab-kb5-kb6-t1) | Bot, Clone & Spam Filter Engine (Rule KB1, KB2, KB3A/B, KB5, KB6) (T1) | Ân (AI) | 🔴 Critical |
+| [DA-AI05-27](#da-ai05-27--multi-class-topic-classification-engine-6-categories-t3) | Multi-Class Topic Classification Engine (6 Categories: tech, food, sports, entertainment, news, education) (T3) | Ân (AI) | 🔴 Critical |
+| [DA-AI05-28](#da-ai05-28--engagement-virality-score--reaction-mood-analysis-engine-t5) | Engagement Virality Score & Reaction Mood Analysis Engine (haha/wow/care/sad/angry) (T5) | Ân (AI) | 🔴 Critical |
+| [DA-AI05-29](#da-ai05-29--jaccard-clustering-community-detection-engine-t6) | Jaccard Clustering Community Detection Engine (T6) | Ân (AI) | 🔴 Critical |
 
 ### EPIC AI-4.99 — Analyze deeply crawl trend flow
 
@@ -1211,16 +1230,14 @@
 | DA-E11-07 | E11 | Trung | Global error handler chuẩn hoá `ApiResponse` — phát hiện gap khi review DA-E11-01 | [Xem](#da-e11-07-write-global-error-response-handler-for-gateway) |
 | DA-E12-07 | E12 (Authentication) | Trung | Nghiên cứu thuật toán JWT (HS256/RS256/ES256) — lẽ ra phải làm **trước** DA-E12-01 và DA-E11-02 vì cả 2 đều giả định RS256 sẵn | [Xem](#da-e12-07-research-hs256-vs-rs256-vs-es256-for-jwt-signing-phát-sinh-ngoài-plan-gốc) |
 | DA-E11-14 ⚠️ | Gắn `E11` trên Jira — **sai epic**, nội dung thực thuộc data layer | Trung | JPA models + repository cho 11 bảng PostgreSQL — code chạy trước khi plan cập nhật; nên gắn gần E13 mới đúng logic | [Xem](#da-e11-14-add-all-jpa-models-from-database-schema-for-business-service-repository-layer-phát-sinh-ngoài-plan-gốc-gắn-sai-epic-trên-jira) |
-| DA-AI05-07 | AI-05 (Trend Crawler) | Trung | Mở rộng ý tưởng crawl ngoài Google Trends/TikTok đã có | [Xem](#da-ai05-07-brainstorm-ai-crawl-idea-phát-sinh-ngoài-plan-gốc) |
 
 **Ghi chú khác phát hiện trong quá trình đối soát (không tạo task riêng):**
 - `DA-408 "Create git-commit-convention rule"` (Jira, Trung, Done) — **trùng nội dung** với acceptance criteria của DA-E02-03 (đã có sẵn "commit convention"). Không tạo task riêng, đã note trong DA-E02-03.
 - `DA-562 "test slack"` (Jira, Tuấn, To Do) — **rác**, không phải task dự án thật. Đề xuất xoá khỏi Jira, không đưa vào doc này.
-- `DA-561` trên Jira có prefix `Da-AI05-07` (chữ "a" thường) — đã chuẩn hoá thành `DA-AI05-07` trong doc này.
 - `DA-407` trên Jira có prefix `[DA-E010-07]` (thừa số 0, và epic E10 vốn là CI/CD không liên quan UI) — đã chuẩn hoá thành `DA-E08-07` trong doc này.
 
 **Việc cần làm:**
-1. Sửa lại prefix task trên Jira cho khớp: `DA-561` → `DA-AI05-07`, `DA-407` → đổi epic gắn đúng (không phải E010)
+1. Sửa lại prefix task trên Jira cho khớp: `DA-407` → đổi epic gắn đúng (không phải E010)
 2. Xác nhận lại DA-E11-14 nên thuộc epic nào chính thức (đề xuất: tạo epic mới "Business Service Data Layer" hoặc gộp vào E13)
 3. Xoá `DA-562` khỏi Jira backlog
 
@@ -3912,152 +3929,107 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 ---
 
-### DA-AI03-01 — Implement document upload endpoint (accept PDF/DOCX/TXT/URL, save file to S3)
-**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
-
-**Goal:** Provide the entry point for brand knowledge ingestion so that clients can upload brand documents that the RAG pipeline will index.
-
-**Acceptance Criteria:**
-- [ ] `POST /ai/rag/documents` accepts multipart file upload (PDF, DOCX, TXT) and an optional URL parameter
-- [ ] File is uploaded to S3 at key `rag/{clientId}/{documentId}/{filename}` and a document record is returned with `{documentId, s3Key, status: "processing"}`
-- [ ] URL input fetches the page content (via `requests` + `BeautifulSoup`) and saves as `.txt` to S3 before proceeding
-- [ ] File size limit enforced (max 10MB); unsupported extensions return `400 Bad Request`
-
-**Technical Notes:**
-- Use `python-docx` for DOCX text extraction and `pdfplumber` for PDF; do not rely on OCR for this iteration
-- Trigger chunking pipeline (DA-AI03-02) asynchronously via `BackgroundTasks` so the upload endpoint returns immediately without waiting for embedding
-
-**Dependencies:** Blocks: DA-AI03-02, DA-AI03-07. Blocked by: DA-AI02-03, DA-AI02-04.
+## PHẦN I: CHI TIẾT CÀI ĐẶT EPIC AI-03 (BRAND KNOWLEDGE BASE & INGESTION PIPELINE)
 
 ---
 
-### DA-AI03-02 — Build document chunking service using LangChain RecursiveCharacterTextSplitter (chunk_size=500, overlap=50)
-**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+### DA-AI03-01 — Brand Document Upload API (`POST /api/v1/ai/rag/documents`)
 
-**Goal:** Split raw brand documents into consistently sized chunks that are optimally sized for embedding and retrieval.
+**Goal:** Provide the primary entry point for brand knowledge ingestion so enterprise brand clients can upload internal brand guidelines, product manuals, and PR reports with multi-tenant isolation.
 
 **Acceptance Criteria:**
-- [ ] `services/chunking.py` accepts raw text string, returns `List[str]` of chunks using `RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)`
-- [ ] PDF/DOCX/TXT extracted text is correctly passed through the chunker; empty chunks are filtered out
-- [ ] Unit test confirms: a 2000-character document produces chunks of ≤500 chars with ≥50-char overlap between consecutive chunks
+- [ ] Endpoint `POST /api/v1/ai/rag/documents` accepts multipart file upload (PDF, DOCX, TXT) and mandatory `clientId`
+- [ ] Uploads raw document to AWS S3 at path key `rag/{clientId}/{documentId}/{filename}` and returns `{documentId, s3Key, status: "processing"}`
+- [ ] Validates file extension and maximum size limit (10MB); returns `400 Bad Request` if invalid
+- [ ] Triggers document chunking and multi-tenant tagging pipeline asynchronously via `BackgroundTasks`
 
 **Technical Notes:**
-- `RecursiveCharacterTextSplitter` splits on `["\n\n", "\n", " ", ""]` by default; this is appropriate for Vietnamese marketing copy — do not override separators unless testing reveals poor splits
-- Log chunk count per document at INFO level for monitoring; this is the only way to detect degenerate inputs (e.g., 1-chunk PDFs that are actually scanned images)
+- Stack: FastAPI / Spring Boot 3, boto3, multipart/form-data.
+- Endpoint: `POST /api/v1/ai/rag/documents`.
+- Security: Enforce `clientId` isolation on all incoming ingestion requests.
 
-**Dependencies:** Blocks: DA-AI03-03. Blocked by: DA-AI03-01, DA-AI02-07.
+**Dependencies:**
+Blocks: DA-AI03-02, DA-AI03-03, DA-AI03-04. Blocked by: DA-AI02-03.
 
 ---
 
-### DA-AI03-03 — Build embedding pipeline (text chunk → embedding → store in ChromaDB with metadata)
-**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+### DA-AI03-02 — Object Storage Ingestion (`rag/{clientId}/{docId}/{filename}`) & Document Deletion
 
-**Goal:** Convert document chunks into vector embeddings and persist them in ChromaDB so they can be retrieved by semantic similarity at caption generation time.
+**Goal:** Handle object storage operations for brand knowledge files including structured pathing, presigned URL generation, and complete document purge across S3, ChromaDB, and Neo4j.
 
 **Acceptance Criteria:**
-- [ ] `services/embedding.py` takes `List[str]` chunks + `{documentId, clientId}` metadata and stores all chunks in the correct ChromaDB collection
-- [ ] Metadata stored per chunk: `{documentId, clientId, chunkIndex, source_filename}`
-- [ ] Collection is created if it does not exist; existing collections are reused (idempotent on collection create)
-- [ ] End-to-end test: upload a 1000-word TXT file → verify ChromaDB collection for that clientId contains the expected number of chunks
+- [ ] Files are stored cleanly in S3 under `rag/{clientId}/{docId}/{filename}`
+- [ ] Endpoint `DELETE /api/v1/ai/rag/documents/{documentId}` purges the source file from S3 and removes all corresponding chunks from ChromaDB and nodes from Neo4j tagged with matching `documentId` and `clientId`
+- [ ] Returns `404 Not Found` if document ID does not exist or does not belong to `clientId`
 
 **Technical Notes:**
-- Use ChromaDB's built-in embedding function (`chromadb.utils.embedding_functions.SentenceTransformerEmbeddingFunction`) or pass pre-computed embeddings; decide based on DA-AI02-07 design doc
-- Batch inserts using `collection.add(documents=chunks, metadatas=..., ids=...)` in batches of 50 to avoid ChromaDB timeout on large documents
+- ChromaDB delete filter: `collection.delete(where={"$and": [{"documentId": document_id}, {"clientId": client_id}]})`
+- Neo4j purge query: `MATCH (n:BrandEntity {documentId: $documentId, clientId: $clientId}) DETACH DELETE n`
 
-**Dependencies:** Blocks: DA-AI03-04. Blocked by: DA-AI03-02, DA-AI02-02, DA-AI02-07.
+**Dependencies:**
+Blocks: None. Blocked by: DA-AI03-01.
 
 ---
 
-### DA-AI03-04 — Implement semantic search (query → embedding → top-K retrieval from ChromaDB filtered by clientId)
-**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+### DA-AI03-03 — Document Chunking & Multi-tenant Tagging Engine (`clientId` Security Isolation)
 
-**Goal:** Enable the RAG context builder to retrieve only the most relevant brand knowledge chunks for a given caption generation query.
+**Goal:** Chunk uploaded brand documents and tag all vector embeddings and knowledge graph nodes with `clientId` metadata to ensure multi-tenant security isolation.
 
 **Acceptance Criteria:**
-- [ ] `services/search.py` function `semantic_search(query: str, client_id: str, k: int = 5) -> List[str]` returns top-K chunk texts
-- [ ] Results are filtered by `clientId` metadata so no client ever retrieves another client's documents
-- [ ] When ChromaDB collection for a clientId does not exist, returns empty list (does not raise exception)
-- [ ] Unit test with seeded ChromaDB data verifies that a relevant query returns the expected chunk in position 0
+- [ ] Uses LangChain `RecursiveCharacterTextSplitter` with `chunk_size = 500` characters and `chunk_overlap = 50` characters
+- [ ] Embeds text chunks via `all-MiniLM-L6-v2` (384d) and stores in ChromaDB HNSW Index with mandatory metadata: `{clientId, documentId, chunkIndex}`
+- [ ] Extracts brand entities/relations via LLM NER and ingests into Neo4j graph with `:BrandEntity {clientId: $clientId}` label
+- [ ] Guarantees zero cross-tenant data leakage during vector and graph queries
 
 **Technical Notes:**
-- ChromaDB `collection.query(query_texts=[query], n_results=k, where={"clientId": {"$eq": client_id}})` is the correct call pattern
-- If k > number of stored chunks, ChromaDB raises an error; add a guard to set `n_results = min(k, collection.count())`
+- Every ChromaDB vector query and Neo4j Cypher traversal for brand knowledge MUST enforce `clientId` filtering.
 
-**Dependencies:** Blocks: DA-AI03-05. Blocked by: DA-AI03-03.
+**Dependencies:**
+Blocks: DA-AI03-04. Blocked by: DA-AI03-01.
 
 ---
 
-### DA-AI03-05 — Build RAG context builder (format top-K chunks into context string for LLM prompt)
-**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+### DA-AI03-04 — Test RAG Accuracy for Brand Knowledge Base
 
-**Goal:** Transform raw retrieved chunks into a cleanly formatted context block that the LLM prompt template can consume directly.
+**Goal:** Validate retrieval precision and answer accuracy for brand knowledge RAG queries across multi-tenant contexts.
 
 **Acceptance Criteria:**
-- [ ] `services/rag_context.py` takes `List[str]` chunks, returns a single formatted string with numbered chunks and clear separators
-- [ ] Empty chunk list returns an empty string (not an error), allowing graceful degradation when no brand documents exist
-- [ ] Context string length is capped at 3000 characters to stay within LLM context budget; excess chunks are truncated with a log warning
+- [ ] Upload 3 real brand documents from different industries (fashion, F&B, tech)
+- [ ] Perform 10 test queries per brand document; verify retrieved context precision ≥ 80%
+- [ ] Verify 0% cross-tenant data leakage (Client A queries never return Client B document chunks)
+- [ ] Verify zero factual hallucinations in generated answers against brand guidelines
 
 **Technical Notes:**
-- Format: `"[1] {chunk1}\n\n[2] {chunk2}\n\n..."` — numbered chunks help the LLM cite sources if prompted to do so
-- This module feeds directly into the prompt template in DA-AI04-01; coordinate the exact format string with Ân
+- Tech stack: Python, pytest, ChromaDB, Groq Llama 3.
+- Automated test suite validating precision/recall and tenant isolation.
 
-**Dependencies:** Blocks: DA-AI04-01. Blocked by: DA-AI03-04.
+**Dependencies:**
+Blocks: DA-AI03-05. Blocked by: DA-AI03-03.
 
 ---
 
-### DA-AI03-06 — Document deletion endpoint (remove chunks from ChromaDB + file from S3)
-**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
+### DA-AI03-05 — Write RAG Pipeline & Multi-tenant Isolation Documentation
 
-**Goal:** Allow clients to remove brand documents and ensure all associated vectors and stored files are fully purged to meet data hygiene requirements.
+**Goal:** Produce complete technical documentation covering the Brand Knowledge Ingestion flow, chunking parameters, vector/graph schema, and multi-tenant security isolation mechanisms.
 
 **Acceptance Criteria:**
-- [ ] `DELETE /ai/rag/documents/{documentId}` deletes all ChromaDB chunks where `documentId` matches AND deletes the S3 file
-- [ ] If document does not exist, returns `404 Not Found`
-- [ ] Both operations (ChromaDB delete + S3 delete) are attempted; if S3 delete fails, ChromaDB delete is still committed and the error is logged (not raised to client)
-- [ ] Integration test confirms: after deletion, `semantic_search` no longer returns chunks from that document
+- [ ] Document covers end-to-end data flow (Upload -> S3 -> Chunking -> ChromaDB/Neo4j Tagging -> Multi-tenant Querying)
+- [ ] Details multi-tenant security compliance rules and tuning parameters (`chunk_size=500`, `overlap=50`)
+- [ ] Outlines evaluation results from accuracy testing in DA-AI03-04
 
 **Technical Notes:**
-- ChromaDB delete by metadata: `collection.delete(where={"documentId": {"$eq": document_id}})` — verify this filter syntax works in the installed ChromaDB version before writing the endpoint
+- Location: `docs/architecture/rag_pipeline_multitenant_isolation.md`.
 
-**Dependencies:** Blocks: None. Blocked by: DA-AI03-03, DA-AI02-03.
+**Dependencies:**
+Blocks: DA-AI04-01. Blocked by: DA-AI03-04.
 
 ---
 
-### DA-AI03-07 — Test RAG accuracy (upload 3 real brand documents, verify retrieved context is correct and does not hallucinate)
-**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
-
-**Goal:** Validate that the complete RAG pipeline retrieves factually correct chunks and that the LLM does not fabricate claims outside those chunks.
-
-**Acceptance Criteria:**
-- [ ] 3 real brand documents uploaded (ideally from different industries: fashion, F&B, beauty)
-- [ ] 10 test queries per document run; retrieved chunks manually inspected and rated as relevant/irrelevant
-- [ ] Retrieval precision ≥ 80% (≥8/10 queries return at least one relevant chunk in top-3)
-- [ ] 5 generated captions per document inspected for hallucination; any claim not traceable to a source chunk is flagged as a failure
-
-**Technical Notes:**
-- Document the exact queries used and the retrieved chunks in a test report so results can be reproduced during mentor presentation
-- If precision is below 80%, first check chunk size (may need tuning) before suspecting the embedding model
-
-**Dependencies:** Blocks: DA-AI04-07. Blocked by: DA-AI03-05, DA-AI04-02.
-
----
-
-### DA-AI03-08 — Write RAG pipeline documentation (architecture, tuning parameters, evaluation methodology)
-**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
-
-**Goal:** Ensure the RAG pipeline design is legible to future maintainers and evaluators without requiring a walkthrough from the original implementer.
-
-**Acceptance Criteria:**
-- [ ] Document covers: end-to-end data flow diagram (upload → chunk → embed → store → retrieve → prompt), component responsibilities, and tuning knobs (chunk_size, overlap, k)
-- [ ] Evaluation methodology section explains how retrieval precision was measured in DA-AI03-07
-- [ ] Known limitations are listed (e.g., scanned PDF not supported, max 10MB, English-biased embedding model on Vietnamese text)
-
-**Dependencies:** Blocks: None. Blocked by: DA-AI03-07.
+## PHẦN II: CHI TIẾT CÀI ĐẶT EPIC AI-04 (LLM CONTENT GENERATION)
 
 ---
 
 ### DA-AI04-01 — Build prompt template system (topic + RAG context + trend data + tone + platform → full LLM prompt)
-**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
 
 **Goal:** Create a reusable, testable prompt assembly layer so that LLM input is constructed consistently and changes to prompts do not require touching business logic.
 
@@ -4068,48 +4040,49 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - [ ] Unit tests cover all 5 platform variants and verify the anti-hallucination instruction is always present
 
 **Technical Notes:**
-- Use Python f-string templates stored as constants in `utils/prompts.py`; avoid Jinja2 unless the team already uses it elsewhere (adds dependency for minimal gain)
-- Tone values to support at minimum: `professional`, `playful`, `urgent`, `inspirational` — map each to a short instruction phrase injected into the prompt
+- Use Python f-string templates stored as constants in `utils/prompts.py`.
+- Tones to support: `professional`, `playful`, `urgent`, `inspirational`.
 
-**Dependencies:** Blocks: DA-AI04-02. Blocked by: DA-AI03-05, DA-AI02-04.
+**Dependencies:**
+Blocks: DA-AI04-02. Blocked by: DA-AI03-05, DA-AI02-04.
 
 ---
 
-### DA-AI04-02 — Integrate Llama 3 via Groq API (system prompt: "only use provided context, do not fabricate")
-**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+### DA-AI04-02 — Integrate Llama 3 via Groq API (system prompt enforces: only use provided context, do not fabricate)
 
 **Goal:** Wire the primary LLM provider into the caption generation service using the prompt template output as input.
 
 **Acceptance Criteria:**
 - [ ] `services/llm.py` function `generate_caption_groq(prompt: str) -> str` calls Groq API with `llama3-8b-8192` or `llama3-70b-8192` model
 - [ ] System message is always prepended; user message contains the assembled prompt from DA-AI04-01
-- [ ] Rate limit (30 req/min) is handled: on `429` response, raise a custom `RateLimitError` that the caller (DA-AI04-03) catches and routes to fallback
+- [ ] Rate limit (30 req/min) is handled: on `429` response, raise a custom `RateLimitError` that caller catches and routes to fallback
 - [ ] Response text is returned stripped of leading/trailing whitespace; empty responses raise `LLMEmptyResponseError`
 
 **Technical Notes:**
-- Use `groq` Python SDK (`pip install groq`); initialize client once from `utils/clients.py`
-- Log every Groq call at DEBUG level with: model, prompt token count, completion token count, latency_ms — essential for cost tracking in DA-AI11-04
+- Tech stack: `groq` Python SDK (`pip install groq`).
+- Log every Groq call with model, prompt token count, completion token count, latency_ms.
 
-**Dependencies:** Blocks: DA-AI04-07, DA-AI03-07. Blocked by: DA-AI04-01, DA-AI02-02, DA-AI01-07.
+**Dependencies:**
+Blocks: DA-AI04-03, DA-AI04-07. Blocked by: DA-AI04-01, DA-AI02-02, DA-AI01-07.
 
 ---
 
 ### DA-AI04-03 — Integrate Claude API as fallback when Groq is rate-limited or quality fails
-**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
 
 **Goal:** Ensure caption generation never hard-fails due to Groq rate limits by automatically routing to Claude when the primary provider is unavailable.
 
 **Acceptance Criteria:**
 - [ ] `services/llm.py` function `generate_caption(prompt: str) -> str` tries Groq first; on `RateLimitError` calls `generate_caption_claude(prompt)` transparently
-- [ ] Claude fallback uses `claude-haiku-3` by default for cost efficiency; model is configurable via env var `CLAUDE_FALLBACK_MODEL`
+- [ ] Claude fallback uses `claude-3-haiku-20240307` or `claude-3-5-sonnet-20241022` configurable via `CLAUDE_FALLBACK_MODEL`
 - [ ] Fallback activation is logged at WARN level with reason (`rate_limit` or `empty_response`)
-- [ ] If both providers fail, raises `LLMUnavailableError` with a message the API layer converts to `503 Service Unavailable`
+- [ ] If both providers fail, raises `LLMUnavailableError` which API layer converts to `503 Service Unavailable`
 
 **Technical Notes:**
-- Use `anthropic` Python SDK; system prompt structure differs from Groq — Claude uses `system=` parameter at the top-level call, not inside `messages`
-- Do not implement exponential backoff at this layer; backoff belongs in DA-AI10-02 error handling wrapper
+- Tech stack: `anthropic` Python SDK.
+- Inject system prompt via `system` parameter in Anthropic messages call.
 
-**Dependencies:** Blocks: DA-AI04-07. Blocked by: DA-AI04-02, DA-AI02-02, DA-AI01-07.
+**Dependencies:**
+Blocks: DA-AI04-07. Blocked by: DA-AI04-02, DA-AI02-02, DA-AI01-07.
 
 ---
 
@@ -4119,199 +4092,602 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Goal:** Guarantee that generated captions are never rejected by platform APIs due to exceeding character limits.
 
 **Acceptance Criteria:**
-- [ ] `utils/truncation.py` implements `truncate_caption(text: str, platform: str) -> str` with per-platform limits: facebook=63206, threads=500, tiktok=4000, instagram=2200, zalo=None
+- [ ] `utils/truncation.py` implements `truncate_caption(text: str, platform: str) -> str` with per-platform limits: facebook=63206, threads=500, tiktok=4000, instagram=2200, zalo=10000
 - [ ] Truncation cuts at the last complete sentence before the limit, not mid-word; appends `"..."` if truncated
-- [ ] Unit tests cover: text exactly at limit (no change), text 1 char over limit (truncated), Threads limit (strictest, most likely to trigger)
+- [ ] Unit tests cover: text exactly at limit (no change), text 1 char over limit (truncated), Threads limit (strictest)
 
 **Technical Notes:**
-- Instagram's practical limit is 2200 chars (API accepts more but UI truncates); enforce 2200 to avoid display issues
-- Vietnamese sentences do not always end with `.`; also split on `!`, `?`, and `\n` as sentence boundaries
+- Handle Vietnamese sentence delimiters (`.`, `!`, `?`, `\n`).
 
-**Dependencies:** Blocks: DA-AI10-01. Blocked by: DA-AI02-04.
+**Dependencies:**
+Blocks: DA-AI04-07. Blocked by: DA-AI04-01, DA-AI02-04.
 
 ---
 
-### DA-AI04-05 — Implement hashtag generation endpoint (POST /ai/content/hashtags)
+### DA-AI04-05 — Implement hashtag generation endpoint (POST /api/v1/ai/content/hashtags)
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
-**Goal:** Provide a standalone hashtag generation feature so users can request platform-optimized hashtags independently of caption generation.
+**Goal:** Provide an automated API endpoint to extract and generate relevant social media hashtags based on caption content, brand industry, and current trending topics.
 
 **Acceptance Criteria:**
-- [ ] `POST /ai/content/hashtags` accepts `{topic: str, platform: str, clientId: str, count: int}` and returns `{hashtags: List[str]}`
-- [ ] Generated hashtags are formatted without spaces, with `#` prefix (e.g., `#thờiTrang`, not `#thời trang`)
-- [ ] Count is clamped to platform best practices: Instagram max 30, TikTok max 10, others max 5
+- [ ] Endpoint `POST /api/v1/ai/content/hashtags` accepts `{caption: str, platform: str, count: int}` and returns `{hashtags: List[str]}`
+- [ ] Calls Llama 3 via Groq with specialized hashtag extraction prompt
+- [ ] Filters out duplicate, banned, or offensive hashtags
+- [ ] Formats hashtags according to platform best practices (3-5 for IG/Threads, 5-10 for TikTok)
 
 **Technical Notes:**
-- Prompt the LLM to return hashtags as a JSON array to avoid parsing ambiguity; use `response_format` if the model supports it, otherwise parse with regex `#\w+`
-- Include trend data from Redis cache (DA-AI05-04) in the hashtag prompt context if available for the given category
+- Endpoint: `POST /api/v1/ai/content/hashtags`.
+- Response format: `{"hashtags": ["#BrandHub", "#ContentAI", "#MarketingTrends"]}`.
 
-**Dependencies:** Blocks: None. Blocked by: DA-AI04-02, DA-AI02-04.
+**Dependencies:**
+Blocks: None. Blocked by: DA-AI04-02, DA-AI02-04.
 
 ---
 
 ### DA-AI04-06 — Implement regenerate with feedback (receive previous caption + user feedback → generate improved version)
-**Assignee:** Ân (AI) | **Priority:** 🟡 High
 
-**Goal:** Enable iterative caption refinement so users can steer the AI output without starting from scratch.
+**Goal:** Allow users to refine AI-generated content iteratively by providing natural language feedback.
 
 **Acceptance Criteria:**
-- [ ] `POST /ai/content/regenerate` accepts `{previousCaption: str, feedback: str, platform: str, clientId: str}` and returns a new caption
-- [ ] Feedback is injected into the prompt as: "The previous caption was: {previousCaption}. User feedback: {feedback}. Generate an improved version."
-- [ ] Anti-hallucination system prompt is still included; RAG context from clientId is still retrieved and injected
-- [ ] End-to-end test: submit a caption + feedback "make it shorter and more playful" → verify the new caption is shorter and tonal shift is observable
+- [ ] Endpoint `POST /api/v1/ai/content/regenerate` accepts `{previous_caption: str, feedback: str, brand_context: str}` and returns updated caption
+- [ ] Prompt builder incorporates previous text and user instructions ("make it shorter", "add more emojis", "more formal")
+- [ ] Maintains core facts and multi-tenant brand constraints while applying user modifications
 
 **Technical Notes:**
-- Do not pass the previous caption as assistant message in a multi-turn conversation; keep it as part of the user prompt to avoid the model anchoring too strongly to the prior output
+- Endpoint: `POST /api/v1/ai/content/regenerate`.
 
-**Dependencies:** Blocks: None. Blocked by: DA-AI04-02, DA-AI03-04.
+**Dependencies:**
+Blocks: None. Blocked by: DA-AI04-01, DA-AI04-02, DA-AI03-04.
 
 ---
 
 ### DA-AI04-07 — Anti-hallucination test (verify 20 generated captions — every claim must be sourced from brand context)
 **Assignee:** All (Team) | **Priority:** 🔴 Critical
 
-**Goal:** Validate that the anti-hallucination system prompt and RAG pipeline together prevent the LLM from inventing product claims, prices, or brand facts.
+**Goal:** Perform systematic verification to ensure generated captions never invent false product features, prices, or policies.
 
 **Acceptance Criteria:**
-- [ ] 20 captions generated across at least 3 different clientId brand contexts
-- [ ] Each caption reviewed: highlight every factual claim and trace it to a specific chunk in the brand documents
-- [ ] Zero captions contain unverifiable factual claims (fabricated prices, features, awards, endorsements)
-- [ ] Any hallucination found is documented with the prompt that triggered it and escalated for prompt engineering fix before DA-AI10-01
+- [ ] Run test suite of 20 distinct generation prompts against 5 reference brand knowledge bases
+- [ ] Verify 100% of factual claims in generated captions map back to source RAG context chunks
+- [ ] Confirm zero fabricated pricing, phone numbers, or promotional offers
+- [ ] Pass threshold of zero hallucination failures across 20 test cases
 
 **Technical Notes:**
-- Test specifically with topics that are NOT in the brand documents to verify the model deflects or generalizes rather than fabricates
-- Include one test where RAG context is intentionally empty (no documents uploaded for a clientId) to verify the model does not fall back to hallucinated brand knowledge
+- Tech stack: Python, pytest, Groq Llama 3, ChromaDB.
 
-**Dependencies:** Blocks: DA-AI10-01. Blocked by: DA-AI04-02, DA-AI04-03, DA-AI03-07.
-
----
-
-### DA-AI04-08 — Write Prompt Engineering Documentation (template design, system prompt guide, tone examples)
-**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
-
-**Goal:** Record the prompt design decisions so that future prompt improvements can be made systematically rather than by trial and error.
-
-**Acceptance Criteria:**
-- [ ] Document covers: prompt template structure (annotated with section purposes), system prompt rationale, tone parameter examples (one sample output per tone)
-- [ ] Anti-hallucination approach is explained with the exact system prompt wording used
-- [ ] Known prompt failure modes from DA-AI04-07 testing are listed with mitigations
-
-**Dependencies:** Blocks: None. Blocked by: DA-AI04-07.
+**Dependencies:**
+Blocks: DA-AI04-08. Blocked by: DA-AI04-02, DA-AI04-03.
 
 ---
 
-### DA-AI05-01 — Implement Google Trends crawler using pytrends to fetch top trending keywords in Vietnam
-**Assignee:** Ân (AI) | **Priority:** 🟡 High
+### DA-AI04-08 — Write Prompt Engineering Documentation (template design, system prompt best practices, tone guide)
 
-**Goal:** Automate collection of real-time Vietnamese trend data to enrich caption generation prompts with culturally relevant keywords.
+**Goal:** Document the prompt architecture, system prompts, tone modifiers, and anti-hallucination guidelines for team reference.
 
 **Acceptance Criteria:**
-- [ ] `services/trends/google_trends.py` uses `pytrends` to fetch top 20 trending keywords for Vietnam (`geo='VN'`)
-- [ ] Function `fetch_google_trends(category: str) -> List[{keyword: str, score: int}]` returns normalized results
-- [ ] Handles `pytrends` rate limiting (429/503) with exponential backoff; returns empty list rather than raising on persistent failure
+- [ ] Documentation published at `docs/ai/prompt_engineering_guide.md`
+- [ ] Includes full prompt templates for Facebook, Instagram, TikTok, Threads, and Zalo
+- [ ] Details anti-hallucination system prompt rules and tone adjustment parameters
 
 **Technical Notes:**
-- `pytrends` is an unofficial scraper and can break when Google changes response format; pin the version and add an integration test that alerts on unexpected response shape
-- Use `TrendReq(hl='vi-VN', tz=420)` for Vietnamese locale and ICT timezone
+- Tech stack: Markdown.
 
-**Dependencies:** Blocks: DA-AI05-03. Blocked by: DA-AI02-01.
+**Dependencies:**
+Blocks: None. Blocked by: DA-AI04-07.
 
 ---
 
-### DA-AI05-02 — Implement TikTok trending hashtag crawler (web scraping or unofficial API, fallback to pytrends)
-**Assignee:** Ân (AI) | **Priority:** 🟡 High
+## PHẦN III: CHI TIẾT CÀI ĐẶT EPIC AI-05 (TREND CRAWLER, PREDICTION ENGINE & STORAGE SERVICE)
 
-**Goal:** Supplement Google Trends data with TikTok-specific trending hashtags, which are the primary discovery mechanism for BrandHub's target demographic.
+---
+
+### DA-AI05-01 — Aggregate and Select Required Scraping APIs on Apify & Scrape Creators for Social Media Data Collection
+
+**Goal:** Select, integrate, and configure external social media scraping APIs on Apify and Scrape Creators platforms to collect raw posts, reels, and comments across Facebook, Instagram, and TikTok.
 
 **Acceptance Criteria:**
-- [ ] `services/trends/tiktok_trends.py` attempts to fetch trending hashtags via TikTok web scraping or unofficial API
-- [ ] On failure or block, gracefully falls back to pytrends topic search with keyword `tiktok trending vietnam`
-- [ ] Returns `List[{keyword: str, score: int, platform: "tiktok"}]` in the same shape as DA-AI05-01
+- [ ] Evaluate and select Apify Actors and Scrape Creators endpoints for TikTok, Facebook, and Instagram scraping
+- [ ] Configure API keys, rate limits, request retries, and target payload formats
+- [ ] Return raw social media data payloads formatted in standardized JSON (`{post_id, author, content, interactions, timestamp}`)
 
 **Technical Notes:**
-- TikTok actively blocks scrapers; use `playwright` with a stealth plugin or `httpx` with realistic browser headers as first attempt; document which approach succeeded in the test environment
-- If all scraping is blocked, the fallback is acceptable for MVP — document this limitation explicitly
+- Tech stack: Apify, Scrape Creators, REST APIs, Python.
 
-**Dependencies:** Blocks: DA-AI05-03. Blocked by: DA-AI02-01.
-
----
-
-### DA-AI05-03 — Normalize trend data into standard format {keyword, score, platform, relatedTopics[]}
-**Assignee:** Ân (AI) | **Priority:** 🟡 High
-
-**Goal:** Unify trend data from multiple sources into a single schema so the rest of the system has one interface regardless of trend source.
-
-**Acceptance Criteria:**
-- [ ] `services/trends/normalizer.py` accepts raw output from Google Trends and TikTok crawlers and returns `List[TrendItem]` where `TrendItem = {keyword: str, score: float, platform: str, relatedTopics: List[str]}`
-- [ ] Scores from different platforms are normalized to 0.0–1.0 range
-- [ ] Duplicate keywords across platforms are merged with scores averaged and platforms listed as an array
-
-**Dependencies:** Blocks: DA-AI05-04. Blocked by: DA-AI05-01, DA-AI05-02.
+**Dependencies:**
+Blocks: DA-AI05-02, DA-AI05-03. Blocked by: DA-AI02-01.
 
 ---
 
-### DA-AI05-04 — Implement Redis cache for trend data (key: trends:vn:{date}:{category}, TTL 6 hours)
-**Assignee:** Ân (AI) | **Priority:** 🟡 High
+### DA-AI05-02 — Demo Crawled Social Media Data on Google Sheets
 
-**Goal:** Prevent excessive crawling and rate-limit exposure by caching trend data for 6 hours per category per day.
+**Goal:** Build a demonstration pipeline that exports crawled social media data into Google Sheets for rapid inspection, verification, and stakeholder review.
 
 **Acceptance Criteria:**
-- [ ] `utils/trends_cache.py` implements `get_cached_trends(category) -> Optional[List]` and `set_cached_trends(category, data)` with `TTL = 21600` seconds
-- [ ] Cache key format: `trends:vn:{YYYY-MM-DD}:{category}` using current UTC date
-- [ ] On Redis connection failure, function logs error and returns `None` so callers fall back to live crawl without crashing
+- [ ] Automated export of sample crawled social media posts into a structured Google Sheet
+- [ ] Includes fields: Platform, Author, Content, Likes, Shares, Comments Count, Post Date, Raw Hashtags
+- [ ] Real-time or scheduled update trigger via Python script / N8N webhook
 
 **Technical Notes:**
-- Serialize trend data as JSON in Redis; use `json.dumps` / `json.loads` with a custom encoder if `TrendItem` is a dataclass
-- Redis client should be shared from `utils/clients.py` (add `redis_client` alongside the existing 4 clients)
+- Tech stack: Google Sheets API, Python, N8N.
 
-**Dependencies:** Blocks: DA-AI05-05. Blocked by: DA-AI05-03, DA-AI02-01.
-
----
-
-### DA-AI05-05 — Implement trend suggestions API endpoint (GET /ai/trends?category=fashion&limit=20)
-**Assignee:** Ân (AI) | **Priority:** 🟡 High
-
-**Goal:** Expose trend data to the frontend and to the caption generation pipeline via a stable, cacheable API endpoint.
-
-**Acceptance Criteria:**
-- [ ] `GET /ai/trends` accepts query params `category` and `limit` (default 20, max 50)
-- [ ] Response: `{trends: List[TrendItem], cachedAt: ISO8601 timestamp, ttlSeconds: int}`
-- [ ] Cache hit serves instantly from Redis; cache miss triggers live crawl, caches result, then responds
-- [ ] If both cache miss and crawl fail, returns `503` with `{"error": "trend_data_unavailable"}` rather than empty list
-
-**Dependencies:** Blocks: DA-AI04-01 (trend data injection into prompts). Blocked by: DA-AI05-04.
+**Dependencies:**
+Blocks: DA-AI05-03. Blocked by: DA-AI05-01.
 
 ---
 
-### DA-AI05-06 — Set up APScheduler to auto-crawl every 6 hours
-**Assignee:** Ân (AI) | **Priority:** 🟢 Medium
+### DA-AI05-03 — Complete End-to-End Social Media Crawl Workflow via N8N or Custom Code
 
-**Goal:** Keep the trend cache warm by proactively refreshing all tracked categories on a schedule rather than relying on user requests to trigger crawls.
+**Goal:** Construct an automated end-to-end scheduled workflow in N8N (or Python FastAPI worker) to trigger scraping tasks, handle proxy rotation, retry failed requests, and pass collected data to buffer queues.
 
 **Acceptance Criteria:**
-- [ ] `APScheduler` job runs every 6 hours, crawls trends for all configured categories (fashion, food, beauty, tech, lifestyle), and updates Redis
-- [ ] Scheduler starts automatically when FastAPI app starts via `lifespan` context manager
-- [ ] Failed crawl jobs log the error and do not crash the scheduler; next scheduled run proceeds normally
+- [ ] N8N workflow `brandhub-social-crawl-pipeline` deployed with schedule trigger (every 6 hours)
+- [ ] Automated execution: API trigger -> Fetch posts & comments -> Format validation -> Ingestion trigger
+- [ ] Error handling with automated retries (3x backoff) and alert webhooks on failure
 
 **Technical Notes:**
-- Use `AsyncIOScheduler` from `apscheduler.schedulers.asyncio` to avoid blocking the FastAPI event loop
-- Add a manual trigger endpoint `POST /internal/trends/refresh` (protected by X-Internal-Key) for ad-hoc cache invalidation during demos
+- Tech stack: N8N, Python, Webhooks, Docker.
 
-**Dependencies:** Blocks: None. Blocked by: DA-AI05-04, DA-AI02-06.
+**Dependencies:**
+Blocks: DA-AI05-04, DA-AI05-05. Blocked by: DA-AI05-01.
 
 ---
 
-### DA-AI05-07 — Brainstorm AI crawl idea *(phát sinh, ngoài plan gốc)*
-**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+### DA-AI05-04 — Host and Set Up ChromaDB or Neo4j Database Instance for Storing Raw Collected Data
 
-**Goal:** Mở rộng ý tưởng thu thập dữ liệu (crawl) ngoài Google Trends + TikTok hashtag đã có trong AI05-01/02, xem có nguồn trend/insight nào khác đáng tích hợp không.
+**Goal:** Provision and configure persistent database instances (ChromaDB vector store & Neo4j graph database) dedicated to storing raw and processed social media data.
 
 **Acceptance Criteria:**
-- [ ] Danh sách ý tưởng crawl bổ sung (nguồn dữ liệu, tính khả thi, chi phí) được ghi lại
+- [ ] Dockerized deployment of ChromaDB and Neo4j instances in infrastructure stack
+- [ ] Persistent storage volumes, security authentication, memory tuning, and health check endpoints configured
+- [ ] Connection pool manager verified for high-throughput write operations
 
-**Ghi chú:** Task không có trong plan gốc — mở rộng phạm vi AI05 sau khi đã có 2 crawler cơ bản. Lưu ý trên Jira prefix bị gõ sai `Da-AI05-07` (chữ thường "a") thay vì `DA-AI05-07` — nên sửa lại cho nhất quán khi báo cáo/thống kê. Jira: DA-561, status In Review.
+**Technical Notes:**
+- Tech stack: ChromaDB, Neo4j 5.x, Docker, Cloud Instance.
 
-**Dependencies:** Blocks: None. Blocked by: DA-AI05-01, DA-AI05-02.
+**Dependencies:**
+Blocks: DA-AI05-05, DA-AI05-09. Blocked by: DA-AI02-05.
+
+---
+
+### DA-AI05-05 — Message Queue / Buffer Layer Integration (Redis Queue / Kafka)
+
+**Goal:** Implement an asynchronous buffer layer using Redis Queue or Kafka to decouple raw data crawling from downstream NLP pre-processing and trend prediction engines.
+
+**Acceptance Criteria:**
+- [ ] Setup ingestion queue `queue:social:raw_posts` for streaming collected raw JSON items
+- [ ] Producer module in Crawler workflow pushes batch items to queue with idempotency keys
+- [ ] Consumer worker pulls messages asynchronously and routes them to Tầng 2 (NLP Tokenization Engine)
+
+**Technical Notes:**
+- Tech stack: Redis Queue / Kafka, Python, AsyncIO.
+
+**Dependencies:**
+Blocks: DA-AI05-06. Blocked by: DA-AI05-03, DA-AI05-04.
+
+---
+
+### DA-AI05-06 — Underthesea NLP Tokenization
+
+**Goal:** Perform Vietnamese word tokenization and compound phrase extraction on raw social media post contents using Underthesea NLP.
+
+**Acceptance Criteria:**
+- [ ] `services/tokenization.py` accepts raw text strings and outputs tokenized compound words (e.g., *"trà sữa đất nung"* -> `["trà_sữa", "đất_nung"]`)
+- [ ] Clean regex removal of URLs, special symbols, and noise characters prior to tokenization
+- [ ] Benchmarked execution time < 50ms per post payload
+
+**Technical Notes:**
+- Tech stack: Python 3.11, Underthesea NLP.
+
+**Dependencies:**
+Blocks: DA-AI05-07. Blocked by: DA-AI05-05.
+
+---
+
+### DA-AI05-07 — Slang Map & Text Normalization Engine
+
+**Goal:** Build a normalization engine that maps Vietnamese social media slang, teen-code, and abbreviations to standard terminology.
+
+**Acceptance Criteria:**
+- [ ] Custom mapping dictionary (JSON/YAML) covering popular slang (e.g. *"mlem"* -> *"ngon/hấp dẫn"*, *"gank"* -> *"trợ giúp"*, *"khum"* -> *"không"*)
+- [ ] Standardizes tokens, lowercases text, and strips uninformative noise characters
+- [ ] Provides extensible lookup API for dynamic dictionary updates
+
+**Technical Notes:**
+- Tech stack: Python, Custom Slang Map Dictionary.
+
+**Dependencies:**
+Blocks: DA-AI05-08, DA-AI05-09. Blocked by: DA-AI05-06.
+
+---
+
+### DA-AI05-08 — BM25 Anomaly Calculation (Spike Detection)
+
+**Goal:** Calculate term frequency anomaly scores using BM25 algorithms, comparing current 6-hour windows against 7-day historical baselines to detect surging keywords.
+
+**Acceptance Criteria:**
+- [ ] Implements BM25 anomaly detector comparing current 6h window term frequency against 7-day baseline corpus
+- [ ] Calculates IDF and term saturation parameters (`k1=1.5`, `b=0.75`)
+- [ ] Selects candidate keywords exceeding the anomaly spike threshold
+
+**Technical Notes:**
+- Tech stack: Python, rank_bm25, NumPy.
+
+**Dependencies:**
+Blocks: DA-AI05-14. Blocked by: DA-AI05-07.
+
+---
+
+### DA-AI05-09 — Neo4j Interaction Graph Construction
+
+**Goal:** Construct a social interaction graph in Neo4j connecting Users, Posts, and Keywords (`:User-[:POSTED|:RETWEETED|:COMMENTED]->:Post`).
+
+**Acceptance Criteria:**
+- [ ] Schema definition: Nodes (`:User`, `:Post`, `:Keyword`, `:Community`), Edges (`:POSTED`, `:INTERACTED`, `:MENTIONS`)
+- [ ] High-speed batch Cypher `MERGE` ingestion from normalized post streams
+- [ ] Graph indices created on `user_id`, `post_id`, and `keyword` fields for rapid traversal
+
+**Technical Notes:**
+- Tech stack: Neo4j 5.x, Cypher, Python.
+
+**Dependencies:**
+Blocks: DA-AI05-10. Blocked by: DA-AI05-07, DA-AI05-04.
+
+---
+
+### DA-AI05-10 — GDS Engine Scheduled Execution (Run periodic algorithms nightly or every few hours)
+
+**Goal:** Schedule and execute Neo4j Graph Data Science (GDS) algorithms periodically to compute structural metrics on the interaction graph.
+
+**Acceptance Criteria:**
+- [ ] Graph projection setup using `gds.graph.project` in RAM
+- [ ] APScheduler trigger configured to run GDS algorithms nightly or every 6 hours
+- [ ] Automated cleanup and release of in-memory graph projections post-computation
+
+**Technical Notes:**
+- Tech stack: Neo4j GDS (Graph Data Science), APScheduler / Cron.
+
+**Dependencies:**
+Blocks: DA-AI05-11, DA-AI05-12, DA-AI05-13. Blocked by: DA-AI05-09.
+
+---
+
+### DA-AI05-11 — Degree Filter & Botnet Detection (Calculate In-Degree -> Flag isStopWord=true if Spam)
+
+**Goal:** Detect and filter spam, botnets, and unnatural amplification by evaluating node In-Degree metrics and flagging artificial clusters.
+
+**Acceptance Criteria:**
+- [ ] Compute In-Degree centrality across interaction graph nodes
+- [ ] Flag accounts/keywords exceeding statistical anomaly limits with `isStopWord=true` / `isSpam=true`
+- [ ] Exclude flagged spam nodes from downstream virality calculations
+
+**Technical Notes:**
+- Tech stack: Neo4j Cypher, Degree Centrality.
+
+**Dependencies:**
+Blocks: DA-AI05-14. Blocked by: DA-AI05-10.
+
+---
+
+### DA-AI05-12 — Personalized PageRank Engine (Calculate Niche Virality Score for Posts)
+
+**Goal:** Run Personalized PageRank algorithms on the Neo4j interaction graph to calculate organic Niche Virality Scores for social posts and topics.
+
+**Acceptance Criteria:**
+- [ ] Execute `gds.pageRank.stream` with personalization weights assigned to verified high-authority creators/KOLs
+- [ ] Outputs normalized Virality Score in range `[0, 1]` for candidate posts and keywords
+- [ ] Write back `viralityScore` property to Neo4j nodes
+
+**Technical Notes:**
+- Tech stack: Neo4j GDS, PageRank, Python.
+
+**Dependencies:**
+Blocks: DA-AI05-14. Blocked by: DA-AI05-10.
+
+---
+
+### DA-AI05-13 — Betweenness Centrality Engine (Find Bridge Keywords between Communities -> Trending Keywords)
+
+**Goal:** Calculate Betweenness Centrality to identify "bridge" keywords connecting distinct community clusters, signalling cross-community trending topics.
+
+**Acceptance Criteria:**
+- [ ] Execute `gds.betweenness.stream` on community graph projections
+- [ ] Identify high-betweenness keywords acting as bridges between different interest groups
+- [ ] Combine bridge score with topic virality metrics
+
+**Technical Notes:**
+- Tech stack: Neo4j GDS, Betweenness Centrality.
+
+**Dependencies:**
+Blocks: DA-AI05-14. Blocked by: DA-AI05-10.
+
+---
+
+### DA-AI05-14 — Final Scoring Engine (BM25 Anomaly x Virality)
+
+**Goal:** Compute the final trend score by multiplying the BM25 Spike Anomaly Score with the Organic Virality Score.
+
+**Acceptance Criteria:**
+- [ ] Implement formula: `Final Score = BM25 Anomaly Score * Virality Score (Organic Engagement)`
+- [ ] Combine anomaly output from DA-AI05-08 and graph scores from DA-AI05-11..13
+- [ ] Rank candidate topics by Final Score
+
+**Technical Notes:**
+- Tech stack: Python, NumPy.
+
+**Dependencies:**
+Blocks: DA-AI05-15. Blocked by: DA-AI05-08, DA-AI05-11, DA-AI05-12, DA-AI05-13.
+
+---
+
+### DA-AI05-15 — Filter Top 10-20 Trends Engine
+
+**Goal:** Filter and select the Top 10–20 highest-scoring trending topics to be stored in cache and passed to downstream deep crawling and GraphRAG ingestion layers.
+
+**Acceptance Criteria:**
+- [ ] Sort candidate pool by `Final Score` descending
+- [ ] Deduplicate semantically identical trend topics
+- [ ] Select Top 10–20 trends and output structured payload `{trend_id, keyword, category, final_score, timestamp}`
+
+**Technical Notes:**
+- Tech stack: Python, Pandas.
+
+**Dependencies:**
+Blocks: DA-AI05-16, DA-AI05-17, DA-AI05-18. Blocked by: DA-AI05-14.
+
+---
+
+### DA-AI05-16 — Redis ZSET Caching Engine (`trends:vn:{date}:{category}`, TTL 6h)
+
+**Goal:** Cache the top trending topics in Redis ZSET data structures for ultra-fast API retrieval by the web dashboard and business services.
+
+**Acceptance Criteria:**
+- [ ] Store trend list in Redis ZSET key: `trends:vn:{date}:{category}`
+- [ ] Member is `trend_id / keyword`, Score is `Final Score`
+- [ ] Configure TTL of 6 hours for automatic expiration upon fresh crawl cycles
+
+**Technical Notes:**
+- Tech stack: Redis 7.x, Spring Redis / redis-py.
+
+**Dependencies:**
+Blocks: None. Blocked by: DA-AI05-15.
+
+---
+
+### DA-AI05-17 — Upsert Neo4j Node `:Trend`
+
+**Goal:** Sync and upsert official Top 10-20 trends into Neo4j graph database as persistent `:Trend` nodes.
+
+**Acceptance Criteria:**
+- [ ] Execute Cypher `MERGE (t:Trend {id: $trend_id}) SET t.name = $name, t.score = $score, t.category = $category, t.updatedAt = timestamp()`
+- [ ] Connect `:Trend` nodes to associated keywords and community nodes
+
+**Technical Notes:**
+- Tech stack: Neo4j Cypher, Python.
+
+**Dependencies:**
+Blocks: DA-AI05-22, DA-AI05-23. Blocked by: DA-AI05-15.
+
+---
+
+### DA-AI05-18 — Deep Crawl Trigger Engine (Posts & Comments Collector)
+
+**Goal:** Trigger deep crawling for the Top 10–20 identified trends to collect all related posts and detailed comments for rich knowledge graph ingestion.
+
+**Acceptance Criteria:**
+- [ ] Push Top 10-20 trend topics to deep crawl job queue
+- [ ] Trigger scrapers to gather complete post contents, top comments, and user interactions specific to those trends
+- [ ] Route deep crawl payloads to LangChain Chunking & Embedding layer
+
+**Technical Notes:**
+- Tech stack: Python, Apify/N8N, Async Queue.
+
+**Dependencies:**
+Blocks: DA-AI05-19. Blocked by: DA-AI05-15.
+
+---
+
+### DA-AI05-19 — LangChain Text Chunking (Size 500, Overlap 50)
+
+**Goal:** Split deep-crawled trend posts and comments into uniform chunks suitable for vector embedding and GraphRAG processing.
+
+**Acceptance Criteria:**
+- [ ] LangChain `RecursiveCharacterTextSplitter` configured with `chunk_size = 500` characters, `chunk_overlap = 50` characters
+- [ ] Preserves context around Vietnamese sentence boundaries (`\n\n`, `\n`, `.`, `,`)
+- [ ] Outputs clean text chunks tagged with source trend metadata
+
+**Technical Notes:**
+- Tech stack: Python, LangChain.
+
+**Dependencies:**
+Blocks: DA-AI05-20, DA-AI05-22. Blocked by: DA-AI05-18.
+
+---
+
+### DA-AI05-20 — Text Embedding Pipeline (`all-MiniLM-L6-v2`, 384d)
+
+**Goal:** Convert text chunks into 384-dimensional dense vector embeddings using `all-MiniLM-L6-v2`.
+
+**Acceptance Criteria:**
+- [ ] Batch vectorization of text chunks using `all-MiniLM-L6-v2` model
+- [ ] Outputs 384-dimensional float vectors
+- [ ] Benchmarked throughput > 100 chunks/sec on CPU/GPU
+
+**Technical Notes:**
+- Tech stack: Sentence-Transformers, PyTorch, Python.
+
+**Dependencies:**
+Blocks: DA-AI05-21. Blocked by: DA-AI05-19.
+
+---
+
+### DA-AI05-21 — ChromaDB Vector Store Integration (HNSW Index Engine)
+
+**Goal:** Store chunk vectors in ChromaDB with HNSW indexing for high-speed cosine similarity retrieval.
+
+**Acceptance Criteria:**
+- [ ] Create/manage ChromaDB collections for trend market intelligence
+- [ ] Ingest embeddings with HNSW index configuration
+- [ ] Store rich metadata per vector (`{trend_id, chunk_id, source_url, timestamp}`)
+
+**Technical Notes:**
+- Tech stack: ChromaDB, HNSW Index Engine, Python.
+
+**Dependencies:**
+Blocks: None. Blocked by: DA-AI05-20.
+
+---
+
+### DA-AI05-22 — LLM NER & Relation Extraction Engine
+
+**Goal:** Extract Named Entities (Brand, Product, Person, Location, Sentiment) and Relationships (`MENTIONS`, `HAS_SENTIMENT`, `COMPARES_TO`) from deep-crawled text chunks using LLM prompts.
+
+**Acceptance Criteria:**
+- [ ] Structured LLM prompt template enforcing JSON output format for entities and relations
+- [ ] Extracts entity types: `Brand`, `Product`, `Person`, `Event`, `Emotion`
+- [ ] Extracts relationship edges connecting entities to `:Trend` nodes
+
+**Technical Notes:**
+- Tech stack: Python, LangChain, Groq Llama 3 API.
+
+**Dependencies:**
+Blocks: DA-AI05-23. Blocked by: DA-AI05-19.
+
+---
+
+### DA-AI05-23 — Neo4j Knowledge Graph Ingestion Engine
+
+**Goal:** Ingest LLM-extracted entities and relations into the Neo4j Knowledge Graph to construct a market intelligence graph network.
+
+**Acceptance Criteria:**
+- [ ] Cypher `MERGE` queries to create nodes and relationships in Neo4j
+- [ ] Links extracted entities directly to `:Trend` nodes
+- [ ] APOC procedure usage for optimized batch graph writes
+
+**Technical Notes:**
+- Tech stack: Neo4j 5.x, Cypher, APOC.
+
+**Dependencies:**
+Blocks: DA-AI05-24. Blocked by: DA-AI05-22, DA-AI05-17.
+
+---
+
+### DA-AI05-24 — Entity Resolution Job (Knowledge Graph Fusion)
+
+**Goal:** Execute background entity resolution jobs to merge duplicate or synonymous entity nodes in the Knowledge Graph (e.g., *"VinFast"*, *"Vin Fast"*, *"VFS"* -> `:Brand {name: "VinFast"}`).
+
+**Acceptance Criteria:**
+- [ ] Entity similarity computation using fuzzy string matching and vector embedding similarity
+- [ ] Merge duplicate nodes using `apoc.refactor.mergeNodes` in Neo4j
+- [ ] Consolidate relationship edges to maintain graph integrity
+
+**Technical Notes:**
+- Tech stack: Python, Neo4j APOC, Fuzzy Matching.
+
+**Dependencies:**
+Blocks: None. Blocked by: DA-AI05-23.
+
+---
+
+### DA-AI05-25 — Raw Data Ingestion, JSON Parsing, Object Normalization & Hash Deduplication Engine (T0)
+
+**Goal:** Ingest raw social media crawl data, parse unstructured raw JSON payloads into standardized Post/Comment objects, normalize metadata schema, and perform URL & text content hash deduplication to eliminate duplicate records before downstream pipeline processing.
+
+**Acceptance Criteria:**
+- [ ] Parse raw JSON outputs from Apify/crawlers into normalized Post/Comment Pydantic schemas.
+- [ ] Standardize metadata fields (ISO 8601 timestamps, author identifiers, engagement counts, platform tags).
+- [ ] Compute MD5/SHA256 hashes for URL and text body to perform deduplication via Redis Bloom Filter / ZSET lookup.
+- [ ] Achieve ≥ 99.5% ingestion success rate on raw payloads and 100% suppression of duplicate records.
+
+**Technical Notes:**
+- Pipeline Step: T0 (Ingestion Layer).
+- Tech Stack: Python 3.11, Pydantic v2, hashlib, Redis.
+- Assignee: Ân (AI) | Priority: 🔴 Critical
+
+**Dependencies:**
+Blocks: DA-AI05-26. Blocked by: DA-AI02-01.
+
+---
+
+### DA-AI05-26 — Bot, Clone & Spam Filter Engine (Rules KB1, KB2, KB3A/B, KB5, KB6) (T1)
+
+**Goal:** Build an automated noise suppression engine to filter out bot accounts, clone profiles, spam comments, and coordinated seeding activities using rules KB1, KB2, KB3A/B, KB5, and KB6 prior to NLP & graph analysis.
+
+**Acceptance Criteria:**
+- [ ] Implement Rule KB1 (Profile verification: default avatar, random username, recently created account filter).
+- [ ] Implement Rule KB2 (Duplicate comment detection across multiple posts).
+- [ ] Implement Rule KB3A/B (Time-window comment velocity / flood detection).
+- [ ] Implement Rule KB5 (Sticker/emoji-only comments & promotional/spam keyword regex matching).
+- [ ] Implement Rule KB6 (One-way interaction ratio & botnet farm activity detection).
+- [ ] Attach `isSpam: boolean` and `spamRule: string` flags to records; eliminate ≥ 90% of bot noise.
+
+**Technical Notes:**
+- Pipeline Step: T1 (Bot/Clone/Spam Filter).
+- Tech Stack: Python, Redis Rate Limiter / Sliding Window, Regex Engine.
+- Assignee: Ân (AI) | Priority: 🔴 Critical
+
+**Dependencies:**
+Blocks: DA-AI05-27, DA-AI05-28. Blocked by: DA-AI05-25.
+
+---
+
+### DA-AI05-27 — Multi-Class Topic Classification Engine (6 Categories) (T3)
+
+**Goal:** Automatically classify social posts into 6 primary industry verticals (`tech`, `food`, `sports`, `entertainment`, `news`, `education`) to enable category-specific trend aggregation and consumer interest mapping.
+
+**Acceptance Criteria:**
+- [ ] Build a multi-class text classification pipeline targeting 6 categories: Tech, Food, Sports, Entertainment, News, Education.
+- [ ] Assign secondary sub-topics and output a classification confidence score ($0.0 \le \text{confidence} \le 1.0$).
+- [ ] Achieve macro F1-Score ≥ 85% on a test benchmark of 500 Vietnamese social posts.
+- [ ] Expose batch processing interface with average latency < 50ms per post.
+
+**Technical Notes:**
+- Pipeline Step: T3 (Topic Classification).
+- Tech Stack: Python, Underthesea / PhoBERT / Zero-Shot Classifier, FastAPI.
+- Assignee: Ân (AI) | Priority: 🔴 Critical
+
+**Dependencies:**
+Blocks: DA-AI05-15. Blocked by: DA-AI05-26.
+
+---
+
+### DA-AI05-28 — Engagement Virality Score & Reaction Mood Analysis Engine (T5)
+
+**Goal:** Calculate post virality scores based on engagement weighted formulas and perform detailed reaction mood breakdown (haha, wow, care, sad, angry, like, share, comment) to measure audience sentiment and content resonance.
+
+**Acceptance Criteria:**
+- [ ] Calculate composite Engagement Score: $Score = w_1 \cdot Like + w_2 \cdot Comment + w_3 \cdot Share + w_4 \cdot Reaction$.
+- [ ] Compute Mood Breakdown metrics (Haha, Wow, Care, Sad, Angry ratio) to derive Positivity/Negativity Index & Controversy Rate.
+- [ ] Persist virality scores and mood vectors into document metadata for trend ranking algorithms.
+- [ ] Maintain execution speed < 10ms per document record.
+
+**Technical Notes:**
+- Pipeline Step: T5 (Engagement & Mood Analysis).
+- Tech Stack: Python, NumPy, Pandas, Pydantic.
+- Assignee: Ân (AI) | Priority: 🔴 Critical
+
+**Dependencies:**
+Blocks: DA-AI05-29, DA-AI05-14. Blocked by: DA-AI05-26.
+
+---
+
+### DA-AI05-29 — Jaccard Clustering Community Detection Engine (T6)
+
+**Goal:** Identify and group related audience communities and topic clusters using Jaccard Similarity Clustering on keyword and interaction sets, separated as a dedicated community detection task prior to graph fusion (T7).
+
+**Acceptance Criteria:**
+- [ ] Implement Jaccard Similarity Matrix calculation: $J(A, B) = \frac{|A \cap B|}{|A \cup B|}$ for post keyword and user interaction sets.
+- [ ] Perform hierarchical / graph clustering on items exceeding Jaccard threshold ($J \ge 0.6$) to form distinct Community clusters.
+- [ ] Assign unique Community IDs and compute cluster size and density weights.
+- [ ] Feed community cluster outputs directly into the T7 Graph Fusion & Entity Resolution engine.
+
+**Technical Notes:**
+- Pipeline Step: T6 (Community Detection Layer - Section 5 in Docs).
+- Tech Stack: Python, SciPy, scikit-learn, NetworkX.
+- Assignee: Ân (AI) | Priority: 🔴 Critical
+
+**Dependencies:**
+Blocks: DA-AI05-24. Blocked by: DA-AI05-28.
+
 
 ---
 
@@ -4989,7 +5365,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - Use FastAPI `exception_handler` decorators for `ValidationError`, `LLMUnavailableError`, `ImageGenerationError`, `VideoGenerationTimeoutError`, `NoFaceDetectedError`
 - Add `requestId` (UUID) to every response via middleware so distributed traces can be correlated across services
 
-**Dependencies:** Blocks: DA-AI10-03. Blocked by: DA-AI04-07, DA-AI06-04, DA-AI07-06, DA-AI08-05, DA-AI09-06, DA-AI05-05.
+**Dependencies:** Blocks: DA-AI10-03. Blocked by: DA-AI04-07, DA-AI06-04, DA-AI07-06, DA-AI08-05, DA-AI09-06, DA-AI05-16.
 
 ---
 
