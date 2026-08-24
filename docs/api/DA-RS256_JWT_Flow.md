@@ -78,7 +78,7 @@ RS256 giải quyết vấn đề này:
 1. Client gửi request → Gateway kiểm tra JWT signature
 2. Gateway inject userId, role vào headers → forward đến Business
 3. Business Service tạo token mới (đăng nhập)
-4. Business Service đọc thông tin user từ headers (đã được Gateway xác thực)
+4. Business Service **tự verify lại JWT độc lập** từ header `Authorization` (không dùng header Gateway inject — xem mục 4.2 bước 5 để biết chi tiết/lý do)
 5. Khi logout, Business Service đánh dấu token là revoked trong Redis
 
 ---
@@ -150,7 +150,7 @@ graph TB
 | Thành phần | Có JWT key gì? | Vai trò |
 |---|---|---|
 | **API Gateway** | Chỉ `JWT_PUBLIC_KEY` | Cổng duy nhất verify RS256 + check Redis blacklist cho **mọi** request từ client (Business, AI, Publisher đều qua đây). Không tự sinh token. |
-| **Business Service** | `JWT_PRIVATE_KEY` + `JWT_PUBLIC_KEY` | Nơi duy nhất **sinh** token (login/refresh) và **thu hồi** token (logout → ghi blacklist). Cũng verify nội bộ khi cần đọc claims (logout, refresh). |
+| **Business Service** | `JWT_PRIVATE_KEY` + `JWT_PUBLIC_KEY` | Nơi duy nhất **sinh** token (login/refresh) và **thu hồi** token (logout → ghi blacklist). **Tự verify JWT độc lập cho MỌI request** qua `JwtAuthenticationFilter` (không chỉ logout/refresh) — không dùng header `X-User-*` Gateway đã inject. |
 | **AI Service** | Không có JWT key nào | Không tự verify JWT — tin tưởng headers `X-User-Id`/`X-User-Role`/`X-Workspace-Id` do Gateway đã inject sau khi verify. Nhận request từ client **qua Gateway**, và nhận request nội bộ từ Business/Publisher **qua `INTERNAL_SERVICE_KEY`** (không qua Gateway, không dùng JWT). |
 | **Publisher Service** | Không có JWT key nào | Tương tự AI Service — tin headers từ Gateway cho request client-facing (nếu có), dùng `INTERNAL_SERVICE_KEY` cho lời gọi service-to-service (VD: Business gọi Publisher để đăng bài lên mạng xã hội). |
 
@@ -160,7 +160,7 @@ graph TB
 ```
 Client → API Gateway (verify RS256 + Redis blacklist) → Business / AI / Publisher
 ```
-Tất cả traffic từ Browser/Mobile đều bắt buộc qua Gateway trước, dù đích đến là Business, AI hay Publisher. Gateway là **single point of JWT verification** — AI và Publisher không tự parse JWT, chỉ đọc headers đã được Gateway xác thực sẵn.
+Tất cả traffic từ Browser/Mobile đều bắt buộc qua Gateway trước, dù đích đến là Business, AI hay Publisher. Gateway verify JWT trước tiên (chặn 401 sớm nếu invalid) — nhưng **không phải single point of verification cho mọi service**: AI và Publisher không tự parse JWT, chỉ đọc headers Gateway đã xác thực sẵn; **Business Service thì có** — tự parse + verify lại JWT độc lập, bỏ qua header Gateway inject (xem mục 4.2 bước 5).
 
 **Đường 2 — Service-to-service (nội bộ, dùng Internal Key, KHÔNG dùng JWT):**
 ```
@@ -447,9 +447,9 @@ Khi client gửi request đến API Gateway với `Authorization: Bearer {access
 - Forward request đến downstream service (business-service, v.v.).
 
 **Bước 5 — Business Service nhận request:**
-- Không cần xác thực lại JWT.
-- Đọc userId từ header `X-User-Id`.
-- Toàn bộ logic chỉ dùng headers mà Gateway đã inject.
+- **Thực tế khác doc cũ mô tả:** `JwtAuthenticationFilter` (business-service) **tự parse lại JWT từ header `Authorization`**, verify RS256 độc lập bằng `JwtUtil.parseToken()` riêng của nó — **không đọc** `X-User-Id`/`X-User-Role`/`X-Workspace-Id` mà Gateway inject. Xem `JwtAuthenticationFilter.java:35-51`.
+- Chỉ AI Service và Publisher Service (không có `JwtUtil` verify riêng) mới thực sự tin headers Gateway inject — đúng như mô tả gốc.
+- Business Service làm việc verify 2 lần (Gateway rồi lại chính nó) — dư thừa về performance nhưng an toàn hơn (không tin tưởng mù quáng header có thể bị forge nếu network nội bộ không kiểm soát chặt). Không phải bug, không cần sửa code — chỉ doc trước đây mô tả sai hành vi business-service.
 
 #### Giải thích về quá trình verify RS256
 
