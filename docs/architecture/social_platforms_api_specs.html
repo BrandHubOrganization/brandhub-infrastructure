@@ -38,8 +38,19 @@
   .fb {color: #1877F2;}
   .tk {color: #000000;}
   .th {color: #000000;}
-  .ig {background: -webkit-linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
+  .ig {background: -webkit-linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;}
   .yt {color: #FF0000;}
+
+  /* Additional Sections */
+  .section-title { font-size: 20px; color: #111; margin: 40px 0 20px; border-bottom: 2px solid #EBEBEB; padding-bottom: 10px; }
+  .content-block { background: #fff; border: 1px solid #EBEBEB; border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); line-height: 1.6; }
+  .content-block h3 { margin-top: 0; color: #333; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+  .content-block h4 { color: #555; font-size: 15px; margin-bottom: 10px; margin-top: 20px; }
+  .content-block p { font-size: 14px; color: #444; margin-bottom: 10px; }
+  .content-block ul { margin-top: 0; padding-left: 20px; font-size: 14px; color: #444; }
+  .content-block li { margin-bottom: 6px; }
+  .content-block code { font-family: monospace; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 13px; color: #d63384; }
+  .ascii-art { font-family: monospace; background: #2d2d2d; color: #e6e6e6; padding: 15px; border-radius: 8px; white-space: pre; overflow-x: auto; font-size: 13px; line-height: 1.2; margin: 15px 0; }
 </style>
 </head>
 <body>
@@ -206,6 +217,119 @@
     </div>
   </div>
 
+</div>
+
+<h2 class="section-title">1. Rate Limit Thực Tế Từng Platform (Thứ Dev Phải Handled)</h2>
+
+<div class="content-block">
+  <h3><i class="ti ti-brand-facebook fb"></i> 1.1 Meta Facebook Graph API (v19.0)</h3>
+  <p>FB không dùng con số cố định kiểu "x requests/phút". Họ dùng cơ chế CPU Time &amp; Bucket Allocation.</p>
+  <p>Công thức thực tế: <code>Limit Quota = 200 &times; Số lượng Active Users trong 24h qua</code></p>
+  <p><strong>Thực tế Dev hay gặp:</strong></p>
+  <ul>
+    <li>Nếu App mới, ít user (như môi trường Staging/Dev): Chạy vài chục request liên tục là ăn cờ Rate Limit ngay.</li>
+    <li>Header trả về bắt buộc phải đọc: <code>X-App-Usage</code> (Trả về JSON chứa % CPU time, call count).</li>
+    <li><strong>Quy tắc Dev áp dụng:</strong> Khi % trong <code>X-App-Usage</code> vượt 80%, hệ thống publisher phải tự Throttle (giảm tốc độ đẩy job). Nếu đạt 100%, FB sẽ block App trong 1 tiếng.</li>
+  </ul>
+</div>
+
+<div class="content-block">
+  <h3><i class="ti ti-brand-tiktok tk"></i> 1.2 TikTok Content Posting API (v2)</h3>
+  <p>TikTok là platform gắt gao nhất về Rate Limit vì họ sợ Spam/Bot đăng video hàng loạt.</p>
+  <h4>Giới hạn tầng Request (API Level):</h4>
+  <ul>
+    <li><code>creator_info/query</code>: 20 requests / phút / user token.</li>
+    <li><code>video/init</code> &amp; <code>content/init</code>: 6 requests / phút / user token. (Nghĩa là 1 account TikTok tối đa chỉ được khởi tạo 6 post/phút).</li>
+  </ul>
+  <h4>Giới hạn tầng Account/System (Business Level - Cực kỳ quan trọng):</h4>
+  <ul>
+    <li><strong>Pending Limit:</strong> Một user chỉ được phép có tối đa 5 bài đăng ở trạng thái PENDING (đang xử lý/đang upload) trong vòng 24h. Nếu đăng bài thứ 6 khi 5 bài trước chưa xong/chưa được duyệt &rarr; Thất bại ngay.</li>
+    <li><strong>Daily Post Cap:</strong> Tùy theo độ tin cậy của App/Account (Tier), 1 account thường bị bóp giới hạn đăng 10 - 20 video/ngày qua API.</li>
+  </ul>
+</div>
+
+<div class="content-block">
+  <h3><i class="ti ti-brand-threads th"></i> 1.3 Meta Threads API</h3>
+  <p>Threads kế thừa hạ tầng Meta nhưng thiết lập giới hạn cứng (Hard Limit) đơn giản hơn FB Graph API.</p>
+  <ul>
+    <li><strong>Giới hạn đăng bài (Publishing Limit):</strong> 250 posts / user / 24 giờ (rolling window).</li>
+    <li><strong>Giới hạn Container Creation:</strong> Tạo tối đa 1000 containers / user / 24h.</li>
+  </ul>
+  <p><strong>Thực tế Dev xử lý:</strong> Giới hạn 250 post/ngày khá thoải mái cho user thường, nhưng với các hệ thống Auto-publisher/Cross-posting:</p>
+  <ul>
+    <li>Nếu bắn dồn dập (ví dụ 10-20 bài trong vài giây) &rarr; Vẫn dính Spam Detection của Meta dù chưa tới mốc 250 bài/ngày.</li>
+  </ul>
+</div>
+
+<div class="content-block">
+  <h3><i class="ti ti-brand-instagram ig"></i> 1.4 Instagram Graph API (v19.0)</h3>
+  <p>Dùng chung hạ tầng với Meta, nên cơ chế Rate Limit cũng sử dụng thuật toán Token Bucket dựa trên CPU Time.</p>
+  <ul>
+    <li><strong>Giới hạn chung:</strong> 200 requests / user / giờ đối với tài khoản Professional (Creator/Business).</li>
+  </ul>
+  <p><strong>Thực tế Dev xử lý:</strong></p>
+  <ul>
+    <li>Giống với Facebook, hệ thống phải liên tục theo dõi header <code>X-App-Usage</code> và <code>X-Business-Use-Case-Usage</code>.</li>
+    <li>Mặc dù giới hạn giống Facebook, nhưng Instagram API xử lý multi-step (Tạo Container &rarr; Publish), nên mỗi bài đăng sẽ tốn ít nhất 2 API calls.</li>
+  </ul>
+</div>
+
+<div class="content-block">
+  <h3><i class="ti ti-brand-youtube yt"></i> 1.5 YouTube Data API (v3)</h3>
+  <p>YouTube không tính theo số lượng request mà tính theo <strong>Quota Units</strong>.</p>
+  <ul>
+    <li>Mỗi Project trên Google Cloud (GCP) mặc định được cấp <strong>10,000 quota units / ngày</strong>.</li>
+    <li>Đăng 1 video (tính cả quá trình init) tốn <strong>1,600 units</strong>.</li>
+    <li>Nghĩa là tối đa 1 project chỉ đăng được khoảng <strong>6 videos / ngày</strong>!</li>
+  </ul>
+  <p><strong>Thực tế Dev xử lý:</strong></p>
+  <ul>
+    <li>Khi hết Quota, YouTube API sẽ trả về HTTP 403 với lỗi <code>quotaExceeded</code>.</li>
+    <li>Hạn mức sẽ được reset lại vào lúc <strong>00:00 Pacific Time (PT)</strong> hàng ngày.</li>
+  </ul>
+</div>
+
+<h2 class="section-title">2. Dev Xử Lý Trong Code &amp; Architecture Như Thế Nào?</h2>
+
+<div class="content-block">
+  <p>Để <code>publisher-service</code> chạy ổn định, không bao giờ gọi trực tiếp API đăng bài từ HTTP Client thông thường mà phải qua Queue &amp; Rate Limiter Pattern.</p>
+  <div class="ascii-art">
+[API / Client] ──> [Publisher Queue (Redis/RabbitMQ)] 
+                         │
+                         ▼
+             [Worker + Rate Limiter Module]
+                         │
+                         ├── (Check Token Bucket / Leaky Bucket)
+                         ├── (Check Header Usage)
+                         ▼
+           [External Platform APIs (FB/TikTok/Threads)]
+  </div>
+
+  <h4>Cách 1: Sử dụng Token Bucket Algorithm (Key-Value Redis)</h4>
+  <p>Dev thiết lập Redis key lưu trữ khả năng request còn lại cho từng (Platform + Account ID):</p>
+  <ul>
+    <li><strong>TikTok:</strong> Set Redis Rate Limiter cho API init post = 5 requests / 60s per user_id.</li>
+    <li><strong>Threads:</strong> Counter Redis lưu số post trong ngày (<code>threads:post_count:{user_id}:{date}</code>) &le; 250.</li>
+    <li><strong>YouTube:</strong> Redis lưu tổng quota đã dùng trong ngày cho từng project (<code>youtube:quota_usage:{project_id}:{date}</code>). Trước khi đẩy job qua Queue, nếu cộng thêm 1600 mà &gt; 10000 thì block sớm (Early Reject).</li>
+  </ul>
+
+  <h4>Cách 2: Handle Response Header &amp; Exponential Backoff (Bắt buộc)</h4>
+  <p>Khi dính lỗi Rate Limit, không retry ngay lập tức mà phải retry theo công thức lũy thừa kèm nhiễu ngẫu nhiên (Jitter):</p>
+  <p><code>Retry Delay = min(Max Delay, Base Delay &times; 2<sup>attempt</sup> + Jitter)</code></p>
+  <ul>
+    <li><strong>Facebook / Instagram:</strong> Nếu nhận lỗi <code>code: 4</code> hoặc <code>code: 17</code> (User/App level rate limit) &rarr; Delay Worker ít nhất 15 - 30 phút. Không retry ngay lập tức.</li>
+    <li><strong>TikTok:</strong> Nếu dính HTTP 429 hoặc <code>code: ok_rate_limit</code> &rarr; Đọc header <code>Retry-After</code> (nếu có) hoặc hoãn lại 1 - 5 phút.</li>
+    <li><strong>YouTube:</strong> Nếu dính HTTP 403 <code>quotaExceeded</code> &rarr; Pause Worker/Job đối với project này cho đến 00:00 PT ngày hôm sau (không dùng exponential backoff vài phút vì không có tác dụng).</li>
+  </ul>
+
+  <h4>Cách 3: Media Polling Status Management (Xử lý bất đồng bộ)</h4>
+  <p>Vì TikTok, Threads và <strong>Instagram</strong> đều bắt buộc khởi tạo Container &rarr; Chờ xử lý &rarr; Mới Publish:</p>
+  <ul>
+    <li>Không dùng <code>while(true)</code> hay <code>Thread.sleep()</code> trong code server để chờ media ready.</li>
+    <li>Đưa vào <strong>Status Polling Queue</strong>:</li>
+    <li>Sau khi tạo Container, đẩy <code>container_id</code> / <code>publish_id</code> vào một Queue kiểm tra lại sau 30 giây.</li>
+    <li>Thử lại tối đa 5-10 lần. Nếu sau 5 phút media vẫn ở trạng thái IN_PROGRESS / PROCESSING &rarr; Đánh dấu Job FAILED để tránh treo tài nguyên worker.</li>
+  </ul>
 </div>
 
 </body>
