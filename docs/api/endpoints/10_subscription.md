@@ -12,11 +12,11 @@
 | # | Method | Path | Auth | Roles |
 |---|--------|------|------|-------|
 | 59 | GET | `/api/v1/subscriptions/plans` | PUBLIC | — |
-| 60 | GET | `/api/v1/subscriptions/current` | JWT | AGENCY_OWNER |
-| 61 | POST | `/api/v1/subscriptions/subscribe` | JWT | AGENCY_OWNER |
+| 60 | GET | `/api/v1/subscriptions/current` | JWT | OWNER |
+| 61 | POST | `/api/v1/subscriptions/subscribe` | JWT | OWNER |
 | 62 | POST | `/api/v1/subscriptions/webhook` | PUBLIC | — (Stripe HMAC auth) |
-| 63 | POST | `/api/v1/subscriptions/cancel` | JWT | AGENCY_OWNER |
-| 64 | GET | `/api/v1/subscriptions/invoices` | JWT | AGENCY_OWNER |
+| 63 | POST | `/api/v1/subscriptions/cancel` | JWT | OWNER |
+| 64 | GET | `/api/v1/subscriptions/invoices` | JWT | OWNER |
 
 > **Payment provider:** Stripe. Subscribe flow: frontend gets `clientSecret` from `/subscribe` → Stripe.js confirms payment on frontend → Stripe fires webhook to `/webhook` → service activates subscription.
 >
@@ -61,7 +61,7 @@
 
 ## GET /api/v1/subscriptions/current
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`  
 **Goal:** Get current subscription status for the workspace.
 
 **Response 200:**
@@ -109,7 +109,7 @@
 
 ## POST /api/v1/subscriptions/subscribe
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`  
 **Goal:** Subscribe to or upgrade a plan. Returns Stripe PaymentIntent `clientSecret` for frontend confirmation.
 
 **Request body:**
@@ -184,7 +184,7 @@
 
 ## POST /api/v1/subscriptions/cancel
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`  
 **Goal:** Cancel current subscription at end of billing period. Workspace retains access until `current_period_end`.
 
 **Request body:**
@@ -220,7 +220,7 @@
 
 ## GET /api/v1/subscriptions/invoices
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`  
 **Goal:** Paginated billing history for the workspace.
 
 **Query params:**

@@ -11,25 +11,25 @@
 
 | # | Method | Path | Roles |
 |---|--------|------|-------|
-| 25 | POST | `/api/v1/clients` | AGENCY_OWNER |
-| 26 | GET | `/api/v1/clients` | AGENCY_OWNER, ACCOUNT_MANAGER |
-| 27 | GET | `/api/v1/clients/{clientId}` | AGENCY_OWNER, ACCOUNT_MANAGER, BRAND_CLIENT |
-| 28 | PUT | `/api/v1/clients/{clientId}` | AGENCY_OWNER |
-| 29 | DELETE | `/api/v1/clients/{clientId}` | AGENCY_OWNER |
-| 30 | PUT | `/api/v1/clients/{clientId}/assign` | AGENCY_OWNER |
-| 31 | PUT | `/api/v1/clients/{clientId}/service-package` | AGENCY_OWNER |
-| 32 | PUT | `/api/v1/clients/{clientId}/portal-access` | AGENCY_OWNER |
+| 25 | POST | `/api/v1/clients` | OWNER, MANAGER |
+| 26 | GET | `/api/v1/clients` | OWNER, MANAGER, ACCOUNT |
+| 27 | GET | `/api/v1/clients/{clientId}` | OWNER, MANAGER, ACCOUNT, CLIENT |
+| 28 | PUT | `/api/v1/clients/{clientId}` | OWNER, MANAGER |
+| 29 | DELETE | `/api/v1/clients/{clientId}` | OWNER |
+| 30 | PUT | `/api/v1/clients/{clientId}/assign` | OWNER, MANAGER |
+| 31 | PUT | `/api/v1/clients/{clientId}/service-package` | OWNER |
+| 32 | PUT | `/api/v1/clients/{clientId}/portal-access` | OWNER, MANAGER |
 
 > **Data isolation:**
-> - `ACCOUNT_MANAGER`: sees only clients where `assigned_manager_id = X-User-Id`
-> - `BRAND_CLIENT`: can only access their own `clientId` (linked via `users.id → clients.portal_user_id`)
+> - `ACCOUNT`: sees only clients where `assigned_manager_id = X-User-Id`
+> - `CLIENT`: can only access their own `clientId` (linked via `users.id → clients.portal_user_id`)
 > - All queries implicitly scoped to `X-Workspace-Id`
 
 ---
 
 ## POST /api/v1/clients
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`  
 **Goal:** Create a new brand client under the current workspace.
 
 **Request body:**
@@ -78,7 +78,7 @@
 
 ## GET /api/v1/clients
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`, `ACCOUNT_MANAGER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`, `ACCOUNT`  
 **Goal:** List clients. Role-based filter applied automatically.
 
 **Query params:**
@@ -114,15 +114,15 @@
 ```
 
 **Implementation notes:**
-- `AGENCY_OWNER`: sees all clients in workspace (`workspace_id = X-Workspace-Id`)
-- `ACCOUNT_MANAGER`: filter `assigned_manager_id = X-User-Id`
+- `OWNER`: sees all clients in workspace (`workspace_id = X-Workspace-Id`)
+- `ACCOUNT`: filter `assigned_manager_id = X-User-Id`
 - Join with `users` to populate `assignedManagerName`
 
 ---
 
 ## GET /api/v1/clients/{clientId}
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`, `ACCOUNT_MANAGER`, `BRAND_CLIENT`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`, `ACCOUNT`, `CLIENT`  
 **Goal:** Get full details of a single client including service package.
 
 **Response 200:**
@@ -156,18 +156,18 @@
 ```
 
 **Errors:**
-- `403 FORBIDDEN` — ACCOUNT_MANAGER accessing unassigned client, or BRAND_CLIENT accessing another client
+- `403 FORBIDDEN` — ACCOUNT accessing unassigned client, or CLIENT accessing another client
 - `404 CLIENT_NOT_FOUND`
 
 **Implementation notes:**
-- `BRAND_CLIENT` access check: `clients.portal_user_id = X-User-Id`
-- `ACCOUNT_MANAGER` access check: `clients.assigned_manager_id = X-User-Id`
+- `CLIENT` access check: `clients.portal_user_id = X-User-Id`
+- `ACCOUNT` access check: `clients.assigned_manager_id = X-User-Id`
 
 ---
 
 ## PUT /api/v1/clients/{clientId}
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`  
 **Goal:** Update client profile fields. Partial update — only provided fields changed.
 
 **Request body (all optional):**
@@ -199,7 +199,7 @@
 
 ## DELETE /api/v1/clients/{clientId}
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`  
 **Goal:** Soft-delete client — sets `is_active = false`. Data preserved.
 
 **Response 200:**
@@ -220,13 +220,13 @@
 
 ## PUT /api/v1/clients/{clientId}/assign
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`  
-**Goal:** Assign an ACCOUNT_MANAGER to a client. Replaces any existing assignment.
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`  
+**Goal:** Assign an ACCOUNT to a client. Replaces any existing assignment.
 
 **Request body:**
 ```json
 {
-  "managerId": "uuid (required — must be active workspace member with ACCOUNT_MANAGER role)"
+  "managerId": "uuid (required — must be active workspace member with ACCOUNT role)"
 }
 ```
 
@@ -243,18 +243,18 @@
 ```
 
 **Errors:**
-- `400 INVALID_MANAGER` — `managerId` not found in workspace, not active, or not ACCOUNT_MANAGER role
+- `400 INVALID_MANAGER` — `managerId` not found in workspace, not active, or not ACCOUNT role
 - `404 CLIENT_NOT_FOUND`
 
 **Implementation notes:**
-- Validate manager exists in `workspace_members` with matching `workspace_id`, `is_active = true`, `role = ACCOUNT_MANAGER`
+- Validate manager exists in `workspace_members` with matching `workspace_id`, `is_active = true`, `role = ACCOUNT`
 - Send notification to newly assigned manager
 
 ---
 
 ## PUT /api/v1/clients/{clientId}/service-package
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`  
 **Goal:** Set client-level content quota (overrides workspace plan defaults for this client).
 
 **Request body:**
@@ -294,8 +294,8 @@
 
 ## PUT /api/v1/clients/{clientId}/portal-access
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`  
-**Goal:** Enable or disable BRAND_CLIENT portal access for a client.
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`  
+**Goal:** Enable or disable CLIENT portal access for a client.
 
 **Request body:**
 ```json
@@ -318,13 +318,13 @@
 
 **Errors:**
 - `400 PORTAL_EMAIL_REQUIRED` — `enabled = true` but `portalEmail` not provided
-- `409 EMAIL_ALREADY_USED` — `portalEmail` already exists as a non-BRAND_CLIENT user
+- `409 EMAIL_ALREADY_USED` — `portalEmail` already exists as a non-CLIENT user
 - `404 CLIENT_NOT_FOUND`
 
 **Implementation notes:**
 - When `enabled = true`:
   1. Check if user with `portalEmail` exists in `users`
-  2. If not → create user row with `role = BRAND_CLIENT`, `password_hash = null` (no password — invite-only access)
+  2. If not → create user row with `role = CLIENT`, `password_hash = null` (no password — invite-only access)
   3. Set `clients.portal_user_id = userId`, `portal_access_enabled = true`
   4. Send portal invitation email to `portalEmail` with a one-time login link
 - When `enabled = false`:

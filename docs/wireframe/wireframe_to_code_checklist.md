@@ -67,14 +67,14 @@
 ## GIAI ĐOẠN 5: PHÂN QUYỀN GIAO DIỆN (ROLE-BASED RENDERING)
 
 - [ ] **5.1. Triển khai Auth Context hoặc Hook phân quyền:**
-  - [ ] Xây dựng hook `useUser` để lấy thông tin vai trò hiện tại (`ROLE_AGENCY_OWNER`, `ROLE_CONTENT_CREATOR`, `ROLE_BRAND_CLIENT`, v.v.).
+  - [ ] Xây dựng hook `useUser` để lấy thông tin vai trò hiện tại (`ROLE_OWNER`, `ROLE_MANAGER`, `ROLE_ACCOUNT`, `ROLE_CREATOR`, `ROLE_CLIENT`, v.v.).
 - [ ] **5.2. Điều khiển Ẩn/Hiện phần tử (Visibility Matrix):**
   - [ ] **Trong Editor Page:**
     - [ ] Nếu là `CREATOR`: Hiện nút "Gửi AM duyệt" (`Submit to AM`). Ẩn thanh công cụ duyệt bài.
     - [ ] Nếu là `AM`: Ẩn nút "Gửi AM duyệt". Hiện thanh công cụ duyệt bài ở chân trang Preview (Gồm nút "Phê duyệt" và nút "Từ chối" mở Dialog nhập feedback).
   - [ ] **Trong Workspace Page:**
-    - [ ] Ẩn các nút "Xoá Workspace" hoặc "Cấu hình AI Credits" nếu người dùng không phải là `AGENCY_OWNER`.
-    - [ ] Chặn truy cập (Redirect về Client Portal) nếu là `BRAND_CLIENT`.
+    - [ ] Ẩn các nút "Xoá Workspace" hoặc "Cấu hình AI Credits" nếu người dùng không phải là `OWNER`.
+    - [ ] Chặn truy cập (Redirect về Client Portal) nếu là `CLIENT`.
 
 ---
 

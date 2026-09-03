@@ -36,7 +36,7 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE member_role AS ENUM ('OWNER', 'MANAGER', 'CREATOR', 'VIEWER');
+    CREATE TYPE member_role AS ENUM ('OWNER', 'MANAGER', 'ACCOUNT', 'CREATOR', 'CLIENT');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 

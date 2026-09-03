@@ -11,9 +11,9 @@
 
 | # | Method | Path | Roles |
 |---|--------|------|-------|
-| 53 | GET | `/api/v1/analytics/workspace` | AGENCY_OWNER, ACCOUNT_MANAGER |
-| 54 | GET | `/api/v1/analytics/clients/{clientId}` | AGENCY_OWNER, ACCOUNT_MANAGER, BRAND_CLIENT |
-| 55 | GET | `/api/v1/analytics/ai-usage` | AGENCY_OWNER |
+| 53 | GET | `/api/v1/analytics/workspace` | OWNER, MANAGER, ACCOUNT |
+| 54 | GET | `/api/v1/analytics/clients/{clientId}` | OWNER, MANAGER, ACCOUNT, CLIENT |
+| 55 | GET | `/api/v1/analytics/ai-usage` | OWNER |
 
 > **Data source:** All analytics computed via MongoDB aggregation on `posts` and `ai_usage_logs` collections. No separate analytics store — queries run at request time. Cache with Redis (TTL 5 min) for high-traffic endpoints.
 >
@@ -23,7 +23,7 @@
 
 ## GET /api/v1/analytics/workspace
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`, `ACCOUNT_MANAGER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`, `ACCOUNT`  
 **Goal:** Aggregate post stats across all clients in the workspace for a date range.
 
 **Query params:**
@@ -85,7 +85,7 @@
 
 ## GET /api/v1/analytics/clients/{clientId}
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`, `ACCOUNT_MANAGER`, `BRAND_CLIENT`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`, `ACCOUNT`, `CLIENT`  
 **Goal:** Per-client post stats and service package usage for the period.
 
 **Path param:** `clientId` (UUID)
@@ -127,19 +127,19 @@
 ```
 
 **Errors:**
-- `403 FORBIDDEN` — ACCOUNT_MANAGER accessing unassigned client; BRAND_CLIENT accessing non-own client
+- `403 FORBIDDEN` — ACCOUNT accessing unassigned client; CLIENT accessing non-own client
 - `404 CLIENT_NOT_FOUND`
 - `400 INVALID_DATE_RANGE`
 
 **Implementation notes:**
 - `servicePackageUsage`: counts for current calendar month (not the query `from/to` range), since quotas reset monthly
-- `BRAND_CLIENT` access check: `clients.portal_user_id = X-User-Id`
+- `CLIENT` access check: `clients.portal_user_id = X-User-Id`
 
 ---
 
 ## GET /api/v1/analytics/ai-usage
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`  
 **Goal:** AI credit consumption breakdown by feature for the workspace.
 
 **Query params:**
@@ -190,4 +190,4 @@
 - `byFeature`: `$group` by `feature` field
 - `byClient`: `$group` by `clientId`, top 10
 - `dailyUsage`: `$group` by `{ $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }`
-- Only AGENCY_OWNER can see AI cost — ACCOUNT_MANAGER does not have billing visibility
+- Only OWNER can see AI cost — MANAGER/ACCOUNT do not have billing visibility

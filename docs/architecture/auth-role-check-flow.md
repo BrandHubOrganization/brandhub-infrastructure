@@ -16,8 +16,8 @@ Sau khi verify xong, gateway **inject 3 header** (`X-User-Id`, `X-User-Role`, `X
 ## Vì sao gateway không (và không nên) check role
 
 - **Gateway chỉ giữ public key** (`JWT_PUBLIC_KEY`), dùng để verify chữ ký. Private key (ký/issue token) chỉ business-service giữ. Gateway không có quyền/khả năng tạo hay xác thực sâu hơn chữ ký.
-- **Gateway không có DB access** tới bảng `workspace_members` — không biết role *hiện tại* của user trong workspace đang thao tác. Nó chỉ biết role **tại thời điểm JWT được issue** (đóng gói trong claim), không phản ánh thay đổi role real-time (vd OWNER vừa demote CREATOR xuống VIEWER 1 giây trước — JWT cũ vẫn còn hạn, claim cũ vẫn ghi CREATOR).
-- Role-based access control theo nghiệp vụ (`OWNER` mới được xoá member, `VIEWER` chỉ đọc...) là **domain logic**, thuộc về service hiểu nghiệp vụ đó — không phải trách nhiệm của lớp routing/perimeter.
+- **Gateway không có DB access** tới bảng `workspace_members` — không biết role *hiện tại* của user trong workspace đang thao tác. Nó chỉ biết role **tại thời điểm JWT được issue** (đóng gói trong claim), không phản ánh thay đổi role real-time (vd OWNER vừa demote CREATOR xuống CLIENT 1 giây trước — JWT cũ vẫn còn hạn, claim cũ vẫn ghi CREATOR).
+- Role-based access control theo nghiệp vụ (`OWNER` mới được xoá member, `CLIENT` chỉ đọc...) là **domain logic**, thuộc về service hiểu nghiệp vụ đó — không phải trách nhiệm của lớp routing/perimeter.
 
 ## business-service làm gì
 

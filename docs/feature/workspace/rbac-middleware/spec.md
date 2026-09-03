@@ -33,11 +33,11 @@ tôi muốn tự động kiểm tra role + phạm vi workspace trên mọi reque
 
 | Role | Ý nghĩa | Quyền mặc định |
 |---|---|---|
-| `OWNER` | Chủ workspace | Full quyền: quản lý workspace, member, billing, nội dung |
-| `ACCOUNT` | Quản lý tài khoản/khách hàng | Quản lý member + client, không xoá workspace |
-| `CREATOR` | Tạo nội dung | Tạo/sửa nội dung, không quản lý member |
-| `CLIENT` | Khách hàng duyệt nội dung | Xem + duyệt/từ chối nội dung, không sửa |
-| `VIEWER` | Xem nội bộ | Chỉ đọc |
+| `OWNER` | Chủ agency, sở hữu workspace | Quản lý tổng quan: tạo/xoá workspace, billing, social accounts, không thao tác content trực tiếp |
+| `MANAGER` | Người Owner giao quản lý 1 workspace | Vận hành workspace: member (invite/remove/assign role), settings, clients, analytics, reports — không tạo/xoá workspace |
+| `ACCOUNT` | Cầu nối agency-client | Content request, portal, calendar, library — không quản member/settings/subscription |
+| `CREATOR` | Tạo nội dung | Editor, templates, hashtag, publish, AI studio — không quản member |
+| `CLIENT` | Khách hàng duyệt nội dung | Xem + duyệt/từ chối nội dung liên quan mình, không sửa |
 
 Fine-grained override: bảng `workspace_member_permissions` (permission string + granted boolean) cho phép cấp/thu quyền lẻ ngoài role mặc định — middleware ưu tiên override nếu có bản ghi cho `(workspaceMemberId, permission)`, fallback về role matrix nếu không có override.
 
@@ -48,7 +48,7 @@ Fine-grained override: bảng `workspace_member_permissions` (permission string 
 Không có endpoint riêng — đây là cross-cutting middleware áp dụng lên toàn bộ controller nghiệp vụ. Ví dụ áp dụng:
 
 ```java
-@RequireRole({MemberRole.OWNER, MemberRole.ACCOUNT})
+@RequireRole({MemberRole.OWNER, MemberRole.MANAGER})
 @DeleteMapping("/workspaces/{workspaceId}/members/{memberId}")
 public ApiResponse<Void> removeMember(...)
 ```

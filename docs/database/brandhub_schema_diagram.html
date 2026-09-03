@@ -244,7 +244,7 @@ const SCHEMA = {
         { name: 'id', type: 'uuid', pk: true },
         { name: 'workspace_id', type: 'uuid', fk: 'workspaces.id', notNull: true },
         { name: 'user_id', type: 'uuid', fk: 'users.id', notNull: true },
-        { name: 'role', type: 'member_role', notNull: true, note: 'OWNER | MANAGER | CREATOR | VIEWER' },
+        { name: 'role', type: 'member_role', notNull: true, note: 'OWNER | MANAGER | ACCOUNT | CREATOR | CLIENT' },
         { name: 'invited_by', type: 'uuid', fk: 'users.id' },
         { name: 'joined_at', type: 'timestamptz' },
         { name: 'is_active', type: 'boolean', notNull: true, note: 'false = soft-deleted member' },
