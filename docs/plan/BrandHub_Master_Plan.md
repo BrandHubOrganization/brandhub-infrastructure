@@ -567,9 +567,12 @@
 | [DA-AI05-24](#da-ai05-24--entity-resolution-job-knowledge-graph-fusion) | Entity Resolution Job (Knowledge Graph Fusion) | Lộc (Sub-lead) | 🔴 Critical |
 | [DA-AI05-25](#da-ai05-25--raw-data-ingestion-json-parsing-object-normalization--hash-deduplication-engine-t0) | Raw Data Ingestion, JSON Parsing, Object Normalization & Hash Deduplication Engine (T0) | Ân (AI) | 🔴 Critical |
 | [DA-AI05-26](#da-ai05-26--bot-clone--spam-filter-engine-rule-kb1-kb2-kb3ab-kb5-kb6-t1) | Bot, Clone & Spam Filter Engine (Rule KB1, KB2, KB3A/B, KB5, KB6) (T1) | Ân (AI) | 🔴 Critical |
+| [DA-AI05-30](#da-ai05-30--vietnamese-nlp-preprocessing-engine-clean--nfkc--tokenize--slang--stopword-t2) | Vietnamese NLP Preprocessing Engine (Clean + NFKC + Tokenize + Slang + Stopword) (T2) | Ân (AI) | 🔴 Critical |
 | [DA-AI05-27](#da-ai05-27--multi-class-topic-classification-engine-6-categories-t3) | Multi-Class Topic Classification Engine (6 Categories: tech, food, sports, entertainment, news, education) (T3) | Ân (AI) | 🔴 Critical |
+| [DA-AI05-31](#da-ai05-31--bm25-spike-detection-engine-split-window--bigram--time-series-t4) | BM25 Spike Detection Engine (Split-Window + Bigram + Time-Series) (T4) | Ân (AI) | 🔴 Critical |
 | [DA-AI05-28](#da-ai05-28--engagement-virality-score--reaction-mood-analysis-engine-t5) | Engagement Virality Score & Reaction Mood Analysis Engine (haha/wow/care/sad/angry) (T5) | Ân (AI) | 🔴 Critical |
 | [DA-AI05-29](#da-ai05-29--jaccard-clustering-community-detection-engine-t6) | Jaccard Clustering Community Detection Engine (T6) | Ân (AI) | 🔴 Critical |
+| [DA-AI05-32](#da-ai05-32--trend-fusion--object-assembly-engine-cluster--trend-objects-t7) | Trend Fusion & Object Assembly Engine (Cluster → Trend Objects) (T7) | Ân (AI) | 🔴 Critical |
 
 ### EPIC AI-4.99 — Analyze deeply crawl trend flow
 
@@ -4626,7 +4629,30 @@ Blocks: DA-AI05-26. Blocked by: DA-AI02-01.
 - Assignee: Ân (AI) | Priority: 🔴 Critical
 
 **Dependencies:**
-Blocks: DA-AI05-27, DA-AI05-28. Blocked by: DA-AI05-25.
+Blocks: DA-AI05-30, DA-AI05-28. Blocked by: DA-AI05-25.
+
+---
+
+### DA-AI05-30 — Vietnamese NLP Preprocessing Engine (Clean + NFKC + Tokenize + Slang + Stopword) (T2)
+
+**Goal:** Build a comprehensive Vietnamese NLP text preprocessing pipeline executing text cleaning, Unicode NFKC/NFC normalization, compound word tokenization, slang/teencode expansion, and contextual stopword filtering to produce clean, standardized token arrays for downstream topic classification (T3) and BM25 anomaly detection (T4).
+
+**Acceptance Criteria:**
+- [ ] **Step 1 - Cleaning:** Strip URLs, HTML tags, hashtags, emojis, and unprintable special symbols while preserving Vietnamese punctuation boundaries.
+- [ ] **Step 2 - Unicode Normalization:** Normalize font variations and mathematical bold/italic characters via Unicode NFKC, then ensure canonical decomposition/recomposition with NFC.
+- [ ] **Step 3 - Lowercase & Strip:** Lowercase text and sanitize character sets, keeping Vietnamese Latin Extended and standard alphanumeric characters.
+- [ ] **Step 4 - Tokenization:** Integrate Underthesea NLP word segmentation (`word_tokenize`) to extract compound words and domain terms (e.g., *"trà sữa đất nung"* $\rightarrow$ `["trà_sữa", "đất_nung"]`).
+- [ ] **Step 5 - Slang Mapping:** Apply dictionary lookup (~90 rules) to expand social teencode, abbreviations, and slang into standard Vietnamese (e.g., *"ko"* $\rightarrow$ *"không"*, *"dc"* $\rightarrow$ *"được"*, *"mlem"* $\rightarrow$ *"ngon/hấp dẫn"*).
+- [ ] **Step 6 - Stopword Removal:** Filter ~150 domain stopwords while preserving meaningful 1-character Vietnamese words (`ý`, `ở`, `ạ`) and dropping orphan ASCII characters.
+- [ ] Benchmark pipeline throughput: average processing latency $< 30$ms per post text.
+
+**Technical Notes:**
+- Pipeline Step: T2 (NLP Preprocessing Layer - Thiết kế tham chiếu `docs/AI_Models/DA-570_Text_Normalization_Pipeline_Design.md`).
+- Tech Stack: Python 3.11, Underthesea NLP, `unicodedata`, Regex, Slang Dictionary.
+- Assignee: Ân (AI) | Priority: 🔴 Critical
+
+**Dependencies:**
+Blocks: DA-AI05-27, DA-AI05-08. Blocked by: DA-AI05-26.
 
 ---
 
@@ -4646,7 +4672,30 @@ Blocks: DA-AI05-27, DA-AI05-28. Blocked by: DA-AI05-25.
 - Assignee: Ân (AI) | Priority: 🔴 Critical
 
 **Dependencies:**
-Blocks: DA-AI05-15. Blocked by: DA-AI05-26.
+Blocks: DA-AI05-31. Blocked by: DA-AI05-30.
+
+---
+
+### DA-AI05-31 — BM25 Spike Detection Engine (Split-Window + Bigram + Time-Series) (T4)
+
+**Goal:** Build an anomaly spike detection engine utilizing modified BM25 on temporal split-windows, statistical bigram phrase extraction, and time-series trend tracking to detect surging topics and keywords from cleaned social posts across categories.
+
+**Acceptance Criteria:**
+- [ ] **Split-Window Division:** Split sliding time window into Background baseline ($T_{bg}$, first half) and Target window ($T_{target}$, second half) to isolate surging terms against historical frequency.
+- [ ] **Statistical Bigram Phrase Extraction:** Detect co-occurring adjacent tokens ($\ge 5\%$ of posts, minimum 2 co-occurrences) and consolidate into compound phrases with a +20% score boost.
+- [ ] **Modified BM25 Scoring:** Implement anomaly BM25 formula $BM25(q) = \frac{TF_{target} \cdot (k_1 + 1)}{TF_{target} + k_1 \cdot \left(1 - b + b \cdot \frac{|T_{target}|}{\text{avg\_len}}\right)} \times IDF(q)$ with $k_1=1.5, b=0.75$ and smooth $IDF = \ln\left(\frac{N_{bg} - DF_{bg} + 0.5}{DF_{bg} + 0.5}\right) + 1.0$.
+- [ ] **Non-Parametric Noise Filtering:** Enforce 4 strict filters: $TF_{target} \ge 3$, $DF_{target} \ge 2$, $DF_{bg} \le 50\% \cdot N_{bg}$, and term length $> 2$.
+- [ ] **Side-Channel Boost:** Ingest `trendSignals[]` flagged in T1 to amplify genuine cross-post viral terms.
+- [ ] **Time-Series Tracking:** Calculate keyword acceleration/velocity across continuous time slices.
+- [ ] Process $\ge 1,000$ posts within $< 100$ms batch execution time.
+
+**Technical Notes:**
+- Pipeline Step: T4 (BM25 Spike Detection Layer - Thiết kế tham chiếu `docs/AI_Models/DA-568_Trend_Prediction_BM25_Design.md`).
+- Tech Stack: Python 3.11, NumPy, rank_bm25 / math, Pandas.
+- Assignee: Ân (AI) | Priority: 🔴 Critical
+
+**Dependencies:**
+Blocks: DA-AI05-28, DA-AI05-29. Blocked by: DA-AI05-27, DA-AI05-30.
 
 ---
 
@@ -4666,7 +4715,7 @@ Blocks: DA-AI05-15. Blocked by: DA-AI05-26.
 - Assignee: Ân (AI) | Priority: 🔴 Critical
 
 **Dependencies:**
-Blocks: DA-AI05-29, DA-AI05-14. Blocked by: DA-AI05-26.
+Blocks: DA-AI05-29, DA-AI05-14. Blocked by: DA-AI05-31, DA-AI05-26.
 
 ---
 
@@ -4686,8 +4735,32 @@ Blocks: DA-AI05-29, DA-AI05-14. Blocked by: DA-AI05-26.
 - Assignee: Ân (AI) | Priority: 🔴 Critical
 
 **Dependencies:**
-Blocks: DA-AI05-24. Blocked by: DA-AI05-28.
+Blocks: DA-AI05-32, DA-AI05-24. Blocked by: DA-AI05-28, DA-AI05-31.
 
+---
+
+### DA-AI05-32 — Trend Fusion & Object Assembly Engine (Cluster → Trend Objects) (T7)
+
+**Goal:** Assemble and fuse isolated surging keywords and community clusters into structured, business-ready "Trend Objects" with dynamic titling, dominant topic/mood assignment, status lifecycle tracking, and cross-topic super trend detection.
+
+**Acceptance Criteria:**
+- [ ] **Advanced Co-occurrence Grouping:** Merge keywords sharing Jaccard similarity $> 0.25$ or appearing together across $\ge 2$ posts into a unified trend cluster to prevent fragmented single-keyword alerts.
+- [ ] **Trend Object Construction:** Generate structured Trend Object schema containing:
+  - `title`: Concatenation of 2-3 highest-ranked keywords in the cluster.
+  - `topic`: Dominant category resolved from T3 classifications.
+  - `mood`: Dominant sentiment and reaction distribution resolved from T5.
+  - `status`: Lifecycle tagging: *Peaking* (avg posts $> 30$, $\ge 2$ keywords), *Rising* (avg posts $> 15$), *New* (recently detected).
+- [ ] **Cross-Topic Super Trend Detection:** Identify and flag keywords or clusters appearing in the Top 20 BM25 of $\ge 2$ distinct industry topics as `SUPER_TREND`.
+- [ ] **Ranking & Anti-Noise Prioritization:** Prioritize multi-keyword clusters over isolated single keywords; deprioritize solo terms to suppress noise.
+- [ ] Output finalized Trend Objects ready for Redis cache (`DA-AI05-16`) and Neo4j `:Trend` node upsert (`DA-AI05-17`).
+
+**Technical Notes:**
+- Pipeline Step: T7 (Fusion & Trend Assembly Layer - Thiết kế tham chiếu `docs/AI_Models/DA-569_Graph_Virality_Score_Design.md`).
+- Tech Stack: Python 3.11, Pydantic v2, NetworkX, SciPy.
+- Assignee: Ân (AI) | Priority: 🔴 Critical
+
+**Dependencies:**
+Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 ---
 
