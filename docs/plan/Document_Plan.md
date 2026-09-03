@@ -1,7 +1,6 @@
 # BrandHub — SEP490 Document Plan & Task Details
 
 > Kế hoạch viết 3 capstone reports cho SEP490 Fall 2026.
-> **Deadline:** August 28, 2026.
 > Mỗi task ghi rõ: Report → Section → Mục. Click **Task ID** để nhảy tới chi tiết Phần 2.
 
 ## Mục lục
@@ -24,7 +23,6 @@
 | Team | Trung (Leader), Lộc (AI Sub-lead), Tuấn (AI), Ân (AI), Phước (Publisher) |
 | Reports | Report 1 (Project Introduction), Report 2 (Project Management Plan), Report 3 (Software Requirement Specification) |
 | Language | English (mandatory) |
-| Deadline | August 28, 2026 |
 | Total Tasks | ~207 document tasks (135 FR per-function + 72 non-FR) |
 
 ---
@@ -43,7 +41,7 @@
 
 | Role | Assignee | Description |
 |---|---|---|
-| Diagram Team | Tuấn, Lộc, Phước | Vẽ 16 diagrams trước Aug 18 |
+| Diagram Team | Tuấn, Lộc, Phước | Vẽ 16 diagrams trước khi team viết nội dung |
 | Diagram Reviewer | Trung | Review consistency toàn bộ diagram |
 | Content Writers | All 5 members | Viết nội dung sau khi diagram duyệt |
 | Report 1 Reviewer | Trung (lead), Lộc, Tuấn, Ân | Cross-review R1, mỗi người 1 task riêng |
@@ -63,20 +61,20 @@
 
 ---
 
-## TIMELINE
+## MILESTONES
 
-| Milestone | Date | Deliverable |
-|---|---|---|
-| M1 — Diagrams Done | Aug 18 | 16 diagrams reviewed & approved |
-| M2 — Draft v1 | Aug 21 | All text sections written |
-| M3 — Review Complete | Aug 23 | Cross-review done, feedback collected |
-| M4 — Final v2 | Aug 25 | All feedback addressed |
-| M5 — Merged | Aug 27 | 3 reports merged, formatted, TOC updated |
-| M6 — Submit | Aug 28 | Submit to exam committee |
+| Milestone | Deliverable |
+|---|---|
+| M1 — Diagrams Done | 16 diagrams reviewed & approved |
+| M2 — Draft v1 | All text sections written |
+| M3 — Review Complete | Cross-review done, feedback collected |
+| M4 — Final v2 | All feedback addressed |
+| M5 — Merged | 3 reports merged, formatted, TOC updated |
+| M6 — Submit | Submit to exam committee |
 
 ---
 
-## PHASE 1 — Diagrams (Aug 9 → Aug 18)
+## PHASE 1 — Diagrams
 
 > Đội vẽ: Tuấn (5), Lộc (6), Phước (5). Trung review toàn bộ.
 
@@ -127,7 +125,7 @@
 
 ---
 
-## PHASE 2 — Report 1: Project Introduction (Aug 18 → Aug 21)
+## PHASE 2 — Report 1: Project Introduction
 
 > ~15 trang. Viết sau khi diagram duyệt.
 
@@ -161,7 +159,7 @@
 
 ---
 
-## PHASE 3 — Report 2: Project Management Plan (Aug 18 → Aug 21)
+## PHASE 3 — Report 2: Project Management Plan
 
 > ~25 trang. Viết sau khi diagram duyệt.
 
@@ -206,7 +204,7 @@
 
 ---
 
-## PHASE 4 — Report 3: Software Requirement Specification (Aug 18 → Aug 21)
+## PHASE 4 — Report 3: Software Requirement Specification
 
 > ~180 trang — report nặng nhất.
 
@@ -425,7 +423,7 @@
 
 ---
 
-## PHASE 5 — Review, Merge & Submit (Aug 21 → Aug 28)
+## PHASE 5 — Review, Merge & Submit
 
 ---
 
@@ -470,20 +468,20 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-D23-01](#da-d23-01) | Prepare Final Submission Package — 3 PDFs + source docx, upload to Google Drive | Trung | 🔴 |
-| [DA-D23-02](#da-d23-02) | Prepare Presentation Summary — key points from each report for Aug 28 presentation | Trung | 🟡 |
+| [DA-D23-02](#da-d23-02) | Prepare Presentation Summary — key points from each report for exam presentation | Trung | 🟡 |
 
 ---
 
 ## SPRINT SUMMARY TABLE
 
-| Phase | Timeline | Key Deliverables |
-|---|---|---|
-| Phase 1 — Diagrams | Aug 9 → Aug 18 | 16 diagrams (Context, Architecture, Use Case, ERD, 6 Screen Flows, Auth Matrix, WBS Tree, Scrum Timeline, Branch Strategy, Folder Structure, Mockups) |
-| Phase 2 — R1 Writing | Aug 18 → Aug 21 | Report 1 Draft: §1 Overview → §2 Product Background → §3 Existing Systems → §4 Business Opportunity → §5 Product Vision → §6 Scope & Limitations → §7 References |
-| Phase 3 — R2 Writing | Aug 18 → Aug 21 | Report 2 Draft: §1 Overview (WBS, Objectives, Risks) → §2 Mgmt Approach (Process, Quality, Training) → §3 Deliverables → §4 Responsibility → §5 Communications → §6 Config Mgmt |
-| Phase 4 — R3 Writing | Aug 18 → Aug 21 | Report 3 Draft: §1 Product Overview → §2 User Requirements → §3 Functional Requirements (§3.1-§3.27) → §4 NFR → §5 Appendix |
-| Phase 5 — Review & Merge | Aug 21 → Aug 27 | Cross-review (13 individual review tasks + 5 fix tasks), 3 reports merged & formatted, final PDF package |
-| Submit | Aug 28 | Submit to exam committee, presentation |
+| Phase | Key Deliverables |
+|---|---|
+| Phase 1 — Diagrams | 16 diagrams (Context, Architecture, Use Case, ERD, 6 Screen Flows, Auth Matrix, WBS Tree, Scrum Timeline, Branch Strategy, Folder Structure, Mockups) |
+| Phase 2 — R1 Writing | Report 1 Draft: §1 Overview → §2 Product Background → §3 Existing Systems → §4 Business Opportunity → §5 Product Vision → §6 Scope & Limitations → §7 References |
+| Phase 3 — R2 Writing | Report 2 Draft: §1 Overview (WBS, Objectives, Risks) → §2 Mgmt Approach (Process, Quality, Training) → §3 Deliverables → §4 Responsibility → §5 Communications → §6 Config Mgmt |
+| Phase 4 — R3 Writing | Report 3 Draft: §1 Product Overview → §2 User Requirements → §3 Functional Requirements (§3.1-§3.27) → §4 NFR → §5 Appendix |
+| Phase 5 — Review & Merge | Cross-review (13 individual review tasks + 5 fix tasks), 3 reports merged & formatted, final PDF package |
+| Submit | Submit to exam committee, presentation |
 
 ---
 
@@ -506,7 +504,7 @@
 - Tất cả nội dung report viết bằng **English** (SEP490 requirement).
 - Mỗi task có **1 assignee duy nhất** — không còn task gán nhiều người.
 - Mỗi task ghi rõ **[Report § Section]** để biết chính xác vị trí trong report.
-- Diagram team (Tuấn, Lộc, Phước) vẽ Phase 1 trước. Sau khi diagram duyệt Aug 18, toàn team viết song song Phase 2-4.
+- Diagram team (Tuấn, Lộc, Phước) vẽ Phase 1 trước. Sau khi diagram duyệt, toàn team viết song song Phase 2-4.
 - Functional Requirements format theo sample: Function Trigger → Description → Screen Layout → Data → Business Rules → Normal Flow → Abnormal Cases → Post-Conditions.
 - Source mọi technical facts từ `brandhub-infrastructure/docs/`. Không tự bịa.
 - Task ID format: `DA-D{EPIC}-{SEQ}`.
@@ -704,7 +702,7 @@
   - Chung bộ màu, font, notation
   - Cross-reference khớp: screen flow → UC → FR
   - Mỗi diagram có title + figure number
-  - Feedback documented, fixed trước Aug 18
+  - Feedback documented, fixed trước khi team viết nội dung
 
 - **Dependencies:** DA-D01-01 through DA-D03-08
 
@@ -1575,7 +1573,7 @@ Mỗi task = 1 function. Format chung mỗi function: Function Trigger → Descr
 
 ### DA-D23-02 — Prepare Presentation Summary
 
-- **Goal:** Key points từ mỗi report cho buổi trình bày Aug 28.
+- **Goal:** Key points từ mỗi report cho buổi trình bày.
 
 - **Acceptance Criteria:**
   - 1-2 slides/report: R1 (Problem→Solution→Vision), R2 (Timeline→Team→Methodology), R3 (Key features→Architecture→Tech highlights)
