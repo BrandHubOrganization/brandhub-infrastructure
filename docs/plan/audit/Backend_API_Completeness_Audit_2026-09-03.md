@@ -4,6 +4,8 @@
 > Nguồn đối chiếu: `docs/feature/*/spec.md` (business spec), `docs/api/endpoints/*.md` (API contract), source thực tế `brandhub-business-service`, `brandhub-ai-service`, `brandhub-publisher-service`.
 > Ngày: 2026-09-03
 
+> **⚠️ Cập nhật quan trọng (2026-09-03, verify lại có Jira token):** Đã kiểm tra lại toàn bộ 17 epic "Missing API" trên Jira thật — **task đã tồn tại đầy đủ và khớp đúng nghiệp vụ**, không thiếu task. Ví dụ: E16 Client có 4 task (DA-220, 236, 249, 266 — In review), E28-E31 Content Workflow có route thiết kế mới hơn cả doc cũ (`/my-tasks`, `/account-review`, `/client-approve`, `/client-reject` — không phải generic `/approve`/`/reject` như `05_post.md` mô tả, nghĩa là **doc API cũ đã lỗi thời so với task Jira**, không phải Jira thiếu). **Vấn đề thật sự là chưa ai code**, không phải thiếu task để giao việc. Không tạo task Jira mới — xem mục 5 để biết việc cần làm tiếp theo.
+
 ---
 
 ## 1. Tổng quan
@@ -115,4 +117,45 @@
 
 ---
 
-*Audit thực hiện bằng cách đối chiếu trực tiếp source code 3 service (`business`, `ai`, `publisher`) với `docs/feature/*/spec.md` và `docs/api/endpoints/*.md`. Không re-pull được Jira trong phiên này (không có token khả dụng) — số liệu Jira ở đầu tài liệu nhiệm vụ dựa trên snapshot phiên trước, cần verify lại riêng.*
+## 5. Verify lại với Jira thật (2026-09-03) — task đã đủ, KHÔNG tạo task mới
+
+Sau khi có token Jira, đối chiếu lại toàn bộ 17 epic "Missing API" với task thật trên Jira. **Kết luận: task đã có sẵn, khớp đúng nghiệp vụ, không thiếu task để giao việc.** Vấn đề duy nhất là code chưa làm — đúng như audit gốc đã kết luận, nhưng khác ở chỗ **không cần tạo thêm task mới**, chỉ cần bắt tay vào code theo task đã có.
+
+**Phát hiện quan trọng khác với audit gốc:**
+- **E12 (OAuth) đã Done phần lớn** — 7/10 task Done (Register, Login, Refresh, Logout, Forgot/Reset Password, Change Password), chỉ 3 task chưa xong: Google (In review), Facebook + GitHub (In Progress). Audit gốc chỉ nói "thiếu Facebook" — thực tế đã có người đang làm cả Facebook lẫn GitHub.
+- **E21 (Publisher Core) đã Done 3/6** — Init project, RabbitMQ consumer, Instagram adapter đều Done. Facebook adapter đang In review. Chỉ Threads + TikTok adapter còn thật sự chưa xong (In Progress). Audit gốc kết luận "service hoàn toàn trống" dựa trên việc chỉ thấy 1 file bootstrap trong repo — **có khả năng code đang nằm ở nhánh/PR chưa merge vào main**, cần Phước xác nhận trực tiếp thay vì tin theo audit code-scan.
+- **E28-E31 (Content Workflow) có route thiết kế mới hơn doc cũ** — Jira dùng `/my-tasks`, `/account-review`, `/client-approve`, `/client-reject` thay vì generic `/approve`/`/reject` như `05_post.md` mô tả. Doc API cần cập nhật lại theo task Jira, không phải ngược lại.
+- **Doc endpoint (`docs/api/endpoints/*.md`) đã lỗi thời ở nhiều chỗ** — số lượng endpoint trong doc không khớp số task Jira thực tế (VD E16 doc ghi 8 endpoint, Jira chỉ giao 4 task — có thể 4 endpoint còn lại đã được gộp/bỏ theo quyết định thiết kế mới chưa cập nhật lại doc).
+
+**Bảng còn lại chính xác (theo task Jira thật, không phải audit code-scan cũ):**
+
+| Epic | Epic key | Done | Còn lại | Người phụ trách chính |
+|---|---|---|---|---|
+| E12 Auth/OAuth | DA-92 | 7/10 | Google (review), Facebook + GitHub (In Progress) | Trung |
+| E16 Client | DA-102 | 0/4 | Toàn bộ 4 task đang In review — chờ merge, không phải chưa code | Trung (assign) |
+| E17 Subscription | DA-107 | 0/4 | Toàn bộ 4 task To Do | Ân |
+| E18 Meta OAuth (FB+IG) | DA-103 | 0/4 | Toàn bộ 4 task To Do | Phước, Trung |
+| E19 TikTok/Threads/Zalo OAuth | DA-108 | 0/4 | Toàn bộ 4 task To Do | Phước, Trung |
+| E20 Token Lifecycle | DA-100 | 0/3 | Toàn bộ 3 task To Do | Trung, Phước |
+| E21 Publisher Core | DA-105 | 3/6 | Threads + TikTok adapter (In Progress) | Phước |
+| E22 Publish Callback | DA-95 | 0/3 | Toàn bộ 3 task To Do | Phước, Trung |
+| E24 AI wiring | DA-101 | 0/3 | Toàn bộ 3 task **Unassigned** — cần giao gấp | Chưa có |
+| E28 Content Request | DA-112 | 0/3 | Toàn bộ 3 task To Do | Phước |
+| E29 Task Assignment | DA-120 | 0/3 | Toàn bộ 3 task To Do | Phước |
+| E30 Content Calendar | DA-114 | 0/4 | Toàn bộ 4 task To Do (2 API + 2 FE component) | Phước |
+| E31 Approval Workflow | DA-115 | 0/4 | Toàn bộ 4 task To Do | Phước |
+| E32 Publishing System | DA-113 | 0/8 | Toàn bộ 8 task To Do (Facebook/IG/TikTok/Threads/Zalo adapter + Smart Ingestion + RabbitMQ consumer + callback) | Phước |
+| E33 Publish Error Handling | DA-118 | 0/3 | Toàn bộ 3 task To Do | Phước, Trung |
+| E38 Analytics | DA-125 | 0/4 | Toàn bộ 4 task To Do (2 API + 1 FE + 1 email) | — |
+| E39 Notification | DA-121 | 0/3 | Toàn bộ 3 task To Do | Trung, Phước |
+| E41 Mobile Notifications | DA-127 | 0/4 | Toàn bộ 4 task To Do | Phước, Trung |
+
+**Việc cần làm ngay (không tạo task Jira mới):**
+1. **Giao gấp 3 task E24 (Unassigned)** — DA-221, DA-238, DA-258 — đây là điểm nối AI service (đã chạy thật) vào business-service, effort thấp/giá trị cao nhất theo mục 4.
+2. **Xác nhận với Phước về E21 Publisher** — code có tồn tại ở branch riêng chưa merge hay thật sự chưa bắt đầu Threads/TikTok adapter?
+3. **Cập nhật `docs/api/endpoints/*.md`** cho khớp route thật đã thiết kế trong Jira (đặc biệt E28-E31, E16) — doc hiện dùng route cũ không khớp task đang code.
+4. **Không cần tạo thêm Jira task** cho 17 epic này — toàn bộ đã có task đúng người đúng việc, chỉ cần đẩy code.
+
+---
+
+*Audit gốc thực hiện bằng cách đối chiếu trực tiếp source code 3 service (`business`, `ai`, `publisher`) với `docs/feature/*/spec.md` và `docs/api/endpoints/*.md`, không có Jira token khả dụng lúc đó. Mục 5 verify lại bằng Jira API thật (token Personal API Token, Basic Auth) ngày 2026-09-03 — số liệu mục 5 là nguồn chính xác nhất, ưu tiên hơn kết luận "Missing API" ở mục 1-4 vốn chỉ dựa trên code-scan.*
