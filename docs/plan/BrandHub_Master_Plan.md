@@ -188,7 +188,7 @@
 | [DA-E07-04](#da-e07-04-write-standard-api-response-format-apiresponse-wrapper-error-codes-http-status-codes) | Write standard API response format (ApiResponse wrapper, error codes, HTTP status codes) | Trung (Leader) | 🔴 Critical |
 | [DA-E07-05](#da-e07-05-write-openapi-yaml-spec-for-business-service) | Write OpenAPI YAML spec for business-service | Trung (Leader) | 🟡 High |
 | [DA-E07-06](#da-e07-06-write-openapi-yaml-spec-for-ai-service-all-internal-public-endpoints) | Write OpenAPI YAML spec for ai-service (all internal + public endpoints) | Tuấn (AI) | 🟡 High |
-| [DA-E07-07](#da-e07-07-document-social-platform-api-specs-fb-graph-api-v19-tiktok-content-api-v2-threads-api-zalo-oa-api-versions-rate-limits-payload-formats) | Document social platform API specs: FB Graph API, TikTok Content API, Threads API, Zalo OA API (versions, rate limits, payload formats) | Phước (Publisher) | 🟡 High |
+| [DA-E07-07](#da-e07-07-document-social-platform-api-specs-fb-graph-api-v19-tiktok-content-api-v2-threads-api-zalo-oa-api-versions-rate-limits-payload-formats) | Document social platform API specs: FB Graph API, TikTok Content API, Threads API (versions, rate limits, payload formats) | Phước (Publisher) | 🟡 High |
 
 ### EPIC E08 — UI/UX Wireframe
 
@@ -401,13 +401,14 @@
 | [DA-E18-03](#da-e18-03-implement-aes-256-gcm-token-encryption) | Implement AES-256 encryption for access token + refresh token before saving to MongoDB | Trung (Leader) | 🔴 Critical |
 | [DA-E18-04](#da-e18-04-implement-social-account-disconnect-flow) | Implement disconnect flow (revoke token at Meta, remove from MongoDB) | Phước (Publisher) | 🟡 High |
 
-### EPIC E19 — TikTok, Threads & Zalo OA OAuth
+### EPIC E19 — TikTok & Threads OAuth
+
+> **Zalo OA đã bị loại khỏi scope** (2026-09-03) — không tích hợp Zalo nữa. DA-E19-03 (Zalo OAuth) đã xóa khỏi Jira (DA-216).
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-E19-01](#da-e19-01-implement-tiktok-for-business-oauth) | Implement TikTok for Business OAuth (Client Credentials Flow) | Phước (Publisher) | 🔴 Critical |
 | [DA-E19-02](#da-e19-02-implement-threads-oauth) | Implement Threads OAuth (using Meta Graph API, scope: threads_basic + threads_content_publish) | Phước (Publisher) | 🔴 Critical |
-| [DA-E19-03](#da-e19-03-implement-zalo-official-account-oauth) | Implement Zalo Official Account OAuth | Phước (Publisher) | 🔴 Critical |
 | [DA-E19-04](#da-e19-04-implement-token-status-api) | Implement token status dashboard API (view ACTIVE/EXPIRED/REVOKED status for all accounts) | Trung (Leader) | 🟡 High |
 
 ### EPIC E20 — Token Lifecycle Management
@@ -422,6 +423,8 @@
 
 ## Sprint 8 — Publisher Service (Weeks 15–16)
 
+> **EPIC E37 — Client Portal đã dời từ Sprint 13 vào Sprint 8** 🔀 (2026-09-03) — đẩy sớm phần Client Portal (login, calendar, approval, analytics) để song song với Publisher Service.
+
 ### EPIC E21 — Publisher Service Core
 
 | Task ID | Description | Assignee | Priority |
@@ -432,7 +435,8 @@
 | [DA-E21-04](#da-e21-04-implement-instagram-publish-adapter-2-step-create-container-publish) | Implement Instagram publish adapter (Content Publishing API: create container → publish) | Phước (Publisher) | 🔴 Critical |
 | [DA-E21-05](#da-e21-05-implement-tiktok-publish-adapter-direct-post-60s-creator-upload-60s) | Implement TikTok publish adapter (Content Posting API v2) | Phước (Publisher) | 🔴 Critical |
 | [DA-E21-06](#da-e21-06-implement-threads-publish-adapter-2-step-create-container-publish-enforce-max-500-chars) | Implement Threads publish adapter (Threads API: create container → publish, max 500 chars) | Phước (Publisher) | 🔴 Critical |
-| [DA-E21-07](#da-e21-07-implement-zalo-oa-publish-adapter-article-api-for-textimage-posts-photo-api-for-image-only) | Implement Zalo OA publish adapter (Article API + Photo API) | Phước (Publisher) | 🔴 Critical |
+
+> ~~DA-E21-07 — Implement Zalo OA publish adapter~~ — **loại khỏi scope** (2026-09-03), không tích hợp Zalo nữa.
 
 ### EPIC E22 — Publish Callback & Error Handling
 
@@ -441,6 +445,15 @@
 | [DA-E22-01](#da-e22-01-implement-http-callback-post-internalpostsidpublish-result-to-business-service) | Implement HTTP callback to business-service after publishing completes (POST /internal/posts/{id}/publish-result) | Phước (Publisher) | 🔴 Critical |
 | [DA-E22-02](#da-e22-02-implement-retry-logic-immediate-1min-5min-15min-dead-letter-queue) | Implement retry logic: on failure → retry up to 3 times with exponential backoff (1m, 5m, 15m) | Phước (Publisher) | 🔴 Critical |
 | [DA-E22-03](#da-e22-03-implement-business-service-handler-for-publish-callback-update-post-status-publishedfailed-create-notification) | Implement business-service handler for publish callback (update post status, create notification) | Trung (Leader) | 🔴 Critical |
+
+### EPIC E37 — Client Portal 🔀 *(dời từ Sprint 13)*
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| [DA-E37-01](#da-e37-01-build-client-portal-login) | Build Client Portal login (isolated, only shows data for the logged-in client) | Phước (Publisher) | 🔴 Critical |
+| [DA-E37-02](#da-e37-02-build-client-calendar) | Build Client Calendar (read-only, view only, no editing) | Phước (Publisher) | 🔴 Critical |
+| [DA-E37-03](#da-e37-03-build-client-approval-page) | Build Client Approval page (view preview → approve/reject with feedback) | Phước (Publisher) | 🔴 Critical |
+| [DA-E37-04](#da-e37-04-build-client-analytics-page) | Build Client Analytics page (publishing results, success rate, campaign summary) | Phước (Publisher) | 🟡 High |
 
 ---
 
@@ -720,8 +733,9 @@
 | [DA-E32-04](#da-e32-04-implement-instagram-adapter) | Implement Instagram adapter (2-step: create container → publish) | Phước (Publisher) | 🔴 Critical |
 | [DA-E32-05](#da-e32-05-implement-tiktok-adapter) | Implement TikTok adapter (Direct Post for video ≤60s, Creator Upload for video >60s) | Phước (Publisher) | 🔴 Critical |
 | [DA-E32-06](#da-e32-06-implement-threads-adapter) | Implement Threads adapter (2-step: create container → publish, max 500 chars) | Phước (Publisher) | 🔴 Critical |
-| [DA-E32-07](#da-e32-07-implement-zalo-oa-adapter) | Implement Zalo OA adapter | Phước (Publisher) | 🔴 Critical |
 | [DA-E32-08](#da-e32-08-implement-http-callback-post-internalpostsidpublish-result) | Implement HTTP callback → business-service after publish completes (update post status: PUBLISHED/FAILED) | Phước (Publisher) | 🔴 Critical |
+
+> ~~DA-E32-07 — Implement Zalo OA adapter~~ — **loại khỏi scope** (2026-09-03), đã xóa khỏi Jira (DA-361).
 
 ### EPIC E33 — Publish Error Handling
 
@@ -734,6 +748,8 @@
 ---
 
 ## PHASE 6 — Frontend & Analytics
+
+> **CHÍNH SÁCH MỚI (2026-09-03):** Từ giai đoạn tiếp theo trở đi, KHÔNG tách epic/task FE riêng nữa. FE tích hợp chung vào task BE tương ứng (1 task = làm API + build page/component đi kèm luôn) — team làm song song BE với FE trong cùng 1 task cho đơn giản, thay vì tách 2 task riêng (1 BE + 1 FE) như E35/E36 trước đây. Áp dụng từ Sprint 8 trở đi — E37 Client Portal là epic FE cuối cùng còn tách riêng, đã move vào Sprint 8.
 
 ---
 
@@ -765,14 +781,7 @@
 
 ## Sprint 13 — Client Portal, Analytics & Notifications (Weeks 25–26)
 
-### EPIC E37 — Client Portal
-
-| Task ID | Description | Assignee | Priority |
-|---|---|---|---|
-| [DA-E37-01](#da-e37-01-build-client-portal-login) | Build Client Portal login (isolated, only shows data for the logged-in client) | Phước (Publisher) | 🔴 Critical |
-| [DA-E37-02](#da-e37-02-build-client-calendar) | Build Client Calendar (read-only, view only, no editing) | Phước (Publisher) | 🔴 Critical |
-| [DA-E37-03](#da-e37-03-build-client-approval-page) | Build Client Approval page (view preview → approve/reject with feedback) | Phước (Publisher) | 🔴 Critical |
-| [DA-E37-04](#da-e37-04-build-client-analytics-page) | Build Client Analytics page (publishing results, success rate, campaign summary) | Phước (Publisher) | 🟡 High |
+> **EPIC E37 đã dời lên Sprint 8** 🔀 (2026-09-03) — epic FE cuối cùng còn tách riêng, đẩy sớm để kịp song song với E22/E32. Từ đây các task FE còn lại (E38-04, E39-03, mobile...) không tách epic riêng nữa mà gộp vào task BE tương ứng.
 
 ### EPIC E38 — Analytics & Reporting
 
@@ -831,7 +840,7 @@
 | [DA-E42-02](#da-e42-02-write-unit-tests-for-ai-service) | Write unit tests for ai-service (content generation, RAG pipeline, image generation) | Tuấn (AI) | 🔴 Critical |
 | [DA-E42-03](#da-e42-03-write-integration-tests-for-business-service) | Write integration tests for main API endpoints (business-service) | Phước (Publisher) | 🔴 Critical |
 | [DA-E42-04](#da-e42-04-performance-test) | Performance testing (load test with 200 concurrent users) | All (Team) | 🟡 High |
-| [DA-E42-05](#da-e42-05-e2e-publishing-test) | Test publishing flow E2E on sandbox accounts (FB/IG/TikTok/Threads/Zalo) | Phước (Publisher) | 🔴 Critical |
+| [DA-E42-05](#da-e42-05-e2e-publishing-test) | Test publishing flow E2E on sandbox accounts (FB/IG/TikTok/Threads) | Phước (Publisher) | 🔴 Critical |
 
 ### EPIC E43 — Bug Fixes & Polish
 
@@ -1405,7 +1414,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Acceptance Criteria:**
 - [ ] A dedicated project email address (e.g., brandhub.capstone@gmail.com) is created and credentials shared securely with all team members
-- [ ] Accounts created and verified for: GitHub (org already exists), Groq API, Stability AI, and any social platform developer portals needed (Facebook Developer, TikTok for Developers, Zalo OA)
+- [ ] Accounts created and verified for: GitHub (org already exists), Groq API, Stability AI, and any social platform developer portals needed (Facebook Developer, TikTok for Developers)
 - [ ] All API keys and credentials are stored in a shared secrets manager (e.g., a shared Bitwarden vault or GitHub Organization secrets) — never committed to any repo
 
 **Technical Notes:**
@@ -1927,7 +1936,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Goal:** Establish the exact JSON schema for both the publish job message and the callback message so business-service and publisher-service can be developed independently against the same contract.
 
 **Acceptance Criteria:**
-- [ ] Publish job message schema is fully defined: all fields with types, required/optional, and example values — must include at minimum: jobId, postId, workspaceId, platform (FB/TikTok/Threads/Zalo), scheduledAt, content (text, mediaUrls), socialAccountCredentials reference
+- [ ] Publish job message schema is fully defined: all fields with types, required/optional, and example values — must include at minimum: jobId, postId, workspaceId, platform (FB/TikTok/Threads), scheduledAt, content (text, mediaUrls), socialAccountCredentials reference
 - [ ] Callback message schema is fully defined: jobId, postId, status (SUCCESS/FAILED), platformPostId (on success), errorCode + errorMessage (on failure), processedAt
 - [ ] Exchange name, routing keys, and queue names are specified for both message directions
 
@@ -1993,7 +2002,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 ---
 
-### DA-E07-07 — Document social platform API specs: FB Graph API v19, TikTok Content API v2, Threads API, Zalo OA API (versions, rate limits, payload formats)
+### DA-E07-07 — Document social platform API specs: FB Graph API v19, TikTok Content API v2, Threads API (versions, rate limits, payload formats)
 **Assignee:** Phước (Publisher) | **Priority:** 🟡 High
 
 **Goal:** Compile the external social platform API constraints into one reference document so publisher-service developers do not need to read four separate developer portals during implementation.
@@ -2001,7 +2010,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Acceptance Criteria:**
 - [ ] Each of the 4 platforms is documented with: API version pinned, authentication method, post creation endpoint, media upload method, rate limits, and error response format
 - [ ] Platform-specific payload format examples are included for at minimum: text post, image post, and video post (where supported)
-- [ ] Known gotchas or restrictions are documented (e.g., TikTok video minimum duration, Zalo OA approval requirements, Threads media attachment limits)
+- [ ] Known gotchas or restrictions are documented (e.g., TikTok video minimum duration, Threads media attachment limits)
 
 **Technical Notes:**
 - Pin API versions explicitly: Facebook Graph API v19.0, TikTok Content Posting API v2; note that using unpinned versions risks breaking changes
@@ -2327,7 +2336,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 ### DA-E09-12 — Register brandhub domain *(phát sinh, ngoài plan gốc)*
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
-**Goal:** Đăng ký domain thật cho BrandHub để phục vụ deploy, demo mentor và các redirect URI OAuth (Facebook, Google, Zalo... cần domain public thay vì localhost).
+**Goal:** Đăng ký domain thật cho BrandHub để phục vụ deploy, demo mentor và các redirect URI OAuth (Facebook, Google... cần domain public thay vì localhost).
 
 **Acceptance Criteria:**
 - [ ] Domain đăng ký xong, trỏ DNS cơ bản (A/CNAME record placeholder cho production sau này)
@@ -3383,24 +3392,9 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 ---
 
-### DA-E19-03 — Implement Zalo Official Account OAuth
-**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical
+### ~~DA-E19-03 — Implement Zalo Official Account OAuth~~
 
-**Goal:** Connect a Zalo Official Account to a client, with a dedicated 45-minute refresh job to handle Zalo's extremely short 1-hour token TTL.
-
-**Acceptance Criteria:**
-- [ ] GET /api/v1/social/zalo/connect?clientId={clientId} redirects to Zalo's OAuth dialog with required scopes
-- [ ] GET /api/v1/social/zalo/callback exchanges code for access token (1-hour TTL) and refresh token; both stored encrypted in MongoDB
-- [ ] SocialAccount document created with {clientId, workspaceId, platform: ZALO, oaId, oaName, tokenStatus: ACTIVE, expiresAt}
-- [ ] A dedicated Spring `@Scheduled` job runs every 45 minutes (separate from the nightly cron) to refresh Zalo tokens before they expire
-- [ ] If the 45-minute refresh fails, token status is set to EXPIRING_SOON and Account Manager is notified immediately (not at next nightly check)
-
-**Technical Notes:**
-- Zalo OA API base URL: `https://openapi.zalo.me/v2.0/oa/`
-- Zalo access token TTL is 1 hour — the 45-minute refresh cadence is intentional; a nightly job alone is insufficient
-- Refresh token itself has a longer TTL (varies by Zalo plan); store `refreshTokenExpiresAt` separately and alert when it is within 7 days of expiry
-
-**Dependencies:** Blocks: [DA-E20-01]. Blocked by: [DA-E18-03, DA-E14-02].
+> **Loại khỏi scope** (2026-09-03) — không tích hợp Zalo OA. Task đã xóa khỏi Jira (DA-216).
 
 ---
 
@@ -3420,18 +3414,17 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - `tokenStatus` is computed at query time from `expiresAt` vs `Instant.now()` unless the status was explicitly set to REVOKED — do not rely solely on a pre-computed field that may be stale
 - Consider a hybrid approach: store status in MongoDB (updated by refresh jobs) but recompute EXPIRED status on the fly if `expiresAt < now` regardless of stored status
 
-**Dependencies:** Blocks: [DA-E20-03]. Blocked by: [DA-E18-01, DA-E18-02, DA-E19-01, DA-E19-02, DA-E19-03, DA-E14-03].
+**Dependencies:** Blocks: [DA-E20-03]. Blocked by: [DA-E18-01, DA-E18-02, DA-E19-01, DA-E19-02, DA-E14-03].
 
 ---
 
 ### DA-E20-01 — Implement Scheduled Token Refresh Job
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Automatically refresh expiring social platform tokens on a nightly schedule to maintain uninterrupted publishing capability, with a separate high-frequency job for Zalo.
+**Goal:** Automatically refresh expiring social platform tokens on a nightly schedule to maintain uninterrupted publishing capability.
 
 **Acceptance Criteria:**
-- [ ] A Spring `@Scheduled(cron = "0 0 2 * * *")` job runs at 2:00 AM daily and refreshes tokens for all platforms (except Zalo) expiring within 7 days
-- [ ] A separate `@Scheduled(fixedDelay = 2700000)` job (every 45 minutes) refreshes Zalo OA tokens exclusively
+- [ ] A Spring `@Scheduled(cron = "0 0 2 * * *")` job runs at 2:00 AM daily and refreshes tokens for all platforms expiring within 7 days
 - [ ] Successfully refreshed tokens update {accessToken (encrypted), refreshToken (encrypted), expiresAt, lastRefreshedAt, tokenStatus: ACTIVE} in MongoDB
 - [ ] Failed refresh attempts do not crash the job; errors are caught per-account and logged; DA-E20-02 is triggered for each failure
 - [ ] Job execution is idempotent: re-running manually produces no duplicate refreshes within the same window
@@ -3441,7 +3434,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - Process accounts in batches (e.g., 50 at a time) using MongoDB cursor pagination to avoid loading all accounts into memory
 - For multi-instance deployments, use a distributed lock (Redisson `RLock` or Redis `SET NX EX`) to ensure only one instance runs the job at a time
 
-**Dependencies:** Blocks: [DA-E20-02, DA-E20-03]. Blocked by: [DA-E18-01, DA-E18-02, DA-E19-01, DA-E19-02, DA-E19-03].
+**Dependencies:** Blocks: [DA-E20-02, DA-E20-03]. Blocked by: [DA-E18-01, DA-E18-02, DA-E19-01, DA-E19-02].
 
 ---
 
@@ -4166,7 +4159,7 @@ Blocks: DA-AI04-08. Blocked by: DA-AI04-02, DA-AI04-03.
 
 **Acceptance Criteria:**
 - [ ] Documentation published at `docs/ai/prompt_engineering_guide.md`
-- [ ] Includes full prompt templates for Facebook, Instagram, TikTok, Threads, and Zalo
+- [ ] Includes full prompt templates for Facebook, Instagram, TikTok, and Threads
 - [ ] Details anti-hallucination system prompt rules and tone adjustment parameters
 
 **Technical Notes:**
@@ -5640,22 +5633,9 @@ Blocks: DA-AI05-24. Blocked by: DA-AI05-28.
 
 ---
 
-### DA-E21-07 — Implement Zalo OA publish adapter (Article API for text/image posts, Photo API for image-only)
-**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical
+### ~~DA-E21-07 — Implement Zalo OA publish adapter~~
 
-**Goal:** Enable publishing to Zalo Official Accounts, the primary Vietnamese social platform for BrandHub's local market.
-
-**Acceptance Criteria:**
-- [ ] For posts with text content: uses Zalo OA Article API to publish with title, description, and optional image
-- [ ] For image-only posts: uses Zalo OA Photo API
-- [ ] Zalo access token refresh is handled automatically when a `401` is received (Zalo tokens expire frequently)
-- [ ] Returns `{status: SUCCESS/FAILED, platformPostId}` in the same shape as all other adapters
-
-**Technical Notes:**
-- Zalo OA API base URL: `https://openapi.zalo.me/v2.0/oa/`; requires `access_token` query parameter (not header)
-- Zalo token refresh requires the `refresh_token` stored in `encryptedToken`; decrypt and use it to call `https://oauth.zaloapp.com/v4/oa/access_token` before retrying the failed request
-
-**Dependencies:** Blocks: DA-E22-01. Blocked by: DA-E21-02.
+> **Loại khỏi scope** (2026-09-03) — không tích hợp Zalo. Task chưa từng tạo trên Jira.
 
 ---
 
@@ -6085,7 +6065,7 @@ Blocks: DA-AI05-24. Blocked by: DA-AI05-28.
 
 **Acceptance Criteria:**
 - [ ] Both tasks documented with deliverable file paths and content summary
-- [ ] Social platform API specs: FB, TikTok, Threads, Zalo versions and rate limits noted
+- [ ] Social platform API specs: FB, TikTok, Threads versions and rate limits noted
 - [ ] Self-assessment filled
 
 **Technical Notes:** File: `sprint_03/members/phuocnc.md`
@@ -6516,7 +6496,7 @@ Blocks: DA-AI05-24. Blocked by: DA-AI05-28.
 ### DA-E47-47 — Write individual sprint report for Sprint 7 — Phước
 **Assignee:** Phước (Publisher) | **Priority:** 🟢 Medium
 
-**Goal:** Document Phước's contributions in Sprint 7 in `sprint_07/members/phuocnc.md`. Tasks: DA-E18-01/02/04 (Meta OAuth flows), DA-E19-01/02/03 (TikTok, Threads, Zalo OAuth), DA-E20-03 (manual token refresh).
+**Goal:** Document Phước's contributions in Sprint 7 in `sprint_07/members/phuocnc.md`. Tasks: DA-E18-01/02/04 (Meta OAuth flows), DA-E19-01/02 (TikTok, Threads OAuth), DA-E20-03 (manual token refresh).
 
 **Acceptance Criteria:**
 - [ ] Each OAuth flow described: redirect URL, callback handling, token exchange
@@ -8041,7 +8021,7 @@ Blocks: DA-AI05-24. Blocked by: DA-AI05-28.
 - [ ] Each post appears as a colored chip on its `scheduledAt` date, color-coded by status (SCHEDULED=blue, PUBLISHED=green, FAILED=red, PENDING_REVIEW=yellow)
 - [ ] Dragging a post chip to a new date calls PATCH /api/v1/posts/{id}/reschedule with the new datetime
 - [ ] Clicking a post chip opens a detail side-panel with post preview and action buttons
-- [ ] Supports platform filter (checkbox group: FB, IG, TikTok, Threads, Zalo)
+- [ ] Supports platform filter (checkbox group: FB, IG, TikTok, Threads)
 - [ ] Loading state shown while fetching; error toast on API failure
 
 **Technical Notes:**
@@ -8195,7 +8175,7 @@ Blocks: DA-AI05-24. Blocked by: DA-AI05-28.
 - Redis key: `publish:processing:{postId}` with `SETNX` for atomic check-and-set
 - Consumer must be single-threaded per queue to guarantee FIFO; set `concurrency = 1` on listener container
 
-**Dependencies:** Blocks: [DA-E32-03, DA-E32-04, DA-E32-05, DA-E32-06, DA-E32-07]. Blocked by: [DA-E32-01].
+**Dependencies:** Blocks: [DA-E32-03, DA-E32-04, DA-E32-05, DA-E32-06]. Blocked by: [DA-E32-01].
 
 ---
 
@@ -8283,22 +8263,9 @@ Blocks: DA-AI05-24. Blocked by: DA-AI05-28.
 
 ---
 
-### DA-E32-07 — Implement Zalo OA adapter
-**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical
+### ~~DA-E32-07 — Implement Zalo OA adapter~~
 
-**Goal:** Publish rich article and image posts to Zalo Official Accounts via the Zalo OA Open API.
-
-**Acceptance Criteria:**
-- [ ] Article posts use POST `/article/create` with `{title, description, body, cover, status: "show"}`
-- [ ] Image posts use POST `/photo/upload` first, then POST `/message/photo` with the returned `photo_id`
-- [ ] OA access token is refreshed if expired before publishing (Zalo OA tokens expire in 3 months)
-- [ ] Returns `{platformPostId: articleId|photoId}` on success
-- [ ] Returns non-retryable error on OA permission/scope issues with notification to ACCOUNT_MANAGER
-
-**Technical Notes:**
-- Zalo OA API base: `https://openapi.zalo.me/v2.0/oa`
-- OA access token obtained via OAuth 2.0 with `manage_oa` scope; refresh token stored encrypted in DB
-- Image must be uploaded to Zalo servers first; S3 URLs are not accepted directly
+> **Loại khỏi scope** (2026-09-03) — không tích hợp Zalo. Task đã xóa khỏi Jira (DA-361).
 
 **Dependencies:** Blocks: [DA-E42-05]. Blocked by: [DA-E32-02].
 
@@ -8321,7 +8288,7 @@ Blocks: DA-AI05-24. Blocked by: DA-AI05-28.
 - This endpoint must NOT be exposed through the public nginx proxy; restrict at nginx level with `deny all` for `/internal/`
 - Consider adding `publishJobId` to the callback for correlation verification
 
-**Dependencies:** Blocks: [DA-E33-01]. Blocked by: [DA-E32-03, DA-E32-04, DA-E32-05, DA-E32-06, DA-E32-07].
+**Dependencies:** Blocks: [DA-E33-01]. Blocked by: [DA-E32-03, DA-E32-04, DA-E32-05, DA-E32-06].
 
 ---
 
@@ -8632,7 +8599,7 @@ Blocks: DA-AI05-24. Blocked by: DA-AI05-28.
 - [ ] Posts displayed as color-coded event chips (by status); hovering shows tooltip with caption preview
 - [ ] Drag-and-drop a chip to new date calls PATCH /api/v1/posts/{id}/reschedule; optimistic update with rollback on failure
 - [ ] "Schedule Post" button on each day cell opens a scheduling modal to set time and target platforms
-- [ ] Platform filter chips above calendar (FB, IG, TikTok, Threads, Zalo); toggling hides/shows that platform's posts
+- [ ] Platform filter chips above calendar (FB, IG, TikTok, Threads); toggling hides/shows that platform's posts
 - [ ] Navigating months/weeks fetches new date range from GET /api/v1/posts/calendar
 
 **Technical Notes:**
@@ -8755,7 +8722,7 @@ Blocks: DA-AI05-24. Blocked by: DA-AI05-28.
 **Acceptance Criteria:**
 - [ ] KPI cards: total posts published, success rate, total posts failed, posts pending
 - [ ] Line chart: posts published per day over selected date range (default: last 30 days)
-- [ ] Pie chart: breakdown by platform (FB, IG, TikTok, Threads, Zalo)
+- [ ] Pie chart: breakdown by platform (FB, IG, TikTok, Threads)
 - [ ] Bar chart: success rate per platform
 - [ ] Date range picker (7d / 30d / 90d / custom) updates all charts simultaneously
 - [ ] "Download PDF Report" button calls GET /api/v1/reports/latest?clientId= and downloads the S3 PDF
@@ -8840,7 +8807,7 @@ Blocks: DA-AI05-24. Blocked by: DA-AI05-28.
 
 **Acceptance Criteria:**
 - [ ] Line chart: posts published per day for selected date range using `<LineChart>` from Recharts
-- [ ] Pie chart: post distribution by platform (5 slices: FB, IG, TikTok, Threads, Zalo) using `<PieChart>`
+- [ ] Pie chart: post distribution by platform (5 slices: FB, IG, TikTok, Threads) using `<PieChart>`
 - [ ] Bar chart: success rate per platform using `<BarChart>`
 - [ ] KPI cards row: total published, total failed, overall success rate, most active platform
 - [ ] Date range selector (7d / 30d / 90d / custom); updating range refetches and animates chart transitions
@@ -9227,7 +9194,7 @@ Blocks: DA-AI05-24. Blocked by: DA-AI05-28.
 
 **Acceptance Criteria:**
 - [ ] Test flow executes in order: create ContentRequest → AI generate → save draft → submit → ACCOUNT_MANAGER approve → client approve → verify post appears as PUBLISHED in DB
-- [ ] Test covers all 5 platforms: Facebook, Instagram, TikTok, Threads, Zalo OA using developer sandbox/test accounts
+- [ ] Test covers all 5 platforms: Facebook, Instagram, TikTok, Threads using developer sandbox/test accounts
 - [ ] Each platform's `platformPostId` is stored in the Post document after successful publish
 - [ ] Test verifies the post actually appears on the platform by calling the platform's read API to confirm existence
 - [ ] Test is tagged `@E2E` and excluded from the default test run; only runs manually or in a dedicated CI stage
@@ -9238,7 +9205,7 @@ Blocks: DA-AI05-24. Blocked by: DA-AI05-28.
 - Test credentials stored in GitHub Secrets / `.env.test` (never committed)
 - E2E test runs against the deployed staging environment, not local
 
-**Dependencies:** Blocks: [DA-E43-01]. Blocked by: [DA-E32-03, DA-E32-04, DA-E32-05, DA-E32-06, DA-E32-07, DA-E42-03].
+**Dependencies:** Blocks: [DA-E43-01]. Blocked by: [DA-E32-03, DA-E32-04, DA-E32-05, DA-E32-06, DA-E42-03].
 
 ---
 
