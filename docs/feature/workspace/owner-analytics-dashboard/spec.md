@@ -26,7 +26,7 @@ viên (không phải "sở hữu").
 - Role `OWNER` (MemberRole workspace, không phải business role) → ẩn hoàn
   toàn section "Sáng tạo" (Content Editor + Calendar), không điều kiện theo
   số lượng thành viên.
-- Role khác (CREATOR/VIEWER/CLIENT/ACCOUNT) → giữ nguyên hành vi hiện tại,
+- Role khác (MANAGER/ACCOUNT/CREATOR/CLIENT) → giữ nguyên hành vi hiện tại,
   không đổi.
 
 ### Phần B — Analytics theo workspace (`/analytics`, đã tồn tại): mở rộng
@@ -35,7 +35,7 @@ như cũ, không đổi):
 1. **Bảng thành viên** — email, họ tên, vai trò, ngày tham gia, trạng thái.
    Data thật, tái dùng `workspaceService.listMembers` đã có sẵn.
 2. **Số liệu tổng theo role** — tổng số thành viên, đếm theo từng
-   `MemberRole` (OWNER/CREATOR/VIEWER/CLIENT/ACCOUNT). Data thật, tính ở
+   `MemberRole` (OWNER/MANAGER/ACCOUNT/CREATOR/CLIENT). Data thật, tính ở
    frontend từ data `listMembers` (không cần API mới).
 3. **Hoạt động gần đây (audit log)** — danh sách N hoạt động gần nhất trong
    workspace (ai làm gì, khi nào). **Cần API mới** — xem API Contract.

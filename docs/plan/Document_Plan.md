@@ -224,7 +224,7 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-D13-01](#da-d13-01) | **[R3 §2.1]** Write Actors Description — 6 roles: ADMIN, AGENCY_OWNER, ACCOUNT_MANAGER, CONTENT_CREATOR, BRAND_CLIENT, GUEST | Tuấn | 🔴 |
+| [DA-D13-01](#da-d13-01) | **[R3 §2.1]** Write Actors Description — 7 roles: ADMIN, AGENCY_OWNER, WORKSPACE_MANAGER, ACCOUNT_MANAGER, CONTENT_CREATOR, BRAND_CLIENT, GUEST | Tuấn | 🔴 |
 | [DA-D13-02](#da-d13-02) | **[R3 §2.2.2]** Write Use Case Descriptions — ADMIN + AGENCY_OWNER (~20 UCs): ID, Actor, Description, Main/Alternative Flows | Lộc | 🔴 |
 | [DA-D13-03](#da-d13-03) | **[R3 §2.2.2]** Write Use Case Descriptions — ACCOUNT_MANAGER + CONTENT_CREATOR + BRAND_CLIENT + GUEST (~40 UCs) | Tuấn | 🔴 |
 

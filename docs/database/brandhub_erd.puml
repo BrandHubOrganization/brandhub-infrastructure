@@ -183,7 +183,7 @@ entity "clients" as clients <<PostgreSQL>> {
   * updated_at : timestamptz
 }
 note right of clients
-  portal_user_id -> users (BRAND_CLIENT role)
+  portal_user_id -> users (CLIENT role)
   service_package: {postsPerMonth, platforms[], aiCreditsPerMonth}
   metadata: flexible per agency
 end note
