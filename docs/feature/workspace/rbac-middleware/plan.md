@@ -5,7 +5,7 @@ Xây `@RequireRole` annotation (method-level RBAC theo `MemberRole` per-workspac
 
 ## Thành phần liên quan
 - `com.brandhub.business.security.AuthenticatedUser` — đã có `getId()`, `getWorkspaceId()`. Cần thêm cách lấy `MemberRole` hiện tại (không có sẵn, hiện chỉ có `role` String claim trong JWT filter — cần xác nhận claim này là gì trước khi build, xem "Rủi ro").
-- `com.brandhub.business.model.enums.MemberRole` — đã có (`OWNER, CREATOR, VIEWER, CLIENT, ACCOUNT`).
+- `com.brandhub.business.model.enums.MemberRole` — đã có (`OWNER, MANAGER, ACCOUNT, CREATOR, CLIENT`).
 - `com.brandhub.business.model.enums.SystemRole` — đã có (`ADMIN, USER`), dùng cho bypass check.
 - `WorkspaceMemberRepository` — đã có `findFirstByUserIdAndIsActiveTrue`; cần thêm `findByWorkspaceIdAndUserIdAndIsActiveTrue`.
 - Mới: `security/annotation/RequireRole.java` (annotation), `security/aspect/RequireRoleAspect.java` (AOP, Spring AOP + `@Aspect`), `exception/ForbiddenException.java` (nếu chưa có exception 403 chuẩn — kiểm tra `exception/` package trước khi tạo mới).

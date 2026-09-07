@@ -76,9 +76,9 @@ Sử dụng bố cục chia đôi (Split-screen layout) tỉ lệ **35% : 65%**.
 #### 4. Giao diện biến thể theo Role
 - Màn hình này dùng chung cho tất cả các Role. Điểm khác biệt nằm ở **Logic Điều Hướng (Routing Logic)** sau khi API trả về Token chứa JWT Claims:
   - `ROLE_ADMIN` -> Điều hướng đến `/admin/dashboard`
-  - `ROLE_AGENCY_OWNER` & `ROLE_ACCOUNT_MANAGER` -> Điều hướng đến `/` (Main Dashboard)
-  - `ROLE_CONTENT_CREATOR` -> Điều hướng đến `/editor` (hoặc Dashboard danh sách nhiệm vụ)
-  - `ROLE_BRAND_CLIENT` -> Điều hướng đến `/clients` (Client Portal)
+  - `ROLE_OWNER`, `ROLE_MANAGER` & `ROLE_ACCOUNT` -> Điều hướng đến `/` (Main Dashboard)
+  - `ROLE_CREATOR` -> Điều hướng đến `/editor` (hoặc Dashboard danh sách nhiệm vụ)
+  - `ROLE_CLIENT` -> Điều hướng đến `/clients` (Client Portal)
 
 ---
 
