@@ -24,7 +24,7 @@ Xây API backend Workspace từ đầu (chưa tồn tại) + 3 trang frontend Cr
 - `settings` (jsonb) lưu object tự do phía Postgres — Java DTO map tường minh field `timezone`, `defaultPlatforms`, `reportFrequency` thay vì `Map<String,Object>` tự do, để có validation.
 - Soft-delete member (`isActive=false`) — không hard delete, giữ lịch sử audit.
 - `POST /workspaces` không cần `@RequireRole` (user nào cũng tạo được workspace mới, trở thành OWNER) — các endpoint còn lại cần.
-- Frontend role type: đổi `UserRole` trong `authStore.ts` sang `MemberRole` (OWNER/CREATOR/VIEWER/CLIENT/ACCOUNT) — việc sửa `authStore` là prerequisite chung cho cả Workspace pages và RBAC UI-gating, nên làm sớm trong nhánh này.
+- Frontend role type: đổi `UserRole` trong `authStore.ts` sang `MemberRole` (OWNER/MANAGER/ACCOUNT/CREATOR/CLIENT) — việc sửa `authStore` là prerequisite chung cho cả Workspace pages và RBAC UI-gating, nên làm sớm trong nhánh này.
 
 ## Thứ tự build
 1. Backend: slug util, repository, DTOs, service `createWorkspace` (kèm tạo OWNER member tự động).

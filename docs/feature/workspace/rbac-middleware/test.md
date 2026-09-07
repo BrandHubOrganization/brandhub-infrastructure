@@ -2,8 +2,8 @@
 
 | # | Test case | Input | Mong đợi | Pass |
 |---|---|---|---|---|
-| 1 | Role đủ quyền | OWNER gọi API `@RequireRole({OWNER,ACCOUNT})` | 200, thực thi bình thường | ☐ |
-| 2 | Role không đủ quyền | VIEWER gọi API `@RequireRole({OWNER,ACCOUNT})` | 403 INSUFFICIENT_ROLE | ☐ |
+| 1 | Role đủ quyền | OWNER gọi API `@RequireRole({OWNER,MANAGER})` | 200, thực thi bình thường | ☐ |
+| 2 | Role không đủ quyền | CLIENT gọi API `@RequireRole({OWNER,MANAGER})` | 403 INSUFFICIENT_ROLE | ☐ |
 | 3 | Không phải member workspace | User chưa từng join workspace gọi API | 403 WORKSPACE_ACCESS_DENIED (không 404) | ☐ |
 | 4 | Truy cập workspace khác | JWT workspaceId=A, resource thuộc workspaceId=B | 403 WORKSPACE_ACCESS_DENIED | ☐ |
 | 5 | SystemRole ADMIN bypass | ADMIN gọi API `@RequireRole({OWNER})` dù ADMIN không phải OWNER | 200, bypass check | ☐ |

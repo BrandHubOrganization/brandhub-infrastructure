@@ -25,7 +25,7 @@
 ## POST /api/v1/auth/register
 
 **Auth:** `[PUBLIC]`  
-**Goal:** Create new user account. Self-registered users get `AGENCY_OWNER` role by default.
+**Goal:** Create new user account. Self-registered users get `OWNER` role by default.
 
 **Request body:**
 ```json
@@ -46,7 +46,7 @@
       "id": "uuid",
       "email": "string",
       "fullName": "string",
-      "role": "AGENCY_OWNER"
+      "role": "OWNER"
     }
   }
 }
@@ -257,6 +257,6 @@ Cookie: `Set-Cookie: refreshToken=<token>; HttpOnly; Secure; SameSite=Strict`
 - Validate state in Redis first → delete state key immediately (one-time use)
 - Exchange `code` for Google ID token → extract `email`, `name`, `picture` from ID token payload
 - If `email` already in `users` table → login flow (update `last_login_at`)
-- If not → create `users` row with `role = AGENCY_OWNER`, `password_hash = null`, `oauth_provider = google`
+- If not → create `users` row with `role = OWNER`, `password_hash = null`, `oauth_provider = google`
 - Issue JWT pair → refresh token in HttpOnly cookie → redirect
 - If existing user has `password_hash` set (registered via email), still allow OAuth login to same account (link by email)

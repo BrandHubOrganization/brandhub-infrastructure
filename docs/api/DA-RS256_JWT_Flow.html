@@ -194,7 +194,7 @@
       <p>Sau khi xác thực thành công, JwtUtil xây dựng JWT với:</p>
       <ul>
         <li><code>sub</code> = userId (UUID) — định danh duy nhất người dùng</li>
-        <li><code>role</code> = MemberRole (OWNER, CREATOR, VIEWER, CLIENT, ACCOUNT)</li>
+        <li><code>role</code> = MemberRole (OWNER, MANAGER, ACCOUNT, CREATOR, CLIENT)</li>
         <li><code>workspaceId</code> = workspace hiện tại</li>
         <li><code>jti</code> = UUID ngẫu nhiên — mỗi token có jti khác nhau, dùng cho blacklist sau này</li>
         <li><code>iat</code> = thời điểm tạo, <code>exp</code> = 15 phút sau</li>
@@ -1480,7 +1480,7 @@ SETEX jwt:blacklist:{jti} 300000 "true"</pre>
   <tr>
     <td>role</td>
     <td>String (MemberRole)</td>
-    <td>Workspace role: OWNER, CREATOR, VIEWER, CLIENT, ACCOUNT</td>
+    <td>Workspace role: OWNER, MANAGER, ACCOUNT, CREATOR, CLIENT</td>
     <td>OWNER</td>
   </tr>
   <tr>
