@@ -25,6 +25,10 @@ entity "users" as users <<PostgreSQL>> {
   * is_active : boolean
   * preferences : jsonb
   last_login_at : timestamptz
+  last_password_change : timestamptz
+  otp_code : varchar(6)
+  otp_expiry : timestamptz
+  email_verified_at : timestamptz
   * created_at : timestamptz
   * updated_at : timestamptz
 }
@@ -67,8 +71,9 @@ entity "user_system_roles" as system_roles <<PostgreSQL>> {
   * granted_at : timestamptz
 }
 note right of system_roles
-  CHECK system_role IN ('ADMIN','SUPPORT')
+  CHECK system_role IN ('ADMIN','USER')
   OOP discriminated type for system-level users
+  Default: USER
 end note
 
 entity "password_reset_tokens" as pwd_reset <<PostgreSQL>> {
@@ -178,7 +183,7 @@ entity "clients" as clients <<PostgreSQL>> {
   * updated_at : timestamptz
 }
 note right of clients
-  portal_user_id -> users (BRAND_CLIENT role)
+  portal_user_id -> users (CLIENT role)
   service_package: {postsPerMonth, platforms[], aiCreditsPerMonth}
   metadata: flexible per agency
 end note

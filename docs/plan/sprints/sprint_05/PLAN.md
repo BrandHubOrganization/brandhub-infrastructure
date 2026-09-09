@@ -16,6 +16,9 @@
 | E12 | Authentication | Trung |
 | E13 | User & Profile Management | Trung, Ân |
 | E14 | Role-Based Access Control (RBAC) | Trung, Phước |
+| E34 🔀 | Design System & Base Components (dời từ Sprint 12) | Phước |
+
+> 🔀 **Rebalance sau Sprint 4:** Lộc chuyển hẳn sang AI Sub-lead, không làm Frontend nữa. E34 dời lên Sprint 5 để Phước có component base sớm, không phải chờ đến Sprint 12. Chi tiết lý do: [Rebalance Log](../../Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4).
 
 **Deliverables by end of Sprint 5:**
 - Register / Login / Logout / Refresh Token APIs working
@@ -26,6 +29,7 @@
 - RBAC annotation enforced on all endpoints
 - Workspace isolation filter active (workspaceId required on all queries)
 - Permission matrix document
+- shadcn/ui + Tailwind + design tokens set up; common + layout components built; Axios service layer + Zustand stores ready
 
 ---
 
@@ -39,6 +43,10 @@
 | DA-E12-04 | Implement Logout API (add JWT jti to Redis blacklist, clear cookie) | Trung (Leader) | 🔴 Critical |
 | DA-E12-05 | Implement Forgot Password & Reset Password flow (email link with time-limited token) | Trung (Leader) | 🔴 Critical |
 | DA-E12-06 | Implement Google OAuth login (callback handler, create user if not exists) | Trung (Leader) | 🟡 High |
+| DA-E12-07 🆕 | Research HS256 vs RS256 vs ES256 for JWT signing | Trung (Leader) | 🔴 Critical |
+| DA-E11-14 🆕 | Add all JPA models + repository layer for business-service (11 PostgreSQL tables) | Trung (Leader) | 🔴 Critical |
+
+> 🆕 Hai task này phát sinh ngoài plan gốc trên Jira. Chi tiết: [Jira Audit §4](../../Jira_Status_Audit_2026-07-11.md#4-task-phát-sinh--không-có-trong-brandhub_task_detailsmd).
 
 **JWT specification:**
 - Access token: 15 min TTL, signed with RS256, payload: `{sub: userId, role, workspaceId, jti}`
@@ -92,6 +100,24 @@
 
 ---
 
+## EPIC E34 — Design System & Base Components 🔀 *(dời từ Sprint 12)*
+
+| Task ID | Description | Assignee | Priority |
+|---|---|---|---|
+| DA-E34-01 | Set up shadcn/ui + Tailwind CSS + custom design tokens in web-dashboard | Phước (Publisher) | 🔴 Critical |
+| DA-E34-02 | Build common components: Button, Input, Modal, Toast, Table, Badge, Spinner, Dropdown | Phước (Publisher) | 🔴 Critical |
+| DA-E34-03 | Build layout components: Sidebar, Navbar, PageWrapper, AuthGuard | Phước (Publisher) | 🔴 Critical |
+| DA-E34-04 | Set up API service layer (Axios instance + interceptors + token refresh) | Phước (Publisher) | 🔴 Critical |
+| DA-E34-05 | Set up Zustand stores (authStore, workspaceStore, notificationStore) | Phước (Publisher) | 🔴 Critical |
+
+**Vì sao dời lên Sprint 5:** Lộc rời Frontend hẳn để tập trung AI Sub-lead. Phước nhận toàn bộ Web Dashboard + Mobile App (E34–E41) từ đây — cần component base sớm, không chờ đến Sprint 12 mới có, tránh dồn cụm việc lúc Phước còn đang làm Publisher Service (Sprint 7–8, 11).
+
+**Notes:**
+- Component base dùng chung cho toàn bộ E35–E41 về sau — làm kỹ ngay từ đầu để tránh phải sửa lại nhiều nơi.
+- Axios interceptor (DA-E34-04) phải tích hợp với JWT refresh flow từ E12 — Phước cần đọc kỹ EPIC E12 ở trên trước khi code.
+
+---
+
 ## Sprint 5 Checklist
 
 - [ ] POST /api/v1/auth/register creates user, returns JWT
@@ -108,3 +134,8 @@
 - [ ] workspaceId filter active: cannot access other workspace's data
 - [ ] BRAND_CLIENT clientId isolation: cannot see other clients' data
 - [ ] Permission matrix document committed
+- [ ] shadcn/ui + Tailwind + design tokens configured in web-dashboard
+- [ ] Common components (Button, Input, Modal, Toast, Table, Badge, Spinner, Dropdown) built
+- [ ] Layout components (Sidebar, Navbar, PageWrapper, AuthGuard) built
+- [ ] Axios instance with interceptors + token refresh working
+- [ ] Zustand stores (authStore, workspaceStore, notificationStore) set up

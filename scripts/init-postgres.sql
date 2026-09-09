@@ -31,12 +31,12 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE oauth_provider AS ENUM ('GOOGLE', 'FACEBOOK');
+    CREATE TYPE oauth_provider AS ENUM ('GOOGLE', 'GITHUB', 'LINKEDIN', 'MICROSOFT');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE member_role AS ENUM ('OWNER', 'MANAGER', 'CREATOR', 'VIEWER');
+    CREATE TYPE member_role AS ENUM ('OWNER', 'MANAGER', 'ACCOUNT', 'CREATOR', 'CLIENT');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -61,7 +61,7 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE audit_action AS ENUM ('LOGIN', 'LOGOUT', 'CREATE', 'UPDATE', 'DELETE', 'ROLE_CHANGE', 'PERMISSION_CHANGE');
+    CREATE TYPE audit_action AS ENUM ('LOGIN', 'LOGOUT', 'TOKEN_REFRESH', 'PASSWORD_RESET', 'CREATE', 'UPDATE', 'DELETE', 'ROLE_CHANGE', 'PERMISSION_CHANGE');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -91,6 +91,7 @@ $$ LANGUAGE plpgsql;
 CREATE TABLE IF NOT EXISTS users (
     id             UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
     email          VARCHAR(255) NOT NULL UNIQUE,
+    phone          VARCHAR(20)  UNIQUE,
     password_hash  VARCHAR,
     full_name      VARCHAR(255) NOT NULL,
     avatar_url     VARCHAR,
@@ -98,6 +99,10 @@ CREATE TABLE IF NOT EXISTS users (
     is_active      BOOLEAN      NOT NULL DEFAULT TRUE,
     preferences    JSONB        NOT NULL DEFAULT '{}',
     last_login_at  TIMESTAMPTZ,
+    last_password_change TIMESTAMPTZ,
+    otp_code       VARCHAR(6),
+    otp_expiry     TIMESTAMPTZ,
+    email_verified_at TIMESTAMPTZ,
     created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
@@ -141,10 +146,10 @@ CREATE INDEX IF NOT EXISTS idx_rt_expires_at ON user_refresh_tokens(expires_at);
 CREATE TABLE IF NOT EXISTS user_system_roles (
     id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id     UUID        NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-    system_role VARCHAR(50) NOT NULL DEFAULT 'ADMIN',
+    system_role VARCHAR(50) NOT NULL DEFAULT 'USER',
     granted_by  UUID        REFERENCES users(id) ON DELETE SET NULL,
     granted_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT chk_user_system_roles_role CHECK (system_role IN ('ADMIN', 'SUPPORT'))
+    CONSTRAINT chk_user_system_roles_role CHECK (system_role IN ('ADMIN', 'USER'))
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_system_roles_user_id ON user_system_roles(user_id);

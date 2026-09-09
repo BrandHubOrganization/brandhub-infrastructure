@@ -11,8 +11,10 @@
 
 | Epic | Title | Owner |
 |---|---|---|
-| E40 | Mobile App Core | Lộc |
-| E41 | Mobile Notifications | Lộc, Trung |
+| E40 | Mobile App Core | Phước |
+| E41 | Mobile Notifications | Phước, Trung |
+
+> 🔀 **Rebalance sau Sprint 4:** E40–E41 chuyển từ Lộc sang Phước. Chi tiết: [Rebalance Log](../../Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4).
 
 **Deliverables by end of Sprint 14:**
 - React Native app runs on iOS and Android (Expo)
@@ -30,12 +32,12 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| DA-E40-01 | Set up React Native project with Expo, navigation (React Navigation v6) | Lộc (Frontend) | 🔴 Critical |
-| DA-E40-02 | Build Auth screens (Login, Register, Forgot Password) | Lộc (Frontend) | 🔴 Critical |
-| DA-E40-03 | Build Dashboard screen (simplified overview) | Lộc (Frontend) | 🔴 Critical |
-| DA-E40-04 | Build Calendar screen (calendar view, post status) | Lộc (Frontend) | 🟡 High |
-| DA-E40-05 | Build Approval screen for BRAND_CLIENT (view preview, approve/reject) | Lộc (Frontend) | 🔴 Critical |
-| DA-E40-06 | Implement offline draft mode (save draft to AsyncStorage when offline, sync when back online) | Lộc (Frontend) | 🟡 High |
+| DA-E40-01 | Set up React Native project with Expo, navigation (React Navigation v6) | Phước (Publisher) | 🔴 Critical |
+| DA-E40-02 | Build Auth screens (Login, Register, Forgot Password) | Phước (Publisher) | 🔴 Critical |
+| DA-E40-03 | Build Dashboard screen (simplified overview) | Phước (Publisher) | 🔴 Critical |
+| DA-E40-04 | Build Calendar screen (calendar view, post status) | Phước (Publisher) | 🟡 High |
+| DA-E40-05 | Build Approval screen for BRAND_CLIENT (view preview, approve/reject) | Phước (Publisher) | 🔴 Critical |
+| DA-E40-06 | Implement offline draft mode (save draft to AsyncStorage when offline, sync when back online) | Phước (Publisher) | 🟡 High |
 
 **Navigation structure (DA-E40-01):**
 ```
@@ -66,10 +68,10 @@ Stack:
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| DA-E41-01 | Integrate Firebase Cloud Messaging (FCM) for push notifications | Lộc (Frontend) | 🔴 Critical |
+| DA-E41-01 | Integrate Firebase Cloud Messaging (FCM) for push notifications | Phước (Publisher) | 🔴 Critical |
 | DA-E41-02 | Set up FCM server-side (send notification when events occur in business-service) | Trung (Leader) | 🔴 Critical |
-| DA-E41-03 | Build Notification screen (list notifications, deep link on tap) | Lộc (Frontend) | 🟡 High |
-| DA-E41-04 | Integrate native camera + media gallery upload | Lộc (Frontend) | 🟡 High |
+| DA-E41-03 | Build Notification screen (list notifications, deep link on tap) | Phước (Publisher) | 🟡 High |
+| DA-E41-04 | Integrate native camera + media gallery upload | Phước (Publisher) | 🟡 High |
 
 **FCM setup (DA-E41-01):**
 - Use `@react-native-firebase/messaging`

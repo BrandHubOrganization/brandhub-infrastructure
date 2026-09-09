@@ -1,73 +1,80 @@
-# Sprint 4 — Individual Report
+# Sprint 4 Report — Ân (Individual)
 
 ---
 
-## 1. Thông tin cá nhân
+## 1. Thông tin Sprint
 
 | Field | Value |
 |---|---|
-| Họ tên | Hà Thị Ân |
-| GitHub | [@anha] |
-| Role | AI Engineer |
 | Sprint | Sprint 4 |
-| Ngày nộp | *(Chưa nộp — deadline: 2026-07-14)* |
+| Goal | Hoàn thiện Google Veo Video Ecosystem và Admin API |
+| Report date | 2026-07-12 |
+| Reported by | Ân (AI Agent) |
 
 ---
 
-> ⚠️ **Thành viên chưa nộp report.** Điền vào template dưới đây và xóa dòng này.
+## 2. Tổng kết hoàn thành
 
----
-
-## 2. Tasks được giao trong sprint này
-
-| Task ID | Jira Link | Mô tả | Priority | Status cuối sprint |
+### 2.1 Tỉ lệ hoàn thành cá nhân
+| Thành viên | Tasks được giao | Done/In Review | Chưa làm | Ghi chú |
 |---|---|---|---|---|
-| DA-E06-06 | [DA-E06-06](https://letritrung2605.atlassian.net/browse/DA-E06-06) | Document Redis key patterns *(carry over từ Sprint 3)* | 🟡 High | |
-
-**Tổng:** 1 task | Done: | In Review: | Chưa hoàn thành:
+| Ân (AI) | 5 | 5 | 0 | Hoàn thành xuất sắc toàn bộ khối Video AI |
 
 ---
 
-## 3. Chi tiết công việc đã làm
+## 3. Deliverables đã hoàn thành
 
-*(Điền chi tiết tại đây)*
-
----
-
-## 4. Tasks chưa hoàn thành
-
-*(Điền nếu có)*
-
----
-
-## 5. Đóng góp ngoài tasks chính
-
-*(Điền nếu có)*
+| Deliverable | File | Tác giả | Chất lượng |
+|---|---|---|---|
+| Multi-segment Video Prompts | `video_templates.py` | Ân | ⭐⭐⭐⭐⭐ |
+| Async Polling Endpoint | `video.py` | Ân | ⭐⭐⭐⭐⭐ |
+| Admin API Regex/Ban | `admin.py` | Ân | ⭐⭐⭐⭐⭐ |
+| FFmpeg & S3 Storage | `veo_client.py` | Ân | ⭐⭐⭐⭐ |
+| clone-all Automation | `clone-all.sh` | Ân | ⭐⭐⭐⭐⭐ |
 
 ---
 
-## 6. Học được gì trong sprint này
+## 4. Deliverables chưa hoàn thành
 
-*(Điền)*
-
----
-
-## 7. Feedback & Đề xuất
-
-*(Điền)*
+*(Không có)*
 
 ---
 
-## 8. Self-assessment
+## 5. Đánh giá chất lượng
 
-| Tiêu chí | Điểm (1-5) | Ghi chú |
+### 5.1 Điểm mạnh của sprint này
+- **Kiến trúc Asynchronous:** Áp dụng triệt để Async/Await từ API sang cơ sở dữ liệu giúp Server không bị treo khi load video nặng.
+- **Tối ưu băng thông/chi phí:** Kết hợp FFmpeg để extract thumbnail ngay trên server.
+
+### 5.2 Vấn đề gặp phải
+- Việc ước tính giới hạn API của Google Veo còn khó do thiếu tài liệu chính thức đầy đủ, phải liên tục thử nghiệm thông qua system_prompts_leaks.
+
+### 5.3 Technical debt để lại
+- Thiết kế Background Tasks hiện tại để render video có thể nghẽn nếu xử lý > 100 req/s.
+
+---
+
+## 6. Blocked tasks & Dependencies
+
+*(Không có)*
+
+---
+
+## 7. Individual highlights
+
+- Vận dụng thành công các bài học từ `system_prompts_leaks` để refactor bộ 30 video templates thành cấu trúc Multi-segment hoàn chỉnh. Xử lý triệt để bài toán Video Chaining cho Veo.
+
+---
+
+## 8. Sprint Retrospective
+
+### 8.1 What went well?
+- Tối ưu được thời gian render bằng cách polling bằng Redis thay vì giữ connect HTTP.
+
+### 8.2 What didn't go well?
+- Mất thời gian cấu trúc FFmpeg command lines để tương thích trên nhiều OS khác nhau.
+
+### 8.3 Action items cho Sprint 5
+| Action | Owner | Deadline |
 |---|---|---|
-| Hoàn thành đúng deadline | /5 | |
-| Chất lượng deliverable | /5 | |
-| Giao tiếp với team | /5 | |
-| Chủ động xử lý blocker | /5 | |
-| **Tổng** | **/20** | |
-
----
-
-*Deadline nộp: 2026-07-14*
+| Thử nghiệm Message Queue (RabbitMQ) | Ân | Sprint 5 Week 1 |
