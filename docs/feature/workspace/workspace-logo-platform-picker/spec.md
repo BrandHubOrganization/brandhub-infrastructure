@@ -81,7 +81,7 @@ theme.
 4. Click icon Facebook → active; click lại → tắt.
 5. Lưu form với 2 platform bật → `defaultPlatforms: ["facebook","tiktok"]`
    gửi đúng backend.
-6. Role CREATOR/VIEWER vào trang → không thấy nút upload logo.
+6. Role ACCOUNT/CREATOR/CLIENT vào trang → không thấy nút upload logo (chỉ OWNER/MANAGER).
 7. Chuyển theme dark/light → icon picker vẫn đọc được, không vỡ contrast.
 8. Đổi ngôn ngữ vi/en → label logo/nút upload đổi đúng.
 

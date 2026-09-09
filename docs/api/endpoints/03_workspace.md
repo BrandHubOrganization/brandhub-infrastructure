@@ -11,16 +11,16 @@
 
 | # | Method | Path | Roles |
 |---|--------|------|-------|
-| 15 | POST | `/api/v1/workspaces` | AGENCY_OWNER |
-| 16 | GET | `/api/v1/workspaces/mine` | AGENCY_OWNER, ACCOUNT_MANAGER, CONTENT_CREATOR |
-| 17 | PUT | `/api/v1/workspaces/{workspaceId}` | AGENCY_OWNER |
-| 18 | GET | `/api/v1/workspaces/{workspaceId}/members` | AGENCY_OWNER, ACCOUNT_MANAGER |
-| 19 | POST | `/api/v1/workspaces/{workspaceId}/members/invite` | AGENCY_OWNER |
+| 15 | POST | `/api/v1/workspaces` | OWNER |
+| 16 | GET | `/api/v1/workspaces/mine` | OWNER, MANAGER, ACCOUNT, CREATOR, CLIENT |
+| 17 | PUT | `/api/v1/workspaces/{workspaceId}` | OWNER |
+| 18 | GET | `/api/v1/workspaces/{workspaceId}/members` | OWNER, MANAGER |
+| 19 | POST | `/api/v1/workspaces/{workspaceId}/members/invite` | OWNER, MANAGER |
 | 20 | POST | `/api/v1/workspaces/invitations/accept` | PUBLIC |
-| 21 | DELETE | `/api/v1/workspaces/{workspaceId}/members/{userId}` | AGENCY_OWNER |
-| 22 | PUT | `/api/v1/workspaces/{workspaceId}/members/{userId}/role` | AGENCY_OWNER |
-| 23 | GET | `/api/v1/workspaces/{workspaceId}/members/{userId}/permissions` | AGENCY_OWNER, self |
-| 24 | PUT | `/api/v1/workspaces/{workspaceId}/members/{userId}/permissions` | AGENCY_OWNER |
+| 21 | DELETE | `/api/v1/workspaces/{workspaceId}/members/{userId}` | OWNER, MANAGER |
+| 22 | PUT | `/api/v1/workspaces/{workspaceId}/members/{userId}/role` | OWNER, MANAGER |
+| 23 | GET | `/api/v1/workspaces/{workspaceId}/members/{userId}/permissions` | OWNER, MANAGER, self |
+| 24 | PUT | `/api/v1/workspaces/{workspaceId}/members/{userId}/permissions` | OWNER, MANAGER |
 
 > **Workspace isolation:** All JWT endpoints validate `X-Workspace-Id` matches the `workspaceId` path param. Cross-workspace access is rejected with `403 WORKSPACE_ACCESS_DENIED`.
 
@@ -28,8 +28,8 @@
 
 ## POST /api/v1/workspaces
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`  
-**Goal:** Create a new workspace. Creator automatically becomes the owner with an `AGENCY_OWNER` `workspace_members` row.
+**Auth:** `[JWT]` | **Roles:** `OWNER`  
+**Goal:** Create a new workspace. Creator automatically becomes the owner with an `OWNER` `workspace_members` row.
 
 **Request body:**
 ```json
@@ -62,14 +62,14 @@
 
 **Implementation notes:**
 - Slug validation regex: `^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$`
-- Insert `workspaces` row + insert `workspace_members` row (`role = AGENCY_OWNER`, `is_active = true`)
+- Insert `workspaces` row + insert `workspace_members` row (`role = OWNER`, `is_active = true`)
 - Default `settings`: `{ approvalRequired: true, defaultLanguage: "vi", timezone: "Asia/Ho_Chi_Minh", reportFrequency: "monthly" }`
 
 ---
 
 ## GET /api/v1/workspaces/mine
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`, `ACCOUNT_MANAGER`, `CONTENT_CREATOR`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`, `ACCOUNT`, `CREATOR`, `CLIENT`  
 **Goal:** Get the workspace the current user belongs to. Each user belongs to exactly one workspace.
 
 **Request body:** none
@@ -110,7 +110,7 @@
 
 ## PUT /api/v1/workspaces/{workspaceId}
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`  
 **Goal:** Update workspace profile and settings. Partial update — only provided fields changed.
 
 **Request body (all optional):**
@@ -145,13 +145,13 @@
 
 ## GET /api/v1/workspaces/{workspaceId}/members
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`, `ACCOUNT_MANAGER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`  
 **Goal:** List all active members of the workspace with their roles.
 
 **Query params:**
 - `page` (integer, default 1)
 - `size` (integer, default 20, max 100)
-- `role` (optional — filter by role: `ACCOUNT_MANAGER | CONTENT_CREATOR`)
+- `role` (optional — filter by role: `OWNER | MANAGER | ACCOUNT | CREATOR | CLIENT`)
 - `search` (optional — name or email substring match)
 
 **Response 200:**
@@ -166,7 +166,7 @@
         "fullName": "string",
         "email": "string",
         "avatarUrl": "string | null",
-        "role": "AGENCY_OWNER | ACCOUNT_MANAGER | CONTENT_CREATOR",
+        "role": "OWNER | MANAGER | ACCOUNT | CREATOR | CLIENT",
         "isActive": "boolean",
         "joinedAt": "ISO8601"
       }
@@ -181,20 +181,20 @@
 **Implementation notes:**
 - Join `workspace_members` with `users` table
 - Filter: `workspace_members.workspace_id = workspaceId` AND `is_active = true`
-- ACCOUNT_MANAGER can see member list (needed to assign tasks) but cannot modify roles
+- MANAGER can see and manage member list on workspaces the OWNER delegates to them
 
 ---
 
 ## POST /api/v1/workspaces/{workspaceId}/members/invite
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`  
 **Goal:** Invite a user to the workspace by email.
 
 **Request body:**
 ```json
 {
   "email": "string (required, valid email)",
-  "role": "ACCOUNT_MANAGER | CONTENT_CREATOR (required)"
+  "role": "MANAGER | ACCOUNT | CREATOR | CLIENT (required)"
 }
 ```
 
@@ -264,7 +264,7 @@
 
 ## DELETE /api/v1/workspaces/{workspaceId}/members/{userId}
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`  
 **Goal:** Remove a member from the workspace (soft delete).
 
 **Response 200:**
@@ -273,7 +273,7 @@
 ```
 
 **Errors:**
-- `400 CANNOT_REMOVE_OWNER` — cannot remove the AGENCY_OWNER (workspace must always have one owner)
+- `400 CANNOT_REMOVE_OWNER` — cannot remove the OWNER (workspace must always have one owner)
 - `404 MEMBER_NOT_FOUND` — userId not an active member of this workspace
 
 **Implementation notes:**
@@ -285,13 +285,13 @@
 
 ## PUT /api/v1/workspaces/{workspaceId}/members/{userId}/role
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`  
 **Goal:** Change a member's role within the workspace.
 
 **Request body:**
 ```json
 {
-  "role": "ACCOUNT_MANAGER | CONTENT_CREATOR (required)"
+  "role": "MANAGER | ACCOUNT | CREATOR | CLIENT (required)"
 }
 ```
 
@@ -309,7 +309,7 @@
 ```
 
 **Errors:**
-- `400 CANNOT_CHANGE_OWNER_ROLE` — cannot demote the AGENCY_OWNER
+- `400 CANNOT_CHANGE_OWNER_ROLE` — cannot demote the OWNER
 - `400 INVALID_ROLE` — role not one of allowed values
 - `404 MEMBER_NOT_FOUND`
 
@@ -322,7 +322,7 @@
 
 ## GET /api/v1/workspaces/{workspaceId}/members/{userId}/permissions
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER` OR `self` (userId = X-User-Id)  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER` OR `self` (userId = X-User-Id)  
 **Goal:** Get fine-grained permission overrides for a specific workspace member.
 
 **Response 200:**
@@ -342,7 +342,7 @@
 ```
 
 **Errors:**
-- `403 FORBIDDEN` — caller is not AGENCY_OWNER and `userId ≠ X-User-Id`
+- `403 FORBIDDEN` — caller is not OWNER/MANAGER and `userId ≠ X-User-Id`
 - `404 MEMBER_NOT_FOUND`
 
 **Implementation notes:**
@@ -364,7 +364,7 @@ report:export     — export reports as PDF/CSV
 
 ## PUT /api/v1/workspaces/{workspaceId}/members/{userId}/permissions
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`  
 **Goal:** Set or override fine-grained permissions for a specific workspace member.
 
 **Request body:**
@@ -389,4 +389,4 @@ report:export     — export reports as PDF/CSV
 **Implementation notes:**
 - Upsert rows in `workspace_member_permissions` for each `(workspace_id, user_id, permission)` triple
 - To reset to role defaults: send `[]` (empty array) → delete all override rows for this member
-- Cannot override AGENCY_OWNER's permissions (always full access)
+- Cannot override OWNER's permissions (always full access)
