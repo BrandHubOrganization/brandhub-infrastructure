@@ -10,9 +10,11 @@
 
 | Epic | Title | Owner |
 |---|---|---|
-| AI-06 | Image Generation Pipeline | Lộc |
+| AI-06 | Image Generation Pipeline | Ân |
 | AI-07 | Virtual Brand Ambassador (InstantID) | Tuấn |
-| AI-08 | Image Composition Pipeline | Lộc |
+| AI-08 | Image Composition Pipeline | Tuấn |
+
+> 🔀 **Rebalance sau Sprint 4:** Lộc chuyển hẳn sang AI Sub-lead (điều phối, không trực tiếp code 2 pipeline này nữa). AI-06 chuyển sang Ân (cùng nhóm "generative content" với AI-09 Video, đã quen pattern async + S3). AI-08 chuyển sang Tuấn (cùng nhóm "image pipeline" với AI-07 Ambassador). Chi tiết: [Rebalance Log](../Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4).
 
 **Prerequisites from Iteration 1:**
 - InstantID selected as ambassador tool (DA-AI01-01/02 decision)
@@ -33,11 +35,11 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| DA-AI06-01 | Integrate Stability AI API (SDXL): text-to-image with style, aspect ratio, and negative prompt params | Lộc (Frontend) | 🔴 Critical |
-| DA-AI06-02 | Build image generation endpoint (POST /ai/image/generate → return S3 URL) | Lộc (Frontend) | 🔴 Critical |
-| DA-AI06-03 | Implement batch generation (generate 3 variations simultaneously for user to choose from) | Lộc (Frontend) | 🟡 High |
-| DA-AI06-04 | Brand safety filter (default negative prompts to avoid inappropriate content) | Lộc (Frontend) | 🔴 Critical |
-| DA-AI06-05 | Test 20 real product prompts, evaluate quality and generation time | Lộc (Frontend) | 🟡 High |
+| DA-AI06-01 | Integrate Stability AI API (SDXL): text-to-image with style, aspect ratio, and negative prompt params | Ân (AI) | 🔴 Critical |
+| DA-AI06-02 | Build image generation endpoint (POST /ai/image/generate → return S3 URL) | Ân (AI) | 🔴 Critical |
+| DA-AI06-03 | Implement batch generation (generate 3 variations simultaneously for user to choose from) | Ân (AI) | 🟡 High |
+| DA-AI06-04 | Brand safety filter (default negative prompts to avoid inappropriate content) | Ân (AI) | 🔴 Critical |
+| DA-AI06-05 | Test 20 real product prompts, evaluate quality and generation time | Ân (AI) | 🟡 High |
 
 **Notes:**
 - DA-AI06-03 batch generation: use `asyncio.gather()` to call Stability AI 3 times concurrently — do NOT call sequentially (3x latency).
@@ -72,13 +74,13 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| DA-AI08-01 | Implement background removal for product images (rembg library, U2Net model) → output transparent PNG | Lộc (Frontend) | 🔴 Critical |
-| DA-AI08-02 | Implement background removal for model/ambassador images | Lộc (Frontend) | 🔴 Critical |
-| DA-AI08-03 | Build layer compositing service (product layer + model layer + background layer → single image using Pillow) | Lộc (Frontend) | 🔴 Critical |
-| DA-AI08-04 | Implement shadow + lighting adjustment for natural-looking merges | Lộc (Frontend) | 🟡 High |
-| DA-AI08-05 | Build composition endpoint (POST /ai/compose: product S3 key + model S3 key + background S3 key → composed image) | Lộc (Frontend) | 🔴 Critical |
-| DA-AI08-06 | Test 20 product + model pairs, evaluate realism score, document failure cases | Lộc (Frontend) | 🟡 High |
-| DA-AI08-07 | Write composition parameter guide (optimal sizes, best practices per product type) | Lộc (Frontend) | 🟢 Medium |
+| DA-AI08-01 | Implement background removal for product images (rembg library, U2Net model) → output transparent PNG | Tuấn (AI) | 🔴 Critical |
+| DA-AI08-02 | Implement background removal for model/ambassador images | Tuấn (AI) | 🔴 Critical |
+| DA-AI08-03 | Build layer compositing service (product layer + model layer + background layer → single image using Pillow) | Tuấn (AI) | 🔴 Critical |
+| DA-AI08-04 | Implement shadow + lighting adjustment for natural-looking merges | Tuấn (AI) | 🟡 High |
+| DA-AI08-05 | Build composition endpoint (POST /ai/compose: product S3 key + model S3 key + background S3 key → composed image) | Tuấn (AI) | 🔴 Critical |
+| DA-AI08-06 | Test 20 product + model pairs, evaluate realism score, document failure cases | Tuấn (AI) | 🟡 High |
+| DA-AI08-07 | Write composition parameter guide (optimal sizes, best practices per product type) | Tuấn (AI) | 🟢 Medium |
 
 **Notes:**
 - `rembg` library: first run downloads U2Net model (~170MB). Cache the model file.

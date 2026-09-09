@@ -1,0 +1,289 @@
+﻿services:
+  api-gateway:
+    build:
+      context: ../../brandhub-api-gateway
+      dockerfile: Dockerfile
+    container_name: brandhub-api-gateway
+    ports:
+      - "${API_GATEWAY_HOST_PORT:-8080}:8080"
+    environment:
+      SERVER_PORT: 8080
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-password}
+      BUSINESS_SERVICE_URL: http://business-service:8081
+      AI_SERVICE_URL: http://ai-service:8082
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-100}
+      RATE_LIMIT_TTL_SECONDS: ${RATE_LIMIT_TTL_SECONDS:-60}
+      RATE_LIMIT_FAIL_OPEN: ${RATE_LIMIT_FAIL_OPEN:-true}
+      AUTH_RATE_LIMIT_PER_MINUTE: ${AUTH_RATE_LIMIT_PER_MINUTE:-5}
+      AI_TEXT_RATE_LIMIT_PER_MINUTE: ${AI_TEXT_RATE_LIMIT_PER_MINUTE:-20}
+      AI_IMAGE_RATE_LIMIT_PER_MINUTE: ${AI_IMAGE_RATE_LIMIT_PER_MINUTE:-5}
+      AI_VIDEO_RATE_LIMIT_PER_MINUTE: ${AI_VIDEO_RATE_LIMIT_PER_MINUTE:-2}
+      PUBLISH_RATE_LIMIT_PER_MINUTE: ${PUBLISH_RATE_LIMIT_PER_MINUTE:-10}
+    depends_on:
+      redis:
+        condition: service_healthy
+      business-service:
+        condition: service_started
+      ai-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+  business-service:
+    build:
+      context: ../../brandhub-business-service
+      dockerfile: Dockerfile
+    container_name: brandhub-business-service
+    ports:
+      - "${BUSINESS_SERVICE_HOST_PORT:-8081}:8081"
+    environment:
+      SERVER_PORT: 8081
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
+      MONGODB_URI: ${MONGODB_URI}
+      MONGODB_DATABASE: ${MONGODB_DATABASE:-brandhub}
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-brandhub}
+      POSTGRES_USERNAME: ${POSTGRES_USER:-brandhub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-password}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-brandhub}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-password}
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      JWT_ACCESS_EXPIRATION_MS: ${JWT_ACCESS_EXPIRATION_MS:-900000}
+      JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS:-2592000000}
+      AES_SECRET_KEY: ${AES_SECRET_KEY}
+      AI_SERVICE_URL: http://ai-service:8082
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-brandhub-media}
+      AWS_S3_REGION: ${AWS_S3_REGION:-ap-southeast-1}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET:-}
+      FACEBOOK_REDIRECT_URI: ${FACEBOOK_REDIRECT_URI:-http://localhost:8080/api/v1/social-accounts/callback/facebook}
+      INSTAGRAM_REDIRECT_URI: ${INSTAGRAM_REDIRECT_URI:-http://localhost:8080/api/v1/social-accounts/callback/instagram}
+      TIKTOK_CLIENT_KEY: ${TIKTOK_CLIENT_KEY:-}
+      TIKTOK_CLIENT_SECRET: ${TIKTOK_CLIENT_SECRET:-}
+      TIKTOK_REDIRECT_URI: ${TIKTOK_REDIRECT_URI:-http://localhost:8080/api/v1/social-accounts/callback/tiktok}
+      THREADS_REDIRECT_URI: ${THREADS_REDIRECT_URI:-http://localhost:8080/api/v1/social-accounts/callback/threads}
+      ZALO_APP_ID: ${ZALO_APP_ID:-}
+      ZALO_APP_SECRET: ${ZALO_APP_SECRET:-}
+      SMTP_HOST: ${SMTP_HOST:-localhost}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      MAIL_FROM: ${MAIL_FROM:-no-reply@brandhub.io}
+      PASSWORD_RESET_TTL_SECONDS: ${PASSWORD_RESET_TTL_SECONDS:-3600}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+  ai-service:
+    build:
+      context: ../../brandhub-ai-service
+      dockerfile: Dockerfile
+    container_name: brandhub-ai-service
+    ports:
+<<<<<<< HEAD:docker/docker-compose.yml
+      - "8082:8082"
+    env_file:
+      - .env
+=======
+      - "${AI_SERVICE_HOST_PORT:-8082}:8082"
+>>>>>>> e2cdc7e521f16d2590362a09d3ba483e9d7fa956:docker/docker-compose.apps.yml
+    environment:
+      - CHROMADB_HOST=chromadb
+      - CHROMADB_PORT=8000
+    depends_on:
+      chromadb:
+<<<<<<< HEAD:docker/docker-compose.yml
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - brandhub-network
+=======
+        condition: service_started
+>>>>>>> e2cdc7e521f16d2590362a09d3ba483e9d7fa956:docker/docker-compose.apps.yml
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8082/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+<<<<<<< HEAD:docker/docker-compose.yml
+      start_period: 10s
+    restart: always
+=======
+      start_period: 30s
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+>>>>>>> e2cdc7e521f16d2590362a09d3ba483e9d7fa956:docker/docker-compose.apps.yml
+
+  publisher-service:
+    build:
+      context: ../../brandhub-publisher-service
+      dockerfile: Dockerfile
+    container_name: brandhub-publisher-service
+    ports:
+      - "${PUBLISHER_SERVICE_HOST_PORT:-8083}:8083"
+    environment:
+      SERVER_PORT: 8083
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-brandhub}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-password}
+      BUSINESS_SERVICE_URL: http://business-service:8081
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
+      PUBLISH_INTERVAL_MS: ${PUBLISH_INTERVAL_MS:-5000}
+      MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:-3}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+  web-dashboard:
+    build:
+      context: ../../brandhub-web-dashboard
+      dockerfile: Dockerfile
+    container_name: brandhub-web-dashboard
+    ports:
+      - "${WEB_DASHBOARD_HOST_PORT:-3000}:80"
+    depends_on:
+      - api-gateway
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:80 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+<<<<<<< HEAD:docker/docker-compose.yml
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "${PGADMIN_HOST_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - brandhub-network
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: brandhub-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD:-password}
+    volumes:
+      - redis-data:/data
+    networks:
+      - brandhub-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-password}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: brandhub-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-brandhub}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-password}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - brandhub-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: brandhub-chromadb
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    networks:
+      - brandhub-network
+    healthcheck:
+      test: ["CMD", "bash", "-c", "</dev/tcp/localhost/8000"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    name: brandhub-postgres-data
+  pgadmin_data:
+    name: brandhub-pgadmin-data
+  redis-data:
+  rabbitmq-data:
+  chroma-data:
+=======
+>>>>>>> e2cdc7e521f16d2590362a09d3ba483e9d7fa956:docker/docker-compose.apps.yml
+
+networks:
+  brandhub-network:
+    name: brandhub-network
+    driver: bridge
+
+
+
