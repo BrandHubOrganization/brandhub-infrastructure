@@ -113,34 +113,41 @@
       dockerfile: Dockerfile
     container_name: brandhub-ai-service
     ports:
+<<<<<<< HEAD:docker/docker-compose.yml
+      - "8082:8082"
+    env_file:
+      - .env
+=======
       - "${AI_SERVICE_HOST_PORT:-8082}:8082"
+>>>>>>> e2cdc7e521f16d2590362a09d3ba483e9d7fa956:docker/docker-compose.apps.yml
     environment:
-      APP_PORT: 8082
-      CHROMADB_HOST: chromadb
-      CHROMADB_PORT: 8000
-      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
-      GROQ_API_KEY: ${GROQ_API_KEY:-}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      LLM_PROVIDER: ${LLM_PROVIDER:-groq}
-      STABILITY_AI_API_KEY: ${STABILITY_AI_API_KEY:-}
-      GOOGLE_VEO_API_KEY: ${GOOGLE_VEO_API_KEY:-}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
-      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-brandhub-media}
-      AWS_S3_REGION: ${AWS_S3_REGION:-ap-southeast-1}
-      RAG_TOP_K: ${RAG_TOP_K:-5}
+      - CHROMADB_HOST=chromadb
+      - CHROMADB_PORT=8000
     depends_on:
       chromadb:
+<<<<<<< HEAD:docker/docker-compose.yml
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - brandhub-network
+=======
         condition: service_started
+>>>>>>> e2cdc7e521f16d2590362a09d3ba483e9d7fa956:docker/docker-compose.apps.yml
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/health || exit 1"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8082/health')"]
+      interval: 15s
+      timeout: 5s
       retries: 3
+<<<<<<< HEAD:docker/docker-compose.yml
+      start_period: 10s
+    restart: always
+=======
       start_period: 30s
     networks:
       - brandhub-network
     restart: unless-stopped
+>>>>>>> e2cdc7e521f16d2590362a09d3ba483e9d7fa956:docker/docker-compose.apps.yml
 
   publisher-service:
     build:
@@ -191,6 +198,87 @@
     networks:
       - brandhub-network
     restart: unless-stopped
+<<<<<<< HEAD:docker/docker-compose.yml
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "${PGADMIN_HOST_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - brandhub-network
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: brandhub-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD:-password}
+    volumes:
+      - redis-data:/data
+    networks:
+      - brandhub-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-password}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: brandhub-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-brandhub}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-password}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - brandhub-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: brandhub-chromadb
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    networks:
+      - brandhub-network
+    healthcheck:
+      test: ["CMD", "bash", "-c", "</dev/tcp/localhost/8000"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    name: brandhub-postgres-data
+  pgadmin_data:
+    name: brandhub-pgadmin-data
+  redis-data:
+  rabbitmq-data:
+  chroma-data:
+=======
+>>>>>>> e2cdc7e521f16d2590362a09d3ba483e9d7fa956:docker/docker-compose.apps.yml
 
 networks:
   brandhub-network:
