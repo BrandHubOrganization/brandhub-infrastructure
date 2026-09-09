@@ -767,7 +767,7 @@ Access token là JWT được ký RS256, dùng để xác thực request vào AP
 | Claim | Ý nghĩa | Ví dụ | Dùng để |
 |-------|---------|-------|---------|
 | `sub` | User ID (UUID) | `a1b2c3d4-e5f6-7890-abcd-ef1234567890` | Xác định user duy nhất trong hệ thống |
-| `role` | MemberRole trong workspace | `OWNER` | Phân quyền: OWNER, CREATOR, VIEWER, CLIENT, ACCOUNT |
+| `role` | MemberRole trong workspace | `OWNER` | Phân quyền: OWNER, MANAGER, ACCOUNT, CREATOR, CLIENT |
 | `workspaceId` | Workspace hiện tại | `w1234567-89ab-cdef-0123-456789abcdef` | Xác định workspace user đang làm việc |
 | `jti` | Unique token ID | `f47ac10b...` | Blacklist khi logout, mỗi access token có 1 jti khác nhau |
 | `iat` | Issued at (epoch seconds) | `1689000000` | Thời điểm token được tạo |

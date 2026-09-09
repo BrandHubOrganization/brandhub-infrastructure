@@ -6,8 +6,9 @@
 | 2 | Đổi workspace qua dropdown | click workspace khác trong Sidebar | badge role đổi đúng theo `MemberRole` tại workspace mới, không reload trang | ☐ |
 | 3 | Active workspace lưu qua reload | reload trang (F5) | vẫn đúng workspace đã chọn trước đó, không về workspace đầu tiên | ☐ |
 | 4 | Active workspace id không còn hợp lệ | localStorage trỏ workspace đã bị remove | fallback về workspace đầu tiên trong danh sách mới, không lỗi | ☐ |
-| 5 | User role = CLIENT ở workspace hiện tại | vào Sidebar | không thấy menu `/workspace`, `/editor` | ☐ |
-| 6 | User role = OWNER/CREATOR/VIEWER/ACCOUNT | vào Sidebar | thấy đầy đủ menu (trừ Admin Panel nếu không phải SystemRole=ADMIN) | ☐ |
+| 5 | User role = CLIENT ở workspace hiện tại | vào Sidebar | chỉ thấy dashboard/requests/portal/calendar/library, không thấy `/workspace`, `/editor` | ☐ |
+| 6 | User role = OWNER | vào Sidebar | chỉ thấy quản lý tổng quan (dashboard/analytics/workspace/clients/social-accounts/subscription/reports), không thấy công cụ content | ☐ |
+| 6b | User role = CREATOR | vào Sidebar | chỉ thấy công cụ content (editor/templates/hashtag/calendar/library/publish/ai-studio), không thấy clients/analytics | ☐ |
 | 7 | SystemRole = ADMIN | vào Sidebar bất kỳ MemberRole nào | thấy "Admin Panel", độc lập với MemberRole workspace hiện tại | ☐ |
 | 8 | SystemRole = USER (không phải admin hệ thống) | vào Sidebar | không thấy "Admin Panel" dù MemberRole = OWNER | ☐ |
 | 9 | Badge role không còn dropdown chọn được | click vào badge "Role: ..." trong Navbar | không mở menu, không đổi được role — chỉ hiển thị | ☐ |

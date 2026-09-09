@@ -1,28 +1,15 @@
+# Development tools only — no service overrides here.
+# Host ports now live in each infra group file (databases / ai-data / cache-broker),
+# so each group is self-contained and can be run selectively.
+#
+# Run with the infra groups:
+#   docker compose -f docker-compose.infra.databases.yml \
+#                  -f docker-compose.infra.ai-data.yml \
+#                  -f docker-compose.infra.cache-broker.yml \
+#                  -f docker-compose.dev.yml up -d
+
 services:
-  postgres:
-    ports:
-      - "${POSTGRES_HOST_PORT:-5432}:5432"
-
-  redis:
-    ports:
-      - "${REDIS_HOST_PORT:-6379}:6379"
-
-  rabbitmq:
-    ports:
-      - "${RABBITMQ_AMQP_HOST_PORT:-5672}:5672"
-      - "${RABBITMQ_MANAGEMENT_HOST_PORT:-15672}:15672"
-
-  chromadb:
-    ports:
-      - "${CHROMADB_HOST_PORT:-8000}:8000"
-    depends_on: {}
-
-  neo4j:
-    ports:
-      - "${NEO4J_HOST_PORT_HTTP:-7474}:7474"
-      - "${NEO4J_HOST_PORT_BOLT:-7687}:7687"
-    depends_on: {}
-
+  # Web UI for PostgreSQL. Requires a running postgres service (databases group).
   pgadmin:
     image: dpage/pgadmin4:9
     container_name: brandhub-pgadmin
@@ -36,15 +23,32 @@ services:
       - "${PGADMIN_HOST_PORT:-5050}:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
-    depends_on:
-      postgres:
-        condition: service_healthy
+    networks:
+      - brandhub-network
+
+  # Web UI for Redis. Requires a running redis service (cache-broker group).
+  redisinsight:
+    image: redis/redisinsight:3.8.0
+    container_name: brandhub-redisinsight
+    restart: unless-stopped
+    ports:
+      - "${REDISINSIGHT_HOST_PORT:-5540}:5540"
+    volumes:
+      - redisinsight_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5540/api/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     networks:
       - brandhub-network
 
 volumes:
   pgadmin_data:
     name: brandhub-pgadmin-data
+  redisinsight_data:
+    name: brandhub-redisinsight-data
 
 networks:
   brandhub-network:

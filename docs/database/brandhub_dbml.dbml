@@ -33,8 +33,9 @@ Enum oauth_provider {
 Enum member_role {
   OWNER
   MANAGER
+  ACCOUNT
   CREATOR
-  VIEWER
+  CLIENT
 }
 
 Enum workspace_plan {

@@ -19,7 +19,7 @@
    thái mặc định.
 6. Bật Facebook + TikTok, bấm "Lưu thay đổi" — Network tab: request PATCH
    `/settings` có `defaultPlatforms: ["facebook","tiktok"]`.
-7. Đăng nhập role CREATOR/VIEWER (hoặc giả lập) — không thấy nút upload logo.
+7. Đăng nhập role ACCOUNT/CREATOR/CLIENT (hoặc giả lập) — không thấy nút upload logo (chỉ OWNER/MANAGER).
 8. Toggle dark/light — icon picker + avatar block đọc được, tương phản ổn.
 9. Đổi ngôn ngữ vi/en — label logo/nút upload đổi theo, không sót tiếng Việt
    hardcode.
