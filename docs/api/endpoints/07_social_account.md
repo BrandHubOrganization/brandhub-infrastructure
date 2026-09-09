@@ -11,11 +11,11 @@
 
 | # | Method | Path | Auth | Roles |
 |---|--------|------|------|-------|
-| 48 | GET | `/api/v1/social/accounts` | JWT | AGENCY_OWNER, ACCOUNT_MANAGER |
-| 49 | GET | `/api/v1/social/connect/{platform}` | JWT | AGENCY_OWNER, ACCOUNT_MANAGER |
+| 48 | GET | `/api/v1/social/accounts` | JWT | OWNER |
+| 49 | GET | `/api/v1/social/connect/{platform}` | JWT | OWNER |
 | 50 | GET | `/api/v1/social/callback/{platform}` | PUBLIC | — |
-| 51 | DELETE | `/api/v1/social/accounts/{accountId}` | JWT | AGENCY_OWNER, ACCOUNT_MANAGER |
-| 52 | POST | `/api/v1/social/accounts/{accountId}/refresh` | JWT | AGENCY_OWNER, ACCOUNT_MANAGER |
+| 51 | DELETE | `/api/v1/social/accounts/{accountId}` | JWT | OWNER |
+| 52 | POST | `/api/v1/social/accounts/{accountId}/refresh` | JWT | OWNER |
 
 > **Storage:** Social accounts stored in MongoDB `social_accounts` collection. `accountId` is a MongoDB ObjectId string.  
 > **Token security:** Access tokens and refresh tokens are encrypted at rest using AES-256-GCM before storing in MongoDB. Key from env `SOCIAL_TOKEN_ENCRYPTION_KEY`.
@@ -33,7 +33,7 @@ Path param `{platform}` uses lowercase: `facebook`, `instagram`, `tiktok`, `thre
 
 ## GET /api/v1/social/accounts
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`, `ACCOUNT_MANAGER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`  
 **Goal:** List all connected social accounts in the workspace with current token status.
 
 **Response 200:**
@@ -66,7 +66,7 @@ Path param `{platform}` uses lowercase: `facebook`, `instagram`, `tiktok`, `thre
 
 ## GET /api/v1/social/connect/{platform}
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`, `ACCOUNT_MANAGER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`  
 **Goal:** Initiate OAuth flow for a social platform. Returns redirect to platform consent screen.
 
 **Path param:** `platform` — one of `facebook`, `instagram`, `tiktok`, `threads`, `zalo`
@@ -124,7 +124,7 @@ Path param `{platform}` uses lowercase: `facebook`, `instagram`, `tiktok`, `thre
 
 ## DELETE /api/v1/social/accounts/{accountId}
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`, `ACCOUNT_MANAGER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`  
 **Goal:** Disconnect a social account — attempt token revocation at platform, then delete from DB.
 
 **Response 200:**
@@ -140,13 +140,13 @@ Path param `{platform}` uses lowercase: `facebook`, `instagram`, `tiktok`, `thre
 - Decrypt stored token → call platform revoke API (best-effort — proceed even if revoke call fails)
 - Delete `social_accounts` document from MongoDB
 - Do NOT delete published posts that used this account (post history preserved)
-- ACCOUNT_MANAGER can disconnect any workspace social account (not restricted to own accounts)
+- OWNER can disconnect any workspace social account
 
 ---
 
 ## POST /api/v1/social/accounts/{accountId}/refresh
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`, `ACCOUNT_MANAGER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`  
 **Goal:** Manually trigger token refresh for a social account using stored refresh token.
 
 **Request body:** none

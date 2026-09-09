@@ -1,115 +1,116 @@
 # Docker Compose Run Scripts
 
-Thu muc nay chua cac script Windows `.bat` de chay, dung va don dep Docker Compose cho BrandHub.
+Thư mục này chứa các script Windows `.bat` để chạy, dừng và dọn dẹp Docker Compose cho BrandHub.
 
-> Luu y: cac script nay dung compose project name co dinh la `brandhub`.
-> cd .\brandhub-infrastructure\docker\
+> **Lưu ý chung:**
+> - Các script dùng compose project name cố định là `brandhub`.
+> - Chạy từ thư mục `brandhub-infrastructure/docker` (script tự `cd` về đây, không cần `cd` thủ công).
+
 ---
 
-## 1. Chuan bi `.env`
+## 1. Chuẩn bị `.env`
 
-Chay tu thu muc `brandhub-infrastructure/docker`:
+Từ thư mục `brandhub-infrastructure/docker`:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
+Rồi mở `.env` để cập nhật password/secrets trước khi dùng chung.
+
+> `run.bat` sẽ tự copy `.env.example` sang `.env` nếu chưa có file `.env`.
+
 ---
 
-## 2. Chay infra + dev tools
+## 2. Chạy (run.bat)
 
-Tu thu muc `brandhub-infrastructure/docker`:
+Script: `run.bat`. Hỗ trợ 3 mode:
+
+| Mode       | Lệnh                  | Nội dung                                                                                     |
+| ---------- | --------------------- | -------------------------------------------------------------------------------------------- |
+| `infra`    | `.\run\run.bat infra` | Databases + Cache/Broker + Dev: PostgreSQL, Redis, RabbitMQ, pgAdmin, RedisInsight           |
+| `infra_ai` | `.\run\run.bat infra_ai` | AI Data + Databases + Cache/Broker + Dev: Neo4j, ChromaDB, PostgreSQL, Redis, RabbitMQ, pgAdmin, RedisInsight |
+| `full`     | `.\run\run.bat full`  | Toàn bộ infra + dev tools + app services (thêm `docker-compose.apps.yml`)                    |
+
+Chạy `run.bat` không tham số sẽ hiện menu chọn mode (1/2/3).
 
 ```powershell
-.\run\run-compose.bat
+.\run\run.bat            # menu chọn mode
+.\run\run.bat infra
+.\run\run.bat infra_ai
+.\run\run.bat full
 ```
 
 ---
 
-## 3. Chay full stack
+## 3. Dừng container, giữ volume (down-compose.bat)
 
-Tu thu muc `brandhub-infrastructure/docker`:
+Script: `down-compose.bat`. Dừng và xóa container + network của infra/dev, **giữ lại named volumes** (không xóa data database local).
 
 ```powershell
-.\run\run-compose.bat full
+.\run\down-compose.bat           # chỉ dừng container, giữ volume
+.\run\down-compose.bat cache     # dừng container + xóa thêm Docker build cache
 ```
 
-Lenh nay se chay them app services tu `docker-compose.apps.yml`.
+Tham số `cache` chỉ thêm bước `docker builder prune -a -f`; named volumes luôn được giữ (không có `-v`).
 
 ---
 
-## 4. Dung container, giu volume
+## 4. Dọn dẹp BrandHub mạnh tay (clear.bat)
 
-Tu thu muc `brandhub-infrastructure/docker`:
+Chỉ dùng khi muốn xóa sạch Docker resources của BrandHub.
 
-```powershell
-.\run\down-compose.bat cache
-```
-
-Ket qua:
-
-- xoa containers va network cua compose project;
-- giu lai named volumes nhu `brandhub-postgres-data`, `brandhub-redis-data`, `brandhub-pgadmin-data`;
-- khong xoa data database local.
-
----
-
-
-## 5. Don dep BrandHub manh tay
-
-Chi dung khi muon xoa sach Docker resources cua BrandHub.
-
-Tu thu muc `brandhub-infrastructure/docker`:
+Từ thư mục `brandhub-infrastructure/docker`:
 
 ```powershell
 .\run\end-game\clear.bat YES
 ```
 
-Script nay chi target BrandHub resources:
+Script chỉ target BrandHub resources:
 
-- compose project `brandhub`;
-- containers co label `com.docker.compose.project=brandhub`;
-- containers ten `brandhub-*`;
-- volumes ten co `brandhub`;
-- networks ten/label `brandhub`;
-- images tag `brandhub*` hoac `brandhub/*`;
+- compose project `brandhub` (chạy `down -v --remove-orphans` cho infra/dev và apps);
+- containers có label `com.docker.compose.project=brandhub`;
+- containers tên `brandhub-*`;
+- volumes tên có `brandhub`;
+- networks tên/label `brandhub`;
+- images tag `brandhub*` hoặc `brandhub/*`;
 - Docker build cache.
 
-Script co guard bat buoc `YES` de tranh chay nham.
+Script có guard bắt buộc `YES` để tránh chạy nhầm.
 
-Can than: lenh nay xoa BrandHub named volumes, nen data Postgres/Redis/pgAdmin local cua BrandHub se mat.
-
----
-
-## 7. Lenh compose thu cong
-
-Kiem tra config:
-
-```powershell
-docker compose -p brandhub -f docker-compose.infra.yml config
-docker compose -p brandhub -f docker-compose.infra.yml -f docker-compose.dev.yml config
-```
-
-Chay infra + dev:
-
-```powershell
-docker compose -p brandhub -f docker-compose.infra.yml -f docker-compose.dev.yml up -d
-```
-
-Dung container, giu volume:
-
-```powershell
-docker compose -p brandhub -f docker-compose.infra.yml -f docker-compose.dev.yml down
-```
-
-Dung container, xoa volume:
-
-```powershell
-docker compose -p brandhub -f docker-compose.infra.yml -f docker-compose.dev.yml down -v
-```
+> **Cảnh báo:** lệnh này xóa BrandHub named volumes, nên data Postgres/Redis/pgAdmin local của BrandHub sẽ mất.
 
 ---
 
-## 8. Guideline lien quan
+## 5. Lệnh compose thủ công
+
+Kiểm tra config:
+
+```powershell
+docker compose -p brandhub -f docker-compose.infra.databases.yml -f docker-compose.infra.ai-data.yml -f docker-compose.infra.cache-broker.yml config
+docker compose -p brandhub -f docker-compose.infra.databases.yml -f docker-compose.infra.ai-data.yml -f docker-compose.infra.cache-broker.yml -f docker-compose.dev.yml config
+```
+
+Chạy infra + dev:
+
+```powershell
+docker compose -p brandhub -f docker-compose.infra.databases.yml -f docker-compose.infra.ai-data.yml -f docker-compose.infra.cache-broker.yml -f docker-compose.dev.yml up -d
+```
+
+Dừng container, giữ volume:
+
+```powershell
+docker compose -p brandhub -f docker-compose.infra.databases.yml -f docker-compose.infra.ai-data.yml -f docker-compose.infra.cache-broker.yml -f docker-compose.dev.yml down
+```
+
+Dừng container, xóa volume:
+
+```powershell
+docker compose -p brandhub -f docker-compose.infra.databases.yml -f docker-compose.infra.ai-data.yml -f docker-compose.infra.cache-broker.yml -f docker-compose.dev.yml down -v
+```
+
+---
+
+## 6. Guideline liên quan
 
 - `../guidelines/pgadmin-postgres-setup-guideline.md`
