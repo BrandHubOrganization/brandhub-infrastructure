@@ -11,15 +11,15 @@
 
 | # | Method | Path | Roles |
 |---|--------|------|-------|
-| 33 | POST | `/api/v1/posts` | ACCOUNT_MANAGER, CONTENT_CREATOR |
+| 33 | POST | `/api/v1/posts` | ACCOUNT, CREATOR |
 | 34 | GET | `/api/v1/posts` | * |
 | 35 | GET | `/api/v1/posts/{postId}` | * |
-| 36 | PUT | `/api/v1/posts/{postId}` | CONTENT_CREATOR, ACCOUNT_MANAGER |
-| 37 | DELETE | `/api/v1/posts/{postId}` | AGENCY_OWNER, ACCOUNT_MANAGER |
-| 38 | POST | `/api/v1/posts/{postId}/submit` | CONTENT_CREATOR, ACCOUNT_MANAGER |
-| 39 | POST | `/api/v1/posts/{postId}/approve` | AGENCY_OWNER, ACCOUNT_MANAGER |
-| 40 | POST | `/api/v1/posts/{postId}/reject` | AGENCY_OWNER, ACCOUNT_MANAGER |
-| 41 | POST | `/api/v1/posts/{postId}/schedule` | AGENCY_OWNER, ACCOUNT_MANAGER |
+| 36 | PUT | `/api/v1/posts/{postId}` | CREATOR, ACCOUNT |
+| 37 | DELETE | `/api/v1/posts/{postId}` | ACCOUNT |
+| 38 | POST | `/api/v1/posts/{postId}/submit` | CREATOR, ACCOUNT |
+| 39 | POST | `/api/v1/posts/{postId}/approve` | ACCOUNT |
+| 40 | POST | `/api/v1/posts/{postId}/reject` | ACCOUNT |
+| 41 | POST | `/api/v1/posts/{postId}/schedule` | ACCOUNT |
 
 > **Storage:** Posts stored in MongoDB `posts` collection. `postId` is a MongoDB ObjectId string.
 
@@ -32,16 +32,16 @@ DRAFT → PENDING_APPROVAL → APPROVED → SCHEDULED → PUBLISHING → PUBLISH
 ```
 
 **Role-based data isolation:**
-- `BRAND_CLIENT`: read-only, sees only posts where `clientId` = their linked client
-- `CONTENT_CREATOR`: sees only posts where `createdBy = X-User-Id`
-- `ACCOUNT_MANAGER`: sees posts for assigned clients only
-- `AGENCY_OWNER`: sees all posts in workspace
+- `CLIENT`: read-only, sees only posts where `clientId` = their linked client
+- `CREATOR`: sees only posts where `createdBy = X-User-Id`
+- `ACCOUNT`: sees posts for assigned clients only
+- `ACCOUNT`: sees all posts for assigned clients (no separate workspace-wide role — `OWNER` does not access content screens)
 
 ---
 
 ## POST /api/v1/posts
 
-**Auth:** `[JWT]` | **Roles:** `ACCOUNT_MANAGER`, `CONTENT_CREATOR`  
+**Auth:** `[JWT]` | **Roles:** `ACCOUNT`, `CREATOR`  
 **Goal:** Create a new post draft.
 
 **Request body:**
@@ -86,7 +86,7 @@ DRAFT → PENDING_APPROVAL → APPROVED → SCHEDULED → PUBLISHING → PUBLISH
 **Implementation notes:**
 - `workspaceId` taken from `X-Workspace-Id`; `createdBy` from `X-User-Id`
 - If `scheduledAt` provided, post is created as DRAFT — scheduling is applied separately after approval
-- If workspace `settings.approvalRequired = false` and role is ACCOUNT_MANAGER → can auto-approve on submit
+- If workspace `settings.approvalRequired = false` and role is ACCOUNT → can auto-approve on submit
 
 ---
 
@@ -135,9 +135,9 @@ DRAFT → PENDING_APPROVAL → APPROVED → SCHEDULED → PUBLISHING → PUBLISH
 **Implementation notes:**
 - All queries scoped to `workspaceId = X-Workspace-Id`
 - Role filters applied before user-supplied filters:
-  - `CONTENT_CREATOR`: `createdBy = X-User-Id`
-  - `ACCOUNT_MANAGER`: `clientId IN (clients assigned to user)`
-  - `BRAND_CLIENT`: `clientId = (client linked to portal user)`
+  - `CREATOR`: `createdBy = X-User-Id`
+  - `ACCOUNT`: `clientId IN (clients assigned to user)`
+  - `CLIENT`: `clientId = (client linked to portal user)`
 - MongoDB index used: `{ workspaceId: 1, status: 1, createdAt: -1 }`
 
 ---
@@ -200,7 +200,7 @@ DRAFT → PENDING_APPROVAL → APPROVED → SCHEDULED → PUBLISHING → PUBLISH
 
 ## PUT /api/v1/posts/{postId}
 
-**Auth:** `[JWT]` | **Roles:** `CONTENT_CREATOR`, `ACCOUNT_MANAGER`  
+**Auth:** `[JWT]` | **Roles:** `CREATOR`, `ACCOUNT`  
 **Goal:** Update post content. Only editable when status is `DRAFT` or `REJECTED`.
 
 **Request body (all optional):**
@@ -229,11 +229,11 @@ DRAFT → PENDING_APPROVAL → APPROVED → SCHEDULED → PUBLISHING → PUBLISH
 
 **Errors:**
 - `400 POST_NOT_EDITABLE` — status is not `DRAFT` or `REJECTED`
-- `403 FORBIDDEN` — CONTENT_CREATOR editing a post they didn't create
+- `403 FORBIDDEN` — CREATOR editing a post they didn't create
 - `404 POST_NOT_FOUND`
 
 **Implementation notes:**
-- CONTENT_CREATOR can only edit own posts (`createdBy = X-User-Id`)
+- CREATOR can only edit own posts (`createdBy = X-User-Id`)
 - If post was `REJECTED` and now edited → status stays `REJECTED` until `submit` is called again
 - `updatedAt` set to now on every edit
 
@@ -241,7 +241,7 @@ DRAFT → PENDING_APPROVAL → APPROVED → SCHEDULED → PUBLISHING → PUBLISH
 
 ## DELETE /api/v1/posts/{postId}
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`, `ACCOUNT_MANAGER`  
+**Auth:** `[JWT]` | **Roles:** `ACCOUNT`  
 **Goal:** Cancel/archive a post. Sets status to `CANCELLED`.
 
 **Response 200:**
@@ -256,14 +256,14 @@ DRAFT → PENDING_APPROVAL → APPROVED → SCHEDULED → PUBLISHING → PUBLISH
 
 **Implementation notes:**
 - Sets `status = CANCELLED`, `updated_at = now()`
-- ACCOUNT_MANAGER can only cancel posts for their assigned clients
-- AGENCY_OWNER can cancel any post in workspace
+- ACCOUNT can only cancel posts for their assigned clients
+- ACCOUNT can cancel any post for their assigned clients
 
 ---
 
 ## POST /api/v1/posts/{postId}/submit
 
-**Auth:** `[JWT]` | **Roles:** `CONTENT_CREATOR`, `ACCOUNT_MANAGER`  
+**Auth:** `[JWT]` | **Roles:** `CREATOR`, `ACCOUNT`  
 **Goal:** Submit post for approval. Transitions `DRAFT → PENDING_APPROVAL`.
 
 **Request body:** none
@@ -275,17 +275,17 @@ DRAFT → PENDING_APPROVAL → APPROVED → SCHEDULED → PUBLISHING → PUBLISH
 
 **Errors:**
 - `400 POST_NOT_DRAFT` — can only submit posts in `DRAFT` status
-- `403 FORBIDDEN` — CONTENT_CREATOR submitting a post they didn't create
+- `403 FORBIDDEN` — CREATOR submitting a post they didn't create
 
 **Implementation notes:**
 - If `workspace.settings.approvalRequired = false` → auto-transition to `APPROVED` instead of `PENDING_APPROVAL`
-- Notify AGENCY_OWNER and ACCOUNT_MANAGER of pending review (in-app notification via `notifications` collection)
+- Notify ACCOUNT of pending review (in-app notification via `notifications` collection)
 
 ---
 
 ## POST /api/v1/posts/{postId}/approve
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`, `ACCOUNT_MANAGER`  
+**Auth:** `[JWT]` | **Roles:** `ACCOUNT`  
 **Goal:** Approve post. Transitions `PENDING_APPROVAL → APPROVED`.
 
 **Request body:**
@@ -304,13 +304,13 @@ DRAFT → PENDING_APPROVAL → APPROVED → SCHEDULED → PUBLISHING → PUBLISH
 **Implementation notes:**
 - Append entry to `approvalHistory[]`: `{ userId, action: "APPROVED", comment, at: now() }`
 - Notify post creator of approval
-- ACCOUNT_MANAGER can only approve posts for their assigned clients
+- ACCOUNT can only approve posts for their assigned clients
 
 ---
 
 ## POST /api/v1/posts/{postId}/reject
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`, `ACCOUNT_MANAGER`  
+**Auth:** `[JWT]` | **Roles:** `ACCOUNT`  
 **Goal:** Reject post. Transitions `PENDING_APPROVAL → REJECTED`.
 
 **Request body:**
@@ -336,7 +336,7 @@ DRAFT → PENDING_APPROVAL → APPROVED → SCHEDULED → PUBLISHING → PUBLISH
 
 ## POST /api/v1/posts/{postId}/schedule
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`, `ACCOUNT_MANAGER`  
+**Auth:** `[JWT]` | **Roles:** `ACCOUNT`  
 **Goal:** Schedule an approved post for publishing. Transitions `APPROVED → SCHEDULED`.
 
 **Request body:**

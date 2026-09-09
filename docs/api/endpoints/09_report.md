@@ -11,9 +11,9 @@
 
 | # | Method | Path | Roles |
 |---|--------|------|-------|
-| 56 | POST | `/api/v1/reports` | AGENCY_OWNER, ACCOUNT_MANAGER |
-| 57 | GET | `/api/v1/reports/{jobId}` | AGENCY_OWNER, ACCOUNT_MANAGER, BRAND_CLIENT |
-| 58 | GET | `/api/v1/reports` | AGENCY_OWNER, ACCOUNT_MANAGER |
+| 56 | POST | `/api/v1/reports` | OWNER, MANAGER, ACCOUNT |
+| 57 | GET | `/api/v1/reports/{jobId}` | OWNER, MANAGER, ACCOUNT, CLIENT |
+| 58 | GET | `/api/v1/reports` | OWNER, MANAGER, ACCOUNT |
 
 > **Generation model:** Reports are generated asynchronously. POST creates a job (status: PENDING), a background worker processes it and uploads the result to S3. Client polls GET /{jobId} until status = DONE.
 
@@ -21,7 +21,7 @@
 
 ## POST /api/v1/reports
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`, `ACCOUNT_MANAGER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`, `ACCOUNT`  
 **Goal:** Trigger asynchronous report generation.
 
 **Request body:**
@@ -49,7 +49,7 @@
 **Errors:**
 - `400 INVALID_DATE_RANGE` — `dateFrom` after `dateTo`, or range exceeds 365 days
 - `400 DATE_REQUIRED` — missing required date fields
-- `403 CLIENT_ACCESS_DENIED` — ACCOUNT_MANAGER requesting report for unassigned client
+- `403 CLIENT_ACCESS_DENIED` — ACCOUNT requesting report for unassigned client
 
 **Implementation notes:**
 - Insert `report_jobs` document in MongoDB: `{ workspaceId, clientId?, dateFrom, dateTo, format, status: PENDING, requestedBy: X-User-Id, createdAt: now() }`
@@ -62,7 +62,7 @@
 
 ## GET /api/v1/reports/{jobId}
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`, `ACCOUNT_MANAGER`, `BRAND_CLIENT`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`, `ACCOUNT`, `CLIENT`  
 **Goal:** Poll report job status. When DONE, returns download URL.
 
 **Path param:** `jobId` (MongoDB ObjectId)
@@ -87,11 +87,11 @@
 ```
 
 **Errors:**
-- `403 FORBIDDEN` — BRAND_CLIENT accessing a report not for their client; ACCOUNT_MANAGER accessing report for unassigned client
+- `403 FORBIDDEN` — CLIENT accessing a report not for their client; ACCOUNT accessing report for unassigned client
 - `404 JOB_NOT_FOUND`
 
 **Implementation notes:**
-- `BRAND_CLIENT` access: `report_jobs.clientId = their linked clientId` AND `report_jobs.workspaceId = X-Workspace-Id`
+- `CLIENT` access: `report_jobs.clientId = their linked clientId` AND `report_jobs.workspaceId = X-Workspace-Id`
 - S3 presigned URL generated fresh on each poll request (URL may expire between polls — regenerate each time)
 - Poll interval recommendation: 3–5 seconds; max 60 attempts before treating as failed
 
@@ -99,7 +99,7 @@
 
 ## GET /api/v1/reports
 
-**Auth:** `[JWT]` | **Roles:** `AGENCY_OWNER`, `ACCOUNT_MANAGER`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`, `ACCOUNT`  
 **Goal:** List past report jobs for the workspace.
 
 **Query params:**
@@ -137,6 +137,6 @@
 
 **Implementation notes:**
 - Scoped to `workspaceId = X-Workspace-Id`
-- ACCOUNT_MANAGER filter: only jobs for their assigned clients + workspace-level jobs they created
+- ACCOUNT filter: only jobs for their assigned clients + workspace-level jobs they created
 - `fileUrl` NOT included in list — fetch via GET /{jobId} to get download link
 - Ordered by `createdAt DESC`

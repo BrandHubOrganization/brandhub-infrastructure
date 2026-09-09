@@ -8,7 +8,7 @@
 
 | Field | Value |
 |---|---|
-| Họ tên | Nguyễn Văn Lộc |
+| Họ tên | Nguyễn Thành Lộc |
 | GitHub | [@Loc20904] |
 | Role | Frontend Developer |
 | Sprint | Sprint 3 |
