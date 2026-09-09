@@ -1,0 +1,58 @@
+DA-2|E01 — Project Initiation
+DA-18|E03 — Use Case Documentation
+DA-26|AI-03 — RAG Knowledge Base Pipeline
+DA-27|E05 — System Architecture Design
+DA-33|E02 — Project Management Setup
+DA-39|E04 — Functional & Non-Functional Requirements
+DA-47|E06 — Database Design
+DA-55|AI-01 — AI Model Research & Evaluation
+DA-56|AI-02 — AI Service Infrastructure Setup
+DA-79|AI-04 — LLM Content Generation
+DA-87|E07 — API Design & Swagger Spec
+DA-88|E08 — UI/UX Wireframe
+DA-89|E09 — Development Environment Setup
+DA-90|E10 — CI/CD Pipeline
+DA-91|E11 — API Gateway
+DA-92|E12 — Authentication
+DA-93|E14 — Role-Based Access Control (RBAC)
+DA-94|E15 — Workspace Management
+DA-95|E22 — Publish Callback & Error Handling
+DA-96|E23 — AI Service Internal API Wiring
+DA-97|AI-06 — Image Generation Pipeline
+DA-98|AI-05 — Trend Crawler Service
+DA-99|AI-07 — Virtual Brand Ambassador (InstantID)
+DA-100|E20 — Token Lifecycle Management
+DA-101|E24 — Business Service AI Integration
+DA-102|E16 — Client & Agency Management
+DA-103|E18 — Meta OAuth (Facebook + Instagram)
+DA-104|AI-08 — Image Composition Pipeline
+DA-105|E21 — Publisher Service Core
+DA-106|E13 — User & Profile Management
+DA-107|E17 — Subscription & Billing
+DA-108|E19 — TikTok, Threads & Zalo OA OAuth
+DA-109|AI-11 — AI Research Documentation & Demo
+DA-110|AI-09 — AI Video Generation
+DA-111|AI-10 — AI Service Integration & API Finalize
+DA-112|E28 — Content Request Management
+DA-113|E32 — Publishing System
+DA-114|E30 — Content Calendar & Scheduling
+DA-115|E31 — Approval Workflow
+DA-116|E37 — Client Portal
+DA-117|E35 — Auth & Dashboard Pages
+DA-118|E33 — Publish Error Handling
+DA-119|E36 — Content Management Pages
+DA-120|E29 — Task Assignment & Tracking
+DA-121|E39 — Notification System
+DA-122|E34 — Design System & Base Components
+DA-123|E40 — Mobile App Core
+DA-124|E42 — Unit & Integration Testing
+DA-125|E38 — Analytics & Reporting
+DA-126|E43 — Bug Fixes & Polish
+DA-127|E41 — Mobile Notifications
+DA-128|E44 — Production Deployment
+DA-129|E46 — Final Report & Presentation
+DA-130|E45 — Final Documentation
+DA-424|E47 — Sprint Reports & Documentation
+DA-557|E48 — AI Track Reports & Documentation
+DA-566|AI04-99 Analyze deeply crawl trend flow
+DA-584|E49 — Public Landing Page

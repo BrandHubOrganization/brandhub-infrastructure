@@ -49,7 +49,7 @@
 
 **Redis key patterns (Ân):**
 
-- JWT blacklist: `jwt:blacklist:{jti}` → TTL = remaining token lifetime
+- JWT blacklist: `jwt:blacklist:{jti}` → TTL = access token TTL (15 minutes)
 - Rate limit: `ratelimit:{userId}:{minute}` → TTL = 60s
 - OAuth state: `oauth:state:{state}` → TTL = 10 min
 - Trending cache: `trends:vn:{date}:{category}` → TTL = 6h

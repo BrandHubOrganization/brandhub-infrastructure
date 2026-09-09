@@ -11,9 +11,11 @@
 
 | Epic | Title | Owner |
 |---|---|---|
-| E37 | Client Portal | Lộc |
-| E38 | Analytics & Reporting | Trung, Ân, Lộc |
-| E39 | Notification System | Trung, Lộc |
+| E37 | Client Portal | Phước |
+| E38 | Analytics & Reporting | Trung, Ân, Phước |
+| E39 | Notification System | Trung, Phước |
+
+> 🔀 **Rebalance sau Sprint 4:** UI tasks (E37-01–04, E38-04, E39-03) chuyển từ Lộc sang Phước. Chi tiết: [Rebalance Log](../../Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4).
 
 **Deliverables by end of Sprint 13:**
 - Brand Client can log in to an isolated portal (only sees own data)
@@ -28,10 +30,10 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| DA-E37-01 | Build Client Portal login (isolated, only shows data for the logged-in client) | Lộc (Frontend) | 🔴 Critical |
-| DA-E37-02 | Build Client Calendar (read-only, view only, no editing) | Lộc (Frontend) | 🔴 Critical |
-| DA-E37-03 | Build Client Approval page (view preview → approve/reject with feedback) | Lộc (Frontend) | 🔴 Critical |
-| DA-E37-04 | Build Client Analytics page (publishing results, success rate, campaign summary) | Lộc (Frontend) | 🟡 High |
+| DA-E37-01 | Build Client Portal login (isolated, only shows data for the logged-in client) | Phước (Publisher) | 🔴 Critical |
+| DA-E37-02 | Build Client Calendar (read-only, view only, no editing) | Phước (Publisher) | 🔴 Critical |
+| DA-E37-03 | Build Client Approval page (view preview → approve/reject with feedback) | Phước (Publisher) | 🔴 Critical |
+| DA-E37-04 | Build Client Analytics page (publishing results, success rate, campaign summary) | Phước (Publisher) | 🟡 High |
 
 **Client isolation (DA-E37-01):**
 - BRAND_CLIENT role enforced by RBAC (Sprint 5)
@@ -54,7 +56,7 @@
 | DA-E38-01 | Implement analytics aggregation APIs (aggregate data from posts + publish_logs) | Trung (Leader) | 🔴 Critical |
 | DA-E38-02 | Implement automated report generation (weekly/monthly PDF report for clients) | Trung (Leader) | 🟡 High |
 | DA-E38-03 | Implement report email sending (automatically send email to Brand Client on schedule) | Ân (AI) | 🟡 High |
-| DA-E38-04 | Build Analytics Dashboard (charts: publishing success rate, platform breakdown, campaign performance) | Lộc (Frontend) | 🔴 Critical |
+| DA-E38-04 | Build Analytics Dashboard (charts: publishing success rate, platform breakdown, campaign performance) | Phước (Publisher) | 🔴 Critical |
 
 **Analytics API endpoints (DA-E38-01):**
 ```
@@ -86,7 +88,7 @@ Response: [{date, published, failed, pending}]
 |---|---|---|---|
 | DA-E39-01 | Implement notification CRUD APIs (/api/v1/notifications: GET, PUT read, PUT read-all) | Trung (Leader) | 🟡 High |
 | DA-E39-02 | Implement notification creation when events occur (post published, task assigned, token expiry, etc.) | Trung (Leader) | 🔴 Critical |
-| DA-E39-03 | Build Notification Center UI (dropdown bell icon, unread badge, list with mark as read) | Lộc (Frontend) | 🟡 High |
+| DA-E39-03 | Build Notification Center UI (dropdown bell icon, unread badge, list with mark as read) | Phước (Publisher) | 🟡 High |
 
 **Notification types (DA-E39-02):**
 | Event | Recipient | Message |
