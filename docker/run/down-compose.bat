@@ -2,6 +2,7 @@
 setlocal
 
 set PROJECT_NAME=brandhub
+set INFRA_FILES=-f docker-compose.infra.databases.yml -f docker-compose.infra.ai-data.yml -f docker-compose.infra.cache-broker.yml
 set SCRIPT_DIR=%~dp0
 set DOCKER_DIR=%SCRIPT_DIR%..
 set CACHE_MODE=%~1
@@ -28,7 +29,7 @@ if errorlevel 1 (
 )
 
 echo [1/2] Stopping and removing infra + dev containers...
-docker compose -p %PROJECT_NAME% -f docker-compose.infra.yml -f docker-compose.dev.yml down --remove-orphans
+docker compose -p %PROJECT_NAME% %INFRA_FILES% -f docker-compose.dev.yml down --remove-orphans
 if errorlevel 1 (
   popd >nul
   echo [ERROR] Failed to stop infra + dev containers.
