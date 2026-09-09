@@ -125,6 +125,8 @@
         "path": "/api/DA-E07-05_OpenAPI_Spec",
         "type": "file",
         "ext": ".md"
+<<<<<<< HEAD
+=======
       },
       {
         "name": "DA-E07-06_OpenAPI_Spec.md",
@@ -149,6 +151,7 @@
         "path": "/api/DA-RS256_JWT_Flow",
         "type": "file",
         "ext": ".md"
+>>>>>>> e2cdc7e521f16d2590362a09d3ba483e9d7fa956
       }
     ]
   },
@@ -231,6 +234,8 @@
         "ext": ".md"
       },
       {
+<<<<<<< HEAD
+=======
         "name": "DA-E06-06_Redis_Key_Patterns_vn.md",
         "path": "/database/DA-E06-06_Redis_Key_Patterns_vn",
         "type": "file",
@@ -243,6 +248,7 @@
         "ext": ".md"
       },
       {
+>>>>>>> e2cdc7e521f16d2590362a09d3ba483e9d7fa956
         "name": "DA-E06-08_Database_Access_Rules.md",
         "path": "/database/DA-E06-08_Database_Access_Rules",
         "type": "file",
@@ -255,18 +261,6 @@
         "ext": ".md"
       }
     ]
-  },
-  {
-    "name": "deployment",
-    "path": "/deployment",
-    "type": "directory",
-    "children": []
-  },
-  {
-    "name": "design",
-    "path": "/design",
-    "type": "directory",
-    "children": []
   },
   {
     "name": "plan",
@@ -1282,15 +1276,13 @@
         "name": "jira_status.json",
         "path": "/plan/jira_status.json",
         "type": "file",
+<<<<<<< HEAD
+        "ext": ".md"
+=======
         "ext": ".json"
+>>>>>>> e2cdc7e521f16d2590362a09d3ba483e9d7fa956
       }
     ]
-  },
-  {
-    "name": "report",
-    "path": "/report",
-    "type": "directory",
-    "children": []
   },
   {
     "name": "rule",
