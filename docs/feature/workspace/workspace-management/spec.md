@@ -36,7 +36,7 @@ tôi muốn tạo workspace mới, cấu hình cài đặt, và quản lý thàn
 - Nút "Mời thành viên" → tạo `WorkspaceInvitation` (email + role), gửi email mời (tái dùng hạ tầng email đã có ở forgot-password nếu có sẵn service gửi mail — kiểm tra trước khi build mới).
 - Người được mời bấm link trong email (`/invitations/accept?token=...`) → nếu chưa đăng nhập, redirect `/login` rồi quay lại đúng URL sau khi login; gọi `POST /api/v1/workspaces/invitations/accept` tạo `WorkspaceMember` với role đã mời, đánh dấu invitation `ACCEPTED`.
 - Nút xoá member (có confirm dialog) → set `workspace_members.isActive=false` (soft delete, giữ lịch sử) — không xoá cứng record.
-- Chỉ `OWNER`/`ACCOUNT` thấy nút mời/xoá; `CREATOR`/`VIEWER`/`CLIENT` chỉ xem danh sách (RBAC).
+- Chỉ `OWNER`/`MANAGER` thấy nút mời/xoá; `ACCOUNT`/`CREATOR`/`CLIENT` chỉ xem danh sách (RBAC).
 - Không cho xoá `OWNER` cuối cùng của workspace (luôn phải còn ít nhất 1 OWNER).
 
 ### Đa ngôn ngữ (i18n)
@@ -84,7 +84,7 @@ GET /api/v1/workspaces/{id}/members
 → 200 { "success": true, "data": [{ "id", "userId", "fullName", "email", "role", "joinedAt", "isActive" }] }
 
 POST /api/v1/workspaces/{id}/members/invite
-{ "email": "string", "role": "OWNER|CREATOR|VIEWER|CLIENT|ACCOUNT" }
+{ "email": "string", "role": "OWNER|MANAGER|ACCOUNT|CREATOR|CLIENT" }
 → 201 { "success": true, "data": { "invitationId", "token" } }
 
 DELETE /api/v1/workspaces/{id}/members/{memberId}
