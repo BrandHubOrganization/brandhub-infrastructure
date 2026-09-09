@@ -524,20 +524,22 @@
 | [DA-AI03-04](#da-ai03-04--test-rag-accuracy-for-brand-knowledge-base) | Test RAG Accuracy for Brand Knowledge Base | Ân (AI) | 🔴 Critical |
 | [DA-AI03-05](#da-ai03-05--write-rag-pipeline--multi-tenant-isolation-documentation) | Write RAG Pipeline & Multi-tenant Isolation Documentation | Ân (AI) | 🟢 Medium |
 
-### EPIC AI-04 — LLM Content Generation
+### EPIC AI-04 — LLM Content Generation (Jira Epic: DA-79)
 
-| Task ID | Description | Assignee | Priority |
-|---|---|---|---|
-| [DA-AI04-01](#da-ai04-01--build-prompt-template-system-topic--rag-context--trend-data--tone--platform--full-llm-prompt) | Build prompt template system (receive topic + RAG context + trend data + tone → generate full prompt) | Ân (AI) | 🔴 Critical |
-| [DA-AI04-02](#da-ai04-02--integrate-llama-3-via-groq-api-system-prompt-enforces-only-use-provided-context-do-not-fabricate) | Integrate Llama 3 via Groq API (system prompt enforces: only use provided context, do not fabricate) | Tuấn (AI) | 🔴 Critical |
-| [DA-AI04-03](#da-ai04-03--integrate-claude-api-as-fallback-when-groq-is-rate-limited-or-quality-fails) | Integrate Claude API as fallback when Groq is rate-limited or quality is low | Tuấn (AI) | 🔴 Critical |
-| [DA-AI04-04](#da-ai04-04--implement-platform-specific-caption-truncation-fb-63k-threads-500-tiktok-4k-chars) | Implement platform-specific optimization (auto-truncate captions: FB 63k, Threads 500, TikTok 4k chars) | Lộc (Sub-lead) | 🟡 High |
-| [DA-AI04-05](#da-ai04-05--implement-hashtag-generation-endpoint-post-apiv1aicontenthashtags) | Implement hashtag generation endpoint (`POST /api/v1/ai/content/hashtags`) | Lộc (Sub-lead) | 🟡 High |
-| [DA-AI04-06](#da-ai04-06--implement-regenerate-with-feedback-receive-previous-caption--user-feedback--generate-improved-version) | Implement regenerate with feedback (receive previous output + feedback → generate improved version) | Ân (AI) | 🟡 High |
-| [DA-AI04-07](#da-ai04-07--anti-hallucination-test-verify-20-generated-captions--every-claim-must-be-sourced-from-brand-context) | Anti-hallucination test (verify 20 generated captions — every claim must be sourced from brand context) | Tuấn (AI) | 🔴 Critical |
-| [DA-AI04-08](#da-ai04-08--write-prompt-engineering-documentation-template-design-system-prompt-guide-tone-examples) | Write Prompt Engineering Documentation (template design, system prompt best practices, tone guide) | Ân (AI) | 🟢 Medium |
+| Task ID | Jira Key | Description | Assignee | Priority | Status |
+|---|:---:|---|---|:---:|:---:|
+| [DA-AI04-01](#da-ai04-01--build-prompt-template-system) | [DA-240](https://letritrung2605.atlassian.net/browse/DA-240) | Build prompt template system (receive topic + RAG context + trend data + tone → generate full prompt) | Ân (AI) | 🔴 Critical | 🟡 In Progress |
+| [DA-AI04-02](#da-ai04-02--integrate-llama-3-via-groq-api) | [DA-253](https://letritrung2605.atlassian.net/browse/DA-253) | Integrate Llama 3 via Groq API (system prompt: "only use provided context, do not fabricate") | Tuấn (AI) | 🔴 Critical | 🔵 In review |
+| [DA-AI04-03](#da-ai04-03--integrate-claude--gemini-api-as-fallback) | [DA-271](https://letritrung2605.atlassian.net/browse/DA-271) | Integrate Fallback LLM API (Google Gemini 1.5 Flash / Claude) with Failover Circuit Breaker | Tuấn (AI) | 🔴 Critical | ⚪ To Do |
+| [DA-AI04-04](#da-ai04-04--implement-platform-specific-caption-truncation) | [DA-286](https://letritrung2605.atlassian.net/browse/DA-286) | Implement platform-specific caption truncation (FB 63k, Threads 500, TikTok 4k chars) | Lộc (Sub-lead) | 🟡 High | ⚪ To Do |
+| [DA-AI04-05](#da-ai04-05--implement-hashtag-generation-endpoint) | [DA-231](https://letritrung2605.atlassian.net/browse/DA-231) | Implement hashtag generation endpoint (`POST /api/v1/ai/content/hashtags`) | Lộc (Sub-lead) | 🟡 High | ⚪ To Do |
+| [DA-AI04-06](#da-ai04-06--implement-regenerate-with-feedback) | [DA-246](https://letritrung2605.atlassian.net/browse/DA-246) | Implement regenerate with feedback (`POST /api/v1/ai/content/regenerate`) | Ân (AI) | 🟡 High | 🟡 In Progress |
+| [DA-AI04-07](#da-ai04-07--anti-hallucination-test) | [DA-261](https://letritrung2605.atlassian.net/browse/DA-261) | Anti-hallucination test (verify 20 generated captions — claim verification) | Tuấn (AI) | 🔴 Critical | 🔵 In review |
+| [DA-AI04-08](#da-ai04-08--write-prompt-engineering-documentation) | [DA-274](https://letritrung2605.atlassian.net/browse/DA-274) | Write Prompt Engineering Documentation (template design, system prompt best practices, tone guide) | Ân (AI) | 🟢 Medium | ⚪ To Do |
 
-### EPIC AI-05 — Trend Crawler, Prediction Engine & Storage Service
+### EPIC AI-05 — Trend Crawler, Prediction Engine & Storage Service (Status: ✅ Completed in Sprint 7 / Spike)
+
+> **Ghi chú:** Toàn bộ các task của Epic AI-05 đã được team hoàn thành 100% từ Sprint 7 / Spike. Hạ tầng Trend Crawler, Neo4j Graph, ChromaDB và Redis Cache hiện đã online, đóng vai trò Live Data Provider cho Epic AI-04.
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
@@ -547,7 +549,12 @@
 | [DA-AI05-04](#da-ai05-04--host-and-set-up-chromadb-or-neo4j-database-instance-for-storing-raw-collected-data) | Host and Set Up ChromaDB or Neo4j Database Instance for Storing Raw Collected Data | Tuấn (AI) | 🔴 Critical |
 | [DA-AI05-05](#da-ai05-05--message-queue--buffer-layer-integration-redis-queue--kafka) | Message Queue / Buffer Layer Integration (Redis Queue / Kafka) | Tuấn (AI) | 🔴 Critical |
 | [DA-AI05-06](#da-ai05-06--underthesea-nlp-tokenization) | Underthesea NLP Tokenization | Ân (AI) | 🔴 Critical |
-| [DA-AI05-07](#da-ai05-07--slang-map--text-normalization-engine) | Slang Map & Text Normalization Engine | Ân (AI) | 🔴 Critical |
+| [DA-AI05-07A](#da-ai05-07a--neo4j-knowledge-graph-entity-traversal-service) | Neo4j Knowledge Graph Entity Traversal Service | Tuấn (AI) | 🔴 Critical |
+| [DA-AI05-07B](#da-ai05-07b--chromadb-trend-vector-snippet-retrieval-service) | ChromaDB Trend Vector Snippet Retrieval Service | Tuấn (AI) | 🔴 Critical |
+| [DA-AI05-07C](#da-ai05-07c--trend-context-synthesizer--token-optimizer-engine) | Trend Context Synthesizer & Token Optimizer Engine | Ân (AI) | 🔴 Critical |
+| [DA-AI05-07D](#da-ai05-07d--redis-trend-context-read-through-cache-layer) | Redis Trend Context Read-Through Cache Layer | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-07E](#da-ai05-07e--unified-trend-context-retrieval-api-endpoint-post-trendscontext) | Unified Trend Context Retrieval API Endpoint (`POST /api/v1/ai/trends/context`) | Ân (AI) | 🔴 Critical |
+| [DA-AI05-07F](#da-ai05-07f--slang-map--text-normalization-engine) | Slang Map & Text Normalization Engine | Ân (AI) | 🔴 Critical |
 | [DA-AI05-08](#da-ai05-08--bm25-anomaly-calculation-spike-detection) | BM25 Anomaly Calculation (Spike Detection) | Ân (AI) | 🔴 Critical |
 | [DA-AI05-09](#da-ai05-09--neo4j-interaction-graph-construction) | Neo4j Interaction Graph Construction | Ân (AI) | 🔴 Critical |
 | [DA-AI05-10](#da-ai05-10--gds-engine-scheduled-execution-run-periodic-algorithms-nightly-or-every-few-hours) | GDS Engine Scheduled Execution (Run periodic algorithms nightly or every few hours) | Ân (AI) | 🔴 Critical |
@@ -4029,154 +4036,319 @@ Blocks: DA-AI04-01. Blocked by: DA-AI03-04.
 ---
 
 ## PHẦN II: CHI TIẾT CÀI ĐẶT EPIC AI-04 (LLM CONTENT GENERATION)
+> **Jira Epic:** [`DA-79: AI-04 — LLM Content Generation`](https://letritrung2605.atlassian.net/browse/DA-79) | **Lộ trình:** AI Iteration 2 (Sprint 8)
 
 ---
 
-### DA-AI04-01 — Build prompt template system (topic + RAG context + trend data + tone + platform → full LLM prompt)
+### DA-AI04-01 — Build prompt template system (receive topic + RAG context + trend data + tone → generate full prompt)
+**Jira Key:** [`DA-240`](https://letritrung2605.atlassian.net/browse/DA-240) | **Assignee:** Ân (AI) | **Priority:** 🔴 Critical
 
-**Goal:** Create a reusable, testable prompt assembly layer so that LLM input is constructed consistently and changes to prompts do not require touching business logic.
+**Goal:** Xây dựng hệ thống khuôn mẫu prompt có thể tái sử dụng và tầng Consumer Adapters độc lập (`BrandRAGAdapter` & `TrendContextAdapter`) theo chuẩn Interface-First / Dependency Injection để tầng sinh nội dung giao tiếp với tri thức thương hiệu và xu hướng qua interface/HTTP service tiêu chuẩn, đảm bảo cách ly hoàn toàn (zero-import) khỏi ChromaDB và Neo4j drivers.
 
 **Acceptance Criteria:**
-- [ ] `services/prompt_builder.py` function `build_caption_prompt(topic, rag_context, trends, tone, platform) -> str` returns a complete, ready-to-send prompt string
-- [ ] System prompt includes: "only use provided context, do not fabricate facts" anti-hallucination instruction
-- [ ] Platform-specific instructions are injected (e.g., "caption must be under 500 characters" for Threads, "use 3-5 hashtags" for Instagram)
-- [ ] Unit tests cover all 5 platform variants and verify the anti-hallucination instruction is always present
+- [ ] Khai báo abstract protocols `IBrandRAGAdapter` và `ITrendContextAdapter` tại `services/adapters/interfaces.py`.
+- [ ] Module `services/adapters/brand_rag_adapter.py` hiện thực `IBrandRAGAdapter`, cung cấp hàm `fetch_brand_context(client_id: str, topic: str, top_k: int = 3) -> BrandContextDTO`.
+- [ ] Module `services/adapters/trend_adapter.py` hiện thực `ITrendContextAdapter`, cung cấp hàm `fetch_trend_context(trend_keyword: str) -> TrendContextDTO` kết nối với subsystem AI-05 đã hoàn thành.
+- [ ] Module `services/prompt/prompt_builder.py` triển khai `build_caption_prompt(topic: str, brand_context: Optional[BrandContextDTO], trend_context: Optional[TrendContextDTO], tone: str, platform: str) -> PromptBundle`.
+- [ ] Hỗ trợ 7 tone giọng: `professional`, `casual`, `humorous`, `inspirational`, `authoritative`, `empathetic`, `trendy`.
+- [ ] System prompt luôn chứa chỉ thị chống ảo giác bất biến: *"Chỉ sử dụng thông tin được cung cấp trong [Brand Context]. Tuyệt đối không tự bịa đặt tính năng, giá bán, chính sách hoặc ưu đãi."*
+- [ ] Cung cấp Mock implementations (`MockBrandRAGAdapter`, `MockTrendContextAdapter`) bàn giao cho Lộc vào cuối Day 2 để phục vụ testing và DI.
 
 **Technical Notes:**
-- Use Python f-string templates stored as constants in `utils/prompts.py`.
-- Tones to support: `professional`, `playful`, `urgent`, `inspirational`.
+- Location: `app/services/prompt_builder.py`, `app/services/adapters/brand_adapter.py`, `app/services/adapters/trend_adapter.py`.
+- Context format: `=== BRAND CONTEXT ===\n{rag_context}\n\n=== TREND CONTEXT ===\n{trend_data}`.
 
 **Dependencies:**
-Blocks: DA-AI04-02. Blocked by: DA-AI03-05, DA-AI02-04.
+- Blocks: DA-AI04-02, DA-AI04-05, DA-AI04-06.
+- Blocked by: DA-AI03-05.
 
 ---
 
-### DA-AI04-02 — Integrate Llama 3 via Groq API (system prompt enforces: only use provided context, do not fabricate)
+### DA-AI04-02 — Integrate Llama 3 via Groq API (system prompt: "only use provided context, do not fabricate")
+**Jira Key:** [`DA-253`](https://letritrung2605.atlassian.net/browse/DA-253) | **Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
 
-**Goal:** Wire the primary LLM provider into the caption generation service using the prompt template output as input.
+**Goal:** Tích hợp Primary LLM Provider (Llama 3 qua Groq API) vào engine sinh bài viết sử dụng output từ prompt template system làm input, tối ưu hóa tốc độ phản hồi và xử lý giới hạn request.
 
 **Acceptance Criteria:**
-- [ ] `services/llm.py` function `generate_caption_groq(prompt: str) -> str` calls Groq API with `llama3-8b-8192` or `llama3-70b-8192` model
-- [ ] System message is always prepended; user message contains the assembled prompt from DA-AI04-01
-- [ ] Rate limit (30 req/min) is handled: on `429` response, raise a custom `RateLimitError` that caller catches and routes to fallback
-- [ ] Response text is returned stripped of leading/trailing whitespace; empty responses raise `LLMEmptyResponseError`
+- [ ] Module `services/llm/groq_client.py` hiện thực `generate_caption_groq(prompt: str) -> str` gọi Groq API với model `llama-3.3-70b-versatile` hoặc `llama3-70b-8192`.
+- [ ] System message luôn được prepend; user message chứa prompt hoàn chỉnh được lắp ráp từ `DA-AI04-01`.
+- [ ] Xử lý Rate limit (30 req/min): Khi nhận mã lỗi `429` hoặc timeout $> 5$s, raise custom exception `RateLimitError` để caller (`DA-AI04-03`) bắt và chuyển mạch sang Fallback LLM.
+- [ ] Kết quả trả về được strip khoảng trắng thừa; nếu response rỗng raise `LLMEmptyResponseError`.
+- [ ] Ghi log chi tiết mỗi request: model, prompt_tokens, completion_tokens, latency_ms (phục vụ cost tracking).
 
 **Technical Notes:**
-- Tech stack: `groq` Python SDK (`pip install groq`).
-- Log every Groq call with model, prompt token count, completion token count, latency_ms.
+- Tech stack: `groq` Python SDK (`pip install groq`), khởi tạo client an toàn tại `utils/clients.py`.
+- Đã hoàn thành 95% trong Sprint 7; hoàn thiện 100% ở Sprint 8.
 
 **Dependencies:**
-Blocks: DA-AI04-03, DA-AI04-07. Blocked by: DA-AI04-01, DA-AI02-02, DA-AI01-07.
+- Blocks: DA-AI04-03, DA-AI04-05, DA-AI04-07.
+- Blocked by: DA-AI04-01, DA-AI02-02, DA-AI01-07.
 
 ---
 
-### DA-AI04-03 — Integrate Claude API as fallback when Groq is rate-limited or quality fails
+### DA-AI04-03 — Integrate Fallback LLM API (Google Gemini 1.5 Flash / Claude) with Failover Circuit Breaker
+**Jira Key:** [`DA-271`](https://letritrung2605.atlassian.net/browse/DA-271) | **Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
 
-**Goal:** Ensure caption generation never hard-fails due to Groq rate limits by automatically routing to Claude when the primary provider is unavailable.
+**Goal:** Tích hợp Fallback LLM Client (Google Gemini `gemini-1.5-flash` / Claude) kết hợp bộ định tuyến chịu lỗi áp dụng mẫu Circuit Breaker 3 trạng thái, tự động chuyển mạch khi Groq gặp lỗi rate-limit (HTTP 429), lỗi mạng hoặc timeout.
 
 **Acceptance Criteria:**
-- [ ] `services/llm.py` function `generate_caption(prompt: str) -> str` tries Groq first; on `RateLimitError` calls `generate_caption_claude(prompt)` transparently
-- [ ] Claude fallback uses `claude-3-haiku-20240307` or `claude-3-5-sonnet-20241022` configurable via `CLAUDE_FALLBACK_MODEL`
-- [ ] Fallback activation is logged at WARN level with reason (`rate_limit` or `empty_response`)
-- [ ] If both providers fail, raises `LLMUnavailableError` which API layer converts to `503 Service Unavailable`
+- [ ] Module `services/llm/gemini_client.py` hiện thực `generate_with_gemini(prompt_bundle: PromptBundle, temperature: float = 0.7, max_tokens: int = 1024) -> LLMOutput` sử dụng package `google-genai` / `google-generativeai`.
+- [ ] Module `utils/circuit_breaker.py` hiện thực Circuit Breaker 3 trạng thái: `CLOSED` (bình thường), `OPEN` (ngắt mạch khi lỗi $> 50\%$ trong 10 req), `HALF_OPEN` (thử nghiệm sau 60s).
+- [ ] Module `services/llm/resilient_router.py` cung cấp hàm `generate_caption_resilient(prompt_bundle: PromptBundle) -> LLMResponse`.
+- [ ] Khai báo interface protocol `ILLMRouter` tại `services/llm/protocols.py` và FastAPI dependency provider `get_llm_router() -> ILLMRouter` trong `app/api/v1/deps.py`.
+- [ ] Cung cấp `MockLLMRouter` cho Lộc và Ân viết unit test độc lập qua `app.dependency_overrides`.
+- [ ] Gắn nhãn tường minh metadata trong response: `provider="gemini"`, `fallback_used=True`, `fallback_reason="groq_rate_limited"`.
 
 **Technical Notes:**
-- Tech stack: `anthropic` Python SDK.
-- Inject system prompt via `system` parameter in Anthropic messages call.
+- Tránh phụ thuộc thư viện ngoài phức tạp; triển khai in-memory Circuit Breaker thread-safe hoặc dựa trên Redis nếu cần chia sẻ state đa worker.
+- Đóng vai trò là LLM provider chính cho Orchestrator `DA-AI04-06` và Regenerate `DA-AI04-09`.
 
 **Dependencies:**
-Blocks: DA-AI04-07. Blocked by: DA-AI04-02, DA-AI02-02, DA-AI01-07.
+- Blocks: DA-AI04-10 (Hard Gate); DA-AI04-06 & DA-AI04-09 (Soft Interface — downstream dev sử dụng MockLLMRouter).
+- Blocked by: DA-AI04-03, DA-AI04-04 (Bắt đầu sau khi hoàn tất tích hợp 2 SDKs).
+
+---
+
+### DA-AI04-06 — Content Generation Pipeline Orchestrator & API Endpoint
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng bộ điều phối pipeline sinh nội dung và publish endpoint `POST /api/v1/ai/content/generate`, kết nối các Adapter dữ liệu, Prompt Builder và Failover LLM Router thành luồng nghiệp vụ hoàn chỉnh thông qua Dependency Injection.
+
+**Acceptance Criteria:**
+- [ ] Endpoint `POST /api/v1/ai/content/generate` tiếp nhận `ContentGenerateRequest(client_id, topic, platform, tone, trend_keyword, ...)` và trả về `ContentGenerateResponse`.
+- [ ] Pipeline thực thi bất đồng bộ: Gọi đồng thời RAG Adapter & Trend Adapter qua `asyncio.gather(..., return_exceptions=True)`.
+- [ ] Đưa kết quả vào Prompt Builder $\rightarrow$ Gửi đến Resilient LLM Router (`DA-AI04-05`).
+- [ ] Tự động chạy hậu xử lý cắt chuỗi an toàn (`truncate_caption` từ `DA-AI04-07`).
+- [ ] Trả về đầy đủ payload gồm: `caption`, `platform`, `tone`, `provider_used`, `fallback_used`, `generation_time_ms`.
+- [ ] Bộ unit test hoàn chỉnh (`tests/test_content_orchestrator.py`) mock 100% các dependencies qua `app.dependency_overrides`, đảm bảo endpoint pass toàn bộ test cases mà không cần kết nối live DB hay live LLM API.
+
+**Technical Notes:**
+- Router FastAPI đặt tại `app/api/v1/endpoints/content.py`.
+- Áp dụng triệt để FastAPI Dependency Injection (`Depends(get_brand_rag_adapter)`, `Depends(get_trend_context_adapter)`, `Depends(get_llm_router)`), cho phép Lộc inject các Mock Adapter và Mock LLM Router để test độc lập luồng pipeline ngay từ Day 3 mà không cần chờ live services (ChromaDB, Neo4j, Groq, Gemini) sẵn sàng.
+- Giám sát độ trễ toàn trình (P95 target $< 3.0$s khi dùng Groq).
+
+**Dependencies:**
+- Soft Dependencies (Interface/Contract Decoupled via DI — Không bị block): Phụ thuộc vào interface của `DA-AI04-01`, `DA-AI04-02`, `DA-AI04-05`. Lộc code và viết unit tests ngay từ Day 3 bằng Mock implementations, không chờ đợi.
+- Hard Pre-requisite: `DA-AI04-07` (`truncate_caption` — do chính Lộc tự hoàn thành ở Day 1-2).
+- Downstream Target: Cung cấp pipeline cho `DA-AI04-10` (Integration Quality Gate).
 
 ---
 
 ### DA-AI04-04 — Implement platform-specific caption truncation (FB 63k, Threads 500, TikTok 4k chars)
-**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
+**Jira Key:** [`DA-286`](https://letritrung2605.atlassian.net/browse/DA-286) | **Assignee:** Lộc (Sub-lead) | **Priority:** 🟡 High
 
-**Goal:** Guarantee that generated captions are never rejected by platform APIs due to exceeding character limits.
+**Goal:** Đảm bảo bài viết sinh ra không bao giờ bị các nền tảng mạng xã hội từ chối do vượt quá giới hạn ký tự, áp dụng thuật toán cắt câu thông minh (Sentence Delimiter Truncation).
 
 **Acceptance Criteria:**
-- [ ] `utils/truncation.py` implements `truncate_caption(text: str, platform: str) -> str` with per-platform limits: facebook=63206, threads=500, tiktok=4000, instagram=2200, zalo=10000
-- [ ] Truncation cuts at the last complete sentence before the limit, not mid-word; appends `"..."` if truncated
-- [ ] Unit tests cover: text exactly at limit (no change), text 1 char over limit (truncated), Threads limit (strictest)
+- [ ] Module `utils/truncation.py` hiện thực `truncate_caption(text: str, platform: str) -> str`.
+- [ ] Giới hạn ký tự từng nền tảng: Facebook: 63,206, Threads: 500, TikTok: 4,000, Instagram: 2,200, Zalo: 10,000 chars.
+- [ ] Thuật toán cắt tại dấu kết thúc câu gần nhất (`.`, `!`, `?`, `\n`) trước ngưỡng giới hạn, không cắt đứt từ ngữ giữa chừng; thêm `"..."` nếu bị cắt.
+- [ ] Bộ unit tests độc lập bao phủ 100% các edge cases (chuỗi đúng giới hạn, chuỗi vượt 1 ký tự, giới hạn Threads).
 
 **Technical Notes:**
-- Handle Vietnamese sentence delimiters (`.`, `!`, `?`, `\n`).
+- File: `app/utils/truncation.py`. Pure standalone string utility, zero external dependencies.
 
 **Dependencies:**
-Blocks: DA-AI04-07. Blocked by: DA-AI04-01, DA-AI02-04.
+- Blocks: DA-AI04-07.
+- Blocked by: **None** (Bắt đầu ngay từ Day 1, Zero blocking!).
 
 ---
 
-### DA-AI04-05 — Implement hashtag generation endpoint (POST /api/v1/ai/content/hashtags)
-**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
+### DA-AI04-05 — Implement hashtag generation endpoint (POST /ai/content/hashtags)
+**Jira Key:** [`DA-231`](https://letritrung2605.atlassian.net/browse/DA-231) | **Assignee:** Lộc (Sub-lead) | **Priority:** 🟡 High
 
-**Goal:** Provide an automated API endpoint to extract and generate relevant social media hashtags based on caption content, brand industry, and current trending topics.
+**Goal:** Cung cấp tính năng và endpoint API chuyên biệt `POST /api/v1/ai/content/hashtags` để người dùng có thể yêu cầu danh sách hashtag tối ưu độc lập với việc sinh bài viết.
 
 **Acceptance Criteria:**
-- [ ] Endpoint `POST /api/v1/ai/content/hashtags` accepts `{caption: str, platform: str, count: int}` and returns `{hashtags: List[str]}`
-- [ ] Calls Llama 3 via Groq with specialized hashtag extraction prompt
-- [ ] Filters out duplicate, banned, or offensive hashtags
-- [ ] Formats hashtags according to platform best practices (3-5 for IG/Threads, 5-10 for TikTok)
+- [ ] Endpoint `POST /api/v1/ai/content/hashtags` tiếp nhận `{caption: str, platform: str, clientId: str, count: int}` và trả về `{hashtags: List[str]}`.
+- [ ] Gọi Groq SDK với prompt chuyên biệt trích xuất hashtag.
+- [ ] Hashtags được format không dấu cách, có tiền tố `#` (ví dụ `#thoiTrang`, không phải `#thoi trang`).
+- [ ] Giới hạn số lượng theo best practices từng nền tảng (Instagram: tối đa 30, TikTok: tối đa 10, Nền tảng khác: tối đa 5).
 
 **Technical Notes:**
-- Endpoint: `POST /api/v1/ai/content/hashtags`.
-- Response format: `{"hashtags": ["#BrandHub", "#ContentAI", "#MarketingTrends"]}`.
+- File: `app/api/v1/endpoints/content.py` và `app/services/hashtag_extractor.py`.
+- Tận dụng Groq client SDK có sẵn từ `DA-AI04-02`.
 
 **Dependencies:**
-Blocks: None. Blocked by: DA-AI04-02, DA-AI02-04.
+- Blocks: DA-AI04-07.
+- Blocked by: DA-AI04-02.
 
 ---
 
 ### DA-AI04-06 — Implement regenerate with feedback (receive previous caption + user feedback → generate improved version)
+**Jira Key:** [`DA-246`](https://letritrung2605.atlassian.net/browse/DA-246) | **Assignee:** Ân (AI) | **Priority:** 🟡 High
 
-**Goal:** Allow users to refine AI-generated content iteratively by providing natural language feedback.
+**Goal:** Cho phép người dùng chỉnh sửa và tinh chỉnh bài viết lặp đi lặp lại thông qua phản hồi bằng ngôn ngữ tự nhiên mà không cần bắt đầu lại từ đầu.
 
 **Acceptance Criteria:**
-- [ ] Endpoint `POST /api/v1/ai/content/regenerate` accepts `{previous_caption: str, feedback: str, brand_context: str}` and returns updated caption
-- [ ] Prompt builder incorporates previous text and user instructions ("make it shorter", "add more emojis", "more formal")
-- [ ] Maintains core facts and multi-tenant brand constraints while applying user modifications
+- [ ] Endpoint `POST /api/v1/ai/content/regenerate` tiếp nhận `ContentRegenerateRequest(previous_caption: str, feedback: str, platform: str, client_id: str)` và trả về caption mới.
+- [ ] Feedback được nhúng vào prompt: *"The previous caption was: {previous_caption}. User feedback: {feedback}. Generate an improved version."*
+- [ ] Vẫn giữ nguyên các chỉ thị chống ảo giác và context RAG thương hiệu của `client_id`.
+- [ ] Sử dụng FastAPI `Depends(get_llm_router)` để đảm bảo tính chịu lỗi khi gọi LLM.
+- [ ] End-to-end test: Gửi bài viết cũ + feedback *"viết ngắn lại và vui vẻ hơn"* $\rightarrow$ xác nhận bài viết mới ngắn hơn và có sự chuyển biến về tone giọng.
 
 **Technical Notes:**
-- Endpoint: `POST /api/v1/ai/content/regenerate`.
+- File: `app/api/v1/endpoints/content.py`.
+- Không truyền caption cũ dưới dạng assistant message để tránh LLM bị bám quá chặt vào câu chữ cũ; nhúng trực tiếp vào user prompt.
 
 **Dependencies:**
-Blocks: None. Blocked by: DA-AI04-01, DA-AI04-02, DA-AI03-04.
+- Blocks: DA-AI04-07.
+- Blocked by: DA-AI04-01, DA-AI04-03.
 
 ---
 
 ### DA-AI04-07 — Anti-hallucination test (verify 20 generated captions — every claim must be sourced from brand context)
-**Assignee:** All (Team) | **Priority:** 🔴 Critical
+**Jira Key:** [`DA-261`](https://letritrung2605.atlassian.net/browse/DA-261) | **Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
 
-**Goal:** Perform systematic verification to ensure generated captions never invent false product features, prices, or policies.
+**Goal:** Kiểm chứng toàn diện cơ chế chống ảo giác bằng cách sinh 20 bài viết dưới các chủ đề phức tạp và đối soát để xác nhận không có bất kỳ thông tin nào ngoài phạm vi RAG context được đưa vào bài viết.
 
 **Acceptance Criteria:**
-- [ ] Run test suite of 20 distinct generation prompts against 5 reference brand knowledge bases
-- [ ] Verify 100% of factual claims in generated captions map back to source RAG context chunks
-- [ ] Confirm zero fabricated pricing, phone numbers, or promotional offers
-- [ ] Pass threshold of zero hallucination failures across 20 test cases
+- [ ] Chạy bộ kiểm thử tự động trên 20 kịch bản sinh nội dung thực tế qua 5 bộ tri thức thương hiệu chuẩn.
+- [ ] Xác nhận **100% dữ kiện** trong caption sinh ra phải map ngược về được các chunks RAG nguồn.
+- [ ] Xác nhận **0% số điện thoại, giá tiền, hoặc ưu đãi bịa đặt**.
+- [ ] Tỷ lệ ảo giác (Hallucination rate) = **0%** (bất kỳ sai lệch nào đều là blocker không nghiệm thu).
 
 **Technical Notes:**
 - Tech stack: Python, pytest, Groq Llama 3, ChromaDB.
+- Location: `tests/test_anti_hallucination.py`.
 
 **Dependencies:**
-Blocks: DA-AI04-08. Blocked by: DA-AI04-02, DA-AI04-03.
+- Blocks: DA-AI04-08.
+- Blocked by: DA-AI04-02, DA-AI04-03, DA-AI04-04.
 
 ---
 
 ### DA-AI04-08 — Write Prompt Engineering Documentation (template design, system prompt best practices, tone guide)
+**Jira Key:** [`DA-274`](https://letritrung2605.atlassian.net/browse/DA-274) | **Assignee:** Ân (AI) | **Priority:** 🟢 Medium
 
-**Goal:** Document the prompt architecture, system prompts, tone modifiers, and anti-hallucination guidelines for team reference.
+**Goal:** Đảm bảo toàn bộ khuôn mẫu prompt và hướng dẫn định dạng phong cách được tài liệu hóa đầy đủ để phục vụ mở rộng, bảo trì và tích hợp LLM trong tương lai.
 
 **Acceptance Criteria:**
-- [ ] Documentation published at `docs/ai/prompt_engineering_guide.md`
-- [ ] Includes full prompt templates for Facebook, Instagram, TikTok, Threads, and Zalo
-- [ ] Details anti-hallucination system prompt rules and tone adjustment parameters
+- [ ] Tài liệu hóa cấu trúc prompt, các biến truyền vào, quy tắc format từng nền tảng và hướng dẫn 7 tone giọng.
+- [ ] Ghi chép cấu trúc `=== BRAND CONTEXT ===` và kỹ thuật Grounding rules chống ảo giác.
+- [ ] Bảng so sánh thực nghiệm hiệu năng/chất lượng giữa Groq Llama 3 và Google Gemini 1.5 Flash.
 
 **Technical Notes:**
-- Tech stack: Markdown.
+- Location: `docs/ai/prompt_engineering_guide.md`.
 
 **Dependencies:**
-Blocks: None. Blocked by: DA-AI04-07.
+- Blocks: None.
+- Blocked by: DA-AI04-01, DA-AI04-07.
+
+---
+
+### DA-AI05-07A — Neo4j Knowledge Graph Entity Traversal Service
+**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng module truy vấn đồ thị độc lập, thực hiện duyệt 1-hop/2-hop từ node `:Trend` để trích xuất các thực thể liên quan mật thiết (KOLs, Thương hiệu, Sự kiện, Chủ đề con).
+
+**Acceptance Criteria:**
+- [ ] Module `services/trends/graph_retriever.py` cung cấp hàm `traverse_trend_graph(trend_keyword: str, depth: int = 1) -> List[GraphEntityRelation]`.
+- [ ] Thực thi Cypher tối ưu:
+  ```cypher
+  MATCH (t:Trend {name: $trend_keyword})-[r:RELATED_TO|POPULAR_IN|MENTIONS]-(e)
+  RETURN e.name AS entity_name, labels(e)[0] AS entity_type, type(r) AS relation_type, r.weight AS weight
+  ORDER BY r.weight DESC LIMIT 15
+  ```
+- [ ] Index đồ thị được sử dụng trên `Trend.name` đảm bảo thời gian truy vấn $< 30$ms.
+- [ ] Xử lý an toàn khi không tìm thấy node Trend hoặc khi Neo4j instance ngắt kết nối (trả về danh sách rỗng, không raise exception).
+
+**Technical Notes:**
+- Tech stack: `neo4j` Python driver, Async Session pooling.
+
+**Dependencies:**
+Blocks: DA-AI05-07C. Blocked by: DA-AI05-04, DA-AI05-23.
+
+---
+
+### DA-AI05-07B — ChromaDB Trend Vector Snippet Retrieval Service
+**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng module semantic vector search độc lập trong bộ sưu tập `social_trend_chunks` để tìm kiếm các bài viết, trích đoạn thảo luận có điểm tương tác cao liên quan đến xu hướng.
+
+**Acceptance Criteria:**
+- [ ] Module `services/trends/vector_retriever.py` cung cấp hàm `search_trend_snippets(trend_keyword: str, top_k: int = 4) -> List[TrendSnippetDTO]`.
+- [ ] Embed từ khóa tìm kiếm bằng model `all-MiniLM-L6-v2` (384d) và truy vấn collection `social_trend_chunks`.
+- [ ] Lọc kết quả metadata theo ngưỡng tương tác (`virality_score >= 0.5`) nếu có.
+- [ ] Trả về danh sách snippets sạch gồm: `text_snippet`, `platform`, `author`, `engagement_score`, `similarity_score`.
+- [ ] Đảm bảo timeout truy vấn $< 80$ms.
+
+**Technical Notes:**
+- Tái sử dụng ChromaDB client cấu hình từ `utils/clients.py`.
+
+**Dependencies:**
+Blocks: DA-AI05-07C. Blocked by: DA-AI05-04, DA-AI05-21.
+
+---
+
+### DA-AI05-07C — Trend Context Synthesizer & Token Optimizer Engine
+**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Hợp nhất các quan hệ từ đồ thị tri thức (DA-AI05-07A) và các trích đoạn văn bản vector (DA-AI05-07B) thành một chuỗi ngữ cảnh Markdown súc tích, giới hạn chặt chẽ dưới 800 tokens, tổng hợp viral hooks và tiếng lóng cộng đồng.
+
+**Acceptance Criteria:**
+- [ ] Module `services/trends/context_formatter.py` cung cấp hàm `synthesize_trend_context(trend_keyword: str, graph_data: List[GraphEntityRelation], snippets: List[TrendSnippetDTO]) -> TrendSynthesizedContext`.
+- [ ] Context định dạng cấu trúc Markdown chuẩn:
+  ```markdown
+  ### TREND CONTEXT: {trend_keyword}
+  - Related Entities: {comma-separated entities with types}
+  - Key Discussions & Angles: {bullet points summarized from top snippets}
+  - Community Slang & Hooks: {extracted keywords/phrases}
+  ```
+- [ ] Ràng buộc Token Limit nghiêm ngặt: Kiểm tra số token bằng tokenizer; nếu vượt quá 800 tokens, tự động cắt tỉa các snippet có score thấp hơn.
+- [ ] Chuyển đổi dữ liệu sang DTO `TrendContextResponse` có trường `formatted_context` sẵn sàng đưa vào prompt LLM.
+
+**Technical Notes:**
+- Tích hợp hàm `score_keywords` (BM25) nếu cần loại bỏ các thực thể nhiễu không phổ biến.
+
+**Dependencies:**
+Blocks: DA-AI05-07D, DA-AI05-07E. Blocked by: DA-AI05-07A, DA-AI05-07B.
+
+---
+
+### DA-AI05-07D — Redis Trend Context Read-Through Cache Layer
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng tầng cache Read-Through trên Redis cho Trend Context đã tổng hợp, giúp giảm tải tối đa cho Neo4j và ChromaDB, đưa latency phục vụ xuống mức sub-15ms.
+
+**Acceptance Criteria:**
+- [ ] Module `services/trends/context_cache.py` quản lý 2 hàm: `get_cached_context(trend_slug: str) -> Optional[TrendContextResponse]` và `set_cached_context(trend_slug: str, data: TrendContextResponse, ttl_seconds: int = 1800)`.
+- [ ] Chuẩn hóa key lưu trữ: `trends:context:{trend_slug}` (sử dụng slug tiếng Việt không dấu, e.g. `tra-sua-dat-nung`).
+- [ ] Đặt thời gian sống (TTL) mặc định 30 phút (1,800 giây).
+- [ ] Benchmark kiểm tra: Thời gian phản hồi khi hit cache đạt $\le 15$ms.
+- [ ] Nếu Redis down hoặc mất kết nối: Tự động pass-through qua bộ tính toán mà không gây gián đoạn API.
+
+**Technical Notes:**
+- Tech stack: `redis-py` async, serialization qua Pydantic JSON encoder.
+
+**Dependencies:**
+Blocks: DA-AI05-07E. Blocked by: DA-AI05-16.
+
+---
+
+### DA-AI05-07E — Unified Trend Context Retrieval API Endpoint (`POST /api/v1/ai/trends/context`)
+**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Xuất bản endpoint RESTful chính thức `POST /api/v1/ai/trends/context`, tích hợp tầng Cache và tầng Retrieval song song, đóng vai trò Provider cho Consumer Adapter của Content Generation.
+
+**Acceptance Criteria:**
+- [ ] Khai báo route `POST /api/v1/ai/trends/context` tiếp nhận `TrendContextRequest(trend_keyword: str, depth: int = 1, include_snippets: bool = True)`.
+- [ ] Luồng xử lý:
+  1. Kiểm tra cache Redis (`DA-AI05-07D`); nếu có $\rightarrow$ trả về ngay lập tức ($< 20$ms).
+  2. Nếu cache miss $\rightarrow$ Kích hoạt song song `traverse_trend_graph` và `search_trend_snippets` qua `asyncio.gather`.
+  3. Hợp nhất bằng `synthesize_trend_context` (`DA-AI05-07C`).
+  4. Ghi ngược vào Redis cache và trả về cho client.
+- [ ] Xử lý sự cố toàn diện: Nếu cả Neo4j và ChromaDB đều không có dữ liệu, trả về object `TrendContextResponse` có `found=False` và `formatted_context=""` thay vì trả về lỗi 500.
+- [ ] Áp dụng FastAPI Dependency Injection: Router sử dụng `Depends(get_trend_cache)`, `Depends(get_graph_retriever)`, `Depends(get_vector_retriever)` để dễ dàng inject mock services khi test endpoint mà không cần khởi chạy Neo4j hoặc ChromaDB.
+- [ ] Tuân thủ SLA hiệu năng: Cold query $\le 500$ms, Cached query $\le 20$ms.
+
+**Technical Notes:**
+- Router khai báo tại `app/api/v1/endpoints/trends.py`.
+- Đóng vai trò là Provider dữ liệu live cho `DA-AI04-01` (Consumer Adapters).
+
+**Dependencies:**
+- Blocks: DA-AI04-01 (Live integration ở giai đoạn cuối).
+- Blocked by: DA-AI05-07C, DA-AI05-07D. (Lưu ý: DA-AI04-01 ở Epic AI-04 không bị block vì adapter sử dụng DTO contract và mock HTTP response qua `respx` khi dev).
 
 ---
 
@@ -4282,11 +4454,13 @@ Blocks: DA-AI05-06. Blocked by: DA-AI05-03, DA-AI05-04.
 - Tech stack: Python 3.11, Underthesea NLP.
 
 **Dependencies:**
-Blocks: DA-AI05-07. Blocked by: DA-AI05-05.
+Blocks: DA-AI05-07F. Blocked by: DA-AI05-05.
 
 ---
 
-### DA-AI05-07 — Slang Map & Text Normalization Engine
+### DA-AI05-07F — Slang Map & Text Normalization Engine
+
+> **Note:** For the primary Trend Context Retrieval API subsystem (`POST /api/v1/ai/trends/context` combining Neo4j & ChromaDB), see [DA-AI05-07A through DA-AI05-07E](#da-ai05-07a--neo4j-knowledge-graph-entity-traversal-service).
 
 **Goal:** Build a normalization engine that maps Vietnamese social media slang, teen-code, and abbreviations to standard terminology.
 
@@ -4316,7 +4490,7 @@ Blocks: DA-AI05-08, DA-AI05-09. Blocked by: DA-AI05-06.
 - Tech stack: Python, rank_bm25, NumPy.
 
 **Dependencies:**
-Blocks: DA-AI05-14. Blocked by: DA-AI05-07.
+Blocks: DA-AI05-14. Blocked by: DA-AI05-07F.
 
 ---
 
@@ -4333,7 +4507,7 @@ Blocks: DA-AI05-14. Blocked by: DA-AI05-07.
 - Tech stack: Neo4j 5.x, Cypher, Python.
 
 **Dependencies:**
-Blocks: DA-AI05-10. Blocked by: DA-AI05-07, DA-AI05-04.
+Blocks: DA-AI05-10. Blocked by: DA-AI05-07F, DA-AI05-04.
 
 ---
 
