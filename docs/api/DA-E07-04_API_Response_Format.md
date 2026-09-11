@@ -140,7 +140,7 @@ Format: `SCREAMING_SNAKE_CASE`. All codes globally unique across all services.
 |------|------|---------|
 | `FORBIDDEN` | 403 | Valid JWT but role insufficient for the endpoint |
 | `WORKSPACE_ACCESS_DENIED` | 403 | JWT workspace ≠ path workspace |
-| `CLIENT_ACCESS_DENIED` | 403 | ACCOUNT_MANAGER accessing unassigned client; BRAND_CLIENT accessing foreign client |
+| `CLIENT_ACCESS_DENIED` | 403 | MANAGER accessing unassigned client; BRAND_CLIENT accessing foreign client |
 
 ### 4.3 Validation domain — `VALIDATION_*`
 
@@ -178,7 +178,7 @@ Format: `SCREAMING_SNAKE_CASE`. All codes globally unique across all services.
 | `CLIENT_NOT_FOUND` | 404 | Client lookup failed |
 | `CLIENT_NAME_EXISTS` | 409 | Duplicate client name in workspace |
 | `CLIENT_HAS_ACTIVE_POSTS` | 400 | Delete — client has SCHEDULED/PUBLISHING posts |
-| `INVALID_MANAGER` | 400 | Assign — userId not ACCOUNT_MANAGER or not active |
+| `INVALID_MANAGER` | 400 | Assign — userId not MANAGER or not active |
 | `EXCEEDS_PLAN_LIMIT` | 400 | Service package quota > plan allows |
 | `INVALID_PLATFORM` | 400 | Platform string not in supported enum |
 | `PORTAL_EMAIL_REQUIRED` | 400 | Portal enable — email not provided |

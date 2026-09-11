@@ -28,7 +28,7 @@ tôi muốn tạo workspace mới, cấu hình cài đặt, và quản lý thàn
 
 ### Workspace Settings (DA-576)
 - Trang settings hiển thị + cho sửa: `name`, `timezone`, `defaultPlatforms` (mảng nền tảng mặc định: Facebook/Instagram/TikTok/LinkedIn...), `reportFrequency`. Các field này lưu trong cột `settings` (jsonb) của `Workspace`.
-- Chỉ `OWNER`/`ACCOUNT` được sửa settings (RBAC — phụ thuộc rbac-middleware feature).
+- Chỉ `OWNER` được sửa settings (RBAC — phụ thuộc rbac-middleware feature).
 - Lưu thành công → toast confirm, không cần reload trang.
 
 ### Workspace Members (DA-577)
@@ -36,7 +36,7 @@ tôi muốn tạo workspace mới, cấu hình cài đặt, và quản lý thàn
 - Nút "Mời thành viên" → tạo `WorkspaceInvitation` (email + role), gửi email mời (tái dùng hạ tầng email đã có ở forgot-password nếu có sẵn service gửi mail — kiểm tra trước khi build mới).
 - Người được mời bấm link trong email (`/invitations/accept?token=...`) → nếu chưa đăng nhập, redirect `/login` rồi quay lại đúng URL sau khi login; gọi `POST /api/v1/workspaces/invitations/accept` tạo `WorkspaceMember` với role đã mời, đánh dấu invitation `ACCEPTED`.
 - Nút xoá member (có confirm dialog) → set `workspace_members.isActive=false` (soft delete, giữ lịch sử) — không xoá cứng record.
-- Chỉ `OWNER`/`MANAGER` thấy nút mời/xoá; `ACCOUNT`/`CREATOR`/`CLIENT` chỉ xem danh sách (RBAC).
+- Chỉ `OWNER`/`MANAGER` thấy nút mời/xoá; `CREATOR`/`CLIENT` chỉ xem danh sách (RBAC).
 - Không cho xoá `OWNER` cuối cùng của workspace (luôn phải còn ít nhất 1 OWNER).
 
 ### Đa ngôn ngữ (i18n)
@@ -84,7 +84,7 @@ GET /api/v1/workspaces/{id}/members
 → 200 { "success": true, "data": [{ "id", "userId", "fullName", "email", "role", "joinedAt", "isActive" }] }
 
 POST /api/v1/workspaces/{id}/members/invite
-{ "email": "string", "role": "OWNER|MANAGER|ACCOUNT|CREATOR|CLIENT" }
+{ "email": "string", "role": "OWNER|MANAGER|CREATOR|CLIENT" }
 → 201 { "success": true, "data": { "invitationId", "token" } }
 
 DELETE /api/v1/workspaces/{id}/members/{memberId}
@@ -105,7 +105,7 @@ Tất cả endpoint trừ `POST /workspaces` yêu cầu `@RequireRole` phù hợ
 - Slug trùng sau khi thử suffix → 409 `WORKSPACE_SLUG_CONFLICT` (hiếm, retry tự động với suffix khác trước khi trả lỗi).
 - Xoá `OWNER` cuối cùng → 409 `LAST_OWNER_CANNOT_BE_REMOVED`.
 - Mời email đã là member active → 409 `ALREADY_MEMBER`.
-- Không đủ quyền (không phải OWNER/ACCOUNT) → 403 `INSUFFICIENT_ROLE` (từ RBAC middleware).
+- Không đủ quyền (không phải OWNER) → 403 `INSUFFICIENT_ROLE` (từ RBAC middleware).
 
 ## 7. Edge Cases
 

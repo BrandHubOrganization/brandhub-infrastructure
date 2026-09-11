@@ -48,7 +48,7 @@
 ### E16 — Client API
 - API doc yêu cầu 8 endpoint: create, list (scoped theo role), get, update, delete, assign account manager, service-package, portal-access.
 - Model `Client.java` tồn tại (fields khớp doc: name, brandName, industry, contactEmail...) nhưng **không có `ClientController`, `ClientService`, `ClientRepository`**.
-- Thiếu toàn bộ: không chỉ CRUD cơ bản mà cả nghiệp vụ isolation (`ACCOUNT_MANAGER` chỉ thấy client được assign, `BRAND_CLIENT` chỉ thấy client của chính họ) — chưa có RBAC nào áp cho resource này vì chưa có controller.
+- Thiếu toàn bộ: không chỉ CRUD cơ bản mà cả nghiệp vụ isolation (`MANAGER` chỉ thấy client được assign, `BRAND_CLIENT` chỉ thấy client của chính họ) — chưa có RBAC nào áp cho resource này vì chưa có controller.
 
 ### E17 — Subscription plans CRUD
 - Doc mô tả rõ luồng Stripe: `/plans` (public), `/current`, `/subscribe` (tạo `clientSecret`), `/webhook` (Stripe HMAC), `/cancel`, `/invoices`.
@@ -75,11 +75,11 @@
 
 ### E28/E29 — Content request API
 - Doc yêu cầu 6 endpoint gồm workflow assign + comment thread.
-- Không có `ContentRequest` model, controller, hay repository nào trong business-service. Đây là workflow cốt lõi kết nối Client → Account Manager → Creator — hiện không thể thực hiện được qua API dù đã có role model (`MemberRole` enum) sẵn sàng ở tầng Workspace.
+- Không có `ContentRequest` model, controller, hay repository nào trong business-service. Đây là workflow cốt lõi kết nối Client → Manager → Creator — hiện không thể thực hiện được qua API dù đã có role model (`MemberRole` enum) sẵn sàng ở tầng Workspace.
 
 ### E30/E31 — Calendar/Posts + Approve
 - Doc mô tả rõ approval chain: `POST /posts` (Creator/AM tạo) → `PUT .../submit` → `PUT .../approve`.
-- Không có `Post` model/controller nào. Approval chain (Creator → Account Manager → Client) **hoàn toàn không thể đi qua được** vì chưa có transition endpoint nào tồn tại — không phải "thiếu 1 state" mà là thiếu toàn bộ luồng.
+- Không có `Post` model/controller nào. Approval chain (Creator → Manager → Client) **hoàn toàn không thể đi qua được** vì chưa có transition endpoint nào tồn tại — không phải "thiếu 1 state" mà là thiếu toàn bộ luồng.
 
 ### E38 — Analytics aggregation
 - Doc yêu cầu MongoDB aggregation trên `posts`/`ai_usage_logs`. Vì `posts` (E30) và social/AI usage tracking chưa tồn tại, analytics không có nguồn dữ liệu để tổng hợp dù có build controller cũng vô nghĩa — **phụ thuộc cứng vào E28-E31 xong trước.**

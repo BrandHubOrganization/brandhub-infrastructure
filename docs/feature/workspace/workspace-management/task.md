@@ -6,10 +6,10 @@
 - [ ] `WorkspaceService.createWorkspace` — tạo Workspace + tự tạo WorkspaceMember role=OWNER.
 - [ ] `POST /api/v1/workspaces`.
 - [ ] `GET /api/v1/workspaces/{id}`.
-- [ ] `PATCH /api/v1/workspaces/{id}/settings` (`@RequireRole({OWNER,ACCOUNT})`).
+- [ ] `PATCH /api/v1/workspaces/{id}/settings` (`@RequireRole({OWNER})`).
 - [ ] `GET /api/v1/workspaces/{id}/members`.
-- [ ] `POST /api/v1/workspaces/{id}/members/invite` (`@RequireRole({OWNER,ACCOUNT})`) + gửi email.
-- [ ] `DELETE /api/v1/workspaces/{id}/members/{memberId}` (`@RequireRole({OWNER,ACCOUNT})`) + validate không xoá OWNER cuối.
+- [ ] `POST /api/v1/workspaces/{id}/members/invite` (`@RequireRole({OWNER})`) + gửi email.
+- [ ] `DELETE /api/v1/workspaces/{id}/members/{memberId}` (`@RequireRole({OWNER})`) + validate không xoá OWNER cuối.
 - [ ] Error codes: `WORKSPACE_SLUG_CONFLICT`, `LAST_OWNER_CANNOT_BE_REMOVED`, `ALREADY_MEMBER`.
 
 ## DA-323 — Build Create Workspace page
@@ -25,7 +25,7 @@
 ## DA-577 — Build Workspace Members page
 - [ ] `workspaceService.ts` — method `listMembers`, `inviteMember`, `removeMember`.
 - [ ] `WorkspaceMembersPage.tsx` — bảng member, nút mời (dialog form email+role), nút xoá (confirm dialog).
-- [ ] Ẩn nút mời/xoá nếu role hiện tại không phải OWNER/ACCOUNT (UI-gating dựa trên `authStore`).
+- [ ] Ẩn nút mời/xoá nếu role hiện tại không phải OWNER (UI-gating dựa trên `authStore`).
 
 ## Wiring chung
 - [ ] `WorkspacePage.tsx` — gọi API thật thay `WORKSPACES` hardcode, nút "Tạo Workspace Mới" → `/workspaces/create`.

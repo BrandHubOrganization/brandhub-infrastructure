@@ -16,7 +16,7 @@ Nguồn đối chiếu: `brandhub-business-service/src/main/java/com/brandhub/bu
 |---|---|---|---|---|
 | 1 | `authentication.md` | Đăng ký, đăng nhập (email/phone/OAuth), OTP, refresh/logout, quên/đổi mật khẩu, link/unlink phone & OAuth | ✅ | `AuthController`, `GoogleOAuthController`, `GitHubOAuthController`, `LinkedInOAuthController`, `MicrosoftOAuthController`, `AuthServiceImpl` |
 | 2 | `workspace-management.md` | Tạo/sửa workspace, upload logo, audit log workspace | 🔲 | `WorkspaceController`, `WorkspaceServiceImpl` |
-| 3 | `workspace-member-rbac.md` | Mời/xoá thành viên, gán role (OWNER/MANAGER/ACCOUNT/CREATOR/CLIENT), permission theo role | 🔲 | `WorkspaceController` (invite/remove member), `WorkspaceMember`, `WorkspaceMemberPermission`, `MemberRole` |
+| 3 | `workspace-member-rbac.md` | Mời/xoá thành viên, gán role (OWNER/MANAGER/CREATOR/CLIENT), permission theo role | 🔲 | `WorkspaceController` (invite/remove member), `WorkspaceMember`, `WorkspaceMemberPermission`, `MemberRole` |
 | 4 | `client-management.md` | Quản lý Client (khách hàng của agency) trong workspace | ⛔ | `Client.java` chỉ là entity, KHÔNG có `ClientRepository`/`ClientService`/`ClientController` |
 | 5 | `subscription-billing.md` | Gói subscription, thanh toán, invoice, trạng thái subscription workspace | ⛔ | `SubscriptionPlan`/`WorkspaceSubscription`/`Invoice`/`Payment.java` chỉ là entity, KHÔNG có repository/service/controller |
 | 6 | `user-profile.md` | Xem/sửa profile, user status | 🔲 | `UserController`, `UserService`, `User`, `UserStatus` |

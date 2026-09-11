@@ -98,7 +98,7 @@ Xác định toàn bộ indexes cần thiết cho 15 bảng PostgreSQL và 8 col
 | Index | Columns | Type | Query Pattern |
 |-------|---------|------|---------------|
 | `idx_clients_workspace_id` | `workspace_id` | B-tree | List clients trong workspace |
-| `idx_clients_manager_id` | `assigned_manager_id` | B-tree | "Clients tôi phụ trách" (ACCOUNT_MANAGER view) |
+| `idx_clients_manager_id` | `assigned_manager_id` | B-tree | "Clients tôi phụ trách" (MANAGER view) |
 
 ---
 

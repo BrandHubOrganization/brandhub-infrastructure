@@ -11,8 +11,8 @@
 
 | # | Method | Path | Roles |
 |---|--------|------|-------|
-| 53 | GET | `/api/v1/analytics/workspace` | OWNER, MANAGER, ACCOUNT |
-| 54 | GET | `/api/v1/analytics/clients/{clientId}` | OWNER, MANAGER, ACCOUNT, CLIENT |
+| 53 | GET | `/api/v1/analytics/workspace` | OWNER, MANAGER |
+| 54 | GET | `/api/v1/analytics/clients/{clientId}` | OWNER, MANAGER, CLIENT |
 | 55 | GET | `/api/v1/analytics/ai-usage` | OWNER |
 
 > **Data source:** All analytics computed via MongoDB aggregation on `posts` and `ai_usage_logs` collections. No separate analytics store — queries run at request time. Cache with Redis (TTL 5 min) for high-traffic endpoints.
@@ -23,7 +23,7 @@
 
 ## GET /api/v1/analytics/workspace
 
-**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`, `ACCOUNT`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`  
 **Goal:** Aggregate post stats across all clients in the workspace for a date range.
 
 **Query params:**
@@ -85,7 +85,7 @@
 
 ## GET /api/v1/analytics/clients/{clientId}
 
-**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`, `ACCOUNT`, `CLIENT`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`, `CLIENT`  
 **Goal:** Per-client post stats and service package usage for the period.
 
 **Path param:** `clientId` (UUID)
@@ -127,7 +127,7 @@
 ```
 
 **Errors:**
-- `403 FORBIDDEN` — ACCOUNT accessing unassigned client; CLIENT accessing non-own client
+- `403 FORBIDDEN` — MANAGER accessing unassigned client; CLIENT accessing non-own client
 - `404 CLIENT_NOT_FOUND`
 - `400 INVALID_DATE_RANGE`
 
@@ -190,4 +190,4 @@
 - `byFeature`: `$group` by `feature` field
 - `byClient`: `$group` by `clientId`, top 10
 - `dailyUsage`: `$group` by `{ $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }`
-- Only OWNER can see AI cost — MANAGER/ACCOUNT do not have billing visibility
+- Only OWNER can see AI cost — MANAGER does not have billing visibility

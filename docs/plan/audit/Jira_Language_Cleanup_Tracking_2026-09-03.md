@@ -125,7 +125,7 @@
 - [ ] DA-198 | To Do | `[DA-E15-04] Implement DELETE /api/v1/workspaces/{id}/members/{userId} (remove thanh vien)`
 
 ### E16 — Client & Agency Management (1 task)
-- [ ] DA-266 | In review | `[DA-E16-04] Implement GET /api/v1/clients (AGENCY_OWNER va ACCOUNT_MANAGER xem danh sach)`
+- [ ] DA-266 | In review | `[DA-E16-04] Implement GET /api/v1/clients (AGENCY_OWNER va MANAGER xem danh sach)`
 
 ### E17 — Subscription & Billing (2 task)
 - [ ] DA-230 | To Do | `[DA-E17-02] Implement POST /api/v1/subscriptions/subscribe (AGENCY_OWNER dang ky goi)`
@@ -139,8 +139,8 @@
 
 ### E20 — Token Lifecycle Management (3 task)
 - [ ] DA-250 | To Do | `[DA-E20-01] Implement scheduled token refresh job (chay luc 2:00 AM moi ngay, refresh tokens het han trong 7 ngay)`
-- [ ] DA-267 | To Do | `[DA-E20-02] Implement alert notification khi token refresh fail (gui thong bao cho Account Manager)`
-- [ ] DA-282 | To Do | `[DA-E20-03] Implement manual token refresh API (Account Manager trigger thu cong)`
+- [ ] DA-267 | To Do | `[DA-E20-02] Implement alert notification khi token refresh fail (gui thong bao cho Manager)`
+- [ ] DA-282 | To Do | `[DA-E20-03] Implement manual token refresh API (Manager trigger thu cong)`
 
 ### E21 — Publisher Service Core (2 task)
 - [ ] DA-213 | Done | `[DA-E21-01] Khoi tao brandhub-publisher-service project (Spring Boot 3, RabbitMQ consumer setup)`
@@ -158,14 +158,14 @@
 - [ ] DA-262 | To Do | `[DA-E23-04] Expose /internal/ai/video/generate endpoint (nhan script + style → tra S3 URL, async with polling)`
 
 ### E28 — Content Request Management (1 task)
-- [ ] DA-293 | To Do | `[DA-E28-02] Implement GET /api/v1/content-requests (ACCOUNT_MANAGER xem danh sach requests cua clients minh)`
+- [ ] DA-293 | To Do | `[DA-E28-02] Implement GET /api/v1/content-requests (MANAGER xem danh sach requests cua clients minh)`
 
 ### E30 — Content Calendar & Scheduling (1 task)
-- [ ] DA-317 | To Do | `[DA-E30-02] Implement POST /api/v1/posts/{id}/schedule (ACCOUNT_MANAGER dat lich: scheduledAt + targetPlatforms)`
+- [ ] DA-317 | To Do | `[DA-E30-02] Implement POST /api/v1/posts/{id}/schedule (MANAGER dat lich: scheduledAt + targetPlatforms)`
 
 ### E33 — Publish Error Handling (2 task)
 - [ ] DA-321 | To Do | `[DA-E33-01] Implement retry logic (toi da 3 lan, exponential backoff: 30s, 60s, 120s)`
-- [ ] DA-357 | To Do | `[DA-E33-03] Implement failure notification (gui alert cho Account Manager khi post fail sau tat ca retries)`
+- [ ] DA-357 | To Do | `[DA-E33-03] Implement failure notification (gui alert cho Manager khi post fail sau tat ca retries)`
 
 ### E37 — Client Portal (1 task)
 - [ ] DA-315 | To Do | `[DA-E37-03] Build Client Approval page (xem preview → approve/reject voi feedback)`

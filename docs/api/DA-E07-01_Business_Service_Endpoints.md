@@ -50,9 +50,9 @@
 
 | # | Issue | Fix |
 |---|-------|-----|
-| 42 | `POST /content-requests` summary table listed `ACCOUNT_MANAGER+` — missing `BRAND_CLIENT` | Fixed in [00_conventions.md](endpoints/00_conventions.md) |
+| 42 | `POST /content-requests` summary table listed `MANAGER+` — missing `BRAND_CLIENT` | Fixed in [00_conventions.md](endpoints/00_conventions.md) |
 | 54 | `GET /analytics/clients/{id}` summary table missing `BRAND_CLIENT` | Fixed |
 | 57 | `GET /reports/{jobId}` summary table missing `BRAND_CLIENT` | Fixed |
-| 37 | `DELETE /posts/{id}` summary table `ACCOUNT_MANAGER+` implied CONTENT_CREATOR — incorrect | Fixed to `AGENCY_OWNER, ACCOUNT_MANAGER` |
+| 37 | `DELETE /posts/{id}` summary table `ACCOUNT_MANAGER+` implied CONTENT_CREATOR — incorrect | Fixed to `AGENCY_OWNER, MANAGER` |
 | 23 | `GET /workspaces/.../permissions` — self-read not documented | Added `self` access in [03_workspace.md](endpoints/03_workspace.md) |
 | 49 | `GET /social/connect/{platform}` — missing error for invalid platform | Added `400 UNSUPPORTED_PLATFORM` in [07_social_account.md](endpoints/07_social_account.md) |

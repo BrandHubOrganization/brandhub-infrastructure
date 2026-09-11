@@ -12,8 +12,8 @@
 | # | Method | Path | Roles |
 |---|--------|------|-------|
 | 25 | POST | `/api/v1/clients` | OWNER, MANAGER |
-| 26 | GET | `/api/v1/clients` | OWNER, MANAGER, ACCOUNT |
-| 27 | GET | `/api/v1/clients/{clientId}` | OWNER, MANAGER, ACCOUNT, CLIENT |
+| 26 | GET | `/api/v1/clients` | OWNER, MANAGER |
+| 27 | GET | `/api/v1/clients/{clientId}` | OWNER, MANAGER, CLIENT |
 | 28 | PUT | `/api/v1/clients/{clientId}` | OWNER, MANAGER |
 | 29 | DELETE | `/api/v1/clients/{clientId}` | OWNER |
 | 30 | PUT | `/api/v1/clients/{clientId}/assign` | OWNER, MANAGER |
@@ -21,7 +21,7 @@
 | 32 | PUT | `/api/v1/clients/{clientId}/portal-access` | OWNER, MANAGER |
 
 > **Data isolation:**
-> - `ACCOUNT`: sees only clients where `assigned_manager_id = X-User-Id`
+> - `MANAGER`: sees only clients where `assigned_manager_id = X-User-Id`
 > - `CLIENT`: can only access their own `clientId` (linked via `users.id → clients.portal_user_id`)
 > - All queries implicitly scoped to `X-Workspace-Id`
 
@@ -78,7 +78,7 @@
 
 ## GET /api/v1/clients
 
-**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`, `ACCOUNT`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`  
 **Goal:** List clients. Role-based filter applied automatically.
 
 **Query params:**
@@ -115,14 +115,14 @@
 
 **Implementation notes:**
 - `OWNER`: sees all clients in workspace (`workspace_id = X-Workspace-Id`)
-- `ACCOUNT`: filter `assigned_manager_id = X-User-Id`
+- `MANAGER`: filter `assigned_manager_id = X-User-Id`
 - Join with `users` to populate `assignedManagerName`
 
 ---
 
 ## GET /api/v1/clients/{clientId}
 
-**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`, `ACCOUNT`, `CLIENT`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`, `CLIENT`  
 **Goal:** Get full details of a single client including service package.
 
 **Response 200:**
@@ -156,12 +156,12 @@
 ```
 
 **Errors:**
-- `403 FORBIDDEN` — ACCOUNT accessing unassigned client, or CLIENT accessing another client
+- `403 FORBIDDEN` — MANAGER accessing unassigned client, or CLIENT accessing another client
 - `404 CLIENT_NOT_FOUND`
 
 **Implementation notes:**
 - `CLIENT` access check: `clients.portal_user_id = X-User-Id`
-- `ACCOUNT` access check: `clients.assigned_manager_id = X-User-Id`
+- `MANAGER` access check: `clients.assigned_manager_id = X-User-Id`
 
 ---
 
@@ -221,12 +221,12 @@
 ## PUT /api/v1/clients/{clientId}/assign
 
 **Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`  
-**Goal:** Assign an ACCOUNT to a client. Replaces any existing assignment.
+**Goal:** Assign a MANAGER to a client. Replaces any existing assignment.
 
 **Request body:**
 ```json
 {
-  "managerId": "uuid (required — must be active workspace member with ACCOUNT role)"
+  "managerId": "uuid (required — must be active workspace member with MANAGER role)"
 }
 ```
 
@@ -243,11 +243,11 @@
 ```
 
 **Errors:**
-- `400 INVALID_MANAGER` — `managerId` not found in workspace, not active, or not ACCOUNT role
+- `400 INVALID_MANAGER` — `managerId` not found in workspace, not active, or not MANAGER role
 - `404 CLIENT_NOT_FOUND`
 
 **Implementation notes:**
-- Validate manager exists in `workspace_members` with matching `workspace_id`, `is_active = true`, `role = ACCOUNT`
+- Validate manager exists in `workspace_members` with matching `workspace_id`, `is_active = true`, `role = MANAGER`
 - Send notification to newly assigned manager
 
 ---
