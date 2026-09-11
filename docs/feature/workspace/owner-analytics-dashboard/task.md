@@ -26,10 +26,10 @@
 - [ ] 12. `workspaceService.ts`: thêm `listAuditLogs`, `listManagedWorkspaces`,
        `listManagedAuditLogs`.
 - [ ] 13. `Sidebar.tsx`: ẩn section Sáng tạo khi `role === "OWNER"`. Thêm mục
-       "Tổng quan" → `/analytics/overview` cho OWNER/ACCOUNT, không phụ thuộc
+       "Tổng quan" → `/analytics/overview` cho OWNER, không phụ thuộc
        `activeWorkspace`.
 - [ ] 14. `AnalyticsPage.tsx`: lấy role hiện tại qua `listMembers`, render 4
-       khối mới nếu OWNER/ACCOUNT (bảng member, số liệu role — data thật;
+       khối mới nếu OWNER (bảng member, số liệu role — data thật;
        audit log — data thật; cống hiến — mock, comment rõ demo data).
 - [ ] 15. Tạo `AnalyticsOverviewPage.tsx`: list workspace + tổng số liệu +
        audit log gộp (data thật) + cống hiến mock mỗi workspace. Xử lý rỗng

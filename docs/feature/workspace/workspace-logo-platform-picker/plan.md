@@ -35,7 +35,7 @@ Logic: validate content-type (jpeg/png/webp) + size (≤5MB) → ném
 ### 4. WorkspaceController
 ```java
 @PostMapping("/{workspaceId}/logo")
-@RequireRole({MemberRole.OWNER, MemberRole.ACCOUNT})
+@RequireRole({MemberRole.OWNER, MemberRole.MANAGER})
 public ApiResponse<WorkspaceResponse> uploadLogo(
         @PathVariable UUID workspaceId,
         @RequestParam("file") MultipartFile file,

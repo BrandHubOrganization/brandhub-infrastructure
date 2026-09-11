@@ -45,7 +45,7 @@ map sang `AuditLogResponse` — cần join tên user (`userRepository.findAllByI
 theo batch giống pattern `listMembers` hiện có, tránh N+1).
 
 `listManagedWorkspaces`: `workspaceMemberRepository.findByUserIdAndIsActiveTrue(currentUser.getId())`
-→ filter `role == OWNER || role == ACCOUNT` → với mỗi membership, lấy
+→ filter `role == OWNER || role == MANAGER` → với mỗi membership, lấy
 `Workspace` (`workspaceRepository.findAllById` batch) + đếm member qua
 `countByWorkspaceIdAndIsActiveTrue` mới (mục 4) → map `ManagedWorkspaceResponse`.
 
@@ -76,7 +76,7 @@ public ApiResponse<Page<ManagedAuditLogResponse>> listManagedAuditLogs(
         @PageableDefault(size = 20) Pageable pageable, WebRequest webRequest) { ... }
 
 @GetMapping("/{workspaceId}/audit-logs")
-@RequireRole({MemberRole.OWNER, MemberRole.ACCOUNT})
+@RequireRole({MemberRole.OWNER, MemberRole.MANAGER})
 public ApiResponse<Page<AuditLogResponse>> listAuditLogs(
         @PathVariable UUID workspaceId,
         @PageableDefault(size = 20) Pageable pageable, WebRequest webRequest) { ... }
@@ -99,7 +99,7 @@ con khác — không xung đột vì đã có prefix `/{workspaceId}/`.
   filter mới trong `filteredSections` map, tương tự cách filter CLIENT hiện
   có.
 - Thêm mục "Tổng quan" (`nav.overview` → `/analytics/overview`) vào section
-  `nav.sections.overview`, chỉ hiện khi `role === "OWNER" || role === "ACCOUNT"`.
+  `nav.sections.overview`, chỉ hiện khi `role === "OWNER" || role === "MANAGER"`.
   Lưu ý: đây không cần `activeWorkspace` — hiện luôn nếu role phù hợp, kể cả
   khi không có workspace active (khác logic "cần workspace context" của các
   mục khác) vì trang overview độc lập với workspace đang chọn.
@@ -145,7 +145,7 @@ listManagedAuditLogs: (page = 0, size = 20) =>
   `workspaceService.listMembers(activeWorkspaceId)` tìm `userId` hiện tại
   giống pattern `WorkspaceSettingsPage.tsx` đã dùng. `activeWorkspaceId` lấy
   từ `useAuthStore`.
-- Nếu role OWNER/ACCOUNT: render thêm 4 khối mới (bảng member, số liệu role,
+- Nếu role OWNER: render thêm 4 khối mới (bảng member, số liệu role,
   audit log — data thật; card cống hiến — mock) dưới phần hiện có.
 - Card cống hiến mock: dùng data cứng trong component, comment rõ
   `// demo data — chưa có module Post/Content thật`.

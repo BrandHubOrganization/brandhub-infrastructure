@@ -13,7 +13,7 @@
 - [ ] 6. `WorkspaceServiceImpl`: implement `updateLogo` — validate type/size,
       xóa logo cũ nếu có, upload mới, save, map response.
 - [ ] 7. `WorkspaceController`: thêm `POST /{workspaceId}/logo`
-      `@RequireRole({OWNER, ACCOUNT})`.
+      `@RequireRole({OWNER})`.
 - [ ] 8. Unit test `WorkspaceServiceImplTest`: `updateLogo_validFile_returnsUpdatedLogoUrl`,
       `updateLogo_invalidType_throwsBusinessException`,
       `updateLogo_tooLarge_throwsBusinessException`.
@@ -33,7 +33,7 @@
     - [ ] 12d. Xóa `Input` text platform, thay bằng 4 icon toggle
           (Facebook/Instagram/TikTok-equivalent/LinkedIn) từ `lucide-react`,
           click toggle in/out mảng `defaultPlatforms`.
-    - [ ] 12e. Ẩn nút upload logo nếu role hiện tại không phải OWNER/ACCOUNT.
+    - [ ] 12e. Ẩn nút upload logo nếu role hiện tại không phải OWNER.
     - [ ] 12f. `handleSubmit` gửi `defaultPlatforms` (mảng) thẳng, bỏ
           `.split(",")`.
 - [ ] 13. `vi.json` + `en.json`: thêm 5 key `workspace.settings.logo*` (xem

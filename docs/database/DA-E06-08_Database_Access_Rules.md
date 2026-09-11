@@ -84,7 +84,7 @@ mongoTemplate.find(query, Post.class);
 Workspace A
 ├── Client X  (BRAND_CLIENT: user_x)  → chỉ thấy posts của Client X
 ├── Client Y  (BRAND_CLIENT: user_y)  → chỉ thấy posts của Client Y
-└── ACCOUNT_MANAGER                   → thấy tất cả clients trong workspace
+└── MANAGER                           → thấy tất cả clients trong workspace
 ```
 
 ### 2.2 Collections cần thêm clientId filter cho BRAND_CLIENT
@@ -274,7 +274,7 @@ SELECT * FROM invoices WHERE workspace_id = $1 AND status = 'PAID';
 |---|---|---|---|
 | `ADMIN` | ❌ (global access) | ❌ | Không — truy cập toàn hệ thống |
 | `AGENCY_OWNER` | ✅ | ❌ | Tất cả trong workspace |
-| `ACCOUNT_MANAGER` | ✅ | ❌ | Tất cả trong workspace |
+| `MANAGER` | ✅ | ❌ | Tất cả trong workspace |
 | `CONTENT_CREATOR` | ✅ | ❌ | Tất cả trong workspace |
 | `BRAND_CLIENT` | ✅ | ✅ | posts, content_requests, social_accounts, report_jobs, knowledge_documents |
 

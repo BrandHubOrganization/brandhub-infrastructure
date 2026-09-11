@@ -17,7 +17,7 @@
 | Header | Type | Description |
 |--------|------|-------------|
 | `X-User-Id` | UUID string | Extracted from JWT `sub` claim |
-| `X-User-Role` | string | One of: `ADMIN`, `OWNER`, `MANAGER`, `ACCOUNT`, `CREATOR`, `CLIENT`, `GUEST` |
+| `X-User-Role` | string | One of: `ADMIN`, `OWNER`, `MANAGER`, `CREATOR`, `CLIENT`, `GUEST` |
 | `X-Workspace-Id` | UUID string | Extracted from JWT `workspaceId` claim; absent for ADMIN |
 
 **Notation:**
@@ -28,11 +28,10 @@
 
 **Role hierarchy (high → low):**
 ```
-ADMIN > OWNER > MANAGER > ACCOUNT > CREATOR > CLIENT > GUEST
+ADMIN > OWNER > MANAGER > CREATOR > CLIENT > GUEST
 ```
 `OWNER` = pure agency management (workspace/billing/social accounts), no direct content ops.
-`MANAGER` = workspace operations (member, settings, clients, analytics, reports) delegated by OWNER.
-`ACCOUNT` = agency-client bridge (content requests, portal, calendar, library).
+`MANAGER` = workspace operations (member, settings, clients, analytics, reports, content requests, portal, calendar) delegated by OWNER.
 `CREATOR` = content tools (posts, publish, AI studio).
 `CLIENT` = view/approve own content only.
 
@@ -82,7 +81,7 @@ ADMIN > OWNER > MANAGER > ACCOUNT > CREATOR > CLIENT > GUEST
 | 13 | DELETE | `/api/v1/users/me/sessions/{sessionId}` | JWT | * |
 | 14 | PUT | `/api/v1/users/me/password` | JWT | * |
 | 15 | POST | `/api/v1/workspaces` | JWT | OWNER |
-| 16 | GET | `/api/v1/workspaces/mine` | JWT | OWNER, MANAGER, ACCOUNT, CREATOR, CLIENT |
+| 16 | GET | `/api/v1/workspaces/mine` | JWT | OWNER, MANAGER, CREATOR, CLIENT |
 | 17 | PUT | `/api/v1/workspaces/{id}` | JWT | OWNER |
 | 18 | GET | `/api/v1/workspaces/{id}/members` | JWT | OWNER, MANAGER |
 | 19 | POST | `/api/v1/workspaces/{id}/members/invite` | JWT | OWNER, MANAGER |
@@ -92,39 +91,39 @@ ADMIN > OWNER > MANAGER > ACCOUNT > CREATOR > CLIENT > GUEST
 | 23 | GET | `/api/v1/workspaces/{id}/members/{userId}/permissions` | JWT | OWNER, MANAGER, self |
 | 24 | PUT | `/api/v1/workspaces/{id}/members/{userId}/permissions` | JWT | OWNER, MANAGER |
 | 25 | POST | `/api/v1/clients` | JWT | OWNER, MANAGER |
-| 26 | GET | `/api/v1/clients` | JWT | OWNER, MANAGER, ACCOUNT |
-| 27 | GET | `/api/v1/clients/{id}` | JWT | OWNER, MANAGER, ACCOUNT, CLIENT |
+| 26 | GET | `/api/v1/clients` | JWT | OWNER, MANAGER |
+| 27 | GET | `/api/v1/clients/{id}` | JWT | OWNER, MANAGER, CLIENT |
 | 28 | PUT | `/api/v1/clients/{id}` | JWT | OWNER, MANAGER |
 | 29 | DELETE | `/api/v1/clients/{id}` | JWT | OWNER |
 | 30 | PUT | `/api/v1/clients/{id}/assign` | JWT | OWNER, MANAGER |
 | 31 | PUT | `/api/v1/clients/{id}/service-package` | JWT | OWNER |
 | 32 | PUT | `/api/v1/clients/{id}/portal-access` | JWT | OWNER, MANAGER |
-| 33 | POST | `/api/v1/posts` | JWT | ACCOUNT, CREATOR |
+| 33 | POST | `/api/v1/posts` | JWT | MANAGER, CREATOR |
 | 34 | GET | `/api/v1/posts` | JWT | * |
 | 35 | GET | `/api/v1/posts/{id}` | JWT | * |
-| 36 | PUT | `/api/v1/posts/{id}` | JWT | CREATOR, ACCOUNT |
-| 37 | DELETE | `/api/v1/posts/{id}` | JWT | ACCOUNT, CREATOR |
-| 38 | POST | `/api/v1/posts/{id}/submit` | JWT | CREATOR, ACCOUNT |
-| 39 | POST | `/api/v1/posts/{id}/approve` | JWT | ACCOUNT |
-| 40 | POST | `/api/v1/posts/{id}/reject` | JWT | ACCOUNT |
-| 41 | POST | `/api/v1/posts/{id}/schedule` | JWT | ACCOUNT, CREATOR |
-| 42 | POST | `/api/v1/content-requests` | JWT | ACCOUNT, CLIENT |
+| 36 | PUT | `/api/v1/posts/{id}` | JWT | CREATOR, MANAGER |
+| 37 | DELETE | `/api/v1/posts/{id}` | JWT | MANAGER |
+| 38 | POST | `/api/v1/posts/{id}/submit` | JWT | CREATOR, MANAGER |
+| 39 | POST | `/api/v1/posts/{id}/approve` | JWT | MANAGER |
+| 40 | POST | `/api/v1/posts/{id}/reject` | JWT | MANAGER |
+| 41 | POST | `/api/v1/posts/{id}/schedule` | JWT | MANAGER, CREATOR |
+| 42 | POST | `/api/v1/content-requests` | JWT | MANAGER, CLIENT |
 | 43 | GET | `/api/v1/content-requests` | JWT | * |
 | 44 | GET | `/api/v1/content-requests/{id}` | JWT | * |
-| 45 | PUT | `/api/v1/content-requests/{id}/assign` | JWT | ACCOUNT |
-| 46 | PUT | `/api/v1/content-requests/{id}/status` | JWT | CREATOR, ACCOUNT |
+| 45 | PUT | `/api/v1/content-requests/{id}/assign` | JWT | MANAGER |
+| 46 | PUT | `/api/v1/content-requests/{id}/status` | JWT | CREATOR, MANAGER |
 | 47 | POST | `/api/v1/content-requests/{id}/comments` | JWT | * |
 | 48 | GET | `/api/v1/social/accounts` | JWT | OWNER |
 | 49 | GET | `/api/v1/social/connect/{platform}` | JWT | OWNER |
 | 50 | GET | `/api/v1/social/callback/{platform}` | PUBLIC | — |
 | 51 | DELETE | `/api/v1/social/accounts/{id}` | JWT | OWNER |
 | 52 | POST | `/api/v1/social/accounts/{id}/refresh` | JWT | OWNER |
-| 53 | GET | `/api/v1/analytics/workspace` | JWT | OWNER, MANAGER, ACCOUNT |
-| 54 | GET | `/api/v1/analytics/clients/{id}` | JWT | OWNER, MANAGER, ACCOUNT, CLIENT |
+| 53 | GET | `/api/v1/analytics/workspace` | JWT | OWNER, MANAGER |
+| 54 | GET | `/api/v1/analytics/clients/{id}` | JWT | OWNER, MANAGER, CLIENT |
 | 55 | GET | `/api/v1/analytics/ai-usage` | JWT | OWNER |
-| 56 | POST | `/api/v1/reports` | JWT | OWNER, MANAGER, ACCOUNT |
-| 57 | GET | `/api/v1/reports/{jobId}` | JWT | OWNER, MANAGER, ACCOUNT, CLIENT |
-| 58 | GET | `/api/v1/reports` | JWT | OWNER, MANAGER, ACCOUNT |
+| 56 | POST | `/api/v1/reports` | JWT | OWNER, MANAGER |
+| 57 | GET | `/api/v1/reports/{jobId}` | JWT | OWNER, MANAGER, CLIENT |
+| 58 | GET | `/api/v1/reports` | JWT | OWNER, MANAGER |
 | 59 | GET | `/api/v1/subscriptions/plans` | PUBLIC | — |
 | 60 | GET | `/api/v1/subscriptions/current` | JWT | OWNER |
 | 61 | POST | `/api/v1/subscriptions/subscribe` | JWT | OWNER |

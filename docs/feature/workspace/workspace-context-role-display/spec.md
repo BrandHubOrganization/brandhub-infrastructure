@@ -10,7 +10,7 @@
 
 Sidebar/Navbar hiện tại dùng dữ liệu demo sai nghiệp vụ:
 - Workspace switcher (`Sidebar.tsx`) hardcode 3 workspace giả (`WORKSPACES` array), không load workspace thật của user.
-- "Role Simulator" (`Navbar.tsx`, `handleRoleSimulation`) cho user tự chọn role bất kỳ — sai hoàn toàn: role trong 1 workspace do OWNER/ACCOUNT của workspace đó quyết định qua invite (`WorkspaceMember.role`), user không tự đổi được.
+- "Role Simulator" (`Navbar.tsx`, `handleRoleSimulation`) cho user tự chọn role bất kỳ — sai hoàn toàn: role trong 1 workspace do OWNER của workspace đó quyết định qua invite (`WorkspaceMember.role`), user không tự đổi được.
 
 Feature này thay 2 chỗ demo bằng dữ liệu thật: workspace switcher gọi API thật, role hiển thị (đọc-only) = `MemberRole` của user tại workspace đang active — đổi workspace thì role hiển thị đổi theo.
 
@@ -30,13 +30,13 @@ tôi muốn chuyển đổi giữa các workspace của mình và luôn thấy �
 ### Role Display (đọc-only)
 - Badge "Role: Creator" trong `Navbar.tsx` đổi từ dropdown-chọn-được thành hiển thị tĩnh, lấy từ `MemberRole` của user tại workspace đang active.
 - Bỏ hoàn toàn `handleRoleSimulation`, `ROLE_LABELS` dùng `UserRole`, dropdown "Mô phỏng Phân quyền" trong `Navbar.tsx`.
-- Role hiển thị dùng nhãn tiếng Việt theo `MemberRole`: OWNER→Chủ sở hữu, MANAGER→Quản lý workspace, ACCOUNT→Quản lý tài khoản, CREATOR→Người tạo nội dung, CLIENT→Khách hàng (khớp key `workspace.roles.*` đã có sẵn trong i18n).
+- Role hiển thị dùng nhãn tiếng Việt theo `MemberRole`: OWNER→Chủ sở hữu, MANAGER→Quản lý workspace, MANAGER→Quản lý workspace, CREATOR→Người tạo nội dung, CLIENT→Khách hàng (khớp key `workspace.roles.*` đã có sẵn trong i18n).
 
 ### Nav Filtering theo MemberRole
 - `Sidebar.tsx` filter menu theo `MemberRole` qua `ROUTE_ACCESS` (`src/routes/access.ts`) — nguồn sự thật role→route duy nhất, không hardcode trong Sidebar:
   - `OWNER` chỉ quản lý tổng quan, không thấy công cụ content (editor/templates/hashtag/publish/ai-studio).
   - `MANAGER` vận hành 1 workspace: member/settings/clients/analytics/reports.
-  - `ACCOUNT` cầu nối agency-client: requests/portal/clients/calendar/library.
+  - `MANAGER` quản lý vận hành workspace + cầu nối khách hàng: members/settings/clients/analytics/reports/requests/portal/calendar/library.
   - `CREATOR` chỉ công cụ content: editor/templates/hashtag/calendar/library/publish/ai-studio.
   - `CLIENT` chỉ xem/duyệt content liên quan mình: dashboard/requests/portal/calendar/library.
 - `WORKSPACES` hardcode array trong `Sidebar.tsx` bị xoá, thay bằng data từ `GET /api/v1/workspaces` (dùng lại `workspaceService.list()` đã có).

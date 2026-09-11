@@ -35,7 +35,7 @@ tôi muốn tự động kiểm tra role + phạm vi workspace trên mọi reque
 |---|---|---|
 | `OWNER` | Chủ agency, sở hữu workspace | Quản lý tổng quan: tạo/xoá workspace, billing, social accounts, không thao tác content trực tiếp |
 | `MANAGER` | Người Owner giao quản lý 1 workspace | Vận hành workspace: member (invite/remove/assign role), settings, clients, analytics, reports — không tạo/xoá workspace |
-| `ACCOUNT` | Cầu nối agency-client | Content request, portal, calendar, library — không quản member/settings/subscription |
+| `MANAGER` | Quản lý vận hành workspace + giao tiếp khách hàng | Member, settings, clients, analytics, reports, content request, portal, calendar, library, approve — không thao tác content |
 | `CREATOR` | Tạo nội dung | Editor, templates, hashtag, publish, AI studio — không quản member |
 | `CLIENT` | Khách hàng duyệt nội dung | Xem + duyệt/từ chối nội dung liên quan mình, không sửa |
 

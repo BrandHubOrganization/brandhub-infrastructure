@@ -12,7 +12,7 @@
 | # | Method | Path | Roles |
 |---|--------|------|-------|
 | 15 | POST | `/api/v1/workspaces` | OWNER |
-| 16 | GET | `/api/v1/workspaces/mine` | OWNER, MANAGER, ACCOUNT, CREATOR, CLIENT |
+| 16 | GET | `/api/v1/workspaces/mine` | OWNER, MANAGER, CREATOR, CLIENT |
 | 17 | PUT | `/api/v1/workspaces/{workspaceId}` | OWNER |
 | 18 | GET | `/api/v1/workspaces/{workspaceId}/members` | OWNER, MANAGER |
 | 19 | POST | `/api/v1/workspaces/{workspaceId}/members/invite` | OWNER, MANAGER |
@@ -69,7 +69,7 @@
 
 ## GET /api/v1/workspaces/mine
 
-**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`, `ACCOUNT`, `CREATOR`, `CLIENT`  
+**Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`, `CREATOR`, `CLIENT`  
 **Goal:** Get the workspace the current user belongs to. Each user belongs to exactly one workspace.
 
 **Request body:** none
@@ -151,7 +151,7 @@
 **Query params:**
 - `page` (integer, default 1)
 - `size` (integer, default 20, max 100)
-- `role` (optional — filter by role: `OWNER | MANAGER | ACCOUNT | CREATOR | CLIENT`)
+- `role` (optional — filter by role: `OWNER | MANAGER | CREATOR | CLIENT`)
 - `search` (optional — name or email substring match)
 
 **Response 200:**
@@ -166,7 +166,7 @@
         "fullName": "string",
         "email": "string",
         "avatarUrl": "string | null",
-        "role": "OWNER | MANAGER | ACCOUNT | CREATOR | CLIENT",
+        "role": "OWNER | MANAGER | CREATOR | CLIENT",
         "isActive": "boolean",
         "joinedAt": "ISO8601"
       }
@@ -194,7 +194,7 @@
 ```json
 {
   "email": "string (required, valid email)",
-  "role": "MANAGER | ACCOUNT | CREATOR | CLIENT (required)"
+  "role": "MANAGER | CREATOR | CLIENT (required)"
 }
 ```
 
@@ -291,7 +291,7 @@
 **Request body:**
 ```json
 {
-  "role": "MANAGER | ACCOUNT | CREATOR | CLIENT (required)"
+  "role": "MANAGER | CREATOR | CLIENT (required)"
 }
 ```
 

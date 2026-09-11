@@ -11,11 +11,11 @@
 
 | # | Method | Path | Roles |
 |---|--------|------|-------|
-| 42 | POST | `/api/v1/content-requests` | ACCOUNT, CLIENT |
+| 42 | POST | `/api/v1/content-requests` | MANAGER, CLIENT |
 | 43 | GET | `/api/v1/content-requests` | * |
 | 44 | GET | `/api/v1/content-requests/{requestId}` | * |
-| 45 | PUT | `/api/v1/content-requests/{requestId}/assign` | ACCOUNT |
-| 46 | PUT | `/api/v1/content-requests/{requestId}/status` | CREATOR, ACCOUNT |
+| 45 | PUT | `/api/v1/content-requests/{requestId}/assign` | MANAGER |
+| 46 | PUT | `/api/v1/content-requests/{requestId}/status` | CREATOR, MANAGER |
 | 47 | POST | `/api/v1/content-requests/{requestId}/comments` | * |
 
 > **Storage:** Content requests stored in MongoDB `content_requests` collection. `requestId` is a MongoDB ObjectId string.
@@ -24,27 +24,26 @@
 ```
 SUBMITTED → ASSIGNED → IN_PROGRESS → PENDING_REVIEW → SENT_TO_CLIENT → APPROVED
                                                                       ↘ REJECTED → (re-open)
-         ↘ CANCELLED (any state, by ACCOUNT)
+         ↘ CANCELLED (any state, by MANAGER)
 ```
 
 **Role transition rights:**
 | Role | Allowed transitions |
 |------|---------------------|
 | `CREATOR` | ASSIGNED → IN_PROGRESS, IN_PROGRESS → PENDING_REVIEW |
-| `ACCOUNT` | SUBMITTED → ASSIGNED (via /assign), PENDING_REVIEW → SENT_TO_CLIENT, SENT_TO_CLIENT → APPROVED/REJECTED |
+| `MANAGER` | SUBMITTED → ASSIGNED (via /assign), PENDING_REVIEW → SENT_TO_CLIENT, SENT_TO_CLIENT → APPROVED/REJECTED |
 | `CLIENT` | read-only; cannot change status |
 
 **Data isolation:**
 - `CREATOR`: sees only requests where `assignedTo = X-User-Id`
-- `ACCOUNT`: sees requests for their assigned clients
+- `MANAGER`: sees all requests for their assigned clients (no separate workspace-wide role — `OWNER` does not access content screens)
 - `CLIENT`: sees only requests where `clientId = their linked clientId`
-- `ACCOUNT`: sees all requests for their assigned clients (no separate workspace-wide role — `OWNER` does not access content screens)
 
 ---
 
 ## POST /api/v1/content-requests
 
-**Auth:** `[JWT]` | **Roles:** `ACCOUNT`, `CLIENT`  
+**Auth:** `[JWT]` | **Roles:** `MANAGER`, `CLIENT`  
 **Goal:** Create a new content request. Starts as `SUBMITTED`.
 
 **Request body:**
@@ -85,7 +84,7 @@ SUBMITTED → ASSIGNED → IN_PROGRESS → PENDING_REVIEW → SENT_TO_CLIENT →
 **Implementation notes:**
 - `requestedBy` = `X-User-Id`; `workspaceId` = `X-Workspace-Id`
 - `CLIENT` creating a request: `clientId` must match their linked client (`clients.portal_user_id = X-User-Id`)
-- Notify ACCOUNT (assigned manager, if any) of new request
+- Notify MANAGER (assigned manager, if any) of new request
 
 ---
 
@@ -97,7 +96,7 @@ SUBMITTED → ASSIGNED → IN_PROGRESS → PENDING_REVIEW → SENT_TO_CLIENT →
 **Query params:**
 - `clientId` (uuid, optional)
 - `status` (optional)
-- `assignedTo` (uuid, optional — only ACCOUNT can use this filter)
+- `assignedTo` (uuid, optional — only MANAGER can use this filter)
 - `page` (default 1)
 - `size` (default 20, max 100)
 
@@ -177,7 +176,7 @@ SUBMITTED → ASSIGNED → IN_PROGRESS → PENDING_REVIEW → SENT_TO_CLIENT →
 
 ## PUT /api/v1/content-requests/{requestId}/assign
 
-**Auth:** `[JWT]` | **Roles:** `ACCOUNT`  
+**Auth:** `[JWT]` | **Roles:** `MANAGER`  
 **Goal:** Assign a CREATOR to the request. Transitions `SUBMITTED → ASSIGNED`.
 
 **Request body:**
@@ -207,13 +206,13 @@ SUBMITTED → ASSIGNED → IN_PROGRESS → PENDING_REVIEW → SENT_TO_CLIENT →
 
 **Implementation notes:**
 - Notify the assigned CREATOR
-- ACCOUNT can only assign requests for their own clients
+- MANAGER can only assign requests for their own clients
 
 ---
 
 ## PUT /api/v1/content-requests/{requestId}/status
 
-**Auth:** `[JWT]` | **Roles:** `CREATOR`, `ACCOUNT`  
+**Auth:** `[JWT]` | **Roles:** `CREATOR`, `MANAGER`  
 **Goal:** Advance request through workflow. Each role may only perform allowed transitions.
 
 **Request body:**
@@ -285,4 +284,4 @@ SUBMITTED → ASSIGNED → IN_PROGRESS → PENDING_REVIEW → SENT_TO_CLIENT →
 **Implementation notes:**
 - Append to `content_requests.comments[]` array (embedded sub-document in MongoDB)
 - `CLIENT` can comment only on their own client's requests
-- Notify other parties in the request thread (CREATOR + ACCOUNT) when new comment added
+- Notify other parties in the request thread (CREATOR + MANAGER) when new comment added

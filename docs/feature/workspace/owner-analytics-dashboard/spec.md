@@ -5,7 +5,7 @@ Sidebar hiện hiển thị "Sáng tạo" (Content Editor, Calendar) cho mọi r
 cả OWNER — không hợp lý vì OWNER là chủ doanh nghiệp, không trực tiếp tạo nội
 dung, chỉ quản lý team + xem hiệu suất. Cần: (1) ẩn mục sáng tạo nội dung
 khỏi OWNER, (2) bổ sung nội dung quản lý team (thành viên, hoạt động, hiệu
-suất) vào Analytics, (3) OWNER/ACCOUNT quản lý nhiều workspace cần 1 trang
+suất) vào Analytics, (3) OWNER quản lý nhiều workspace cần 1 trang
 tổng hợp xem toàn bộ workspace của họ cùng lúc.
 
 ## User Story
@@ -16,7 +16,7 @@ Là OWNER (chủ doanh nghiệp/agency) sở hữu nhiều workspace, tôi muố
 - Xem tổng quan tất cả workspace tôi sở hữu/quản lý ở 1 trang riêng, không
   phải chuyển qua lại từng workspace.
 
-Là ACCOUNT (quản lý tài khoản/khách hàng) được giao quản lý nhiều workspace,
+Là MANAGER (quản lý dự án/tiến độ team, giao tiếp khách hàng) được giao quản lý nhiều workspace,
 tôi cũng cần trang tổng hợp tương tự, nhưng chỉ thấy workspace tôi là thành
 viên (không phải "sở hữu").
 
@@ -26,16 +26,16 @@ viên (không phải "sở hữu").
 - Role `OWNER` (MemberRole workspace, không phải business role) → ẩn hoàn
   toàn section "Sáng tạo" (Content Editor + Calendar), không điều kiện theo
   số lượng thành viên.
-- Role khác (MANAGER/ACCOUNT/CREATOR/CLIENT) → giữ nguyên hành vi hiện tại,
+- Role khác (MANAGER/CREATOR/CLIENT) → giữ nguyên hành vi hiện tại,
   không đổi.
 
 ### Phần B — Analytics theo workspace (`/analytics`, đã tồn tại): mở rộng
-Chỉ hiển thị section mới cho role `OWNER`/`ACCOUNT` (role khác thấy Analytics
+Chỉ hiển thị section mới cho role `OWNER` (role khác thấy Analytics
 như cũ, không đổi):
 1. **Bảng thành viên** — email, họ tên, vai trò, ngày tham gia, trạng thái.
    Data thật, tái dùng `workspaceService.listMembers` đã có sẵn.
 2. **Số liệu tổng theo role** — tổng số thành viên, đếm theo từng
-   `MemberRole` (OWNER/MANAGER/ACCOUNT/CREATOR/CLIENT). Data thật, tính ở
+   `MemberRole` (OWNER/MANAGER/CREATOR/CLIENT). Data thật, tính ở
    frontend từ data `listMembers` (không cần API mới).
 3. **Hoạt động gần đây (audit log)** — danh sách N hoạt động gần nhất trong
    workspace (ai làm gì, khi nào). **Cần API mới** — xem API Contract.
@@ -44,10 +44,10 @@ như cũ, không đổi):
    giả vờ có data thật.
 
 ### Phần C — Trang tổng hợp mới `/analytics/overview`
-Chỉ role `OWNER`/`ACCOUNT` truy cập được (kiểm tra qua tư cách thành viên ở
+Chỉ role `OWNER` truy cập được (kiểm tra qua tư cách thành viên ở
 ít nhất 1 workspace với role đó — không có "global role" riêng, suy ra từ
 danh sách workspace user thuộc về).
-1. **Danh sách workspace** user thuộc về với role OWNER/ACCOUNT — tên,
+1. **Danh sách workspace** user thuộc về với role OWNER — tên,
    slug, số thành viên mỗi workspace. Data thật.
 2. **Tổng số liệu cộng dồn** — tổng số workspace, tổng thành viên cộng dồn
    (đếm trùng nếu user chung nhiều workspace không quan trọng — đếm theo
@@ -60,25 +60,25 @@ danh sách workspace user thuộc về).
 
 ### Sidebar bổ sung
 Thêm mục "Tổng quan" (nav.overview) trỏ `/analytics/overview`, chỉ hiện với
-role OWNER/ACCOUNT, đặt trong section "Tổng quan" hiện có (cạnh Dashboard).
+role OWNER, đặt trong section "Tổng quan" hiện có (cạnh Dashboard).
 
 ## Acceptance Criteria
 - OWNER không thấy Content Editor/Calendar trong Sidebar, mọi trường hợp.
 - Role khác không bị ảnh hưởng bởi thay đổi Sidebar.
-- OWNER/ACCOUNT vào `/analytics` thấy đủ 4 mục mới (bảng, số liệu, audit
+- OWNER vào `/analytics` thấy đủ 4 mục mới (bảng, số liệu, audit
   log thật, cống hiến mock). Role khác vào `/analytics` không thấy 4 mục
   này (giữ nguyên UI cũ).
-- OWNER/ACCOUNT vào `/analytics/overview` thấy đủ list workspace + tổng số
+- OWNER vào `/analytics/overview` thấy đủ list workspace + tổng số
   liệu + cống hiến mock + audit log gộp thật.
-- Role không phải OWNER/ACCOUNT truy cập trực tiếp URL `/analytics/overview`
+- Role không phải OWNER truy cập trực tiếp URL `/analytics/overview`
   → redirect hoặc thông báo không có quyền (không phải blank page/crash).
-- User không thuộc workspace nào với role OWNER/ACCOUNT → trang overview
+- User không thuộc workspace nào với role OWNER → trang overview
   hiển thị trạng thái rỗng, không lỗi.
 
 ## API Contract (mới)
 
 `GET /api/v1/workspaces/{workspaceId}/audit-logs?page=&size=`
-- Role required: `OWNER`, `ACCOUNT` (dùng `@RequireRole` có sẵn).
+- Role required: `OWNER`, `MANAGER` (dùng `@RequireRole` có sẵn).
 - Response: `ApiResponse<Page<AuditLogResponse>>` —
   `AuditLogResponse{id, userId, userFullName, action, resourceType,
   resourceId, createdAt}`.
@@ -86,14 +86,14 @@ role OWNER/ACCOUNT, đặt trong section "Tổng quan" hiện có (cạnh Dashbo
 
 `GET /api/v1/workspaces/my-managed`
 - Trả về danh sách workspace mà current user là thành viên active với role
-  `OWNER` hoặc `ACCOUNT`, kèm số lượng thành viên mỗi workspace.
+  `OWNER` hoặc `MANAGER`, kèm số lượng thành viên mỗi workspace.
 - Response: `ApiResponse<List<ManagedWorkspaceResponse>>` —
   `ManagedWorkspaceResponse{id, name, slug, logoUrl, role, memberCount}`.
 - Không cần role check đặc biệt — tự nhiên trả rỗng nếu user không quản lý
   workspace nào.
 
 `GET /api/v1/workspaces/my-managed/audit-logs?page=&size=`
-- Gộp audit log từ TẤT CẢ workspace mà current user có role OWNER/ACCOUNT
+- Gộp audit log từ TẤT CẢ workspace mà current user có role OWNER
   (dùng lại danh sách từ endpoint `my-managed`), sắp mới nhất trước, phân
   trang.
 - Response: `ApiResponse<Page<AuditLogResponse>>` (thêm field
@@ -101,7 +101,7 @@ role OWNER/ACCOUNT, đặt trong section "Tổng quan" hiện có (cạnh Dashbo
   type riêng `ManagedAuditLogResponse`).
 
 ## Error Handling
-- Audit log query cho workspace user không phải OWNER/ACCOUNT → 403 (qua
+- Audit log query cho workspace user không phải OWNER → 403 (qua
   `@RequireRole` sẵn có, không cần code thêm).
 - `my-managed`/`my-managed/audit-logs` không throw lỗi khi user không quản
   lý workspace nào — trả mảng rỗng/page rỗng, HTTP 200.
@@ -110,8 +110,8 @@ role OWNER/ACCOUNT, đặt trong section "Tổng quan" hiện có (cạnh Dashbo
 
 ## Edge Cases
 - User có 0 workspace hoàn toàn (chưa tạo/join gì) → Sidebar không hiện
-  mục "Tổng quan" (không phải OWNER/ACCOUNT ở workspace nào).
-- User là OWNER 1 workspace, ACCOUNT ở workspace khác → cả 2 xuất hiện
+  mục "Tổng quan" (không phải OWNER ở workspace nào).
+- User là OWNER 1 workspace, MANAGER ở workspace khác → cả 2 xuất hiện
   trong `my-managed`.
 - Audit log rỗng (workspace mới tạo, chưa hoạt động gì ngoài tạo) → hiển
   thị "chưa có hoạt động", không lỗi.

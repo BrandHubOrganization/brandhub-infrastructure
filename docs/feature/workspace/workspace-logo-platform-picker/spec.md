@@ -7,7 +7,7 @@ text tự gõ tên platform (`facebook, instagram, tiktok`) bằng bộ chọn i
 multi-select (Facebook/Instagram/TikTok/LinkedIn).
 
 ## User Story
-Là OWNER/ACCOUNT của workspace, tôi muốn tải logo cho workspace và chọn nền
+Là OWNER của workspace, tôi muốn tải logo cho workspace và chọn nền
 tảng mặc định bằng cách bấm icon thay vì gõ tay, để tránh gõ sai tên platform
 và workspace có nhận diện trực quan hơn.
 
@@ -16,7 +16,7 @@ và workspace có nhận diện trực quan hơn.
   đầu tên workspace nếu chưa có logo), nút upload ảnh (jpeg/png/webp, ≤5MB).
 - Upload thành công → cập nhật `logoUrl` ngay trên UI, toast success.
 - Sai định dạng/quá size → toast lỗi, không gọi API.
-- Chỉ OWNER/ACCOUNT thấy nút upload (role khác: ẩn nút, chỉ xem logo).
+- Chỉ OWNER thấy nút upload (role khác: ẩn nút, chỉ xem logo).
 - Phần "Nền tảng mặc định": 4 icon toggle (Facebook, Instagram, TikTok,
   LinkedIn), click để bật/tắt, trạng thái active có viền/nền brand-orange.
   Không còn input text tự gõ.
@@ -26,7 +26,7 @@ và workspace có nhận diện trực quan hơn.
 ## API Contract (mới)
 `POST /api/v1/workspaces/{workspaceId}/logo`
 - `multipart/form-data`, field `file`.
-- Role required: `OWNER`, `ACCOUNT` (dùng `@RequireRole` có sẵn).
+- Role required: `OWNER`, `MANAGER` (dùng `@RequireRole` có sẵn).
 - Response: `ApiResponse<WorkspaceLogoResponse { logoUrl: string }>`.
 - Lỗi: sai content-type / quá 5MB → `BusinessException` (thêm
   `WORKSPACE_LOGO_INVALID_TYPE`, `WORKSPACE_LOGO_TOO_LARGE` vào `ErrorCode`).
@@ -35,7 +35,7 @@ và workspace có nhận diện trực quan hơn.
 - File rỗng/null → 400.
 - Content-type ngoài jpeg/png/webp → 400.
 - >5MB → 400.
-- Không phải OWNER/ACCOUNT → 403 (có sẵn qua `@RequireRole`).
+- Không phải OWNER → 403 (có sẵn qua `@RequireRole`).
 - S3 upload fail → 500 generic (đã có `GlobalExceptionHandler`, không xử lý
   riêng — biết trước local dev thiếu AWS credentials sẽ lỗi 500, đây là vấn đề
   môi trường, không phải logic, ghi chú trong task.md).
@@ -81,7 +81,7 @@ theme.
 4. Click icon Facebook → active; click lại → tắt.
 5. Lưu form với 2 platform bật → `defaultPlatforms: ["facebook","tiktok"]`
    gửi đúng backend.
-6. Role ACCOUNT/CREATOR/CLIENT vào trang → không thấy nút upload logo (chỉ OWNER/MANAGER).
+6. Role CREATOR/CLIENT vào trang → không thấy nút upload logo (chỉ OWNER/MANAGER).
 7. Chuyển theme dark/light → icon picker vẫn đọc được, không vỡ contrast.
 8. Đổi ngôn ngữ vi/en → label logo/nút upload đổi đúng.
 
