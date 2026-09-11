@@ -541,60 +541,60 @@
 
 ### EPIC AI-04 — LLM Content Generation (Jira Epic: DA-79)
 
-| Task ID | Jira Key | Description | Assignee | Priority | Status |
-|---|:---:|---|---|:---:|:---:|
-| [DA-AI04-01](#da-ai04-01--build-prompt-template-system) | [DA-240](https://letritrung2605.atlassian.net/browse/DA-240) | Build prompt template system (receive topic + RAG context + trend data + tone → generate full prompt) | Ân (AI) | 🔴 Critical | 🟡 In Progress |
-| [DA-AI04-02](#da-ai04-02--integrate-llama-3-via-groq-api) | [DA-253](https://letritrung2605.atlassian.net/browse/DA-253) | Integrate Llama 3 via Groq API (system prompt: "only use provided context, do not fabricate") | Tuấn (AI) | 🔴 Critical | 🔵 In review |
-| [DA-AI04-03](#da-ai04-03--integrate-claude--gemini-api-as-fallback) | [DA-271](https://letritrung2605.atlassian.net/browse/DA-271) | Integrate Fallback LLM API (Google Gemini 1.5 Flash / Claude) with Failover Circuit Breaker | Tuấn (AI) | 🔴 Critical | ⚪ To Do |
-| [DA-AI04-04](#da-ai04-04--implement-platform-specific-caption-truncation) | [DA-286](https://letritrung2605.atlassian.net/browse/DA-286) | Implement platform-specific caption truncation (FB 63k, Threads 500, TikTok 4k chars) | Lộc (Sub-lead) | 🟡 High | ⚪ To Do |
-| [DA-AI04-05](#da-ai04-05--implement-hashtag-generation-endpoint) | [DA-231](https://letritrung2605.atlassian.net/browse/DA-231) | Implement hashtag generation endpoint (`POST /api/v1/ai/content/hashtags`) | Lộc (Sub-lead) | 🟡 High | ⚪ To Do |
-| [DA-AI04-06](#da-ai04-06--implement-regenerate-with-feedback) | [DA-246](https://letritrung2605.atlassian.net/browse/DA-246) | Implement regenerate with feedback (`POST /api/v1/ai/content/regenerate`) | Ân (AI) | 🟡 High | 🟡 In Progress |
-| [DA-AI04-07](#da-ai04-07--anti-hallucination-test) | [DA-261](https://letritrung2605.atlassian.net/browse/DA-261) | Anti-hallucination test (verify 20 generated captions — claim verification) | Tuấn (AI) | 🔴 Critical | 🔵 In review |
-| [DA-AI04-08](#da-ai04-08--write-prompt-engineering-documentation) | [DA-274](https://letritrung2605.atlassian.net/browse/DA-274) | Write Prompt Engineering Documentation (template design, system prompt best practices, tone guide) | Ân (AI) | 🟢 Medium | ⚪ To Do |
+| Task ID                                                                   |                           Jira Key                           | Description                                                                                           | Assignee       |  Priority   |     Status     |
+| ------------------------------------------------------------------------- | :----------------------------------------------------------: | ----------------------------------------------------------------------------------------------------- | -------------- | :---------: | :------------: |
+| [DA-AI04-01](#da-ai04-01--build-prompt-template-system)                   | [DA-240](https://letritrung2605.atlassian.net/browse/DA-240) | Build prompt template system (receive topic + RAG context + trend data + tone → generate full prompt) | Ân (AI)        | 🔴 Critical | 🟡 In Progress |
+| [DA-AI04-02](#da-ai04-02--integrate-llama-3-via-groq-api)                 | [DA-253](https://letritrung2605.atlassian.net/browse/DA-253) | Integrate Llama 3 via Groq API (system prompt: "only use provided context, do not fabricate")         | Tuấn (AI)      | 🔴 Critical |  🔵 In review  |
+| [DA-AI04-03](#da-ai04-03--integrate-claude--gemini-api-as-fallback)       | [DA-271](https://letritrung2605.atlassian.net/browse/DA-271) | Integrate Fallback LLM API (Google Gemini 1.5 Flash / Claude) with Failover Circuit Breaker           | Tuấn (AI)      | 🔴 Critical |    ⚪ To Do    |
+| [DA-AI04-04](#da-ai04-04--implement-platform-specific-caption-truncation) | [DA-286](https://letritrung2605.atlassian.net/browse/DA-286) | Implement platform-specific caption truncation (FB 63k, Threads 500, TikTok 4k chars)                 | Lộc (Sub-lead) |   🟡 High   |    ⚪ To Do    |
+| [DA-AI04-05](#da-ai04-05--implement-hashtag-generation-endpoint)          | [DA-231](https://letritrung2605.atlassian.net/browse/DA-231) | Implement hashtag generation endpoint (`POST /api/v1/ai/content/hashtags`)                            | Lộc (Sub-lead) |   🟡 High   |    ⚪ To Do    |
+| [DA-AI04-06](#da-ai04-06--implement-regenerate-with-feedback)             | [DA-246](https://letritrung2605.atlassian.net/browse/DA-246) | Implement regenerate with feedback (`POST /api/v1/ai/content/regenerate`)                             | Ân (AI)        |   🟡 High   | 🟡 In Progress |
+| [DA-AI04-07](#da-ai04-07--anti-hallucination-test)                        | [DA-261](https://letritrung2605.atlassian.net/browse/DA-261) | Anti-hallucination test (verify 20 generated captions — claim verification)                           | Tuấn (AI)      | 🔴 Critical |  🔵 In review  |
+| [DA-AI04-08](#da-ai04-08--write-prompt-engineering-documentation)         | [DA-274](https://letritrung2605.atlassian.net/browse/DA-274) | Write Prompt Engineering Documentation (template design, system prompt best practices, tone guide)    | Ân (AI)        |  🟢 Medium  |    ⚪ To Do    |
 
 ### EPIC AI-05 — Trend Crawler, Prediction Engine & Storage Service (Status: ✅ Completed in Sprint 7 / Spike)
 
 > **Ghi chú:** Toàn bộ các task của Epic AI-05 đã được team hoàn thành 100% từ Sprint 7 / Spike. Hạ tầng Trend Crawler, Neo4j Graph, ChromaDB và Redis Cache hiện đã online, đóng vai trò Live Data Provider cho Epic AI-04.
 
-| Task ID | Description | Assignee | Priority |
-|---|---|---|---|
-| [DA-AI05-01](#da-ai05-01--aggregate-and-select-required-scraping-apis-on-apify--scrape-creators-for-social-media-data-collection) | Aggregate and Select Required Scraping APIs on Apify & Scrape Creators for Social Media Data Collection | Tuấn (AI) | 🔴 Critical |
-| [DA-AI05-02](#da-ai05-02--demo-crawled-social-media-data-on-google-sheets) | Demo Crawled Social Media Data on Google Sheets | Tuấn (AI) | 🟡 High |
-| [DA-AI05-03](#da-ai05-03--complete-end-to-end-social-media-crawl-workflow-via-n8n-or-custom-code) | Complete End-to-End Social Media Crawl Workflow via N8N or Custom Code | Tuấn (AI) | 🔴 Critical |
-| [DA-AI05-04](#da-ai05-04--host-and-set-up-chromadb-or-neo4j-database-instance-for-storing-raw-collected-data) | Host and Set Up ChromaDB or Neo4j Database Instance for Storing Raw Collected Data | Tuấn (AI) | 🔴 Critical |
-| [DA-AI05-05](#da-ai05-05--message-queue--buffer-layer-integration-redis-queue--kafka) | Message Queue / Buffer Layer Integration (Redis Queue / Kafka) | Tuấn (AI) | 🔴 Critical |
-| [DA-AI05-06](#da-ai05-06--underthesea-nlp-tokenization) | Underthesea NLP Tokenization | Ân (AI) | 🔴 Critical |
-| [DA-AI05-07A](#da-ai05-07a--neo4j-knowledge-graph-entity-traversal-service) | Neo4j Knowledge Graph Entity Traversal Service | Tuấn (AI) | 🔴 Critical |
-| [DA-AI05-07B](#da-ai05-07b--chromadb-trend-vector-snippet-retrieval-service) | ChromaDB Trend Vector Snippet Retrieval Service | Tuấn (AI) | 🔴 Critical |
-| [DA-AI05-07C](#da-ai05-07c--trend-context-synthesizer--token-optimizer-engine) | Trend Context Synthesizer & Token Optimizer Engine | Ân (AI) | 🔴 Critical |
-| [DA-AI05-07D](#da-ai05-07d--redis-trend-context-read-through-cache-layer) | Redis Trend Context Read-Through Cache Layer | Lộc (Sub-lead) | 🔴 Critical |
-| [DA-AI05-07E](#da-ai05-07e--unified-trend-context-retrieval-api-endpoint-post-trendscontext) | Unified Trend Context Retrieval API Endpoint (`POST /api/v1/ai/trends/context`) | Ân (AI) | 🔴 Critical |
-| [DA-AI05-07F](#da-ai05-07f--slang-map--text-normalization-engine) | Slang Map & Text Normalization Engine | Ân (AI) | 🔴 Critical |
-| [DA-AI05-08](#da-ai05-08--bm25-anomaly-calculation-spike-detection) | BM25 Anomaly Calculation (Spike Detection) | Ân (AI) | 🔴 Critical |
-| [DA-AI05-09](#da-ai05-09--neo4j-interaction-graph-construction) | Neo4j Interaction Graph Construction | Ân (AI) | 🔴 Critical |
-| [DA-AI05-10](#da-ai05-10--gds-engine-scheduled-execution-run-periodic-algorithms-nightly-or-every-few-hours) | GDS Engine Scheduled Execution (Run periodic algorithms nightly or every few hours) | Ân (AI) | 🔴 Critical |
-| [DA-AI05-11](#da-ai05-11--degree-filter--botnet-detection-calculate-in-degree---flag-isstopwordtrue-if-spam) | Degree Filter & Botnet Detection (Calculate In-Degree -> Flag isStopWord=true if Spam) | Ân (AI) | 🔴 Critical |
-| [DA-AI05-12](#da-ai05-12--personalized-pagerank-engine-calculate-niche-virality-score-for-posts) | Personalized PageRank Engine (Calculate Niche Virality Score for Posts) | Ân (AI) | 🔴 Critical |
-| [DA-AI05-13](#da-ai05-13--betweenness-centrality-engine-find-bridge-keywords-between-communities---trending-keywords) | Betweenness Centrality Engine (Find Bridge Keywords between Communities -> Trending Keywords) | Ân (AI) | 🔴 Critical |
-| [DA-AI05-14](#da-ai05-14--final-scoring-engine-bm25-anomaly-x-virality) | Final Scoring Engine (BM25 Anomaly x Virality) | Ân (AI) | 🔴 Critical |
-| [DA-AI05-15](#da-ai05-15--filter-top-10-20-trends-engine) | Filter Top 10-20 Trends Engine | Ân (AI) | 🔴 Critical |
-| [DA-AI05-16](#da-ai05-16--redis-zset-caching-engine-trendsvndatecategory-ttl-6h) | Redis ZSET Caching Engine (`trends:vn:{date}:{category}`, TTL 6h) | Lộc (Sub-lead) | 🔴 Critical |
-| [DA-AI05-17](#da-ai05-17--upsert-neo4j-node-trend) | Upsert Neo4j Node `:Trend` | Lộc (Sub-lead) | 🔴 Critical |
-| [DA-AI05-18](#da-ai05-18--deep-crawl-trigger-engine-posts--comments-collector) | Deep Crawl Trigger Engine (Posts & Comments Collector) | Lộc (Sub-lead) | 🟡 High |
-| [DA-AI05-19](#da-ai05-19--langchain-text-chunking-size-500-overlap-50) | LangChain Text Chunking (Size 500, Overlap 50) | Lộc (Sub-lead) | 🔴 Critical |
-| [DA-AI05-20](#da-ai05-20--text-embedding-pipeline-all-minilm-l6-v2-384d) | Text Embedding Pipeline (`all-MiniLM-L6-v2`, 384d) | Lộc (Sub-lead) | 🔴 Critical |
-| [DA-AI05-21](#da-ai05-21--chromadb-vector-store-integration-hnsw-index-engine) | ChromaDB Vector Store Integration (HNSW Index Engine) | Lộc (Sub-lead) | 🔴 Critical |
-| [DA-AI05-22](#da-ai05-22--llm-ner--relation-extraction-engine) | LLM NER & Relation Extraction Engine | Lộc (Sub-lead) | 🔴 Critical |
-| [DA-AI05-23](#da-ai05-23--neo4j-knowledge-graph-ingestion-engine) | Neo4j Knowledge Graph Ingestion Engine | Lộc (Sub-lead) | 🔴 Critical |
-| [DA-AI05-24](#da-ai05-24--entity-resolution-job-knowledge-graph-fusion) | Entity Resolution Job (Knowledge Graph Fusion) | Lộc (Sub-lead) | 🔴 Critical |
-| [DA-AI05-25](#da-ai05-25--raw-data-ingestion-json-parsing-object-normalization--hash-deduplication-engine-t0) | Raw Data Ingestion, JSON Parsing, Object Normalization & Hash Deduplication Engine (T0) | Ân (AI) | 🔴 Critical |
-| [DA-AI05-26](#da-ai05-26--bot-clone--spam-filter-engine-rule-kb1-kb2-kb3ab-kb5-kb6-t1) | Bot, Clone & Spam Filter Engine (Rule KB1, KB2, KB3A/B, KB5, KB6) (T1) | Ân (AI) | 🔴 Critical |
-| [DA-AI05-30](#da-ai05-30--vietnamese-nlp-preprocessing-engine-clean--nfkc--tokenize--slang--stopword-t2) | Vietnamese NLP Preprocessing Engine (Clean + NFKC + Tokenize + Slang + Stopword) (T2) | Ân (AI) | 🔴 Critical |
-| [DA-AI05-27](#da-ai05-27--multi-class-topic-classification-engine-6-categories-t3) | Multi-Class Topic Classification Engine (6 Categories: tech, food, sports, entertainment, news, education) (T3) | Ân (AI) | 🔴 Critical |
-| [DA-AI05-31](#da-ai05-31--bm25-spike-detection-engine-split-window--bigram--time-series-t4) | BM25 Spike Detection Engine (Split-Window + Bigram + Time-Series) (T4) | Ân (AI) | 🔴 Critical |
-| [DA-AI05-28](#da-ai05-28--engagement-virality-score--reaction-mood-analysis-engine-t5) | Engagement Virality Score & Reaction Mood Analysis Engine (haha/wow/care/sad/angry) (T5) | Ân (AI) | 🔴 Critical |
-| [DA-AI05-29](#da-ai05-29--jaccard-clustering-community-detection-engine-t6) | Jaccard Clustering Community Detection Engine (T6) | Ân (AI) | 🔴 Critical |
-| [DA-AI05-32](#da-ai05-32--trend-fusion--object-assembly-engine-cluster--trend-objects-t7) | Trend Fusion & Object Assembly Engine (Cluster → Trend Objects) (T7) | Ân (AI) | 🔴 Critical |
+| Task ID                                                                                                                           | Description                                                                                                     | Assignee       | Priority    |
+| --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | -------------- | ----------- |
+| [DA-AI05-01](#da-ai05-01--aggregate-and-select-required-scraping-apis-on-apify--scrape-creators-for-social-media-data-collection) | Aggregate and Select Required Scraping APIs on Apify & Scrape Creators for Social Media Data Collection         | Tuấn (AI)      | 🔴 Critical |
+| [DA-AI05-02](#da-ai05-02--demo-crawled-social-media-data-on-google-sheets)                                                        | Demo Crawled Social Media Data on Google Sheets                                                                 | Tuấn (AI)      | 🟡 High     |
+| [DA-AI05-03](#da-ai05-03--complete-end-to-end-social-media-crawl-workflow-via-n8n-or-custom-code)                                 | Complete End-to-End Social Media Crawl Workflow via N8N or Custom Code                                          | Tuấn (AI)      | 🔴 Critical |
+| [DA-AI05-04](#da-ai05-04--host-and-set-up-chromadb-or-neo4j-database-instance-for-storing-raw-collected-data)                     | Host and Set Up ChromaDB or Neo4j Database Instance for Storing Raw Collected Data                              | Tuấn (AI)      | 🔴 Critical |
+| [DA-AI05-05](#da-ai05-05--message-queue--buffer-layer-integration-redis-queue--kafka)                                             | Message Queue / Buffer Layer Integration (Redis Queue / Kafka)                                                  | Tuấn (AI)      | 🔴 Critical |
+| [DA-AI05-06](#da-ai05-06--underthesea-nlp-tokenization)                                                                           | Underthesea NLP Tokenization                                                                                    | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-07A](#da-ai05-07a--neo4j-knowledge-graph-entity-traversal-service)                                                       | Neo4j Knowledge Graph Entity Traversal Service                                                                  | Tuấn (AI)      | 🔴 Critical |
+| [DA-AI05-07B](#da-ai05-07b--chromadb-trend-vector-snippet-retrieval-service)                                                      | ChromaDB Trend Vector Snippet Retrieval Service                                                                 | Tuấn (AI)      | 🔴 Critical |
+| [DA-AI05-07C](#da-ai05-07c--trend-context-synthesizer--token-optimizer-engine)                                                    | Trend Context Synthesizer & Token Optimizer Engine                                                              | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-07D](#da-ai05-07d--redis-trend-context-read-through-cache-layer)                                                         | Redis Trend Context Read-Through Cache Layer                                                                    | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-07E](#da-ai05-07e--unified-trend-context-retrieval-api-endpoint-post-trendscontext)                                      | Unified Trend Context Retrieval API Endpoint (`POST /api/v1/ai/trends/context`)                                 | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-07F](#da-ai05-07f--slang-map--text-normalization-engine)                                                                 | Slang Map & Text Normalization Engine                                                                           | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-08](#da-ai05-08--bm25-anomaly-calculation-spike-detection)                                                               | BM25 Anomaly Calculation (Spike Detection)                                                                      | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-09](#da-ai05-09--neo4j-interaction-graph-construction)                                                                   | Neo4j Interaction Graph Construction                                                                            | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-10](#da-ai05-10--gds-engine-scheduled-execution-run-periodic-algorithms-nightly-or-every-few-hours)                      | GDS Engine Scheduled Execution (Run periodic algorithms nightly or every few hours)                             | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-11](#da-ai05-11--degree-filter--botnet-detection-calculate-in-degree---flag-isstopwordtrue-if-spam)                      | Degree Filter & Botnet Detection (Calculate In-Degree -> Flag isStopWord=true if Spam)                          | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-12](#da-ai05-12--personalized-pagerank-engine-calculate-niche-virality-score-for-posts)                                  | Personalized PageRank Engine (Calculate Niche Virality Score for Posts)                                         | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-13](#da-ai05-13--betweenness-centrality-engine-find-bridge-keywords-between-communities---trending-keywords)             | Betweenness Centrality Engine (Find Bridge Keywords between Communities -> Trending Keywords)                   | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-14](#da-ai05-14--final-scoring-engine-bm25-anomaly-x-virality)                                                           | Final Scoring Engine (BM25 Anomaly x Virality)                                                                  | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-15](#da-ai05-15--filter-top-10-20-trends-engine)                                                                         | Filter Top 10-20 Trends Engine                                                                                  | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-16](#da-ai05-16--redis-zset-caching-engine-trendsvndatecategory-ttl-6h)                                                  | Redis ZSET Caching Engine (`trends:vn:{date}:{category}`, TTL 6h)                                               | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-17](#da-ai05-17--upsert-neo4j-node-trend)                                                                                | Upsert Neo4j Node `:Trend`                                                                                      | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-18](#da-ai05-18--deep-crawl-trigger-engine-posts--comments-collector)                                                    | Deep Crawl Trigger Engine (Posts & Comments Collector)                                                          | Lộc (Sub-lead) | 🟡 High     |
+| [DA-AI05-19](#da-ai05-19--langchain-text-chunking-size-500-overlap-50)                                                            | LangChain Text Chunking (Size 500, Overlap 50)                                                                  | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-20](#da-ai05-20--text-embedding-pipeline-all-minilm-l6-v2-384d)                                                          | Text Embedding Pipeline (`all-MiniLM-L6-v2`, 384d)                                                              | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-21](#da-ai05-21--chromadb-vector-store-integration-hnsw-index-engine)                                                    | ChromaDB Vector Store Integration (HNSW Index Engine)                                                           | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-22](#da-ai05-22--llm-ner--relation-extraction-engine)                                                                    | LLM NER & Relation Extraction Engine                                                                            | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-23](#da-ai05-23--neo4j-knowledge-graph-ingestion-engine)                                                                 | Neo4j Knowledge Graph Ingestion Engine                                                                          | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-24](#da-ai05-24--entity-resolution-job-knowledge-graph-fusion)                                                           | Entity Resolution Job (Knowledge Graph Fusion)                                                                  | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI05-25](#da-ai05-25--raw-data-ingestion-json-parsing-object-normalization--hash-deduplication-engine-t0)                     | Raw Data Ingestion, JSON Parsing, Object Normalization & Hash Deduplication Engine (T0)                         | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-26](#da-ai05-26--bot-clone--spam-filter-engine-rule-kb1-kb2-kb3ab-kb5-kb6-t1)                                            | Bot, Clone & Spam Filter Engine (Rule KB1, KB2, KB3A/B, KB5, KB6) (T1)                                          | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-30](#da-ai05-30--vietnamese-nlp-preprocessing-engine-clean--nfkc--tokenize--slang--stopword-t2)                          | Vietnamese NLP Preprocessing Engine (Clean + NFKC + Tokenize + Slang + Stopword) (T2)                           | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-27](#da-ai05-27--multi-class-topic-classification-engine-6-categories-t3)                                                | Multi-Class Topic Classification Engine (6 Categories: tech, food, sports, entertainment, news, education) (T3) | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-31](#da-ai05-31--bm25-spike-detection-engine-split-window--bigram--time-series-t4)                                       | BM25 Spike Detection Engine (Split-Window + Bigram + Time-Series) (T4)                                          | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-28](#da-ai05-28--engagement-virality-score--reaction-mood-analysis-engine-t5)                                            | Engagement Virality Score & Reaction Mood Analysis Engine (haha/wow/care/sad/angry) (T5)                        | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-29](#da-ai05-29--jaccard-clustering-community-detection-engine-t6)                                                       | Jaccard Clustering Community Detection Engine (T6)                                                              | Ân (AI)        | 🔴 Critical |
+| [DA-AI05-32](#da-ai05-32--trend-fusion--object-assembly-engine-cluster--trend-objects-t7)                                         | Trend Fusion & Object Assembly Engine (Cluster → Trend Objects) (T7)                                            | Ân (AI)        | 🔴 Critical |
 
 ### EPIC AI-4.99 — Analyze deeply crawl trend flow
 
@@ -612,30 +612,54 @@
 
 ## AI Iteration 3 — Image, Ambassador & Composition (Parallel with Sprints 9–10)
 
-### EPIC AI-06 — Image Generation Pipeline 🔀
+### EPIC AI-06 — Commercial Image Generation Pipeline 🔀
 
-> Chuyển từ Lộc. Xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit.
+> **Mở rộng theo kiến trúc v2.0 (Self-Hosted Architecture):** Triển khai Self-Hosted SDXL + LoRA Serving Engine (SDXL-Lightning 4-step), Form-to-Prompt Engine (Core UX), Batch Concurrency, Brand Safety Guardrails, Benchmark 20 Prompts, Dataset Preparation, LoRA Fine-Tuning & Dynamic Loading. Toàn bộ hình ảnh thương mại được sinh độc lập trên cụm GPU riêng qua HTTP Adapter, loại bỏ hoàn toàn phụ thuộc vào Cloud API bên thứ 3 (Stability AI). Phân bổ nhân sự: Lộc (Backend/Client Adapter), Ân (Prompt/Safety/Dataset), Tuấn (GPU Serving/LoRA).
 
-| Task ID                                                                                                                | Description                                                                                           | Assignee | Priority    |
-| ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | -------- | ----------- |
-| [DA-AI06-01](#da-ai06-01-integrate-stability-ai-sdxl-api-text-to-image-with-style-aspect-ratio-negative-prompt-params) | Integrate Stability AI API (SDXL): text-to-image with style, aspect ratio, and negative prompt params | Ân (AI)  | 🔴 Critical |
-| [DA-AI06-02](#da-ai06-02-build-post-aiimagegenerate-endpoint-upload-result-to-s3-return-imageurl)                      | Build image generation endpoint (POST /ai/image/generate → return S3 URL)                             | Ân (AI)  | 🔴 Critical |
-| [DA-AI06-03](#da-ai06-03-implement-batch-generation-generate-3-variations-simultaneously-via-asynciogather)            | Implement batch generation (generate 3 variations simultaneously for user to choose from)             | Ân (AI)  | 🟡 High     |
-| [DA-AI06-04](#da-ai06-04-brand-safety-filter-prepend-default-negative-prompts-to-avoid-inappropriate-content)          | Brand safety filter (default negative prompts to avoid inappropriate content)                         | Ân (AI)  | 🔴 Critical |
-| [DA-AI06-05](#da-ai06-05-test-20-real-product-prompts-evaluate-quality-and-generation-time-document-results)           | Test 20 real product prompts, evaluate quality and generation time                                    | Ân (AI)  | 🟡 High     |
+| Task ID | Description | Assignee | Priority |
+| :--- | :--- | :--- | :--- |
+| [DA-AI06-01](#da-ai06-01--self-hosted-sdxl-inference-client-adapter) | Self-Hosted SDXL Inference Client Adapter (HTTP to GPU Server, error handling) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI06-02](#da-ai06-02--aspect-ratio--sdxl-pixel-bucketing-engine) | Aspect Ratio & SDXL Pixel Bucketing Engine (1:1, 4:3, 16:9, 9:16, 2:3, 21:9) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI06-03](#da-ai06-03--visual-style-preset-mapping-engine) | Visual Style Preset Mapping Engine (Photographic, Luxury, Minimalist Studio, Flat-lay) | Ân (AI) | 🟡 High |
+| [DA-AI06-04](#da-ai06-04--form-to-prompt-engine-core-ux-feature) | Form-to-Prompt Engine (Core UX: Fast Rule Synthesizer & LLM Commercial Expander) | Ân (AI) | 🔴 Critical |
+| [DA-AI06-05](#da-ai06-05--pydantic-schemas--post-aiimagegenerate-route) | Pydantic Schemas & POST /ai/image/generate Route | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI06-06](#da-ai06-06--in-memory-streaming-s3-upload--presigned-urls) | In-Memory Streaming S3 Upload & Presigned URLs (24h expiry, zero disk I/O) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI06-07](#da-ai06-07--latency-tracking-custom-headers--observability) | Latency Tracking, Custom Response Headers & Observability (P95 < 30s SLO) | Lộc (Sub-lead) | 🟡 High |
+| [DA-AI06-08](#da-ai06-08--concurrent-generation-orchestration-via-asynciogather) | Concurrent Generation Orchestration via asyncio.gather (1-4 variations, default 3) | Lộc (Sub-lead) | 🟡 High |
+| [DA-AI06-09](#da-ai06-09--seed-diversity--visual-variation-strategy) | Seed Diversity & Visual Variation Strategy (Angle & Lighting diversity) | Ân (AI) | 🟡 High |
+| [DA-AI06-10](#da-ai06-10--partial-failure-handling--credit-safety) | Partial Failure Handling & Credit Safety Audit (Only bill successful images) | Lộc (Sub-lead) | 🟡 High |
+| [DA-AI06-11](#da-ai06-11--multi-tier-safety-negative-prompt-injection) | Multi-tier Safety Negative Prompt Injection (Prepend BRAND_SAFETY_NEGATIVE_PROMPT) | Ân (AI) | 🔴 Critical |
+| [DA-AI06-12](#da-ai06-12--input-sanitization--blacklist-guardrails) | Input Sanitization & Blacklist Guardrails (Regex & Prompt Injection Jailbreak Scanner) | Ân (AI) | 🔴 Critical |
+| [DA-AI06-13](#da-ai06-13--20-commercial-product-prompts-dataset-across-5-categories) | 20 Commercial Product Prompts Dataset Across 5 Categories (Benchmark dataset) | Ân (AI) | 🟡 High |
+| [DA-AI06-14](#da-ai06-14--automated-benchmark-runner--latencyquality-metrics) | Automated Benchmark Runner & Latency/Quality Metrics (Automated evaluation script) | Lộc (Sub-lead) | 🟡 High |
+| [DA-AI06-15](#da-ai06-15--prompt-template-library--sdxl-failure-analysis-report) | Prompt Template Library & SDXL Failure Analysis Report (Top 10 templates, 5 failure modes) | Ân (AI) | 🟡 High |
+| [DA-AI06-16](#da-ai06-16--local--server-sdxl-model-serving-diffuserscomfyui-engine) | Local / Server SDXL Model Serving (Diffusers/ComfyUI Engine, SDXL-Lightning 4-step) | Tuấn (AI) | 🟡 High |
+| [DA-AI06-17](#da-ai06-17--training-dataset-collection--quality-curation) | Training Dataset Collection & Quality Curation (120-150 commercial images 1024x1024) | Ân (AI) | 🟡 High |
+| [DA-AI06-18](#da-ai06-18--automated--manual-dataset-captioning-pipeline) | Automated & Manual Dataset Captioning Pipeline (WD14 Tagger / Vision LLM + Trigger word) | Ân (AI) | 🟡 High |
+| [DA-AI06-19](#da-ai06-19--brand-visual-identity-lora-fine-tuning-execution) | Brand Visual Identity LoRA Fine-Tuning Execution (Kohya_ss / Diffusers, rank 32, alpha 16) | Tuấn (AI) | 🟡 High |
+| [DA-AI06-20](#da-ai06-20--lora-dynamic-loading--multi-lora-inference-engine) | LoRA Dynamic Loading & Multi-LoRA Inference Engine (S3 caching, Diffusers adapter hot-swap) | Tuấn & Lộc | 🟡 High |
 
-### EPIC AI-07 — Virtual Brand Ambassador (InstantID)
+### EPIC AI-07 — Virtual Brand Ambassador (InstantID) 🔀
 
-| Task ID                                                                                                                     | Description                                                                                                                                   | Assignee  | Priority    |
-| --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
-| [DA-AI07-01](#da-ai07-01-set-up-instantid-pipeline-load-model-insightface-buffalol-controlnet-depth-gpu-required)           | Set up InstantID pipeline (load model, face encoder InsightFace, ControlNet depth)                                                            | Tuấn (AI) | 🔴 Critical |
-| [DA-AI07-02](#da-ai07-02-implement-reference-photo-processing-face-detection-face-embedding-extraction-using-insightface)   | Implement reference photo processing (face detection + face embedding extraction)                                                             | Tuấn (AI) | 🔴 Critical |
-| [DA-AI07-03](#da-ai07-03-build-post-aiambassadorgenerate-1-reference-photo-prompt-generated-image-preserving-original-face) | Build face-consistent generation endpoint (POST /ai/ambassador/generate: 1 reference + prompt → generated image preserving the original face) | Tuấn (AI) | 🔴 Critical |
-| [DA-AI07-04](#da-ai07-04-test-face-consistency-15-generated-images-from-1-reference-measure-cosine-similarity-target-085)   | Test face consistency (generate 15 different images: varying pose/background/outfit from 1 reference → measure facial similarity score)       | Tuấn (AI) | 🔴 Critical |
-| [DA-AI07-05](#da-ai07-05-build-ambassador-gallery-management-save-reference-generated-images-to-s3-under-clientid-prefix)   | Build ambassador gallery management (save reference + generated images to S3 by clientId)                                                     | Tuấn (AI) | 🟡 High     |
-| [DA-AI07-06](#da-ai07-06-apply-ambassador-endpoint-post-aiambassadorapply-ambassador-key-background-s3-key-composed-image)  | Apply ambassador endpoint (POST /ai/ambassador/apply: ambassador key + background key → composed image)                                       | Tuấn (AI) | 🔴 Critical |
-| [DA-AI07-07](#da-ai07-07-benchmark-instantid-vs-ip-adapter-on-20-test-images-document-final-decision-with-evidence)         | Benchmark InstantID vs IP-Adapter on a test set of 20 images, document final decision                                                         | Tuấn (AI) | 🟡 High     |
-| [DA-AI07-08](#da-ai07-08-write-implementation-guide-model-params-prompt-tips-gpu-memory-requirements)                       | Write implementation guide (parameters, tips for generating high-quality ambassadors)                                                         | Tuấn (AI) | 🟢 Low      |
+> **Mở rộng theo kiến trúc v2.0 (Self-Hosted RealVisXL + InstantID Serving Engine):** Phân rã toàn diện pipeline đại sứ thương hiệu ảo sang cụm GPU Server RTX 4090 (24GB VRAM). Tích hợp Base Model RealVisXL V4.0 (loại bỏ anime-bias/da tượng sáp), IdentityNet 5 điểm landmarks, IP-Adapter Image Projector, InsightFace buffalo_l in-memory preprocessing, bộ lọc 4 edge cases thị giác (Fail-fast HTTP 422), Pydantic Schemas & Server-Timing, Cosine Similarity Gating (≥ 0.85), S3 Gallery CRUD multi-tenant, bóc nền Singleton qua rembg U2Net, ghép phối sáng tự nhiên, 5 phong cách thương mại, model guardrails chống dị tật, kiểm thử 15 ảnh đa góc và benchmark đối đầu 20 ảnh với IP-Adapter FaceID-Plus v2. Phân bổ nhân sự cân bằng: Lộc (Backend/S3/Compositing - 5 tasks), Tuấn (GPU Serving/Model Engine/Benchmark - 4 tasks), Ân (Face Preprocess/Prompt UX/Testing - 6 tasks).
+
+| Task ID | Description | Assignee | Priority |
+| :--- | :--- | :--- | :--- |
+| [DA-AI07-01](#da-ai07-01--model-weights--checkpoints-management-realvisxl-identitynet-ip-adapter-insightface) | Model Weights & Checkpoints Management (RealVisXL V4.0, IdentityNet, IP-Adapter, InsightFace) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI07-02](#da-ai07-02--in-memory-face-preprocessing--512-dim-embedding-extraction) | In-Memory Face Preprocessing & 512-dim Embedding Extraction (OpenCV, InsightFace buffalo_l) | Ân (AI) | 🔴 Critical |
+| [DA-AI07-03](#da-ai07-03--4-edge-case-visual-input-defense--fail-fast-guardrails) | 4-Edge-Case Visual Input Defense & Fail-Fast Guardrails (NoFace, MultiFace, ExtremePose, Blurry) | Ân (AI) | 🟡 High |
+| [DA-AI07-04](#da-ai07-04--instantid-serving-pipeline-deployment-on-rtx-4090--vram-optimization) | InstantID Serving Pipeline Deployment on RTX 4090 & VRAM Optimization (SDPA, VAE tiling, < 15s) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI07-05](#da-ai07-05--golden-parameter-calibration-strength-conditioning-scale-cfg-steps) | Golden Parameter Calibration (Strength 0.78, Scale 0.80, CFG 5.0, 30 steps) | Tuấn (AI) | 🟡 High |
+| [DA-AI07-06](#da-ai07-06--pydantic-schemas--post-aiambassadorgenerate-route) | Pydantic Schemas & POST /ai/ambassador/generate Route (Multipart upload, Server-Timing) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI07-07](#da-ai07-07--face-consistency-metric-engine--cosine-similarity-gating--085) | Face Consistency Metric Engine & Cosine Similarity Gating (PASS ≥ 0.85, WARN, FAIL) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI07-08](#da-ai07-08--ambassador-s3-gallery-management-crud-presigned-urls-1h) | Ambassador S3 Gallery Management (CRUD, Presigned URLs 1h, Multi-tenant) | Lộc (Sub-lead) | 🟡 High |
+| [DA-AI07-09](#da-ai07-09--ambassador-singleton-background-removal-via-rembg-u2net) | Ambassador Singleton Background Removal via rembg (U2Net, alpha matting, < 1.5s) | Lộc (Sub-lead) | 🟡 High |
+| [DA-AI07-10](#da-ai07-10--ambassador-background-placement-post-aiambassadorapply--natural-relighting) | Ambassador Background Placement POST /ai/ambassador/apply & Natural Relighting (Drop shadow) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI07-11](#da-ai07-11--5-commercial-ambassador-style--wardrobe-presets) | 5 Commercial Ambassador Style & Wardrobe Presets (Fashion, Business, Casual, Sport, Luxury) | Ân (AI) | 🟡 High |
+| [DA-AI07-12](#da-ai07-12--multi-tier-model-guardrails--anti-plastic-negative-prompts) | Multi-tier Model Guardrails & Anti-Plastic Negative Prompts (Hands, eyes, skin texture) | Ân (AI) | 🔴 Critical |
+| [DA-AI07-13](#da-ai07-13--multi-angle-face-consistency-benchmark-15-images--86-pass--085) | Multi-Angle Face Consistency Benchmark (15 Images, 5 angles x 3 outfits, ≥ 86% Pass ≥ 0.85) | Ân (AI) | 🔴 Critical |
+| [DA-AI07-14](#da-ai07-14--empirical-benchmark-instantid-vs-ip-adapter-faceid-plus-v2-20-images) | Empirical Benchmark: InstantID vs IP-Adapter FaceID-Plus v2 (20 Images, 4 evaluation metrics) | Tuấn (AI) | 🟡 High |
+| [DA-AI07-15](#da-ai07-15--5-master-commercial-ambassador-templates--operational-guide) | 5 Master Commercial Ambassador Templates & Operational Guide (Starter configs & GPU guide) | Ân (AI) | 🟢 Low |
 
 ### EPIC AI-08 — Image Composition Pipeline 🔀
 
@@ -657,16 +681,18 @@
 
 ### EPIC AI-09 — AI Video Generation
 
-| Task ID                                                                                                            | Description                                                                                                                 | Assignee | Priority    |
-| ------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
-| [DA-AI09-01](#da-ai09-01-integrate-google-veo-api-auth-post-generate-jobid-poll-get-status-s3-upload)              | Integrate Google Veo API (authentication, generate request, async polling for status)                                       | Ân (AI)  | 🔴 Critical |
-| [DA-AI09-02](#da-ai09-02-build-video-prompt-template-system-topic-movement-type-duration-optimized-veo-prompt)     | Build video prompt template system (receive topic + movement type + duration → generate optimized Veo prompt)               | Ân (AI)  | 🔴 Critical |
-| [DA-AI09-03](#da-ai09-03-implement-movement-parameter-mapping-camerapan-zoomin-zoomout-subjectwalk-veo-params)     | Implement movement parameter mapping (camera_pan, zoom_in, zoom_out, subject_walk → Veo params)                             | Ân (AI)  | 🟡 High     |
-| [DA-AI09-04](#da-ai09-04-create-prompt-library-10-marketing-video-types-3-movement-styles-30-templates)            | Create prompt library: 10 marketing video types x 3 movement styles = 30 prompt templates                                   | Ân (AI)  | 🔴 Critical |
-| [DA-AI09-05](#da-ai09-05-build-post-aivideogenerate-returns-jobid-get-aivideojobidstatus-for-polling)              | Build video generation endpoint (POST /ai/video/generate → async, returns jobId → GET /ai/video/{jobId}/status for polling) | Ân (AI)  | 🔴 Critical |
-| [DA-AI09-06](#da-ai09-06-upload-generated-video-to-s3-extract-thumbnail-return-videourl-thumbnailurl-duration)     | Upload generated video to S3, extract thumbnail, return {videoUrl, thumbnailUrl, duration}                                  | Ân (AI)  | 🔴 Critical |
-| [DA-AI09-07](#da-ai09-07-benchmark-30-prompts-quality-generation-time-cost-per-video-document-results)             | Benchmark 30 prompts (quality, generation time, cost per video) → document results                                          | Ân (AI)  | 🟡 High     |
-| [DA-AI09-08](#da-ai09-08-write-video-generation-research-report-prompt-guide-parameter-cheat-sheet-best-practices) | Write Video Generation Research Report (prompt guide, parameter cheat sheet, best practices)                                | Ân (AI)  | 🟡 High     |
+| Task ID | Description | Assignee | Priority |
+| --- | --- | --- | --- |
+| [DA-AI09-01](#da-ai09-01--pydantic-schemas--async-video-job-state-management-in-redis) | Pydantic Schemas & Redis Async Job State Machine (PENDING → PROCESSING → COMPLETED/FAILED, TTL 24h, zero-thumbnail) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI09-02](#da-ai09-02--google-veo-api-client--async-generation-engine) | Google Veo API Client & Async Generation Engine (Vertex AI auth, job dispatch, async polling loop, timeout guard) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI09-03](#da-ai09-03--movement-parameter-mapping--camera-motion-translation-engine) | Movement Parameter Mapping (Pan, Tilt, Zoom, Dolly, Static) & Video Configurations (16:9/9:16/1:1, 24/30 FPS) | Tuấn (AI) | 🟡 High |
+| [DA-AI09-04](#da-ai09-04--direct-s3-video-streamer-ffprobe-duration-extractor--presigned-url-7-days-zero-thumbnail) | Direct S3 Stream, FFprobe Duration & Presigned URL 7 ngày (Zero Thumbnail: loại bỏ decode ffmpeg tối đa tốc độ) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI09-05](#da-ai09-05--fastapi-video-endpoints-post-aivideogenerate--get-aivideojobidstatus--async-polling) | FastAPI Video Endpoints (POST /ai/video/generate returns jobId, GET /ai/video/{jobId}/status polling, no thumbnail) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI09-06](#da-ai09-06--video-prompt-engineering-engine--form-to-prompt-converter) | Video Prompt Engineering Engine & Form-to-Prompt Converter (Topic, tone, camera motion → Veo prompt) | Ân (AI) | 🔴 Critical |
+| [DA-AI09-07](#da-ai09-07--master-marketing-video-prompt-library-10-archetypes--3-motion-styles--30-templates) | Master Marketing Video Prompt Library (10 Archetypes × 3 Motion Styles = 30 Production-ready Templates) | Ân (AI) | 🔴 Critical |
+| [DA-AI09-08](#da-ai09-08--content-safety-guardrails--negative-motion-constraints-for-video) | Content Safety Guardrails & Negative Motion Constraints (Anti-jitter, anti-distortion, brand safety filter) | Ân (AI) | 🟡 High |
+| [DA-AI09-09](#da-ai09-09--empirical-quality--cost-benchmark-across-30-video-templates) | Empirical Quality & Cost Benchmark across 30 Video Templates (Generation time, stability, cost per video) | Ân (AI) | 🟡 High |
+| [DA-AI09-10](#da-ai09-10--video-generation-pipeline-integration-end-to-end-testing--technical-report) | Video Generation Pipeline Integration, End-to-End Testing, OpenAPI/Postman & Technical Research Report | Lộc (Lead) & Tuấn, Ân | 🔴 Critical |
 
 ### EPIC AI-10 — AI Service Integration & API Finalize
 
@@ -4342,7 +4368,6 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 ---
 
-
 ### DA-AI03-01 — Implement document upload endpoint (accept PDF/DOCX/TXT/URL, save file to S3)
 
 **Assignee:** Lộc (Sub-lead) | **Priority:** 🔴 Critical
@@ -4540,7 +4565,6 @@ class EmbeddingService:
 
 ---
 
-
 ### DA-AI03-03.1 — Build Neo4j connection pool management (app/core/neo4j.py)
 
 **Assignee:** Lộc (Sub-lead) | **Priority:** 🔴 Critical
@@ -4725,7 +4749,6 @@ class SemanticSearchService:
 
 ---
 
-
 ### DA-AI03-04.1 — Build graph traversal service (1-2 hops BFS/DFS in Neo4j)
 
 **Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
@@ -4859,7 +4882,6 @@ class RAGContextBuilder:
 
 ---
 
-
 ### DA-AI03-06 — Document deletion endpoint (remove chunks from ChromaDB + file from S3)
 
 # **Assignee:** Lộc (Sub-lead) | **Priority:** 🟡 High
@@ -4886,12 +4908,15 @@ Blocks: DA-AI04-01. Blocked by: DA-AI03-04.
 ---
 
 ## PHẦN II: CHI TIẾT CÀI ĐẶT EPIC AI-04 (LLM CONTENT GENERATION)
+
 > **Jira Epic:** [`DA-79: AI-04 — LLM Content Generation`](https://letritrung2605.atlassian.net/browse/DA-79) | **Lộ trình:** AI Iteration 2 (Sprint 8)
 
 ---
 
 ### DA-AI04-01 — Build prompt template system (receive topic + RAG context + trend data + tone → generate full prompt)
+
 **Jira Key:** [`DA-240`](https://letritrung2605.atlassian.net/browse/DA-240) | **Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+
 ### DA-AI03-09 — Create Entity Resolution background cron job (merge duplicate nodes)
 
 **Assignee:** Ân (AI) | **Priority:** 🟡 High
@@ -4957,19 +4982,22 @@ class EntityResolutionService:
 **Goal:** Xây dựng hệ thống khuôn mẫu prompt có thể tái sử dụng và tầng Consumer Adapters độc lập (`BrandRAGAdapter` & `TrendContextAdapter`) theo chuẩn Interface-First / Dependency Injection để tầng sinh nội dung giao tiếp với tri thức thương hiệu và xu hướng qua interface/HTTP service tiêu chuẩn, đảm bảo cách ly hoàn toàn (zero-import) khỏi ChromaDB và Neo4j drivers.
 
 **Acceptance Criteria:**
+
 - [ ] Khai báo abstract protocols `IBrandRAGAdapter` và `ITrendContextAdapter` tại `services/adapters/interfaces.py`.
 - [ ] Module `services/adapters/brand_rag_adapter.py` hiện thực `IBrandRAGAdapter`, cung cấp hàm `fetch_brand_context(client_id: str, topic: str, top_k: int = 3) -> BrandContextDTO`.
 - [ ] Module `services/adapters/trend_adapter.py` hiện thực `ITrendContextAdapter`, cung cấp hàm `fetch_trend_context(trend_keyword: str) -> TrendContextDTO` kết nối với subsystem AI-05 đã hoàn thành.
 - [ ] Module `services/prompt/prompt_builder.py` triển khai `build_caption_prompt(topic: str, brand_context: Optional[BrandContextDTO], trend_context: Optional[TrendContextDTO], tone: str, platform: str) -> PromptBundle`.
 - [ ] Hỗ trợ 7 tone giọng: `professional`, `casual`, `humorous`, `inspirational`, `authoritative`, `empathetic`, `trendy`.
-- [ ] System prompt luôn chứa chỉ thị chống ảo giác bất biến: *"Chỉ sử dụng thông tin được cung cấp trong [Brand Context]. Tuyệt đối không tự bịa đặt tính năng, giá bán, chính sách hoặc ưu đãi."*
+- [ ] System prompt luôn chứa chỉ thị chống ảo giác bất biến: _"Chỉ sử dụng thông tin được cung cấp trong [Brand Context]. Tuyệt đối không tự bịa đặt tính năng, giá bán, chính sách hoặc ưu đãi."_
 - [ ] Cung cấp Mock implementations (`MockBrandRAGAdapter`, `MockTrendContextAdapter`) bàn giao cho Lộc vào cuối Day 2 để phục vụ testing và DI.
 
 **Technical Notes:**
+
 - Location: `app/services/prompt_builder.py`, `app/services/adapters/brand_adapter.py`, `app/services/adapters/trend_adapter.py`.
 - Context format: `=== BRAND CONTEXT ===\n{rag_context}\n\n=== TREND CONTEXT ===\n{trend_data}`.
 
 **Dependencies:**
+
 - Blocks: DA-AI04-02, DA-AI04-05, DA-AI04-06.
 - Blocked by: DA-AI03-05.
 
@@ -5011,6 +5039,7 @@ class PromptBuilder:
 ---
 
 ### DA-AI04-02 — Integrate Llama 3 via Groq API (system prompt: "only use provided context, do not fabricate")
+
 **Jira Key:** [`DA-253`](https://letritrung2605.atlassian.net/browse/DA-253) | **Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
 
 **Goal:** Tích hợp Primary LLM Provider (Llama 3 qua Groq API) vào engine sinh bài viết sử dụng output từ prompt template system làm input, tối ưu hóa tốc độ phản hồi và xử lý giới hạn request.
@@ -5028,6 +5057,7 @@ class PromptBuilder:
 - Log every Groq call with model, prompt token count, completion token count, latency_ms.
 
 **Dependencies:**
+
 - Blocks: DA-AI04-03, DA-AI04-05, DA-AI04-07.
 - Blocked by: DA-AI04-01, DA-AI02-02, DA-AI01-07.
 
@@ -5074,11 +5104,13 @@ class LLMCoordinator:
 ---
 
 ### DA-AI04-03 — Integrate Fallback LLM API (Google Gemini 1.5 Flash / Claude) with Failover Circuit Breaker
+
 **Jira Key:** [`DA-271`](https://letritrung2605.atlassian.net/browse/DA-271) | **Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
 
 **Goal:** Tích hợp Fallback LLM Client (Google Gemini `gemini-1.5-flash` / Claude) kết hợp bộ định tuyến chịu lỗi áp dụng mẫu Circuit Breaker 3 trạng thái, tự động chuyển mạch khi Groq gặp lỗi rate-limit (HTTP 429), lỗi mạng hoặc timeout.
 
 **Acceptance Criteria:**
+
 - [ ] Module `services/llm/gemini_client.py` hiện thực `generate_with_gemini(prompt_bundle: PromptBundle, temperature: float = 0.7, max_tokens: int = 1024) -> LLMOutput` sử dụng package `google-genai` / `google-generativeai`.
 - [ ] Module `utils/circuit_breaker.py` hiện thực Circuit Breaker 3 trạng thái: `CLOSED` (bình thường), `OPEN` (ngắt mạch khi lỗi $> 50\%$ trong 10 req), `HALF_OPEN` (thử nghiệm sau 60s).
 - [ ] Module `services/llm/resilient_router.py` cung cấp hàm `generate_caption_resilient(prompt_bundle: PromptBundle) -> LLMResponse`.
@@ -5087,21 +5119,25 @@ class LLMCoordinator:
 - [ ] Gắn nhãn tường minh metadata trong response: `provider="gemini"`, `fallback_used=True`, `fallback_reason="groq_rate_limited"`.
 
 **Technical Notes:**
+
 - Tránh phụ thuộc thư viện ngoài phức tạp; triển khai in-memory Circuit Breaker thread-safe hoặc dựa trên Redis nếu cần chia sẻ state đa worker.
 - Đóng vai trò là LLM provider chính cho Orchestrator `DA-AI04-06` và Regenerate `DA-AI04-09`.
 
 **Dependencies:**
+
 - Blocks: DA-AI04-10 (Hard Gate); DA-AI04-06 & DA-AI04-09 (Soft Interface — downstream dev sử dụng MockLLMRouter).
 - Blocked by: DA-AI04-03, DA-AI04-04 (Bắt đầu sau khi hoàn tất tích hợp 2 SDKs).
 
 ---
 
 ### DA-AI04-06 — Content Generation Pipeline Orchestrator & API Endpoint
+
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Xây dựng bộ điều phối pipeline sinh nội dung và publish endpoint `POST /api/v1/ai/content/generate`, kết nối các Adapter dữ liệu, Prompt Builder và Failover LLM Router thành luồng nghiệp vụ hoàn chỉnh thông qua Dependency Injection.
 
 **Acceptance Criteria:**
+
 - [ ] Endpoint `POST /api/v1/ai/content/generate` tiếp nhận `ContentGenerateRequest(client_id, topic, platform, tone, trend_keyword, ...)` và trả về `ContentGenerateResponse`.
 - [ ] Pipeline thực thi bất đồng bộ: Gọi đồng thời RAG Adapter & Trend Adapter qua `asyncio.gather(..., return_exceptions=True)`.
 - [ ] Đưa kết quả vào Prompt Builder $\rightarrow$ Gửi đến Resilient LLM Router (`DA-AI04-05`).
@@ -5110,11 +5146,13 @@ class LLMCoordinator:
 - [ ] Bộ unit test hoàn chỉnh (`tests/test_content_orchestrator.py`) mock 100% các dependencies qua `app.dependency_overrides`, đảm bảo endpoint pass toàn bộ test cases mà không cần kết nối live DB hay live LLM API.
 
 **Technical Notes:**
+
 - Router FastAPI đặt tại `app/api/v1/endpoints/content.py`.
 - Áp dụng triệt để FastAPI Dependency Injection (`Depends(get_brand_rag_adapter)`, `Depends(get_trend_context_adapter)`, `Depends(get_llm_router)`), cho phép Lộc inject các Mock Adapter và Mock LLM Router để test độc lập luồng pipeline ngay từ Day 3 mà không cần chờ live services (ChromaDB, Neo4j, Groq, Gemini) sẵn sàng.
 - Giám sát độ trễ toàn trình (P95 target $< 3.0$s khi dùng Groq).
 
 **Dependencies:**
+
 - Soft Dependencies (Interface/Contract Decoupled via DI — Không bị block): Phụ thuộc vào interface của `DA-AI04-01`, `DA-AI04-02`, `DA-AI04-05`. Lộc code và viết unit tests ngay từ Day 3 bằng Mock implementations, không chờ đợi.
 - Hard Pre-requisite: `DA-AI04-07` (`truncate_caption` — do chính Lộc tự hoàn thành ở Day 1-2).
 - Downstream Target: Cung cấp pipeline cho `DA-AI04-10` (Integration Quality Gate).
@@ -5162,21 +5200,25 @@ class LLMCoordinator:
 ---
 
 ### DA-AI04-04 — Implement platform-specific caption truncation (FB 63k, Threads 500, TikTok 4k chars)
+
 **Jira Key:** [`DA-286`](https://letritrung2605.atlassian.net/browse/DA-286) | **Assignee:** Lộc (Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Đảm bảo bài viết sinh ra không bao giờ bị các nền tảng mạng xã hội từ chối do vượt quá giới hạn ký tự, áp dụng thuật toán cắt câu thông minh (Sentence Delimiter Truncation).
 
 **Acceptance Criteria:**
+
 - [ ] Module `utils/truncation.py` hiện thực `truncate_caption(text: str, platform: str) -> str`.
 - [ ] Giới hạn ký tự từng nền tảng: Facebook: 63,206, Threads: 500, TikTok: 4,000, Instagram: 2,200, Zalo: 10,000 chars.
 - [ ] Thuật toán cắt tại dấu kết thúc câu gần nhất (`.`, `!`, `?`, `\n`) trước ngưỡng giới hạn, không cắt đứt từ ngữ giữa chừng; thêm `"..."` nếu bị cắt.
 - [ ] Bộ unit tests độc lập bao phủ 100% các edge cases (chuỗi đúng giới hạn, chuỗi vượt 1 ký tự, giới hạn Threads).
 
 **Technical Notes:**
+
 - File: `app/utils/truncation.py`. Pure standalone string utility, zero external dependencies.
-**Assignee:** Lộc (Sub-lead) | **Priority:** 🟡 High
+  **Assignee:** Lộc (Sub-lead) | **Priority:** 🟡 High
 
 **Dependencies:**
+
 - Blocks: DA-AI04-07.
 - Blocked by: **None** (Bắt đầu ngay từ Day 1, Zero blocking!).
 
@@ -5213,17 +5255,20 @@ class LengthOptimizer:
 ---
 
 ### DA-AI04-05 — Implement hashtag generation endpoint (POST /ai/content/hashtags)
+
 **Jira Key:** [`DA-231`](https://letritrung2605.atlassian.net/browse/DA-231) | **Assignee:** Lộc (Sub-lead) | **Priority:** 🟡 High
 
 **Goal:** Cung cấp tính năng và endpoint API chuyên biệt `POST /api/v1/ai/content/hashtags` để người dùng có thể yêu cầu danh sách hashtag tối ưu độc lập với việc sinh bài viết.
 
 **Acceptance Criteria:**
+
 - [ ] Endpoint `POST /api/v1/ai/content/hashtags` tiếp nhận `{caption: str, platform: str, clientId: str, count: int}` và trả về `{hashtags: List[str]}`.
 - [ ] Gọi Groq SDK với prompt chuyên biệt trích xuất hashtag.
 - [ ] Hashtags được format không dấu cách, có tiền tố `#` (ví dụ `#thoiTrang`, không phải `#thoi trang`).
 - [ ] Giới hạn số lượng theo best practices từng nền tảng (Instagram: tối đa 30, TikTok: tối đa 10, Nền tảng khác: tối đa 5).
 
 **Technical Notes:**
+
 - File: `app/api/v1/endpoints/content.py` và `app/services/hashtag_extractor.py`.
 - Tận dụng Groq client SDK có sẵn từ `DA-AI04-02`.
 
@@ -5252,6 +5297,7 @@ class LengthOptimizer:
 - Response format: `{"hashtags": ["#BrandHub", "#ContentAI", "#MarketingTrends"]}`.
 
 **Dependencies:**
+
 - Blocks: DA-AI04-07.
 - Blocked by: DA-AI04-02.
 
@@ -5287,22 +5333,26 @@ class HashtagExtractor:
 ---
 
 ### DA-AI04-06 — Implement regenerate with feedback (receive previous caption + user feedback → generate improved version)
+
 **Jira Key:** [`DA-246`](https://letritrung2605.atlassian.net/browse/DA-246) | **Assignee:** Ân (AI) | **Priority:** 🟡 High
 
 **Goal:** Cho phép người dùng chỉnh sửa và tinh chỉnh bài viết lặp đi lặp lại thông qua phản hồi bằng ngôn ngữ tự nhiên mà không cần bắt đầu lại từ đầu.
 
 **Acceptance Criteria:**
+
 - [ ] Endpoint `POST /api/v1/ai/content/regenerate` tiếp nhận `ContentRegenerateRequest(previous_caption: str, feedback: str, platform: str, client_id: str)` và trả về caption mới.
-- [ ] Feedback được nhúng vào prompt: *"The previous caption was: {previous_caption}. User feedback: {feedback}. Generate an improved version."*
+- [ ] Feedback được nhúng vào prompt: _"The previous caption was: {previous_caption}. User feedback: {feedback}. Generate an improved version."_
 - [ ] Vẫn giữ nguyên các chỉ thị chống ảo giác và context RAG thương hiệu của `client_id`.
 - [ ] Sử dụng FastAPI `Depends(get_llm_router)` để đảm bảo tính chịu lỗi khi gọi LLM.
-- [ ] End-to-end test: Gửi bài viết cũ + feedback *"viết ngắn lại và vui vẻ hơn"* $\rightarrow$ xác nhận bài viết mới ngắn hơn và có sự chuyển biến về tone giọng.
+- [ ] End-to-end test: Gửi bài viết cũ + feedback _"viết ngắn lại và vui vẻ hơn"_ $\rightarrow$ xác nhận bài viết mới ngắn hơn và có sự chuyển biến về tone giọng.
 
 **Technical Notes:**
+
 - File: `app/api/v1/endpoints/content.py`.
 - Không truyền caption cũ dưới dạng assistant message để tránh LLM bị bám quá chặt vào câu chữ cũ; nhúng trực tiếp vào user prompt.
 
 **Dependencies:**
+
 - Blocks: DA-AI04-07.
 - Blocked by: DA-AI04-01, DA-AI04-03.
 
@@ -5339,11 +5389,13 @@ async def refine_content(req: RefineRequest):
 ---
 
 ### DA-AI04-07 — Anti-hallucination test (verify 20 generated captions — every claim must be sourced from brand context)
+
 **Jira Key:** [`DA-261`](https://letritrung2605.atlassian.net/browse/DA-261) | **Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
 
 **Goal:** Kiểm chứng toàn diện cơ chế chống ảo giác bằng cách sinh 20 bài viết dưới các chủ đề phức tạp và đối soát để xác nhận không có bất kỳ thông tin nào ngoài phạm vi RAG context được đưa vào bài viết.
 
 **Acceptance Criteria:**
+
 - [ ] Chạy bộ kiểm thử tự động trên 20 kịch bản sinh nội dung thực tế qua 5 bộ tri thức thương hiệu chuẩn.
 - [ ] Xác nhận **100% dữ kiện** trong caption sinh ra phải map ngược về được các chunks RAG nguồn.
 - [ ] Xác nhận **0% số điện thoại, giá tiền, hoặc ưu đãi bịa đặt**.
@@ -5355,36 +5407,43 @@ async def refine_content(req: RefineRequest):
 - Location: `tests/test_anti_hallucination.py`.
 
 **Dependencies:**
+
 - Blocks: DA-AI04-08.
 - Blocked by: DA-AI04-02, DA-AI04-03, DA-AI04-04.
 
 ---
 
 ### DA-AI04-08 — Write Prompt Engineering Documentation (template design, system prompt best practices, tone guide)
+
 **Jira Key:** [`DA-274`](https://letritrung2605.atlassian.net/browse/DA-274) | **Assignee:** Ân (AI) | **Priority:** 🟢 Medium
 
 **Goal:** Đảm bảo toàn bộ khuôn mẫu prompt và hướng dẫn định dạng phong cách được tài liệu hóa đầy đủ để phục vụ mở rộng, bảo trì và tích hợp LLM trong tương lai.
 
 **Acceptance Criteria:**
+
 - [ ] Tài liệu hóa cấu trúc prompt, các biến truyền vào, quy tắc format từng nền tảng và hướng dẫn 7 tone giọng.
 - [ ] Ghi chép cấu trúc `=== BRAND CONTEXT ===` và kỹ thuật Grounding rules chống ảo giác.
 - [ ] Bảng so sánh thực nghiệm hiệu năng/chất lượng giữa Groq Llama 3 và Google Gemini 1.5 Flash.
 
 **Technical Notes:**
+
 - Location: `docs/ai/prompt_engineering_guide.md`.
 
 **Dependencies:**
+
 - Blocks: None.
 - Blocked by: DA-AI04-01, DA-AI04-07.
 
 ---
 
 ### DA-AI05-07A — Neo4j Knowledge Graph Entity Traversal Service
+
 **Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
 
 **Goal:** Xây dựng module truy vấn đồ thị độc lập, thực hiện duyệt 1-hop/2-hop từ node `:Trend` để trích xuất các thực thể liên quan mật thiết (KOLs, Thương hiệu, Sự kiện, Chủ đề con).
 
 **Acceptance Criteria:**
+
 - [ ] Module `services/trends/graph_retriever.py` cung cấp hàm `traverse_trend_graph(trend_keyword: str, depth: int = 1) -> List[GraphEntityRelation]`.
 - [ ] Thực thi Cypher tối ưu:
   ```cypher
@@ -5396,6 +5455,7 @@ async def refine_content(req: RefineRequest):
 - [ ] Xử lý an toàn khi không tìm thấy node Trend hoặc khi Neo4j instance ngắt kết nối (trả về danh sách rỗng, không raise exception).
 
 **Technical Notes:**
+
 - Tech stack: `neo4j` Python driver, Async Session pooling.
 
 - [ ] Document covers: prompt template structure (annotated with section purposes), system prompt rationale, tone parameter examples (one sample output per tone)
@@ -5446,11 +5506,13 @@ Blocks: DA-AI05-07C. Blocked by: DA-AI05-04, DA-AI05-23.
 ---
 
 ### DA-AI05-07B — ChromaDB Trend Vector Snippet Retrieval Service
+
 **Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
 
 **Goal:** Xây dựng module semantic vector search độc lập trong bộ sưu tập `social_trend_chunks` để tìm kiếm các bài viết, trích đoạn thảo luận có điểm tương tác cao liên quan đến xu hướng.
 
 **Acceptance Criteria:**
+
 - [ ] Module `services/trends/vector_retriever.py` cung cấp hàm `search_trend_snippets(trend_keyword: str, top_k: int = 4) -> List[TrendSnippetDTO]`.
 - [ ] Embed từ khóa tìm kiếm bằng model `all-MiniLM-L6-v2` (384d) và truy vấn collection `social_trend_chunks`.
 - [ ] Lọc kết quả metadata theo ngưỡng tương tác (`virality_score >= 0.5`) nếu có.
@@ -5458,6 +5520,7 @@ Blocks: DA-AI05-07C. Blocked by: DA-AI05-04, DA-AI05-23.
 - [ ] Đảm bảo timeout truy vấn $< 80$ms.
 
 **Technical Notes:**
+
 - Tái sử dụng ChromaDB client cấu hình từ `utils/clients.py`.
 
 **Dependencies:**
@@ -5466,15 +5529,18 @@ Blocks: DA-AI05-07C. Blocked by: DA-AI05-04, DA-AI05-21.
 ---
 
 ### DA-AI05-07C — Trend Context Synthesizer & Token Optimizer Engine
+
 **Assignee:** Ân (AI) | **Priority:** 🔴 Critical
 
 **Goal:** Hợp nhất các quan hệ từ đồ thị tri thức (DA-AI05-07A) và các trích đoạn văn bản vector (DA-AI05-07B) thành một chuỗi ngữ cảnh Markdown súc tích, giới hạn chặt chẽ dưới 800 tokens, tổng hợp viral hooks và tiếng lóng cộng đồng.
 
 **Acceptance Criteria:**
+
 - [ ] Module `services/trends/context_formatter.py` cung cấp hàm `synthesize_trend_context(trend_keyword: str, graph_data: List[GraphEntityRelation], snippets: List[TrendSnippetDTO]) -> TrendSynthesizedContext`.
 - [ ] Context định dạng cấu trúc Markdown chuẩn:
   ```markdown
   ### TREND CONTEXT: {trend_keyword}
+
   - Related Entities: {comma-separated entities with types}
   - Key Discussions & Angles: {bullet points summarized from top snippets}
   - Community Slang & Hooks: {extracted keywords/phrases}
@@ -5483,6 +5549,7 @@ Blocks: DA-AI05-07C. Blocked by: DA-AI05-04, DA-AI05-21.
 - [ ] Chuyển đổi dữ liệu sang DTO `TrendContextResponse` có trường `formatted_context` sẵn sàng đưa vào prompt LLM.
 
 **Technical Notes:**
+
 - Tích hợp hàm `score_keywords` (BM25) nếu cần loại bỏ các thực thể nhiễu không phổ biến.
 
 **Dependencies:**
@@ -5491,11 +5558,13 @@ Blocks: DA-AI05-07D, DA-AI05-07E. Blocked by: DA-AI05-07A, DA-AI05-07B.
 ---
 
 ### DA-AI05-07D — Redis Trend Context Read-Through Cache Layer
+
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
 **Goal:** Xây dựng tầng cache Read-Through trên Redis cho Trend Context đã tổng hợp, giúp giảm tải tối đa cho Neo4j và ChromaDB, đưa latency phục vụ xuống mức sub-15ms.
 
 **Acceptance Criteria:**
+
 - [ ] Module `services/trends/context_cache.py` quản lý 2 hàm: `get_cached_context(trend_slug: str) -> Optional[TrendContextResponse]` và `set_cached_context(trend_slug: str, data: TrendContextResponse, ttl_seconds: int = 1800)`.
 - [ ] Chuẩn hóa key lưu trữ: `trends:context:{trend_slug}` (sử dụng slug tiếng Việt không dấu, e.g. `tra-sua-dat-nung`).
 - [ ] Đặt thời gian sống (TTL) mặc định 30 phút (1,800 giây).
@@ -5503,6 +5572,7 @@ Blocks: DA-AI05-07D, DA-AI05-07E. Blocked by: DA-AI05-07A, DA-AI05-07B.
 - [ ] Nếu Redis down hoặc mất kết nối: Tự động pass-through qua bộ tính toán mà không gây gián đoạn API.
 
 **Technical Notes:**
+
 - Tech stack: `redis-py` async, serialization qua Pydantic JSON encoder.
 
 **Dependencies:**
@@ -5511,11 +5581,13 @@ Blocks: DA-AI05-07E. Blocked by: DA-AI05-16.
 ---
 
 ### DA-AI05-07E — Unified Trend Context Retrieval API Endpoint (`POST /api/v1/ai/trends/context`)
+
 **Assignee:** Ân (AI) | **Priority:** 🔴 Critical
 
 **Goal:** Xuất bản endpoint RESTful chính thức `POST /api/v1/ai/trends/context`, tích hợp tầng Cache và tầng Retrieval song song, đóng vai trò Provider cho Consumer Adapter của Content Generation.
 
 **Acceptance Criteria:**
+
 - [ ] Khai báo route `POST /api/v1/ai/trends/context` tiếp nhận `TrendContextRequest(trend_keyword: str, depth: int = 1, include_snippets: bool = True)`.
 - [ ] Luồng xử lý:
   1. Kiểm tra cache Redis (`DA-AI05-07D`); nếu có $\rightarrow$ trả về ngay lập tức ($< 20$ms).
@@ -5527,10 +5599,12 @@ Blocks: DA-AI05-07E. Blocked by: DA-AI05-16.
 - [ ] Tuân thủ SLA hiệu năng: Cold query $\le 500$ms, Cached query $\le 20$ms.
 
 **Technical Notes:**
+
 - Router khai báo tại `app/api/v1/endpoints/trends.py`.
 - Đóng vai trò là Provider dữ liệu live cho `DA-AI04-01` (Consumer Adapters).
 
 **Dependencies:**
+
 - Blocks: DA-AI04-01 (Live integration ở giai đoạn cuối).
 - Blocked by: DA-AI05-07C, DA-AI05-07D. (Lưu ý: DA-AI04-01 ở Epic AI-04 không bị block vì adapter sử dụng DTO contract và mock HTTP response qua `respx` khi dev).
 
@@ -5589,8 +5663,6 @@ return items.slice(0, 20).map((item, rank) => ({
 ```
 
 ---
-
-
 
 ### DA-AI05-02 — Implement TikTok trending hashtag crawler (web scraping or unofficial API, fallback to pytrends)
 
@@ -5792,8 +5864,6 @@ class TrendSyncService:
 
 ---
 
-
-
 ### DA-AI05-05 — Implement trend suggestions API endpoint (GET /ai/trends?category=fashion&limit=20)
 
 # **Assignee:** Lộc (Sub-lead) | **Priority:** 🟡 High
@@ -5805,7 +5875,6 @@ class TrendSyncService:
 **Goal:** Construct an automated end-to-end scheduled workflow in N8N (or Python FastAPI worker) to trigger scraping tasks, handle proxy rotation, retry failed requests, and pass collected data to buffer queues.
 
 **Acceptance Criteria:**
-
 
 - [ ] `GET /ai/trends` accepts query params `category` and `limit` (default 20, max 50)
 - [ ] Response: `{trends: List[TrendItem], cachedAt: ISO8601 timestamp, ttlSeconds: int}`
@@ -5933,7 +6002,6 @@ def init_scheduler():
 ```
 
 ---
-
 
 ### DA-AI05-07 — Brainstorm AI crawl idea _(phát sinh, ngoài plan gốc)_
 
@@ -6739,266 +6807,806 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 ---
 
-### DA-AI06-01 — Integrate Stability AI SDXL API: text-to-image with style, aspect ratio, negative prompt params
+### DA-AI06-01 — Self-Hosted SDXL Inference Client Adapter
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
-**Goal:** Connect to Stability AI's image generation service and expose its key parameters through a clean internal function.
+**Goal:** Xây dựng module client bất đồng bộ (`app/services/sdxl_client.py`) kết nối trực tiếp đến GPU Inference Server (chạy Diffusers/ComfyUI Engine từ task DA-AI06-16) bằng `httpx.AsyncClient` theo chuẩn Ponytail/YAGNI, loại bỏ hoàn toàn phụ thuộc vào Cloud API bên thứ 3 và hỗ trợ truyền tham số LoRA động.
 
 **Acceptance Criteria:**
 
-- [ ] `services/image_gen.py` function `generate_image(prompt, negative_prompt, style_preset, aspect_ratio) -> bytes` calls Stability AI REST API and returns raw PNG bytes
-- [ ] Supported aspect ratios: 1:1, 4:3, 16:9, 9:16 mapped to SDXL pixel dimensions
-- [ ] `style_preset` maps to valid Stability AI style options (e.g., `photographic`, `digital-art`, `cinematic`)
-- [ ] On API error, raises `ImageGenerationError` with the Stability AI error message included
+- [ ] Module `SDXLInferenceClient` khởi tạo nhận cấu hình `base_url = settings.sdxl_engine_url` và `api_token = settings.sdxl_engine_token` (nếu có).
+- [ ] Hàm `generate_raw(prompt, negative_prompt, width, height, style_preset=None, seed=None, steps=4, cfg_scale=1.5, lora_id=None, lora_scale=0.8) -> tuple[bytes, int, str]` gửi request `POST {base_url}/generate` đến GPU Server.
+- [ ] Nhận dữ liệu stream raw bytes PNG trực tiếp từ GPU Server, chuyển thành `bytes` PNG chuẩn (zero temporary disk write).
+- [ ] Xử lý ngoại lệ kết nối & lỗi GPU Server:
+  - HTTP 400 / 422: Ném `InvalidGenerationPayloadError` kèm log chi tiết lỗi tham số
+  - HTTP 503 / Timeout: GPU Server đang quá tải, cold start hoặc không phản hồi -> Ném `GPUEngineUnavailableError`
+  - HTTP 500 (CUDA OOM): Ném `GPUOutOfMemoryError` báo hiệu engine hết VRAM để retry hoặc báo log
+  - Timeout cấu hình: `httpx.AsyncClient(timeout=60.0)` phù hợp với thời gian sinh ảnh SDXL-Lightning
+- [ ] Hỗ trợ kiểm tra sức khỏe node GPU: Hàm `health_check() -> bool` gọi `GET {base_url}/health` để xác định GPU Worker đang sẵn sàng.
+- [ ] Đạt 100% unit test với `pytest-httpx` mô phỏng phản hồi sinh ảnh thành công và các kịch bản lỗi mạng/GPU.
 
 **Technical Notes:**
 
-- Use `stability-sdk` or direct REST calls to `https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image`; REST is preferred for easier error inspection
-- API key from `STABILITY_API_KEY` env var via `utils/clients.py`
+- Chuẩn Ponytail/YAGNI: Không cài thêm SDK nặng nề; chỉ dùng `httpx` tiêu chuẩn của FastAPI.
+- Payload gọn nhẹ: `{"prompt": prompt, "negative_prompt": negative_prompt, "width": width, "height": height, "steps": steps, "seed": seed, "lora_id": lora_id, "lora_scale": lora_scale}`.
 
-**Dependencies:** Blocks: DA-AI06-02. Blocked by: DA-AI02-02, DA-AI02-04.
+**Dependencies:** Blocked by: DA-AI06-16 (GPU Serving Engine). Blocks: DA-AI06-02, DA-AI06-05.
 
 ---
 
-### DA-AI06-02 — Build POST /ai/image/generate endpoint → upload result to S3 → return {imageUrl}
+### DA-AI06-02 — Aspect Ratio & SDXL Pixel Bucketing Engine
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
-**Goal:** Deliver the complete image generation user flow from prompt input to a publicly accessible (presigned) image URL.
+**Goal:** Chuẩn hóa các kích thước ảnh đầu vào theo cơ chế Pixel Bucketing chuẩn của SDXL 1.0 (tổng diện tích ~1 Megapixel = 1,048,576 pixels, kích thước mỗi chiều là bội số của 64) nhằm triệt tiêu hiện tượng méo hình, duplicate chủ thể hoặc sinh thêm chi thể lỗi.
 
 **Acceptance Criteria:**
 
-- [ ] `POST /ai/image/generate` accepts `{prompt, negativePrompt, stylePreset, aspectRatio, clientId}` and returns `{imageUrl: str, s3Key: str, generationTimeMs: int}`
-- [ ] Generated image uploaded to S3 at key `generated/{clientId}/{uuid}.png`
-- [ ] Presigned URL returned expires in 24 hours
-- [ ] Total endpoint response time logged; target P95 under 30 seconds (SDXL generation is slow)
+- [ ] Tạo module `app/utils/image_dimensions.py` chứa enum `AspectRatioEnum` và bảng ánh xạ chuẩn SDXL:
+  - `1:1` (Square - Feed): `1024 x 1024` (1,048,576 px)
+  - `4:3` (Standard Landscape): `1152 x 896` (1,032,192 px)
+  - `3:4` (Standard Portrait): `896 x 1152` (1,032,192 px)
+  - `16:9` (Widescreen - Youtube/Banner): `1344 x 768` (1,032,192 px)
+  - `9:16` (Vertical Story/Reels/TikTok): `768 x 1344` (1,032,192 px)
+  - `2:3` (Editorial Poster/Pinterest): `832 x 1216` (1,011,712 px)
+  - `3:2` (Classic Photography): `1216 x 832` (1,011,712 px)
+  - `21:9` (Cinematic Ultrawide): `1536 x 640` (983,040 px)
+- [ ] Hàm `get_dimensions_by_aspect_ratio(ratio: str) -> tuple[int, int]` trả về `(width, height)`. Ném `ValueError` nếu tỷ lệ không hợp lệ
+- [ ] Hàm hỗ trợ `snap_to_sdxl_bucket(target_width: int, target_height: int) -> tuple[int, int]` tìm bucket có tỷ lệ co dãn gần nhất
+- [ ] Unit test xác nhận 100% kích thước đầu ra đều chia hết cho 64
 
 **Technical Notes:**
 
-- Stream the PNG bytes directly from Stability AI response into `upload_file()` without writing to disk
-- Add `X-Generation-Time-Ms` response header in addition to the body field for easy monitoring
+- SDXL được train đa tỷ lệ (multi-aspect ratio). Nếu đưa kích thước tùy tiện lệch khỏi tập bucket chuẩn, SDXL sẽ bị suy giảm chất lượng rõ rệt.
 
-**Dependencies:** Blocks: DA-AI06-03, DA-AI06-04. Blocked by: DA-AI06-01, DA-AI02-03.
+**Dependencies:** Blocks: DA-AI06-05. Blocked by: None.
 
 ---
 
-### DA-AI06-03 — Implement batch generation (generate 3 variations simultaneously via asyncio.gather)
+### DA-AI06-03 — Visual Style Preset Mapping Engine
+
+**Assignee:** Ân (AI) | **Priority:** 🟡 High
+
+**Goal:** Quản lý danh mục các phong cách mỹ thuật thị giác, ánh xạ giữa preset phía client của BrandHub sang visual styles SDXL chuẩn (Photographic, Cinematic, Digital Art...), đồng thời bổ sung các style tokens chuyên biệt cho thương mại quảng cáo.
+
+**Acceptance Criteria:**
+
+- [ ] Tạo module `app/utils/style_presets.py` định nghĩa `StylePresetEnum` hỗ trợ các SDXL visual style presets chuẩn: `photographic`, `digital-art`, `cinematic`, `3d-model`, `origami`, `anime`, `analog-film`, `neon-punk`, `isometric`, `low-poly`, `line-art`, `craft-clay`
+- [ ] Hỗ trợ nhóm **BrandHub Extended Presets** phục vụ chụp ảnh sản phẩm chuyên nghiệp:
+  - `commercial-luxury`: Ánh xạ `style_preset="photographic"` + bổ sung: `"commercial luxury product photography, Hasselblad H6D-100c, studio softbox, award-winning advertising, clean background"`
+  - `minimalist-studio`: Ánh xạ `style_preset="photographic"` + bổ sung: `"minimalist clean studio aesthetic, soft natural shadows, matte pastel podium, Scandinavian design vibe"`
+  - `flat-lay-editorial`: Ánh xạ `style_preset="photographic"` + bổ sung: `"overhead flat-lay tabletop photography, neatly arranged lifestyle props, knolling composition, sharp focus"`
+- [ ] Hàm `resolve_style_preset(preset_id: str) -> tuple[Optional[str], str, str]` trả về `(style_preset, positive_tokens, negative_tokens)`
+- [ ] Expose endpoint metadata `GET /ai/image/presets` để Frontend tự động load danh sách styles kèm hình thumbnail mẫu và mô tả ngắn
+
+**Technical Notes:**
+
+- Giữ danh mục style có thể mở rộng qua file cấu hình `resources/image_styles.json`.
+
+**Dependencies:** Blocks: DA-AI06-04, DA-AI06-05. Blocked by: None.
+
+---
+
+### DA-AI06-04 — Form-to-Prompt Engine (Core UX Feature)
+
+**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng cấu trúc dữ liệu form nhập liệu trực quan từ UI và engine tự động tổng hợp (kết hợp Rule-based Template & LLM Dynamic Expander) thành Master Prompt tiếng Anh chuẩn studio thương mại, giúp người dùng không cần kỹ năng viết prompt phức tạp vẫn sinh ra ảnh đỉnh cao.
+
+**Acceptance Criteria:**
+
+- [ ] Thiết kế Pydantic schema `FormToPromptInput`:
+  - `product_category`: Ngành hàng (FMCG, Mỹ phẩm, Thời trang, Công nghệ, Nội thất...)
+  - `primary_subject`: Tên và mô tả chi tiết vật thể/sản phẩm chính
+  - `setting_background`: Bối cảnh/không gian studio hoặc ngoại cảnh
+  - `lighting_type`: Studio Softbox, Golden Hour, Rim Light, Neon...
+  - `camera_angle`: Cận cảnh Eye-level Macro, Chụp từ trên xuống Flat-lay, Hero shot...
+  - `color_scheme`: Bảng màu chủ đạo (Luxury Black & Gold, Pastel, Vibrant...)
+  - `mood`: Cảm xúc thị giác (Thanh khiết, Sang trọng, Năng động...)
+  - `extra_details`: Chi tiết phụ trợ (giọt nước đọng, khói mờ, cánh hoa rơi...)
+- [ ] **Tier 1 (Fast Rule-based Synthesizer - Latency < 1ms):** Ghép nối có trật tự trọng số:
+  `[Style Preset Master Token], [Camera Angle & Shot Type] of [Primary Subject], situated in [Setting Background], with [Extra Details], [Lighting Type], [Color Scheme], [Mood Atmosphere], commercial advertising photography, 8k resolution, shot on 85mm lens, f/2.8 aperture, photorealistic, pristine product detailing, high-end commercial print quality.`
+- [ ] **Tier 2 (LLM Prompt Enhancer - Latency < 1.2s qua Groq Llama 3.3/Gemini Flash):** Khi user bật toggle `enhance_with_llm=True`, LLM tự động dịch thuật và làm giàu ngôn ngữ nhiếp ảnh chuyên nghiệp từ mô tả tiếng Việt sơ sài của user
+- [ ] Trả về đối tượng `GeneratedPromptPair` gồm `master_positive_prompt` (độ dài 50-90 từ) và `suggested_negative_prompt`
+- [ ] Đạt 100% test case cho 5 ngành hàng lớn: Mỹ phẩm, Đồ uống, Thời trang, Đồ công nghệ và Nội thất
+
+**Technical Notes:**
+
+- Tích hợp logic tại `app/services/prompt_builder_image.py`. Loại bỏ các filler words thừa thãi ("ultra 10000k") gây loãng CLIP embedding.
+
+**Dependencies:** Blocked by: DA-AI06-03. Blocks: DA-AI06-05.
+
+---
+
+### DA-AI06-05 — Pydantic Schemas & POST /ai/image/generate Route
+
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng API router và Data Contract kiểm duyệt dữ liệu đầu vào / đầu ra cho endpoint sinh ảnh đơn `POST /ai/image/generate`.
+
+**Acceptance Criteria:**
+
+- [ ] Định nghĩa `ImageGenerateRequest`:
+  - `prompt`: `Optional[str]` (bắt buộc nếu không có `form_data`)
+  - `form_data`: `Optional[FormToPromptInput]` (nếu có, tự động kích hoạt Form-to-Prompt Engine)
+  - `negative_prompt`: `Optional[str] = None`
+  - `style_preset`: `Optional[str] = "photographic"`
+  - `aspect_ratio`: `str = "1:1"`
+  - `client_id`: `str` (ID định danh thương hiệu)
+  - `seed`: `Optional[int] = None`
+  - `enhance_prompt`: `bool = False`
+- [ ] Định nghĩa `ImageGenerateResponse`:
+  - `image_url`: Presigned S3 URL (24h expiry)
+  - `s3_key`: Đường dẫn S3
+  - `seed`: Seed thực tế được sử dụng
+  - `final_prompt`: Master prompt cuối cùng sau khi build
+  - `style_preset`, `aspect_ratio`, `generation_time_ms`
+- [ ] Đăng ký router `app/api/v1/endpoints/image.py` và gán vào `app/api/v1/router.py`
+- [ ] Xử lý validation: Trả về HTTP 422 nếu cả `prompt` và `form_data` đều bị bỏ trống
+
+**Technical Notes:**
+
+- Sử dụng Pydantic v2 validator. Đảm bảo clean architecture giữa route layer và service layer.
+
+**Dependencies:** Blocked by: DA-AI06-01, DA-AI06-02, DA-AI06-04. Blocks: DA-AI06-06.
+
+---
+
+### DA-AI06-06 — In-Memory Streaming S3 Upload & Presigned URLs
+
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Tiếp nhận luồng bytes trực tiếp từ SDXL GPU Server response và streaming thẳng lên AWS S3 mà không lưu file trung gian ra ổ đĩa máy chủ (zero disk I/O), sau đó cấp phát Presigned URL thời hạn 24h.
+
+**Acceptance Criteria:**
+
+- [ ] Nhận `bytes` ảnh từ Subtask 01, bọc vào `io.BytesIO(raw_png_bytes)`
+- [ ] Quy tắc đặt key chuẩn trên S3: `generated/{client_id}/{YYYY-MM}/{uuid4}.png`
+- [ ] Upload lên S3 với `ContentType="image/png"`. Tuyệt đối không ghi file tạm ra đĩa cục bộ
+- [ ] Tạo Presigned GET URL với thời hạn 24 giờ (`expires_in = 86400`)
+- [ ] Tự động fallback sang `MockS3Client` khi biến môi trường `AWS_ACCESS_KEY_ID` chưa được cấu hình
+- [ ] Unit test xác nhận tải ảnh lên S3/MockS3 thành công và trả về URL hợp lệ
+
+**Technical Notes:**
+
+- Tái sử dụng module S3 có sẵn tại `app/utils/s3.py`. Đảm bảo giải phóng bộ nhớ buffer sau khi upload.
+
+**Dependencies:** Blocked by: DA-AI06-05. Blocks: DA-AI06-07, DA-AI06-08.
+
+---
+
+### DA-AI06-07 — Latency Tracking, Custom Headers & Observability
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
-**Goal:** Allow users to request multiple image variations in a single API call by parallelizing Stability AI requests.
+**Goal:** Đo lường chi tiết thời gian thực thi của từng công đoạn (Form-to-Prompt, SDXL GPU Render, S3 Upload), trả về custom response headers và ghi log có cấu trúc để theo dõi SLO/SLA (P95 < 30s).
 
 **Acceptance Criteria:**
 
-- [ ] `POST /ai/image/generate/batch` accepts the same parameters as single-generate plus `count: int` (max 3)
-- [ ] All `count` requests are dispatched concurrently using `asyncio.gather`; total time is approximately single-request time, not `count × single-request time`
-- [ ] Returns `{images: [{imageUrl, s3Key}, ...]}` with results in deterministic order (by variation index)
-- [ ] If one variation fails, the others still complete; failed slots return `{error: "generation_failed"}` in position
+- [ ] Đo đạc các mốc thời gian bằng `time.perf_counter()`: `prompt_time_ms`, `inference_time_ms`, `upload_time_ms`, `total_time_ms`
+- [ ] Thêm HTTP response headers: `X-Generation-Time-Ms`, `X-AI-Model` (`sdxl-lightning-local`), `X-S3-Key`
+- [ ] Ghi log có cấu trúc (Structured JSON Logging): `client_id`, `latency_ms`, `seed`, `aspect_ratio`
+- [ ] Bắn log cảnh báo mức `WARN` nếu `total_time_ms > 30000` (vi phạm SLO 30 giây)
 
 **Technical Notes:**
 
-- Stability AI charges per generation regardless of batching method; document that batch of 3 = 3× the credit cost
-- Use different random seeds per variation to ensure visual diversity across the batch
+- Đóng gói thành decorator `@measure_execution_time`.
 
-**Dependencies:** Blocks: None. Blocked by: DA-AI06-02.
-
----
-
-### DA-AI06-04 — Brand safety filter (prepend default negative prompts to avoid inappropriate content)
-
-**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
-
-**Goal:** Prevent the image generation pipeline from producing content that could damage client brands or violate platform content policies.
-
-**Acceptance Criteria:**
-
-- [ ] `utils/safety.py` defines `BRAND_SAFETY_NEGATIVE_PROMPTS: str` — a fixed string prepended to all user-supplied negative prompts
-- [ ] Safety prompt includes at minimum: nudity, violence, political content, competitor brand logos, text/watermarks
-- [ ] Unit test confirms safety string is present in the final prompt for every call, even when user supplies no negative prompt
-- [ ] Safety prompt is loaded from config (env var or file) so it can be updated without code deployment
-
-**Technical Notes:**
-
-- Store the safety prompt in `utils/prompts.py` as `SAFETY_NEGATIVE_PROMPT` constant; make it the first thing appended, not last, so it takes precedence over user additions
-
-**Dependencies:** Blocks: None. Blocked by: DA-AI06-01.
+**Dependencies:** Blocked by: DA-AI06-06. Blocks: DA-AI06-08.
 
 ---
 
-### DA-AI06-05 — Test 20 real product prompts, evaluate quality and generation time, document results
+### DA-AI06-08 — Concurrent Generation Orchestration via asyncio.gather
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
-**Goal:** Validate SDXL image quality against real BrandHub use cases and identify prompt patterns that produce reliably high-quality marketing visuals.
+**Goal:** Xây dựng endpoint `POST /ai/image/generate/batch` cho phép tạo song song 2-4 biến thể ảnh (mặc định 3 biến thể) cùng lúc bằng `asyncio.gather`, đảm bảo tổng thời gian phản hồi xấp xỉ thời gian sinh 1 ảnh đơn.
 
 **Acceptance Criteria:**
 
-- [ ] 20 prompts tested covering: packaged products, fashion items, food/beverage, lifestyle scenes, beauty products
-- [ ] Each output rated: visual quality (1-5), brand suitability (1-5), prompt adherence (1-5), generation time (s)
-- [ ] Top 10 best prompts documented as starter templates; 5 worst prompts documented with failure analysis
-
-**Dependencies:** Blocks: DA-AI11-03. Blocked by: DA-AI06-02, DA-AI06-04.
-
----
-
-### DA-AI07-01 — Set up InstantID pipeline (load model, InsightFace buffalo_l, ControlNet depth — GPU required)
-
-**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
-
-**Goal:** Establish a working InstantID inference environment in Colab/Replicate for development so face-consistent generation can begin without waiting for GPU hardware.
-
-**Acceptance Criteria:**
-
-- [ ] InstantID pipeline loads successfully on Replicate API (or Colab T4) with InsightFace buffalo_l face encoder and ControlNet depth model
-- [ ] A test image run produces a generated face image without runtime errors
-- [ ] Model weights download and cache mechanism is documented (buffalo_l is ~300MB; caching avoids re-download on every cold start)
-- [ ] Replicate API call structure (model ID, input schema, polling for output) is recorded for use in DA-AI07-03
+- [ ] Endpoint nhận payload tương tự single-generate kèm tham số `count: int = Field(default=3, ge=1, le=4)`
+- [ ] Khởi tạo `count` coroutines chạy độc lập và kích hoạt đồng thời qua `asyncio.gather(*tasks, return_exceptions=True)`
+- [ ] Tổng thời gian render 3 ảnh song song không vượt quá 1.35x thời gian sinh 1 ảnh đơn
+- [ ] Thứ tự kết quả trả về khớp chính xác với index yêu cầu ban đầu (`0, 1, 2`)
+- [ ] Sử dụng `asyncio.Semaphore(3)` giới hạn request đồng thời để tránh chạm rate limit
 
 **Technical Notes:**
 
-- buffalo_l download: `insightface.app.FaceAnalysis(name='buffalo_l', providers=['CUDAExecutionProvider'])` with `prepare(ctx_id=0, det_size=(640,640))`
-- Do not attempt to run InstantID on CPU; inference is prohibitively slow (>10 minutes per image) — enforce GPU requirement in code with an upfront check
+- Tích hợp tại `app/services/image_gen.py` trong hàm `generate_batch(...)`.
 
-**Dependencies:** Blocks: DA-AI07-02. Blocked by: DA-AI01-01, DA-AI01-02, DA-AI02-02.
+**Dependencies:** Blocked by: DA-AI06-06. Blocks: DA-AI06-09, DA-AI06-10.
 
 ---
 
-### DA-AI07-02 — Implement reference photo processing (face detection + face embedding extraction using InsightFace)
+### DA-AI06-09 — Seed Diversity & Visual Variation Strategy
 
-**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+**Assignee:** Ân (AI) | **Priority:** 🟡 High
 
-**Goal:** Build the face preprocessing module that converts a reference photo into the face embedding vector that InstantID uses to preserve facial identity.
+**Goal:** Đảm bảo các ảnh trong cùng 1 đợt batch sinh ra có sự đa dạng trực quan rõ rệt (không bị trùng lặp tư thế/bố cục) nhưng vẫn giữ tính nhất quán về chủ thể sản phẩm thương hiệu.
 
 **Acceptance Criteria:**
 
-- [ ] `services/ambassador/face_processor.py` function `extract_face_embedding(image_bytes: bytes) -> np.ndarray` returns a 512-dim face embedding vector
-- [ ] If no face is detected in the image, raises `NoFaceDetectedError` with a user-friendly message
-- [ ] If multiple faces are detected, uses the largest face by bounding box area
-- [ ] Unit test with a known face image verifies embedding shape is `(512,)` and is not all-zeros
+- [ ] Cấp phát seed ngẫu nhiên độc lập bằng `secrets.randbelow(4294967295)` cho từng biến thể, tuyệt đối không trùng seed
+- [ ] Hỗ trợ các chế độ biến thể:
+  - `seed_diversity`: Giữ nguyên prompt, thay đổi seed
+  - `angle_diversity`: Tự động phân bổ góc máy (Slot 0: chính diện, Slot 1: góc 45 độ, Slot 2: cận cảnh macro)
+  - `lighting_diversity`: Tự động phân bổ ánh sáng (Slot 0: studio softbox, Slot 1: rim light kịch tính, Slot 2: nắng chiều ấm)
+- [ ] Trả về thông tin `seed` và `applied_modifiers` của từng ảnh
 
 **Technical Notes:**
 
-- InsightFace `app.get(img)` returns a list of detected faces with `.embedding` attribute; select `max(faces, key=lambda f: f.bbox area)`
-- Accept image as bytes and decode with OpenCV `cv2.imdecode(np.frombuffer(img_bytes, np.uint8), cv2.IMREAD_COLOR)` to avoid file I/O
+- Tạo helper module `app/services/variation_engine.py` phân phối prompt modifiers.
 
-**Dependencies:** Blocks: DA-AI07-03. Blocked by: DA-AI07-01.
+**Dependencies:** Blocked by: DA-AI06-08. Blocks: DA-AI06-10.
 
 ---
 
-### DA-AI07-03 — Build POST /ai/ambassador/generate (1 reference photo + prompt → generated image preserving original face)
+### DA-AI06-10 — Partial Failure Handling & Credit Safety
 
-**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
-**Goal:** Deliver the core virtual ambassador endpoint that marketing users will call to generate on-brand human model images from a single reference photo.
+**Goal:** Xử lý sự cố từng phần trong batch: nếu 1 trong 3 biến thể gặp lỗi, các biến thể còn lại vẫn hoàn tất và trả về kết quả bình thường; đồng thời ghi nhận chính xác để hệ thống billing chỉ trừ đúng credit các ảnh thành công.
 
 **Acceptance Criteria:**
 
-- [ ] `POST /ai/ambassador/generate` accepts multipart: `referencePhoto` (image file) + JSON fields `{prompt, clientId, style}`
-- [ ] Returns `{imageUrl: str, s3Key: str, faceSimScore: float}` where `faceSimScore` is cosine similarity between reference and generated face embeddings
-- [ ] Generated image uploaded to S3 at `ambassador/{clientId}/generated/{uuid}.png`
-- [ ] Endpoint returns `400` with `{"error": "no_face_detected"}` if InsightFace finds no face in the reference photo
+- [ ] Phân loại kết quả từng slot:
+  - Thành công: `{"index": 0, "status": "SUCCESS", "image_url": "...", "s3_key": "...", "seed": 12345}`
+  - Thất bại: `{"index": 1, "status": "FAILED", "error_code": "GPU_ENGINE_ERROR", "error_message": "..."}`
+- [ ] Response tổng thể chứa `total_requested`, `successful_count`, `failed_count`, `batch_time_ms`, `images`
+- [ ] Nếu toàn bộ các biến thể đều thất bại: Ném HTTP 502 Bad Gateway
+- [ ] Xuất log audit: `CREDIT_AUDIT: client_id={id} requested=3 successful=2 billed_credits=2`
 
 **Technical Notes:**
 
-- Pipeline order: extract reference embedding → call InstantID (via Replicate API) → download output → compute face similarity → upload to S3 → return
-- Log `faceSimScore` for every generation; alert at WARN level if score < 0.85 as this indicates a consistency failure
+- Tạo Pydantic model `BatchImageItem` hỗ trợ union `SuccessBatchItem` và `FailedBatchItem`.
 
-**Dependencies:** Blocks: DA-AI07-04, DA-AI07-06. Blocked by: DA-AI07-02, DA-AI02-03.
+**Dependencies:** Blocked by: DA-AI06-08, DA-AI06-09. Blocks: DA-AI06-13.
 
 ---
 
-### DA-AI07-04 — Test face consistency (15 generated images from 1 reference, measure cosine similarity — target ≥ 0.85)
+### DA-AI06-11 — Multi-tier Safety Negative Prompt Injection
 
-**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
 
-**Goal:** Verify that InstantID meets the minimum face consistency standard required for the virtual ambassador feature to be credible to clients.
+**Goal:** Ngăn chặn tuyệt đối mô hình sinh ra ảnh nhạy cảm, bạo lực, xúc phạm văn hóa, các lỗi dị tật giải phẫu cơ thể người hoặc watermark/chữ rác làm hỏng tính chuyên nghiệp của thương hiệu.
 
 **Acceptance Criteria:**
 
-- [ ] 15 images generated from one reference photo using varied prompts (different outfits, backgrounds, poses)
-- [ ] Cosine similarity computed between reference embedding and each generated face embedding
-- [ ] ≥ 13 of 15 images (≥86%) achieve cosine similarity ≥ 0.85
-- [ ] Results table saved with: prompt, generation time, similarity score, pass/fail; summary statistics (mean, min, max) reported
+- [ ] Xây dựng module `app/utils/brand_safety.py` định nghĩa `BRAND_SAFETY_NEGATIVE_PROMPT` gom 3 nhóm:
+  - **Content Policy:** `nsfw, nudity, suggestive, violent, gore, blood, weapons, offensive, political, religious controversy, hate symbols`
+  - **Commercial Quality:** `watermark, text, logo, signature, lowres, blurry, jpeg artifacts, pixelated, distorted proportions, bad anatomy, deformed fingers, extra limbs, amputee`
+  - **Style Contamination:** `amateur photo, oversaturated, poor lighting, dirty surfaces`
+- [ ] **Quy tắc tiêm:** BẮT BUỘC đặt chuỗi Safety Negative ở ĐẦU câu: `effective_negative = f"{BRAND_SAFETY_NEGATIVE_PROMPT}, {user_negative}" if user_negative else BRAND_SAFETY_NEGATIVE_PROMPT`
+- [ ] Cho phép bổ sung từ khóa qua biến môi trường hoặc file `resources/safety_prompts.json` mà không cần sửa code
+- [ ] Unit test xác nhận 100% request đều mang đầy đủ chuỗi safety negative kể cả khi user không nhập negative prompt
 
 **Technical Notes:**
 
-- Use consistent `guidance_scale` and `ip_adapter_scale` parameters across all 15 tests; document the values used so results are reproducible
-- If pass rate is below threshold, investigate whether the issue is reference image quality (lighting, angle) before concluding the model is insufficient
+- Áp dụng trực tiếp vào pipeline gửi tới Self-Hosted SDXL Inference Engine.
 
-**Dependencies:** Blocks: DA-AI07-07. Blocked by: DA-AI07-03.
+**Dependencies:** Blocks: DA-AI06-05, DA-AI06-13. Blocked by: None.
 
 ---
 
-### DA-AI07-05 — Build ambassador gallery management (save reference + generated images to S3 under clientId prefix)
+### DA-AI06-12 — Input Sanitization & Blacklist Guardrails
+
+**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Quét và chặn đứng các prompt độc hại (Jailbreak, Prompt Injection, nội dung bất hợp pháp, ngôn từ thù hận) ngay tại tầng API trước khi gửi sang GPU Inference Server nhằm bảo vệ tài nguyên GPU và an toàn pháp lý cho BrandHub.
+
+**Acceptance Criteria:**
+
+- [ ] **Layer 1: Fast Regex / Keyword Blacklist (< 2ms):** Quét song ngữ (Việt - Anh) từ khóa cấm và các pattern tấn công jailbreak (`"ignore all previous instructions"`, `"dan mode"`, `"bypass safety filter"`). Ném HTTP 400 nếu vi phạm
+- [ ] **Layer 2: Lightweight LLM Guardrails Check:** Kiểm duyệt nhanh qua Groq Llama 3-8B (`temperature=0.0`) trả về `{is_safe: bool, reason: str}` đối với các prompt dài/phức tạp
+- [ ] Ghi log vi phạm an toàn vào bảng audit log: `timestamp`, `client_id`, `offending_prompt`, `matched_rule`
+- [ ] Đạt 100% test case (10 attack prompts bị chặn + 5 normal product prompts được thông qua an toàn)
+
+**Technical Notes:**
+
+- Mở rộng từ `app/utils/security_scanner.py`.
+
+**Dependencies:** Blocks: DA-AI06-05, DA-AI06-13. Blocked by: None.
+
+---
+
+### DA-AI06-13 — 20 Commercial Product Prompts Dataset Across 5 Categories
+
+**Assignee:** Ân (AI) | **Priority:** 🟡 High
+
+**Goal:** Thiết kế bộ dataset chuẩn gồm 20 prompts mô tả sản phẩm thương mại thực tế, phân bổ đều trên 5 nhóm ngành hàng trọng tâm của khách hàng BrandHub nhằm phục vụ đánh giá chất lượng toàn diện.
+
+**Acceptance Criteria:**
+
+- [ ] Tạo file cấu hình `tests/data/commercial_product_benchmark_20.json` gồm 20 kịch bản:
+  - **FMCG & Beverage (4):** Lon nước tăng lực lạnh có giọt nước đọng, Chai rượu vang đỏ trên nền gỗ sồi, Ly cà phê sữa đá hiện đại, Hộp trà matcha hữu cơ
+  - **Cosmetics & Skincare (4):** Lọ serum thủy tinh mờ vòi vàng trên bệ đá cẩm thạch, Thỏi son đỏ nhung cạnh hoa hồng, Hũ kem dưỡng ẩm thiên nhiên, Chai xịt khoáng tinh khiết
+  - **Fashion & Accessories (4):** Giày sneaker streetwear trên khối bê tông, Đồng hồ cơ nam lộ máy dây da, Túi xách nữ da bò Ý, Kính râm phản chiếu hoàng hôn
+  - **Tech & Gadgets (4):** Tai nghe không dây TWS mở nắp LED, Bàn phím cơ công thái học RGB bàn tối giản, Loa bluetooth bên bể bơi, Vòng đeo tay thông minh
+  - **Home Decor & Living (4):** Ghế armchair phong cách Bắc Âu, Nến thơm đậu nành trong spa, Bộ bình gốm nghệ thuật, Chăn len thô dệt kim
+- [ ] Mỗi prompt đi kèm cấu hình: `aspect_ratio`, `style_preset`, `form_data_equivalent`, `expected_attributes`
+
+**Technical Notes:**
+
+- Viết theo chuẩn nhiếp ảnh thương phẩm quốc tế mà Form-to-Prompt Engine đã thiết kế.
+
+**Dependencies:** Blocked by: DA-AI06-03, DA-AI06-04. Blocks: DA-AI06-14.
+
+---
+
+### DA-AI06-14 — Automated Benchmark Runner & Latency/Quality Metrics
+
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
+
+**Goal:** Xây dựng script tự động chạy qua toàn bộ 20 prompt, đo đạc latency, thu thập ảnh kết quả và tổng hợp thành bảng chỉ số định lượng.
+
+**Acceptance Criteria:**
+
+- [ ] Script `scripts/benchmark_image_pipeline.py` tự động gọi API `POST /ai/image/generate` cho 20 prompt, lưu ảnh về `tests/benchmark_outputs/{timestamp}/` và xuất `benchmark_summary.json`
+- [ ] Đo đạc chỉ số: `Min/Max/Avg/P95 Latency`, `Success Rate (%)`, `S3 Upload Throughput`
+- [ ] Đánh giá chất lượng chuyên gia (thang 1-5):
+  - **Visual Quality (VQ):** Độ sắc nét, chi tiết vật liệu (thủy tinh, kim loại, chất lỏng)
+  - **Brand Commercial Suitability (BCS):** Độ phù hợp đưa vào bài đăng quảng cáo
+  - **Prompt Adherence (PA):** Thể hiện đúng và đủ các vật thể được yêu cầu
+- [ ] Tiêu chuẩn nghiệm thu: Điểm trung bình VQ >= 4.2/5, BCS >= 4.0/5, Latency P95 <= 25 giây
+
+**Technical Notes:**
+
+- Hỗ trợ đánh giá sơ bộ tự động bằng VLM (Gemini Flash).
+
+**Dependencies:** Blocked by: DA-AI06-07, DA-AI06-13. Blocks: DA-AI06-15.
+
+---
+
+### DA-AI06-15 — Prompt Template Library & SDXL Failure Analysis Report
+
+**Assignee:** Ân (AI) | **Priority:** 🟡 High
+
+**Goal:** Biên soạn tài liệu phân tích chuyên sâu các lỗi cố hữu của mô hình SDXL trong sinh ảnh thương mại, các giải pháp khắc phục, và đóng gói Top 10 Master Templates sẵn sàng đưa vào sản phẩm cho người dùng cuối.
+
+**Acceptance Criteria:**
+
+- [ ] Hoàn thành tài liệu `docs/ai_models/DA-AI06-05_Image_Benchmark_Report.md`:
+  - **Top 10 Starter Master Templates:** 10 cấu trúc form/prompt đạt điểm cao nhất (VQ & BCS >= 4.5/5), phân theo 5 ngành hàng
+  - **Top 5 SDXL Failure Modes & Analysis:** Phân tích 5 lỗi kinh điển (Text/Logo méo, bàn tay người cầm sản phẩm biến dạng, vật liệu thủy tinh bị hòa tan nền, trùng lặp sản phẩm, nền bị rác)
+  - **Mitigation Best Practices:** Hướng dẫn chi tiết cách dùng negative prompt, góc máy thay thế và điều chỉnh ánh sáng để loại bỏ lỗi
+- [ ] Bàn giao file JSON `resources/starter_templates.json` cho Frontend team tích hợp dropdown giao diện
+
+**Technical Notes:**
+
+- Làm cơ sở chuyển giao kiến thức cho toàn bộ đội ngũ BrandHub.
+
+**Dependencies:** Blocked by: DA-AI06-14. Blocks: DA-AI11-03.
+
+---
+
+### DA-AI06-16 — Local / Server SDXL Model Serving (Diffusers/ComfyUI Engine)
 
 **Assignee:** Tuấn (AI) | **Priority:** 🟡 High
 
-**Goal:** Allow clients to maintain and retrieve a library of their ambassador reference photos and previously generated images.
+**Goal:** Thiết lập engine suy luận SDXL chạy offline/server (trên máy trạm local hoặc GPU server RunPod/Vast.ai); hỗ trợ SDXL-Lightning 4-step (sinh ảnh < 4s), phục vụ toàn bộ yêu cầu sinh ảnh thương mại cho BrandHub.
 
 **Acceptance Criteria:**
 
-- [ ] `POST /ai/ambassador/references` uploads a reference photo to S3 at `ambassador/{clientId}/references/{uuid}.png` and returns `{referenceKey: str}`
-- [ ] `GET /ai/ambassador/gallery?clientId={id}` returns `{references: [{key, presignedUrl}], generated: [{key, presignedUrl, createdAt}]}`
-- [ ] Presigned URLs expire in 1 hour; clients must re-request if expired
-- [ ] `DELETE /ai/ambassador/references/{referenceKey}` deletes the S3 object and returns `204 No Content`
-
-**Dependencies:** Blocks: None. Blocked by: DA-AI02-03, DA-AI02-04.
-
----
-
-### DA-AI07-06 — Apply ambassador endpoint (POST /ai/ambassador/apply: ambassador key + background S3 key → composed image)
-
-**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
-
-**Goal:** Enable users to place a generated ambassador image onto a chosen background, completing the product-with-model composition workflow.
-
-**Acceptance Criteria:**
-
-- [ ] `POST /ai/ambassador/apply` accepts `{ambassadorKey: str, backgroundKey: str, clientId: str}` and returns `{composedImageUrl: str, s3Key: str}`
-- [ ] Ambassador image background is removed (rembg) before compositing onto the background
-- [ ] Composed image uploaded to S3 at `ambassador/{clientId}/composed/{uuid}.png`
-- [ ] If either S3 key does not exist, returns `404` with the missing key identified in the error body
+- [ ] Cấu hình script khởi chạy engine hỗ trợ CUDA 12.x và FP16
+- [ ] Bật các kỹ thuật tối ưu hóa VRAM: `sdpa` attention, `enable_model_cpu_offload()`, `enable_vae_tiling()`
+- [ ] Tích hợp SDXL-Lightning: Thời gian sinh ảnh đạt **2.5 – 4 giây / ảnh 1024x1024**
+- [ ] Tích hợp cấu hình endpoint GPU Inference Server trong file settings (`settings.sdxl_engine_url`) để hệ thống kết nối trực tiếp đến node GPU phục vụ sinh ảnh thương mại
 
 **Technical Notes:**
 
-- Coordinate with DA-AI08-03 (Pillow composite service) — reuse `services/composition.py` composite function rather than duplicating Pillow logic here
-- rembg hair edge failure case applies here (ambassador images frequently have styled hair); document this known limitation in DA-AI08-07
+- Khởi chạy dưới dạng container hoặc dedicated process độc lập với main FastAPI để tránh crash khi OOM.
 
-**Dependencies:** Blocks: None. Blocked by: DA-AI07-03, DA-AI08-03, DA-AI02-03.
+**Dependencies:** GPU Workstation / Server. Blocks: DA-AI06-19, DA-AI06-20.
 
 ---
 
-### DA-AI07-07 — Benchmark InstantID vs IP-Adapter on 20 test images, document final decision with evidence
+### DA-AI06-17 — Training Dataset Collection & Quality Curation
+
+**Assignee:** Ân (AI) | **Priority:** 🟡 High
+
+**Goal:** Thu thập, tuyển chọn và chuẩn hóa bộ dữ liệu hình ảnh thương mại chất lượng cao (120 – 150 ảnh) phục vụ huấn luyện LoRA cho BrandHub.
+
+**Acceptance Criteria:**
+
+- [ ] Thu thập tối thiểu 120 ảnh thương mại chất lượng cao từ các nguồn mở (Unsplash Commercial, Behance, Pexels)
+- [ ] Lọc sạch tạp âm: Loại bỏ ảnh vỡ hạt, mờ, sai nét, ảnh chứa watermark hoặc logo thương hiệu lớn có bản quyền
+- [ ] Chuẩn hóa kích thước: Đưa toàn bộ ảnh về độ phân giải tối thiểu 1024x1024; phân loại theo tỷ lệ khung hình (1:1, 3:4, 16:9)
+- [ ] Đóng gói tập dữ liệu thành cấu trúc thư mục chuẩn: `dataset/raw/` và `dataset/curated/` kèm báo cáo thống kê
+
+**Dependencies:** None. Blocks: DA-AI06-18.
+
+---
+
+### DA-AI06-18 — Automated & Manual Dataset Captioning Pipeline
+
+**Assignee:** Ân (AI) | **Priority:** 🟡 High
+
+**Goal:** Xây dựng pipeline tự động sinh mô tả chi tiết (captions) cho tập ảnh dataset kết hợp gán nhãn trigger word định danh.
+
+**Acceptance Criteria:**
+
+- [ ] Sử dụng công cụ gán nhãn tự động (WD14 Tagger hoặc JoyCaption / Llama-3.2-Vision script)
+- [ ] Mỗi ảnh có 1 file text `.txt` đi kèm cùng tên, chứa đầy đủ: Trigger Word định danh (`brandhub_style`) và mô tả chi tiết chủ thể, góc máy, ánh sáng, màu sắc
+- [ ] Rà soát thủ công (manual review): Loại bỏ các từ khóa thừa thãi gây over-fitting
+- [ ] Xuất tập dataset hoàn chỉnh sẵn sàng nạp vào script training
+
+**Dependencies:** Blocked by: DA-AI06-17. Blocks: DA-AI06-19.
+
+---
+
+### DA-AI06-19 — Brand Visual Identity LoRA Fine-Tuning Execution
 
 **Assignee:** Tuấn (AI) | **Priority:** 🟡 High
 
-**Goal:** Produce a definitive, evidence-backed record of the ambassador model decision to satisfy mentor scrutiny and inform future model upgrades.
+**Goal:** Cấu hình và thực thi quá trình huấn luyện LoRA trên tập dữ liệu đã chuẩn bị bằng Kohya_ss hoặc Diffusers script.
 
 **Acceptance Criteria:**
 
-- [ ] 20 test images run through both InstantID and IP-Adapter (FaceID-Plus variant) with identical prompts
-- [ ] Comparison table: cosine similarity score, generation time, cost per image, subjective realism rating
-- [ ] Final decision statement names the winning model with quantitative justification
-- [ ] Document is cross-referenced in DA-AI11-01 Virtual Ambassador Technical Report
+- [ ] Cấu hình siêu tham số tối ưu:
+  - Base Model: `stabilityai/stable-diffusion-xl-base-1.0`
+  - Network Rank (Dim): 32 | Alpha: 16 (tỉ lệ 1:2 chuẩn cho style/identity)
+  - Learning Rate: UNet `1e-4`, Text Encoder `4e-5`. Optimizer: `AdamW8bit` hoặc `Prodigy`
+  - Epochs: 15 – 20 epochs (~1,500 – 2,500 steps)
+- [ ] Xuất file LoRA định dạng `.safetensors` với dung lượng nhỏ gọn (< 150MB)
+- [ ] Kiểm thử nghiệm thu (Validation): Sinh ảnh đối chứng ở các epoch để chọn checkpoint tối ưu, không bị over-fitting
+- [ ] Đẩy file checkpoint hoàn thiện lên AWS S3: `loras/brandhub_style_v1.safetensors`
 
-**Dependencies:** Blocks: DA-AI11-01. Blocked by: DA-AI07-04.
+**Dependencies:** Blocked by: DA-AI06-18, DA-AI06-16. Blocks: DA-AI06-20.
 
 ---
 
-### DA-AI07-08 — Write implementation guide (model params, prompt tips, GPU memory requirements)
+### DA-AI06-20 — LoRA Dynamic Loading & Multi-LoRA Inference Engine
 
-**Assignee:** Tuấn (AI) | **Priority:** 🟢 Low
+**Assignee:** Tuấn (AI) & Lộc (Sub-lead) | **Priority:** 🟡 High
 
-**Goal:** Enable a new developer to reproduce the ambassador pipeline setup without oral knowledge transfer from the original implementer.
+**Goal:** Tích hợp cơ chế nạp động LoRA từ S3 về local cache và inject vào pipeline suy luận mà không cần restart server.
 
 **Acceptance Criteria:**
 
-- [ ] Guide covers: environment setup (CUDA version, VRAM minimum), model weight download steps, recommended `ip_adapter_scale` and `guidance_scale` ranges
-- [ ] Prompt tips section documents 5 prompt patterns that reliably produce high face-similarity scores
-- [ ] Troubleshooting section addresses: "no face detected", OOM errors, low similarity scores
+- [ ] Hỗ trợ tham số `lora_id` và `lora_weight` (mặc định 0.8) trong `POST /ai/image/generate`
+- [ ] Tự động tải và cache file `.safetensors` từ S3 về thư mục `cache/loras/`
+- [ ] Sử dụng `load_lora_weights` và `set_adapters` của Diffusers để nạp LoRA trong < 0.05 giây
+- [ ] Hỗ trợ Multi-LoRA (ghép 1 LoRA sản phẩm + 1 LoRA phong cách) với trọng số cân bằng
 
-**Dependencies:** Blocks: None. Blocked by: DA-AI07-07.
+**Dependencies:** Blocked by: DA-AI06-16, DA-AI06-19. Blocks: None.
+
+
+
+---
+
+### DA-AI07-01 — Model Weights & Checkpoints Management (RealVisXL, IdentityNet, IP-Adapter, InsightFace)
+
+**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng module tự động tải, kiểm tra tính toàn vẹn (checksum) và nạp offline/online toàn bộ trọng số mô hình cho InstantID trên GPU Server; thay thế base model mặc định bằng RealVisXL V4.0 để loại bỏ hoàn toàn phong cách anime.
+
+**Acceptance Criteria:**
+
+- [ ] Module `ModelWeightsManager` quản lý cache tại `resources/models/`, hỗ trợ biến môi trường `MODELS_CACHE_DIR`
+- [ ] Tải và xác thực checkpoint Base Model `SG161222/RealVisXL_V4.0` (FP16 `.safetensors`, ~6.6GB)
+- [ ] Tải trọng số IdentityNet (`InstantX/InstantID/ControlNetModel`, ~2.5GB) và IP-Adapter Image Projector (`ip-adapter.bin`, ~0.6GB)
+- [ ] Tải trọn bộ model InsightFace `buffalo_l` (`det_10g.onnx`, `w600k_r50.onnx`,...) dung lượng ~300MB
+- [ ] Cơ chế tự động verify SHA256/kích thước file; nếu lỗi tự động re-download mà không làm gián đoạn service
+
+**Technical Notes:**
+
+- Đảm bảo quyền ghi vào thư mục cache; nạp qua `huggingface_hub.snapshot_download` hoặc `hf_hub_download` với resume capability.
+- License note: InsightFace buffalo_l dùng cho mục đích nghiên cứu/đồ án tốt nghiệp; tài liệu hóa rõ ràng trong dependencies manifest.
+
+**Dependencies:** Blocks: DA-AI07-02, DA-AI07-04. Blocked by: DA-AI06-16.
+
+---
+
+### DA-AI07-02 — In-Memory Face Preprocessing & 512-dim Embedding Extraction
+
+**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Tiền xử lý ảnh người mẫu tham chiếu hoàn toàn trên RAM (zero disk I/O), bóc tách vector đặc trưng 512 chiều chuẩn hóa L2 và sinh landmark canvas 5 điểm mốc cho IdentityNet.
+
+**Acceptance Criteria:**
+
+- [ ] Hàm `preprocess_face(image_bytes: bytes) -> FacePreprocessResult` giải mã ảnh bằng OpenCV (`cv2.imdecode`) từ RAM
+- [ ] Sử dụng InsightFace `buffalo_l` trích xuất `normed_embedding` 512 chiều ($\|v\|_2 = 1.0$)
+- [ ] Tạo ảnh landmark canvas nền đen vẽ 5 điểm mốc ngũ quan (`kps`: 2 mắt, mũi, 2 khóe miệng) đúng định dạng hình học của InstantID
+- [ ] Đạt 100% unit test với ảnh mẫu, đảm bảo vector đầu ra có shape `(512,)` và không chứa phần tử null/zero
+
+**Technical Notes:**
+
+- Không lưu file tạm ra ổ cứng SSD/HDD nhằm giảm latency I/O và triệt tiêu rủi ro lộ dữ liệu người mẫu.
+- Khởi tạo singleton `FaceAnalysis(name='buffalo_l', providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])` để tái sử dụng giữa các request.
+
+**Dependencies:** Blocks: DA-AI07-03, DA-AI07-04. Blocked by: DA-AI07-01.
+
+---
+
+### DA-AI07-03 — 4-Edge-Case Visual Input Defense & Fail-Fast Guardrails
+
+**Assignee:** Ân (AI) | **Priority:** 🟡 High
+
+**Goal:** Phát hiện sớm và từ chối các ảnh đầu vào không hợp lệ để bảo vệ GPU VRAM khỏi việc render lãng phí các ảnh lỗi.
+
+**Acceptance Criteria:**
+
+- [ ] **Case 1 (Không có mặt):** Ném `NoFaceDetectedError` (HTTP 422: "Không tìm thấy khuôn mặt trong ảnh tham chiếu")
+- [ ] **Case 2 (Nhiều người):** Tự động tính diện tích bounding box $(x_2-x_1) \times (y_2-y_1)$, chọn khuôn mặt lớn nhất và ghi log `WARN`
+- [ ] **Case 3 (Mặt quá nghiêng):** Đọc góc quay 3D `face.pose`. Nếu $|\text{yaw}| > 60^\circ$ hoặc $|\text{pitch}| > 45^\circ$, ném `FacePoseExceededError` (HTTP 422: "Khuôn mặt quá nghiêng, yêu cầu góc nhìn bán diện hoặc chính diện")
+- [ ] **Case 4 (Mặt quá mờ):** Tính phương sai Laplacian `cv2.Laplacian(face_crop, cv2.CV_64F).var()`. Nếu $< 100.0$, ném `FaceBlurryError` (HTTP 422: "Ảnh khuôn mặt quá mờ, không đủ chi tiết nhận diện")
+
+**Technical Notes:**
+
+- Fail-fast guardrails giúp giảm 90% các request lỗi trước khi chạm vào hàng đợi GPU, bảo vệ VRAM và credit hệ thống.
+
+**Dependencies:** Blocks: DA-AI07-06. Blocked by: DA-AI07-02.
+
+---
+
+### DA-AI07-04 — InstantID Serving Pipeline Deployment on RTX 4090 & VRAM Optimization
+
+**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Dựng pipeline suy luận hoàn chỉnh bằng `diffusers.StableDiffusionXLInstantIDPipeline` trên GPU Server RTX 4090 (24GB VRAM), áp dụng các kỹ thuật tối ưu bộ nhớ để đạt thời gian sinh ảnh < 15 giây.
+
+**Acceptance Criteria:**
+
+- [ ] Khởi tạo pipeline InstantID chạy FP16, tích hợp Base Model RealVisXL V4.0, IdentityNet và IP-Adapter
+- [ ] Kích hoạt PyTorch 2.x Scaled Dot-Product Attention (SDPA) trên toàn bộ UNet và ControlNet blocks
+- [ ] Bật `pipe.enable_vae_tiling()` và `pipe.enable_vae_slicing()` giải phóng đỉnh tải VRAM khi decode ảnh 1024x1024
+- [ ] Vì chạy trên RTX 4090 (24GB VRAM), **tuyệt đối không bật CPU offload** để giữ tốc độ suy luận nhanh nhất (< 15s cho 30 diffusion steps); đỉnh VRAM duy trì trong khoảng 14GB - 17GB
+- [ ] Tích hợp cơ chế Warmup tự động chạy 1 sample giả lập khi container khởi động để nạp sẵn CUDA kernels
+
+**Technical Notes:**
+
+- Tránh xung đột CUDA OOM bằng cách thiết lập `torch.cuda.set_per_process_memory_fraction(0.9)`.
+- Đo lường VRAM thực tế qua `torch.cuda.max_memory_allocated()`.
+
+**Dependencies:** Blocks: DA-AI07-05, DA-AI07-06. Blocked by: DA-AI07-01, DA-AI07-02.
+
+---
+
+### DA-AI07-05 — Golden Parameter Calibration (Strength, Conditioning Scale, CFG, Steps)
+
+**Assignee:** Tuấn (AI) | **Priority:** 🟡 High
+
+**Goal:** Thực nghiệm tinh chỉnh dải tham số tối ưu giữa độ giữ nét mặt (identity preservation) và độ tự nhiên của da (natural skin realism), tránh hiện tượng mặt bị đông cứng hoặc da sáp.
+
+**Acceptance Criteria:**
+
+- [ ] Tìm ra bộ thông số vàng chuẩn hóa:
+  - `instantid_strength`: **0.78** (khoảng an toàn: 0.75 – 0.82)
+  - `controlnet_conditioning_scale`: **0.80**
+  - `guidance_scale (CFG)`: **5.0** (tránh cháy sáng viền)
+  - `num_inference_steps`: **30 steps** với sampler `Euler a` hoặc `DPM++ 2M Karras`
+- [ ] Đóng gói cấu hình mặc định vào `app/core/config.py` và cho phép override linh hoạt qua payload request
+
+**Technical Notes:**
+
+- Khi `instantid_strength` > 0.85, mặt sẽ có hiện tượng bết dính và mất biểu cảm tự nhiên. Khi < 0.70, độ tương đồng danh tính giảm sút rõ rệt.
+
+**Dependencies:** Blocks: DA-AI07-06, DA-AI07-13. Blocked by: DA-AI07-04.
+
+---
+
+### DA-AI07-06 — Pydantic Schemas & POST /ai/ambassador/generate Route
+
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng API router FastAPI cho chức năng sinh ảnh đại sứ, tiếp nhận multipart upload, validate dữ liệu, điều phối suy luận và trả về kết quả kèm chỉ số đo latency.
+
+**Acceptance Criteria:**
+
+- [ ] Nhận `UploadFile` (ảnh chân dung) + Form data (`prompt`, `style_preset`, `negative_prompt`, `client_id`,...)
+- [ ] Định nghĩa Pydantic schema `AmbassadorGenerateResponse` chứa: `imageUrl` (S3 presigned), `s3Key`, `similarityScore`, `seed`, `latencyBreakdown`
+- [ ] Tích hợp đo lường thời gian bằng `time.perf_counter()`: `face_detect_ms`, `inference_ms`, `s3_upload_ms`, `total_ms`; trả về trong response header `Server-Timing`
+- [ ] Bắt và chuẩn hóa toàn bộ mã lỗi: 400 (Bad request), 422 (Edge cases mặt), 503 (GPU busy/OOM)
+
+**Technical Notes:**
+
+- Triển khai router tại `app/routers/ambassador.py`.
+- Tận dụng `BackgroundTasks` hoặc async execution để không block event loop của FastAPI khi xử lý ảnh nặng.
+
+**Dependencies:** Blocks: DA-AI07-07, DA-AI07-08. Blocked by: DA-AI07-03, DA-AI07-04, DA-AI07-05.
+
+---
+
+### DA-AI07-07 — Face Consistency Metric Engine & Cosine Similarity Gating (≥ 0.85)
+
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng engine tự động tính Cosine Similarity giữa ảnh tham chiếu và ảnh vừa sinh ra, phân loại chất lượng 3 cấp độ (PASS, WARNING, FAIL) phục vụ kiểm soát chất lượng tự động.
+
+**Acceptance Criteria:**
+
+- [ ] Hàm tính Cosine Similarity tức thời: $\text{Sim}(v_{\text{ref}}, v_{\text{gen}}) = v_{\text{ref}} \cdot v_{\text{gen}}$ (khi vector đã chuẩn hóa L2)
+- [ ] Tái sử dụng model InsightFace singleton từ Task 02 để trích xuất mặt trên ảnh kết quả (thời gian đo < 50ms)
+- [ ] Cài đặt Gating 3 mức:
+  - **`PASS` ($\ge 0.85$):** Đạt chuẩn danh tính thương hiệu, lưu S3 và gắn nhãn hợp lệ
+  - **`WARNING` ($0.75 \le \text{Score} < 0.85$):** Ghi log `WARN`, gắn badge cảnh báo độ nét cho user
+  - **`FAIL` ($< 0.75$ hoặc không thấy mặt):** Gắn cờ vi phạm nhận diện, thông báo lỗi hoặc kích hoạt retry
+
+**Technical Notes:**
+
+- Lưu điểm `similarity_score` vào metadata của S3 object để phục vụ audit và analytics sau này.
+
+**Dependencies:** Blocks: DA-AI07-13. Blocked by: DA-AI07-06.
+
+---
+
+### DA-AI07-08 — Ambassador S3 Gallery Management (CRUD, Presigned URLs 1h)
+
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
+
+**Goal:** Cung cấp hệ thống API cho doanh nghiệp lưu trữ, truy xuất và xóa thư viện ảnh đại sứ theo phân vùng clientId trên AWS S3.
+
+**Acceptance Criteria:**
+
+- [ ] Phân vùng S3 multi-tenant:
+  - Ảnh tham chiếu gốc: `clients/{clientId}/ambassadors/references/{uuid}.png`
+  - Ảnh đã sinh: `clients/{clientId}/ambassadors/generated/{uuid}.png`
+- [ ] `POST /ai/ambassador/references`: Upload và lưu ảnh gốc, cache vector embedding vào metadata hoặc Redis
+- [ ] `GET /ai/ambassador/gallery?clientId={id}`: Liệt kê danh sách ảnh kèm Presigned GET URL có thời hạn 1 giờ (`expires_in=3600`)
+- [ ] `DELETE /ai/ambassador/references/{key}`: Xóa an toàn object trên S3, kiểm tra bảo mật đúng tiền tố `clientId`
+
+**Technical Notes:**
+
+- Kế thừa module S3 helper tại `app/utils/s3.py`.
+- Áp dụng pagination cho gallery endpoint (mặc định 20 items/page).
+
+**Dependencies:** Blocks: None. Blocked by: DA-AI07-06.
+
+---
+
+### DA-AI07-09 — Ambassador Singleton Background Removal via rembg (U2Net)
+
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
+
+**Goal:** Xây dựng service tách nền người mẫu đại sứ thành layer trong suốt RGBA để chuẩn bị cho công đoạn ghép vào bối cảnh sản phẩm thương mại.
+
+**Acceptance Criteria:**
+
+- [ ] Khởi tạo duy nhất 1 session `rembg.new_session("u2net")` dạng Singleton trong RAM (tránh load lại model gây nghẽn)
+- [ ] Hàm `remove_background(image_bytes: bytes) -> bytes` trả về ảnh PNG có kênh alpha trong suốt
+- [ ] Xử lý viền tóc người mẫu bằng thuật toán alpha matting mềm để hạn chế hiện tượng răng cưa / lem viền
+- [ ] Đạt thời gian bóc nền < 1.5 giây / ảnh 1024x1024
+
+**Technical Notes:**
+
+- Session `rembg` tiêu tốn ~200MB VRAM/RAM; cần warm-up trước một dummy run lúc khởi động app.
+
+**Dependencies:** Blocks: DA-AI07-10. Blocked by: DA-AI07-06.
+
+---
+
+### DA-AI07-10 — Ambassador Background Placement POST /ai/ambassador/apply & Natural Relighting
+
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Ghép người mẫu đại sứ đã bóc nền lên ảnh nền sản phẩm; tự động đồng bộ ánh sáng và tạo bóng đổ nhân tạo để tạo ấn phẩm quảng cáo hoàn chỉnh.
+
+**Acceptance Criteria:**
+
+- [ ] `POST /ai/ambassador/apply` nhận `{ambassadorKey, backgroundKey, clientId, position_preset, scale}`
+- [ ] Tái sử dụng `CompositionService` (kế thừa từ EPIC AI-08), phối màu tự nhiên: Phủ ambient color tint (5-8% opacity) theo tông màu chủ đạo của Background lên người mẫu
+- [ ] Tạo bóng đổ giả lập (Artificial Drop Shadow): Nghiêng bóng xuống mặt sàn và làm mờ viền bằng `ImageFilter.GaussianBlur(radius=15)`
+- [ ] Upload ảnh hoàn thiện lên `clients/{clientId}/ambassadors/composited/{uuid}.png` và trả về Presigned URL
+
+**Technical Notes:**
+
+- Sử dụng Pillow composite in-memory; kiểm tra kích thước bounding box giữa background và ambassador để tự động tính tỉ lệ scale phù hợp (default 0.85).
+
+**Dependencies:** Blocks: None. Blocked by: DA-AI07-08, DA-AI07-09, DA-AI08-03.
+
+---
+
+### DA-AI07-11 — 5 Commercial Ambassador Style & Wardrobe Presets
+
+**Assignee:** Ân (AI) | **Priority:** 🟡 High
+
+**Goal:** Thiết kế 5 bộ master prompt presets tương ứng với 5 ngành hàng lớn, định hình chuẩn trang phục, ánh sáng và bối cảnh cho đại sứ thương hiệu.
+
+**Acceptance Criteria:**
+
+- [ ] **Preset 1 (Fashion):** Haute couture tailored suit, ánh sáng studio tối giản, phong cách tạp chí Vogue
+- [ ] **Preset 2 (Business):** Áo vest navy hiện đại, bối cảnh văn phòng kính ngập tràn ánh sáng ban ngày tự nhiên, đáng tin cậy
+- [ ] **Preset 3 (Casual):** Đồ linen thoải mái tại quán cafe ngoài trời, ánh sáng hoàng hôn golden hour, gần gũi
+- [ ] **Preset 4 (Sportswear):** Đồ tập techwear năng động tại phòng gym hiện đại, ánh sáng rim light kịch tính
+- [ ] **Preset 5 (Luxury):** Đầm dạ hội lụa / tuxedo sang trọng, bối cảnh tiệc champagne, ánh sáng điện ảnh chiaroscuro
+- [ ] Đóng gói thành file cấu hình `resources/ambassador_presets.json` có thể mở rộng mà không cần sửa code
+
+**Technical Notes:**
+
+- Mỗi preset bao gồm: `positive_modifier`, `recommended_aspect_ratio`, `lighting_profile`, `color_palette`.
+
+**Dependencies:** Blocks: DA-AI07-06, DA-AI07-13. Blocked by: None.
+
+---
+
+### DA-AI07-12 — Multi-tier Model Guardrails & Anti-Plastic Negative Prompts
+
+**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng bộ negative prompts chuyên sâu triệt tiêu các lỗi kinh điển của mô hình sinh người mẫu: da nhựa tượng sáp, mắt lé, và dị tật ngón tay.
+
+**Acceptance Criteria:**
+
+- [ ] **Guardrails giải phẫu tay:** Chặn bàn tay biến dạng, thừa/thiếu ngón (`deformed hands, extra fingers, fused fingers, mutated limbs`)
+- [ ] **Guardrails mắt & ngũ quan:** Chặn mắt lé, con ngươi lệch, mặt chảy sáp (`strabismus, cross-eyed, mismatched pupils, melting face`)
+- [ ] **Guardrails chất liệu da (Anti-plastic):** Chặn da tượng sáp, da búp bê nhựa (`plastic skin, wax figure, mannequin, overly smoothed, doll-like`)
+- [ ] **Positive Reinforcement:** Tự động tiêm các token tăng độ nét da thật: `photorealistic skin texture, visible natural skin pores, subsurface scattering`
+- [ ] Tích hợp bộ lọc Content Safety (chặn ảnh nhạy cảm, bạo lực, xúc phạm)
+
+**Technical Notes:**
+
+- Tiêm chuỗi negative guardrails vào đầu `negative_prompt` trước khi gửi vào pipeline InstantID.
+
+**Dependencies:** Blocks: DA-AI07-06, DA-AI07-13. Blocked by: None.
+
+---
+
+### DA-AI07-13 — Multi-Angle Face Consistency Benchmark (15 Images, ≥ 86% Pass ≥ 0.85)
+
+**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Thực nghiệm kiểm chứng tiêu chuẩn chất lượng: Sinh 15 ảnh liên tiếp từ 1 ảnh gốc với ma trận đa dạng góc máy và trang phục; đo đạc chỉ số Cosine Similarity thực tế.
+
+**Acceptance Criteria:**
+
+- [ ] Ma trận kiểm thử: 5 góc chụp (Chính diện 0°, nghiêng 30°, nghiêng 45°, nghiêng hẳn 90°, góc từ trên xuống) $\times$ 3 trang phục (Vest, Casual, Thể thao) = 15 ảnh
+- [ ] Tự động chạy đo Cosine Similarity qua script `tests/benchmark_ambassador_consistency.py`
+- [ ] **Tiêu chuẩn nghiệm thu:** Tối thiểu 13 / 15 ảnh ($\ge 86.7\%$) đạt điểm Cosine Similarity $\ge 0.85$
+- [ ] Xuất báo cáo bảng ma trận thống kê: Prompt, Latency, Similarity score, trạng thái Pass/Fail (Mean, Min, Max score)
+
+**Technical Notes:**
+
+- Đảm bảo giữ nguyên seed và các hyperparameter đã hiệu chuẩn từ DA-AI07-05 trong suốt quá trình benchmark để đảm bảo tính khách quan.
+
+**Dependencies:** Blocks: DA-AI07-14. Blocked by: DA-AI07-05, DA-AI07-07, DA-AI07-11, DA-AI07-12.
+
+---
+
+### DA-AI07-14 — Empirical Benchmark: InstantID vs IP-Adapter FaceID-Plus v2 (20 Images)
+
+**Assignee:** Tuấn (AI) | **Priority:** 🟡 High
+
+**Goal:** Chạy thực nghiệm đối đầu trên tập 20 ảnh mẫu chuẩn hóa để so sánh khoa học giữa InstantID và IP-Adapter FaceID-Plus v2, làm cơ sở bảo vệ đồ án trước Mentor.
+
+**Acceptance Criteria:**
+
+- [ ] Chuẩn bị tập 20 ảnh mẫu (10 nam, 10 nữ, đa sắc tộc, đa lứa tuổi 20-50)
+- [ ] Đo đạc và lập bảng so sánh 4 chỉ số:
+  1. *Cosine Similarity*: Đo bằng ArcFace embedding
+  2. *Inference Latency*: Thời gian sinh trung bình (s) trên cùng GPU RTX 4090
+  3. *Peak VRAM*: Mức ngốn VRAM tối đa (`torch.cuda.max_memory_allocated()`)
+  4. *Subjective Realism*: Điểm đánh giá độ tự nhiên của da và thần thái (thang 1-5 sao)
+- [ ] Xuất tài liệu kết luận định lượng chứng minh tại sao chọn InstantID cho BrandHub, liên kết chéo vào báo cáo DA-AI11-01
+
+**Technical Notes:**
+
+- Tạo script chạy song song 2 pipelines `tests/benchmark_instantid_vs_ipadapter.py`, lưu kết quả JSON và render biểu đồ so sánh.
+
+**Dependencies:** Blocks: DA-AI07-15, DA-AI11-01. Blocked by: DA-AI07-13.
+
+---
+
+### DA-AI07-15 — 5 Master Commercial Ambassador Templates & Operational Guide
+
+**Assignee:** Ân (AI) | **Priority:** 🟢 Low
+
+**Goal:** Đóng gói Top 5 Template thương phẩm sẵn sàng đưa lên giao diện người dùng và tài liệu hóa cẩm nang kỹ thuật chuyển giao.
+
+**Acceptance Criteria:**
+
+- [ ] Tạo file JSON `resources/ambassador_starter_templates.json` gồm 5 mẫu cấu hình chuẩn (Hero Banner 16:9, Beauty Portrait 1:1, Social Post 4:5, Story 9:16, Product Co-star)
+- [ ] Hoàn thành tài liệu Markdown `docs/ai_models/DA-AI07_Virtual_Ambassador_Guide.md`:
+  - Hướng dẫn cài đặt CUDA 12.x, PyTorch và nạp model weights
+  - Bộ tham số vàng và các tips viết prompt đạt độ tương đồng cao
+  - Cẩm nang xử lý sự cố (Troubleshooting: lỗi OOM, lỗi NoFace, lỗi mặt bị trôi)
+
+**Technical Notes:**
+
+- Phối hợp với Tuấn để hoàn thiện phần thông số GPU và CUDA trong tài liệu.
+
+**Dependencies:** Blocks: None. Blocked by: DA-AI07-14.
 
 ---
 
@@ -7144,156 +7752,240 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 ---
 
-### DA-AI09-01 — Integrate Google Veo API (auth, POST generate → jobId → poll GET status → S3 upload)
+### DA-AI09-01 — Pydantic Schemas & Async Video Job State Management in Redis
 
-**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+**Assignee:** Lộc (Sub-lead) | **Priority:** 🔴 Critical
 
-**Goal:** Establish the complete async video generation pipeline from API trigger to a finished video file in S3.
+**Goal:** Định nghĩa toàn bộ Pydantic schemas (Request/Response) cho pipeline video bất đồng bộ và kiến trúc State Machine trong Redis để theo dõi trạng thái job (TTL 24h), loại bỏ hoàn toàn trường thumbnail bắt buộc.
 
 **Acceptance Criteria:**
 
-- [ ] `services/video/veo_client.py` implements: `create_video_job(prompt: str, params: dict) -> str` (returns jobId) and `get_job_status(jobId: str) -> {status, videoUrl?}`
-- [ ] Job status is polled every 10 seconds with a maximum timeout of 10 minutes; on timeout raises `VideoGenerationTimeoutError`
-- [ ] On status `DONE`, video is downloaded from Veo-provided URL and uploaded to S3 at `videos/{clientId}/{uuid}.mp4`
-- [ ] Auth uses Google Cloud service account credentials from `GOOGLE_APPLICATION_CREDENTIALS` env var
+- [ ] Pydantic Schemas (`schemas/video.py`): `VideoGenerationRequest` (`prompt`, `movement_type`, `duration_seconds`, `aspect_ratio`, `fps`, `client_id`, `template_id`), `VideoJobResponse` (`job_id`, `status: PENDING`), `VideoJobStatusResponse` (`job_id`, `status: PENDING|PROCESSING|COMPLETED|FAILED`, `progress_percent`, `video_url`, `duration_seconds`, `error_message`, `created_at`, `updated_at`)
+- [ ] Spec Zero Thumbnail: Tuyệt đối không chứa trường thumbnail bắt buộc trong Request/Response schema (tránh overhead sinh ảnh thumbnail)
+- [ ] Redis State Manager (`services/video/state_manager.py`): Quản lý vòng đời job qua key `video:job:{job_id}` với TTL 24 giờ (86400s), tự động dọn dẹp bộ nhớ
+- [ ] State transitions chuẩn: `PENDING` → `PROCESSING` → `COMPLETED` (hoặc `FAILED`)
+- [ ] Helper methods atomic: `init_job(job_id, payload)`, `update_job_status(job_id, status, **kwargs)`, `get_job_status(job_id)` đảm bảo thread-safe và non-blocking
+- [ ] Unit tests cho validation schema và serialization/deserialization trạng thái job trong Redis
 
 **Technical Notes:**
 
-- Store `jobId → status` in Redis (key: `veo:job:{jobId}`, TTL 24 hours) so the FastAPI polling endpoint (DA-AI09-05) can serve status without re-querying Veo
-- Poll in a background task, not in the request thread; POST endpoint returns `{jobId}` immediately
+- Tái sử dụng Singleton Redis client có sẵn từ `core/redis.py`; lưu payload dưới dạng JSON string để tối ưu hiệu năng đọc ghi
+- Triết lý *ponytail*: Quản lý state thuần trên Redis O(1), không cần setup worker message broker phức tạp
 
-**Dependencies:** Blocks: DA-AI09-05, DA-AI09-06. Blocked by: DA-AI01-03, DA-AI02-02.
+**Dependencies:** Blocks: DA-AI09-04, DA-AI09-05, DA-AI09-10. Blocked by: DA-AI01-03.
 
 ---
 
-### DA-AI09-02 — Build video prompt template system (topic + movement type + duration → optimized Veo prompt)
+### DA-AI09-02 — Google Veo API Client & Async Generation Engine
 
-**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
 
-**Goal:** Ensure video generation prompts consistently include the motion and scene elements that Veo needs to produce high-quality marketing videos.
+**Goal:** Xây dựng module tích hợp Google Veo API trên Vertex AI, xử lý xác thực Google Cloud Service Account, dispatch job sinh video và vòng lặp async polling theo dõi tiến trình sinh video từ Google Cloud.
 
 **Acceptance Criteria:**
 
-- [ ] `services/video/prompt_builder.py` function `build_video_prompt(topic, movement_type, duration_seconds, brand_context) -> str` returns an optimized Veo prompt string
-- [ ] Movement types supported: `camera_pan`, `zoom_in`, `zoom_out`, `subject_walk`, `static`; each maps to a specific Veo parameter phrase
-- [ ] Duration is included in the prompt as an explicit instruction (`"Generate a {n}-second video..."`)
-- [ ] Unit tests for all 5 movement types verify the correct motion phrase appears in the output prompt
+- [ ] `services/video/veo_client.py` tích hợp Google GenAI SDK / Vertex AI API, xác thực qua Google Cloud Service Account credentials (`GOOGLE_APPLICATION_CREDENTIALS`)
+- [ ] `dispatch_video_generation(prompt: str, parameters: dict) -> str`: gửi yêu cầu sinh video lên Veo API và nhận về `veo_operation_id`
+- [ ] Vòng lặp Async Polling: `poll_operation_status(operation_id: str, timeout_seconds: int = 600) -> dict`: kiểm tra tiến độ mỗi 10 giây với cơ chế jitter & exponential backoff
+- [ ] Cơ chế Timeout & Fallback: Giới hạn thời gian sinh tối đa 10 phút; nếu quá hạn tự động ngắt và ném `VideoGenerationTimeoutError`
+- [ ] Error Handling chuyên sâu: Bắt và xử lý chuẩn các lỗi Google Cloud: 429 Quota Exceeded, 400 Safety Policy Violation, 503 Service Unavailable
 
-**Dependencies:** Blocks: DA-AI09-04, DA-AI09-05. Blocked by: DA-AI01-04, DA-AI02-04.
+**Technical Notes:**
+
+- Sử dụng `httpx.AsyncClient` hoặc async SDK call để không block FastAPI event loop trong suốt quá trình polling
+- Tự động refresh OAuth2 access token đảm bảo quá trình polling dài không bị gián đoạn do token expiration
+
+**Dependencies:** Blocks: DA-AI09-04, DA-AI09-05. Blocked by: DA-AI01-03, DA-AI09-03.
 
 ---
 
-### DA-AI09-03 — Implement movement parameter mapping (camera_pan, zoom_in, zoom_out, subject_walk → Veo params)
+### DA-AI09-03 — Movement Parameter Mapping & Camera Motion Translation Engine
+
+**Assignee:** Tuấn (AI) | **Priority:** 🟡 High
+
+**Goal:** Chuẩn hóa và ánh xạ các tùy chọn chuyển động camera thương mại (Pan, Tilt, Zoom, Dolly, Static) cùng các thông số kỹ thuật video sang payload tương thích với Google Veo API.
+
+**Acceptance Criteria:**
+
+- [ ] `utils/video_params.py` định nghĩa `CameraMotionType` enum: `STATIC`, `PAN_LEFT`, `PAN_RIGHT`, `TILT_UP`, `TILT_DOWN`, `ZOOM_IN`, `ZOOM_OUT`, `DOLLY`, `TRACKING_SHOT`
+- [ ] `map_movement_to_veo_params(motion_type: str, motion_strength: float = 1.0) -> dict`: ánh xạ chính xác sang parameter schema của Google Veo
+- [ ] Hỗ trợ đầy đủ các Aspect Ratios tiêu chuẩn: `16:9` (Landscape TV/Web), `9:16` (Portrait TikTok/Reels/Shorts), `1:1` (Square Instagram/Facebook)
+- [ ] Cấu hình FPS (24fps cinematic, 30fps commercial standard) và thời lượng video (5s - 10s) theo hạn ngạch Google Veo
+- [ ] Unit tests kiểm tra 100% các giá trị enum ánh xạ đúng, không trả về giá trị `None` hoặc tham số không hợp lệ
+
+**Technical Notes:**
+
+- Thiết kế dạng declarative config table (`dict`), cho phép dễ dàng cập nhật khi Google nâng cấp phiên bản Veo API mà không phải sửa logic xử lý
+
+**Dependencies:** Blocks: DA-AI09-02, DA-AI09-06. Blocked by: DA-AI01-04.
+
+---
+
+### DA-AI09-04 — Direct S3 Video Streamer, FFprobe Duration Extractor & Presigned URL 7 Days (Zero Thumbnail)
+
+**Assignee:** Lộc (Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Tải video trực tiếp từ Google Veo và stream thẳng lên AWS S3 không qua đĩa tạm, trích xuất thời lượng chính xác qua ffprobe, tạo presigned URL 7 ngày; triệt để loại bỏ trích xuất thumbnail ffmpeg nhằm tối đa tốc độ xử lý.
+
+**Acceptance Criteria:**
+
+- [ ] **Quy tắc Zero Thumbnail (*ponytail*):** Tuyệt đối KHÔNG trích xuất thumbnail bằng ffmpeg; loại bỏ toàn bộ overhead decode frame và render ảnh tĩnh, giảm ít nhất 3–5 giây độ trễ pipeline
+- [ ] Direct Stream S3 Upload (`services/video/s3_streamer.py`): Đọc video stream từ Veo URL qua `httpx.stream()` và pipe trực tiếp vào S3 Multipart Upload / Streaming Body mà không ghi file tạm xuống ổ cứng local của container
+- [ ] Trích xuất thời lượng bằng `ffprobe`: Sử dụng `ffprobe` đọc header video từ stream buffer để lấy chính xác `duration_seconds` (float) và metadata độ phân giải trong < 200ms
+- [ ] S3 Key Naming Convention: `videos/{client_id}/{uuid}.mp4`, Content-Type: `video/mp4`
+- [ ] S3 Presigned URL 7 ngày: Tạo URL xem video với thời hạn 7 ngày (`ExpiresIn=604800` giây), đảm bảo client phát video ổn định mà không cần refresh URL thường xuyên
+- [ ] Cập nhật kết quả hoàn tất vào Redis: `{status: "COMPLETED", video_url: presigned_url, duration_seconds: duration, error_message: null}`
+
+**Technical Notes:**
+
+- Chỉ đóng gói binary `ffprobe` gọn nhẹ trong Docker container; không cài đặt các thư viện transcode ffmpeg cồng kềnh
+- Presigned URL 7 ngày là mức tối đa của AWS Signature Version 4 với IAM User credentials
+
+**Dependencies:** Blocks: DA-AI09-05, DA-AI09-10. Blocked by: DA-AI09-01, DA-AI09-02.
+
+---
+
+### DA-AI09-05 — FastAPI Video Endpoints (POST /ai/video/generate & GET /ai/video/{jobId}/status) & Async Polling
+
+**Assignee:** Lộc (Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng cặp REST API endpoints trong FastAPI phục vụ sinh video bất đồng bộ non-blocking, hỗ trợ polling trạng thái qua Redis, validate dữ liệu đầu vào và trả về Server-Timing / Request-ID.
+
+**Acceptance Criteria:**
+
+- [ ] `POST /ai/video/generate`: Nhận `VideoGenerationRequest`, validate dữ liệu đầu vào, sinh UUID `job_id`, khởi tạo state `PENDING` trong Redis, kích hoạt background pipeline và trả về ngay HTTP 202 Accepted `{job_id: str, status: "PENDING"}` (< 50ms)
+- [ ] `GET /ai/video/{jobId}/status`: Tra cứu trực tiếp từ Redis O(1), trả về `VideoJobStatusResponse` gồm: `job_id`, `status`, `progress_percent`, `video_url`, `duration_seconds`, `error_message`. Hoàn toàn không có trường thumbnail bắt buộc
+- [ ] Xử lý Job Not Found: Trả về HTTP 404 Not Found theo chuẩn RFC 7807 problem details nếu `job_id` không tồn tại hoặc đã hết hạn TTL
+- [ ] Response Headers: Tự động đính kèm `X-Request-ID` và `Server-Timing` đo đạc thời gian tra cứu Redis
+- [ ] Background Task Dispatcher: Điều phối luồng async tuần tự: prompt compilation → Veo dispatch → async polling → S3 streaming upload → Redis completion update
+- [ ] Rate Limiting: Giới hạn tần suất gọi endpoint (10 requests/phút/client) phòng chống spam request sinh video tốn kém
+
+**Technical Notes:**
+
+- Polling endpoint chỉ đọc dữ liệu từ Redis cache, tuyệt đối không gọi trực tiếp sang Google Veo API để tiết kiệm chi phí và tránh cạn kiệt rate limit quota
+
+**Dependencies:** Blocks: DA-AI09-10. Blocked by: DA-AI09-01, DA-AI09-02, DA-AI09-04, DA-AI09-06.
+
+---
+
+### DA-AI09-06 — Video Prompt Engineering Engine & Form-to-Prompt Converter
+
+**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng engine tự động chuyển đổi thông tin form đầu vào đơn giản của người dùng (chủ đề, phong cách, camera motion, thời lượng, bối cảnh thương hiệu) thành prompt điện ảnh chất lượng cao tối ưu riêng cho Google Veo.
+
+**Acceptance Criteria:**
+
+- [ ] Module `services/video/prompt_builder.py`: hàm `build_veo_prompt(topic, tone, movement_type, duration_seconds, brand_context) -> str`
+- [ ] Tích hợp bộ Cinematographic Modifiers: ánh sáng điện ảnh (volumetric lighting, cinematic lighting), độ sắc nét cao (4k photorealistic, pristine quality), chuyển động mượt mà (smooth motion, 35mm lens, commercial grade)
+- [ ] Ghép nối chính xác các mô tả chuyển động camera tương ứng từ DA-AI09-03 vào prompt để Veo hiểu đúng ý đồ chuyển động
+- [ ] Tích hợp ngữ cảnh thương hiệu (brand tone, brand guidelines) vào prompt nhằm đảm bảo video thể hiện đúng cá tính thương hiệu
+- [ ] Unit tests với 10 trường hợp phong cách đa dạng đảm bảo cấu trúc prompt mạch lạc, không trùng lặp từ khóa, không vượt quá giới hạn token của Veo
+
+**Technical Notes:**
+
+- Áp dụng cấu trúc prompt phân đoạn: `[Subject & Action] + [Environment & Setting] + [Camera Motion] + [Cinematography & Lighting] + [Commercial Style]`
+
+**Dependencies:** Blocks: DA-AI09-07, DA-AI09-05. Blocked by: DA-AI09-03.
+
+---
+
+### DA-AI09-07 — Master Marketing Video Prompt Library (10 Archetypes × 3 Motion Styles = 30 Templates)
+
+**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng và kiểm định thư viện 30 prompt templates chuyên biệt cho video marketing thương mại (10 định dạng nội dung × 3 phong cách chuyển động), cho phép người dùng kích hoạt tạo video nhanh chóng với 1 cú click.
+
+**Acceptance Criteria:**
+
+- [ ] 10 dạng video marketing thương mại:
+  1. Product Showcase (Giới thiệu chi tiết sản phẩm cao cấp)
+  2. Brand Launching (Video công bố ra mắt thương hiệu mới)
+  3. Seasonal Promo & Flash Sale (Khuyến mãi mùa vụ, Black Friday, Tết)
+  4. Lifestyle & Outdoor (Sản phẩm trong đời sống thường nhật)
+  5. How-To & Quick Tutorial (Hướng dẫn sử dụng sản phẩm nhanh)
+  6. Customer Testimonial & Story (Câu chuyện khách hàng truyền cảm hứng)
+  7. Luxury Unboxing (Trải nghiệm mở hộp sản phẩm tinh tế)
+  8. Behind-The-Scenes (Hậu trường chế tác sản phẩm)
+  9. Event & Teaser (Kích thích tò mò về sự kiện sắp diễn ra)
+  10. Viral Social Trend (Video bắt trend dạng ngắn TikTok/Shorts)
+- [ ] 3 phong cách chuyển động máy quay cho mỗi dạng: (A) Dynamic Tracking/Orbit, (B) Smooth Cinematic Pan/Zoom, (C) Fast-paced Commercial Dolly
+- [ ] Đóng gói 30 templates trong `resources/video_templates.json` kèm các placeholders chuẩn hóa: `{product_name}`, `{brand_name}`, `{key_benefit}`, `{mood}`
+- [ ] Thực nghiệm kiểm thử toàn bộ 30 templates trên Veo API, đạt tỷ lệ ít nhất 26/30 templates cho ra video đạt chuẩn thương mại
+- [ ] Cung cấp hàm helper `get_video_template(template_id: str, context: dict) -> str`
+
+**Technical Notes:**
+
+- Định dạng file cấu hình JSON có trường metadata `version: "1.0.0"`, cho phép thêm bớt template mà không cần restart server
+
+**Dependencies:** Blocks: DA-AI09-09, DA-AI09-10. Blocked by: DA-AI09-06.
+
+---
+
+### DA-AI09-08 — Content Safety Guardrails & Negative Motion Constraints for Video
 
 **Assignee:** Ân (AI) | **Priority:** 🟡 High
 
-**Goal:** Translate BrandHub's user-friendly movement vocabulary into the exact Veo API parameter values confirmed during research.
+**Goal:** Xây dựng lớp bảo vệ đa tầng chống rủi ro nội dung độc hại (Brand Safety) và ngăn ngừa các lỗi chuyển động vật lý dị thường trong video do AI sinh ra (méo mó khung hình, giật lag hình ảnh, artifacts).
 
 **Acceptance Criteria:**
 
-- [ ] `utils/video_params.py` defines `MOVEMENT_MAP: dict` mapping each movement type to the corresponding Veo API parameter dict
-- [ ] All movement types from DA-AI01-04 research are covered; parameter values are taken directly from the research results
-- [ ] Unit test: calling the mapper with each movement type returns a non-empty param dict with no `None` values
+- [ ] Module `services/video/guardrails.py` triển khai class `VideoSafetyGuard`
+- [ ] Blacklist Keyword Filter: Quét và chặn ngay lập tức (Fail-fast HTTP 400/422) các prompt chứa từ khóa độc hại, bạo lực, nhạy cảm, vi phạm bản quyền hoặc vi phạm chính sách Google Cloud
+- [ ] Negative Motion Constraints: Tự động tiêm các ràng buộc negative đặc thù cho video: `shaky camera, jitter, flickering, frame distortion, morphing objects, unnatural motion, blurry, low resolution, watermark, text artifacts`
+- [ ] Motion Hallucination Defense: Phát hiện và cảnh báo các yêu cầu chuyển động trái quy luật vật lý gây lỗi biến dạng khung hình
+- [ ] Bộ unit test kiểm thử 20 prompt nguy cơ cao đảm bảo hệ thống chặn thành công 100% các vi phạm
 
 **Technical Notes:**
 
-- This mapping will likely need updating after DA-AI01-03 confirms exact Veo parameter names; design it as a config dict, not hard-coded if-else chains
+- Tối ưu hiệu năng theo triết lý *ponytail*: sử dụng regex compiled & in-memory hash set để kiểm tra từ khóa với độ trễ < 1ms
 
-**Dependencies:** Blocks: DA-AI09-02. Blocked by: DA-AI01-03, DA-AI01-04.
-
----
-
-### DA-AI09-04 — Create prompt library: 10 marketing video types × 3 movement styles = 30 templates
-
-**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
-
-**Goal:** Give the system and users a tested starting library of prompts that reliably produce professional marketing video outputs.
-
-**Acceptance Criteria:**
-
-- [ ] 30 prompt templates created: 10 video types (product showcase, brand intro, seasonal, lifestyle, tutorial, testimonial, launch, promo, behind-the-scenes, social trend) × 3 movement styles
-- [ ] Each template is a parameterized string with `{product}`, `{brand}`, `{tone}` placeholders
-- [ ] All 30 templates tested against Veo API; at least 25 produce acceptable output; failed templates are revised or replaced
-- [ ] Templates stored in `utils/video_templates.py` as a structured dict keyed by `(video_type, movement_style)`
-
-**Dependencies:** Blocks: DA-AI09-07. Blocked by: DA-AI09-02, DA-AI01-04.
+**Dependencies:** Blocks: DA-AI09-05, DA-AI09-10. Blocked by: DA-AI09-06.
 
 ---
 
-### DA-AI09-05 — Build POST /ai/video/generate → returns {jobId}, GET /ai/video/{jobId}/status for polling
-
-**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
-
-**Goal:** Expose the async video generation flow to clients via a non-blocking API that matches the jobId polling pattern used across the system.
-
-**Acceptance Criteria:**
-
-- [ ] `POST /ai/video/generate` accepts `{topic, movementType, durationSeconds, clientId, templateKey?}` and immediately returns `{jobId: str, status: "PENDING"}`
-- [ ] `GET /ai/video/{jobId}/status` returns `{status: PENDING|PROCESSING|DONE|FAILED, videoUrl?, thumbnailUrl?, errorMessage?}`
-- [ ] Status is read from Redis (set by background poller in DA-AI09-01); endpoint never directly calls Veo API
-- [ ] `jobId` is validated; unknown IDs return `404 Not Found`
-
-**Technical Notes:**
-
-- Redis key for job status: `veo:job:{jobId}` (consistent with DA-AI09-01 design)
-- Business-service frontend can poll this endpoint every 5 seconds; document recommended polling interval in Postman collection
-
-**Dependencies:** Blocks: DA-AI09-06. Blocked by: DA-AI09-01, DA-AI09-02, DA-AI02-04.
-
----
-
-### DA-AI09-06 — Upload generated video to S3, extract thumbnail, return {videoUrl, thumbnailUrl, duration}
-
-**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
-
-**Goal:** Complete the video output pipeline by ensuring the finished video is stored durably in S3 with a thumbnail for UI display.
-
-**Acceptance Criteria:**
-
-- [ ] When Veo job status becomes `DONE`, background task downloads video, uploads to S3 at `videos/{clientId}/{uuid}.mp4`
-- [ ] Thumbnail extracted from frame at 1 second using `ffmpeg` (via `ffmpeg-python` library); uploaded to S3 at `videos/{clientId}/{uuid}_thumb.jpg`
-- [ ] Video duration extracted via `ffprobe` and stored in Redis job record
-- [ ] Final status update in Redis: `{status: "DONE", videoUrl: presignedUrl, thumbnailUrl: presignedUrl, duration: float}`
-
-**Technical Notes:**
-
-- `ffmpeg` must be installed in the Docker image; add `RUN apt-get install -y ffmpeg` to Dockerfile
-- Presigned video URL should expire in 7 days (videos are large; short expiry causes frequent client re-requests)
-
-**Dependencies:** Blocks: DA-AI09-07. Blocked by: DA-AI09-05, DA-AI02-03.
-
----
-
-### DA-AI09-07 — Benchmark 30 prompts (quality, generation time, cost per video), document results
+### DA-AI09-09 — Empirical Quality & Cost Benchmark across 30 Video Templates
 
 **Assignee:** Ân (AI) | **Priority:** 🟡 High
 
-**Goal:** Produce empirical performance data for the video feature to inform cost estimates and set client expectations.
+**Goal:** Thực hiện benchmark thực nghiệm toàn diện trên 30 video templates để đo đạc thời gian sinh video, độ ổn định chuyển động, chất lượng hình ảnh và chi phí API thực tế của Google Veo.
 
 **Acceptance Criteria:**
 
-- [ ] All 30 library templates from DA-AI09-04 benchmarked against Veo API
-- [ ] Results table: template key, generation time (min), video duration (s), quality rating (1-5), cost (USD)
-- [ ] Summary statistics: average cost per video, average generation time, quality distribution
-- [ ] Results feed directly into DA-AI11-04 cost analysis
+- [ ] Sinh 30 video mẫu thực tế tương ứng với 30 templates trong thư viện DA-AI09-07
+- [ ] Đo lường ma trận 4 tiêu chí cho từng video: (1) Generation Time (giây), (2) Motion Stability Score (1-5 điểm), (3) Prompt Fidelity Score (1-5 điểm), (4) Chi phí API Google Cloud ($/video)
+- [ ] Tổng hợp thống kê định lượng: Thời gian sinh trung bình, chi phí trung bình trên mỗi video, tỷ lệ thành công (%)
+- [ ] Phân tích Top 5 Templates đạt chất lượng cao nhất và Top 3 Edge Cases bị lỗi chuyển động kèm giải pháp tinh chỉnh prompt
+- [ ] Biên soạn báo cáo thực nghiệm chi tiết `docs/benchmarks/veo_30_templates_benchmark.md` đính kèm dữ liệu đo đạc
 
-**Dependencies:** Blocks: DA-AI11-02. Blocked by: DA-AI09-06, DA-AI09-04.
+**Technical Notes:**
+
+- Dữ liệu chi phí và latency thu được từ benchmark này sẽ là đầu vào trực tiếp cho báo cáo phân tích chi phí tổng thể DA-AI11-04
+
+**Dependencies:** Blocks: DA-AI09-10, DA-AI11-02, DA-AI11-04. Blocked by: DA-AI09-04, DA-AI09-07.
 
 ---
 
-### DA-AI09-08 — Write Video Generation Research Report (prompt guide, parameter cheat sheet, best practices)
+### DA-AI09-10 — Video Generation Pipeline Integration, End-to-End Testing & Technical Report
 
-**Assignee:** Ân (AI) | **Priority:** 🟡 High
+**Assignee:** Lộc (Lead) & Tuấn, Ân | **Priority:** 🔴 Critical
 
-**Goal:** Document everything the team learned about Veo so it can be referenced during the mentor presentation and by future developers.
+**Goal:** Tích hợp hoàn chỉnh toàn bộ pipeline sinh video từ API gateway đến Google Veo, S3 presigned URL 7 ngày, thực hiện kiểm thử E2E, hoàn thiện Postman/Swagger và biên soạn Báo cáo Kỹ thuật Video Generation hoàn chỉnh.
 
 **Acceptance Criteria:**
 
-- [ ] Report includes: Veo API capability summary, full 30-template prompt library with quality ratings, movement parameter cheat sheet, cost table
-- [ ] Best practices section: top 5 prompt writing tips derived from benchmark failures and successes
-- [ ] Known limitations documented: unsupported movement types, max duration, content restrictions
+- [ ] E2E Testing Suite (`tests/test_video_e2e.py`): Kiểm thử tự động chu trình hoàn chỉnh: `POST /ai/video/generate` → nhận `job_id` → polling `GET /status` qua Redis → nhận `COMPLETED` với video URL S3 phát được trực tiếp trên trình duyệt HTML5
+- [ ] Xác minh triệt để Zero Thumbnail: Kiểm tra response không chứa thumbnail key hoặc trả về `null`/omitted, đảm bảo không có ffmpeg thumbnail nào được sinh ra
+- [ ] Bộ Postman Collection: Đóng gói request mẫu cho cả 2 endpoints (`/generate`, `/{jobId}/status`) kèm môi trường test và assert script tự động
+- [ ] Swagger/OpenAPI Documentation: Cập nhật đầy đủ mô tả schema, mã lỗi 400, 404, 422, 500 tại `/docs`
+- [ ] Báo cáo Kỹ thuật Hoàn chỉnh (`docs/research/Veo_Video_Generation_Technical_Report.md`): Tổng kết kiến trúc pipeline, bảng golden parameters, bảng phân tích chi phí thực tế và hướng dẫn viết prompt video
+- [ ] Nghiệm thu chéo 3 bên: Lộc nghiệm thu Router & S3 streaming, Tuấn nghiệm thu Veo client & latency, Ân nghiệm thu Prompt library & tài liệu
 
-**Dependencies:** Blocks: DA-AI11-02. Blocked by: DA-AI09-07.
+**Technical Notes:**
+
+- Tích hợp test suite vào pipeline CI/CD kiểm thử tự động trước khi merge code vào nhánh chính
+
+**Dependencies:** Blocks: DA-AI10-01, DA-AI11-02. Blocked by: DA-AI09-04, DA-AI09-05, DA-AI09-07, DA-AI09-08, DA-AI09-09.
 
 ---
 
