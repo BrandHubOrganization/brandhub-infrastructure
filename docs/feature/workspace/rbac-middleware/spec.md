@@ -34,8 +34,7 @@ tôi muốn tự động kiểm tra role + phạm vi workspace trên mọi reque
 | Role | Ý nghĩa | Quyền mặc định |
 |---|---|---|
 | `OWNER` | Chủ agency, sở hữu workspace | Quản lý tổng quan: tạo/xoá workspace, billing, social accounts, không thao tác content trực tiếp |
-| `MANAGER` | Người Owner giao quản lý 1 workspace | Vận hành workspace: member (invite/remove/assign role), settings, clients, analytics, reports — không tạo/xoá workspace |
-| `MANAGER` | Quản lý vận hành workspace + giao tiếp khách hàng | Member, settings, clients, analytics, reports, content request, portal, calendar, library, approve — không thao tác content |
+| `MANAGER` | Người Owner giao quản lý 1 workspace | Vận hành workspace: member (invite/remove/assign role), settings, clients, analytics, reports, content request, portal, calendar, library, approve — không tạo/xoá workspace, không thao tác content |
 | `CREATOR` | Tạo nội dung | Editor, templates, hashtag, publish, AI studio — không quản member |
 | `CLIENT` | Khách hàng duyệt nội dung | Xem + duyệt/từ chối nội dung liên quan mình, không sửa |
 
@@ -55,7 +54,7 @@ public ApiResponse<Void> removeMember(...)
 
 Response 403 khi vi phạm role:
 ```json
-{ "success": false, "error": { "code": "INSUFFICIENT_ROLE", "message": "Không đủ quyền thực hiện thao tác này" } }
+{ "success": false, "error": { "code": "FORBIDDEN", "message": "Your role does not have permission to perform this action" } }
 ```
 
 Response 403 khi vi phạm workspace isolation:
@@ -66,7 +65,7 @@ Response 403 khi vi phạm workspace isolation:
 ## 6. Error Handling
 
 - Chưa đăng nhập / JWT thiếu `workspaceId` claim → 401 (đã xử lý ở `JwtAuthenticationFilter`, ngoài scope feature này).
-- Role không đủ quyền → 403 `INSUFFICIENT_ROLE`.
+- Role không đủ quyền → 403 `FORBIDDEN`.
 - Truy cập workspace khác → 403 `WORKSPACE_ACCESS_DENIED`.
 - User không còn là member active (`workspace_members.isActive = false`) → 403 `WORKSPACE_ACCESS_DENIED`.
 
