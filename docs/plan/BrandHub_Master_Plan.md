@@ -614,7 +614,7 @@
 
 ### EPIC AI-06 — Commercial Image Generation Pipeline 🔀
 
-> **Mở rộng theo kiến trúc v2.0 (Self-Hosted Architecture):** Triển khai Self-Hosted SDXL + LoRA Serving Engine (SDXL-Lightning 4-step), Form-to-Prompt Engine (Core UX), Batch Concurrency, Brand Safety Guardrails, Benchmark 20 Prompts, Dataset Preparation, LoRA Fine-Tuning & Dynamic Loading. Toàn bộ hình ảnh thương mại được sinh độc lập trên cụm GPU riêng qua HTTP Adapter, loại bỏ hoàn toàn phụ thuộc vào Cloud API bên thứ 3 (Stability AI). Phân bổ nhân sự: Lộc (Backend/Client Adapter), Ân (Prompt/Safety/Dataset), Tuấn (GPU Serving/LoRA).
+> **Mở rộng theo kiến trúc v2.0 (Self-Hosted Architecture):** Triển khai Self-Hosted SDXL + Identity LoRA Serving Engine (SDXL-Lightning 4-step kiểm chứng song song), Form-to-Prompt Engine (Core UX), Batch Concurrency, Brand Safety Guardrails, Benchmark 20 Prompts, Canonical Identity Curation, Identity Dataset Standardization, Cloud Training Fault-Tolerance (Resume), LoRA Dynamic Loading & S3 Versioned Registry. Toàn bộ hình ảnh thương mại và danh tính đại sứ được xử lý độc lập trên cụm GPU riêng qua HTTP Adapter, loại bỏ hoàn toàn phụ thuộc vào Cloud API bên thứ 3 (Stability AI). Phân bổ nhân sự: Lộc (Backend/Client Adapter/Dynamic Loader), Ân (Prompt/Safety/Dataset), Tuấn (GPU Serving/Identity LoRA/Checkpoint).
 
 | Task ID | Description | Assignee | Priority |
 | :--- | :--- | :--- | :--- |
@@ -633,23 +633,27 @@
 | [DA-AI06-13](#da-ai06-13--20-commercial-product-prompts-dataset-across-5-categories) | 20 Commercial Product Prompts Dataset Across 5 Categories (Benchmark dataset) | Ân (AI) | 🟡 High |
 | [DA-AI06-14](#da-ai06-14--automated-benchmark-runner--latencyquality-metrics) | Automated Benchmark Runner & Latency/Quality Metrics (Automated evaluation script) | Lộc (Sub-lead) | 🟡 High |
 | [DA-AI06-15](#da-ai06-15--prompt-template-library--sdxl-failure-analysis-report) | Prompt Template Library & SDXL Failure Analysis Report (Top 10 templates, 5 failure modes) | Ân (AI) | 🟡 High |
-| [DA-AI06-16](#da-ai06-16--local--server-sdxl-model-serving-diffuserscomfyui-engine) | Local / Server SDXL Model Serving (Diffusers/ComfyUI Engine, SDXL-Lightning 4-step) | Tuấn (AI) | 🟡 High |
+| [DA-AI06-16](#da-ai06-16--sdxl-runtimeinference-server-setup--sdxl-lightning-verification) | SDXL Runtime/Inference Server Setup & SDXL-Lightning Verification (Kaggle/Cloud, Base Checkpoint) | Tuấn (AI) | 🔴 Critical |
 | [DA-AI06-17](#da-ai06-17--training-dataset-collection--quality-curation) | Training Dataset Collection & Quality Curation (120-150 commercial images 1024x1024) | Ân (AI) | 🟡 High |
 | [DA-AI06-18](#da-ai06-18--automated--manual-dataset-captioning-pipeline) | Automated & Manual Dataset Captioning Pipeline (WD14 Tagger / Vision LLM + Trigger word) | Ân (AI) | 🟡 High |
-| [DA-AI06-19](#da-ai06-19--brand-visual-identity-lora-fine-tuning-execution) | Brand Visual Identity LoRA Fine-Tuning Execution (Kohya_ss / Diffusers, rank 32, alpha 16) | Tuấn (AI) | 🟡 High |
-| [DA-AI06-20](#da-ai06-20--lora-dynamic-loading--multi-lora-inference-engine) | LoRA Dynamic Loading & Multi-LoRA Inference Engine (S3 caching, Diffusers adapter hot-swap) | Tuấn & Lộc | 🟡 High |
+| [DA-AI06-19](#da-ai06-19--identity-lora-fine-tuning-pipeline-for-virtual-identity) | Identity LoRA Fine-Tuning Pipeline for Virtual Identity (Kohya_ss/Diffusers, trigger token) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI06-20](#da-ai06-20--identity-lora-dynamic-loader--model-compatibility-check) | Identity LoRA Dynamic Loader & Model Compatibility Check (Identity LoRA dynamic load, hot-swap) | Tuấn & Lộc | 🟡 High |
+| [DA-AI06-21](#da-ai06-21--canonical-identity--multi-view-references-curation) | Canonical Identity & Multi-View References Curation (Spec hồ sơ danh tính, 25-35 ảnh đa góc) | Ân (AI) | 🔴 Critical |
+| [DA-AI06-22](#da-ai06-22--identity-dataset-standardization--versioned-manifest) | Identity Dataset Standardization & Versioned Manifest (Crop/scale, trigger token, dataset manifest) | Ân & Lộc | 🔴 Critical |
+| [DA-AI06-23](#da-ai06-23--cloud-training-fault-tolerance-checkpoint-restart--exact-resume) | Cloud Training Fault-Tolerance: Checkpoint, Restart & Exact Resume (Lưu snapshot, resume step) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI06-24](#da-ai06-24--identity-lora-artifact-packaging--s3-versioned-registry) | Identity LoRA Artifact Packaging & S3 Versioned Registry (Safetensors, metadata, S3 registry) | Tuấn & Lộc | 🟡 High |
 
-### EPIC AI-07 — Virtual Brand Ambassador (InstantID) 🔀
+### EPIC AI-07 — Virtual Brand Ambassador (SDXL + Identity LoRA + DWPose ControlNet) 🔀
 
-> **Mở rộng theo kiến trúc v2.0 (Self-Hosted RealVisXL + InstantID Serving Engine):** Phân rã toàn diện pipeline đại sứ thương hiệu ảo sang cụm GPU Server RTX 4090 (24GB VRAM). Tích hợp Base Model RealVisXL V4.0 (loại bỏ anime-bias/da tượng sáp), IdentityNet 5 điểm landmarks, IP-Adapter Image Projector, InsightFace buffalo_l in-memory preprocessing, bộ lọc 4 edge cases thị giác (Fail-fast HTTP 422), Pydantic Schemas & Server-Timing, Cosine Similarity Gating (≥ 0.85), S3 Gallery CRUD multi-tenant, bóc nền Singleton qua rembg U2Net, ghép phối sáng tự nhiên, 5 phong cách thương mại, model guardrails chống dị tật, kiểm thử 15 ảnh đa góc và benchmark đối đầu 20 ảnh với IP-Adapter FaceID-Plus v2. Phân bổ nhân sự cân bằng: Lộc (Backend/S3/Compositing - 5 tasks), Tuấn (GPU Serving/Model Engine/Benchmark - 4 tasks), Ân (Face Preprocess/Prompt UX/Testing - 6 tasks).
+> **Mở rộng theo kiến trúc v2.0 (SDXL + Identity LoRA + DWPose ControlNet Serving Engine):** Phân rã toàn diện pipeline đại sứ thương hiệu ảo sang cụm GPU Server RTX 4090 (24GB VRAM). Sinh ảnh toàn thân (full-body shot) chuẩn xác danh tính người mẫu và khống chế tư thế linh hoạt bằng DWPose 133 điểm keypoints kết hợp Identity LoRA; InstantID đóng vai trò pipeline đối chứng trong các bài đo lường benchmark. Tích hợp InsightFace buffalo_l in-memory preprocessing, bộ lọc 4 edge cases thị giác (Fail-fast HTTP 422), Pydantic Schemas & Server-Timing, Cosine Similarity Gating (≥ 0.85), S3 Gallery CRUD multi-tenant, bóc nền Singleton qua rembg U2Net, ghép phối sáng tự nhiên, 5 phong cách thương mại, model guardrails chống dị tật, kiểm thử 15 ảnh đa góc và benchmark đối đầu định lượng với InstantID baseline. Phân bổ nhân sự cân bằng: Lộc (Backend/S3/Compositing/API - 5 tasks), Tuấn (GPU Serving/Model Engine/DWPose/Benchmark - 5 tasks), Ân (Face Preprocess/Prompt UX/Testing - 6 tasks).
 
 | Task ID | Description | Assignee | Priority |
 | :--- | :--- | :--- | :--- |
-| [DA-AI07-01](#da-ai07-01--model-weights--checkpoints-management-realvisxl-identitynet-ip-adapter-insightface) | Model Weights & Checkpoints Management (RealVisXL V4.0, IdentityNet, IP-Adapter, InsightFace) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI07-01](#da-ai07-01--model-weights--checkpoints-management-sdxl-dwpose-controlnet) | Model Weights & Checkpoints Management (SDXL Base, DWPose Onnx, SDXL Pose ControlNet) | Tuấn (AI) | 🔴 Critical |
 | [DA-AI07-02](#da-ai07-02--in-memory-face-preprocessing--512-dim-embedding-extraction) | In-Memory Face Preprocessing & 512-dim Embedding Extraction (OpenCV, InsightFace buffalo_l) | Ân (AI) | 🔴 Critical |
 | [DA-AI07-03](#da-ai07-03--4-edge-case-visual-input-defense--fail-fast-guardrails) | 4-Edge-Case Visual Input Defense & Fail-Fast Guardrails (NoFace, MultiFace, ExtremePose, Blurry) | Ân (AI) | 🟡 High |
-| [DA-AI07-04](#da-ai07-04--instantid-serving-pipeline-deployment-on-rtx-4090--vram-optimization) | InstantID Serving Pipeline Deployment on RTX 4090 & VRAM Optimization (SDPA, VAE tiling, < 15s) | Tuấn (AI) | 🔴 Critical |
-| [DA-AI07-05](#da-ai07-05--golden-parameter-calibration-strength-conditioning-scale-cfg-steps) | Golden Parameter Calibration (Strength 0.78, Scale 0.80, CFG 5.0, 30 steps) | Tuấn (AI) | 🟡 High |
+| [DA-AI07-04](#da-ai07-04--ambassador-full-body-serving-engine-sdxl--identity-lora--pose-controlnet) | Ambassador Full-Body Serving Engine (SDXL + Identity LoRA + Pose ControlNet DWPose) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI07-05](#da-ai07-05--rewriting-ambassador-api-route--control-flow) | Rewriting Ambassador API Route & Control Flow (LoRA+Pose Main, InstantID Baseline Flag) | Lộc (AI Sub-lead) | 🔴 Critical |
 | [DA-AI07-06](#da-ai07-06--pydantic-schemas--post-aiambassadorgenerate-route) | Pydantic Schemas & POST /ai/ambassador/generate Route (Multipart upload, Server-Timing) | Lộc (Sub-lead) | 🔴 Critical |
 | [DA-AI07-07](#da-ai07-07--face-consistency-metric-engine--cosine-similarity-gating--085) | Face Consistency Metric Engine & Cosine Similarity Gating (PASS ≥ 0.85, WARN, FAIL) | Lộc (Sub-lead) | 🔴 Critical |
 | [DA-AI07-08](#da-ai07-08--ambassador-s3-gallery-management-crud-presigned-urls-1h) | Ambassador S3 Gallery Management (CRUD, Presigned URLs 1h, Multi-tenant) | Lộc (Sub-lead) | 🟡 High |
@@ -658,22 +662,27 @@
 | [DA-AI07-11](#da-ai07-11--5-commercial-ambassador-style--wardrobe-presets) | 5 Commercial Ambassador Style & Wardrobe Presets (Fashion, Business, Casual, Sport, Luxury) | Ân (AI) | 🟡 High |
 | [DA-AI07-12](#da-ai07-12--multi-tier-model-guardrails--anti-plastic-negative-prompts) | Multi-tier Model Guardrails & Anti-Plastic Negative Prompts (Hands, eyes, skin texture) | Ân (AI) | 🔴 Critical |
 | [DA-AI07-13](#da-ai07-13--multi-angle-face-consistency-benchmark-15-images--86-pass--085) | Multi-Angle Face Consistency Benchmark (15 Images, 5 angles x 3 outfits, ≥ 86% Pass ≥ 0.85) | Ân (AI) | 🔴 Critical |
-| [DA-AI07-14](#da-ai07-14--empirical-benchmark-instantid-vs-ip-adapter-faceid-plus-v2-20-images) | Empirical Benchmark: InstantID vs IP-Adapter FaceID-Plus v2 (20 Images, 4 evaluation metrics) | Tuấn (AI) | 🟡 High |
+| [DA-AI07-14](#da-ai07-14--comprehensive-ambassador-benchmark-lorapose-vs-instantid-baseline) | Comprehensive Ambassador Benchmark: LoRA+Pose vs InstantID Baseline (20 Images, 4 metrics) | Tuấn & Ân | 🟡 High |
 | [DA-AI07-15](#da-ai07-15--5-master-commercial-ambassador-templates--operational-guide) | 5 Master Commercial Ambassador Templates & Operational Guide (Starter configs & GPU guide) | Ân (AI) | 🟢 Low |
+| [DA-AI07-16](#da-ai07-16--dwpose-keypoints-extraction--control-image-normalization) | DWPose Keypoints Extraction & Control Image Normalization (133 points, skeleton canvas) | Tuấn (AI) | 🔴 Critical |
 
 ### EPIC AI-08 — Image Composition Pipeline 🔀
 
-> Chuyển từ Lộc. Xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit.
+> **Kiến trúc Hybrid Composition & End-to-End Pipeline:** Kết hợp luồng ghép ảnh Pillow 2D / rembg U2Net (Fast Zero-GPU Fallback, xử lý < 2s cho ảnh sản phẩm thông thường) với luồng AI Composition chuyên sâu: Virtual Try-On (VTON: IDM-VTON / CatVTON thử đồ thời trang), Local Refinement Inpainting (phục hồi chi tiết mắt, bàn tay với retry limiter tối đa 2 lần & QA Gate Pre/Post Upscale), Stage Runner tuần tự kiểm soát VRAM GPU RTX 4090 không vượt quá 20GB, lưu intermediate outputs hỗ trợ resume on failure, và hoàn thiện End-to-End Cloud Ambassador Pipeline bàn giao AI service contract. Phân bổ: Tuấn (VTON/Refinement/Compositing), Lộc (Stage Runner/E2E API/Handoff), Ân (Benchmark/QA/Templates).
 
-| Task ID                                                                                                               | Description                                                                                                       | Assignee  | Priority    |
-| --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
-| [DA-AI08-01](#da-ai08-01-implement-background-removal-for-product-images-rembg-u2net-output-transparent-png)          | Implement background removal for product images (rembg library, U2Net model) → output transparent PNG             | Tuấn (AI) | 🔴 Critical |
-| [DA-AI08-02](#da-ai08-02-implement-background-removal-for-modelambassador-images)                                     | Implement background removal for model/ambassador images                                                          | Tuấn (AI) | 🔴 Critical |
-| [DA-AI08-03](#da-ai08-03-build-layer-compositing-service-product-layer-model-layer-background-layer-pillow-composite) | Build layer compositing service (product layer + model layer + background layer → single image using Pillow)      | Tuấn (AI) | 🔴 Critical |
-| [DA-AI08-04](#da-ai08-04-implement-shadow-lighting-adjustment-for-natural-looking-merges)                             | Implement shadow + lighting adjustment for natural-looking merges                                                 | Tuấn (AI) | 🟡 High     |
-| [DA-AI08-05](#da-ai08-05-build-post-aicompose-endpoint)                                                               | Build composition endpoint (POST /ai/compose: product S3 key + model S3 key + background S3 key → composed image) | Tuấn (AI) | 🔴 Critical |
-| [DA-AI08-06](#da-ai08-06-test-20-product-model-pairs-evaluate-realism-document-failure-cases)                         | Test 20 product + model pairs, evaluate realism score, document failure cases                                     | Tuấn (AI) | 🟡 High     |
-| [DA-AI08-07](#da-ai08-07-write-composition-parameter-guide-optimal-image-sizes-best-practices-per-product-category)   | Write composition parameter guide (optimal sizes, best practices per product type)                                | Tuấn (AI) | 🟢 Low      |
+| Task ID | Description | Assignee | Priority |
+| :--- | :--- | :--- | :--- |
+| [DA-AI08-01](#da-ai08-01-implement-background-removal-for-product-images-rembg-u2net-output-transparent-png) | Implement background removal for product images (rembg library, U2Net model) → output transparent PNG | Tuấn (AI) | 🔴 Critical |
+| [DA-AI08-02](#da-ai08-02-implement-background-removal-for-modelambassador-images) | Implement background removal for model/ambassador images | Tuấn (AI) | 🔴 Critical |
+| [DA-AI08-03](#da-ai08-03-build-layer-compositing-service-product-layer-model-layer-background-layer-pillow-composite) | Build layer compositing service (product layer + model layer + background layer → single image using Pillow) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI08-04](#da-ai08-04-implement-shadow-lighting-adjustment-for-natural-looking-merges) | Implement shadow + lighting adjustment for natural-looking merges | Tuấn (AI) | 🟡 High |
+| [DA-AI08-05](#da-ai08-05-build-post-aicompose-endpoint) | Build composition endpoint (POST /ai/compose: product S3 key + model S3 key + background S3 key → composed image) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI08-06](#da-ai08-06-test-20-product-model-pairs-evaluate-realism-document-failure-cases) | Test 20 product + model pairs, evaluate realism score, document failure cases | Tuấn (AI) | 🟡 High |
+| [DA-AI08-07](#da-ai08-07-write-composition-parameter-guide-optimal-image-sizes-best-practices-per-product-category) | Write composition parameter guide (optimal sizes, best practices per product type) | Tuấn (AI) | 🟢 Low |
+| [DA-AI08-08](#da-ai08-08--virtual-try-on-vton-model-benchmark-idm-vton-vs-catvton--sku-fidelity) | Virtual Try-On (VTON) Benchmark: IDM-VTON vs CatVTON, SKU Texture & Pattern Fidelity | Tuấn & Ân | 🔴 Critical |
+| [DA-AI08-09](#da-ai08-09--local-refinement--facehand-detailer-with-retry-limiter--prepost-qa) | Local Refinement & Face/Hand Detailer (Retry limiter ≤ 2, Pre/Post Upscale QA Gate) | Tuấn & Ân | 🔴 Critical |
+| [DA-AI08-10](#da-ai08-10--sequential-stage-runner-vram-lifecycle--crash-recovery) | Sequential Stage Runner (VRAM ≤ 20GB, Intermediate Outputs, Resume on Failure) | Lộc & Tuấn | 🔴 Critical |
+| [DA-AI08-11](#da-ai08-11--end-to-end-cloud-ambassador-pipeline--ai-service-contract-handoff) | End-to-End Cloud Ambassador Pipeline Integration & AI Service Contract Handoff | Lộc, Tuấn, Ân | 🔴 Critical |
 
 ---
 
@@ -7180,24 +7189,25 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 ---
 
-### DA-AI06-16 — Local / Server SDXL Model Serving (Diffusers/ComfyUI Engine)
+### DA-AI06-16 — SDXL Runtime/Inference Server Setup & SDXL-Lightning Verification
 
-**Assignee:** Tuấn (AI) | **Priority:** 🟡 High
+**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
 
-**Goal:** Thiết lập engine suy luận SDXL chạy offline/server (trên máy trạm local hoặc GPU server RunPod/Vast.ai); hỗ trợ SDXL-Lightning 4-step (sinh ảnh < 4s), phục vụ toàn bộ yêu cầu sinh ảnh thương mại cho BrandHub.
+**Goal:** Cấu hình runtime suy luận SDXL chạy độc lập (trên Kaggle/Cloud GPU RTX 4090/A100), chốt checkpoint base (`RealVisXL_V4.0` / SDXL Base 1.0), cấu hình FP16/SDPA. Thiết lập môi trường kiểm chứng độc lập cho SDXL-Lightning 4-step/8-step với LoRA + Pose ControlNet trước khi quyết định áp dụng toàn pipeline.
 
 **Acceptance Criteria:**
 
-- [ ] Cấu hình script khởi chạy engine hỗ trợ CUDA 12.x và FP16
-- [ ] Bật các kỹ thuật tối ưu hóa VRAM: `sdpa` attention, `enable_model_cpu_offload()`, `enable_vae_tiling()`
-- [ ] Tích hợp SDXL-Lightning: Thời gian sinh ảnh đạt **2.5 – 4 giây / ảnh 1024x1024**
+- [ ] Chốt checkpoint base model ổn định: `RealVisXL_V4.0` (FP16 `.safetensors`, ~6.6GB)
+- [ ] Cấu hình inference engine với PyTorch 2.x SDPA, `enable_vae_tiling()`, VRAM idle $\le 1.0\text{GB}$
+- [ ] Chạy pipeline mặc định 25–30 steps (Euler / DPM++ 2M Karras) đạt latency 8–12s trên RTX 4090
+- [ ] Triển khai script kiểm thử đối chứng: Chạy song song SDXL Standard (30 steps) vs SDXL-Lightning (4-step & 8-step) khi gắn kèm Identity LoRA và Pose ControlNet; đánh giá chi tiết hiện tượng cháy ảnh, trôi pose, và suy giảm độ sắc nét khuôn mặt
 - [ ] Tích hợp cấu hình endpoint GPU Inference Server trong file settings (`settings.sdxl_engine_url`) để hệ thống kết nối trực tiếp đến node GPU phục vụ sinh ảnh thương mại
 
 **Technical Notes:**
 
 - Khởi chạy dưới dạng container hoặc dedicated process độc lập với main FastAPI để tránh crash khi OOM.
 
-**Dependencies:** GPU Workstation / Server. Blocks: DA-AI06-19, DA-AI06-20.
+**Dependencies:** GPU Workstation / Server. Blocks: DA-AI06-19, DA-AI06-20, DA-AI06-23.
 
 ---
 
@@ -7235,66 +7245,156 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 ---
 
-### DA-AI06-19 — Brand Visual Identity LoRA Fine-Tuning Execution
-
-**Assignee:** Tuấn (AI) | **Priority:** 🟡 High
-
-**Goal:** Cấu hình và thực thi quá trình huấn luyện LoRA trên tập dữ liệu đã chuẩn bị bằng Kohya_ss hoặc Diffusers script.
-
-**Acceptance Criteria:**
-
-- [ ] Cấu hình siêu tham số tối ưu:
-  - Base Model: `stabilityai/stable-diffusion-xl-base-1.0`
-  - Network Rank (Dim): 32 | Alpha: 16 (tỉ lệ 1:2 chuẩn cho style/identity)
-  - Learning Rate: UNet `1e-4`, Text Encoder `4e-5`. Optimizer: `AdamW8bit` hoặc `Prodigy`
-  - Epochs: 15 – 20 epochs (~1,500 – 2,500 steps)
-- [ ] Xuất file LoRA định dạng `.safetensors` với dung lượng nhỏ gọn (< 150MB)
-- [ ] Kiểm thử nghiệm thu (Validation): Sinh ảnh đối chứng ở các epoch để chọn checkpoint tối ưu, không bị over-fitting
-- [ ] Đẩy file checkpoint hoàn thiện lên AWS S3: `loras/brandhub_style_v1.safetensors`
-
-**Dependencies:** Blocked by: DA-AI06-18, DA-AI06-16. Blocks: DA-AI06-20.
-
----
-
-### DA-AI06-20 — LoRA Dynamic Loading & Multi-LoRA Inference Engine
-
-**Assignee:** Tuấn (AI) & Lộc (Sub-lead) | **Priority:** 🟡 High
-
-**Goal:** Tích hợp cơ chế nạp động LoRA từ S3 về local cache và inject vào pipeline suy luận mà không cần restart server.
-
-**Acceptance Criteria:**
-
-- [ ] Hỗ trợ tham số `lora_id` và `lora_weight` (mặc định 0.8) trong `POST /ai/image/generate`
-- [ ] Tự động tải và cache file `.safetensors` từ S3 về thư mục `cache/loras/`
-- [ ] Sử dụng `load_lora_weights` và `set_adapters` của Diffusers để nạp LoRA trong < 0.05 giây
-- [ ] Hỗ trợ Multi-LoRA (ghép 1 LoRA sản phẩm + 1 LoRA phong cách) với trọng số cân bằng
-
-**Dependencies:** Blocked by: DA-AI06-16, DA-AI06-19. Blocks: None.
-
-
-
----
-
-### DA-AI07-01 — Model Weights & Checkpoints Management (RealVisXL, IdentityNet, IP-Adapter, InsightFace)
+### DA-AI06-19 — Identity LoRA Fine-Tuning Pipeline for Virtual Identity
 
 **Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
 
-**Goal:** Xây dựng module tự động tải, kiểm tra tính toàn vẹn (checksum) và nạp offline/online toàn bộ trọng số mô hình cho InstantID trên GPU Server; thay thế base model mặc định bằng RealVisXL V4.0 để loại bỏ hoàn toàn phong cách anime.
+**Goal:** Chuyển đổi hoàn toàn mục tiêu từ "Brand Style LoRA" sang huấn luyện **Identity LoRA cho từng virtual identity** trên nền SDXL; cập nhật dataset chân dung, định danh trigger token duy nhất, tinh chỉnh training config (Kohya_ss / Diffusers) và cơ chế validation.
+
+**Acceptance Criteria:**
+
+- [ ] Loại bỏ hoàn toàn dataset tổng hợp phong cách chung (`brandhub_style`)
+- [ ] Cấu hình huấn luyện LoRA cho từng danh tính đại sứ ảo: Rank 32, Alpha 16; LR UNet `1e-4`, LR Text Encoder `4e-5`; Optimizer `AdamW8bit` hoặc `Prodigy`
+- [ ] Gán nhãn trigger token chuyên biệt đại diện cho từng virtual identity (vd: `vamb_sarah_v1`, `vamb_alex_v1`)
+- [ ] Tự động sinh sample grid kiểm chứng mỗi 250 steps với các góc chụp đa dạng (chính diện, nghiêng, toàn thân)
+- [ ] Trọng số checkpoint xuất ra dạng `.safetensors` dung lượng $\le 150\text{MB}$, không bị over-fitting
+
+**Dependencies:** Blocked by: DA-AI06-22, DA-AI06-16. Blocks: DA-AI06-20, DA-AI06-24.
+
+---
+
+### DA-AI06-20 — Identity LoRA Dynamic Loader & Model Compatibility Check
+
+**Assignee:** Tuấn (AI) & Lộc (Sub-lead) | **Priority:** 🟡 High
+
+**Goal:** Xây dựng cơ chế tải và chuyển đổi Identity LoRA động theo `identity_id + version` vào pipeline suy luận; kiểm tra độ tương thích base model, cô lập adapter giữa các request để chống lẫn trọng số. Hoãn Multi-LoRA (Product + Style) sang sau MVP.
+
+**Acceptance Criteria:**
+
+- [ ] Hàm nạp adapter `load_identity_lora(pipeline, identity_id, version)` nạp chính xác trọng số từ cache cục bộ/S3
+- [ ] Kiểm tra checksum SHA256 và metadata tương thích của file LoRA với base model trước khi inject
+- [ ] Cơ chế dọn sạch adapter (`pipe.unload_lora_weights()`) ngay sau khi hoàn thành request, đảm bảo request tiếp theo không bị rò rỉ đặc trưng khuôn mặt cũ
+- [ ] Tốc độ hot-swap LoRA đạt $< 100\text{ms}$ khi file đã nằm trong bộ nhớ cache
+- [ ] Phân định rõ ràng: Chưa kích hoạt cơ chế ghép đồng thời Multi-LoRA (Product + Style) ở giai đoạn này
+
+**Dependencies:** Blocked by: DA-AI06-16, DA-AI06-19, DA-AI06-24. Blocks: DA-AI06-05.
+
+---
+
+### DA-AI06-21 — Canonical Identity & Multi-View References Curation
+
+**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng bộ đặc tả danh tính chuẩn (Canonical Identity Spec) và thu thập/sinh tập ảnh tham chiếu đa góc chụp cho từng virtual identity làm nền tảng huấn luyện LoRA.
+
+**Acceptance Criteria:**
+
+- [ ] Xây dựng hồ sơ danh tính chuẩn: Giới tính, độ tuổi, cấu trúc xương mặt, màu da, kiểu tóc, phong cách đại diện
+- [ ] Bộ ảnh tham chiếu bao gồm tối thiểu 25–35 ảnh chất lượng cao ($1024 \times 1024$ trở lên) cho mỗi identity:
+  - 40% góc chụp chính diện (front face) với các biểu cảm khác nhau (trung tính, cười nhẹ, tự tin)
+  - 30% góc nghiêng bán diện (3/4 angle) và góc nghiêng nhìn ngang (profile)
+  - 20% ảnh chụp nửa người và toàn thân (full-body & medium shot) với trang phục cơ bản trung tính
+  - 10% ảnh chụp cận cảnh chi tiết mắt, miệng, sống mũi (macro/close-up)
+- [ ] Loại bỏ hoàn toàn ảnh bị nhòe chuyển động, out nét hoặc có bóng đổ che khuất 1/2 khuôn mặt
+
+**Technical Notes:**
+
+- Sử dụng Midjourney v6 / SDXL base kết hợp seed cố định để sinh tập ảnh tham chiếu đồng nhất nếu không có người mẫu chụp thực tế.
+
+**Dependencies:** Blocks: DA-AI06-22. Blocked by: None.
+
+---
+
+### DA-AI06-22 — Identity Dataset Standardization & Versioned Manifest
+
+**Assignee:** Ân (AI) & Lộc (Review) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng pipeline tự động hóa chuẩn hóa dữ liệu ảnh danh tính: lọc nhiễu, crop/scale thông minh, gán nhãn trigger token, sinh captioning tự động kết hợp review tay, chia tập train/val và đóng gói manifest theo version.
+
+**Acceptance Criteria:**
+
+- [ ] Module tiền xử lý tự động: Tự động crop khuôn mặt vào trọng tâm tỉ lệ 1:1, scale về đúng $1024 \times 1024$ không méo tỉ lệ
+- [ ] Captioning tự động bằng WD14 Tagger / BLIP-2:
+  - Loại bỏ các từ mô tả đặc điểm khuôn mặt cố định của người mẫu (để model học vào trigger token)
+  - Giữ lại các từ mô tả: Góc chụp (`front view`, `from side`), biểu cảm (`smiling`), kiểu tóc, ánh sáng, trang phục và hậu cảnh
+- [ ] Chèn trigger token duy nhất vào đầu mỗi file caption (vd: `photo of vamb_sarah woman, ...`)
+- [ ] Chia tập dữ liệu chuẩn: 90% Train, 10% Validation
+- [ ] Đóng gói file `dataset_manifest.json` ghi nhận: Phiên bản dataset (`v1.0.0`), số lượng ảnh, danh sách SHA256 checksum từng ảnh và metadata chi tiết
+
+**Technical Notes:**
+
+- Lưu manifest và zip dataset lên S3 bucket `s3://brandhub-datasets/identities/{identity_id}/v{version}/`.
+
+**Dependencies:** Blocked by: DA-AI06-21. Blocks: DA-AI06-19.
+
+---
+
+### DA-AI06-23 — Cloud Training Fault-Tolerance: Checkpoint, Restart & Exact Resume
+
+**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Thiết lập cơ chế tự động hóa lưu trữ checkpoint định kỳ và khôi phục trạng thái huấn luyện chính xác (Exact Resume) trên môi trường Kaggle / Cloud GPU khi bị ngắt phiên đột ngột (preemptible/timeout).
+
+**Acceptance Criteria:**
+
+- [ ] Cấu hình lưu checkpoint sau mỗi 200 steps hoặc 1 epoch gồm: Trọng số LoRA (`optimizer.pt`), trạng thái `scheduler.pt`, giá trị step count và RNG states
+- [ ] Tự động nén và đồng bộ checkpoint lên S3 hoặc Google Drive/Kaggle Dataset ngay khi hoàn thành step checkpoint
+- [ ] Khi khởi động lại phiên bị ngắt: Script tự động quét checkpoint mới nhất, tải về, load lại optimizer state và scheduler, tiếp tục huấn luyện đúng step tiếp theo mà không bị lệch learning rate curve
+- [ ] Kiểm thử thành công kịch bản giả lập ngắt tiến trình (kill process) tại step 650 và resume chính xác tới step 1500
+
+**Technical Notes:**
+
+- Sử dụng cơ chế signal handler (`SIGTERM`, `SIGINT`) để kịp lưu snapshot trước khi server bị tắt.
+
+**Dependencies:** Blocked by: DA-AI06-16. Blocks: DA-AI06-19.
+
+---
+
+### DA-AI06-24 — Identity LoRA Artifact Packaging & S3 Versioned Registry
+
+**Assignee:** Tuấn (AI) & Lộc (Sub-lead) | **Priority:** 🟡 High
+
+**Goal:** Đóng gói weights LoRA sau huấn luyện cùng bộ metadata hoàn chỉnh, đẩy lên S3 Model Registry và quản lý versioning để AI service kéo về phục vụ suy luận an toàn.
+
+**Acceptance Criteria:**
+
+- [ ] Đóng gói thư mục artifact chuẩn gồm:
+  - `adapter_model.safetensors` (trọng số LoRA tinh gọn)
+  - `adapter_config.json` (thông số rank, alpha, target modules)
+  - `training_metadata.json` (base model SHA256, training steps, loss curve, trigger token)
+  - `sample_validation_grid.png` (lưới ảnh kiểm chứng chất lượng ở các steps)
+- [ ] Đẩy lên S3 theo cấu trúc: `s3://brandhub-models/identities/{identity_id}/{version}/`
+- [ ] Cơ chế đánh version theo Semantic Versioning (`v1.0.0`, `v1.1.0`)
+- [ ] Lập API nội bộ `GET /ai/identities/registry` cho phép backend query danh sách model sẵn sàng phục vụ
+
+**Technical Notes:**
+
+- Tách biệt hoàn toàn tầng Training MLOps và tầng Inference API.
+
+**Dependencies:** Blocked by: DA-AI06-19. Blocks: DA-AI06-20.
+
+---
+
+### DA-AI07-01 — Model Weights & Checkpoints Management (SDXL, DWPose ControlNet)
+
+**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng module tự động tải, kiểm tra tính toàn vẹn (checksum) và nạp offline/online toàn bộ trọng số mô hình cho SDXL base (`RealVisXL_V4.0`), DWPose estimator và SDXL Pose ControlNet; bộ weights InstantID chỉ kích hoạt tải khi chạy bài toán benchmark đối chứng.
 
 **Acceptance Criteria:**
 
 - [ ] Module `ModelWeightsManager` quản lý cache tại `resources/models/`, hỗ trợ biến môi trường `MODELS_CACHE_DIR`
 - [ ] Tải và xác thực checkpoint Base Model `SG161222/RealVisXL_V4.0` (FP16 `.safetensors`, ~6.6GB)
-- [ ] Tải trọng số IdentityNet (`InstantX/InstantID/ControlNetModel`, ~2.5GB) và IP-Adapter Image Projector (`ip-adapter.bin`, ~0.6GB)
-- [ ] Tải trọn bộ model InsightFace `buffalo_l` (`det_10g.onnx`, `w600k_r50.onnx`,...) dung lượng ~300MB
+- [ ] Tải trọng số DWPose Onnx Models: `yolox_l.onnx` (body/hand detector) và `dw-ll_ucoco_384.onnx` (pose keypoints estimator, ~250MB)
+- [ ] Tải SDXL Pose ControlNet: `thibaud/controlnet-openpose-sdxl-1.0` (FP16 `.safetensors`, ~2.5GB)
+- [ ] Phân vùng weights InstantID (`InstantX/InstantID/ControlNetModel` và `ip-adapter.bin`) thành module tùy chọn (optional benchmark weights)
 - [ ] Cơ chế tự động verify SHA256/kích thước file; nếu lỗi tự động re-download mà không làm gián đoạn service
 
 **Technical Notes:**
 
 - Đảm bảo quyền ghi vào thư mục cache; nạp qua `huggingface_hub.snapshot_download` hoặc `hf_hub_download` với resume capability.
-- License note: InsightFace buffalo_l dùng cho mục đích nghiên cứu/đồ án tốt nghiệp; tài liệu hóa rõ ràng trong dependencies manifest.
 
-**Dependencies:** Blocks: DA-AI07-02, DA-AI07-04. Blocked by: DA-AI06-16.
+**Dependencies:** Blocks: DA-AI07-02, DA-AI07-04, DA-AI07-16. Blocked by: DA-AI06-16.
 
 ---
 
@@ -7341,49 +7441,49 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 ---
 
-### DA-AI07-04 — InstantID Serving Pipeline Deployment on RTX 4090 & VRAM Optimization
+### DA-AI07-04 — Ambassador Full-Body Serving Engine (SDXL + Identity LoRA + Pose ControlNet)
 
 **Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
 
-**Goal:** Dựng pipeline suy luận hoàn chỉnh bằng `diffusers.StableDiffusionXLInstantIDPipeline` trên GPU Server RTX 4090 (24GB VRAM), áp dụng các kỹ thuật tối ưu bộ nhớ để đạt thời gian sinh ảnh < 15 giây.
+**Goal:** Xây dựng pipeline suy luận chính thức sinh ảnh đại sứ thương hiệu toàn thân (full-body shot) chuẩn xác danh tính bằng cách kết hợp SDXL Base, Identity LoRA và Pose ControlNet (DWPose); InstantID đóng vai trò pipeline đối chứng.
 
 **Acceptance Criteria:**
 
-- [ ] Khởi tạo pipeline InstantID chạy FP16, tích hợp Base Model RealVisXL V4.0, IdentityNet và IP-Adapter
-- [ ] Kích hoạt PyTorch 2.x Scaled Dot-Product Attention (SDPA) trên toàn bộ UNet và ControlNet blocks
-- [ ] Bật `pipe.enable_vae_tiling()` và `pipe.enable_vae_slicing()` giải phóng đỉnh tải VRAM khi decode ảnh 1024x1024
-- [ ] Vì chạy trên RTX 4090 (24GB VRAM), **tuyệt đối không bật CPU offload** để giữ tốc độ suy luận nhanh nhất (< 15s cho 30 diffusion steps); đỉnh VRAM duy trì trong khoảng 14GB - 17GB
-- [ ] Tích hợp cơ chế Warmup tự động chạy 1 sample giả lập khi container khởi động để nạp sẵn CUDA kernels
+- [ ] Khởi tạo pipeline kết hợp `StableDiffusionXLPipeline` + ControlNet (`thibaud/controlnet-openpose-sdxl-1.0`)
+- [ ] Nhận ảnh control image dạng skeleton trích xuất từ DWPose (chuẩn 133 điểm keypoints)
+- [ ] Nạp động Identity LoRA theo `identity_id` của đại sứ được chọn
+- [ ] Sinh ảnh full-body 1024x1024 khống chế chuẩn dáng đứng/ngồi/cầm sản phẩm theo ảnh mẫu
+- [ ] Thời gian sinh ảnh đạt 10.0 – 14.5 giây trên RTX 4090 (24GB VRAM), mức ngốn VRAM $\le 16.5\text{GB}$
+- [ ] Đạt chuẩn kiểm tra: Khuôn mặt rõ nét, da tự nhiên, bàn tay cầm sản phẩm đủ 5 ngón, không dị tật
 
 **Technical Notes:**
 
-- Tránh xung đột CUDA OOM bằng cách thiết lập `torch.cuda.set_per_process_memory_fraction(0.9)`.
-- Đo lường VRAM thực tế qua `torch.cuda.max_memory_allocated()`.
+- Tuyệt đối không bật CPU offload trên RTX 4090 để đảm bảo SLA < 15s cho 30 diffusion steps.
+- Dọn dẹp adapter cũ trước khi nạp adapter mới để tránh rò rỉ trọng số khuôn mặt giữa các request.
 
-**Dependencies:** Blocks: DA-AI07-05, DA-AI07-06. Blocked by: DA-AI07-01, DA-AI07-02.
+**Dependencies:** Blocks: DA-AI07-05, DA-AI07-06. Blocked by: DA-AI07-01, DA-AI06-20, DA-AI07-16.
 
 ---
 
-### DA-AI07-05 — Golden Parameter Calibration (Strength, Conditioning Scale, CFG, Steps)
+### DA-AI07-05 — Rewriting Ambassador API Route & Control Flow
 
-**Assignee:** Tuấn (AI) | **Priority:** 🟡 High
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
-**Goal:** Thực nghiệm tinh chỉnh dải tham số tối ưu giữa độ giữ nét mặt (identity preservation) và độ tự nhiên của da (natural skin realism), tránh hiện tượng mặt bị đông cứng hoặc da sáp.
+**Goal:** Viết lại endpoint `POST /ai/ambassador/generate` theo pipeline mới (SDXL + Identity LoRA + Pose ControlNet); loại bỏ InstantID khỏi luồng xử lý chính, bổ sung cờ `model_type: lora_pose | instantid` phục vụ kiểm thử đối chứng.
 
 **Acceptance Criteria:**
 
-- [ ] Tìm ra bộ thông số vàng chuẩn hóa:
-  - `instantid_strength`: **0.78** (khoảng an toàn: 0.75 – 0.82)
-  - `controlnet_conditioning_scale`: **0.80**
-  - `guidance_scale (CFG)`: **5.0** (tránh cháy sáng viền)
-  - `num_inference_steps`: **30 steps** với sampler `Euler a` hoặc `DPM++ 2M Karras`
-- [ ] Đóng gói cấu hình mặc định vào `app/core/config.py` và cho phép override linh hoạt qua payload request
+- [ ] Schema request nhận: `identity_id`, `pose_reference_image` (hoặc `pose_preset_id`), `prompt`, `negative_prompt`, `aspect_ratio`, `model_type` (default: `"lora_pose"`, optional: `"instantid"`)
+- [ ] Khi `model_type == "lora_pose"`: Điều phối luồng qua pipeline SDXL + LoRA + Pose ControlNet
+- [ ] Khi `model_type == "instantid"`: Điều phối qua pipeline đối chứng InstantID phục vụ đo lường
+- [ ] Phân bổ thời gian thực thi (DWPose extraction, LoRA load, Diffusion denoising) qua header `Server-Timing`
+- [ ] Xử lý ngoại lệ chuẩn HTTP 422 (lỗi pose/mặt) và HTTP 503 (GPU worker bận/OOM)
 
 **Technical Notes:**
 
-- Khi `instantid_strength` > 0.85, mặt sẽ có hiện tượng bết dính và mất biểu cảm tự nhiên. Khi < 0.70, độ tương đồng danh tính giảm sút rõ rệt.
+- Cho phép backend override linh hoạt dải tham số: `controlnet_conditioning_scale` (mặc định 0.80), `guidance_scale` (CFG 5.0), `num_inference_steps` (30 steps).
 
-**Dependencies:** Blocks: DA-AI07-06, DA-AI07-13. Blocked by: DA-AI07-04.
+**Dependencies:** Blocks: DA-AI07-06, DA-AI07-07. Blocked by: DA-AI07-04.
 
 ---
 
@@ -7564,27 +7664,27 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 ---
 
-### DA-AI07-14 — Empirical Benchmark: InstantID vs IP-Adapter FaceID-Plus v2 (20 Images)
+### DA-AI07-14 — Comprehensive Ambassador Benchmark: LoRA+Pose vs InstantID Baseline
 
-**Assignee:** Tuấn (AI) | **Priority:** 🟡 High
+**Assignee:** Tuấn (AI) & Ân (AI) | **Priority:** 🟡 High
 
-**Goal:** Chạy thực nghiệm đối đầu trên tập 20 ảnh mẫu chuẩn hóa để so sánh khoa học giữa InstantID và IP-Adapter FaceID-Plus v2, làm cơ sở bảo vệ đồ án trước Mentor.
+**Goal:** Thực hiện bộ benchmark khoa học đối đầu trực tiếp giữa pipeline mới (SDXL + Identity LoRA + Pose ControlNet) và baseline cũ (InstantID) trên tập 20 ảnh thử nghiệm full-body và chân dung; xuất báo cáo định lượng bảo vệ đồ án.
 
 **Acceptance Criteria:**
 
 - [ ] Chuẩn bị tập 20 ảnh mẫu (10 nam, 10 nữ, đa sắc tộc, đa lứa tuổi 20-50)
-- [ ] Đo đạc và lập bảng so sánh 4 chỉ số:
-  1. *Cosine Similarity*: Đo bằng ArcFace embedding
-  2. *Inference Latency*: Thời gian sinh trung bình (s) trên cùng GPU RTX 4090
-  3. *Peak VRAM*: Mức ngốn VRAM tối đa (`torch.cuda.max_memory_allocated()`)
-  4. *Subjective Realism*: Điểm đánh giá độ tự nhiên của da và thần thái (thang 1-5 sao)
-- [ ] Xuất tài liệu kết luận định lượng chứng minh tại sao chọn InstantID cho BrandHub, liên kết chéo vào báo cáo DA-AI11-01
+- [ ] Đo đạc và đối sánh 4 chỉ số khoa học:
+  1. *Identity Retention Rate*: Cosine Similarity của ArcFace vector trích xuất từ ảnh khuôn mặt được crop tự động (ngưỡng pass $\ge 0.85$)
+  2. *Pose Accuracy / Keypoint Distance*: Khoảng cách sai lệch Euclidean giữa keypoints bộ xương gốc và keypoints bộ xương trên ảnh sinh ra
+  3. *Peak VRAM*: Đo lường mức chiếm dụng VRAM tối đa trong quá trình suy luận
+  4. *Full-Body Stability*: Đánh giá tỉ lệ lỗi bàn tay (hand deformities) và hiện tượng da nhựa sáp trên ảnh toàn thân
+- [ ] Xuất báo cáo Markdown chi tiết kèm biểu đồ so sánh trực quan, tích hợp vào tài liệu `DA-AI11-01`
 
 **Technical Notes:**
 
-- Tạo script chạy song song 2 pipelines `tests/benchmark_instantid_vs_ipadapter.py`, lưu kết quả JSON và render biểu đồ so sánh.
+- Tạo script chạy song song 2 pipelines `tests/benchmark_lorapose_vs_instantid.py`, lưu kết quả JSON và render biểu đồ đối đầu.
 
-**Dependencies:** Blocks: DA-AI07-15, DA-AI11-01. Blocked by: DA-AI07-13.
+**Dependencies:** Blocks: DA-AI07-15, DA-AI11-01. Blocked by: DA-AI07-04, DA-AI07-05.
 
 ---
 
@@ -7607,6 +7707,30 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 - Phối hợp với Tuấn để hoàn thiện phần thông số GPU và CUDA trong tài liệu.
 
 **Dependencies:** Blocks: None. Blocked by: DA-AI07-14.
+
+---
+
+### DA-AI07-16 — DWPose Keypoints Extraction & Control Image Normalization
+
+**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng module trích xuất bộ xương tư thế DWPose chuẩn xác từ ảnh tham chiếu người mẫu và chuẩn hóa định dạng ảnh điều khiển (Control Image) cho SDXL Pose ControlNet.
+
+**Acceptance Criteria:**
+
+- [ ] Tích hợp mô hình DWPose Onnx (`yolox_l` + `dw-ll_ucoco_384`):
+  - Trích xuất 18 điểm khung xương thân người chính
+  - Trích xuất 42 điểm khớp bàn tay (21 điểm mỗi bàn tay)
+  - Trích xuất 68 điểm khung viền mặt
+- [ ] Thuật toán vẽ Skeleton Canvas: Tô màu các đoạn xương theo đúng quy chuẩn màu sắc của OpenPose/DWPose trên nền đen RGB `(0, 0, 0)`
+- [ ] Chuẩn hóa kích thước & Padding: Tự động điều chỉnh tỉ lệ khung xương theo đúng độ phân giải đích ($1024 \times 1024$, $896 \times 1152$, v.v.), căn giữa và bù trừ padding đối xứng
+- [ ] Tốc độ trích xuất keypoints đạt $< 350\text{ms}$ trên GPU / $< 1.2\text{s}$ trên CPU
+
+**Technical Notes:**
+
+- DWPose giải quyết triệt để vấn đề mất ngón hoặc bàn tay bị biến dạng khi người mẫu cầm sản phẩm.
+
+**Dependencies:** Blocked by: DA-AI07-01. Blocks: DA-AI07-04.
 
 ---
 
@@ -7738,7 +7862,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 ### DA-AI08-07 — Write composition parameter guide (optimal image sizes, best practices per product category)
 
-**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟢 Low
+**Assignee:** Tuấn (AI) | **Priority:** 🟢 Low
 
 **Goal:** Give BrandHub clients clear guidance on how to prepare input images to get the best possible composition results.
 
@@ -7749,6 +7873,98 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 - [ ] Known failure cases listed with workarounds (e.g., "for glass bottles, manually remove background in Photoshop before uploading")
 
 **Dependencies:** Blocks: None. Blocked by: DA-AI08-06.
+
+---
+
+### DA-AI08-08 — Virtual Try-On (VTON) Model Benchmark: IDM-VTON vs CatVTON & SKU Fidelity
+
+**Assignee:** Tuấn (AI) & Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Triển khai thử nghiệm đối đầu định lượng giữa hai mô hình thử đồ ảo tiên tiến (IDM-VTON và CatVTON) trên tập sản phẩm thời trang mẫu; đánh giá độ trung thực của trang phục (SKU fidelity), nếp nhăn, logo thương hiệu và mức ngốn VRAM để chốt giải pháp production.
+
+**Acceptance Criteria:**
+
+- [ ] Triển khai cả hai mô hình trên môi trường GPU testbed:
+  - IDM-VTON (Diffusion-based Virtual Try-on)
+  - CatVTON (Lightweight Concatenation-based Try-on)
+- [ ] Tập dữ liệu benchmark: 15 cặp sản phẩm thực tế (áo thun in họa tiết, áo sơ mi kẻ sọc, váy đầm dạ hội, áo khoác dày có khóa kéo)
+- [ ] Đánh giá định lượng trên 4 tiêu chí khắt khe:
+  1. *SKU Texture & Pattern Preservation*: Độ biến dạng của họa tiết kẻ sọc/hoa văn trên áo (đo SSIM và LPIPS)
+  2. *Logo & Typography Fidelity*: Kiểm tra logo ngực áo có bị nhòe chữ hoặc méo mó không
+  3. *Physical Creases & Draping*: Đánh giá mức độ tự nhiên của nếp gấp vải theo tư thế cử động của người mẫu
+  4. *VRAM & Inference Latency*: So sánh thời gian chạy và mức đỉnh VRAM tiêu thụ
+- [ ] Xuất báo cáo kỹ thuật chọn giải pháp chính thức cho BrandHub kèm phương án fallback
+
+**Technical Notes:**
+
+- CatVTON có ưu thế chạy nhanh và nhẹ VRAM (< 8GB); IDM-VTON có độ chi tiết nếp gấp cao hơn nhưng tốn VRAM hơn (~14GB).
+
+**Dependencies:** Blocked by: GPU Environment Setup. Blocks: DA-AI08-10.
+
+---
+
+### DA-AI08-09 — Local Refinement & Face/Hand Detailer with Retry Limiter & Pre/Post QA
+
+**Assignee:** Tuấn (AI) & Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng module Inpainting/Refinement cục bộ chuyên sâu cho vùng khuôn mặt và bàn tay sau khi sinh ảnh tổng thể hoặc sau bước mặc đồ ảo (VTON); cài đặt giới hạn số lần retry tối đa 2 lần và kiểm định chất lượng QA trước và sau khi upscale.
+
+**Acceptance Criteria:**
+
+- [ ] Tự động phát hiện và crop bounding box vùng khuôn mặt (YOLO Face) và bàn tay (MediaPipe / DWPose)
+- [ ] Thực hiện Local Inpainting với mức denoising nhẹ ($0.25 - 0.35$) để phục hồi chi tiết mắt, đồng tử, lỗ chân lông và móng tay mà không làm thay đổi đặc trưng danh tính
+- [ ] Cài đặt **Retry Limiter (Tối đa 2 lần)**: Nếu điểm Cosine Similarity của khuôn mặt sau refine vẫn $< 0.85$ hoặc phát hiện bàn tay bị dị tật ngón, tự động re-sample seed mới (tối đa 2 lần) để tránh loop vô tận và bảo vệ SLA timeout
+- [ ] Chốt chặn **QA Gate Pre/Post Upscale**:
+  - *Pre-Upscale QA*: Kiểm tra độ nét và không có artifact cháy sáng trên ảnh gốc $1024 \times 1024$
+  - *Post-Upscale QA (2K/4K qua Real-ESRGAN)*: Kiểm tra không bị hiện tượng gai nhọn hoặc răng cưa viền logo sản phẩm
+
+**Technical Notes:**
+
+- Tránh lãng phí tài nguyên GPU bằng cách fail-fast nếu sau 2 lần retry vẫn không đạt điểm QA.
+
+**Dependencies:** Blocked by: DA-AI08-08, DA-AI07-04. Blocks: DA-AI08-10.
+
+---
+
+### DA-AI08-10 — Sequential Stage Runner, VRAM Lifecycle & Crash Recovery
+
+**Assignee:** Lộc (AI Sub-lead) & Tuấn (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Thiết kế tiến trình điều phối tuần tự (Stage Runner) kiểm soát bộ nhớ VRAM chặt chẽ qua từng chặng (Base SDXL -> Pose ControlNet -> VTON -> Detailer -> Upscaler), dọn sạch cache GPU giữa các stage, lưu trữ trạng thái trung gian (intermediate outputs) để debug và resume khi lỗi.
+
+**Acceptance Criteria:**
+
+- [ ] Thiết kế `PipelineStageRunner` thực thi tuần tự theo đồ thị:
+  `Stage 1: SDXL + LoRA + Pose` ➔ `Stage 2: VTON` ➔ `Stage 3: Detailer` ➔ `Stage 4: Upscaler`
+- [ ] Quản lý vòng đời VRAM: Sau mỗi stage, tự động gọi `torch.cuda.empty_cache()` và `gc.collect()`; nạp và giải phóng model xen kẽ, đảm bảo đỉnh VRAM cả quá trình không vượt quá **20GB** trên GPU RTX 4090 24GB
+- [ ] Lưu trữ Intermediate Outputs: Lưu snapshot kết quả ảnh PNG của từng stage vào thư mục tạm/S3 kèm `job_id` và `stage_name`
+- [ ] Cơ chế **Resume on Failure**: Nếu Stage 3 bị lỗi (do OOM hoặc timeout), hệ thống có khả năng retry trực tiếp từ kết quả của Stage 2 mà không phải render lại từ đầu Stage 1
+
+**Technical Notes:**
+
+- Áp dụng Stage Runner pattern tương tự như `trend_pipeline` đã triển khai thành công trong `brandhub-ai-service`.
+
+**Dependencies:** Blocked by: DA-AI07-04, DA-AI08-08, DA-AI08-09. Blocks: DA-AI08-11.
+
+---
+
+### DA-AI08-11 — End-to-End Cloud Ambassador Pipeline & AI Service Contract Handoff
+
+**Assignee:** Lộc (AI Sub-lead), Tuấn (AI) & Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Kết nối toàn bộ luồng xử lý từ tạo danh tính, huấn luyện LoRA, triển khai inference worker, sinh ảnh đại sứ kèm pose và sản phẩm; nghiệm thu end-to-end cloud pipeline và bàn giao API contract hoàn chỉnh cho `brandhub-ai-service`.
+
+**Acceptance Criteria:**
+
+- [ ] Kết nối thông suốt luồng E2E trên Cloud/Kaggle:
+  `Client gửi Request` ➔ `Chọn Identity & Pose` ➔ `Nạp LoRA & DWPose` ➔ `Mặc đồ VTON` ➔ `Local Detailer` ➔ `QA Gate` ➔ `Upload S3`
+- [ ] Đạt các chỉ số SLA kỹ thuật:
+  - Tổng thời gian hoàn tất chuỗi (E2E Latency): $\le 30\text{ giây / ảnh thương phẩm hoàn thiện}$
+  - Tỉ lệ thành công liên tục (Success Rate) $\ge 95\%$ trên 20 test runs liên tiếp
+- [ ] Bàn giao API Contract hoàn chỉnh (Pydantic Schemas, OpenAPI docs, mã lỗi chuẩn hóa HTTP 422/503)
+- [ ] Viết tài liệu hướng dẫn vận hành và kịch bản demo trực tiếp phục vụ buổi bảo vệ trước Mentor/Hội đồng
+
+**Dependencies:** Blocked by: DA-AI08-10, DA-AI06-24. Blocks: DA-AI10-01.
 
 ---
 
