@@ -79,7 +79,7 @@ Response: {"trends": [{"keyword": "string", "score": 0.95, "relatedTopics": ["st
 | DA-E24-03 | Implement AI usage tracking (count ai_credits_per_month against subscription plan limits) | Trung (Leader) | 🟡 High |
 
 **Content generation flow (DA-E24-01):**
-1. CONTENT_CREATOR calls `POST /api/v1/posts/ai-generate` with `{contentRequestId, platform, tone}`
+1. CREATOR calls `POST /api/v1/posts/ai-generate` with `{contentRequestId, platform, tone}`
 2. business-service fetches client brand context
 3. business-service calls `/internal/ai/content/generate`
 4. business-service saves returned caption+hashtags as draft `Post` document
@@ -99,7 +99,7 @@ Response: {"trends": [{"keyword": "string", "score": 0.95, "relatedTopics": ["st
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | DA-E17-01 | Implement Admin CRUD for subscription plans (Free/Basic/Pro/Enterprise) | Trung (Leader) | 🔴 Critical |
-| DA-E17-02 | Implement POST /api/v1/subscriptions/subscribe (AGENCY_OWNER subscribes to a plan) | Trung (Leader) | 🔴 Critical |
+| DA-E17-02 | Implement POST /api/v1/subscriptions/subscribe (OWNER subscribes to a plan) | Trung (Leader) | 🔴 Critical |
 | DA-E17-03 | Implement payment flow (integrate payment gateway, create invoice) | Trung (Leader) | 🔴 Critical |
 | DA-E17-04 | Implement GET /api/v1/subscriptions/invoices (billing history) | Ân (AI) | 🟡 High |
 
@@ -135,6 +135,6 @@ Response: {"trends": [{"keyword": "string", "score": 0.95, "relatedTopics": ["st
 - [ ] Credit limit check: 429 returned when limit exceeded
 - [ ] End-to-end test: create ContentRequest → AI generate → see draft Post in DB
 - [ ] Admin can create/edit/delete subscription plans
-- [ ] AGENCY_OWNER can subscribe to a plan via Stripe test mode
+- [ ] OWNER can subscribe to a plan via Stripe test mode
 - [ ] Invoice record created after successful payment
 - [ ] GET /api/v1/subscriptions/invoices returns paginated invoice history

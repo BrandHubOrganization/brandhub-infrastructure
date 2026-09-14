@@ -46,9 +46,9 @@
 - Việc build sẽ nhanh vì pattern đã có sẵn 4 lần lặp lại (copy `GitHubOAuthController` + `GitHubOAuthService`, đổi endpoint Facebook Graph API).
 
 ### E16 — Client API
-- API doc yêu cầu 8 endpoint: create, list (scoped theo role), get, update, delete, assign account manager, service-package, portal-access.
+- API doc yêu cầu 8 endpoint: create, list (scoped theo role), get, update, delete, assign manager, service-package, portal-access.
 - Model `Client.java` tồn tại (fields khớp doc: name, brandName, industry, contactEmail...) nhưng **không có `ClientController`, `ClientService`, `ClientRepository`**.
-- Thiếu toàn bộ: không chỉ CRUD cơ bản mà cả nghiệp vụ isolation (`ACCOUNT_MANAGER` chỉ thấy client được assign, `BRAND_CLIENT` chỉ thấy client của chính họ) — chưa có RBAC nào áp cho resource này vì chưa có controller.
+- Thiếu toàn bộ: không chỉ CRUD cơ bản mà cả nghiệp vụ isolation (`MANAGER` chỉ thấy client được assign, `CLIENT` chỉ thấy client của chính họ) — chưa có RBAC nào áp cho resource này vì chưa có controller.
 
 ### E17 — Subscription plans CRUD
 - Doc mô tả rõ luồng Stripe: `/plans` (public), `/current`, `/subscribe` (tạo `clientSecret`), `/webhook` (Stripe HMAC), `/cancel`, `/invoices`.
@@ -75,11 +75,11 @@
 
 ### E28/E29 — Content request API
 - Doc yêu cầu 6 endpoint gồm workflow assign + comment thread.
-- Không có `ContentRequest` model, controller, hay repository nào trong business-service. Đây là workflow cốt lõi kết nối Client → Account Manager → Creator — hiện không thể thực hiện được qua API dù đã có role model (`MemberRole` enum) sẵn sàng ở tầng Workspace.
+- Không có `ContentRequest` model, controller, hay repository nào trong business-service. Đây là workflow cốt lõi kết nối Client → Manager → Creator — hiện không thể thực hiện được qua API dù đã có role model (`MemberRole` enum) sẵn sàng ở tầng Workspace.
 
 ### E30/E31 — Calendar/Posts + Approve
 - Doc mô tả rõ approval chain: `POST /posts` (Creator/AM tạo) → `PUT .../submit` → `PUT .../approve`.
-- Không có `Post` model/controller nào. Approval chain (Creator → Account Manager → Client) **hoàn toàn không thể đi qua được** vì chưa có transition endpoint nào tồn tại — không phải "thiếu 1 state" mà là thiếu toàn bộ luồng.
+- Không có `Post` model/controller nào. Approval chain (Creator → Manager → Client) **hoàn toàn không thể đi qua được** vì chưa có transition endpoint nào tồn tại — không phải "thiếu 1 state" mà là thiếu toàn bộ luồng.
 
 ### E38 — Analytics aggregation
 - Doc yêu cầu MongoDB aggregation trên `posts`/`ai_usage_logs`. Vì `posts` (E30) và social/AI usage tracking chưa tồn tại, analytics không có nguồn dữ liệu để tổng hợp dù có build controller cũng vô nghĩa — **phụ thuộc cứng vào E28-E31 xong trước.**
@@ -91,7 +91,7 @@
 
 ## 3. Cross-cutting findings
 
-1. **Role naming lệch giữa doc và code:** `docs/api/endpoints/*.md` dùng `AGENCY_OWNER / ACCOUNT_MANAGER / CONTENT_CREATOR / BRAND_CLIENT`, nhưng code thực tế (`MemberRole` enum, `workspace-management/spec.md`) dùng `OWNER / CREATOR / VIEWER / CLIENT / ACCOUNT`. Toàn bộ `docs/api/endpoints/04_client.md` đến `11_admin.md` có khả năng là tài liệu cũ/aspirational viết trước khi role model chốt lại — cần review lại toàn bộ trước khi dùng làm spec để code, không chỉ các epic liệt kê ở đây.
+1. **Role naming lệch giữa doc và code:** `docs/api/endpoints/*.md` dùng `OWNER / MANAGER / CREATOR / CLIENT`, nhưng code thực tế (`MemberRole` enum, `workspace-management/spec.md`) dùng `OWNER / CREATOR / VIEWER / CLIENT / ACCOUNT`. Toàn bộ `docs/api/endpoints/04_client.md` đến `11_admin.md` có khả năng là tài liệu cũ/aspirational viết trước khi role model chốt lại — cần review lại toàn bộ trước khi dùng làm spec để code, không chỉ các epic liệt kê ở đây.
 2. **Jira status không đáng tin cậy làm tín hiệu tiến độ code:** E16 "In review" và E21 "In Progress" nhưng repo tương ứng không có code phản ánh. Nên đối chiếu trực tiếp branch/PR thay vì chỉ tin Jira status khi ước lượng % hoàn thành.
 3. **Publisher-service là điểm nghẽn lớn nhất:** toàn bộ nhóm E21/E22/E32/E33 (publish core) phụ thuộc vào 1 service hiện đang trống hoàn toàn. Đây là rủi ro capstone lớn nhất nếu deadline gần.
 4. **Chuỗi phụ thuộc chưa được thứ tự hoá đúng trên Jira:** E38 (Analytics) phụ thuộc E30/E31 (Post); E20 (token refresh) phụ thuộc E18/E19 (social OAuth); E24 phụ thuộc E23. Nếu các epic phụ thuộc bị làm song song không đúng thứ tự sẽ phải làm lại.

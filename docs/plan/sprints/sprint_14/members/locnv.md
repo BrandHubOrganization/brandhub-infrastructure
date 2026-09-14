@@ -26,7 +26,7 @@
 | DA-E40-02 | [DA-E40-02](https://letritrung2605.atlassian.net/browse/DA-E40-02) | Auth screens (Login, Register, Forgot Password) | 🔴 Critical | |
 | DA-E40-03 | [DA-E40-03](https://letritrung2605.atlassian.net/browse/DA-E40-03) | Dashboard screen | 🔴 Critical | |
 | DA-E40-04 | [DA-E40-04](https://letritrung2605.atlassian.net/browse/DA-E40-04) | Calendar screen (react-native-calendars) | 🟡 High | |
-| DA-E40-05 | [DA-E40-05](https://letritrung2605.atlassian.net/browse/DA-E40-05) | Approval screen for BRAND_CLIENT | 🔴 Critical | |
+| DA-E40-05 | [DA-E40-05](https://letritrung2605.atlassian.net/browse/DA-E40-05) | Approval screen for CLIENT | 🔴 Critical | |
 | DA-E40-06 | [DA-E40-06](https://letritrung2605.atlassian.net/browse/DA-E40-06) | Offline draft mode (AsyncStorage + sync on reconnect) | 🟡 High | |
 | DA-E41-01 | [DA-E41-01](https://letritrung2605.atlassian.net/browse/DA-E41-01) | Integrate FCM (react-native-firebase/messaging) | 🔴 Critical | |
 | DA-E41-03 | [DA-E41-03](https://letritrung2605.atlassian.net/browse/DA-E41-03) | Notification screen (list + deep link on tap) | 🟡 High | |

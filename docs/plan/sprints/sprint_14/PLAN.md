@@ -21,7 +21,7 @@
 - Auth screens: Login, Register, Forgot Password
 - Dashboard screen (simplified overview)
 - Calendar screen (read-only post calendar)
-- Approval screen for BRAND_CLIENT
+- Approval screen for CLIENT
 - Offline draft mode (save to AsyncStorage, sync on reconnect)
 - FCM push notifications working on both platforms
 - Native camera + media gallery upload
@@ -36,7 +36,7 @@
 | DA-E40-02 | Build Auth screens (Login, Register, Forgot Password) | Phước (Publisher) | 🔴 Critical |
 | DA-E40-03 | Build Dashboard screen (simplified overview) | Phước (Publisher) | 🔴 Critical |
 | DA-E40-04 | Build Calendar screen (calendar view, post status) | Phước (Publisher) | 🟡 High |
-| DA-E40-05 | Build Approval screen for BRAND_CLIENT (view preview, approve/reject) | Phước (Publisher) | 🔴 Critical |
+| DA-E40-05 | Build Approval screen for CLIENT (view preview, approve/reject) | Phước (Publisher) | 🔴 Critical |
 | DA-E40-06 | Implement offline draft mode (save draft to AsyncStorage when offline, sync when back online) | Phước (Publisher) | 🟡 High |
 
 **Navigation structure (DA-E40-01):**
@@ -46,7 +46,7 @@ Stack:
   MainTabs (authenticated):
     Tab 1: Dashboard
     Tab 2: Calendar
-    Tab 3: Tasks (CONTENT_CREATOR) / Approvals (BRAND_CLIENT)
+    Tab 3: Tasks (CREATOR) / Approvals (CLIENT)
     Tab 4: Notifications
     Tab 5: Profile
 ```
@@ -88,7 +88,7 @@ Stack:
 - Use `expo-image-picker` for gallery
 - Use `expo-camera` for camera
 - Upload selected file to `POST /api/v1/media/upload` → S3 → return URL
-- Used in Content Editor (CONTENT_CREATOR) and Approval screen (BRAND_CLIENT can upload reference)
+- Used in Content Editor (CREATOR) and Approval screen (CLIENT can upload reference)
 
 **Deep link navigation on notification tap:**
 | Notification type | Navigate to |
@@ -109,7 +109,7 @@ Stack:
 - [ ] Forgot Password: sends email
 - [ ] Dashboard: shows total posts, success rate, recent activity
 - [ ] Calendar: shows post dots, tap date shows post list
-- [ ] Approval screen (BRAND_CLIENT): approve/reject works
+- [ ] Approval screen (CLIENT): approve/reject works
 - [ ] Offline draft: save draft while offline, sync on reconnect
 - [ ] FCM permission requested on first launch
 - [ ] Push notification received when post published (test on real device)

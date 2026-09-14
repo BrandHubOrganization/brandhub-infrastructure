@@ -11,7 +11,7 @@
 ### 1. Bảng Ma Trận Phân Quyền (Role Access Matrix)
 Hệ thống BrandHub vận hành xoay quanh 5 vai trò chính với các mức tiếp cận thông tin khác nhau. Việc thiết kế Wireframe phải đảm bảo cơ chế ẩn/hiện hoặc khoá/mở các UI Component tương ứng:
 
-| Màn hình / Tính năng | Admin | Agency Owner | Account Manager (AM) | Content Creator | Brand Client |
+| Màn hình / Tính năng | Admin | Owner | Manager (AM) | Creator | Client |
 |---|---|---|---|---|---|
 | **1. Login/Auth** | Đăng nhập hệ thống | Đăng nhập hệ thống | Đăng nhập hệ thống | Đăng nhập hệ thống | Đăng nhập Portal |
 | **2. Main Dashboard** | Toàn hệ thống (System KPI) | Agency KPI & Workspaces | Approval Queue & Tasks | My Tasks & AI Credits | Client Approval List |
@@ -121,10 +121,10 @@ Sử dụng bố cục chia đôi (Split-screen layout) tỉ lệ **35% : 65%**.
 - **Thanh tiến trình tín dụng AI:** `Progress` dùng trong Card AI Credits để hiển thị phần trăm dung lượng đã dùng.
 
 #### 4. Giao diện biến thể theo Role
-- **Agency Owner:** Dashboard tập trung vào tài chính và nhân sự. Các KPI hiển thị: "Doanh thu tháng", "AI Credits tiêu thụ của Agency", "Số Client đang hoạt động". Widget hiển thị danh sách các Workspace kèm hiệu suất.
-- **Account Manager (AM) [Mặc định]:** Dashboard hiển thị hàng chờ duyệt bài viết (Approval Queue) từ các Creator. Widget hiển thị "Task trễ hạn" và "Lịch đăng bài hôm nay".
-- **Content Creator:** Dashboard cá nhân hóa. KPI hiển thị: "Số bài viết đã tạo", "AI Credits đã tiêu dùng cá nhân", "Số bài viết bị Reject". Widget hiển thị "Briefs được giao" và "Lịch sử duyệt bài của tôi".
-- **Brand Client:** Điều hướng trực tiếp sang Client Portal (không xem Dashboard chung này).
+- **Owner:** Dashboard tập trung vào tài chính và nhân sự. Các KPI hiển thị: "Doanh thu tháng", "AI Credits tiêu thụ của Agency", "Số Client đang hoạt động". Widget hiển thị danh sách các Workspace kèm hiệu suất.
+- **Manager (AM) [Mặc định]:** Dashboard hiển thị hàng chờ duyệt bài viết (Approval Queue) từ các Creator. Widget hiển thị "Task trễ hạn" và "Lịch đăng bài hôm nay".
+- **Creator:** Dashboard cá nhân hóa. KPI hiển thị: "Số bài viết đã tạo", "AI Credits đã tiêu dùng cá nhân", "Số bài viết bị Reject". Widget hiển thị "Briefs được giao" và "Lịch sử duyệt bài của tôi".
+- **Client:** Điều hướng trực tiếp sang Client Portal (không xem Dashboard chung này).
 
 ---
 
@@ -149,11 +149,11 @@ Sử dụng bố cục chia đôi (Split-screen layout) tỉ lệ **35% : 65%**.
 |  - Clients    | | | 12 Members | 5 Brands          | | | | DANH SÁCH THÀNH VIÊN       [+ Mời]       | |
 |  - Analytics  | | +--------------------------------+ | | | - Minh AM (AM)       - [Xoá khỏi WS]     | |
 |               | | +--------------------------------+ | | | - Tuấn Creator (Cr.) - [Xoá khỏi WS]     | |
-|               | | | Brand Client A (Active)        | | | | - Hùng Client (Cl.)  - [Xoá khỏi WS]     | |
+|               | | | Client A (Active)        | | | | - Hùng Client (Cl.)  - [Xoá khỏi WS]     | |
 |               | | | 2 Members  | 1 Brand           | | | |                                          | |
 |               | | +--------------------------------+ | | | Mời thành viên mới:                      | |
 |               | | +--------------------------------+ | | | [Input: email@...] [Select: Role] [Button]| |
-| [Lộc AM v]    | | | Brand Client B (Inactive)      | | | +------------------------------------------+ | |
+| [Lộc AM v]    | | | Client B (Inactive)      | | | +------------------------------------------+ | |
 |               | +------------------------------------+ +----------------------------------------------+ |
 +---------------+---------------------------------------------------------------------------------------+
 ```
@@ -169,10 +169,10 @@ Sử dụng bố cục chia đôi (Split-screen layout) tỉ lệ **35% : 65%**.
 - **Thông báo hệ thống:** `Toast` hiển thị thông báo "Đã gửi email mời thành viên thành công".
 
 #### 4. Giao diện biến thể theo Role
-- **Agency Owner:** Toàn quyền quản lý. Nhìn thấy nút "Tạo Workspace mới", nút "Xoá Workspace", nút cấu hình gói dịch vụ và giới hạn AI Credits cho từng Workspace.
-- **Account Manager (AM):** Chỉ xem được danh sách Workspace được gán quyền. Không có nút "Xoá Workspace". Có quyền mời/xoá thành viên cấp Creator và Client, cấu hình kết nối Kênh Social Media.
-- **Content Creator:** Chỉ được phép xem danh sách thành viên trong Workspace (Read-only Member list) và xem danh sách tài liệu RAG (để kiểm tra xem tài liệu thương hiệu nào đã được nạp cho AI). Không có quyền mời thành viên hay kết nối API Social.
-- **Brand Client:** Bị chặn quyền truy cập màn hình này (Hiển thị trang 403 Forbidden hoặc redirect về Client Portal).
+- **Owner:** Toàn quyền quản lý. Nhìn thấy nút "Tạo Workspace mới", nút "Xoá Workspace", nút cấu hình gói dịch vụ và giới hạn AI Credits cho từng Workspace.
+- **Manager (AM):** Chỉ xem được danh sách Workspace được gán quyền. Không có nút "Xoá Workspace". Có quyền mời/xoá thành viên cấp Creator và Client, cấu hình kết nối Kênh Social Media.
+- **Creator:** Chỉ được phép xem danh sách thành viên trong Workspace (Read-only Member list) và xem danh sách tài liệu RAG (để kiểm tra xem tài liệu thương hiệu nào đã được nạp cho AI). Không có quyền mời thành viên hay kết nối API Social.
+- **Client:** Bị chặn quyền truy cập màn hình này (Hiển thị trang 403 Forbidden hoặc redirect về Client Portal).
 
 ---
 
@@ -219,13 +219,13 @@ Sử dụng bố cục **3 cột co giãn linh hoạt** (Flexible Three-column L
 - **Tiến trình AI tạo bài:** `Skeleton` phủ lên vùng Editor khi bấm nút "Tạo nội dung AI" để tránh người dùng thao tác đè lên nhau.
 
 #### 4. Giao diện biến thể theo Role
-- **Content Creator:**
+- **Creator:**
   - Nhìn thấy đầy đủ tính năng ở Cột 1 (AI Generation Panel) và Cột 2 (Editor).
   - Nút hành động chính ở Cột 2: **"Gửi AM duyệt"** (Submit to AM). Trạng thái bài viết chuyển từ `Draft` sang `Pending_AM_Review`.
-- **Account Manager (AM):**
+- **Manager (AM):**
   - Nhìn thấy bài viết của Creator gửi lên ở chế độ View-only hoặc Edit (có thể sửa trực tiếp lỗi chính tả).
   - Cột 3 (Preview) xuất hiện thanh công cụ duyệt bài: **Nút "Approve"** (Duyệt bài - hệ thống tự động chuyển bài lên Client Portal chờ Client duyệt hoặc đặt lịch nếu không cần Client duyệt) và **Nút "Reject"** (Từ chối - trả về Creator kèm lý do).
-- **Brand Client:** Không truy cập được màn hình Editor này. Chỉ xem và duyệt qua Client Portal.
+- **Client:** Không truy cập được màn hình Editor này. Chỉ xem và duyệt qua Client Portal.
 
 ---
 
@@ -270,9 +270,9 @@ Sử dụng bố cục **3 cột co giãn linh hoạt** (Flexible Three-column L
 - **Hover Preview:** `HoverCard`, `HoverCardTrigger`, `HoverCardContent` hiển thị preview nhanh của bài viết khi rê chuột qua card lịch mà không cần click.
 
 #### 4. Giao diện biến thể theo Role
-- **Agency Owner / Account Manager (AM):** Toàn quyền quản trị lịch đăng bài. Hỗ trợ thao tác kéo thả (Drag-and-Drop) card bài viết từ ngày này sang ngày khác để tự động thay đổi lịch đăng (gửi API cập nhật queue). Nhấp đúp vào ô ngày bất kỳ để mở form tạo nhanh bài viết mới.
-- **Content Creator:** Xem lịch đăng tổng thể để biết định hướng. Chỉ được phép kéo thả, chỉnh sửa hoặc xoá các bài viết của chính mình đang ở trạng thái `Draft` hoặc `Rejected`. Không thể chỉnh sửa bài viết đã `Approved` hoặc `Scheduled`.
-- **Brand Client:** Giao diện Read-only Calendar (Lịch chỉ xem). Client chỉ thấy các bài viết đã được `Approved` (Scheduled) hoặc `Published`. Không thấy bài viết dạng `Draft` nội bộ của Agency. Client có thể click vào bài đăng để xem preview và để lại bình luận.
+- **Owner / Manager (AM):** Toàn quyền quản trị lịch đăng bài. Hỗ trợ thao tác kéo thả (Drag-and-Drop) card bài viết từ ngày này sang ngày khác để tự động thay đổi lịch đăng (gửi API cập nhật queue). Nhấp đúp vào ô ngày bất kỳ để mở form tạo nhanh bài viết mới.
+- **Creator:** Xem lịch đăng tổng thể để biết định hướng. Chỉ được phép kéo thả, chỉnh sửa hoặc xoá các bài viết của chính mình đang ở trạng thái `Draft` hoặc `Rejected`. Không thể chỉnh sửa bài viết đã `Approved` hoặc `Scheduled`.
+- **Client:** Giao diện Read-only Calendar (Lịch chỉ xem). Client chỉ thấy các bài viết đã được `Approved` (Scheduled) hoặc `Published`. Không thấy bài viết dạng `Draft` nội bộ của Agency. Client có thể click vào bài đăng để xem preview và để lại bình luận.
 
 #### 5. Thiết kế Mobile (375px) — BẮT BUỘC
 Trên màn hình di động, hiển thị lưới tháng 30 ngày là bất khả thi. UI được chuyển đổi sang **Chế độ tuần trượt ngang kết hợp danh sách Timeline ngày dọc**:
@@ -315,7 +315,7 @@ Trên màn hình di động, hiển thị lưới tháng 30 ngày là bất kh�
 ### MÀN HÌNH 6: CLIENT PORTAL (CỔNG THÔNG TIN KHÁCH HÀNG)
 
 #### 1. Bố cục tổng quan (Desktop 1440px)
-- **Branding đặc thù:** Logo của Agency được thu nhỏ, nhường chỗ cho **Logo thương hiệu của khách hàng (Brand Client)** ở góc trên trái để cá nhân hoá trải nghiệm (White-label portal).
+- **Branding đặc thù:** Logo của Agency được thu nhỏ, nhường chỗ cho **Logo thương hiệu của khách hàng (Client)** ở góc trên trái để cá nhân hoá trải nghiệm (White-label portal).
 - **Sidebar (Trái - 240px):** Chỉ có các Tab cần thiết: Hàng chờ duyệt (Approval Queue), Gửi yêu cầu (Content Request), Lịch đăng bài (Calendar - Read only), Thư viện tài nguyên (Media Assets).
 - **Main Content Area:** Tập trung toàn bộ sự chú ý vào **Hàng chờ duyệt (Approval Queue)**. Thiết kế dạng Grid hiển thị các Card bài viết đang chờ phê duyệt.
 
@@ -352,9 +352,9 @@ Trên màn hình di động, hiển thị lưới tháng 30 ngày là bất kh�
 - **Popup Gửi Yêu Cầu Mới:** `Dialog` chứa form cho phép Client nhập mô tả brief mới (Tiêu đề request, mục tiêu, tệp đính kèm, hạn hoàn thành). Sử dụng `Input`, `Label`, `Textarea` và `Calendar` cho Date Picker.
 
 #### 4. Giao diện biến thể theo Role
-- **Brand Client [Mặc định]:** Đây là không gian làm việc chính của họ. Họ chỉ nhìn thấy dữ liệu của thương hiệu mình làm chủ. Có quyền bấm Duyệt/Từ chối bài viết, viết bình luận và tạo Request mới.
-- **Account Manager (AM):** Có quyền truy cập vào Portal này dưới dạng chế độ giả lập (Impersonate mode) để xem khách hàng đang nhìn thấy gì nhằm hỗ trợ kỹ thuật hoặc xem trực tiếp các phản hồi chưa đọc.
-- **Content Creator:** Không truy cập được giao diện này. Nhận thông tin phản hồi (bình luận, yêu cầu sửa đổi) gián tiếp thông qua hệ thống ticket/task được đồng bộ tự động về trang Dashboard và Editor của Creator.
+- **Client [Mặc định]:** Đây là không gian làm việc chính của họ. Họ chỉ nhìn thấy dữ liệu của thương hiệu mình làm chủ. Có quyền bấm Duyệt/Từ chối bài viết, viết bình luận và tạo Request mới.
+- **Manager (AM):** Có quyền truy cập vào Portal này dưới dạng chế độ giả lập (Impersonate mode) để xem khách hàng đang nhìn thấy gì nhằm hỗ trợ kỹ thuật hoặc xem trực tiếp các phản hồi chưa đọc.
+- **Creator:** Không truy cập được giao diện này. Nhận thông tin phản hồi (bình luận, yêu cầu sửa đổi) gián tiếp thông qua hệ thống ticket/task được đồng bộ tự động về trang Dashboard và Editor của Creator.
 
 ---
 
@@ -402,10 +402,10 @@ Trên màn hình di động, hiển thị lưới tháng 30 ngày là bất kh�
 - **Đồ thị:** Tích hợp thư viện đồ thị `Recharts` hoặc `Chart.js` được bọc bên trong thẻ `Card` của shadcn để đồng bộ phong cách tối giản.
 
 #### 4. Giao diện biến thể theo Role
-- **Agency Owner:** Xem được báo cáo tài chính cấp cao: "Chi phí AI Credits đã mua", "Tỉ lệ hoàn vốn đầu tư (ROI) ước tính", "Hiệu suất làm việc của từng Workspace khách hàng".
-- **Account Manager (AM):** Xem chi tiết hiệu quả của các Client mình quản lý. Có đầy đủ quyền cấu hình bộ lọc và xuất file báo cáo để gửi trực tiếp cho khách hàng.
-- **Content Creator:** Chỉ xem được chỉ số tương tác của các bài viết do mình tạo ra (Engagement, Reach, Likes, Comments, Shares) để cải tiến nội dung. Bị ẩn các thông tin về doanh thu, chi phí hoặc hiệu suất của Creator khác.
-- **Brand Client:** Xem báo cáo tương tự AM nhưng giao diện được tối giản hoá, ẩn các chỉ số nội bộ của Agency (như thông tin về Creator nào sản xuất bài đăng hoặc thời gian duyệt bài nội bộ).
+- **Owner:** Xem được báo cáo tài chính cấp cao: "Chi phí AI Credits đã mua", "Tỉ lệ hoàn vốn đầu tư (ROI) ước tính", "Hiệu suất làm việc của từng Workspace khách hàng".
+- **Manager (AM):** Xem chi tiết hiệu quả của các Client mình quản lý. Có đầy đủ quyền cấu hình bộ lọc và xuất file báo cáo để gửi trực tiếp cho khách hàng.
+- **Creator:** Chỉ xem được chỉ số tương tác của các bài viết do mình tạo ra (Engagement, Reach, Likes, Comments, Shares) để cải tiến nội dung. Bị ẩn các thông tin về doanh thu, chi phí hoặc hiệu suất của Creator khác.
+- **Client:** Xem báo cáo tương tự AM nhưng giao diện được tối giản hoá, ẩn các chỉ số nội bộ của Agency (như thông tin về Creator nào sản xuất bài đăng hoặc thời gian duyệt bài nội bộ).
 
 ---
 
@@ -479,7 +479,7 @@ Màn hình giả lập giao diện bài đăng thực tế trên ứng dụng m�
 +------------------------------------+
 | GIẢ LẬP GIAO DIỆN DI ĐỘNG (FB FEED)|
 | +--------------------------------+ |
-| | [Avatar Brand] Brand Client A  | |
+| | [Avatar Brand] Client A  | |
 | | Tài trợ  •  Vừa xong           | |
 | |                                | |
 | | Kem chống nắng thế hệ mới bảo  | |

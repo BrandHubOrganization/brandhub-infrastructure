@@ -21,7 +21,7 @@
 ### Backend — RBAC (E14)
 | DA-E14-01 | [DA-E14-01](https://letritrung2605.atlassian.net/browse/DA-E14-01) | @RequireRole annotation/middleware for RBAC | 🔴 Critical | |
 | DA-E14-02 | [DA-E14-02](https://letritrung2605.atlassian.net/browse/DA-E14-02) | Workspace isolation filter (workspaceId on every query) | 🔴 Critical | |
-| DA-E14-03 | [DA-E14-03](https://letritrung2605.atlassian.net/browse/DA-E14-03) | BRAND_CLIENT isolation (clientId filter) | 🔴 Critical | |
+| DA-E14-03 | [DA-E14-03](https://letritrung2605.atlassian.net/browse/DA-E14-03) | CLIENT isolation (clientId filter) | 🔴 Critical | |
 
 ### Backend — Workspace (E15)
 | DA-E15-01 | [DA-E15-01](https://letritrung2605.atlassian.net/browse/DA-E15-01) | POST /workspaces (create workspace) | 🔴 Critical | |

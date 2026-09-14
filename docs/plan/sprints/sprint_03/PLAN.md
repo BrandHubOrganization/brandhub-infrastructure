@@ -39,7 +39,7 @@
 | DA-E06-05 | Write DBML code for dbdiagram.io (MongoDB + PostgreSQL + Enums + Refs + TableGroups)                                                | Tuấn (AI)      | 🟡 High     |
 | DA-E06-06 | Document Redis key patterns (JWT blacklist, rate limit, OAuth state, trending cache)                                                | Ân (AI)        | 🟡 High     |
 | DA-E06-07 | Write database initialization scripts (init-mongo.js + init-postgres.sql)                                                           | Trung (Leader) | 🔴 Critical |
-| DA-E06-08 | Write database access rules documentation (every query must include workspaceId filter; BRAND_CLIENT also requires clientId filter) | Trung (Leader) | 🔴 Critical |
+| DA-E06-08 | Write database access rules documentation (every query must include workspaceId filter; CLIENT also requires clientId filter) | Trung (Leader) | 🔴 Critical |
 
 **12 MongoDB collections:**
 `users`, `workspaces`, `workspace_members`, `clients`, `social_accounts`, `posts`, `content_requests`, `knowledge_documents`, `notifications`, `publish_logs`, `ai_usage_logs`, `report_jobs`
@@ -112,7 +112,7 @@
 **Screens to wireframe (DA-E08-01):**
 
 1. Login / Register / Forgot Password
-2. Main Dashboard (role-aware: Agency Owner vs Content Creator view)
+2. Main Dashboard (role-aware: Owner vs Creator view)
 3. Workspace settings
 4. Client list + Client detail
 5. Content Request list

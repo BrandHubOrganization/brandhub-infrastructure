@@ -3,7 +3,7 @@
 **Timeline:** Weeks 21–22 (Oct 7–20, 2026)
 **Jira:** DA Sprint 11
 **Phase:** Phase 5 — Content Workflow & Publishing
-**Goal:** Implement the multi-step approval workflow (Creator → Account Manager → Brand Client) and the full publishing pipeline (APPROVED post → RabbitMQ → publisher-service → social platform).
+**Goal:** Implement the multi-step approval workflow (Creator → Manager → Client) and the full publishing pipeline (APPROVED post → RabbitMQ → publisher-service → social platform).
 
 > **AI Parallel:** AI Iteration 4 runs concurrently this sprint.
 
@@ -18,7 +18,7 @@
 | E33 | Publish Error Handling | Phước, Trung |
 
 **Deliverables by end of Sprint 11:**
-- Full approval chain working: CONTENT_CREATOR submits → ACCOUNT_MANAGER reviews → BRAND_CLIENT approves → SCHEDULED
+- Full approval chain working: CREATOR submits → MANAGER reviews → CLIENT approves → SCHEDULED
 - Approved post enqueued to RabbitMQ for publishing
 - All 5 platform adapters tested with real sandbox accounts
 - Retry + DLQ + failure notification working end-to-end
@@ -29,10 +29,10 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| DA-E31-01 | Implement POST /api/v1/posts/{id}/submit (CONTENT_CREATOR submits → PENDING_REVIEW) | Trung (Leader) | 🔴 Critical |
-| DA-E31-02 | Implement POST /api/v1/posts/{id}/account-review (ACCOUNT_MANAGER approves or rejects + note) | Trung (Leader) | 🔴 Critical |
-| DA-E31-03 | Implement POST /api/v1/posts/{id}/client-approve (BRAND_CLIENT approves → SCHEDULED) | Trung (Leader) | 🔴 Critical |
-| DA-E31-04 | Implement POST /api/v1/posts/{id}/client-reject (BRAND_CLIENT rejects + feedback) | Trung (Leader) | 🔴 Critical |
+| DA-E31-01 | Implement POST /api/v1/posts/{id}/submit (CREATOR submits → PENDING_REVIEW) | Trung (Leader) | 🔴 Critical |
+| DA-E31-02 | Implement POST /api/v1/posts/{id}/account-review (MANAGER approves or rejects + note) | Trung (Leader) | 🔴 Critical |
+| DA-E31-03 | Implement POST /api/v1/posts/{id}/client-approve (CLIENT approves → SCHEDULED) | Trung (Leader) | 🔴 Critical |
+| DA-E31-04 | Implement POST /api/v1/posts/{id}/client-reject (CLIENT rejects + feedback) | Trung (Leader) | 🔴 Critical |
 
 **Full status machine:**
 ```
@@ -85,7 +85,7 @@ PUBLISHING → (publisher callback: failure x3) → FAILED
 |---|---|---|---|
 | DA-E33-01 | Implement retry logic (up to 3 attempts, exponential backoff: 30s, 60s, 120s) | Phước (Publisher) | 🔴 Critical |
 | DA-E33-02 | Implement Dead Letter Queue handler (Admin can view and manually retry or discard failed posts) | Trung (Leader) | 🔴 Critical |
-| DA-E33-03 | Implement failure notification (send alert to Account Manager when a post fails after all retries) | Trung (Leader) | 🔴 Critical |
+| DA-E33-03 | Implement failure notification (send alert to Manager when a post fails after all retries) | Trung (Leader) | 🔴 Critical |
 
 **DLQ handler (DA-E33-02):**
 - Admin API: `GET /api/v1/admin/dlq` — list failed messages
@@ -100,11 +100,11 @@ PUBLISHING → (publisher callback: failure x3) → FAILED
 
 ## Sprint 11 Checklist
 
-- [ ] CONTENT_CREATOR submits post → status = PENDING_REVIEW, ACCOUNT_MANAGER notified
-- [ ] ACCOUNT_MANAGER approves → status = SENT_TO_CLIENT, BRAND_CLIENT notified
-- [ ] ACCOUNT_MANAGER rejects → status = DRAFT, rejection note saved
-- [ ] BRAND_CLIENT approves → status = SCHEDULED, post enqueued
-- [ ] BRAND_CLIENT rejects → status = DRAFT, client feedback saved
+- [ ] CREATOR submits post → status = PENDING_REVIEW, MANAGER notified
+- [ ] MANAGER approves → status = SENT_TO_CLIENT, CLIENT notified
+- [ ] MANAGER rejects → status = DRAFT, rejection note saved
+- [ ] CLIENT approves → status = SCHEDULED, post enqueued
+- [ ] CLIENT rejects → status = DRAFT, client feedback saved
 - [ ] Scheduled post: enqueued with delayed delivery time
 - [ ] Immediate post: enqueued and published within 30 seconds
 - [ ] Facebook IMAGE post published to sandbox Fanpage
@@ -113,5 +113,5 @@ PUBLISHING → (publisher callback: failure x3) → FAILED
 - [ ] Threads text post published
 - [ ] Zalo OA article published
 - [ ] Failed publish: retried 3x with 30s/60s/120s delays
-- [ ] After all retries: message in DLQ, Account Manager notified
+- [ ] After all retries: message in DLQ, Manager notified
 - [ ] Admin can view DLQ, retry, or discard messages

@@ -28,9 +28,9 @@
 
 | Task ID | Jira Link | Mô tả | Priority | Status cuối sprint |
 |---|---|---|---|---|
-| DA-D13-01 | [DA-676](https://letritrung2605.atlassian.net/browse/DA-676) | [R3 §2.1] Write Actors Description — 6 roles: ADMIN, AGENCY_OWNER, ACCOUNT_MANAGER, CONTENT_CREATOR, BRAND_CLIENT, GUEST | 🔴 Critical | 🔄 In Review |
-| DA-D13-03 | [DA-678](https://letritrung2605.atlassian.net/browse/DA-678) | [R3 §2.2] Write Use Case Descriptions — ACCOUNT_MANAGER + CONTENT_CREATOR + BRAND_CLIENT + GUEST (~40 UCs) | 🔴 Critical | 🔄 In Review |
-| DA-D14-03 | [DA-681](https://letritrung2605.atlassian.net/browse/DA-681) | [R3 §3.1.1] Write Screen Descriptions — BRAND_CLIENT + GUEST screens | 🟡 High | 🔄 In Review |
+| DA-D13-01 | [DA-676](https://letritrung2605.atlassian.net/browse/DA-676) | [R3 §2.1] Write Actors Description — 6 roles: ADMIN, OWNER, MANAGER, CREATOR, CLIENT, GUEST | 🔴 Critical | 🔄 In Review |
+| DA-D13-03 | [DA-678](https://letritrung2605.atlassian.net/browse/DA-678) | [R3 §2.2] Write Use Case Descriptions — MANAGER + CREATOR + CLIENT + GUEST (~40 UCs) | 🔴 Critical | 🔄 In Review |
+| DA-D14-03 | [DA-681](https://letritrung2605.atlassian.net/browse/DA-681) | [R3 §3.1.1] Write Screen Descriptions — CLIENT + GUEST screens | 🟡 High | 🔄 In Review |
 | DA-D14-04 | [DA-682](https://letritrung2605.atlassian.net/browse/DA-682) | [R3 §3.1.4] Write Non-Screen Functions — background jobs, callbacks, cron schedules | 🟡 High | 🔄 In Review |
 
 ### 2.3 Report 3 — AI Feature FR (§3.11–§3.16)
@@ -138,7 +138,7 @@ Mỗi function FR là một file riêng trong `docs/plan/report3/`. Nhóm theo 6
 ### [DA-D13-01] — Write Actors Description
 
 **Jira status:** In Review
-**Phạm vi:** viết mô tả 6 actor cho R3 §2.1, theo RBAC hierarchy `ADMIN > AGENCY_OWNER > ACCOUNT_MANAGER > CONTENT_CREATOR > BRAND_CLIENT > GUEST`.
+**Phạm vi:** viết mô tả 6 actor cho R3 §2.1, theo RBAC hierarchy `ADMIN > OWNER > MANAGER > CREATOR > CLIENT > GUEST`.
 
 **Công việc đã thực hiện:**
 - Xác định 6 role từ RBAC model và map với scope workspace của từng role.
@@ -152,16 +152,16 @@ Mỗi function FR là một file riêng trong `docs/plan/report3/`. Nhóm theo 6
 ### [DA-D13-03] — Write Use Case Descriptions — AC, CC, BC, Guest
 
 **Jira status:** In Review
-**Phạm vi:** viết mô tả use case cho 4 role ACCOUNT_MANAGER, CONTENT_CREATOR, BRAND_CLIENT, GUEST, khớp ID với overview diagram `use_case_overview.drawio`.
+**Phạm vi:** viết mô tả use case cho 4 role MANAGER, CREATOR, CLIENT, GUEST, khớp ID với overview diagram `use_case_overview.drawio`.
 
 **File liên quan:**
 - `docs/diagrams/DA-D13-03_Use_Case_Descriptions.md`
 
 **Công việc đã thực hiện:**
 - Viết 4 bảng use case theo format `ID | Use Case | Actors | Use Case Description`:
-  - Account Manager: UC18-UC25 + UC47-UC49 (11 UCs).
-  - Content Creator: UC26-UC34 + UC50-UC52 (13 UCs).
-  - Brand Client: UC35-UC40 + UC53-UC55 (9 UCs).
+  - Manager: UC18-UC25 + UC47-UC49 (11 UCs).
+  - Creator: UC26-UC34 + UC50-UC52 (13 UCs).
+  - Client: UC35-UC40 + UC53-UC55 (9 UCs).
   - Guest: UC-A01-UC-A08 (8 UCs).
 - Ghi rõ note: UC42 (Refresh Social Token) trùng endpoint với UC22 nên không document riêng, tránh duplicate.
 
@@ -170,10 +170,10 @@ Mỗi function FR là một file riêng trong `docs/plan/report3/`. Nhóm theo 6
 
 ---
 
-### [DA-D14-03] — Write Screen Descriptions — Brand Client & Guest
+### [DA-D14-03] — Write Screen Descriptions — Client & Guest
 
 **Jira status:** In Review
-**Phạm vi:** viết bảng Screen Description cho BRAND_CLIENT + GUEST, khớp screen-flow diagram DA-D03-05 và DA-D03-06.
+**Phạm vi:** viết bảng Screen Description cho CLIENT + GUEST, khớp screen-flow diagram DA-D03-05 và DA-D03-06.
 
 **File liên quan:**
 - `docs/plan/report3/DA-D14-03_Screen_Descriptions_Brand_Client_Guest.md`
@@ -181,7 +181,7 @@ Mỗi function FR là một file riêng trong `docs/plan/report3/`. Nhóm theo 6
 **Công việc đã thực hiện:**
 - Viết bảng 13 screens theo format `# | Feature | Screen Name | Description`:
   - Guest (5 screens): Landing Page, Login, Register, Verify OTP, Forgot Password.
-  - Brand Client (8 screens): Client Portal Login, Client Portal, Post Preview, Content Request, Your Requests, Client Calendar, Media Assets, Analytics Dashboard.
+  - Client (8 screens): Client Portal Login, Client Portal, Post Preview, Content Request, Your Requests, Client Calendar, Media Assets, Analytics Dashboard.
 - Đối chiếu tên screen với screen-flow diagram để không lệch ID.
 
 **Kết quả đạt được:**

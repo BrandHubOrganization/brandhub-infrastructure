@@ -114,7 +114,7 @@ Viết `init-mongo.js` với `$jsonSchema` validation cho từng collection (bso
 
 **Mô tả công việc đã làm:**
 
-Viết implementation contract (không phải guideline) gồm 5 rules bắt buộc: (1) `workspaceId` trong mọi MongoDB query, (2) `BRAND_CLIENT` thêm `clientId` bắt buộc, (3) `workspaceId` lấy từ JWT không phải request body, (4) Enforce tại Repository layer không phải Service, (5) PostgreSQL financial queries cũng cần `workspace_id`. Mỗi rule có code example ✅ ĐÚNG và ❌ SAI dùng Spring Data MongoDB để developer không phải đoán.
+Viết implementation contract (không phải guideline) gồm 5 rules bắt buộc: (1) `workspaceId` trong mọi MongoDB query, (2) `CLIENT` thêm `clientId` bắt buộc, (3) `workspaceId` lấy từ JWT không phải request body, (4) Enforce tại Repository layer không phải Service, (5) PostgreSQL financial queries cũng cần `workspace_id`. Mỗi rule có code example ✅ ĐÚNG và ❌ SAI dùng Spring Data MongoDB để developer không phải đoán.
 
 **Kết quả đạt được:**
 - [x] 5 rules đầy đủ, không ambiguous
@@ -137,7 +137,7 @@ Viết implementation contract (không phải guideline) gồm 5 rules bắt bu�
 
 **Mô tả công việc đã làm:**
 
-Tách file gốc 1732 dòng thành index + 12 files nhỏ theo group. Rà soát và sửa 6 lỗi trong file gốc: BRAND_CLIENT thiếu trong content-requests, analytics/clients, reports/{jobId}; DELETE posts sai role; self-read permission thiếu; UNSUPPORTED_PLATFORM error thiếu. Thêm role-based data isolation, workflow diagram cho post status, RabbitMQ trigger points, rate limiting notes.
+Tách file gốc 1732 dòng thành index + 12 files nhỏ theo group. Rà soát và sửa 6 lỗi trong file gốc: CLIENT thiếu trong content-requests, analytics/clients, reports/{jobId}; DELETE posts sai role; self-read permission thiếu; UNSUPPORTED_PLATFORM error thiếu. Thêm role-based data isolation, workflow diagram cho post status, RabbitMQ trigger points, rate limiting notes.
 
 **Kết quả đạt được:**
 - [x] 70 endpoints across 11 groups, đầy đủ request/response

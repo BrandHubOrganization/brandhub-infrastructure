@@ -107,10 +107,10 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-D03-01](#da-d03-01) | **[R3 §3.1.1]** Draw Screen Flow — ADMIN (Dashboard → User Mgmt → Content Moderation → Analytics → System Config) | Lộc | 🔴 |
-| [DA-D03-02](#da-d03-02) | **[R3 §3.1.1]** Draw Screen Flow — AGENCY_OWNER (Workspace Setup → Team Mgmt → Client Mgmt → Billing → Analytics) | Lộc | 🔴 |
-| [DA-D03-03](#da-d03-03) | **[R3 §3.1.1]** Draw Screen Flow — ACCOUNT_MANAGER (Client List → Content Review → Approval → Reports) | Phước | 🔴 |
-| [DA-D03-04](#da-d03-04) | **[R3 §3.1.1]** Draw Screen Flow — CONTENT_CREATOR (Content Editor → AI Generate → Calendar → Knowledge Base → Posts) | Phước | 🔴 |
-| [DA-D03-05](#da-d03-05) | **[R3 §3.1.1]** Draw Screen Flow — BRAND_CLIENT (Client Portal → Calendar → Approve/Reject → Analytics View) | Tuấn | 🔴 |
+| [DA-D03-02](#da-d03-02) | **[R3 §3.1.1]** Draw Screen Flow — OWNER (Workspace Setup → Team Mgmt → Client Mgmt → Billing → Analytics) | Lộc | 🔴 |
+| [DA-D03-03](#da-d03-03) | **[R3 §3.1.1]** Draw Screen Flow — MANAGER (Client List → Content Review → Approval → Reports) | Phước | 🔴 |
+| [DA-D03-04](#da-d03-04) | **[R3 §3.1.1]** Draw Screen Flow — CREATOR (Content Editor → AI Generate → Calendar → Knowledge Base → Posts) | Phước | 🔴 |
+| [DA-D03-05](#da-d03-05) | **[R3 §3.1.1]** Draw Screen Flow — CLIENT (Client Portal → Calendar → Approve/Reject → Analytics View) | Tuấn | 🔴 |
 | [DA-D03-06](#da-d03-06) | **[R3 §3.1.1]** Draw Screen Flow — GUEST (Landing Page → Register → Login) | Tuấn | 🔴 |
 | [DA-D03-07](#da-d03-07) | **[R3 §3.1.3]** Draw Screen Authorization Matrix — all screens × 6 roles (X/—) | Lộc | 🟡 |
 | [DA-D03-08](#da-d03-08) | **[R3 §3.1.1]** Export Screen Mockups from Figma — all 10 main screens with annotations | Lộc | 🟡 |
@@ -224,9 +224,9 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-D13-01](#da-d13-01) | **[R3 §2.1]** Write Actors Description — 7 roles: ADMIN, AGENCY_OWNER, WORKSPACE_MANAGER, ACCOUNT_MANAGER, CONTENT_CREATOR, BRAND_CLIENT, GUEST | Tuấn | 🔴 |
-| [DA-D13-02](#da-d13-02) | **[R3 §2.2.2]** Write Use Case Descriptions — ADMIN + AGENCY_OWNER (~20 UCs): ID, Actor, Description, Main/Alternative Flows | Lộc | 🔴 |
-| [DA-D13-03](#da-d13-03) | **[R3 §2.2.2]** Write Use Case Descriptions — ACCOUNT_MANAGER + CONTENT_CREATOR + BRAND_CLIENT + GUEST (~40 UCs) | Tuấn | 🔴 |
+| [DA-D13-01](#da-d13-01) | **[R3 §2.1]** Write Actors Description — 7 roles: ADMIN, OWNER, WORKSPACE_MANAGER, MANAGER, CREATOR, CLIENT, GUEST | Tuấn | 🔴 |
+| [DA-D13-02](#da-d13-02) | **[R3 §2.2.2]** Write Use Case Descriptions — ADMIN + OWNER (~20 UCs): ID, Actor, Description, Main/Alternative Flows | Lộc | 🔴 |
+| [DA-D13-03](#da-d13-03) | **[R3 §2.2.2]** Write Use Case Descriptions — MANAGER + CREATOR + CLIENT + GUEST (~40 UCs) | Tuấn | 🔴 |
 
 ---
 
@@ -234,9 +234,9 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| [DA-D14-01](#da-d14-01) | **[R3 §3.1.2]** Write Screen Descriptions — ADMIN + AGENCY_OWNER screens (#, Feature, Screen, Description) | Lộc | 🟡 |
-| [DA-D14-02](#da-d14-02) | **[R3 §3.1.2]** Write Screen Descriptions — ACCOUNT_MANAGER + CONTENT_CREATOR screens | Phước | 🟡 |
-| [DA-D14-03](#da-d14-03) | **[R3 §3.1.2]** Write Screen Descriptions — BRAND_CLIENT + GUEST screens | Tuấn | 🟡 |
+| [DA-D14-01](#da-d14-01) | **[R3 §3.1.2]** Write Screen Descriptions — ADMIN + OWNER screens (#, Feature, Screen, Description) | Lộc | 🟡 |
+| [DA-D14-02](#da-d14-02) | **[R3 §3.1.2]** Write Screen Descriptions — MANAGER + CREATOR screens | Phước | 🟡 |
+| [DA-D14-03](#da-d14-03) | **[R3 §3.1.2]** Write Screen Descriptions — CLIENT + GUEST screens | Tuấn | 🟡 |
 | [DA-D14-04](#da-d14-04) | **[R3 §3.1.4]** Write Non-Screen Functions — background jobs, callbacks, cron schedules (~12-15 functions) | Tuấn | 🟡 |
 
 ---
@@ -302,7 +302,7 @@
 | [DA-D16-21](#da-d16-21) | **[R3 §3.10.1]** Write FR — Create Client | Lộc | 🟡 |
 | [DA-D16-22](#da-d16-22) | **[R3 §3.10.2]** Write FR — Update Client Info | Lộc | 🟡 |
 | [DA-D16-23](#da-d16-23) | **[R3 §3.10.3]** Write FR — Delete/Archive Client | Lộc | 🟡 |
-| [DA-D16-24](#da-d16-24) | **[R3 §3.10.4]** Write FR — Assign Account Manager | Lộc | 🟡 |
+| [DA-D16-24](#da-d16-24) | **[R3 §3.10.4]** Write FR — Assign Manager | Lộc | 🟡 |
 | [DA-D16-25](#da-d16-25) | **[R3 §3.10.5]** Write FR — Client Onboarding Flow | Lộc | 🟡 |
 | [DA-D16-26](#da-d16-26) | **[R3 §3.10.6]** Write FR — Client Settings/Preferences | Lộc | 🟡 |
 
@@ -490,7 +490,7 @@
 | Member | Tasks | Breakdown |
 |---|---|---|
 | Trung | ~40 | Diagram review (1), WBS + Objectives + Risks (3), Product Overview + Context + ERD (3), Auth FR §3.2.1-3.2.6 (6), User/Workspace/RBAC FR §3.3-3.5 (16), NFR (1), Merge 3 reports + Format (4), Review R1/R2/R3 (3), Feedback coord (1), Final package + Presentation (2) |
-| Lộc | ~44 | Branch Strategy + Folder Structure (2), Screen Flow Admin + Agency Owner (2), Auth Matrix + Mockups (2), Product Background + Existing Systems (2), UC Admin/Agency (1), Screen Desc Admin/Agency (1), Content/Calendar/Approval/Client/Agency FR §3.6-3.10 (26), Auth FR §3.2.7-3.2.11 (5), Review R1/R3 (2), Fix feedback (1) |
+| Lộc | ~44 | Branch Strategy + Folder Structure (2), Screen Flow Admin + Owner (2), Auth Matrix + Mockups (2), Product Background + Existing Systems (2), UC Admin/Agency (1), Screen Desc Admin/Agency (1), Content/Calendar/Approval/Client/Agency FR §3.6-3.10 (26), Auth FR §3.2.7-3.2.11 (5), Review R1/R3 (2), Fix feedback (1) |
 | Phước | ~47 | Architecture + WBS Tree + Scrum Timeline (3), Screen Flow AM + CC (2), Mgmt Approach + Quality (2), Deliverables + Communications + Config Mgmt (3), Screen Desc AM/CC (1), Publishing/Social/Notifications FR §3.17-3.23 (33), Review R2/R3 (2), Fix feedback (1) |
 | Tuấn | ~44 | Context + UC Overview + ERD + Screen Flow Brand/Guest (5), Business Opportunity + Product Vision (2), Training Plan (1), Actors (1), UC AC/CC/BC/Guest (1), Screen Desc Brand/Guest + Non-Screen (2), AI Features FR §3.11-3.16 (28), Review R1/R2/R3 (3), Fix feedback (1) |
 | Ân | ~32 | Scope + Limitations + References (3), Responsibility + Tools (2), Subscription/Analytics/Admin/Mobile FR §3.24-3.27 (21), Business Rules + Messages (2), Review R1/R2/R3 (3), Fix feedback (1) |
@@ -529,7 +529,7 @@
 - **Acceptance Criteria:**
   - BrandHub system boundary rõ ràng
   - 6 external services: Groq API, Stability AI, Google Veo, Facebook Graph API, TikTok Content API, Zalo OA API
-  - 6 actors: ADMIN, AGENCY_OWNER, ACCOUNT_MANAGER, CONTENT_CREATOR, BRAND_CLIENT, GUEST
+  - 6 actors: ADMIN, OWNER, MANAGER, CREATOR, CLIENT, GUEST
   - Data flow arrows có label (REST API, RabbitMQ, OAuth 2.0, File Upload)
   - Style thống nhất (màu, font, kích thước)
   - Format: PNG + editable source (draw.io/StarUML)
@@ -657,10 +657,10 @@
 | Role | Screens | Task ID | Assignee |
 |---|---|---|---|
 | ADMIN | ~15 | DA-D03-01 | Lộc |
-| AGENCY_OWNER | ~20 | DA-D03-02 | Lộc |
-| ACCOUNT_MANAGER | ~12 | DA-D03-03 | Phước |
-| CONTENT_CREATOR | ~18 | DA-D03-04 | Phước |
-| BRAND_CLIENT | ~8 | DA-D03-05 | Tuấn |
+| OWNER | ~20 | DA-D03-02 | Lộc |
+| MANAGER | ~12 | DA-D03-03 | Phước |
+| CREATOR | ~18 | DA-D03-04 | Phước |
+| CLIENT | ~8 | DA-D03-05 | Tuấn |
 | GUEST | ~5 | DA-D03-06 | Tuấn |
 
 - **Source References:** Figma wireframes, `docs/feature/*/spec.md`
@@ -1005,7 +1005,7 @@
 - **Goal:** Mô tả 6 actors.
 
 - **Acceptance Criteria:**
-  - 6 actors detailed: GUEST, BRAND_CLIENT, CONTENT_CREATOR, ACCOUNT_MANAGER, AGENCY_OWNER, ADMIN
+  - 6 actors detailed: GUEST, CLIENT, CREATOR, MANAGER, OWNER, ADMIN
 
 - **Source References:** `docs/plan/BrandHub_Master_Plan.md#roles`, `docs/database/DA-E06-08_Database_Access_Rules.md`
 
@@ -1013,9 +1013,9 @@
 
 ---
 
-### DA-D13-02 — [R3 §2.2.2] Write Use Case Descriptions — Admin & Agency Owner
+### DA-D13-02 — [R3 §2.2.2] Write Use Case Descriptions — Admin & Owner
 
-- **Goal:** ~20 UCs: ADMIN + AGENCY_OWNER.
+- **Goal:** ~20 UCs: ADMIN + OWNER.
 
 - **Acceptance Criteria:**
   - Mỗi UC: ID, Use Case, Actors, Description
@@ -1029,7 +1029,7 @@
 
 ### DA-D13-03 — [R3 §2.2.2] Write Use Case Descriptions — AC, CC, BC, Guest
 
-- **Goal:** ~40 UCs: ACCOUNT_MANAGER + CONTENT_CREATOR + BRAND_CLIENT + GUEST.
+- **Goal:** ~40 UCs: MANAGER + CREATOR + CLIENT + GUEST.
 
 - **Acceptance Criteria:**
   - Format theo sample Table 3
@@ -1040,9 +1040,9 @@
 
 ---
 
-### DA-D14-01 — [R3 §3.1.2] Write Screen Descriptions — Admin & Agency Owner
+### DA-D14-01 — [R3 §3.1.2] Write Screen Descriptions — Admin & Owner
 
-- **Goal:** Screen Description table cho ADMIN + AGENCY_OWNER (~35 screens).
+- **Goal:** Screen Description table cho ADMIN + OWNER (~35 screens).
 
 - **Acceptance Criteria:**
   - Format: #, Feature, Screen, Description
@@ -1054,9 +1054,9 @@
 
 ---
 
-### DA-D14-02 — [R3 §3.1.2] Write Screen Descriptions — Account Manager & Content Creator
+### DA-D14-02 — [R3 §3.1.2] Write Screen Descriptions — Manager & Creator
 
-- **Goal:** Screen Description table cho ACCOUNT_MANAGER + CONTENT_CREATOR (~30 screens).
+- **Goal:** Screen Description table cho MANAGER + CREATOR (~30 screens).
 
 - **Acceptance Criteria:**
   - Format: #, Feature, Screen, Description
@@ -1068,9 +1068,9 @@
 
 ---
 
-### DA-D14-03 — [R3 §3.1.2] Write Screen Descriptions — Brand Client & Guest
+### DA-D14-03 — [R3 §3.1.2] Write Screen Descriptions — Client & Guest
 
-- **Goal:** Screen Description table cho BRAND_CLIENT + GUEST (~13 screens).
+- **Goal:** Screen Description table cho CLIENT + GUEST (~13 screens).
 
 - **Acceptance Criteria:**
   - Format: #, Feature, Screen, Description
@@ -1118,7 +1118,7 @@
 ### DA-D15-03 — [R3 §3.2.3] Write FR — Login (Google OAuth)
 
 - **Goal:** Mô tả đăng nhập bằng Google OAuth — redirect consent screen, callback handler, tạo user nếu chưa tồn tại.
-- **Business Rules:** scope `openid email profile`, tạo user role AGENCY_OWNER nếu mới.
+- **Business Rules:** scope `openid email profile`, tạo user role OWNER nếu mới.
 - **Source References:** `docs/feature/auth/oauth-social-login/spec.md`, `docs/api/endpoints/01_auth.md`, `docs/plan/sprints/sprint_05/PLAN.md`
 - **Dependencies:** DA-D14-01 through DA-D14-04
 
@@ -1258,7 +1258,7 @@ Mỗi task = 1 function. Format chung mỗi function: Function Trigger → Descr
 | DA-D16-21 | §3.10.1 | Create Client | Lộc |
 | DA-D16-22 | §3.10.2 | Update Client Info | Lộc |
 | DA-D16-23 | §3.10.3 | Delete/Archive Client | Lộc |
-| DA-D16-24 | §3.10.4 | Assign Account Manager | Lộc |
+| DA-D16-24 | §3.10.4 | Assign Manager | Lộc |
 | DA-D16-25 | §3.10.5 | Client Onboarding Flow | Lộc |
 | DA-D16-26 | §3.10.6 | Client Settings/Preferences | Lộc |
 

@@ -82,8 +82,8 @@ Response: [{platform, accountName, status: ACTIVE|EXPIRING_SOON|EXPIRED|REVOKED,
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | DA-E20-01 | Implement scheduled token refresh job (runs at 2:00 AM daily, refresh tokens expiring within 7 days) | Trung (Leader) | 🔴 Critical |
-| DA-E20-02 | Implement alert notification when token refresh fails (notify Account Manager) | Trung (Leader) | 🔴 Critical |
-| DA-E20-03 | Implement manual token refresh API (Account Manager triggers refresh manually) | Phước (Publisher) | 🟡 High |
+| DA-E20-02 | Implement alert notification when token refresh fails (notify Manager) | Trung (Leader) | 🔴 Critical |
+| DA-E20-03 | Implement manual token refresh API (Manager triggers refresh manually) | Phước (Publisher) | 🟡 High |
 
 **Token refresh schedule (DA-E20-01):**
 - Run at 2:00 AM workspace local timezone (use workspace.timezone setting)
@@ -112,5 +112,5 @@ Response: [{platform, accountName, status: ACTIVE|EXPIRING_SOON|EXPIRED|REVOKED,
 - [ ] Zalo OA OAuth: access token stored, 45-min refresh job configured
 - [ ] Token status dashboard: all 5 platforms show correct status
 - [ ] Daily 2:00 AM refresh job runs, refreshes tokens expiring within 7 days
-- [ ] Failed refresh: Account Manager receives in-app alert
-- [ ] Manual refresh API: Account Manager can trigger on demand
+- [ ] Failed refresh: Manager receives in-app alert
+- [ ] Manual refresh API: Manager can trigger on demand

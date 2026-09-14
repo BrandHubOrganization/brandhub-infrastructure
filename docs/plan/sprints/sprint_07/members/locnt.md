@@ -24,13 +24,13 @@
 | DA-644 | [DA-644](https://letritrung2605.atlassian.net/browse/DA-644) | [DA-D02-03] [R2 §6.2] Draw Git Branch Strategy Diagram | 🟢 Medium | ✅ Done |
 | DA-645 | [DA-645](https://letritrung2605.atlassian.net/browse/DA-645) | [DA-D02-04] [R2 §6.1] Draw Repository & Folder Structure Diagram | 🟢 Medium | ✅ Done |
 | DA-646 | [DA-646](https://letritrung2605.atlassian.net/browse/DA-646) | [DA-D03-01] [R3 §3.1.1] Draw Screen Flow — ADMIN Role | 🔴 Critical | ✅ Done |
-| DA-647 | [DA-647](https://letritrung2605.atlassian.net/browse/DA-647) | [DA-D03-02] [R3 §3.1.1] Draw Screen Flow — AGENCY_OWNER Role | 🔴 Critical | ✅ Done |
+| DA-647 | [DA-647](https://letritrung2605.atlassian.net/browse/DA-647) | [DA-D03-02] [R3 §3.1.1] Draw Screen Flow — OWNER Role | 🔴 Critical | ✅ Done |
 | DA-652 | [DA-652](https://letritrung2605.atlassian.net/browse/DA-652) | [DA-D03-07] [R3 §3.1.2] Draw Screen Authorization Matrix | 🟡 High | ✅ Done |
 | DA-653 | [DA-653](https://letritrung2605.atlassian.net/browse/DA-653) | [DA-D03-08] [R3 §3.1.1] Export & Annotate Screen Mockups from Figma | 🟡 High | ✅ Done |
 | DA-655 | [DA-655](https://letritrung2605.atlassian.net/browse/DA-655) | [DA-D05-01] [R1 §2] Write Product Background | 🟡 High | ✅ Done |
 | DA-656 | [DA-656](https://letritrung2605.atlassian.net/browse/DA-656) | [DA-D05-02] [R1 §3] Analyze 2 Existing Systems | 🟡 High | ✅ Done |
-| DA-672 | [DA-672](https://letritrung2605.atlassian.net/browse/DA-672) | [DA-D13-02] [R3 §2.2] Write Use Case Descriptions — Admin & Agency Owner | 🔴 Critical | ✅ Done |
-| DA-674 | [DA-674](https://letritrung2605.atlassian.net/browse/DA-674) | [DA-D14-01] [R3 §3.1.1] Write Screen Descriptions — Admin & Agency Owner | 🟡 High | ✅ Done |
+| DA-672 | [DA-672](https://letritrung2605.atlassian.net/browse/DA-672) | [DA-D13-02] [R3 §2.2] Write Use Case Descriptions — Admin & Owner | 🔴 Critical | ✅ Done |
+| DA-674 | [DA-674](https://letritrung2605.atlassian.net/browse/DA-674) | [DA-D14-01] [R3 §3.1.1] Write Screen Descriptions — Admin & Owner | 🟡 High | ✅ Done |
 | DA-702 | [DA-702](https://letritrung2605.atlassian.net/browse/DA-702) | [DA-D21-02] [R1] Review Report 1 — Lộc | 🔴 Critical | ✅ Done |
 | DA-708 | [DA-708](https://letritrung2605.atlassian.net/browse/DA-708) | [DA-D21-10] [R3] Review Report 3 — Lộc | 🔴 Critical | ✅ Done |
 | DA-712 | [DA-712](https://letritrung2605.atlassian.net/browse/DA-712) | [DA-D21-15] Address Review Feedback — Lộc | 🔴 Critical | ✅ Done |
@@ -62,7 +62,7 @@
 | DA-810 | [DA-810](https://letritrung2605.atlassian.net/browse/DA-810) | DA-D16-21 — [R3 §3.10.1] Write FR — Create Client | 🟡 High | ✅ Done |
 | DA-811 | [DA-811](https://letritrung2605.atlassian.net/browse/DA-811) | DA-D16-22 — [R3 §3.10.2] Write FR — Update Client Info | 🟡 High | ✅ Done |
 | DA-812 | [DA-812](https://letritrung2605.atlassian.net/browse/DA-812) | DA-D16-23 — [R3 §3.10.3] Write FR — Delete/Archive Client | 🟡 High | ✅ Done |
-| DA-813 | [DA-813](https://letritrung2605.atlassian.net/browse/DA-813) | DA-D16-24 — [R3 §3.10.4] Write FR — Assign Account Manager | 🟡 High | ✅ Done |
+| DA-813 | [DA-813](https://letritrung2605.atlassian.net/browse/DA-813) | DA-D16-24 — [R3 §3.10.4] Write FR — Assign Manager | 🟡 High | ✅ Done |
 | DA-814 | [DA-814](https://letritrung2605.atlassian.net/browse/DA-814) | DA-D16-25 — [R3 §3.10.5] Write FR — Client Onboarding Flow | 🟡 High | ✅ Done |
 | DA-815 | [DA-815](https://letritrung2605.atlassian.net/browse/DA-815) | DA-D16-26 — [R3 §3.10.6] Write FR — Client Settings/Preferences | 🟡 High | ✅ Done |
 
@@ -90,11 +90,11 @@ Dưới đây là chi tiết công việc thực hiện theo từng phân nhóm:
   - [x] Xuất diagram độ nét cao định dạng SVG/PNG nhúng trực tiếp vào Report 2 mục §6.1 và §6.2.
   - [x] Toàn bộ 5 thành viên trong nhóm áp dụng đúng quy chuẩn branch khi commit mã nguồn và tài liệu.
 
-#### 2. DA-646 & DA-647 — Vẽ Sơ đồ luồng màn hình Screen Flow cho Role ADMIN và AGENCY_OWNER (R3 §3.1.1)
+#### 2. DA-646 & DA-647 — Vẽ Sơ đồ luồng màn hình Screen Flow cho Role ADMIN và OWNER (R3 §3.1.1)
 - **Mục tiêu:** Thiết lập sơ đồ tương tác điều hướng màn hình trực quan cho hai vai trò quản trị then chốt trong hệ thống.
 - **Công việc đã làm:**
   - **ADMIN Screen Flow (~15 màn hình):** Luồng bắt đầu từ Splash Screen / Login → Admin Dashboard → Quản lý Hệ thống (System Overview, Global Audit Logs) → Quản lý Tenant / Agencies (Agency List, Verification Queue, Agency Details, Suspension Modal) → Quản lý Gói cước (Subscription Plans, Billing Gateway Overview) → System Settings & AI Quotas.
-  - **AGENCY_OWNER Screen Flow (~20 màn hình):** Bắt đầu từ Login / Onboarding → Owner Dashboard → Quản lý Không gian làm việc (Workspaces Switcher & Creation) → Quản lý Thành viên Agency & Gán quyền → Quản lý Khách hàng (Client Profiles, Contract Quotas) → Quản lý Chiến dịch & Content Pipeline (Content Requests, Content Calendar, Master Approval Queue) → Kết nối Kênh truyền thông (Social Accounts Connect) → Cấu hình Brand Voice Guidelines.
+  - **OWNER Screen Flow (~20 màn hình):** Bắt đầu từ Login / Onboarding → Owner Dashboard → Quản lý Không gian làm việc (Workspaces Switcher & Creation) → Quản lý Thành viên Agency & Gán quyền → Quản lý Khách hàng (Client Profiles, Contract Quotas) → Quản lý Chiến dịch & Content Pipeline (Content Requests, Content Calendar, Master Approval Queue) → Kết nối Kênh truyền thông (Social Accounts Connect) → Cấu hình Brand Voice Guidelines.
   - Phân định rõ ràng bằng màu sắc: Màn hình công khai (Public), Màn hình yêu cầu xác thực (Authenticated), Màn hình đặc quyền theo Role (Role-specific).
 - **Kết quả đạt được:**
   - [x] Hoàn thiện 2 sơ đồ Screen Flow chuẩn UML State/Activity style, không có ngõ cụt luồng (dead-end).
@@ -103,7 +103,7 @@ Dưới đây là chi tiết công việc thực hiện theo từng phân nhóm:
 #### 3. DA-652 & DA-653 — Thiết kế Ma trận Phân quyền Màn hình & Chú thích Mockups Figma (R3 §3.1.1, §3.1.2)
 - **Mục tiêu:** Xây dựng bảng ma trận phân quyền màn hình chi tiết và xuất hình ảnh mockups kèm chú thích nghiệp vụ phục vụ Report 3.
 - **Công việc đã làm:**
-  - Xây dựng bảng **Screen Authorization Matrix** toàn diện gồm 80+ màn hình tương ứng với 6 vai trò người dùng trong hệ thống: `SUPER_ADMIN`, `AGENCY_OWNER`, `AGENCY_MANAGER`, `CONTENT_CREATOR`, `BRAND_CLIENT`, `ANALYST`.
+  - Xây dựng bảng **Screen Authorization Matrix** toàn diện gồm 80+ màn hình tương ứng với 6 vai trò người dùng trong hệ thống: `SUPER_ADMIN`, `OWNER`, `AGENCY_MANAGER`, `CREATOR`, `CLIENT`, `ANALYST`.
   - Quy định rõ 3 mức truy cập: `X` (Toàn quyền / Full Access), `View` (Chỉ xem / Read-only), `—` (Không có quyền truy cập / Blocked). Sắp xếp theo cụm nghiệp vụ chức năng logic.
   - Xuất 10+ màn hình đại diện quan trọng nhất từ bản thiết kế Figma (độ phân giải cao tối ưu cho in ấn A4), bổ sung hệ thống chú thích số (Callout Numbers 1, 2, 3...) chỉ rõ từng khu vực: thanh điều hướng, bảng dữ liệu, bộ lọc động, nút hành động, vùng preview bài viết.
 - **Kết quả đạt được:**
@@ -120,7 +120,7 @@ Dưới đây là chi tiết công việc thực hiện theo từng phân nhóm:
   - Phân tích 6 điểm nghẽn nghiêm trọng (pain points) mà các Agency tại Việt Nam và khu vực đang đối mặt:
     1. *Multi-platform Fragmentation:* Sự phân mảnh tài nguyên và kênh truyền thông (Facebook, Instagram, TikTok, Threads, Zalo OA) gây tốn thời gian chuyển đổi ngữ cảnh.
     2. *High Operational Costs:* Chi phí nhân sự sáng tạo nội dung và vận hành kênh gia tăng nhanh chóng khi số lượng khách hàng mở rộng.
-    3. *Brand Voice Inconsistency:* Dễ mất tính nhất quán về phong cách thương hiệu khi bàn giao cho nhiều Content Creator khác nhau.
+    3. *Brand Voice Inconsistency:* Dễ mất tính nhất quán về phong cách thương hiệu khi bàn giao cho nhiều Creator khác nhau.
     4. *Complex Multi-tier Approvals:* Quy trình phê duyệt rườm rà, dễ thất lạc thông tin phản hồi giữa Creator → Manager → Khách hàng.
     5. *Performance Tracking Gaps:* Khó đo lường ROI và tổng hợp số liệu tương tác tức thời giữa các nền tảng.
     6. *Lack of Specialized AI Integration:* Thiếu công cụ AI nắm bắt xu hướng địa phương (Local Trend Insights) và hiểu sâu văn phong tiếng Việt.
@@ -142,7 +142,7 @@ Dưới đây là chi tiết công việc thực hiện theo từng phân nhóm:
 
 ### III. Đặc tả Yêu cầu Kỹ thuật SRS — Report 3 (Epics D13, D14, D15, D16)
 
-#### 1. DA-672 & DA-674 — Mô tả Use Case & Bảng Đặc tả Màn hình cho Admin & Agency Owner (R3 §2.2, §3.1)
+#### 1. DA-672 & DA-674 — Mô tả Use Case & Bảng Đặc tả Màn hình cho Admin & Owner (R3 §2.2, §3.1)
 - **Mục tiêu:** Viết chi tiết toàn bộ Use Case Descriptions và Screen Descriptions cho 2 Actor cấp cao của hệ thống theo đúng FPT Capstone Template Table 3.
 - **Công việc đã làm:**
   - Soạn thảo ~20 Use Case Descriptions:
@@ -165,7 +165,7 @@ Dưới đây là chi tiết công việc thực hiện theo từng phân nhóm:
   - [x] 5 Functional Requirements được mô tả chi tiết với đầy đủ bảng thông số kỹ thuật (Inputs, Validations, Outputs, Error Codes).
 
 #### 3. DA-790 → DA-794 — Đặc tả Chức năng Yêu cầu Nội dung & Điều phối Creator (R3 §3.6.1 – §3.6.5)
-- **Mục tiêu:** Đặc tả chu trình quản trị và khởi tạo yêu cầu nội dung truyền thông giữa Account Manager và Creator.
+- **Mục tiêu:** Đặc tả chu trình quản trị và khởi tạo yêu cầu nội dung truyền thông giữa Manager và Creator.
 - **Công việc đã làm:**
   - `DA-790` — **FR Create Content Request (R3 §3.6.1):** Biểu mẫu tạo yêu cầu (Brief, Target Platform, Deadline, Content Pillar, Reference Materials, Tone of Voice).
   - `DA-791` — **FR Assign Task to Creator (R3 §3.6.2):** Luồng gán việc theo khối lượng công việc hiện tại (workload tracking), gửi thông báo tức thì (in-app + email) và ghi nhận SLA cam kết.
@@ -197,10 +197,10 @@ Dưới đây là chi tiết công việc thực hiện theo từng phân nhóm:
 - **Kết quả đạt được:**
   - [x] Chuỗi xét duyệt 5 bước được mô tả chi tiết, giải quyết triệt để rủi ro sai sót nội dung cho Agency.
 
-#### 6. DA-805 → DA-809 — Đặc tả Cổng thông tin Khách hàng (Brand Client Portal) (R3 §3.9.1 – §3.9.5)
+#### 6. DA-805 → DA-809 — Đặc tả Cổng thông tin Khách hàng (Client Portal) (R3 §3.9.1 – §3.9.5)
 - **Mục tiêu:** Đặc tả phân hệ cổng thông tin bảo mật dành riêng cho khách hàng của Agency truy cập và tương tác.
 - **Công việc đã làm:**
-  - `DA-805` — **FR Client Login (R3 §3.9.1):** Đăng nhập chuyên biệt cho Brand Client với phạm vi quyền hạn (scopes) được cô lập tuyệt đối trong Workspace của thương hiệu mình.
+  - `DA-805` — **FR Client Login (R3 §3.9.1):** Đăng nhập chuyên biệt cho Client với phạm vi quyền hạn (scopes) được cô lập tuyệt đối trong Workspace của thương hiệu mình.
   - `DA-806` — **FR View Content Calendar (R3 §3.9.2):** Khách hàng xem lịch nội dung sắp tới ở chế độ chỉ đọc (Read-only), xem trước giao diện hiển thị thực tế trên từng mạng xã hội.
   - `DA-807` — **FR Approve/Reject Content (R3 §3.9.3):** Thao tác 1-click để duyệt bài hoặc yêu cầu agency sửa đổi kèm ghi chú nhanh.
   - `DA-808` — **FR View Analytics Dashboard (R3 §3.9.4):** Dashboard thống kê tổng quan hiệu quả các chiến dịch đã chạy (Lượt tiếp cận, tương tác, tăng trưởng follower).
@@ -214,7 +214,7 @@ Dưới đây là chi tiết công việc thực hiện theo từng phân nhóm:
   - `DA-810` — **FR Create Client (R3 §3.10.1):** Tạo hồ sơ thương hiệu mới, nhập thông tin doanh nghiệp, đại diện liên hệ, hạn mức bài đăng.
   - `DA-811` — **FR Update Client Info (R3 §3.10.2):** Chỉnh sửa hồ sơ, cập nhật hợp đồng và thông tin thanh toán có ghi nhận lịch sử.
   - `DA-812` — **FR Delete/Archive Client (R3 §3.10.3):** Lưu trữ hồ sơ thương hiệu khi kết thúc hợp đồng, bảo lưu toàn bộ dữ liệu bài đăng lịch sử, có hộp thoại xác nhận bảo mật nhiều lớp.
-  - `DA-813` — **FR Assign Account Manager (R3 §3.10.4):** Điều phối nhân sự phụ trách chăm sóc khách hàng, cân bằng khối lượng quản lý giữa các Manager.
+  - `DA-813` — **FR Assign Manager (R3 §3.10.4):** Điều phối nhân sự phụ trách chăm sóc khách hàng, cân bằng khối lượng quản lý giữa các Manager.
   - `DA-814` — **FR Client Onboarding Flow (R3 §3.10.5):** Quy trình 4 bước hướng dẫn khách hàng mới: Nhập thông tin Brand Guidelines → Kết nối tài khoản mạng xã hội → Thiết lập cấu hình xét duyệt → Cấp tài khoản truy cập Portal.
   - `DA-815` — **FR Client Settings/Preferences (R3 §3.10.6):** Thiết lập ngôn ngữ hiển thị, kênh nhận thông báo (Email/Telegram), mẫu báo cáo định kỳ và nhận diện thương hiệu trên Client Portal.
 - **Kết quả đạt được:**

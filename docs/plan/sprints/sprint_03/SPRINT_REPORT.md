@@ -84,7 +84,7 @@
 - **97 error codes có catalogue:** Toàn bộ error codes được document, tránh ad-hoc string errors trong code sau này
 - **Wireframe annotated theo shadcn/ui:** Frontend có thể mapping thẳng từ wireframe component vào import — tiết kiệm thời gian Sprint 5+
 - **VitePress docs site:** Toàn bộ docs có thể xem trực quan tại localhost — không phải mở từng file Markdown
-- **6 lỗi role trong endpoint doc gốc được phát hiện và sửa:** BRAND_CLIENT missing từ analytics/clients, content-requests, reports
+- **6 lỗi role trong endpoint doc gốc được phát hiện và sửa:** CLIENT missing từ analytics/clients, content-requests, reports
 
 ### 5.2 Vấn đề gặp phải
 

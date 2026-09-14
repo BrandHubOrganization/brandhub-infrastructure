@@ -98,7 +98,7 @@ Xác định toàn bộ indexes cần thiết cho 15 bảng PostgreSQL và 8 col
 | Index | Columns | Type | Query Pattern |
 |-------|---------|------|---------------|
 | `idx_clients_workspace_id` | `workspace_id` | B-tree | List clients trong workspace |
-| `idx_clients_manager_id` | `assigned_manager_id` | B-tree | "Clients tôi phụ trách" (ACCOUNT_MANAGER view) |
+| `idx_clients_manager_id` | `assigned_manager_id` | B-tree | "Clients tôi phụ trách" (MANAGER view) |
 
 ---
 
@@ -165,8 +165,8 @@ Xác định toàn bộ indexes cần thiết cho 15 bảng PostgreSQL và 8 col
 |-------|--------|------|---------------|
 | `idx_posts_ws_status` | `{ workspaceId: 1, status: 1, createdAt: -1 }` | Compound | Content calendar: filter theo trạng thái |
 | `idx_posts_ws_scheduled` | `{ workspaceId: 1, scheduledAt: 1 }` | Compound | Publisher scheduler: lấy posts SCHEDULED sắp đến |
-| `idx_posts_ws_client` | `{ workspaceId: 1, clientId: 1, createdAt: -1 }` | Compound | BRAND_CLIENT view: posts của client X |
-| `idx_posts_ws_creator` | `{ workspaceId: 1, createdBy: 1, createdAt: -1 }` | Compound | "Posts tôi tạo" (CONTENT_CREATOR view) |
+| `idx_posts_ws_client` | `{ workspaceId: 1, clientId: 1, createdAt: -1 }` | Compound | CLIENT view: posts của client X |
+| `idx_posts_ws_creator` | `{ workspaceId: 1, createdBy: 1, createdAt: -1 }` | Compound | "Posts tôi tạo" (CREATOR view) |
 
 > `scheduledAt` dùng ascending `1` vì scheduler cần lấy posts gần nhất trước (ORDER BY ASC).
 

@@ -3,7 +3,7 @@
 **Timeline:** Weeks 19–20 (Sep 23–Oct 6, 2026)
 **Jira:** DA Sprint 10
 **Phase:** Phase 5 — Content Workflow & Publishing
-**Goal:** Implement the content request lifecycle, task assignment to Content Creators, and the content calendar with drag-drop scheduling.
+**Goal:** Implement the content request lifecycle, task assignment to Creators, and the content calendar with drag-drop scheduling.
 
 > **AI Parallel:** AI Iteration 3 runs concurrently this sprint (final week).
 
@@ -20,12 +20,12 @@
 **Note on Epic numbering:** Epics E25–E27 are reserved for potential scope expansion. No tasks are missing.
 
 **Deliverables by end of Sprint 10:**
-- BRAND_CLIENT can submit content requests
-- ACCOUNT_MANAGER can view and assign requests to Content Creators
-- CONTENT_CREATOR can view their task list
+- CLIENT can submit content requests
+- MANAGER can view and assign requests to Creators
+- CREATOR can view their task list
 - Deadline alert notifications working
 - Content calendar shows posts by date range
-- ACCOUNT_MANAGER can schedule a post (set scheduledAt + target platforms)
+- MANAGER can schedule a post (set scheduledAt + target platforms)
 - ContentCalendar React component with drag-drop
 - PlatformPreview component
 
@@ -35,17 +35,17 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| DA-E28-01 | Implement POST /api/v1/content-requests (BRAND_CLIENT submits request: topic, platform, tone, deadline) | Trung (Leader) | 🔴 Critical |
-| DA-E28-02 | Implement GET /api/v1/content-requests (ACCOUNT_MANAGER views list of requests from their assigned clients) | Trung (Leader) | 🔴 Critical |
+| DA-E28-01 | Implement POST /api/v1/content-requests (CLIENT submits request: topic, platform, tone, deadline) | Trung (Leader) | 🔴 Critical |
+| DA-E28-02 | Implement GET /api/v1/content-requests (MANAGER views list of requests from their assigned clients) | Trung (Leader) | 🔴 Critical |
 | DA-E28-03 | Implement status tracking (SUBMITTED → ASSIGNED → IN_PROGRESS → PENDING_REVIEW → SENT_TO_CLIENT → APPROVED → REJECTED) | Trung (Leader) | 🔴 Critical |
 
 **ContentRequest document fields:**
 `requestId`, `workspaceId`, `clientId`, `topic`, `platform[]`, `tone`, `deadline`, `status`, `assignedCreatorId`, `linkedPostId`, `createdAt`, `updatedAt`
 
 **Status transition rules:**
-- BRAND_CLIENT: SUBMITTED only
-- ACCOUNT_MANAGER: SUBMITTED→ASSIGNED, PENDING_REVIEW→SENT_TO_CLIENT, SENT_TO_CLIENT→APPROVED/REJECTED
-- CONTENT_CREATOR: ASSIGNED→IN_PROGRESS, IN_PROGRESS→PENDING_REVIEW
+- CLIENT: SUBMITTED only
+- MANAGER: SUBMITTED→ASSIGNED, PENDING_REVIEW→SENT_TO_CLIENT, SENT_TO_CLIENT→APPROVED/REJECTED
+- CREATOR: ASSIGNED→IN_PROGRESS, IN_PROGRESS→PENDING_REVIEW
 - System: SENT_TO_CLIENT→APPROVED/REJECTED (via client portal action)
 
 ---
@@ -54,13 +54,13 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| DA-E29-01 | Implement PUT /api/v1/content-requests/{id}/assign (ACCOUNT_MANAGER assigns task to CONTENT_CREATOR) | Trung (Leader) | 🔴 Critical |
-| DA-E29-02 | Implement GET /api/v1/content-requests/my-tasks (CONTENT_CREATOR views their assigned tasks) | Trung (Leader) | 🔴 Critical |
+| DA-E29-01 | Implement PUT /api/v1/content-requests/{id}/assign (MANAGER assigns task to CREATOR) | Trung (Leader) | 🔴 Critical |
+| DA-E29-02 | Implement GET /api/v1/content-requests/my-tasks (CREATOR views their assigned tasks) | Trung (Leader) | 🔴 Critical |
 | DA-E29-03 | Implement deadline management (alert when a task is approaching its deadline) | Ân (AI) | 🟡 High |
 
 **Deadline alert (DA-E29-03):**
 - Check every hour: query tasks where `deadline < now + 24h AND status NOT IN [APPROVED, REJECTED]`
-- Create notification for CONTENT_CREATOR (if IN_PROGRESS) or ACCOUNT_MANAGER (if SUBMITTED/ASSIGNED)
+- Create notification for CREATOR (if IN_PROGRESS) or MANAGER (if SUBMITTED/ASSIGNED)
 - Also alert if `deadline < now` (overdue): create OVERDUE notification
 
 ---
@@ -70,7 +70,7 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | DA-E30-01 | Implement GET /api/v1/posts/calendar (retrieve posts by date range, filter by platform/status) | Trung (Leader) | 🔴 Critical |
-| DA-E30-02 | Implement POST /api/v1/posts/{id}/schedule (ACCOUNT_MANAGER sets schedule: scheduledAt + targetPlatforms) | Trung (Leader) | 🔴 Critical |
+| DA-E30-02 | Implement POST /api/v1/posts/{id}/schedule (MANAGER sets schedule: scheduledAt + targetPlatforms) | Trung (Leader) | 🔴 Critical |
 | DA-E30-03 | Build ContentCalendar React component (drag-drop rescheduling, color-coded status indicators) | Lộc (Frontend) | 🔴 Critical |
 | DA-E30-04 | Build PlatformPreview component (display preview in the correct format for FB, IG, TikTok, Threads) | Lộc (Frontend) | 🟡 High |
 
@@ -99,11 +99,11 @@ Response: [{postId, title, scheduledAt, platforms[], status, thumbnailUrl}]
 
 ## Sprint 10 Checklist
 
-- [ ] BRAND_CLIENT can submit content request with topic, platform, tone, deadline
-- [ ] ACCOUNT_MANAGER sees all requests from their clients (not other clients)
-- [ ] Status transitions enforce role rules (BRAND_CLIENT cannot jump to ASSIGNED)
-- [ ] ACCOUNT_MANAGER can assign request to CONTENT_CREATOR
-- [ ] CONTENT_CREATOR sees only their assigned tasks
+- [ ] CLIENT can submit content request with topic, platform, tone, deadline
+- [ ] MANAGER sees all requests from their clients (not other clients)
+- [ ] Status transitions enforce role rules (CLIENT cannot jump to ASSIGNED)
+- [ ] MANAGER can assign request to CREATOR
+- [ ] CREATOR sees only their assigned tasks
 - [ ] Deadline alert: notification 24h before deadline
 - [ ] Overdue alert: notification when deadline passes
 - [ ] Calendar API returns posts for date range with filters

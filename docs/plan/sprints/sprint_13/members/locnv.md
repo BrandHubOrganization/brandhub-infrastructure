@@ -22,7 +22,7 @@
 
 | Task ID | Jira Link | Mô tả | Priority | Status cuối sprint |
 |---|---|---|---|---|
-| DA-E37-01 | [DA-E37-01](https://letritrung2605.atlassian.net/browse/DA-E37-01) | Client Portal login (isolated, BRAND_CLIENT only) | 🔴 Critical | |
+| DA-E37-01 | [DA-E37-01](https://letritrung2605.atlassian.net/browse/DA-E37-01) | Client Portal login (isolated, CLIENT only) | 🔴 Critical | |
 | DA-E37-02 | [DA-E37-02](https://letritrung2605.atlassian.net/browse/DA-E37-02) | Client Calendar (read-only) | 🔴 Critical | |
 | DA-E37-03 | [DA-E37-03](https://letritrung2605.atlassian.net/browse/DA-E37-03) | Client Approval page (preview → approve/reject) | 🔴 Critical | |
 | DA-E37-04 | [DA-E37-04](https://letritrung2605.atlassian.net/browse/DA-E37-04) | Client Analytics page | 🟡 High | |

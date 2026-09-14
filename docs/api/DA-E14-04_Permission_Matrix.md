@@ -21,11 +21,11 @@ Any discrepancy between this document and code-level annotations (`@PreAuthorize
 | Role Code         | Role Name             | Description & Scope                                                                                                                      |
 | ----------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `ADMIN`           | System Administrator  | Full global access across all tenant workspaces, system settings, subscription management, and platform audit logs.                      |
-| `AGENCY_OWNER`    | Agency Owner          | Root owner of a workspace/agency account. Full management of workspace members, billing, brand clients, and all content workflows.       |
-| `ACCOUNT_MANAGER` | Account Manager       | Manages clients, campaigns, and content workflows within assigned workspace context. Cannot access billing or alter workspace ownership. |
-| `CONTENT_CREATOR` | Content Creator       | Creates and edits post drafts, submits content requests, and views assigned client assets. Cannot approve or publish posts.              |
+| `OWNER`    | Owner          | Root owner of a workspace/agency account. Full management of workspace members, billing, clients, and all content workflows.       |
+| `MANAGER` | Manager       | Manages clients, campaigns, and content workflows within assigned workspace context. Cannot access billing or alter workspace ownership. |
+| `CREATOR` | Creator       | Creates and edits post drafts, submits content requests, and views assigned client assets. Cannot approve or publish posts.              |
 | `PUBLISHER`       | Content Publisher     | Reviews, approves, schedules, and triggers publication for social posts. Manages social account connections and OAuth tokens.            |
-| `BRAND_CLIENT`    | External Brand Client | Restricted view-only access to review assigned posts, approve content requests, and view client-specific analytics.                      |
+| `CLIENT`    | External Client | Restricted view-only access to review assigned posts, approve content requests, and view client-specific analytics.                      |
 
 ---
 
@@ -42,7 +42,7 @@ Any discrepancy between this document and code-level annotations (`@PreAuthorize
 
 ### 3.1. Auth & User Profile (`/api/v1/auth`, `/api/v1/users`)
 
-| Method | Endpoint Path           | Description                           | ADMIN | AGENCY_OWNER | ACCOUNT_MANAGER | CONTENT_CREATOR | PUBLISHER | BRAND_CLIENT |
+| Method | Endpoint Path           | Description                           | ADMIN | OWNER | MANAGER | CREATOR | PUBLISHER | CLIENT |
 | ------ | ----------------------- | ------------------------------------- | :---: | :----------: | :-------------: | :-------------: | :-------: | :----------: |
 | `POST` | `/api/v1/auth/register` | Register new user account             |  🌐   |      🌐      |       🌐        |       🌐        |    🌐     |      🌐      |
 | `POST` | `/api/v1/auth/login`    | Authenticate user & issue tokens      |  🌐   |      🌐      |       🌐        |       🌐        |    🌐     |      🌐      |
@@ -55,7 +55,7 @@ Any discrepancy between this document and code-level annotations (`@PreAuthorize
 
 ### 3.2. Workspace & Member Management (`/api/v1/workspaces`) — Epic E12
 
-| Method   | Endpoint Path                              | Description                         | ADMIN | AGENCY_OWNER | ACCOUNT_MANAGER | CONTENT_CREATOR | PUBLISHER | BRAND_CLIENT |
+| Method   | Endpoint Path                              | Description                         | ADMIN | OWNER | MANAGER | CREATOR | PUBLISHER | CLIENT |
 | -------- | ------------------------------------------ | ----------------------------------- | :---: | :----------: | :-------------: | :-------------: | :-------: | :----------: |
 | `POST`   | `/api/v1/workspaces`                       | Create new agency workspace         |  ✅   |      ✅      |       ❌        |       ❌        |    ❌     |      ❌      |
 | `GET`    | `/api/v1/workspaces`                       | List accessible workspaces for user |  ✅   |      ✅      |       ✅        |       ✅        |    ✅     |      🔒      |
@@ -68,21 +68,21 @@ Any discrepancy between this document and code-level annotations (`@PreAuthorize
 
 ---
 
-### 3.3. Brand Client Management (`/api/v1/clients`) — Epic E13
+### 3.3. Client Management (`/api/v1/clients`) — Epic E13
 
-| Method   | Endpoint Path          | Description               | ADMIN | AGENCY_OWNER | ACCOUNT_MANAGER | CONTENT_CREATOR | PUBLISHER | BRAND_CLIENT |
+| Method   | Endpoint Path          | Description               | ADMIN | OWNER | MANAGER | CREATOR | PUBLISHER | CLIENT |
 | -------- | ---------------------- | ------------------------- | :---: | :----------: | :-------------: | :-------------: | :-------: | :----------: |
-| `POST`   | `/api/v1/clients`      | Create new brand client   |  ✅   |      🔒      |       🔒        |       ❌        |    ❌     |      ❌      |
+| `POST`   | `/api/v1/clients`      | Create new client   |  ✅   |      🔒      |       🔒        |       ❌        |    ❌     |      ❌      |
 | `GET`    | `/api/v1/clients`      | List clients in workspace |  ✅   |      🔒      |       🔒        |       🔒        |    🔒     |      ❌      |
 | `GET`    | `/api/v1/clients/{id}` | Get client profile        |  ✅   |      🔒      |       🔒        |       🔒        |    🔒     |      🔒      |
 | `PUT`    | `/api/v1/clients/{id}` | Update client information |  ✅   |      🔒      |       🔒        |       ❌        |    ❌     |      ❌      |
-| `DELETE` | `/api/v1/clients/{id}` | Soft delete brand client  |  ✅   |      🔒      |       ❌        |       ❌        |    ❌     |      ❌      |
+| `DELETE` | `/api/v1/clients/{id}` | Soft delete client  |  ✅   |      🔒      |       ❌        |       ❌        |    ❌     |      ❌      |
 
 ---
 
 ### 3.4. Post Lifecycle & Scheduling (`/api/v1/posts`) — Epics E14, E15, E16
 
-| Method   | Endpoint Path                 | Description                                | ADMIN | AGENCY_OWNER | ACCOUNT_MANAGER | CONTENT_CREATOR | PUBLISHER | BRAND_CLIENT |
+| Method   | Endpoint Path                 | Description                                | ADMIN | OWNER | MANAGER | CREATOR | PUBLISHER | CLIENT |
 | -------- | ----------------------------- | ------------------------------------------ | :---: | :----------: | :-------------: | :-------------: | :-------: | :----------: |
 | `GET`    | `/api/v1/posts`               | List posts (filtered by workspace/client)  |  ✅   |      🔒      |       🔒        |       🔒        |    🔒     |      🔒      |
 | `POST`   | `/api/v1/posts`               | Create new post draft                      |  ✅   |      🔒      |       🔒        |       🔒        |    🔒     |      ❌      |
@@ -99,7 +99,7 @@ Any discrepancy between this document and code-level annotations (`@PreAuthorize
 
 ### 3.5. Content Request Workflow (`/api/v1/content-requests`) — Epic E17
 
-| Method | Endpoint Path                   | Description                   | ADMIN | AGENCY_OWNER | ACCOUNT_MANAGER | CONTENT_CREATOR | PUBLISHER | BRAND_CLIENT |
+| Method | Endpoint Path                   | Description                   | ADMIN | OWNER | MANAGER | CREATOR | PUBLISHER | CLIENT |
 | ------ | ------------------------------- | ----------------------------- | :---: | :----------: | :-------------: | :-------------: | :-------: | :----------: |
 | `POST` | `/api/v1/content-requests`      | Create content request        |  ✅   |      🔒      |       🔒        |       ❌        |    ❌     |      🔒      |
 | `GET`  | `/api/v1/content-requests`      | List content requests         |  ✅   |      🔒      |       🔒        |       🔒        |    🔒     |      🔒      |
@@ -110,7 +110,7 @@ Any discrepancy between this document and code-level annotations (`@PreAuthorize
 
 ### 3.6. Social Account Connections & OAuth (`/api/v1/social-accounts`) — Epic E18
 
-| Method   | Endpoint Path                                | Description                             | ADMIN | AGENCY_OWNER | ACCOUNT_MANAGER | CONTENT_CREATOR | PUBLISHER | BRAND_CLIENT |
+| Method   | Endpoint Path                                | Description                             | ADMIN | OWNER | MANAGER | CREATOR | PUBLISHER | CLIENT |
 | -------- | -------------------------------------------- | --------------------------------------- | :---: | :----------: | :-------------: | :-------------: | :-------: | :----------: |
 | `GET`    | `/api/v1/social-accounts`                    | List connected social channels          |  ✅   |      🔒      |       🔒        |       🔒        |    🔒     |      🔒      |
 | `GET`    | `/api/v1/social-accounts/connect/{platform}` | Initiate OAuth flow                     |  ✅   |      🔒      |       🔒        |       ❌        |    🔒     |      ❌      |
@@ -121,7 +121,7 @@ Any discrepancy between this document and code-level annotations (`@PreAuthorize
 
 ### 3.7. Analytics & Async Reports (`/api/v1/analytics`, `/api/v1/reports`) — Epics E19, E20, E21
 
-| Method | Endpoint Path                   | Description                             | ADMIN | AGENCY_OWNER | ACCOUNT_MANAGER | CONTENT_CREATOR | PUBLISHER | BRAND_CLIENT |
+| Method | Endpoint Path                   | Description                             | ADMIN | OWNER | MANAGER | CREATOR | PUBLISHER | CLIENT |
 | ------ | ------------------------------- | --------------------------------------- | :---: | :----------: | :-------------: | :-------------: | :-------: | :----------: |
 | `GET`  | `/api/v1/analytics/overview`    | Fetch workspace analytics overview      |  ✅   |      🔒      |       🔒        |       🔒        |    🔒     |      🔒      |
 | `GET`  | `/api/v1/analytics/posts/{id}`  | Get post engagement performance         |  ✅   |      🔒      |       🔒        |       🔒        |    🔒     |      🔒      |
@@ -132,7 +132,7 @@ Any discrepancy between this document and code-level annotations (`@PreAuthorize
 
 ### 3.8. Subscriptions & Billing (`/api/v1/subscriptions`) — Epics E22, E23
 
-| Method | Endpoint Path                    | Description                              | ADMIN | AGENCY_OWNER | ACCOUNT_MANAGER | CONTENT_CREATOR | PUBLISHER | BRAND_CLIENT |
+| Method | Endpoint Path                    | Description                              | ADMIN | OWNER | MANAGER | CREATOR | PUBLISHER | CLIENT |
 | ------ | -------------------------------- | ---------------------------------------- | :---: | :----------: | :-------------: | :-------------: | :-------: | :----------: |
 | `GET`  | `/api/v1/subscriptions/current`  | View current workspace subscription plan |  ✅   |      🔒      |       🔒        |       ❌        |    ❌     |      ❌      |
 | `POST` | `/api/v1/subscriptions/checkout` | Create Stripe checkout session           |  ✅   |      🔒      |       ❌        |       ❌        |    ❌     |      ❌      |
@@ -143,7 +143,7 @@ Any discrepancy between this document and code-level annotations (`@PreAuthorize
 
 ### 3.9. Platform Administration (`/api/v1/admin`) — Epic E24
 
-| Method | Endpoint Path                     | Description                      | ADMIN | AGENCY_OWNER | ACCOUNT_MANAGER | CONTENT_CREATOR | PUBLISHER | BRAND_CLIENT |
+| Method | Endpoint Path                     | Description                      | ADMIN | OWNER | MANAGER | CREATOR | PUBLISHER | CLIENT |
 | ------ | --------------------------------- | -------------------------------- | :---: | :----------: | :-------------: | :-------------: | :-------: | :----------: |
 | `GET`  | `/api/v1/admin/users`             | Platform-wide user management    |  ✅   |      ❌      |       ❌        |       ❌        |    ❌     |      ❌      |
 | `PUT`  | `/api/v1/admin/users/{id}/status` | Change user account status       |  ✅   |      ❌      |       ❌        |       ❌        |    ❌     |      ❌      |

@@ -72,22 +72,22 @@ mongoTemplate.find(query, Post.class);
 
 ---
 
-## Rule 2 — BRAND_CLIENT thêm clientId filter bắt buộc
+## Rule 2 — CLIENT thêm clientId filter bắt buộc
 
-> **Mọi query thực hiện trong context của role `BRAND_CLIENT` phải có thêm `{ clientId: <value> }` bên cạnh `workspaceId`. BRAND_CLIENT chỉ được đọc data của client mình.**
+> **Mọi query thực hiện trong context của role `CLIENT` phải có thêm `{ clientId: <value> }` bên cạnh `workspaceId`. CLIENT chỉ được đọc data của client mình.**
 
 ### 2.1 Lý do
 
-`BRAND_CLIENT` là portal user của client — họ thuộc một workspace nhưng chỉ được xem data của brand mình, không được xem data của các brand khác trong cùng workspace.
+`CLIENT` là portal user của client — họ thuộc một workspace nhưng chỉ được xem data của brand mình, không được xem data của các brand khác trong cùng workspace.
 
 ```
 Workspace A
-├── Client X  (BRAND_CLIENT: user_x)  → chỉ thấy posts của Client X
-├── Client Y  (BRAND_CLIENT: user_y)  → chỉ thấy posts của Client Y
-└── ACCOUNT_MANAGER                   → thấy tất cả clients trong workspace
+├── Client X  (CLIENT: user_x)  → chỉ thấy posts của Client X
+├── Client Y  (CLIENT: user_y)  → chỉ thấy posts của Client Y
+└── MANAGER                           → thấy tất cả clients trong workspace
 ```
 
-### 2.2 Collections cần thêm clientId filter cho BRAND_CLIENT
+### 2.2 Collections cần thêm clientId filter cho CLIENT
 
 | Collection | clientId field | Ghi chú |
 |---|---|---|
@@ -101,11 +101,11 @@ Workspace A
 ### 2.3 Code example — Java / Spring Data MongoDB
 
 ```java
-// ❌ SAI — BRAND_CLIENT đọc được post của tất cả clients trong workspace
+// ❌ SAI — CLIENT đọc được post của tất cả clients trong workspace
 @Query("{ 'workspace_id': ?0, 'status': ?1 }")
 List<Post> findPosts(String workspaceId, String status);
 
-// ✅ ĐÚNG — thêm clientId khi role = BRAND_CLIENT
+// ✅ ĐÚNG — thêm clientId khi role = CLIENT
 @Query("{ 'workspace_id': ?0, 'client_id': ?1, 'status': ?2 }")
 List<Post> findPostsByClient(String workspaceId, String clientId, String status);
 ```
@@ -116,8 +116,8 @@ public Flux<Post> getPosts(SecurityContext ctx, PostStatus status) {
     Criteria criteria = Criteria.where("workspace_id").is(ctx.getWorkspaceId())
                                 .and("status").is(status);
 
-    // Thêm clientId filter nếu là BRAND_CLIENT
-    if (ctx.getRole() == UserRole.BRAND_CLIENT) {
+    // Thêm clientId filter nếu là CLIENT
+    if (ctx.getRole() == UserRole.CLIENT) {
         criteria = criteria.and("client_id").is(ctx.getClientId());
     }
 
@@ -141,12 +141,12 @@ api-gateway: validate JWT → extract workspaceId, userId, role, clientId
 X-Workspace-Id: <workspaceId>
 X-User-Id: <userId>
 X-User-Role: <role>
-X-Client-Id: <clientId>   ← có giá trị khi role = BRAND_CLIENT, null với role khác
+X-Client-Id: <clientId>   ← có giá trị khi role = CLIENT, null với role khác
     ↓
 business-service: đọc từ header, không tin request body
 ```
 
-> **JWT claim phải chứa `clientId`** khi user có role `BRAND_CLIENT`. Claim này được set lúc login và không thay đổi trong suốt session. api-gateway forward qua header `X-Client-Id`.
+> **JWT claim phải chứa `clientId`** khi user có role `CLIENT`. Claim này được set lúc login và không thay đổi trong suốt session. api-gateway forward qua header `X-Client-Id`.
 
 ### 3.2 Code example — Spring Security Context
 
@@ -155,7 +155,7 @@ business-service: đọc từ header, không tin request body
 public record SecurityContext(
     String userId,
     String workspaceId,
-    String clientId,      // null nếu không phải BRAND_CLIENT
+    String clientId,      // null nếu không phải CLIENT
     UserRole role
 ) {}
 
@@ -172,7 +172,7 @@ public class WorkspaceContextFilter implements WebFilter {
                                      .getFirst("X-User-Role");
 
         String clientId = exchange.getRequest().getHeaders()
-                                     .getFirst("X-Client-Id"); // null nếu không phải BRAND_CLIENT
+                                     .getFirst("X-Client-Id"); // null nếu không phải CLIENT
         SecurityContext ctx = new SecurityContext(userId, workspaceId, clientId, UserRole.valueOf(role));
         return chain.filter(exchange)
                     .contextWrite(Context.of("securityContext", ctx));
@@ -273,17 +273,17 @@ SELECT * FROM invoices WHERE workspace_id = $1 AND status = 'PAID';
 | Role | Cần workspaceId | Cần clientId | Collections bị giới hạn |
 |---|---|---|---|
 | `ADMIN` | ❌ (global access) | ❌ | Không — truy cập toàn hệ thống |
-| `AGENCY_OWNER` | ✅ | ❌ | Tất cả trong workspace |
-| `ACCOUNT_MANAGER` | ✅ | ❌ | Tất cả trong workspace |
-| `CONTENT_CREATOR` | ✅ | ❌ | Tất cả trong workspace |
-| `BRAND_CLIENT` | ✅ | ✅ | posts, content_requests, social_accounts, report_jobs, knowledge_documents |
+| `OWNER` | ✅ | ❌ | Tất cả trong workspace |
+| `MANAGER` | ✅ | ❌ | Tất cả trong workspace |
+| `CREATOR` | ✅ | ❌ | Tất cả trong workspace |
+| `CLIENT` | ✅ | ✅ | posts, content_requests, social_accounts, report_jobs, knowledge_documents |
 
 ---
 
 ## Acceptance Criteria
 
 - [x] Rule 1: workspaceId bắt buộc trong mọi MongoDB query — documented với code example vi phạm vs đúng
-- [x] Rule 2: BRAND_CLIENT thêm clientId filter — documented với code example
+- [x] Rule 2: CLIENT thêm clientId filter — documented với code example
 - [x] Rule 3: workspaceId lấy từ JWT/header, không từ request body
 - [x] Rule 4: Enforcement tại repository layer, không để service tự nhớ
 - [x] Rule 5: PostgreSQL financial tables cũng cần workspace_id filter
