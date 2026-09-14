@@ -84,10 +84,10 @@
 
 ### EPIC E03 — [DA-18](https://letritrung2605.atlassian.net/browse/DA-18) — Use Case Documentation
 
-- [x] `DA-E03-01` — [DA-205](https://letritrung2605.atlassian.net/browse/DA-205) — Liet ke va phan nhom toan bo 60 UC theo 6 roles (Admin, Agency Owner, Account Manager, Content Creator, Brand Client, Guest) _(Assignee: Phước (Publisher) | 🔴 Critical)_
-- [x] `DA-E03-02` — [DA-138](https://letritrung2605.atlassian.net/browse/DA-138) — Viet mo ta chi tiet UC 01–20 (Admin + Agency Owner flows) — actor, description, main flow, alt flows _(Assignee: Trung (Leader) | 🔴 Critical)_
-- [x] `DA-E03-03` — [DA-153](https://letritrung2605.atlassian.net/browse/DA-153) — Viet mo ta chi tiet UC 21–40 (Account Manager + Content Creator flows) _(Assignee: Phước (Publisher) | 🔴 Critical)_
-- [x] `DA-E03-04` — [DA-167](https://letritrung2605.atlassian.net/browse/DA-167) — Viet mo ta chi tiet UC 41–60 (Brand Client + Social Publishing flows) _(Assignee: Phước (Publisher) | 🟡 High)_
+- [x] `DA-E03-01` — [DA-205](https://letritrung2605.atlassian.net/browse/DA-205) — Liet ke va phan nhom toan bo 60 UC theo 6 roles (Admin, Owner, Manager, Creator, Client, Guest) _(Assignee: Phước (Publisher) | 🔴 Critical)_
+- [x] `DA-E03-02` — [DA-138](https://letritrung2605.atlassian.net/browse/DA-138) — Viet mo ta chi tiet UC 01–20 (Admin + Owner flows) — actor, description, main flow, alt flows _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E03-03` — [DA-153](https://letritrung2605.atlassian.net/browse/DA-153) — Viet mo ta chi tiet UC 21–40 (Manager + Creator flows) _(Assignee: Phước (Publisher) | 🔴 Critical)_
+- [x] `DA-E03-04` — [DA-167](https://letritrung2605.atlassian.net/browse/DA-167) — Viet mo ta chi tiet UC 41–60 (Client + Social Publishing flows) _(Assignee: Phước (Publisher) | 🟡 High)_
 - [x] `DA-E03-05` — [DA-182](https://letritrung2605.atlassian.net/browse/DA-182) — Review UC list voi mentor, cap nhat sau feedback _(Assignee: All (Team) | 🟡 High)_
 - [x] `DA-E03-06` — [DA-197](https://letritrung2605.atlassian.net/browse/DA-197) — Finalize UC table vao file Excel (BrandHub_UseCases.xlsx) _(Assignee: Phước (Publisher) | 🟢 Medium)_
 
@@ -119,7 +119,7 @@
 - [x] `DA-E06-05` — [DA-166](https://letritrung2605.atlassian.net/browse/DA-166) — Viet DBML code cho dbdiagram.io (MongoDB + PostgreSQL + Enums + Refs + TableGroups) _(Assignee: Tuấn (AI) | 🟡 High)_
 - [x] `DA-E06-06` — [DA-184](https://letritrung2605.atlassian.net/browse/DA-184) — Document Redis key patterns (JWT blacklist, rate limit, OAuth state, trending cache) _(Assignee: Ân (AI) | 🟡 High)_
 - [x] `DA-E06-07` — [DA-201](https://letritrung2605.atlassian.net/browse/DA-201) — Viet database initialization scripts (init-mongo.js + init-postgres.sql) _(Assignee: Trung (Leader) | 🔴 Critical)_
-- [x] `DA-E06-08` — [DA-146](https://letritrung2605.atlassian.net/browse/DA-146) — Viet database access rules documentation (moi query phai co workspaceId filter, BRAND_CLIENT them clientId filter) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E06-08` — [DA-146](https://letritrung2605.atlassian.net/browse/DA-146) — Viet database access rules documentation (moi query phai co workspaceId filter, CLIENT them clientId filter) _(Assignee: Trung (Leader) | 🔴 Critical)_
 
 ### EPIC E07 — [DA-87](https://letritrung2605.atlassian.net/browse/DA-87) — API Design & Swagger Spec
 
@@ -182,12 +182,12 @@
 
 - [x] `DA-E14-01` — [DA-176](https://letritrung2605.atlassian.net/browse/DA-176) — Viet RBAC annotation/middleware cho business-service (@RequireRole) _(Assignee: Trung (Leader) | 🔴 Critical)_
 - [x] `DA-E14-02` — [DA-193](https://letritrung2605.atlassian.net/browse/DA-193) — Implement workspace isolation filter (moi query MongoDB phai co workspaceId filter) _(Assignee: Trung (Leader) | 🔴 Critical)_
-- [x] `DA-E14-03` — [DA-208](https://letritrung2605.atlassian.net/browse/DA-208) — Implement client isolation cho BRAND_CLIENT (chi duoc xem data cua clientId minh) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E14-03` — [DA-208](https://letritrung2605.atlassian.net/browse/DA-208) — Implement client isolation cho CLIENT (chi duoc xem data cua clientId minh) _(Assignee: Trung (Leader) | 🔴 Critical)_
 - [x] `DA-E14-04` — [DA-135](https://letritrung2605.atlassian.net/browse/DA-135) — Viet permission matrix document (6 roles x tat ca endpoints = duoc/khong duoc) _(Assignee: Phước (Publisher) | 🟢 Medium)_
 
 ### EPIC E15 — [DA-94](https://letritrung2605.atlassian.net/browse/DA-94) — Workspace Management
 
-- [x] `DA-E15-01` — [DA-154](https://letritrung2605.atlassian.net/browse/DA-154) — Implement POST /api/v1/workspaces (tao workspace moi, AGENCY_OWNER role) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E15-01` — [DA-154](https://letritrung2605.atlassian.net/browse/DA-154) — Implement POST /api/v1/workspaces (tao workspace moi, OWNER role) _(Assignee: Trung (Leader) | 🔴 Critical)_
 - [x] `DA-E15-02` — [DA-165](https://letritrung2605.atlassian.net/browse/DA-165) — Implement GET /api/v1/workspaces/mine (lay workspace cua user hien tai) _(Assignee: Trung (Leader) | 🔴 Critical)_
 - [x] `DA-E15-03` — [DA-181](https://letritrung2605.atlassian.net/browse/DA-181) — Implement POST /api/v1/workspaces/{id}/members (invite thanh vien qua email) _(Assignee: Trung (Leader) | 🔴 Critical)_
 - [x] `DA-E15-04` — [DA-198](https://letritrung2605.atlassian.net/browse/DA-198) — Implement DELETE /api/v1/workspaces/{id}/members/{userId} (remove thanh vien) _(Assignee: Trung (Leader) | 🟡 High)_
@@ -195,15 +195,15 @@
 
 ### EPIC E16 — [DA-102](https://letritrung2605.atlassian.net/browse/DA-102) — Client & Agency Management
 
-- [x] `DA-E16-01` — [DA-220](https://letritrung2605.atlassian.net/browse/DA-220) — Implement POST /api/v1/clients (AGENCY_OWNER tao brand client moi) _(Assignee: Trung (Leader) | 🔴 Critical)_
-- [x] `DA-E16-02` — [DA-236](https://letritrung2605.atlassian.net/browse/DA-236) — Implement PUT /api/v1/clients/{id}/assign (AGENCY_OWNER assign Account Manager) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E16-01` — [DA-220](https://letritrung2605.atlassian.net/browse/DA-220) — Implement POST /api/v1/clients (OWNER tao client moi) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E16-02` — [DA-236](https://letritrung2605.atlassian.net/browse/DA-236) — Implement PUT /api/v1/clients/{id}/assign (OWNER assign Manager) _(Assignee: Trung (Leader) | 🔴 Critical)_
 - [x] `DA-E16-03` — [DA-249](https://letritrung2605.atlassian.net/browse/DA-249) — Implement PUT /api/v1/clients/{id}/service-package (set gioi han bai/thang, platforms) _(Assignee: Trung (Leader) | 🟡 High)_
-- [x] `DA-E16-04` — [DA-266](https://letritrung2605.atlassian.net/browse/DA-266) — Implement GET /api/v1/clients (AGENCY_OWNER va ACCOUNT_MANAGER xem danh sach) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E16-04` — [DA-266](https://letritrung2605.atlassian.net/browse/DA-266) — Implement GET /api/v1/clients (OWNER va MANAGER xem danh sach) _(Assignee: Trung (Leader) | 🔴 Critical)_
 
 ### EPIC E17 — [DA-107](https://letritrung2605.atlassian.net/browse/DA-107) — Subscription & Billing
 
 - [x] `DA-E17-01` — [DA-215](https://letritrung2605.atlassian.net/browse/DA-215) — Implement Admin CRUD cho subscription plans (Free/Basic/Pro/Enterprise) _(Assignee: Trung (Leader) | 🔴 Critical)_
-- [x] `DA-E17-02` — [DA-230](https://letritrung2605.atlassian.net/browse/DA-230) — Implement POST /api/v1/subscriptions/subscribe (AGENCY_OWNER dang ky goi) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E17-02` — [DA-230](https://letritrung2605.atlassian.net/browse/DA-230) — Implement POST /api/v1/subscriptions/subscribe (OWNER dang ky goi) _(Assignee: Trung (Leader) | 🔴 Critical)_
 - [x] `DA-E17-03` — [DA-247](https://letritrung2605.atlassian.net/browse/DA-247) — Implement payment flow (tich hop payment gateway, tao invoice) _(Assignee: Trung (Leader) | 🔴 Critical)_
 - [x] `DA-E17-04` — [DA-263](https://letritrung2605.atlassian.net/browse/DA-263) — Implement GET /api/v1/subscriptions/invoices (lich su hoa don) _(Assignee: Ân (AI) | 🟡 High)_
 
@@ -224,8 +224,8 @@
 ### EPIC E20 — [DA-100](https://letritrung2605.atlassian.net/browse/DA-100) — Token Lifecycle Management
 
 - [x] `DA-E20-01` — [DA-250](https://letritrung2605.atlassian.net/browse/DA-250) — Implement scheduled token refresh job (chay luc 2:00 AM moi ngay, refresh tokens het han trong 7 ngay) _(Assignee: Trung (Leader) | 🔴 Critical)_
-- [x] `DA-E20-02` — [DA-267](https://letritrung2605.atlassian.net/browse/DA-267) — Implement alert notification khi token refresh fail (gui thong bao cho Account Manager) _(Assignee: Trung (Leader) | 🔴 Critical)_
-- [x] `DA-E20-03` — [DA-282](https://letritrung2605.atlassian.net/browse/DA-282) — Implement manual token refresh API (Account Manager trigger thu cong) _(Assignee: Phước (Publisher) | 🟡 High)_
+- [x] `DA-E20-02` — [DA-267](https://letritrung2605.atlassian.net/browse/DA-267) — Implement alert notification khi token refresh fail (gui thong bao cho Manager) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E20-03` — [DA-282](https://letritrung2605.atlassian.net/browse/DA-282) — Implement manual token refresh API (Manager trigger thu cong) _(Assignee: Phước (Publisher) | 🟡 High)_
 
 ### EPIC E21 — [DA-105](https://letritrung2605.atlassian.net/browse/DA-105) — Publisher Service Core
 
@@ -368,29 +368,29 @@
 
 ### EPIC E28 — [DA-112](https://letritrung2605.atlassian.net/browse/DA-112) — Content Request Management
 
-- [x] `DA-E28-01` — [DA-359](https://letritrung2605.atlassian.net/browse/DA-359) — Implement POST /api/v1/content-requests (BRAND_CLIENT submit yeu cau: topic, platform, tone, deadline) _(Assignee: Trung (Leader) | 🔴 Critical)_
-- [x] `DA-E28-02` — [DA-293](https://letritrung2605.atlassian.net/browse/DA-293) — Implement GET /api/v1/content-requests (ACCOUNT_MANAGER xem danh sach requests cua clients minh) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E28-01` — [DA-359](https://letritrung2605.atlassian.net/browse/DA-359) — Implement POST /api/v1/content-requests (CLIENT submit yeu cau: topic, platform, tone, deadline) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E28-02` — [DA-293](https://letritrung2605.atlassian.net/browse/DA-293) — Implement GET /api/v1/content-requests (MANAGER xem danh sach requests cua clients minh) _(Assignee: Trung (Leader) | 🔴 Critical)_
 - [x] `DA-E28-03` — [DA-307](https://letritrung2605.atlassian.net/browse/DA-307) — Implement status tracking (SUBMITTED → ASSIGNED → IN_PROGRESS → PENDING_REVIEW → SENT_TO_CLIENT → APPROVED → REJECTED) _(Assignee: Trung (Leader) | 🔴 Critical)_
 
 ### EPIC E29 — [DA-120](https://letritrung2605.atlassian.net/browse/DA-120) — Task Assignment & Tracking
 
-- [x] `DA-E29-01` — [DA-322](https://letritrung2605.atlassian.net/browse/DA-322) — Implement PUT /api/v1/content-requests/{id}/assign (ACCOUNT_MANAGER assign cho CONTENT_CREATOR) _(Assignee: Trung (Leader) | 🔴 Critical)_
-- [x] `DA-E29-02` — [DA-335](https://letritrung2605.atlassian.net/browse/DA-335) — Implement GET /api/v1/content-requests/my-tasks (CONTENT_CREATOR xem tasks duoc assign) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E29-01` — [DA-322](https://letritrung2605.atlassian.net/browse/DA-322) — Implement PUT /api/v1/content-requests/{id}/assign (MANAGER assign cho CREATOR) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E29-02` — [DA-335](https://letritrung2605.atlassian.net/browse/DA-335) — Implement GET /api/v1/content-requests/my-tasks (CREATOR xem tasks duoc assign) _(Assignee: Trung (Leader) | 🔴 Critical)_
 - [x] `DA-E29-03` — [DA-354](https://letritrung2605.atlassian.net/browse/DA-354) — Implement deadline management (alert khi task sap qua han) _(Assignee: Ân (AI) | 🟡 High)_
 
 ### EPIC E30 — [DA-114](https://letritrung2605.atlassian.net/browse/DA-114) — Content Calendar & Scheduling
 
 - [x] `DA-E30-01` — [DA-300](https://letritrung2605.atlassian.net/browse/DA-300) — Implement GET /api/v1/posts/calendar (lay posts theo date range, filter theo platform/status) _(Assignee: Trung (Leader) | 🔴 Critical)_
-- [x] `DA-E30-02` — [DA-317](https://letritrung2605.atlassian.net/browse/DA-317) — Implement POST /api/v1/posts/{id}/schedule (ACCOUNT_MANAGER dat lich: scheduledAt + targetPlatforms) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E30-02` — [DA-317](https://letritrung2605.atlassian.net/browse/DA-317) — Implement POST /api/v1/posts/{id}/schedule (MANAGER dat lich: scheduledAt + targetPlatforms) _(Assignee: Trung (Leader) | 🔴 Critical)_
 - [x] `DA-E30-03` — [DA-334](https://letritrung2605.atlassian.net/browse/DA-334) — Build ContentCalendar React component (drag-drop rescheduling, color-coded status indicators) _(Assignee: Lộc (Frontend) | 🔴 Critical)_
 - [x] `DA-E30-04` — [DA-350](https://letritrung2605.atlassian.net/browse/DA-350) — Build PlatformPreview component (hien thi preview dung format cua FB, IG, TikTok, Threads) _(Assignee: Lộc (Frontend) | 🟡 High)_
 
 ### EPIC E31 — [DA-115](https://letritrung2605.atlassian.net/browse/DA-115) — Approval Workflow
 
-- [x] `DA-E31-01` — [DA-363](https://letritrung2605.atlassian.net/browse/DA-363) — Implement POST /api/v1/posts/{id}/submit (CONTENT_CREATOR submit → PENDING_REVIEW) _(Assignee: Trung (Leader) | 🔴 Critical)_
-- [x] `DA-E31-02` — [DA-301](https://letritrung2605.atlassian.net/browse/DA-301) — Implement POST /api/v1/posts/{id}/account-review (ACCOUNT_MANAGER approve hoac reject + note) _(Assignee: Trung (Leader) | 🔴 Critical)_
-- [x] `DA-E31-03` — [DA-314](https://letritrung2605.atlassian.net/browse/DA-314) — Implement POST /api/v1/posts/{id}/client-approve (BRAND_CLIENT approve → SCHEDULED) _(Assignee: Trung (Leader) | 🔴 Critical)_
-- [x] `DA-E31-04` — [DA-329](https://letritrung2605.atlassian.net/browse/DA-329) — Implement POST /api/v1/posts/{id}/client-reject (BRAND_CLIENT reject + feedback) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E31-01` — [DA-363](https://letritrung2605.atlassian.net/browse/DA-363) — Implement POST /api/v1/posts/{id}/submit (CREATOR submit → PENDING_REVIEW) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E31-02` — [DA-301](https://letritrung2605.atlassian.net/browse/DA-301) — Implement POST /api/v1/posts/{id}/account-review (MANAGER approve hoac reject + note) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E31-03` — [DA-314](https://letritrung2605.atlassian.net/browse/DA-314) — Implement POST /api/v1/posts/{id}/client-approve (CLIENT approve → SCHEDULED) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E31-04` — [DA-329](https://letritrung2605.atlassian.net/browse/DA-329) — Implement POST /api/v1/posts/{id}/client-reject (CLIENT reject + feedback) _(Assignee: Trung (Leader) | 🔴 Critical)_
 
 ### EPIC E32 — [DA-113](https://letritrung2605.atlassian.net/browse/DA-113) — Publishing System
 
@@ -407,7 +407,7 @@
 
 - [x] `DA-E33-01` — [DA-321](https://letritrung2605.atlassian.net/browse/DA-321) — Implement retry logic (toi da 3 lan, exponential backoff: 30s, 60s, 120s) _(Assignee: Phước (Publisher) | 🔴 Critical)_
 - [x] `DA-E33-02` — [DA-340](https://letritrung2605.atlassian.net/browse/DA-340) — Implement Dead Letter Queue handler (Admin co the xem va manual retry/discard failed posts) _(Assignee: Trung (Leader) | 🔴 Critical)_
-- [x] `DA-E33-03` — [DA-357](https://letritrung2605.atlassian.net/browse/DA-357) — Implement failure notification (gui alert cho Account Manager khi post fail sau tat ca retries) _(Assignee: Trung (Leader) | 🔴 Critical)_
+- [x] `DA-E33-03` — [DA-357](https://letritrung2605.atlassian.net/browse/DA-357) — Implement failure notification (gui alert cho Manager khi post fail sau tat ca retries) _(Assignee: Trung (Leader) | 🔴 Critical)_
 
 ### EPIC E34 — [DA-122](https://letritrung2605.atlassian.net/browse/DA-122) — Design System & Base Components
 
@@ -443,7 +443,7 @@
 
 - [x] `DA-E38-01` — [DA-348](https://letritrung2605.atlassian.net/browse/DA-348) — Implement analytics aggregation APIs (tong hop data tu posts + publish_logs) _(Assignee: Trung (Leader) | 🔴 Critical)_
 - [x] `DA-E38-02` — [DA-364](https://letritrung2605.atlassian.net/browse/DA-364) — Implement automated report generation (weekly/monthly PDF report cho clients) _(Assignee: Trung (Leader) | 🟡 High)_
-- [x] `DA-E38-03` — [DA-371](https://letritrung2605.atlassian.net/browse/DA-371) — Implement report email sending (tu dong gui email cho Brand Client theo schedule) _(Assignee: Ân (AI) | 🟡 High)_
+- [x] `DA-E38-03` — [DA-371](https://letritrung2605.atlassian.net/browse/DA-371) — Implement report email sending (tu dong gui email cho Client theo schedule) _(Assignee: Ân (AI) | 🟡 High)_
 - [x] `DA-E38-04` — [DA-370](https://letritrung2605.atlassian.net/browse/DA-370) — Build Analytics Dashboard (charts: publishing success rate, platform breakdown, campaign performance) _(Assignee: Lộc (Frontend) | 🔴 Critical)_
 
 ### EPIC E39 — [DA-121](https://letritrung2605.atlassian.net/browse/DA-121) — Notification System
@@ -458,7 +458,7 @@
 - [x] `DA-E40-02` — [DA-374](https://letritrung2605.atlassian.net/browse/DA-374) — Build Auth screens (Login, Register, Forgot Password) _(Assignee: Lộc (Frontend) | 🔴 Critical)_
 - [x] `DA-E40-03` — [DA-380](https://letritrung2605.atlassian.net/browse/DA-380) — Build Dashboard screen (simplified overview) _(Assignee: Lộc (Frontend) | 🔴 Critical)_
 - [x] `DA-E40-04` — [DA-386](https://letritrung2605.atlassian.net/browse/DA-386) — Build Calendar screen (calendar view, post status) _(Assignee: Lộc (Frontend) | 🟡 High)_
-- [x] `DA-E40-05` — [DA-393](https://letritrung2605.atlassian.net/browse/DA-393) — Build Approval screen cho BRAND_CLIENT (xem preview, approve/reject) _(Assignee: Lộc (Frontend) | 🔴 Critical)_
+- [x] `DA-E40-05` — [DA-393](https://letritrung2605.atlassian.net/browse/DA-393) — Build Approval screen cho CLIENT (xem preview, approve/reject) _(Assignee: Lộc (Frontend) | 🔴 Critical)_
 - [x] `DA-E40-06` — [DA-397](https://letritrung2605.atlassian.net/browse/DA-397) — Implement offline draft mode (luu draft vao AsyncStorage khi mat mang, sync khi co mang) _(Assignee: Lộc (Frontend) | 🟡 High)_
 
 ### EPIC E41 — [DA-127](https://letritrung2605.atlassian.net/browse/DA-127) — Mobile Notifications

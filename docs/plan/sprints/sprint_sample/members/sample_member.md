@@ -49,7 +49,7 @@ Thiết kế wireframe low-to-mid fidelity cho 7 phân hệ màn hình chính: L
 
 **Kết quả đạt được:**
 - [x] 7/7 phân hệ màn hình hoàn thành
-- [x] RBAC variants cho ADMIN, AGENCY_OWNER, ACCOUNT_MANAGER documented
+- [x] RBAC variants cho ADMIN, OWNER, MANAGER documented
 - [x] Annotation 100% theo shadcn/ui naming
 - [x] Mobile 375px cho 3 màn hình core
 

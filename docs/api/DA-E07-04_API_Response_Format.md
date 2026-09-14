@@ -140,7 +140,7 @@ Format: `SCREAMING_SNAKE_CASE`. All codes globally unique across all services.
 |------|------|---------|
 | `FORBIDDEN` | 403 | Valid JWT but role insufficient for the endpoint |
 | `WORKSPACE_ACCESS_DENIED` | 403 | JWT workspace ≠ path workspace |
-| `CLIENT_ACCESS_DENIED` | 403 | ACCOUNT_MANAGER accessing unassigned client; BRAND_CLIENT accessing foreign client |
+| `CLIENT_ACCESS_DENIED` | 403 | MANAGER accessing unassigned client; CLIENT accessing foreign client |
 
 ### 4.3 Validation domain — `VALIDATION_*`
 
@@ -164,8 +164,8 @@ Format: `SCREAMING_SNAKE_CASE`. All codes globally unique across all services.
 | `INVITATION_INVALID` | 400 | Accept — token not found |
 | `INVITATION_EXPIRED` | 400 | Accept — past `expires_at` |
 | `INVITATION_ALREADY_USED` | 400 | Accept — `status = ACCEPTED` |
-| `CANNOT_REMOVE_OWNER` | 400 | Remove member — target is AGENCY_OWNER |
-| `CANNOT_CHANGE_OWNER_ROLE` | 400 | Role change — target is AGENCY_OWNER |
+| `CANNOT_REMOVE_OWNER` | 400 | Remove member — target is OWNER |
+| `CANNOT_CHANGE_OWNER_ROLE` | 400 | Role change — target is OWNER |
 | `MEMBER_NOT_FOUND` | 404 | Member lookup in workspace failed |
 | `INVALID_ROLE` | 400 | Role value not in allowed enum |
 | `INVALID_PERMISSION_KEY` | 400 | Permission string not in known keys |
@@ -178,11 +178,11 @@ Format: `SCREAMING_SNAKE_CASE`. All codes globally unique across all services.
 | `CLIENT_NOT_FOUND` | 404 | Client lookup failed |
 | `CLIENT_NAME_EXISTS` | 409 | Duplicate client name in workspace |
 | `CLIENT_HAS_ACTIVE_POSTS` | 400 | Delete — client has SCHEDULED/PUBLISHING posts |
-| `INVALID_MANAGER` | 400 | Assign — userId not ACCOUNT_MANAGER or not active |
+| `INVALID_MANAGER` | 400 | Assign — userId not MANAGER or not active |
 | `EXCEEDS_PLAN_LIMIT` | 400 | Service package quota > plan allows |
 | `INVALID_PLATFORM` | 400 | Platform string not in supported enum |
 | `PORTAL_EMAIL_REQUIRED` | 400 | Portal enable — email not provided |
-| `EMAIL_ALREADY_USED` | 409 | Portal enable — email exists as non-BRAND_CLIENT user |
+| `EMAIL_ALREADY_USED` | 409 | Portal enable — email exists as non-CLIENT user |
 
 ### 4.6 Post domain
 
@@ -207,7 +207,7 @@ Format: `SCREAMING_SNAKE_CASE`. All codes globally unique across all services.
 |------|------|---------|
 | `REQUEST_NOT_FOUND` | 404 | Content request lookup failed |
 | `REQUEST_NOT_SUBMITTED` | 400 | Assign — status not SUBMITTED |
-| `INVALID_ASSIGNEE` | 400 | Assign — userId not CONTENT_CREATOR or not active |
+| `INVALID_ASSIGNEE` | 400 | Assign — userId not CREATOR or not active |
 | `INVALID_TRANSITION` | 400 | Status — transition not allowed for caller's role |
 | `DEADLINE_IN_PAST` | 400 | Create — deadline is past |
 
@@ -297,7 +297,7 @@ Format: `SCREAMING_SNAKE_CASE`. All codes globally unique across all services.
     "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
     "email": "user@example.com",
     "fullName": "Nguyen Van A",
-    "role": "AGENCY_OWNER"
+    "role": "OWNER"
   },
   "error": null,
   "meta": null,
@@ -432,8 +432,8 @@ Format: `SCREAMING_SNAKE_CASE`. All codes globally unique across all services.
     "code": "FORBIDDEN",
     "message": "Your role does not have permission to perform this action",
     "details": {
-      "requiredRole": "AGENCY_OWNER",
-      "yourRole": "CONTENT_CREATOR"
+      "requiredRole": "OWNER",
+      "yourRole": "CREATOR"
     }
   },
   "meta": null,

@@ -68,7 +68,7 @@
 - **Công việc đã làm:**
   - Xây dựng **Sidebar** collapsible, tự động thu nhỏ trên màn hình vừa, tích hợp bộ chọn workspace.
   - Xây dựng **Navbar** hiển thị breadcrumb, chuông thông báo và dropdown thông tin user/logout.
-  - Xây dựng **AuthGuard** đọc phân quyền từ store để điều hướng chính xác các role (`AGENCY_OWNER`, `BRAND_CLIENT`, `ADMIN`) về dashboard tương ứng, chuyển tiếp user chưa đăng nhập về trang `/login`.
+  - Xây dựng **AuthGuard** đọc phân quyền từ store để điều hướng chính xác các role (`OWNER`, `CLIENT`, `ADMIN`) về dashboard tương ứng, chuyển tiếp user chưa đăng nhập về trang `/login`.
 - **Tệp tin ảnh hưởng:**
   - `web-dashboard/src/components/layout/Sidebar.tsx`
   - `web-dashboard/src/components/layout/Navbar.tsx`

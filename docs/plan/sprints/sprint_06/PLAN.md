@@ -27,7 +27,7 @@
 - RBAC annotation/middleware (@RequireRole) + workspace isolation + client isolation
 - Permission matrix document (6 roles × all endpoints)
 - Full workspace CRUD: create, get, invite member, remove member, settings
-- Client management APIs + UI: create, assign account manager, set service package, list
+- Client management APIs + UI: create, assign manager, set service package, list
 - Login/Register pages + Google OAuth button
 - Main Dashboard page (overview widgets)
 - Workspace management pages (create, settings, members)
@@ -42,14 +42,14 @@
 |---|---|---|---|
 | DA-E14-01 | Write RBAC annotation/middleware for business-service (@RequireRole) | Trung (Leader) | 🔴 Critical |
 | DA-E14-02 | Implement workspace isolation filter (every MongoDB query must include workspaceId) | Trung (Leader) | 🔴 Critical |
-| DA-E14-03 | Implement client isolation for BRAND_CLIENT (can only view their own clientId data) | Trung (Leader) | 🔴 Critical |
+| DA-E14-03 | Implement client isolation for CLIENT (can only view their own clientId data) | Trung (Leader) | 🔴 Critical |
 | DA-E14-04 | Write permission matrix document (6 roles × all endpoints = allowed/not allowed) | Phước (Publisher) | 🟢 Medium |
 
 **RBAC flow (DA-E14-01):**
-1. `@RequireRole({AGENCY_OWNER, ACCOUNT_MANAGER})` annotation on controller methods
+1. `@RequireRole({OWNER, MANAGER})` annotation on controller methods
 2. Spring AOP aspect intercepts, reads `X-User-Role` header from API Gateway
 3. If role not in allowed list → 403 Forbidden
-4. Annotation supports single role `@RequireRole(Role.AGENCY_OWNER)` or multiple roles
+4. Annotation supports single role `@RequireRole(Role.OWNER)` or multiple roles
 
 **Workspace isolation (DA-E14-02):**
 - API Gateway injects `X-Workspace-Id` header (from JWT)
@@ -57,7 +57,7 @@
 - Users without workspaceId → handled gracefully (e.g., newly registered users)
 
 **Client isolation (DA-E14-03):**
-- BRAND_CLIENT role can ONLY access data with `clientId == currentUser.clientId`
+- CLIENT role can ONLY access data with `clientId == currentUser.clientId`
 - Applied on: GET /clients (own brand only), GET /content (own brand's content only)
 
 > ⚠️ **E14 là foundational epic** — DA-E14-01 (@RequireRole) block tất cả các task khác cần authorization trong E15/E16. Phải làm đầu tuần 1.
@@ -68,21 +68,21 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| DA-E15-01 | Implement POST /api/v1/workspaces (create new workspace, AGENCY_OWNER role) | Trung (Leader) | 🔴 Critical |
+| DA-E15-01 | Implement POST /api/v1/workspaces (create new workspace, OWNER role) | Trung (Leader) | 🔴 Critical |
 | DA-E15-02 | Implement GET /api/v1/workspaces/mine (get current user's workspace) | Trung (Leader) | 🔴 Critical |
 | DA-E15-03 | Implement POST /api/v1/workspaces/{id}/members (invite member via email) | Trung (Leader) | 🔴 Critical |
 | DA-E15-04 | Implement DELETE /api/v1/workspaces/{id}/members/{userId} (remove member) | Trung (Leader) | 🟡 High |
 | DA-E15-05 | Implement workspace settings (timezone, default platforms, report frequency) | Trung (Leader) | 🟡 High |
 
 **Workspace invite flow (DA-E15-03):**
-1. AGENCY_OWNER POSTs `{email, role}` → system checks if user exists
+1. OWNER POSTs `{email, role}` → system checks if user exists
 2. If user exists: add to `workspace_members`, notify user
 3. If not exists: send invite email with registration link pre-filled with workspaceId
-4. Role options for invite: ACCOUNT_MANAGER, CONTENT_CREATOR
+4. Role options for invite: MANAGER, CREATOR
 
 **Notes:**
 - One user can only belong to one workspace (enforced at invite time).
-- AGENCY_OWNER cannot remove themselves — must transfer ownership first (out of scope for MVP).
+- OWNER cannot remove themselves — must transfer ownership first (out of scope for MVP).
 
 ---
 
@@ -90,16 +90,16 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| DA-E16-01 | Implement POST /api/v1/clients (AGENCY_OWNER creates new brand client) | Phước (Publisher) | 🔴 Critical |
-| DA-E16-02 | Implement PUT /api/v1/clients/{id}/assign (AGENCY_OWNER assigns Account Manager) | Phước (Publisher) | 🔴 Critical |
+| DA-E16-01 | Implement POST /api/v1/clients (OWNER creates new client) | Phước (Publisher) | 🔴 Critical |
+| DA-E16-02 | Implement PUT /api/v1/clients/{id}/assign (OWNER assigns Manager) | Phước (Publisher) | 🔴 Critical |
 | DA-E16-03 | Implement PUT /api/v1/clients/{id}/service-package (set post limit/month and platforms) | Phước (Publisher) | 🟡 High |
-| DA-E16-04 | Implement GET /api/v1/clients (AGENCY_OWNER and ACCOUNT_MANAGER view client list) | Phước (Publisher) | 🔴 Critical |
+| DA-E16-04 | Implement GET /api/v1/clients (OWNER and MANAGER view client list) | Phước (Publisher) | 🔴 Critical |
 
 **Client document fields:**
 `clientId`, `workspaceId`, `name`, `industry`, `brandColor`, `logoUrl`, `assignedAccountManagerId`, `servicePackage: {postsPerMonth, platforms[], aiCreditsPerMonth}`, `createdAt`
 
 **Notes:**
-- ACCOUNT_MANAGER can only see clients assigned to them (`assignedAccountManagerId == currentUserId`).
+- MANAGER can only see clients assigned to them (`assignedAccountManagerId == currentUserId`).
 - Service package on client is separate from workspace subscription — client-level limit ≤ workspace subscription limit.
 
 ---
@@ -133,10 +133,10 @@
 
 **AuthGuard (role-based routing, component sẵn có từ Sprint 5 — DA-E34-03):**
 - `/dashboard` → all authenticated roles
-- `/workspace` → AGENCY_OWNER only
-- `/clients` → AGENCY_OWNER, ACCOUNT_MANAGER
-- `/content` → ACCOUNT_MANAGER, CONTENT_CREATOR
-- `/portal` → BRAND_CLIENT only
+- `/workspace` → OWNER only
+- `/clients` → OWNER, MANAGER
+- `/content` → MANAGER, CREATOR
+- `/portal` → CLIENT only
 
 **Notes:**
 - 🆕 = task mới tách từ task gốc (E35-01 → E35-01+05+06; E35-03 → E35-03+07+08; E35-04 → E35-04+09+10+11)
@@ -178,16 +178,16 @@
 
 ## Sprint 6 Checklist
 
-- [ ] @RequireRole annotation works: AGENCY_OWNER accesses protected endpoints, other roles get 403
+- [ ] @RequireRole annotation works: OWNER accesses protected endpoints, other roles get 403
 - [ ] Workspace isolation: all MongoDB queries include workspaceId filter
-- [ ] Client isolation: BRAND_CLIENT can only view their own brand's data
+- [ ] Client isolation: CLIENT can only view their own brand's data
 - [ ] Permission matrix document: complete 6 roles × all endpoints
-- [ ] POST /api/v1/workspaces creates workspace, creator becomes AGENCY_OWNER
+- [ ] POST /api/v1/workspaces creates workspace, creator becomes OWNER
 - [ ] Invite member: email sent, user added to workspace_members on accept
 - [ ] Remove member: user loses workspace access immediately
 - [ ] Workspace settings: timezone + default platforms + report frequency saved
 - [ ] POST /api/v1/clients creates client under workspace
-- [ ] Assign account manager: client.assignedAccountManagerId updated
+- [ ] Assign manager: client.assignedAccountManagerId updated
 - [ ] Service package set: postsPerMonth + platforms enforced
 - [ ] Login page: email/password form, redirects to dashboard
 - [ ] Register page: account creation form, redirects to dashboard

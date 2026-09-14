@@ -79,10 +79,10 @@
 | Role              | Description                                                   |
 | ----------------- | ------------------------------------------------------------- |
 | `ADMIN`           | System admin — manages users, plans, platform                 |
-| `AGENCY_OWNER`    | Creates workspace, manages team & clients, billing            |
-| `ACCOUNT_MANAGER` | Manages assigned clients, reviews content, sends reports      |
-| `CONTENT_CREATOR` | Creates AI content, manages knowledge base, schedules posts   |
-| `BRAND_CLIENT`    | View-only client portal: approve/reject content, view reports |
+| `OWNER`    | Creates workspace, manages team & clients, billing            |
+| `MANAGER` | Manages assigned clients, reviews content, sends reports      |
+| `CREATOR` | Creates AI content, manages knowledge base, schedules posts   |
+| `CLIENT`    | View-only client portal: approve/reject content, view reports |
 | `GUEST`           | Unauthenticated — landing page + register only                |
 
 ---
@@ -130,10 +130,10 @@
 
 | Task ID                                                                                                                                  | Description                                                                                                             | Assignee          | Priority    |
 | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------- | ----------- |
-| [DA-E03-01](#da-e03-01-list-and-group-all-60-use-cases-by-6-roles-admin-agency-owner-account-manager-content-creator-brand-client-guest) | List and group all 60 use cases by 6 roles (Admin, Agency Owner, Account Manager, Content Creator, Brand Client, Guest) | Phước (Publisher) | 🔴 Critical |
-| [DA-E03-02](#da-e03-02-write-detailed-descriptions-for-uc-0120-admin-agency-owner-flows)                                                 | Write detailed descriptions for UC 01–20 (Admin + Agency Owner flows) — actor, description, main flow, alt flows        | Trung (Leader)    | 🔴 Critical |
-| [DA-E03-03](#da-e03-03-write-detailed-descriptions-for-uc-2140-account-manager-content-creator-flows)                                    | Write detailed descriptions for UC 21–40 (Account Manager + Content Creator flows)                                      | Phước (Publisher) | 🔴 Critical |
-| [DA-E03-04](#da-e03-04-write-detailed-descriptions-for-uc-4160-brand-client-social-publishing-flows)                                     | Write detailed descriptions for UC 41–60 (Brand Client + Social Publishing flows)                                       | Phước (Publisher) | 🟡 High     |
+| [DA-E03-01](#da-e03-01-list-and-group-all-60-use-cases-by-6-roles-admin-owner-manager-creator-client-guest) | List and group all 60 use cases by 6 roles (Admin, Owner, Manager, Creator, Client, Guest) | Phước (Publisher) | 🔴 Critical |
+| [DA-E03-02](#da-e03-02-write-detailed-descriptions-for-uc-0120-admin-owner-flows)                                                 | Write detailed descriptions for UC 01–20 (Admin + Owner flows) — actor, description, main flow, alt flows        | Trung (Leader)    | 🔴 Critical |
+| [DA-E03-03](#da-e03-03-write-detailed-descriptions-for-uc-2140-manager-creator-flows)                                    | Write detailed descriptions for UC 21–40 (Manager + Creator flows)                                      | Phước (Publisher) | 🔴 Critical |
+| [DA-E03-04](#da-e03-04-write-detailed-descriptions-for-uc-4160-client-social-publishing-flows)                                     | Write detailed descriptions for UC 41–60 (Client + Social Publishing flows)                                       | Phước (Publisher) | 🟡 High     |
 | [DA-E03-05](#da-e03-05-review-uc-list-with-mentor-update-based-on-feedback)                                                              | Review UC list with mentor, update based on feedback                                                                    | All (Team)        | 🟡 High     |
 | [DA-E03-06](#da-e03-06-finalize-uc-table-into-excel-file-brandhubusecasesxlsx)                                                           | Finalize UC table into Excel file (BrandHub_UseCases.xlsx)                                                              | Phước (Publisher) | 🟢 Medium   |
 
@@ -175,7 +175,7 @@
 | [DA-E06-05](#da-e06-05-write-dbml-code-for-dbdiagramio-mongodb-postgresql-enums-refs-tablegroups)                                                               | Write DBML code for dbdiagram.io (MongoDB + PostgreSQL + Enums + Refs + TableGroups)                                                        | Tuấn (AI)      | 🟡 High     |
 | [DA-E06-06](#da-e06-06-document-redis-key-patterns-jwt-blacklist-rate-limit-oauth-state-trending-cache)                                                         | Document Redis key patterns (JWT blacklist, rate limit, OAuth state, trending cache)                                                        | Ân (AI)        | 🟡 High     |
 | [DA-E06-07](#da-e06-07-write-database-initialization-scripts-init-mongojs-init-postgressql)                                                                     | Write database initialization scripts (init-mongo.js + init-postgres.sql)                                                                   | Trung (Leader) | 🔴 Critical |
-| [DA-E06-08](#da-e06-08-write-database-access-rules-documentation-every-query-must-include-workspaceid-filter-brandclient-additionally-requires-clientid-filter) | Write database access rules documentation (every query must include workspaceId filter; BRAND_CLIENT additionally requires clientId filter) | Trung (Leader) | 🔴 Critical |
+| [DA-E06-08](#da-e06-08-write-database-access-rules-documentation-every-query-must-include-workspaceid-filter-brandclient-additionally-requires-clientid-filter) | Write database access rules documentation (every query must include workspaceId filter; CLIENT additionally requires clientId filter) | Trung (Leader) | 🔴 Critical |
 
 ### EPIC E07 — API Design & Swagger Spec
 
@@ -289,7 +289,7 @@
 | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------- | ----------- |
 | [DA-E14-01](#da-e14-01-write-requirerole-annotation-and-aop-aspect)     | Write RBAC annotation/middleware for business-service (@RequireRole)                             | Trung (Leader)    | 🔴 Critical |
 | [DA-E14-02](#da-e14-02-implement-workspace-isolation-filter)            | Implement workspace isolation filter (every MongoDB query must include workspaceId filter)       | Trung (Leader)    | 🔴 Critical |
-| [DA-E14-03](#da-e14-03-implement-client-isolation-for-brandclient-role) | Implement client isolation for BRAND_CLIENT (can only view data belonging to their own clientId) | Trung (Leader)    | 🔴 Critical |
+| [DA-E14-03](#da-e14-03-implement-client-isolation-for-brandclient-role) | Implement client isolation for CLIENT (can only view data belonging to their own clientId) | Trung (Leader)    | 🔴 Critical |
 | [DA-E14-04](#da-e14-04-write-permission-matrix-document)                | Write permission matrix document (6 roles x all endpoints = allowed/not allowed)                 | Phước (Publisher) | 🟢 Medium   |
 
 > 🔀 **E14 đã dời sang Sprint 6** do Sprint 5 tập trung hoàn thành auth core (E12).
@@ -318,14 +318,14 @@
 | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------- | ----------- |
 | [DA-E14-01](#da-e14-01-write-requirerole-annotation-and-aop-aspect)     | Write RBAC annotation/middleware for business-service (@RequireRole)                             | Trung (Leader)    | 🔴 Critical |
 | [DA-E14-02](#da-e14-02-implement-workspace-isolation-filter)            | Implement workspace isolation filter (every MongoDB query must include workspaceId filter)       | Trung (Leader)    | 🔴 Critical |
-| [DA-E14-03](#da-e14-03-implement-client-isolation-for-brandclient-role) | Implement client isolation for BRAND_CLIENT (can only view data belonging to their own clientId) | Trung (Leader)    | 🔴 Critical |
+| [DA-E14-03](#da-e14-03-implement-client-isolation-for-brandclient-role) | Implement client isolation for CLIENT (can only view data belonging to their own clientId) | Trung (Leader)    | 🔴 Critical |
 | [DA-E14-04](#da-e14-04-write-permission-matrix-document)                | Write permission matrix document (6 roles x all endpoints = allowed/not allowed)                 | Phước (Publisher) | 🟢 Medium   |
 
 ### EPIC E15 — Workspace Management
 
 | Task ID                                                                 | Description                                                                    | Assignee       | Priority    |
 | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------ | -------------- | ----------- |
-| [DA-E15-01](#da-e15-01-implement-post-apiv1workspaces)                  | Implement POST /api/v1/workspaces (create new workspace, AGENCY_OWNER role)    | Trung (Leader) | 🔴 Critical |
+| [DA-E15-01](#da-e15-01-implement-post-apiv1workspaces)                  | Implement POST /api/v1/workspaces (create new workspace, OWNER role)    | Trung (Leader) | 🔴 Critical |
 | [DA-E15-02](#da-e15-02-implement-get-apiv1workspacesmine)               | Implement GET /api/v1/workspaces/mine (retrieve workspace of the current user) | Trung (Leader) | 🔴 Critical |
 | [DA-E15-03](#da-e15-03-implement-post-apiv1workspacesidmembers)         | Implement POST /api/v1/workspaces/{id}/members (invite member via email)       | Trung (Leader) | 🔴 Critical |
 | [DA-E15-04](#da-e15-04-implement-delete-apiv1workspacesidmembersuserid) | Implement DELETE /api/v1/workspaces/{id}/members/{userId} (remove a member)    | Trung (Leader) | 🟡 High     |
@@ -335,10 +335,10 @@
 
 | Task ID                                                             | Description                                                                                | Assignee          | Priority    |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------- | ----------- |
-| [DA-E16-01](#da-e16-01-implement-post-apiv1clients)                 | Implement POST /api/v1/clients (AGENCY_OWNER creates a new brand client)                   | Phước (Publisher) | 🔴 Critical |
-| [DA-E16-02](#da-e16-02-implement-put-apiv1clientsidassign)          | Implement PUT /api/v1/clients/{id}/assign (AGENCY_OWNER assigns an Account Manager)        | Phước (Publisher) | 🔴 Critical |
+| [DA-E16-01](#da-e16-01-implement-post-apiv1clients)                 | Implement POST /api/v1/clients (OWNER creates a new client)                   | Phước (Publisher) | 🔴 Critical |
+| [DA-E16-02](#da-e16-02-implement-put-apiv1clientsidassign)          | Implement PUT /api/v1/clients/{id}/assign (OWNER assigns an Manager)        | Phước (Publisher) | 🔴 Critical |
 | [DA-E16-03](#da-e16-03-implement-put-apiv1clientsidservice-package) | Implement PUT /api/v1/clients/{id}/service-package (set monthly post limits and platforms) | Phước (Publisher) | 🟡 High     |
-| [DA-E16-04](#da-e16-04-implement-get-apiv1clients)                  | Implement GET /api/v1/clients (AGENCY_OWNER and ACCOUNT_MANAGER view client list)          | Phước (Publisher) | 🔴 Critical |
+| [DA-E16-04](#da-e16-04-implement-get-apiv1clients)                  | Implement GET /api/v1/clients (OWNER and MANAGER view client list)          | Phước (Publisher) | 🔴 Critical |
 
 > **EPIC E17 — Subscription & Billing đã dời sang Sprint 9** 🔀 (xem [Rebalance Log](Jira_Status_Audit_2026-07-11.md#rebalance-log--sau-sprint-4) trong Jira Audit).
 
@@ -415,8 +415,8 @@
 | Task ID                                                       | Description                                                                                            | Assignee          | Priority    |
 | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------- | ----------- |
 | [DA-E20-01](#da-e20-01-implement-scheduled-token-refresh-job) | Implement scheduled token refresh job (runs at 2:00 AM daily, refreshes tokens expiring within 7 days) | Trung (Leader)    | 🔴 Critical |
-| [DA-E20-02](#da-e20-02-implement-token-refresh-failure-alert) | Implement alert notification when token refresh fails (send notification to Account Manager)           | Trung (Leader)    | 🔴 Critical |
-| [DA-E20-03](#da-e20-03-implement-manual-token-refresh-api)    | Implement manual token refresh API (Account Manager triggers refresh manually)                         | Phước (Publisher) | 🟡 High     |
+| [DA-E20-02](#da-e20-02-implement-token-refresh-failure-alert) | Implement alert notification when token refresh fails (send notification to Manager)           | Trung (Leader)    | 🔴 Critical |
+| [DA-E20-03](#da-e20-03-implement-manual-token-refresh-api)    | Implement manual token refresh API (Manager triggers refresh manually)                         | Phước (Publisher) | 🟡 High     |
 
 ---
 
@@ -483,7 +483,7 @@
 | Task ID                                                             | Description                                                                        | Assignee       | Priority    |
 | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | -------------- | ----------- |
 | [DA-E17-01](#da-e17-01-implement-admin-crud-for-subscription-plans) | Implement Admin CRUD for subscription plans (Free/Basic/Pro/Enterprise)            | Trung (Leader) | 🔴 Critical |
-| [DA-E17-02](#da-e17-02-implement-post-apiv1subscriptionssubscribe)  | Implement POST /api/v1/subscriptions/subscribe (AGENCY_OWNER subscribes to a plan) | Trung (Leader) | 🔴 Critical |
+| [DA-E17-02](#da-e17-02-implement-post-apiv1subscriptionssubscribe)  | Implement POST /api/v1/subscriptions/subscribe (OWNER subscribes to a plan) | Trung (Leader) | 🔴 Critical |
 | [DA-E17-03](#da-e17-03-implement-stripe-payment-webhook-flow)       | Implement payment flow (integrate payment gateway, create invoice)                 | Trung (Leader) | 🔴 Critical |
 | [DA-E17-04](#da-e17-04-implement-get-apiv1subscriptionsinvoices)    | Implement GET /api/v1/subscriptions/invoices (billing history)                     | Ân (AI)        | 🟡 High     |
 
@@ -701,16 +701,16 @@
 
 | Task ID                                                      | Description                                                                                                            | Assignee       | Priority    |
 | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | -------------- | ----------- |
-| [DA-E28-01](#da-e28-01-implement-post-apiv1content-requests) | Implement POST /api/v1/content-requests (BRAND_CLIENT submits request: topic, platform, tone, deadline)                | Trung (Leader) | 🔴 Critical |
-| [DA-E28-02](#da-e28-02-implement-get-apiv1content-requests)  | Implement GET /api/v1/content-requests (ACCOUNT_MANAGER views list of requests from their assigned clients)            | Trung (Leader) | 🔴 Critical |
+| [DA-E28-01](#da-e28-01-implement-post-apiv1content-requests) | Implement POST /api/v1/content-requests (CLIENT submits request: topic, platform, tone, deadline)                | Trung (Leader) | 🔴 Critical |
+| [DA-E28-02](#da-e28-02-implement-get-apiv1content-requests)  | Implement GET /api/v1/content-requests (MANAGER views list of requests from their assigned clients)            | Trung (Leader) | 🔴 Critical |
 | [DA-E28-03](#da-e28-03-implement-status-transition-logic)    | Implement status tracking (SUBMITTED → ASSIGNED → IN_PROGRESS → PENDING_REVIEW → SENT_TO_CLIENT → APPROVED → REJECTED) | Trung (Leader) | 🔴 Critical |
 
 ### EPIC E29 — Task Assignment & Tracking
 
 | Task ID                                                             | Description                                                                                          | Assignee       | Priority    |
 | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------- | ----------- |
-| [DA-E29-01](#da-e29-01-implement-put-apiv1content-requestsidassign) | Implement PUT /api/v1/content-requests/{id}/assign (ACCOUNT_MANAGER assigns task to CONTENT_CREATOR) | Trung (Leader) | 🔴 Critical |
-| [DA-E29-02](#da-e29-02-implement-get-apiv1content-requestsmy-tasks) | Implement GET /api/v1/content-requests/my-tasks (CONTENT_CREATOR views their assigned tasks)         | Trung (Leader) | 🔴 Critical |
+| [DA-E29-01](#da-e29-01-implement-put-apiv1content-requestsidassign) | Implement PUT /api/v1/content-requests/{id}/assign (MANAGER assigns task to CREATOR) | Trung (Leader) | 🔴 Critical |
+| [DA-E29-02](#da-e29-02-implement-get-apiv1content-requestsmy-tasks) | Implement GET /api/v1/content-requests/my-tasks (CREATOR views their assigned tasks)         | Trung (Leader) | 🔴 Critical |
 | [DA-E29-03](#da-e29-03-implement-deadline-alert-notification)       | Implement deadline management (alert when a task is approaching its deadline)                        | Ân (AI)        | 🟡 High     |
 
 ### EPIC E30 — Content Calendar & Scheduling
@@ -718,7 +718,7 @@
 | Task ID                                                       | Description                                                                                               | Assignee          | Priority    |
 | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ----------------- | ----------- |
 | [DA-E30-01](#da-e30-01-implement-get-apiv1postscalendar)      | Implement GET /api/v1/posts/calendar (retrieve posts by date range, filter by platform/status)            | Trung (Leader)    | 🔴 Critical |
-| [DA-E30-02](#da-e30-02-implement-post-apiv1postsidschedule)   | Implement POST /api/v1/posts/{id}/schedule (ACCOUNT_MANAGER sets schedule: scheduledAt + targetPlatforms) | Trung (Leader)    | 🔴 Critical |
+| [DA-E30-02](#da-e30-02-implement-post-apiv1postsidschedule)   | Implement POST /api/v1/posts/{id}/schedule (MANAGER sets schedule: scheduledAt + targetPlatforms) | Trung (Leader)    | 🔴 Critical |
 | [DA-E30-03](#da-e30-03-build-contentcalendar-react-component) | Build ContentCalendar React component (drag-drop rescheduling, color-coded status indicators)             | Lộc (AI Sub-lead) | 🔴 Critical |
 | [DA-E30-04](#da-e30-04-build-platformpreview-component)       | Build PlatformPreview component (display preview in the correct format for FB, IG, TikTok, Threads)       | Lộc (AI Sub-lead) | 🟡 High     |
 
@@ -730,10 +730,10 @@
 
 | Task ID                                                           | Description                                                                                   | Assignee       | Priority    |
 | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | -------------- | ----------- |
-| [DA-E31-01](#da-e31-01-implement-post-apiv1postsidsubmit)         | Implement POST /api/v1/posts/{id}/submit (CONTENT_CREATOR submits → PENDING_REVIEW)           | Trung (Leader) | 🔴 Critical |
-| [DA-E31-02](#da-e31-02-implement-post-apiv1postsidaccount-review) | Implement POST /api/v1/posts/{id}/account-review (ACCOUNT_MANAGER approves or rejects + note) | Trung (Leader) | 🔴 Critical |
-| [DA-E31-03](#da-e31-03-implement-post-apiv1postsidclient-approve) | Implement POST /api/v1/posts/{id}/client-approve (BRAND_CLIENT approves → SCHEDULED)          | Trung (Leader) | 🔴 Critical |
-| [DA-E31-04](#da-e31-04-implement-post-apiv1postsidclient-reject)  | Implement POST /api/v1/posts/{id}/client-reject (BRAND_CLIENT rejects + feedback)             | Trung (Leader) | 🔴 Critical |
+| [DA-E31-01](#da-e31-01-implement-post-apiv1postsidsubmit)         | Implement POST /api/v1/posts/{id}/submit (CREATOR submits → PENDING_REVIEW)           | Trung (Leader) | 🔴 Critical |
+| [DA-E31-02](#da-e31-02-implement-post-apiv1postsidaccount-review) | Implement POST /api/v1/posts/{id}/account-review (MANAGER approves or rejects + note) | Trung (Leader) | 🔴 Critical |
+| [DA-E31-03](#da-e31-03-implement-post-apiv1postsidclient-approve) | Implement POST /api/v1/posts/{id}/client-approve (CLIENT approves → SCHEDULED)          | Trung (Leader) | 🔴 Critical |
+| [DA-E31-04](#da-e31-04-implement-post-apiv1postsidclient-reject)  | Implement POST /api/v1/posts/{id}/client-reject (CLIENT rejects + feedback)             | Trung (Leader) | 🔴 Critical |
 
 ### EPIC E32 — Publishing System
 
@@ -755,7 +755,7 @@
 | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ----------------- | ----------- |
 | [DA-E33-01](#da-e33-01-implement-retry-logic)                 | Implement retry logic (up to 3 attempts, exponential backoff: 30s, 60s, 120s)                      | Phước (Publisher) | 🔴 Critical |
 | [DA-E33-02](#da-e33-02-implement-dead-letter-queue-admin-api) | Implement Dead Letter Queue handler (Admin can view and manually retry or discard failed posts)    | Trung (Leader)    | 🔴 Critical |
-| [DA-E33-03](#da-e33-03-implement-failure-notification)        | Implement failure notification (send alert to Account Manager when a post fails after all retries) | Trung (Leader)    | 🔴 Critical |
+| [DA-E33-03](#da-e33-03-implement-failure-notification)        | Implement failure notification (send alert to Manager when a post fails after all retries) | Trung (Leader)    | 🔴 Critical |
 
 ---
 
@@ -801,7 +801,7 @@
 | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------- | ----------- |
 | [DA-E38-01](#da-e38-01-implement-analytics-aggregation-apis)      | Implement analytics aggregation APIs (aggregate data from posts + publish_logs)                       | Trung (Leader)    | 🔴 Critical |
 | [DA-E38-02](#da-e38-02-implement-automated-pdf-report-generation) | Implement automated report generation (weekly/monthly PDF report for clients)                         | Trung (Leader)    | 🟡 High     |
-| [DA-E38-03](#da-e38-03-implement-scheduled-report-email-sending)  | Implement report email sending (automatically send email to Brand Client on schedule)                 | Ân (AI)           | 🟡 High     |
+| [DA-E38-03](#da-e38-03-implement-scheduled-report-email-sending)  | Implement report email sending (automatically send email to Client on schedule)                 | Ân (AI)           | 🟡 High     |
 | [DA-E38-04](#da-e38-04-build-analytics-dashboard)                 | Build Analytics Dashboard (charts: publishing success rate, platform breakdown, campaign performance) | Phước (Publisher) | 🔴 Critical |
 
 ### EPIC E39 — Notification System
@@ -828,7 +828,7 @@
 | [DA-E40-02](#da-e40-02-build-auth-screens-mobile)        | Build Auth screens (Login, Register, Forgot Password)                                         | Phước (Publisher) | 🔴 Critical |
 | [DA-E40-03](#da-e40-03-build-dashboard-screen-mobile)    | Build Dashboard screen (simplified overview)                                                  | Phước (Publisher) | 🔴 Critical |
 | [DA-E40-04](#da-e40-04-build-calendar-screen-mobile)     | Build Calendar screen (calendar view, post status)                                            | Phước (Publisher) | 🟡 High     |
-| [DA-E40-05](#da-e40-05-build-approval-screen-mobile)     | Build Approval screen for BRAND_CLIENT (view preview, approve/reject)                         | Phước (Publisher) | 🔴 Critical |
+| [DA-E40-05](#da-e40-05-build-approval-screen-mobile)     | Build Approval screen for CLIENT (view preview, approve/reject)                         | Phước (Publisher) | 🔴 Critical |
 | [DA-E40-06](#da-e40-06-implement-offline-draft-mode)     | Implement offline draft mode (save draft to AsyncStorage when offline, sync when back online) | Phước (Publisher) | 🟡 High     |
 
 ### EPIC E41 — Mobile Notifications
@@ -1313,7 +1313,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 - [ ] A written MVP scope document exists listing in-scope and explicitly out-of-scope features
 - [ ] All team members have signed off (commented/reacted) on the scope document in the shared workspace
-- [ ] MVP feature list maps to at least one use case per role (Admin, Agency Owner, Account Manager, Content Creator, Brand Client, Guest)
+- [ ] MVP feature list maps to at least one use case per role (Admin, Owner, Manager, Creator, Client, Guest)
 
 **Technical Notes:**
 
@@ -1469,7 +1469,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 ---
 
-### DA-E03-01 — List and group all 60 use cases by 6 roles (Admin, Agency Owner, Account Manager, Content Creator, Brand Client, Guest)
+### DA-E03-01 — List and group all 60 use cases by 6 roles (Admin, Owner, Manager, Creator, Client, Guest)
 
 **Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical
 
@@ -1478,7 +1478,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Acceptance Criteria:**
 
 - [ ] Exactly 60 use cases are listed, each with a unique ID (UC-01 through UC-60)
-- [ ] Each use case is assigned to exactly one primary role (Admin, Agency Owner, Account Manager, Content Creator, Brand Client, or Guest)
+- [ ] Each use case is assigned to exactly one primary role (Admin, Owner, Manager, Creator, Client, or Guest)
 - [ ] The list is stored in a shared document and accessible to the full team for review and comment
 
 **Technical Notes:**
@@ -1489,27 +1489,27 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 ---
 
-### DA-E03-02 — Write detailed descriptions for UC 01–20 (Admin + Agency Owner flows)
+### DA-E03-02 — Write detailed descriptions for UC 01–20 (Admin + Owner flows)
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Produce fully described use cases for UC-01 through UC-20 so that Admin and Agency Owner feature requirements are unambiguous for backend developers implementing those flows.
+**Goal:** Produce fully described use cases for UC-01 through UC-20 so that Admin and Owner feature requirements are unambiguous for backend developers implementing those flows.
 
 **Acceptance Criteria:**
 
 - [ ] Each of UC-01 to UC-20 includes: Actor, Preconditions, Main Flow (numbered steps), Alternative Flows, and Postconditions
 - [ ] Admin use cases cover at minimum: user management, subscription management, platform configuration, audit log review
-- [ ] Agency Owner use cases cover at minimum: workspace creation, member invitation, client onboarding, subscription tier management
+- [ ] Owner use cases cover at minimum: workspace creation, member invitation, client onboarding, subscription tier management
 
 **Technical Notes:**
 
-- Reference the role enum values exactly as they appear in the JWT: ADMIN, AGENCY_OWNER — these must match any permission checks in business-service
+- Reference the role enum values exactly as they appear in the JWT: ADMIN, OWNER — these must match any permission checks in business-service
 
 **Dependencies:** Blocks: DA-E03-05, DA-E04-01. Blocked by: DA-E03-01.
 
 ---
 
-### DA-E03-03 — Write detailed descriptions for UC 21–40 (Account Manager + Content Creator flows)
+### DA-E03-03 — Write detailed descriptions for UC 21–40 (Manager + Creator flows)
 
 **Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical
 
@@ -1518,34 +1518,34 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Acceptance Criteria:**
 
 - [ ] Each of UC-21 to UC-40 includes: Actor, Preconditions, Main Flow, Alternative Flows, and Postconditions
-- [ ] Account Manager use cases cover at minimum: assigning content to creators, reviewing drafts, managing approval workflows, reporting to clients
-- [ ] Content Creator use cases cover at minimum: AI content generation, image generation, draft editing, submitting for approval, scheduling posts
+- [ ] Manager use cases cover at minimum: assigning content to creators, reviewing drafts, managing approval workflows, reporting to clients
+- [ ] Creator use cases cover at minimum: AI content generation, image generation, draft editing, submitting for approval, scheduling posts
 
 **Technical Notes:**
 
-- The approval workflow use case must clearly distinguish between ACCOUNT_MANAGER approval and BRAND_CLIENT approval as separate states
+- The approval workflow use case must clearly distinguish between MANAGER approval and CLIENT approval as separate states
 - AI generation steps in creator flows must specify which ai-service endpoint is called (e.g., /ai/content, /ai/image)
 
 **Dependencies:** Blocks: DA-E03-05, DA-E04-01. Blocked by: DA-E03-01.
 
 ---
 
-### DA-E03-04 — Write detailed descriptions for UC 41–60 (Brand Client + Social Publishing flows)
+### DA-E03-04 — Write detailed descriptions for UC 41–60 (Client + Social Publishing flows)
 
 **Assignee:** Phước (Publisher) | **Priority:** 🟡 High
 
-**Goal:** Produce fully described use cases for UC-41 through UC-60 covering Brand Client portal interactions and automated social publishing so the publisher-service and client portal are built to spec.
+**Goal:** Produce fully described use cases for UC-41 through UC-60 covering Client portal interactions and automated social publishing so the publisher-service and client portal are built to spec.
 
 **Acceptance Criteria:**
 
 - [ ] Each of UC-41 to UC-60 includes: Actor, Preconditions, Main Flow, Alternative Flows, and Postconditions
-- [ ] Brand Client use cases cover at minimum: viewing content calendar, approving/rejecting posts, viewing analytics
+- [ ] Client use cases cover at minimum: viewing content calendar, approving/rejecting posts, viewing analytics
 - [ ] Social publishing use cases cover at minimum: scheduling a post, RabbitMQ-triggered publish job, callback on success/failure, retry on failure
 
 **Technical Notes:**
 
 - Publishing flow use cases must reference the RabbitMQ message contract defined in DA-E07-03 once available; flag any assumptions made before that task completes
-- Brand Client flows must note that all data access is scoped by both workspaceId and clientId per the access rules in DA-E06-08
+- Client flows must note that all data access is scoped by both workspaceId and clientId per the access rules in DA-E06-08
 
 **Dependencies:** Blocks: DA-E03-05, DA-E04-01. Blocked by: DA-E03-01.
 
@@ -1591,13 +1591,13 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Acceptance Criteria:**
 
-- [ ] Functional objectives exist for all 6 roles: ADMIN, AGENCY_OWNER, ACCOUNT_MANAGER, CONTENT_CREATOR, BRAND_CLIENT, GUEST
+- [ ] Functional objectives exist for all 6 roles: ADMIN, OWNER, MANAGER, CREATOR, CLIENT, GUEST
 - [ ] Each role section lists its features as testable "The system shall…" statements
 - [ ] Every functional objective traces back to at least one UC ID from the approved use case list
 
 **Technical Notes:**
 
-- Use the exact role names from the JWT claim (ADMIN, AGENCY_OWNER, etc.) throughout to ensure naming consistency with the implementation
+- Use the exact role names from the JWT claim (ADMIN, OWNER, etc.) throughout to ensure naming consistency with the implementation
 
 **Dependencies:** Blocks: DA-E04-05, DA-E07-01. Blocked by: DA-E03-02, DA-E03-03, DA-E03-04, DA-E03-05.
 
@@ -1794,7 +1794,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Acceptance Criteria:**
 
 - [ ] Content creation sequence diagram covers: client → gateway → business-service → ai-service (content generation) → response with draft saved to MongoDB
-- [ ] Approval workflow sequence diagram covers: creator submits → account manager reviews → optional brand client approval → status transitions and notifications at each step
+- [ ] Approval workflow sequence diagram covers: creator submits → manager reviews → optional client approval → status transitions and notifications at each step
 - [ ] Auto-publishing sequence covers: scheduler trigger → business-service → RabbitMQ publish message → publisher-service → social API call → HTTP callback → business-service updates post status
 - [ ] OAuth token refresh sequence covers: client detects 401 → sends refresh token cookie → gateway forwards to business-service → JWT blacklist check via Redis → new access token issued → old jti added to `jwt:blacklist:{jti}`
 
@@ -1994,7 +1994,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 ---
 
-### DA-E06-08 — Write database access rules documentation (every query must include workspaceId filter; BRAND_CLIENT additionally requires clientId filter)
+### DA-E06-08 — Write database access rules documentation (every query must include workspaceId filter; CLIENT additionally requires clientId filter)
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
@@ -2003,7 +2003,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Acceptance Criteria:**
 
 - [ ] Rule 1 is documented: every MongoDB query on a multi-tenant collection must include `{ workspaceId: <value> }` as a filter condition — no exceptions
-- [ ] Rule 2 is documented: all queries executed in the context of a BRAND_CLIENT role must additionally filter by `{ clientId: <value> }`
+- [ ] Rule 2 is documented: all queries executed in the context of a CLIENT role must additionally filter by `{ clientId: <value> }`
 - [ ] Document includes a code example (Java/Spring Data style) showing a compliant and a non-compliant query side by side
 
 **Technical Notes:**
@@ -2171,7 +2171,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Acceptance Criteria:**
 
 - [ ] Wireframes exist for all 7 screen categories: Login/Auth, Main Dashboard, Workspace Management, Content Editor (with AI generation panel), Content Calendar, Client Portal, Analytics Dashboard
-- [ ] Each wireframe shows the layout for both the primary user role and any role-specific variations (e.g., Content Editor view for CONTENT_CREATOR vs. review view for ACCOUNT_MANAGER)
+- [ ] Each wireframe shows the layout for both the primary user role and any role-specific variations (e.g., Content Editor view for CREATOR vs. review view for MANAGER)
 - [ ] Figma file is shared with the team via a view link and the URL is recorded in the project wiki
 
 **Technical Notes:**
@@ -2229,7 +2229,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
-**Goal:** Design the BRAND_CLIENT-facing portal screens so the team has a clear, minimal interface target for the client-facing features that differ significantly from the internal agency dashboard.
+**Goal:** Design the CLIENT-facing portal screens so the team has a clear, minimal interface target for the client-facing features that differ significantly from the internal agency dashboard.
 
 **Acceptance Criteria:**
 
@@ -2239,7 +2239,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Technical Notes:**
 
-- Client portal must be visually distinct from the agency dashboard — consider a stripped navigation (no workspace switcher, no AI tools) to reinforce the limited-access context for the BRAND_CLIENT role
+- Client portal must be visually distinct from the agency dashboard — consider a stripped navigation (no workspace switcher, no AI tools) to reinforce the limited-access context for the CLIENT role
 - Approve/reject actions must show the current post status (from the PostStatus enum) to indicate whether action has already been taken
 
 **Dependencies:** Blocks: None. Blocked by: DA-E08-01.
@@ -2853,7 +2853,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - [ ] Duplicate email returns 409 Conflict with descriptive error message
 - [ ] Password is hashed using bcrypt with cost factor 12 before persisting to MongoDB
 - [ ] Email format and password complexity (min 8 chars, at least 1 number) are validated with 400 on failure
-- [ ] User document is saved with default role AGENCY_OWNER and isActive=true
+- [ ] User document is saved with default role OWNER and isActive=true
 
 **Technical Notes:**
 
@@ -2975,7 +2975,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - [ ] GET /api/v1/auth/google returns a redirect URL to Google's authorization endpoint with code_challenge (PKCE S256) and a state value
 - [ ] State is stored in Redis as `oauth:state:{state}` with 10-minute TTL before redirecting
 - [ ] GET /api/v1/auth/google/callback validates state against Redis (returns 400 if missing/mismatched), exchanges code + code_verifier for tokens
-- [ ] If Google email does not exist in MongoDB, a new User document is created (role=AGENCY_OWNER, no password field)
+- [ ] If Google email does not exist in MongoDB, a new User document is created (role=OWNER, no password field)
 - [ ] On success, issues the same JWT access token + refresh cookie as the standard login flow and redirects to frontend
 - [ ] Existing email registered via password login is linked to the Google account (merge, not duplicate)
 
@@ -3197,7 +3197,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Acceptance Criteria:**
 
-- [ ] `@RequireRole({"AGENCY_OWNER", "ACCOUNT_MANAGER"})` annotation is defined and applicable at method and class level
+- [ ] `@RequireRole({"OWNER", "MANAGER"})` annotation is defined and applicable at method and class level
 - [ ] An AOP `@Around` aspect intercepts all annotated methods and extracts the authenticated user's role from the SecurityContext
 - [ ] Requests from users whose role is not in the allowed list receive 403 Forbidden with body `{error: "Insufficient permissions"}`
 - [ ] Unauthenticated requests (no valid JWT) receive 401 before the aspect is evaluated
@@ -3238,24 +3238,24 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 ---
 
-### DA-E14-03 — Implement Client Isolation for BRAND_CLIENT Role
+### DA-E14-03 — Implement Client Isolation for CLIENT Role
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Ensure users with the BRAND_CLIENT role can only access data belonging to their own clientId, enforced at the query layer.
+**Goal:** Ensure users with the CLIENT role can only access data belonging to their own clientId, enforced at the query layer.
 
 **Acceptance Criteria:**
 
-- [ ] All MongoDB queries executed in a BRAND_CLIENT session include both `workspaceId` and `clientId` filters
-- [ ] A BRAND_CLIENT user attempting to access another client's data receives 403 Forbidden, not 404 or 200
-- [ ] `clientId` is stored in the User document and included in the JWT payload for BRAND_CLIENT users
-- [ ] Integration test verifies BRAND_CLIENT user cannot read posts, analytics, or reports of a sibling client in the same workspace
-- [ ] AGENCY_OWNER and ACCOUNT_MANAGER roles are NOT subject to the clientId filter (they see all clients in their workspace)
+- [ ] All MongoDB queries executed in a CLIENT session include both `workspaceId` and `clientId` filters
+- [ ] A CLIENT user attempting to access another client's data receives 403 Forbidden, not 404 or 200
+- [ ] `clientId` is stored in the User document and included in the JWT payload for CLIENT users
+- [ ] Integration test verifies CLIENT user cannot read posts, analytics, or reports of a sibling client in the same workspace
+- [ ] OWNER and MANAGER roles are NOT subject to the clientId filter (they see all clients in their workspace)
 
 **Technical Notes:**
 
 - Extend the `WorkspaceContext` holder from DA-E14-02 to also carry an optional `clientId`
-- In the repository layer, check if the calling role is BRAND_CLIENT and conditionally append the `clientId` filter — this can be done in a base repository method
+- In the repository layer, check if the calling role is CLIENT and conditionally append the `clientId` filter — this can be done in a base repository method
 - Consider a custom `@ClientScoped` annotation on repository methods that must enforce client isolation, making enforcement explicit and auditable
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E14-02].
@@ -3270,7 +3270,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Acceptance Criteria:**
 
-- [ ] Document covers all 6 roles: ADMIN, AGENCY_OWNER, ACCOUNT_MANAGER, CONTENT_CREATOR, PUBLISHER, BRAND_CLIENT
+- [ ] Document covers all 6 roles: ADMIN, OWNER, MANAGER, CREATOR, PUBLISHER, CLIENT
 - [ ] Every API endpoint from epics E12–E24 is listed with allowed roles marked
 - [ ] Document is stored in the project wiki or Confluence and linked from the main README
 - [ ] Document is reviewed and signed off by Trung (Leader) before Sprint 6 begins
@@ -3284,13 +3284,13 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Allow AGENCY_OWNER users to create a new workspace, which becomes the top-level container for all their clients and team members.
+**Goal:** Allow OWNER users to create a new workspace, which becomes the top-level container for all their clients and team members.
 
 **Acceptance Criteria:**
 
 - [ ] POST /api/v1/workspaces accepts {name, timezone, defaultPlatforms} and returns 201 with the created workspace document
-- [ ] Only users with role AGENCY_OWNER may call this endpoint; others receive 403
-- [ ] A user who already has a workspace receives 409 Conflict (one workspace per AGENCY_OWNER)
+- [ ] Only users with role OWNER may call this endpoint; others receive 403
+- [ ] A user who already has a workspace receives 409 Conflict (one workspace per OWNER)
 - [ ] Creator is automatically added as the first member of the workspace with OWNER membership
 - [ ] Created workspace document includes: {workspaceId, name, ownerId, timezone, defaultPlatforms, createdAt, memberCount: 1}
 
@@ -3334,8 +3334,8 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Acceptance Criteria:**
 
-- [ ] POST /api/v1/workspaces/{id}/members accepts {email, role} where role is one of ACCOUNT_MANAGER, CONTENT_CREATOR, PUBLISHER, BRAND_CLIENT
-- [ ] Only AGENCY_OWNER of that workspace may call this endpoint; 403 otherwise
+- [ ] POST /api/v1/workspaces/{id}/members accepts {email, role} where role is one of MANAGER, CREATOR, PUBLISHER, CLIENT
+- [ ] Only OWNER of that workspace may call this endpoint; 403 otherwise
 - [ ] If the email is already a registered user, they are added to the workspace and notified via email
 - [ ] If the email is not yet registered, a pending invitation record is created and an invitation email with a signup link is sent
 - [ ] Inviting an email already in the workspace returns 409 Conflict
@@ -3345,7 +3345,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 - Invitation token stored in Redis: `workspace:invite:{token}` → {workspaceId, email, role}, TTL = 7 days
 - Use MongoDB `$inc` operator to increment `memberCount` atomically
-- Subscription plan client limits apply: check current client count against plan limits before adding a BRAND_CLIENT role member
+- Subscription plan client limits apply: check current client count against plan limits before adding a CLIENT role member
 
 **Dependencies:** Blocks: [DA-E15-04]. Blocked by: [DA-E15-01, DA-E17-01].
 
@@ -3360,7 +3360,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Acceptance Criteria:**
 
 - [ ] DELETE /api/v1/workspaces/{id}/members/{userId} removes the member and returns 204 No Content
-- [ ] Only AGENCY_OWNER of that specific workspace may perform this action; 403 otherwise
+- [ ] Only OWNER of that specific workspace may perform this action; 403 otherwise
 - [ ] Removing the workspace owner themselves returns 400 Bad Request
 - [ ] Removed user's active JWT sessions are invalidated using the `lastBannedAt`-style timestamp approach (set `removedFromWorkspaceAt`, reject tokens with workspaceId in JWT that were issued before this timestamp)
 - [ ] Member count on the workspace document is decremented atomically
@@ -3383,7 +3383,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Acceptance Criteria:**
 
 - [ ] PUT /api/v1/workspaces/{id}/settings accepts {timezone, defaultPlatforms, reportFrequency} and returns 200 with updated settings
-- [ ] Only AGENCY_OWNER of the workspace may update settings; 403 otherwise
+- [ ] Only OWNER of the workspace may update settings; 403 otherwise
 - [ ] `timezone` must be a valid IANA timezone string; invalid values return 400
 - [ ] `defaultPlatforms` must be a subset of {FACEBOOK, INSTAGRAM, TIKTOK, THREADS, ZALO}; invalid values return 400
 - [ ] `reportFrequency` must be one of {WEEKLY, MONTHLY}; invalid value returns 400
@@ -3402,12 +3402,12 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Allow AGENCY_OWNER to create a new brand client record within their workspace, subject to the subscription plan's client limit.
+**Goal:** Allow OWNER to create a new client record within their workspace, subject to the subscription plan's client limit.
 
 **Acceptance Criteria:**
 
 - [ ] POST /api/v1/clients accepts {brandName, industry, logoUrl, contactEmail, allowedPlatforms} and returns 201 with the created client record
-- [ ] Only AGENCY_OWNER may create clients; 403 otherwise
+- [ ] Only OWNER may create clients; 403 otherwise
 - [ ] Current client count is checked against the subscription plan limit before creation; exceeding the limit returns 403 with {error: "Client limit reached", upgradeUrl}
 - [ ] Created client document includes: {clientId, workspaceId, brandName, industry, logoUrl, contactEmail, allowedPlatforms, createdAt}
 - [ ] `workspaceId` is injected from the JWT, never accepted from the request body
@@ -3425,20 +3425,20 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Allow AGENCY_OWNER to assign an Account Manager to a client, establishing the primary relationship for that client's day-to-day management.
+**Goal:** Allow OWNER to assign a Manager to a client, establishing the primary relationship for that client's day-to-day management.
 
 **Acceptance Criteria:**
 
 - [ ] PUT /api/v1/clients/{id}/assign accepts {accountManagerId} and returns 200 with updated client document
-- [ ] Only AGENCY_OWNER may perform assignment; 403 otherwise
-- [ ] The target userId must exist in the same workspace and have role ACCOUNT_MANAGER; invalid targets return 400
+- [ ] Only OWNER may perform assignment; 403 otherwise
+- [ ] The target userId must exist in the same workspace and have role MANAGER; invalid targets return 400
 - [ ] The client document must belong to the caller's workspaceId; mismatched workspaceId returns 404 (do not leak existence)
-- [ ] Re-assigning an already-assigned client replaces the previous Account Manager without error
+- [ ] Re-assigning an already-assigned client replaces the previous Manager without error
 
 **Technical Notes:**
 
 - Workspace isolation filter (DA-E14-02) must be active; the query for the client record will automatically include `workspaceId`
-- After assignment, notify the new Account Manager by email with client brand name and a link to the client dashboard
+- After assignment, notify the new Manager by email with client brand name and a link to the client dashboard
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E16-01, DA-E14-02].
 
@@ -3448,12 +3448,12 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Assignee:** Trung (Leader) | **Priority:** 🟡 High
 
-**Goal:** Allow AGENCY_OWNER to configure monthly post limits and permitted social platforms for each individual client.
+**Goal:** Allow OWNER to configure monthly post limits and permitted social platforms for each individual client.
 
 **Acceptance Criteria:**
 
 - [ ] PUT /api/v1/clients/{id}/service-package accepts {monthlyPostLimit, allowedPlatforms} and returns 200 with updated client record
-- [ ] Only AGENCY_OWNER may update service packages; 403 otherwise
+- [ ] Only OWNER may update service packages; 403 otherwise
 - [ ] `monthlyPostLimit` must be a positive integer; negative or zero values return 400
 - [ ] `allowedPlatforms` must be a non-empty subset of {FACEBOOK, INSTAGRAM, TIKTOK, THREADS, ZALO}; invalid values return 400
 - [ ] Client must belong to the caller's workspace; otherwise 404
@@ -3471,19 +3471,19 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Provide AGENCY_OWNER and ACCOUNT_MANAGER roles with a filtered, paginated list of clients in their workspace.
+**Goal:** Provide OWNER and MANAGER roles with a filtered, paginated list of clients in their workspace.
 
 **Acceptance Criteria:**
 
 - [ ] GET /api/v1/clients returns paginated list of clients scoped to the JWT's workspaceId
-- [ ] AGENCY_OWNER sees all clients in the workspace; ACCOUNT_MANAGER sees only clients assigned to them
+- [ ] OWNER sees all clients in the workspace; MANAGER sees only clients assigned to them
 - [ ] Supports query params: `page`, `size`, `search` (partial brandName match), `platform` (filter by allowedPlatforms)
-- [ ] BRAND_CLIENT role receives 403 on this endpoint (they use a different profile endpoint)
+- [ ] CLIENT role receives 403 on this endpoint (they use a different profile endpoint)
 - [ ] Default page size is 20; maximum 100
 
 **Technical Notes:**
 
-- ACCOUNT_MANAGER filter: add `assignedAccountManagerId = currentUserId` condition alongside `workspaceId` filter — handled in the service layer by inspecting the caller's role
+- MANAGER filter: add `assignedAccountManagerId = currentUserId` condition alongside `workspaceId` filter — handled in the service layer by inspecting the caller's role
 - Use `MongoTemplate` with a dynamic `Criteria` chain for combining optional filters cleanly
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E16-01, DA-E14-02].
@@ -3518,12 +3518,12 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Allow AGENCY_OWNER to initiate a plan subscription by creating a Stripe Checkout session and recording the pending subscription intent.
+**Goal:** Allow OWNER to initiate a plan subscription by creating a Stripe Checkout session and recording the pending subscription intent.
 
 **Acceptance Criteria:**
 
 - [ ] POST /api/v1/subscriptions/subscribe accepts {planId} and returns 200 with {checkoutUrl} to redirect the user to Stripe
-- [ ] Only AGENCY_OWNER may subscribe; 403 for other roles
+- [ ] Only OWNER may subscribe; 403 for other roles
 - [ ] Creates a Stripe Customer if one does not already exist for this workspace; stores `stripeCustomerId` on the Workspace document
 - [ ] Stripe Checkout session is created with `mode=subscription`, the plan's `stripePriceId`, and a success/cancel redirect URL
 - [ ] Subscription is NOT activated until the Stripe webhook confirms payment (DA-E17-03 handles this)
@@ -3548,7 +3548,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 - [ ] POST /api/v1/webhooks/stripe verifies Stripe-Signature header using the webhook secret; invalid signature returns 400
 - [ ] `checkout.session.completed` event activates the subscription: creates Subscription document with {workspaceId, planId, stripeCustomerId, stripeSubscriptionId, status: ACTIVE, currentPeriodEnd}
-- [ ] `invoice.payment_failed` event sets subscription status to PAST_DUE and notifies the AGENCY_OWNER by email
+- [ ] `invoice.payment_failed` event sets subscription status to PAST_DUE and notifies the OWNER by email
 - [ ] `customer.subscription.deleted` event sets subscription status to CANCELLED and downgrades workspace to Free plan limits
 - [ ] Webhook endpoint does not require JWT authentication (it is called by Stripe, not the user)
 - [ ] Idempotency: duplicate webhook delivery for the same event ID is safely ignored
@@ -3567,13 +3567,13 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Assignee:** Ân (AI) | **Priority:** 🟡 High
 
-**Goal:** Provide AGENCY_OWNER with a billing history showing past invoices retrieved from Stripe for their workspace.
+**Goal:** Provide OWNER with a billing history showing past invoices retrieved from Stripe for their workspace.
 
 **Acceptance Criteria:**
 
 - [ ] GET /api/v1/subscriptions/invoices returns paginated list of invoices for the current workspace's Stripe customer
 - [ ] Each invoice includes {invoiceId, amountUsd, status, paidAt, invoicePdfUrl, periodStart, periodEnd}
-- [ ] Only AGENCY_OWNER may access billing history; 403 for other roles
+- [ ] Only OWNER may access billing history; 403 for other roles
 - [ ] Workspace with no Stripe customer (Free plan, never subscribed) returns empty list, not 404
 - [ ] Supports `limit` and `startingAfter` cursor params (maps to Stripe's native pagination)
 
@@ -3591,7 +3591,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical
 
-**Goal:** Enable Account Managers to connect a Facebook Fanpage to a client, obtaining a long-lived page access token via OAuth.
+**Goal:** Enable Managers to connect a Facebook Fanpage to a client, obtaining a long-lived page access token via OAuth.
 
 **Acceptance Criteria:**
 
@@ -3664,12 +3664,12 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Assignee:** Phước (Publisher) | **Priority:** 🟡 High
 
-**Goal:** Allow Account Managers to disconnect a social account by revoking the token at Meta's Graph API and removing the record from MongoDB.
+**Goal:** Allow Managers to disconnect a social account by revoking the token at Meta's Graph API and removing the record from MongoDB.
 
 **Acceptance Criteria:**
 
 - [ ] DELETE /api/v1/social/accounts/{accountId} revokes the token at Meta Graph API (`DELETE /{user-id}/permissions`) then deletes the SocialAccount document; returns 204
-- [ ] Only AGENCY_OWNER and ACCOUNT_MANAGER assigned to the client may disconnect; 403 otherwise
+- [ ] Only OWNER and MANAGER assigned to the client may disconnect; 403 otherwise
 - [ ] If Meta API revocation fails (network error, already revoked), the local record is still deleted and the error is logged — do not block the user
 - [ ] Attempting to disconnect an already-disconnected account returns 404
 - [ ] Account must belong to the caller's workspaceId; mismatched workspaceId returns 404
@@ -3749,7 +3749,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - [ ] GET /api/v1/social/accounts returns list of SocialAccount records for the JWT's workspaceId, optionally filtered by `clientId` query param
 - [ ] Each account includes {accountId, platform, displayName, tokenStatus, expiresAt, lastRefreshedAt}
 - [ ] `tokenStatus` values: ACTIVE (valid, > 7 days remaining), EXPIRING_SOON (valid, ≤ 7 days remaining), EXPIRED (past expiresAt), REVOKED (manually disconnected or revocation confirmed)
-- [ ] BRAND_CLIENT role receives only their own clientId's accounts (clientId filter applied from DA-E14-03)
+- [ ] CLIENT role receives only their own clientId's accounts (clientId filter applied from DA-E14-03)
 - [ ] Tokens themselves (encrypted ciphertext) are never included in this response
 
 **Technical Notes:**
@@ -3788,13 +3788,13 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Notify the assigned Account Manager immediately when a token refresh fails so they can re-authenticate the social account before publishing is disrupted.
+**Goal:** Notify the assigned Manager immediately when a token refresh fails so they can re-authenticate the social account before publishing is disrupted.
 
 **Acceptance Criteria:**
 
 - [ ] When a refresh job fails for an account, `tokenStatus` is updated to EXPIRING_SOON (if token not yet expired) or EXPIRED
-- [ ] An email notification is sent to the Account Manager assigned to that client with: platform name, account display name, error reason, and a deep link to reconnect
-- [ ] If no Account Manager is assigned, the notification is sent to the workspace AGENCY_OWNER instead
+- [ ] An email notification is sent to the Manager assigned to that client with: platform name, account display name, error reason, and a deep link to reconnect
+- [ ] If no Manager is assigned, the notification is sent to the workspace OWNER instead
 - [ ] Notifications are not duplicated: if a token has already sent a failure alert within the last 24 hours, suppress subsequent alerts until the token is refreshed or re-authenticated
 - [ ] Notification suppression state is stored in Redis: `alert:token_fail:{accountId}`, TTL = 24 hours
 
@@ -3811,12 +3811,12 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Assignee:** Phước (Publisher) | **Priority:** 🟡 High
 
-**Goal:** Allow Account Managers to manually trigger a token refresh for a specific social account outside of the scheduled job cycle.
+**Goal:** Allow Managers to manually trigger a token refresh for a specific social account outside of the scheduled job cycle.
 
 **Acceptance Criteria:**
 
 - [ ] POST /api/v1/social/accounts/{accountId}/refresh triggers an immediate token refresh for the specified account; returns 200 with updated {tokenStatus, expiresAt}
-- [ ] Only AGENCY_OWNER and ACCOUNT_MANAGER assigned to the client may trigger manual refresh; 403 otherwise
+- [ ] Only OWNER and MANAGER assigned to the client may trigger manual refresh; 403 otherwise
 - [ ] If the refresh token itself is expired or invalid, returns 400 with {error: "Re-authentication required", reconnectUrl}
 - [ ] Account must belong to the caller's workspaceId; mismatched workspaceId returns 404
 - [ ] Rate-limited to 5 manual refresh attempts per account per hour to prevent abuse (Redis counter with 1-hour TTL)
@@ -4425,7 +4425,7 @@ async def process_document_background_task(s3_key: str, client_id: str, document
 
 ### DA-AI03-01 — Brand Document Upload API (`POST /api/v1/ai/rag/documents`)
 
-**Goal:** Provide the primary entry point for brand knowledge ingestion so enterprise brand clients can upload internal brand guidelines, product manuals, and PR reports with multi-tenant isolation.
+**Goal:** Provide the primary entry point for brand knowledge ingestion so enterprise clients can upload internal brand guidelines, product manuals, and PR reports with multi-tenant isolation.
 
 **Acceptance Criteria:**
 
@@ -7710,21 +7710,21 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Allow BRAND_CLIENT to submit a new content request with topic, platform, tone, deadline, and clientId, creating the request in SUBMITTED status.
+**Goal:** Allow CLIENT to submit a new content request with topic, platform, tone, deadline, and clientId, creating the request in SUBMITTED status.
 
 **Acceptance Criteria:**
 
 - [ ] POST /api/v1/content-requests accepts `{topic, platform, tone, deadline, clientId}` and returns 201 with the created request body
 - [ ] Request is persisted with status SUBMITTED and createdBy set to authenticated user's ID
 - [ ] Returns 400 if required fields are missing or deadline is in the past
-- [ ] Returns 403 if caller does not have BRAND_CLIENT role
+- [ ] Returns 403 if caller does not have CLIENT role
 - [ ] clientId in payload is validated to match the authenticated user's associated client (no cross-client injection)
 
 **Technical Notes:**
 
 - Validate `platform` against enum (FB, IG, TIKTOK, THREADS, ZALO)
 - `deadline` should be stored as UTC ISO-8601; reject if `deadline < now + 1h`
-- Use `@PreAuthorize("hasRole('BRAND_CLIENT')")` on the controller method
+- Use `@PreAuthorize("hasRole('CLIENT')")` on the controller method
 
 **Dependencies:** Blocks: [DA-E28-02, DA-E28-03, DA-E29-01]. Blocked by: [None].
 
@@ -7734,14 +7734,14 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Allow ACCOUNT_MANAGER to list all content requests from their assigned clients with filtering by status and platform.
+**Goal:** Allow MANAGER to list all content requests from their assigned clients with filtering by status and platform.
 
 **Acceptance Criteria:**
 
-- [ ] GET /api/v1/content-requests returns paginated list scoped to clients assigned to the authenticated ACCOUNT_MANAGER
+- [ ] GET /api/v1/content-requests returns paginated list scoped to clients assigned to the authenticated MANAGER
 - [ ] Supports query params `?status=&platform=&page=&size=` and returns correct filtered results
 - [ ] Returns 200 with empty list (not 404) when no requests match filters
-- [ ] BRAND_CLIENT calling the same endpoint sees only their own clientId's requests
+- [ ] CLIENT calling the same endpoint sees only their own clientId's requests
 - [ ] Response includes `totalElements`, `totalPages`, `content[]` envelope
 
 **Technical Notes:**
@@ -9315,7 +9315,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Ân (AI) | **Priority:** 🟢 Medium
 
-**Goal:** Document Ân's contributions in Sprint 13 in `sprint_13/members/anha.md`. Task: DA-E38-03 (report email sending — auto-send PDF to Brand Client on schedule).
+**Goal:** Document Ân's contributions in Sprint 13 in `sprint_13/members/anha.md`. Task: DA-E38-03 (report email sending — auto-send PDF to Client on schedule).
 
 **Acceptance Criteria:**
 
@@ -10216,19 +10216,19 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Allow ACCOUNT_MANAGER to assign a content request to a CONTENT_CREATOR and transition status to ASSIGNED.
+**Goal:** Allow MANAGER to assign a content request to a CREATOR and transition status to ASSIGNED.
 
 **Acceptance Criteria:**
 
 - [ ] PUT /api/v1/content-requests/{id}/assign with body `{assigneeId}` sets `assigneeId` on the request and transitions status SUBMITTED→ASSIGNED
 - [ ] Returns 404 if content request ID does not exist
-- [ ] Returns 400 if assigneeId does not correspond to a CONTENT_CREATOR in the same workspace
-- [ ] Returns 403 if caller is not ACCOUNT_MANAGER
-- [ ] A notification is created for the assigned CONTENT_CREATOR (event: task_assigned)
+- [ ] Returns 400 if assigneeId does not correspond to a CREATOR in the same workspace
+- [ ] Returns 403 if caller is not MANAGER
+- [ ] A notification is created for the assigned CREATOR (event: task_assigned)
 
 **Technical Notes:**
 
-- Validate that `assigneeId` has role CONTENT_CREATOR and belongs to the same workspaceId as the request
+- Validate that `assigneeId` has role CREATOR and belongs to the same workspaceId as the request
 - Trigger notification via `NotificationService.createTaskAssignedNotification(assigneeId, requestId)`
 - Reuse state machine from DA-E28-03 to perform the SUBMITTED→ASSIGNED transition
 
@@ -10240,13 +10240,13 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Allow CONTENT_CREATOR to view all tasks assigned to them with optional filtering by status.
+**Goal:** Allow CREATOR to view all tasks assigned to them with optional filtering by status.
 
 **Acceptance Criteria:**
 
 - [ ] GET /api/v1/content-requests/my-tasks returns paginated list where `assigneeId` equals authenticated user's ID
 - [ ] Supports `?status=&page=&size=` query params
-- [ ] Returns 403 if caller is not CONTENT_CREATOR
+- [ ] Returns 403 if caller is not CREATOR
 - [ ] Each item includes `deadline`, `platform`, `topic`, `status`, `contentRequestId`
 - [ ] Results are sorted by `deadline ASC` by default
 
@@ -10263,12 +10263,12 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Ân (AI) | **Priority:** 🟡 High
 
-**Goal:** Automatically notify CONTENT_CREATOR when a task deadline is within 24 hours to prevent missed deadlines.
+**Goal:** Automatically notify CREATOR when a task deadline is within 24 hours to prevent missed deadlines.
 
 **Acceptance Criteria:**
 
 - [ ] A scheduled job runs every 15 minutes and queries content requests with `deadline BETWEEN now AND now+24h` and status not in (APPROVED, REJECTED)
-- [ ] A notification with event type `deadline_24h` is created for the assigned CONTENT_CREATOR if not already notified
+- [ ] A notification with event type `deadline_24h` is created for the assigned CREATOR if not already notified
 - [ ] Each request triggers at most one `deadline_24h` notification (idempotent — check `notifiedDeadline24h` flag on the document)
 - [ ] Notification message includes task topic and exact deadline datetime
 - [ ] If FCM token exists for the user, a push notification is also sent
@@ -10293,7 +10293,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 - [ ] GET /api/v1/posts/calendar?startDate=&endDate=&platform=&status= returns all matching posts within the date range
 - [ ] `startDate` and `endDate` are ISO-8601 dates; missing either returns 400
-- [ ] Scoped to the authenticated user's workspaceId (ACCOUNT_MANAGER sees all workspace posts; CONTENT_CREATOR sees own assigned posts; BRAND_CLIENT sees own clientId's posts)
+- [ ] Scoped to the authenticated user's workspaceId (MANAGER sees all workspace posts; CREATOR sees own assigned posts; CLIENT sees own clientId's posts)
 - [ ] Response includes `postId`, `title`, `scheduledAt`, `platform`, `status`, `thumbnailUrl` per post
 - [ ] Maximum date range is 90 days; request exceeding this returns 400
 
@@ -10310,7 +10310,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Allow ACCOUNT_MANAGER to set a publish time for an approved post and enqueue it to RabbitMQ for delayed delivery.
+**Goal:** Allow MANAGER to set a publish time for an approved post and enqueue it to RabbitMQ for delayed delivery.
 
 **Acceptance Criteria:**
 
@@ -10360,7 +10360,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
-**Goal:** Provide accurate per-platform post previews so content creators and clients can visualize how a post will appear before publishing.
+**Goal:** Provide accurate per-platform post previews so creators and clients can visualize how a post will appear before publishing.
 
 **Acceptance Criteria:**
 
@@ -10385,19 +10385,19 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Allow CONTENT_CREATOR to submit a drafted post for internal review, triggering an ACCOUNT_MANAGER notification.
+**Goal:** Allow CREATOR to submit a drafted post for internal review, triggering a MANAGER notification.
 
 **Acceptance Criteria:**
 
 - [ ] POST /api/v1/posts/{id}/submit transitions post status DRAFT→PENDING_REVIEW
-- [ ] Returns 403 if caller is not the assigned CONTENT_CREATOR for this post
+- [ ] Returns 403 if caller is not the assigned CREATOR for this post
 - [ ] Returns 409 if post status is not DRAFT
-- [ ] A notification of type `post_submitted` is created for the ACCOUNT_MANAGER responsible for the linked content request
+- [ ] A notification of type `post_submitted` is created for the MANAGER responsible for the linked content request
 - [ ] Response returns updated post object with new status and `submittedAt` timestamp
 
 **Technical Notes:**
 
-- Resolve the responsible ACCOUNT_MANAGER via `ContentRequest.accountManagerId` linked to the post
+- Resolve the responsible MANAGER via `ContentRequest.accountManagerId` linked to the post
 - Set `submittedAt = now()` on the Post document upon successful transition
 
 **Dependencies:** Blocks: [DA-E31-02]. Blocked by: [DA-E28-03].
@@ -10408,20 +10408,20 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Allow ACCOUNT_MANAGER to approve a post for client review or reject it back to draft with a feedback note.
+**Goal:** Allow MANAGER to approve a post for client review or reject it back to draft with a feedback note.
 
 **Acceptance Criteria:**
 
 - [ ] POST /api/v1/posts/{id}/account-review with body `{decision: "APPROVE"|"REJECT", note?: string}`
-- [ ] APPROVE transitions status PENDING_REVIEW→SENT_TO_CLIENT and creates `post_sent_to_client` notification for BRAND_CLIENT
+- [ ] APPROVE transitions status PENDING_REVIEW→SENT_TO_CLIENT and creates `post_sent_to_client` notification for CLIENT
 - [ ] REJECT transitions status PENDING_REVIEW→DRAFT and stores `rejectionNote` on the post document
-- [ ] Returns 403 if caller is not ACCOUNT_MANAGER in the same workspace
+- [ ] Returns 403 if caller is not MANAGER in the same workspace
 - [ ] Returns 409 if post status is not PENDING_REVIEW
 
 **Technical Notes:**
 
 - `note` is required when `decision = REJECT`; return 400 if missing
-- Notification to BRAND_CLIENT should include post title and a link to the approval page
+- Notification to CLIENT should include post title and a link to the approval page
 
 **Dependencies:** Blocks: [DA-E31-03, DA-E31-04]. Blocked by: [DA-E31-01].
 
@@ -10431,7 +10431,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Allow BRAND_CLIENT to approve a post for scheduling, which triggers the scheduling pipeline automatically.
+**Goal:** Allow CLIENT to approve a post for scheduling, which triggers the scheduling pipeline automatically.
 
 **Acceptance Criteria:**
 
@@ -10439,13 +10439,13 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 - [ ] Returns 403 if caller's clientId does not match the post's clientId
 - [ ] Returns 409 if post status is not SENT_TO_CLIENT
 - [ ] Upon approval, if `scheduledAt` is already set, a `PublishJobMessage` is enqueued to RabbitMQ delayed exchange immediately
-- [ ] If `scheduledAt` is not set, status becomes APPROVED (pending manual scheduling by ACCOUNT_MANAGER)
+- [ ] If `scheduledAt` is not set, status becomes APPROVED (pending manual scheduling by MANAGER)
 - [ ] Response includes updated post with `approvedAt` timestamp
 
 **Technical Notes:**
 
 - Reuse the same RabbitMQ enqueue logic from DA-E30-02 to avoid duplication
-- Emit a `client_approved` internal event so ACCOUNT_MANAGER is notified
+- Emit a `client_approved` internal event so MANAGER is notified
 
 **Dependencies:** Blocks: [DA-E32-01]. Blocked by: [DA-E31-02].
 
@@ -10455,7 +10455,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Allow BRAND_CLIENT to reject a post with written feedback, returning it to DRAFT status for revision.
+**Goal:** Allow CLIENT to reject a post with written feedback, returning it to DRAFT status for revision.
 
 **Acceptance Criteria:**
 
@@ -10463,8 +10463,8 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 - [ ] `feedback` field is required; returns 400 if empty or missing
 - [ ] Returns 403 if caller's clientId does not match the post's clientId
 - [ ] Returns 409 if post status is not SENT_TO_CLIENT
-- [ ] `clientFeedback` is stored on the post document and is visible to CONTENT_CREATOR in the editor
-- [ ] A notification is created for ACCOUNT_MANAGER and CONTENT_CREATOR with the rejection feedback
+- [ ] `clientFeedback` is stored on the post document and is visible to CREATOR in the editor
+- [ ] A notification is created for MANAGER and CREATOR with the rejection feedback
 
 **Technical Notes:**
 
@@ -10540,7 +10540,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 **Technical Notes:**
 
 - Graph API version must be pinned to v19.0 in the base URL: `https://graph.facebook.com/v19.0`
-- Handle token expiry (error code 190) as a non-retryable error; notify ACCOUNT_MANAGER to reconnect
+- Handle token expiry (error code 190) as a non-retryable error; notify MANAGER to reconnect
 - Use `RestTemplate` or `WebClient` with a 30s connect timeout and 60s read timeout
 
 **Dependencies:** Blocks: [DA-E42-05]. Blocked by: [DA-E32-02].
@@ -10636,8 +10636,8 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 **Acceptance Criteria:**
 
 - [ ] POST /internal/posts/{id}/publish-result accepts `{status: "SUCCESS"|"FAILED", platformPostId?, errorMessage?}`
-- [ ] On SUCCESS: updates post status to PUBLISHED, stores `platformPostId`, `publishedAt`, creates `post_published` notification for ACCOUNT_MANAGER
-- [ ] On FAILED: updates post status to FAILED, stores `errorMessage`, creates `post_failed` notification for ACCOUNT_MANAGER
+- [ ] On SUCCESS: updates post status to PUBLISHED, stores `platformPostId`, `publishedAt`, creates `post_published` notification for MANAGER
+- [ ] On FAILED: updates post status to FAILED, stores `errorMessage`, creates `post_failed` notification for MANAGER
 - [ ] Endpoint is protected by internal service secret header `X-Internal-Secret`; returns 401 if missing or wrong
 - [ ] Returns 404 if postId does not exist
 
@@ -10703,13 +10703,13 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
-**Goal:** Notify ACCOUNT_MANAGER when a post fails all retries so they can take corrective action promptly.
+**Goal:** Notify MANAGER when a post fails all retries so they can take corrective action promptly.
 
 **Acceptance Criteria:**
 
-- [ ] When a message enters DLQ, a `post_failed` notification is created for the ACCOUNT_MANAGER of the workspace
+- [ ] When a message enters DLQ, a `post_failed` notification is created for the MANAGER of the workspace
 - [ ] Notification includes post title, target platform, and the final error message
-- [ ] If ACCOUNT_MANAGER has an FCM token, a push notification is also dispatched
+- [ ] If MANAGER has an FCM token, a push notification is also dispatched
 - [ ] Post status is updated to FAILED in the business-service via the DA-E32-08 callback
 - [ ] Duplicate failure notifications for the same post are suppressed (check if `post_failed` notification already exists for this postId)
 
@@ -10783,7 +10783,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 - [ ] Sidebar: collapsible (icon-only mode at <1280px), nav links grouped by section, active link highlighted, workspace selector dropdown
 - [ ] Navbar: breadcrumb, notification bell (DA-E39-03), user avatar dropdown (profile, logout)
 - [ ] PageWrapper: centers content, sets max-width, adds page title via `<title>` and `<h1>`
-- [ ] AuthGuard: reads role from `authStore`; redirects AGENCY_OWNER → /workspace, BRAND_CLIENT → /portal, ADMIN → /admin; unauthenticated → /login
+- [ ] AuthGuard: reads role from `authStore`; redirects OWNER → /workspace, CLIENT → /portal, ADMIN → /admin; unauthenticated → /login
 - [ ] Layout is fully responsive: sidebar collapses to bottom tab bar on mobile ≤768px
 
 **Technical Notes:**
@@ -10878,7 +10878,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 - [ ] KPI cards display: total posts this month, published count, failed count, success rate percentage — fetched from GET /api/v1/analytics/overview
 - [ ] Recent activity feed shows last 10 events (post published, task assigned, etc.) with timestamp and actor name
-- [ ] Team stats section shows per-member post counts (AGENCY_OWNER/ACCOUNT_MANAGER view only)
+- [ ] Team stats section shows per-member post counts (OWNER/MANAGER view only)
 - [ ] All data loads asynchronously with skeleton loaders; errors shown as inline error states (not blank page)
 - [ ] Dashboard is responsive: KPI cards stack to 2-column on tablet, 1-column on mobile
 
@@ -10896,7 +10896,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
-**Goal:** Allow AGENCY_OWNER to create and configure their workspace and manage team members through a dedicated settings UI.
+**Goal:** Allow OWNER to create and configure their workspace and manage team members through a dedicated settings UI.
 
 **Acceptance Criteria:**
 
@@ -10909,7 +10909,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 **Technical Notes:**
 
 - Logo upload uses POST /api/v1/media/upload → returns S3 URL → stored as `workspace.logoUrl`
-- Role selector options filtered by caller's role (AGENCY_OWNER cannot invite another AGENCY_OWNER)
+- Role selector options filtered by caller's role (OWNER cannot invite another OWNER)
 - Invitation email is handled server-side; frontend only needs to show success/failure state
 
 **Dependencies:** Blocks: [DA-E35-04]. Blocked by: [DA-E35-01].
@@ -10920,12 +10920,12 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
-**Goal:** Provide ACCOUNT_MANAGER and AGENCY_OWNER with CRUD pages for managing brand clients and their service packages.
+**Goal:** Provide MANAGER and OWNER with CRUD pages for managing clients and their service packages.
 
 **Acceptance Criteria:**
 
 - [ ] Client list page: searchable table with client name, assigned manager, active posts count, service package, status badge
-- [ ] Create/Edit client form: name, logo, contact email, assigned account manager, service package (starter/growth/enterprise)
+- [ ] Create/Edit client form: name, logo, contact email, assigned manager, service package (starter/growth/enterprise)
 - [ ] Client detail page: client info, linked social accounts, current content requests, analytics summary
 - [ ] Service package settings: select package tier, set post quota per month, expiry date
 - [ ] Delete client: confirmation modal with warning that all associated data will be archived
@@ -10944,15 +10944,15 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
-**Goal:** Provide ACCOUNT_MANAGER and CONTENT_CREATOR with a filterable, paginated view of all content requests relevant to their role.
+**Goal:** Provide MANAGER and CREATOR with a filterable, paginated view of all content requests relevant to their role.
 
 **Acceptance Criteria:**
 
 - [ ] Table columns: topic, platform (icon), client name, deadline, status badge, assignee, actions
 - [ ] Filter bar: status multi-select, platform multi-select, deadline date range picker
 - [ ] Pagination: 20 rows per page, page controls at bottom
-- [ ] ACCOUNT_MANAGER sees "Assign" button per row; clicking opens an assignee picker modal
-- [ ] CONTENT_CREATOR sees "View My Tasks" tab that calls GET /api/v1/content-requests/my-tasks
+- [ ] MANAGER sees "Assign" button per row; clicking opens an assignee picker modal
+- [ ] CREATOR sees "View My Tasks" tab that calls GET /api/v1/content-requests/my-tasks
 - [ ] Clicking any row navigates to Content Editor page for that request
 
 **Technical Notes:**
@@ -10969,7 +10969,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
-**Goal:** Deliver the primary content creation interface where CONTENT_CREATOR writes or AI-generates captions, selects hashtags, attaches media, and submits for review.
+**Goal:** Deliver the primary content creation interface where CREATOR writes or AI-generates captions, selects hashtags, attaches media, and submits for review.
 
 **Acceptance Criteria:**
 
@@ -11019,7 +11019,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
-**Goal:** Give content creators and clients a realistic visual mockup of how each post will appear on each social platform before publishing.
+**Goal:** Give creators and clients a realistic visual mockup of how each post will appear on each social platform before publishing.
 
 **Acceptance Criteria:**
 
@@ -11066,13 +11066,13 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
-**Goal:** Provide BRAND_CLIENT users with a dedicated, isolated portal entry point that enforces role-based access and prevents cross-client data exposure.
+**Goal:** Provide CLIENT users with a dedicated, isolated portal entry point that enforces role-based access and prevents cross-client data exposure.
 
 **Acceptance Criteria:**
 
-- [ ] All portal routes are under `/portal/*`; accessing without BRAND_CLIENT role redirects to `/portal/login`
+- [ ] All portal routes are under `/portal/*`; accessing without CLIENT role redirects to `/portal/login`
 - [ ] Portal login page is visually distinct from agency login (different branding, no workspace selector)
-- [ ] AuthGuard on portal routes verifies `user.role === BRAND_CLIENT` and `user.clientId` is present; fails → redirect to /portal/login
+- [ ] AuthGuard on portal routes verifies `user.role === CLIENT` and `user.clientId` is present; fails → redirect to /portal/login
 - [ ] All API calls from portal pages include the user's `clientId` scope; backend enforces isolation server-side
 - [ ] Logout from portal redirects to `/portal/login`, not `/login`
 
@@ -11090,7 +11090,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
-**Goal:** Give BRAND_CLIENT a read-only calendar view of their scheduled and published posts so they have visibility into their content plan without editing capabilities.
+**Goal:** Give CLIENT a read-only calendar view of their scheduled and published posts so they have visibility into their content plan without editing capabilities.
 
 **Acceptance Criteria:**
 
@@ -11113,7 +11113,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
-**Goal:** Allow BRAND_CLIENT to review posts sent for their approval, see platform previews, and approve or reject with written feedback.
+**Goal:** Allow CLIENT to review posts sent for their approval, see platform previews, and approve or reject with written feedback.
 
 **Acceptance Criteria:**
 
@@ -11137,7 +11137,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
-**Goal:** Provide BRAND_CLIENT with a self-service analytics view showing their campaign performance so they can assess ROI without requiring an agency report.
+**Goal:** Provide CLIENT with a self-service analytics view showing their campaign performance so they can assess ROI without requiring an agency report.
 
 **Acceptance Criteria:**
 
@@ -11168,7 +11168,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 - [ ] GET /api/v1/analytics/overview returns `{totalPosts, publishedCount, failedCount, successRate, pendingCount}` scoped to workspaceId or clientId
 - [ ] GET /api/v1/analytics/timeline?startDate=&endDate=&clientId?= returns `[{date, published, failed, platform}]` array grouped by day
-- [ ] AGENCY_OWNER/ACCOUNT_MANAGER can query by workspaceId; BRAND_CLIENT can only query their own clientId
+- [ ] OWNER/MANAGER can query by workspaceId; CLIENT can only query their own clientId
 - [ ] Both endpoints support `?platform=` filter for single-platform breakdown
 - [ ] Response cached in Redis with TTL of 5 minutes; cache key includes `workspaceId:clientId:startDate:endDate:platform`
 
@@ -11211,7 +11211,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Ân (AI) | **Priority:** 🟡 High
 
-**Goal:** Automatically email PDF analytics reports to BRAND_CLIENT contacts after report generation so clients receive insights without logging into the portal.
+**Goal:** Automatically email PDF analytics reports to CLIENT contacts after report generation so clients receive insights without logging into the portal.
 
 **Acceptance Criteria:**
 
@@ -11235,7 +11235,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
-**Goal:** Deliver the agency-facing analytics page with interactive charts giving AGENCY_OWNER and ACCOUNT_MANAGER a comprehensive view of content performance.
+**Goal:** Deliver the agency-facing analytics page with interactive charts giving OWNER and MANAGER a comprehensive view of content performance.
 
 **Acceptance Criteria:**
 
@@ -11244,7 +11244,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 - [ ] Bar chart: success rate per platform using `<BarChart>`
 - [ ] KPI cards row: total published, total failed, overall success rate, most active platform
 - [ ] Date range selector (7d / 30d / 90d / custom); updating range refetches and animates chart transitions
-- [ ] Client filter dropdown (AGENCY_OWNER/ACCOUNT_MANAGER only): filter all charts to a specific client
+- [ ] Client filter dropdown (OWNER/MANAGER only): filter all charts to a specific client
 
 **Technical Notes:**
 
@@ -11288,13 +11288,13 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Acceptance Criteria:**
 
-- [ ] `post_published`: recipient = ACCOUNT_MANAGER; message = "Post '{title}' published successfully on {platform}"
-- [ ] `post_failed`: recipient = ACCOUNT_MANAGER; message = "Post '{title}' failed to publish on {platform}: {errorMessage}"
-- [ ] `task_assigned`: recipient = CONTENT_CREATOR; message = "You have been assigned a new task: '{topic}'"
-- [ ] `post_submitted`: recipient = ACCOUNT_MANAGER; message = "{creatorName} submitted '{title}' for review"
-- [ ] `post_sent_to_client`: recipient = BRAND_CLIENT; message = "A new post is ready for your approval"
-- [ ] `token_expiring_3d`: recipient = AGENCY_OWNER; message = "{platform} access token for '{clientName}' expires in 3 days"
-- [ ] `deadline_24h`: recipient = CONTENT_CREATOR; message = "Task '{topic}' deadline is in less than 24 hours"
+- [ ] `post_published`: recipient = MANAGER; message = "Post '{title}' published successfully on {platform}"
+- [ ] `post_failed`: recipient = MANAGER; message = "Post '{title}' failed to publish on {platform}: {errorMessage}"
+- [ ] `task_assigned`: recipient = CREATOR; message = "You have been assigned a new task: '{topic}'"
+- [ ] `post_submitted`: recipient = MANAGER; message = "{creatorName} submitted '{title}' for review"
+- [ ] `post_sent_to_client`: recipient = CLIENT; message = "A new post is ready for your approval"
+- [ ] `token_expiring_3d`: recipient = OWNER; message = "{platform} access token for '{clientName}' expires in 3 days"
+- [ ] `deadline_24h`: recipient = CREATOR; message = "Task '{topic}' deadline is in less than 24 hours"
 - [ ] All 7 event types have corresponding unit tests verifying correct recipient and message content
 
 **Technical Notes:**
@@ -11432,7 +11432,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
-**Goal:** Allow BRAND_CLIENT to approve or reject posts directly from their phone, making the approval workflow accessible without a desktop browser.
+**Goal:** Allow CLIENT to approve or reject posts directly from their phone, making the approval workflow accessible without a desktop browser.
 
 **Acceptance Criteria:**
 
@@ -11457,7 +11457,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
-**Goal:** Allow CONTENT_CREATOR to save post drafts on mobile without internet connectivity and automatically sync them when connectivity is restored.
+**Goal:** Allow CREATOR to save post drafts on mobile without internet connectivity and automatically sync them when connectivity is restored.
 
 **Acceptance Criteria:**
 
@@ -11555,7 +11555,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
 
-**Goal:** Enable CONTENT_CREATOR to attach media from their phone gallery or camera to posts directly from the mobile app.
+**Goal:** Enable CREATOR to attach media from their phone gallery or camera to posts directly from the mobile app.
 
 **Acceptance Criteria:**
 
@@ -11633,7 +11633,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 **Acceptance Criteria:**
 
 - [ ] Full auth flow: POST /register → POST /login → GET /me → POST /refresh → POST /logout — all returning correct status codes and response shapes
-- [ ] RBAC enforcement: BRAND_CLIENT calling ACCOUNT_MANAGER endpoints returns 403; CONTENT_CREATOR calling admin endpoints returns 403
+- [ ] RBAC enforcement: CLIENT calling MANAGER endpoints returns 403; CREATOR calling admin endpoints returns 403
 - [ ] Workspace isolation: User in Workspace A cannot read/modify resources in Workspace B (verified by attempting cross-workspace API calls)
 - [ ] Tests use `@SpringBootTest(webEnvironment = RANDOM_PORT)` with `TestRestTemplate`
 - [ ] Testcontainers spins up real MongoDB and Redis containers; no H2 or mocks for persistence layer
@@ -11680,7 +11680,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Acceptance Criteria:**
 
-- [ ] Test flow executes in order: create ContentRequest → AI generate → save draft → submit → ACCOUNT_MANAGER approve → client approve → verify post appears as PUBLISHED in DB
+- [ ] Test flow executes in order: create ContentRequest → AI generate → save draft → submit → MANAGER approve → client approve → verify post appears as PUBLISHED in DB
 - [ ] Test covers all 5 platforms: Facebook, Instagram, TikTok, Threads using developer sandbox/test accounts
 - [ ] Each platform's `platformPostId` is stored in the Post document after successful publish
 - [ ] Test verifies the post actually appears on the platform by calling the platform's read API to confirm existence
@@ -11849,9 +11849,9 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 **Acceptance Criteria:**
 
 - [ ] Register a new agency account → Login → Create workspace → Connect a social account → Create a content request
-- [ ] CONTENT_CREATOR generates AI content → saves draft → submits for review
-- [ ] ACCOUNT_MANAGER approves → sends to client
-- [ ] BRAND_CLIENT logs in to portal → approves the post
+- [ ] CREATOR generates AI content → saves draft → submits for review
+- [ ] MANAGER approves → sends to client
+- [ ] CLIENT logs in to portal → approves the post
 - [ ] Post is scheduled and published → verified as PUBLISHED status in the DB and visible on the platform
 - [ ] All steps completed without errors; any issue found is logged and fixed before sign-off
 
@@ -11897,7 +11897,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Acceptance Criteria:**
 
-- [ ] Manual covers all 6 roles: ADMIN, AGENCY_OWNER, ACCOUNT_MANAGER, CONTENT_CREATOR, BRAND_CLIENT, GUEST
+- [ ] Manual covers all 6 roles: ADMIN, OWNER, MANAGER, CREATOR, CLIENT, GUEST
 - [ ] Each role section includes: role overview, available features, step-by-step instructions for key workflows, annotated screenshots
 - [ ] Key workflows documented: onboarding, content request lifecycle, AI generation, approval process, publishing, analytics
 - [ ] Manual formatted as PDF and Word (.docx); committed to `/docs/user-manual/`
@@ -11946,11 +11946,11 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 **Acceptance Criteria:**
 
 - [ ] Scene 1 (~30s): System overview — architecture diagram, tech stack summary
-- [ ] Scene 2 (~60s): AGENCY_OWNER — create workspace, invite members, connect social account
-- [ ] Scene 3 (~45s): BRAND_CLIENT — submit content request
-- [ ] Scene 4 (~90s): CONTENT_CREATOR — open request, trigger AI generate, edit caption, attach image, submit for review
-- [ ] Scene 5 (~45s): ACCOUNT_MANAGER — review post, approve, send to client
-- [ ] Scene 6 (~45s): BRAND_CLIENT — log into portal, view preview, approve post
+- [ ] Scene 2 (~60s): OWNER — create workspace, invite members, connect social account
+- [ ] Scene 3 (~45s): CLIENT — submit content request
+- [ ] Scene 4 (~90s): CREATOR — open request, trigger AI generate, edit caption, attach image, submit for review
+- [ ] Scene 5 (~45s): MANAGER — review post, approve, send to client
+- [ ] Scene 6 (~45s): CLIENT — log into portal, view preview, approve post
 - [ ] Scene 7 (~30s): Publishing — show post moving to PUBLISHED status, show post live on platform
 - [ ] Scene 8 (~45s): Analytics — dashboard charts, download PDF report
 - [ ] Scene 9 (~30s): Mobile — show approval and notification on phone
@@ -12263,8 +12263,8 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 **Acceptance Criteria:**
 
 - [ ] Guest: renders 11 sections (Hero→LogoWall→Features→Stats→HowItWorks→Templates→Testimonials→Pricing→FAQ→CTA→Footer)
-- [ ] AGENCY_OWNER/ACCOUNT_MANAGER/CONTENT_CREATOR: navigate('/workspace', {replace:true})
-- [ ] BRAND_CLIENT: navigate('/portal', {replace:true}). ADMIN: navigate('/admin', {replace:true})
+- [ ] OWNER/MANAGER/CREATOR: navigate('/workspace', {replace:true})
+- [ ] CLIENT: navigate('/portal', {replace:true}). ADMIN: navigate('/admin', {replace:true})
 - [ ] Fallback roles: dashboard with welcome + KPI placeholder + task checklist
 - [ ] useAuthStore() + useNavigate() with replace:true
 

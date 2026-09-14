@@ -56,7 +56,7 @@ db.createCollection('workspace_members', {
       properties: {
         workspace_id: { bsonType: 'string' },
         user_id:      { bsonType: 'string' },
-        role:         { enum: ['OWNER', 'MANAGER', 'ACCOUNT', 'CREATOR', 'CLIENT'] },
+        role:         { enum: ['OWNER', 'MANAGER', 'CREATOR', 'CLIENT'] },
         is_active:    { bsonType: 'bool' },
       },
     },

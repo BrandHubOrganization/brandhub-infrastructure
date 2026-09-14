@@ -57,7 +57,7 @@
 
 **Notes:**
 - DA-E12-05: use AWS SES or a transactional email service (SendGrid free tier) for password reset emails.
-- DA-E12-06: Google OAuth scope = `openid email profile`. On callback, check if email exists → login; else create new user with role=AGENCY_OWNER (default for self-registration).
+- DA-E12-06: Google OAuth scope = `openid email profile`. On callback, check if email exists → login; else create new user with role=OWNER (default for self-registration).
 - Never store plain-text passwords. bcrypt cost=12 is the minimum — do not lower for "performance".
 
 ---
@@ -85,18 +85,18 @@
 |---|---|---|---|
 | DA-E14-01 | Write RBAC annotation/middleware for business-service (@RequireRole) | Trung (Leader) | 🔴 Critical |
 | DA-E14-02 | Implement workspace isolation filter (every MongoDB query must include workspaceId filter) | Trung (Leader) | 🔴 Critical |
-| DA-E14-03 | Implement client isolation for BRAND_CLIENT (can only view data belonging to their clientId) | Trung (Leader) | 🔴 Critical |
+| DA-E14-03 | Implement client isolation for CLIENT (can only view data belonging to their clientId) | Trung (Leader) | 🔴 Critical |
 | DA-E14-04 | Write permission matrix document (6 roles x all endpoints = allowed/denied) | Phước (Publisher) | 🟢 Medium |
 
 **RBAC implementation:**
 - Extract `X-User-Role` from gateway-injected header (set by JWT filter in Sprint 4)
-- `@RequireRole({AGENCY_OWNER, ADMIN})` annotation on controller methods
+- `@RequireRole({OWNER, ADMIN})` annotation on controller methods
 - Return 403 Forbidden if role not in allowed list
 
 **Workspace isolation:**
 - Spring `@Bean` request-scoped `WorkspaceContext` holding `workspaceId` from JWT
 - Custom MongoDB repository base class injects `{workspaceId: ctx.workspaceId}` into every query
-- BRAND_CLIENT: additionally inject `{clientId: ctx.clientId}` filter
+- CLIENT: additionally inject `{clientId: ctx.clientId}` filter
 
 ---
 
@@ -132,7 +132,7 @@
 - [ ] Admin can ban a user (isActive=false enforced on login)
 - [ ] @RequireRole enforced: wrong role returns 403
 - [ ] workspaceId filter active: cannot access other workspace's data
-- [ ] BRAND_CLIENT clientId isolation: cannot see other clients' data
+- [ ] CLIENT clientId isolation: cannot see other clients' data
 - [ ] Permission matrix document committed
 - [ ] shadcn/ui + Tailwind + design tokens configured in web-dashboard
 - [ ] Common components (Button, Input, Modal, Toast, Table, Badge, Spinner, Dropdown) built

@@ -1,5 +1,8 @@
 # Vì sao role-check nằm ở business-service, không phải api-gateway
 
+> Tài liệu này trả lời **"check role ở đâu"**. Để hiểu **role là gì và được gán khi nào**, xem
+> [role-model-and-assignment.md](./role-model-and-assignment.md).
+
 Câu hỏi: "check role diễn ra ở business-service hay api-gateway?"
 
 **Trả lời ngắn: ở `brandhub-business-service`. Gateway không check role.**
