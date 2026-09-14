@@ -9,7 +9,7 @@
 | Sprint | Sprint 13 |
 | Timeline | Weeks 25–26 (Nov 4–17, 2026) |
 | Phase | Phase 6 — Frontend & Analytics |
-| Goal | Isolated Brand Client portal, analytics dashboard with charts, automated report generation, notification center |
+| Goal | Isolated Client portal, analytics dashboard with charts, automated report generation, notification center |
 | Report date | *(Điền ngày nộp)* |
 | Reported by | Lê Trí Trung (Leader) |
 

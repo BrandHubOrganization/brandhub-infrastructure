@@ -22,7 +22,7 @@
 
 | Task ID | Jira Link | Mô tả | Priority | Status cuối sprint |
 |---|---|---|---|---|
-| DA-E38-03 | [DA-E38-03](https://letritrung2605.atlassian.net/browse/DA-E38-03) | Report email sending (weekly/monthly to Brand Client) | 🟡 High | |
+| DA-E38-03 | [DA-E38-03](https://letritrung2605.atlassian.net/browse/DA-E38-03) | Report email sending (weekly/monthly to Client) | 🟡 High | |
 
 **Tổng:** 1 task | Done: | In Review: | Chưa hoàn thành:
 

@@ -18,7 +18,7 @@
 
 | Task ID | Jira Link | Mô tả | Priority | Status cuối sprint |
 |---|---|---|---|---|
-| DA-E03-02 | [DA-E03-02](https://letritrung2605.atlassian.net/browse/DA-E03-02) | Write UC 01–20 (Admin + Agency Owner flows) | 🔴 Critical | ✅ Done |
+| DA-E03-02 | [DA-E03-02](https://letritrung2605.atlassian.net/browse/DA-E03-02) | Write UC 01–20 (Admin + Owner flows) | 🔴 Critical | ✅ Done |
 | DA-E04-01 | [DA-E04-01](https://letritrung2605.atlassian.net/browse/DA-E04-01) | Write functional objectives per 6 roles | 🔴 Critical | ✅ Done |
 | DA-E04-02 | [DA-E04-02](https://letritrung2605.atlassian.net/browse/DA-E04-02) | Write non-functional requirements | 🔴 Critical | ✅ Done |
 | DA-E04-05 | [DA-E04-05](https://letritrung2605.atlassian.net/browse/DA-E04-05) | Fill + finalize Capstone Register form | 🔴 Critical | ✅ Done |
@@ -37,7 +37,7 @@
 
 ### [DA-E03-02] — Use Cases 01–20
 
-- Viết detailed descriptions cho 20 UC thuộc ADMIN (UC01–10) và AGENCY_OWNER (UC11–20)
+- Viết detailed descriptions cho 20 UC thuộc ADMIN (UC01–10) và OWNER (UC11–20)
 - Format: Actor | UC ID | Name | Description | Precondition | Main Flow | Alt Flow | Postcondition
 - Output: section trong `BrandHub_Capstone_Register.docx`
 

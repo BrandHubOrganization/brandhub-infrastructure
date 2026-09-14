@@ -53,7 +53,7 @@
   * `ROLE_ADMIN`: Hiển thị các chỉ số vĩ mô toàn hệ thống bao gồm: Tổng số lượng agency đang hoạt động, số lượng gói Subscription đăng ký, lượng AI Credit đã tiêu thụ trong tháng, biểu đồ doanh thu tổng và nút xuất báo cáo tổng hợp.
   * `ROLE_OWNER`: Hiển thị số liệu quản lý tổng quan Agency: số lượng workspace, tổng dung lượng lưu trữ AWS S3 đã dùng, tình trạng subscription/billing — không hiển thị chi tiết workload/task nội bộ từng workspace (thuộc phạm vi MANAGER).
   * `ROLE_MANAGER`: Hiển thị bảng theo dõi khối lượng công việc (workload) và hiệu suất xử lý task của các Creator nội bộ trong workspace được giao quản lý.
-  * `ROLE_MANAGER`: Tập trung hiển thị danh sách các Brand Clients đang phụ trách kèm theo trạng thái tiến độ của các chiến dịch hiện hành và số lượng task đang chờ duyệt chỉnh sửa.
+  * `ROLE_MANAGER`: Tập trung hiển thị danh sách các Clients đang phụ trách kèm theo trạng thái tiến độ của các chiến dịch hiện hành và số lượng task đang chờ duyệt chỉnh sửa.
 * **Bản đồ Component Chú thích shadcn/ui:**
   * Cấu trúc khung chỉ số: Lưới `[Card]` kết hợp các icon minh họa.
   * Bảng danh sách hoạt động / khách hàng: `[Table]` với các cột phân tách rõ ràng.
@@ -63,7 +63,7 @@
 #### 3. Quản lý Không gian làm việc (Workspace Management)
 * **Bố cục tổng quan (Layout Shell):** Kế thừa Layout Shell chung (Sidebar + Header). Khu vực nội dung chính chia làm hai khu vực lớn:
   * *Phía trên:* Header của nội dung chứa tiêu đề Workspace hiện tại, thông tin mô tả và thanh công cụ tìm kiếm/lọc thành viên.
-  * *Phía dưới:* Chia làm 2 tab lớn để quản lý "Hồ sơ Khách hàng (Brand Client Profiles)" và "Đội ngũ Nhân sự (Team Members)".
+  * *Phía dưới:* Chia làm 2 tab lớn để quản lý "Hồ sơ Khách hàng (Client Profiles)" và "Đội ngũ Nhân sự (Team Members)".
 * **Biến thể giao diện theo Role (Role-Specific Variations):**
   * `ROLE_OWNER`: Hiển thị nút "Tạo Workspace mới" và nút cấu hình hạn mức AI Credits cấp phát cho từng Client. Không tự thao tác mời thành viên (giao cho MANAGER được chỉ định).
   * `ROLE_MANAGER`: Hiển thị nút "Mời thành viên", quản lý danh sách thành viên và cấu hình settings của workspace được Owner giao quản lý; không được tạo/xóa Workspace.

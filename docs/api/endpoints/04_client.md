@@ -30,7 +30,7 @@
 ## POST /api/v1/clients
 
 **Auth:** `[JWT]` | **Roles:** `OWNER`, `MANAGER`  
-**Goal:** Create a new brand client under the current workspace.
+**Goal:** Create a new client under the current workspace.
 
 **Request body:**
 ```json

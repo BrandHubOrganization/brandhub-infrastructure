@@ -42,13 +42,13 @@
 - `docs/wireframe/wireframe_to_code_checklist.md` — Checklist ánh xạ wireframe sang code component.
 
 **Mô tả công việc đã làm:**
-Thiết kế wireframe low-to-mid fidelity cho toàn bộ các màn hình chính của hệ thống bao gồm: Login/Register, Main Dashboard (phân biệt các biến thể role: Agency Owner vs Content Creator), Workspace Settings, Client list/detail, Content Request list, Content Editor (tích hợp AI generation panel), và Analytics Dashboard. Bổ sung khung hình mobile 375px cho các màn hình cốt lõi trên ứng dụng di động (Calendar, Notifications, Post Preview). Mỗi màn hình được chú thích rõ ràng bằng tên component tương ứng theo shadcn/ui (ví dụ: Card, Table, Dialog, Select...) để hỗ trợ nhà phát triển frontend lập bản đồ thành phần giao diện một cách nhanh chóng.
+Thiết kế wireframe low-to-mid fidelity cho toàn bộ các màn hình chính của hệ thống bao gồm: Login/Register, Main Dashboard (phân biệt các biến thể role: Owner vs Creator), Workspace Settings, Client list/detail, Content Request list, Content Editor (tích hợp AI generation panel), và Analytics Dashboard. Bổ sung khung hình mobile 375px cho các màn hình cốt lõi trên ứng dụng di động (Calendar, Notifications, Post Preview). Mỗi màn hình được chú thích rõ ràng bằng tên component tương ứng theo shadcn/ui (ví dụ: Card, Table, Dialog, Select...) để hỗ trợ nhà phát triển frontend lập bản đồ thành phần giao diện một cách nhanh chóng.
 
 **Kết quả đạt được:**
 - [x] Tạo thành công wireframe cho các phân hệ màn hình chính theo kích thước 1440px desktop.
 - [x] Thiết kế frame 375px mobile cho các màn hình cốt lõi trên ứng dụng di động.
 - [x] Ánh xạ thành phần wireframe tương ứng 100% với tên component trong hệ thống shadcn/ui.
-- [x] Thiết kế layout phân quyền (RBAC) chi tiết cho các vai trò chính (Agency Owner, Content Creator).
+- [x] Thiết kế layout phân quyền (RBAC) chi tiết cho các vai trò chính (Owner, Creator).
 
 **Khó khăn gặp phải:** Giao diện Content Editor tích hợp AI generation panel khá phức tạp, cần thiết kế 2 trạng thái (thu gọn/mở rộng panel) để tối ưu không gian làm việc chính cho người dùng.
 
@@ -107,7 +107,7 @@ Thiết kế sơ đồ luồng người dùng (User Flow Diagrams) ở tầng UX
 - Nằm trong `docs/wireframe/DA-E08-01_Wireframe_Report.md` — Section Client Portal.
 
 **Mô tả công việc đã làm:**
-Thiết kế giao diện và luồng tương tác dành riêng cho khách hàng (role BRAND_CLIENT) với các chức năng độc lập so với dashboard của agency. Thiết kế bao gồm 3 màn hình cốt lõi: lịch đăng bài chỉ đọc (Read-only Content Calendar), luồng phê duyệt/từ chối bài đăng kèm lý do (Approve/Reject flow), và trang xem thống kê cơ bản (Analytics View). Bố cục giao diện được rút gọn tối đa (stripped navigation, không có workspace switcher hay AI tools) để củng cố quyền truy cập giới hạn của client.
+Thiết kế giao diện và luồng tương tác dành riêng cho khách hàng (role CLIENT) với các chức năng độc lập so với dashboard của agency. Thiết kế bao gồm 3 màn hình cốt lõi: lịch đăng bài chỉ đọc (Read-only Content Calendar), luồng phê duyệt/từ chối bài đăng kèm lý do (Approve/Reject flow), và trang xem thống kê cơ bản (Analytics View). Bố cục giao diện được rút gọn tối đa (stripped navigation, không có workspace switcher hay AI tools) để củng cố quyền truy cập giới hạn của client.
 
 **Kết quả đạt được:**
 - [x] Thiết kế giao diện lịch đăng bài dạng tuần/tháng ở chế độ chỉ xem và xem chi tiết bài đăng.

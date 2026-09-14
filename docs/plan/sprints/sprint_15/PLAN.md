@@ -47,7 +47,7 @@
 **Integration tests (DA-E42-03):**
 - Use `@SpringBootTest` with `Testcontainers` (real MongoDB + Redis in Docker)
 - Test full auth flow: register → login → refresh → logout
-- Test RBAC: verify CONTENT_CREATOR cannot access AGENCY_OWNER endpoints
+- Test RBAC: verify CREATOR cannot access OWNER endpoints
 - Test workspace isolation: verify user A cannot read workspace B data
 
 **Performance testing (DA-E42-04):**

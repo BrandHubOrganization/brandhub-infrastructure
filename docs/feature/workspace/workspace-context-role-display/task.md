@@ -18,7 +18,7 @@
 - [ ] Bỏ `WORKSPACES` hardcode array.
 - [ ] Đổi prop `role` sang nhận `MemberRole | null`.
 - [ ] Thêm prop `systemRole` riêng cho Admin Panel filter.
-- [ ] Filter: `role === "CLIENT"` ẩn `/workspace` + `/editor` (thay `BRAND_CLIENT`).
+- [ ] Filter: `role === "CLIENT"` ẩn `/workspace` + `/editor` (thay `CLIENT`).
 - [ ] Workspace dropdown render từ props `workspaces`/`activeWorkspace`, `onClick` gọi `onSwitchWorkspace`.
 
 ## Navbar

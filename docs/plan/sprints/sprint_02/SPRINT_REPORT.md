@@ -114,7 +114,7 @@
 
 **Ân (AI):** Hoàn thành DA-E04-03 (AI performance requirements: latency p95 < 10s content, < 20s image, throughput targets). Đúng NFR format.
 
-**Phước (Publisher):** Hoàn thành DA-E03-01 (group 60 UCs by role), DA-E03-03 (UC 21–40: Account Manager + Content Creator), DA-E03-04 (UC 41–60: Brand Client + Social Publishing). Toàn bộ 60 UCs được document đúng format: Actor | UC ID | Name | Description | Precondition | Main Flow | Alt Flow | Postcondition.
+**Phước (Publisher):** Hoàn thành DA-E03-01 (group 60 UCs by role), DA-E03-03 (UC 21–40: Manager + Creator), DA-E03-04 (UC 41–60: Client + Social Publishing). Toàn bộ 60 UCs được document đúng format: Actor | UC ID | Name | Description | Precondition | Main Flow | Alt Flow | Postcondition.
 
 **Lộc (Frontend):** Hoàn thành DA-E04-04 (mobile requirements: FCM push notifications, offline draft với AsyncStorage, native camera upload). Đúng NFR format.
 

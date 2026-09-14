@@ -10,5 +10,5 @@
 | 6 | Permission override granted=false | Role đủ quyền theo matrix nhưng có override granted=false | 403 INSUFFICIENT_ROLE | ☐ |
 | 7 | Member bị deactivate | `workspace_members.isActive=false` nhưng JWT cũ còn hạn | 403 WORKSPACE_ACCESS_DENIED (re-check DB) | ☐ |
 | 8 | Isolation query list | User workspace A query danh sách resource | Chỉ trả record của workspace A | ☐ |
-| 9 | CLIENT xem client khác | BRAND_CLIENT của clientId=X gọi API data clientId=Y | 403 | ☐ |
-| 10 | CLIENT xem đúng client mình | BRAND_CLIENT clientId=X gọi API data clientId=X | 200 | ☐ |
+| 9 | CLIENT xem client khác | CLIENT của clientId=X gọi API data clientId=Y | 403 | ☐ |
+| 10 | CLIENT xem đúng client mình | CLIENT clientId=X gọi API data clientId=X | 200 | ☐ |

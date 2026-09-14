@@ -1,0 +1,47 @@
+# Infrastructure group 1/3 — Databases.
+# Self-hosted on EC2: PostgreSQL (relational / transactional core).
+# MongoDB Atlas is SaaS (external) and therefore not in this compose file.
+#
+# Run this group alone:
+#   docker compose -f docker-compose.infra.databases.yml up -d
+# Run all three infra groups together (local dev):
+#   docker compose -f docker-compose.infra.databases.yml \
+#                  -f docker-compose.infra.ai-data.yml \
+#                  -f docker-compose.infra.cache-broker.yml up -d
+
+services:
+  # Relational database for subscription plans and transactional data.
+  # The init script runs only when the postgres_data volume is created the first time.
+  postgres:
+    image: postgres:17-alpine
+    container_name: brandhub-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    environment:
+      # Values must come from .env. Do not use default credentials here.
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../scripts/init-postgres.sql:/docker-entrypoint-initdb.d/init-postgres.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - brandhub-network
+
+# Named volumes keep data stable even if containers are recreated.
+volumes:
+  postgres_data:
+    name: brandhub-postgres-data
+
+# Shared bridge network used by infra, app, and dev compose files.
+networks:
+  brandhub-network:
+    name: brandhub-network
+    driver: bridge

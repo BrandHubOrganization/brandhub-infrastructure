@@ -65,7 +65,7 @@ Toàn bộ content entity (`posts`, `content_requests`, `social_accounts`, ...) 
 :::
 
 ::: danger Hard Rule 3 — workspaceId bắt buộc
-Mọi MongoDB query **bắt buộc** có filter `workspaceId`. `BRAND_CLIENT` role thêm filter `clientId` bên cạnh `workspaceId`.
+Mọi MongoDB query **bắt buộc** có filter `workspaceId`. `CLIENT` role thêm filter `clientId` bên cạnh `workspaceId`.
 :::
 
 ```js
@@ -75,7 +75,7 @@ db.posts.find({ status: 'PUBLISHED' })
 // ✅ ĐÚNG
 db.posts.find({ workspaceId: ctx.workspaceId, status: 'PUBLISHED' })
 
-// ✅ BRAND_CLIENT — thêm clientId
+// ✅ CLIENT — thêm clientId
 db.posts.find({ workspaceId: ctx.workspaceId, clientId: ctx.clientId, status: 'PUBLISHED' })
 ```
 

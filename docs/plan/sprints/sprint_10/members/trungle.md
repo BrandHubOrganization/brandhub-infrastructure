@@ -18,11 +18,11 @@
 
 | Task ID | Jira Link | Mô tả | Priority | Status cuối sprint |
 |---|---|---|---|---|
-| DA-E28-01 | [DA-E28-01](https://letritrung2605.atlassian.net/browse/DA-E28-01) | POST /content-requests (BRAND_CLIENT submits) | 🔴 Critical | |
-| DA-E28-02 | [DA-E28-02](https://letritrung2605.atlassian.net/browse/DA-E28-02) | GET /content-requests (ACCOUNT_MANAGER list) | 🔴 Critical | |
+| DA-E28-01 | [DA-E28-01](https://letritrung2605.atlassian.net/browse/DA-E28-01) | POST /content-requests (CLIENT submits) | 🔴 Critical | |
+| DA-E28-02 | [DA-E28-02](https://letritrung2605.atlassian.net/browse/DA-E28-02) | GET /content-requests (MANAGER list) | 🔴 Critical | |
 | DA-E28-03 | [DA-E28-03](https://letritrung2605.atlassian.net/browse/DA-E28-03) | Status tracking (SUBMITTED → APPROVED/REJECTED) | 🔴 Critical | |
 | DA-E29-01 | [DA-E29-01](https://letritrung2605.atlassian.net/browse/DA-E29-01) | PUT /content-requests/{id}/assign | 🔴 Critical | |
-| DA-E29-02 | [DA-E29-02](https://letritrung2605.atlassian.net/browse/DA-E29-02) | GET /content-requests/my-tasks (CONTENT_CREATOR) | 🔴 Critical | |
+| DA-E29-02 | [DA-E29-02](https://letritrung2605.atlassian.net/browse/DA-E29-02) | GET /content-requests/my-tasks (CREATOR) | 🔴 Critical | |
 | DA-E30-01 | [DA-E30-01](https://letritrung2605.atlassian.net/browse/DA-E30-01) | GET /posts/calendar (by date range + filters) | 🔴 Critical | |
 | DA-E30-02 | [DA-E30-02](https://letritrung2605.atlassian.net/browse/DA-E30-02) | POST /posts/{id}/schedule | 🔴 Critical | |
 
