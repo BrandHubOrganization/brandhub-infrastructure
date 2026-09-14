@@ -15,8 +15,8 @@
 - [ ] Áp helper vào service layer cho các entity lookup theo id phụ (vd `memberId`) rồi so `workspaceId`.
 - [ ] Integration test: user A gọi API lấy resource của workspace B → 403 `WORKSPACE_ACCESS_DENIED`.
 
-## DA-208 — Implement client isolation cho BRAND_CLIENT (chỉ xem data của clientId mình)
-- [ ] Xác nhận entity `Client.java` liên kết `workspaceId` + cách map user BRAND_CLIENT ↔ `clientId` (đọc code trước khi build, chưa rõ trong research ban đầu).
+## DA-208 — Implement client isolation cho CLIENT (chỉ xem data của clientId mình)
+- [ ] Xác nhận entity `Client.java` liên kết `workspaceId` + cách map user CLIENT ↔ `clientId` (đọc code trước khi build, chưa rõ trong research ban đầu).
 - [ ] Mở rộng `@RequireRole`/`WorkspaceIsolationHelper` (hoặc annotation riêng `@RequireOwnClient`) chặn CLIENT xem data client khác trong cùng workspace.
 - [ ] Integration test: CLIENT của client X gọi API data client Y (cùng workspace) → 403.
 

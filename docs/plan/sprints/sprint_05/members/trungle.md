@@ -52,7 +52,7 @@
 
 **Mô tả công việc đã làm:**
 - Implement endpoint `POST /api/v1/auth/register` với validation: email uniqueness check, password strength (min 8 chars, 1 uppercase, 1 digit, 1 special), bcrypt hash cost=12.
-- Tạo User trong PostgreSQL (`users` table), tự động assign role mặc định `AGENCY_OWNER` cho self-registration.
+- Tạo User trong PostgreSQL (`users` table), tự động assign role mặc định `OWNER` cho self-registration.
 - Trả về `LoginResponse` (access token 15min + refresh token 30d trong HttpOnly cookie) ngay sau register để user không cần login lại.
 - Xử lý edge cases: email đã tồn tại → `USER_ALREADY_EXISTS`, email không hợp lệ → `INVALID_EMAIL_FORMAT`, password yếu → `WEAK_PASSWORD`.
 

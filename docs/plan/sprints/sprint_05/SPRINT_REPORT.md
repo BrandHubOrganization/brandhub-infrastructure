@@ -77,7 +77,7 @@
 | DA-E13-04 | Admin: Ban/Suspend user | Ân | Blocked by DA-E13-03 + DA-E14-01 | Sprint 6 Week 2 |
 | DA-E14-01 | @RequireRole annotation | Trung | Auth core chiếm toàn bộ thời gian — **Critical path, blocks 5 tasks khác** | Sprint 6 Week 1 |
 | DA-E14-02 | Workspace isolation filter | Trung | Phụ thuộc vào E14-01 | Sprint 6 Week 2 |
-| DA-E14-03 | BRAND_CLIENT isolation | Trung | Phụ thuộc vào E14-01 + E14-02 | Sprint 6 Week 2 |
+| DA-E14-03 | CLIENT isolation | Trung | Phụ thuộc vào E14-01 + E14-02 | Sprint 6 Week 2 |
 | DA-E14-04 | Permission matrix document | Phước | Blocked by DA-E14-01 (chưa biết role nào có quyền gì) | Sprint 6 Week 1 |
 | DA-E34-05 (workspaceStore) | Zustand workspace store | Phước | Chưa có Workspace API (E15) | Sprint 6 |
 | DA-E34-05 (notificationStore) | Zustand notification store | Phước | Chưa có Notification API (E19) | Sprint 8 |
@@ -175,7 +175,7 @@
 |---|---|---|---|
 | 🔴 Critical | DA-E14-01 @RequireRole annotation | Trung | **Block 5+ tasks — làm đầu tiên** |
 | 🔴 Critical | DA-E14-02 Workspace isolation | Trung | Sau E14-01 |
-| 🔴 Critical | DA-E14-03 BRAND_CLIENT isolation | Trung | Sau E14-02 |
+| 🔴 Critical | DA-E14-03 CLIENT isolation | Trung | Sau E14-02 |
 | 🔴 Critical | DA-E12-06 Google OAuth | Trung | Carry over từ Sprint 5 |
 | 🔴 Critical | DA-E15-01/02/03 Workspace APIs | Trung | Sprint 6 gốc |
 | 🟡 High | DA-E13-01/02 Profile + Avatar | Trung | Carry over từ Sprint 5 |

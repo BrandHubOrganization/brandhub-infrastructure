@@ -23,8 +23,8 @@
 | Task ID | Jira Link | Mô tả | Priority | Status cuối sprint |
 |---|---|---|---|---|
 | DA-E03-01 | [DA-E03-01](https://letritrung2605.atlassian.net/browse/DA-E03-01) | List and group all 60 use cases by 6 roles | 🔴 Critical | |
-| DA-E03-03 | [DA-E03-03](https://letritrung2605.atlassian.net/browse/DA-E03-03) | Write UC 21–40 (Account Manager + Content Creator) | 🔴 Critical | |
-| DA-E03-04 | [DA-E03-04](https://letritrung2605.atlassian.net/browse/DA-E03-04) | Write UC 41–60 (Brand Client + Social Publishing) | 🟡 High | |
+| DA-E03-03 | [DA-E03-03](https://letritrung2605.atlassian.net/browse/DA-E03-03) | Write UC 21–40 (Manager + Creator) | 🔴 Critical | |
+| DA-E03-04 | [DA-E03-04](https://letritrung2605.atlassian.net/browse/DA-E03-04) | Write UC 41–60 (Client + Social Publishing) | 🟡 High | |
 | DA-E03-06 | [DA-E03-06](https://letritrung2605.atlassian.net/browse/DA-E03-06) | Finalize UC table into Excel file | 🟢 Medium | |
 
 **Tổng:** 4 tasks | Done: | In Review: | Chưa hoàn thành:

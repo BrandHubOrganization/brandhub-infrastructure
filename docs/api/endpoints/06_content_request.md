@@ -245,7 +245,7 @@ SUBMITTED → ASSIGNED → IN_PROGRESS → PENDING_REVIEW → SENT_TO_CLIENT →
 **Implementation notes:**
 - Server enforces transition validity per role — client cannot skip states
 - On `SENT_TO_CLIENT`: optionally link a completed post via `linkedPostId`
-- On `APPROVED` / `REJECTED`: notify `requestedBy` (the client or account manager who submitted)
+- On `APPROVED` / `REJECTED`: notify `requestedBy` (the client or manager who submitted)
 - On `CANCELLED`: notify all parties (requestedBy, assignedTo)
 
 ---

@@ -1,0 +1,75 @@
+# Infrastructure group 2/3 — AI Data.
+# Self-hosted on EC2 (1 shared box): ChromaDB (vector) + Neo4j (graph).
+# Both serve the AI pipeline only — accessed via business-service (API proxy),
+# never called directly by ai-service.
+#
+# Run this group alone:
+#   docker compose -f docker-compose.infra.ai-data.yml up -d
+# Run all three infra groups together (local dev):
+#   docker compose -f docker-compose.infra.databases.yml \
+#                  -f docker-compose.infra.ai-data.yml \
+#                  -f docker-compose.infra.cache-broker.yml up -d
+
+services:
+  # Vector database for AI/RAG features and raw collected data storage.
+  # Auth: ChromaDB local does not support built-in auth (cloud-only feature).
+  chromadb:
+    image: chromadb/chroma:0.6.3
+    container_name: brandhub-chromadb
+    ports:
+      - "${CHROMADB_HOST_PORT:-8000}:8000"
+    environment:
+      # Persist data to the mounted volume (default is /chroma/chroma).
+      IS_PERSISTENT: "TRUE"
+      # Disable telemetry in local development.
+      ANONYMIZED_TELEMETRY: "FALSE"
+    volumes:
+      - chroma-data:/chroma/chroma
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/api/v1/heartbeat || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+  # Graph database for knowledge graphs, relationship analysis, and raw collected data.
+  # Neo4j 5.26 runs as the neo4j user by default — non-root, no custom Dockerfile needed.
+  neo4j:
+    image: neo4j:5.26-community
+    container_name: brandhub-neo4j
+    ports:
+      - "${NEO4J_HOST_PORT_HTTP:-7474}:7474"
+      - "${NEO4J_HOST_PORT_BOLT:-7687}:7687"
+    environment:
+      # Auth is set via NEO4J_AUTH in .env: neo4j/<password>
+      NEO4J_AUTH: ${NEO4J_AUTH:?NEO4J_AUTH is required}
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+# Named volumes keep data stable even if containers are recreated.
+volumes:
+  chroma-data:
+    name: brandhub-chroma-data
+  neo4j-data:
+    name: brandhub-neo4j-data
+  neo4j-logs:
+    name: brandhub-neo4j-logs
+
+# Shared bridge network used by infra, app, and dev compose files.
+networks:
+  brandhub-network:
+    name: brandhub-network
+    driver: bridge

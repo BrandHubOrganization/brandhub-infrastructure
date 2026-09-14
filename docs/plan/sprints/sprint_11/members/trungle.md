@@ -18,13 +18,13 @@
 
 | Task ID | Jira Link | Mô tả | Priority | Status cuối sprint |
 |---|---|---|---|---|
-| DA-E31-01 | [DA-E31-01](https://letritrung2605.atlassian.net/browse/DA-E31-01) | POST /posts/{id}/submit (CONTENT_CREATOR submits) | 🔴 Critical | |
+| DA-E31-01 | [DA-E31-01](https://letritrung2605.atlassian.net/browse/DA-E31-01) | POST /posts/{id}/submit (CREATOR submits) | 🔴 Critical | |
 | DA-E31-02 | [DA-E31-02](https://letritrung2605.atlassian.net/browse/DA-E31-02) | POST /posts/{id}/account-review (approve/reject + note) | 🔴 Critical | |
 | DA-E31-03 | [DA-E31-03](https://letritrung2605.atlassian.net/browse/DA-E31-03) | POST /posts/{id}/client-approve | 🔴 Critical | |
 | DA-E31-04 | [DA-E31-04](https://letritrung2605.atlassian.net/browse/DA-E31-04) | POST /posts/{id}/client-reject | 🔴 Critical | |
 | DA-E32-01 | [DA-E32-01](https://letritrung2605.atlassian.net/browse/DA-E32-01) | Smart Ingestion (package post + token → RabbitMQ) | 🔴 Critical | |
 | DA-E33-02 | [DA-E33-02](https://letritrung2605.atlassian.net/browse/DA-E33-02) | Dead Letter Queue handler (Admin view + retry) | 🔴 Critical | |
-| DA-E33-03 | [DA-E33-03](https://letritrung2605.atlassian.net/browse/DA-E33-03) | Failure notification (alert Account Manager) | 🔴 Critical | |
+| DA-E33-03 | [DA-E33-03](https://letritrung2605.atlassian.net/browse/DA-E33-03) | Failure notification (alert Manager) | 🔴 Critical | |
 
 **Tổng:** 7 tasks | Done: | In Review: | Chưa hoàn thành:
 

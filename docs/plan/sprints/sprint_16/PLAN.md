@@ -70,10 +70,10 @@
 
 **User Manual sections (DA-E45-02):**
 - ADMIN: manage users, plans, view system health
-- AGENCY_OWNER: create workspace, invite team, manage clients, billing
-- ACCOUNT_MANAGER: manage clients, review + approve content, send reports
-- CONTENT_CREATOR: create AI content, manage knowledge base, schedule posts
-- BRAND_CLIENT: view calendar, approve/reject content, view analytics
+- OWNER: create workspace, invite team, manage clients, billing
+- MANAGER: manage clients, review + approve content, send reports
+- CREATOR: create AI content, manage knowledge base, schedule posts
+- CLIENT: view calendar, approve/reject content, view analytics
 - Appendix: social platform connection guide (screenshots)
 
 **Deployment Guide (DA-E45-03):**
@@ -87,11 +87,11 @@
 
 **Demo video script (DA-E45-04):**
 1. System overview (30s)
-2. Agency Owner: create workspace, invite team, connect social accounts (90s)
-3. Brand Client: submit content request (30s)
-4. Content Creator: AI generate caption, image, edit, submit (90s)
-5. Account Manager: review, approve, send to client (30s)
-6. Brand Client: approve post (30s)
+2. Owner: create workspace, invite team, connect social accounts (90s)
+3. Client: submit content request (30s)
+4. Creator: AI generate caption, image, edit, submit (90s)
+5. Manager: review, approve, send to client (30s)
+6. Client: approve post (30s)
 7. Auto-publish to Facebook + Instagram (30s, real publish)
 8. Analytics dashboard (30s)
 9. Mobile app: notification + approval (60s)

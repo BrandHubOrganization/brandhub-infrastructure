@@ -49,7 +49,7 @@ Sơ đồ mô tả quy trình từ lúc Creator truy cập hệ thống đến k
 ---
 
 ### 2. Luồng Phê Duyệt (Approval Flow)
-Sơ đồ hướng dẫn Account Manager (AM) tiếp nhận thông tin và xử lý phê duyệt bài viết:
+Sơ đồ hướng dẫn Manager (AM) tiếp nhận thông tin và xử lý phê duyệt bài viết:
 
 * **Nhận thông báo:** AM xem danh sách công việc cần duyệt thông qua Notification Badge hoặc bảng thống kê trên `AccountManager_Dashboard`.
   * *Điểm kích hoạt (Trigger):* Click vào thông báo bài viết mới.
@@ -62,7 +62,7 @@ Sơ đồ hướng dẫn Account Manager (AM) tiếp nhận thông tin và xử 
 ---
 
 ### 3. Luồng Xuất Bản & Khách Hàng Phê Duyệt (Publishing Flow)
-Mô tả cách thức khách hàng (Brand Client) thực hiện duyệt cuối và quy trình xuất bản tự động:
+Mô tả cách thức khách hàng (Client) thực hiện duyệt cuối và quy trình xuất bản tự động:
 
 * **Quản lý lịch trình:** `Creator_Calendar` hiển thị các bài viết ở trạng thái `SCHEDULED` (đã lên lịch đăng).
 * **Khách hàng đánh giá:** Khách hàng đăng nhập vào `BrandClient_ClientPortal` để duyệt các bài đăng thuộc thương hiệu của họ.

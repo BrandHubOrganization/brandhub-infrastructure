@@ -22,8 +22,8 @@
 | DA-E14-04 | [DA-E14-04](https://letritrung2605.atlassian.net/browse/DA-E14-04) | Permission matrix document (6 roles × all endpoints) | 🟢 Medium | |
 
 ### Backend — Client APIs (E16)
-| DA-E16-01 | [DA-E16-01](https://letritrung2605.atlassian.net/browse/DA-E16-01) | POST /clients (create brand client) | 🔴 Critical | |
-| DA-E16-02 | [DA-E16-02](https://letritrung2605.atlassian.net/browse/DA-E16-02) | PUT /clients/{id}/assign (assign Account Manager) | 🔴 Critical | |
+| DA-E16-01 | [DA-E16-01](https://letritrung2605.atlassian.net/browse/DA-E16-01) | POST /clients (create client) | 🔴 Critical | |
+| DA-E16-02 | [DA-E16-02](https://letritrung2605.atlassian.net/browse/DA-E16-02) | PUT /clients/{id}/assign (assign Manager) | 🔴 Critical | |
 | DA-E16-03 | [DA-E16-03](https://letritrung2605.atlassian.net/browse/DA-E16-03) | PUT /clients/{id}/service-package (set post limit & platforms) | 🟡 High | |
 | DA-E16-04 | [DA-E16-04](https://letritrung2605.atlassian.net/browse/DA-E16-04) | GET /clients (list clients by role) | 🔴 Critical | |
 

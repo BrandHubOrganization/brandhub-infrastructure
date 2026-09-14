@@ -43,10 +43,10 @@
 
 **AuthGuard (role-based routing, component sẵn có từ Sprint 5 — DA-E34-03):**
 - `/dashboard` → all authenticated roles
-- `/workspace` → AGENCY_OWNER only
-- `/clients` → AGENCY_OWNER, ACCOUNT_MANAGER
-- `/content` → ACCOUNT_MANAGER, CONTENT_CREATOR
-- `/portal` → BRAND_CLIENT only
+- `/workspace` → OWNER only
+- `/clients` → OWNER, MANAGER
+- `/content` → MANAGER, CREATOR
+- `/portal` → CLIENT only
 
 ---
 

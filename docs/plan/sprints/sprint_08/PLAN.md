@@ -99,7 +99,7 @@ After 4 failures: send to Dead Letter Queue (DLQ), callback with status=FAILED
 
 **business-service handler (DA-E22-03):**
 - On PUBLISHED: update `posts.publishStatus[platform] = PUBLISHED`, set `publishedAt`
-- On FAILED: update `posts.publishStatus[platform] = FAILED`, create notification for Account Manager
+- On FAILED: update `posts.publishStatus[platform] = FAILED`, create notification for Manager
 
 **Notes:**
 - Callback endpoint `/internal/posts/{id}/publish-result` must be secured — only accept from publisher-service IP or with `X-Internal-Key` header.
@@ -121,4 +121,4 @@ After 4 failures: send to Dead Letter Queue (DLQ), callback with status=FAILED
 - [ ] HTTP callback fires to business-service on success
 - [ ] HTTP callback fires to business-service on failure
 - [ ] business-service updates post status on callback
-- [ ] Account Manager receives notification on publish failure
+- [ ] Manager receives notification on publish failure

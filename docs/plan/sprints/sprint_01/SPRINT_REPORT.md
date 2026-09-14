@@ -134,8 +134,8 @@
 | Priority | Task | Assignee | Ghi chú |
 |---|---|---|---|
 | 🔴 Critical | DA-E03-01 List 60 use cases by role | Phước | Must finish trước E03-02/03/04 |
-| 🔴 Critical | DA-E03-02 Write UC 01–20 | Trung | Admin + Agency Owner flows |
-| 🔴 Critical | DA-E03-03 Write UC 21–40 | Phước | Account Manager + Content Creator |
+| 🔴 Critical | DA-E03-02 Write UC 01–20 | Trung | Admin + Owner flows |
+| 🔴 Critical | DA-E03-03 Write UC 21–40 | Phước | Manager + Creator |
 | 🔴 Critical | DA-E04-01 Functional requirements per role | Trung | 6 roles × features matrix |
 | 🔴 Critical | DA-E04-02 Non-functional requirements | Trung | Performance, Security, Reliability |
 | 🔴 Critical | DA-E04-05 Capstone Register form | Trung | FPT deadline |

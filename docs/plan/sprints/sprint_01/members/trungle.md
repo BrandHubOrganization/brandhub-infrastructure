@@ -36,7 +36,7 @@
 ### [DA-E01-01/02] — Brainstorm + Team kickoff meeting
 
 - Tổ chức họp nhóm lần đầu, xác định đề tài BrandHub — AI-Powered Multi-Channel Content Platform
-- Output: 1-page brief gồm problem statement, target users (Agency Owner/Content Creator/Brand Client), MVP feature list, out-of-scope list
+- Output: 1-page brief gồm problem statement, target users (Owner/Creator/Client), MVP feature list, out-of-scope list
 - Phân công role: Trung (Leader/Backend), Lộc (Frontend), Tuấn (AI), Ân (AI), Phước (Publisher)
 - Xác định tech stack: Java Spring Boot 3, Python FastAPI, React 18, React Native, MongoDB + PostgreSQL + Redis + ChromaDB + RabbitMQ
 

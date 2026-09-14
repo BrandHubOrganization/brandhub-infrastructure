@@ -13,7 +13,7 @@ Bỏ 2 chỗ demo-data sai nghiệp vụ trong `Sidebar.tsx`/`Navbar.tsx` (works
 - `src/components/layout/Sidebar.tsx`:
   - Bỏ `const WORKSPACES = [...]` hardcode.
   - Prop `role` đổi ý nghĩa: nhận `MemberRole | null` (không phải `UserRole` như hiện tại).
-  - Filter nav: `role === "CLIENT"` ẩn `/workspace`+`/editor` (thay `role === "BRAND_CLIENT"`); Admin Panel dùng `systemRole` riêng (prop mới), không dùng `role`.
+  - Filter nav: `role === "CLIENT"` ẩn `/workspace`+`/editor` (thay `role === "CLIENT"`); Admin Panel dùng `systemRole` riêng (prop mới), không dùng `role`.
   - Workspace dropdown data từ props (Sidebar không tự fetch — nhận `workspaces: Workspace[]`, `activeWorkspace`, `onSwitchWorkspace` từ `Layout.tsx`, giữ Sidebar là component thuần trình bày).
 - `src/components/layout/Navbar.tsx`:
   - Bỏ `handleRoleSimulation`, `ROLE_LABELS` (UserRole-based), dropdown "Mô phỏng Phân quyền".

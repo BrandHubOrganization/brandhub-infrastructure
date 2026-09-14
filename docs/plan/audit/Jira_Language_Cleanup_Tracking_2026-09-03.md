@@ -125,10 +125,10 @@
 - [ ] DA-198 | To Do | `[DA-E15-04] Implement DELETE /api/v1/workspaces/{id}/members/{userId} (remove thanh vien)`
 
 ### E16 — Client & Agency Management (1 task)
-- [ ] DA-266 | In review | `[DA-E16-04] Implement GET /api/v1/clients (AGENCY_OWNER va MANAGER xem danh sach)`
+- [ ] DA-266 | In review | `[DA-E16-04] Implement GET /api/v1/clients (OWNER va MANAGER xem danh sach)`
 
 ### E17 — Subscription & Billing (2 task)
-- [ ] DA-230 | To Do | `[DA-E17-02] Implement POST /api/v1/subscriptions/subscribe (AGENCY_OWNER dang ky goi)`
+- [ ] DA-230 | To Do | `[DA-E17-02] Implement POST /api/v1/subscriptions/subscribe (OWNER dang ky goi)`
 - [ ] DA-263 | To Do | `[DA-E17-04] Implement GET /api/v1/subscriptions/invoices (lich su hoa don)`
 
 ### E18 — Meta OAuth (1 task)
@@ -172,7 +172,7 @@
 
 ### E38 — Analytics & Reporting (2 task)
 - [ ] DA-348 | To Do | `[DA-E38-01] Implement analytics aggregation APIs (tong hop data tu posts + publish_logs)`
-- [ ] DA-371 | To Do | `[DA-E38-03] Implement report email sending (tu dong gui email cho Brand Client theo schedule)`
+- [ ] DA-371 | To Do | `[DA-E38-03] Implement report email sending (tu dong gui email cho Client theo schedule)`
 
 ### E39 — Notification System (1 task)
 - [ ] DA-394 | To Do | `[DA-E39-03] Build Notification Center UI (dropdown bell icon, unread badge, list voi mark as read)`

@@ -319,7 +319,7 @@ Table clients [note: 'PostgreSQL — Workspace — business-service'] {
   contact_phone         varchar(50)
   assigned_manager_id   uuid         [ref: > users.id]
   portal_access_enabled boolean      [not null, default: false]
-  portal_user_id        uuid         [ref: > users.id, note: 'FK → users — BRAND_CLIENT role user']
+  portal_user_id        uuid         [ref: > users.id, note: 'FK → users — CLIENT role user']
   service_package       jsonb        [not null, default: '{}', note: '{postsPerMonth, platforms[], aiCreditsPerMonth}']
   metadata              jsonb        [not null, default: '{}', note: 'Flexible per agency']
   created_at            timestamptz  [not null, default: `now()`]
@@ -507,7 +507,7 @@ Table content_requests [note: 'MongoDB — business-service | Filter: {workspace
   workspaceId   string                 [not null, note: 'Soft ref → workspaces.id (PG)']
   clientId      string                 [note: 'Soft ref → clients.id (PG)']
   requestedBy   string                 [not null, note: 'Soft ref → users.id (PG)']
-  assignedTo    string                 [note: 'Soft ref → users.id (PG) — CONTENT_CREATOR']
+  assignedTo    string                 [note: 'Soft ref → users.id (PG) — CREATOR']
   title         string                 [not null]
   description   string
   tone          string                 [note: 'professional | casual | humorous | inspirational']

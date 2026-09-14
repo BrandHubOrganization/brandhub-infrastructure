@@ -29,19 +29,19 @@
 
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
-| DA-E03-01 | List and group all 60 use cases by 6 roles (Admin, Agency Owner, Account Manager, Content Creator, Brand Client, Guest) | Phước (Publisher) | 🔴 Critical |
-| DA-E03-02 | Write detailed descriptions for UC 01–20 (Admin + Agency Owner flows) — actor, description, main flow, alt flows | Trung (Leader) | 🔴 Critical |
-| DA-E03-03 | Write detailed descriptions for UC 21–40 (Account Manager + Content Creator flows) | Phước (Publisher) | 🔴 Critical |
-| DA-E03-04 | Write detailed descriptions for UC 41–60 (Brand Client + Social Publishing flows) | Phước (Publisher) | 🟡 High |
+| DA-E03-01 | List and group all 60 use cases by 6 roles (Admin, Owner, Manager, Creator, Client, Guest) | Phước (Publisher) | 🔴 Critical |
+| DA-E03-02 | Write detailed descriptions for UC 01–20 (Admin + Owner flows) — actor, description, main flow, alt flows | Trung (Leader) | 🔴 Critical |
+| DA-E03-03 | Write detailed descriptions for UC 21–40 (Manager + Creator flows) | Phước (Publisher) | 🔴 Critical |
+| DA-E03-04 | Write detailed descriptions for UC 41–60 (Client + Social Publishing flows) | Phước (Publisher) | 🟡 High |
 | DA-E03-05 | Review UC list with mentor, update based on feedback | All (Team) | 🟡 High |
 | DA-E03-06 | Finalize UC table into Excel file (BrandHub_UseCases.xlsx) | Phước (Publisher) | 🟢 Medium |
 
 **UC Distribution by role (60 total):**
 - ADMIN: UC01–10 (user mgmt, plan mgmt, system config)
-- AGENCY_OWNER: UC11–20 (workspace, team, billing)
-- ACCOUNT_MANAGER: UC21–30 (client mgmt, content review, reports)
-- CONTENT_CREATOR: UC31–40 (AI content, knowledge base, scheduling)
-- BRAND_CLIENT: UC41–50 (approval, analytics, portal)
+- OWNER: UC11–20 (workspace, team, billing)
+- MANAGER: UC21–30 (client mgmt, content review, reports)
+- CREATOR: UC31–40 (AI content, knowledge base, scheduling)
+- CLIENT: UC41–50 (approval, analytics, portal)
 - Social Publishing flows: UC51–60 (OAuth connect, publish, token mgmt)
 
 **Notes:**
