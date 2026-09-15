@@ -54,4 +54,4 @@ GET /api/v1/workspaces/{id}/tasks?view=kanban&groupBy=status
 
 ## Tham chiếu BA
 
-[05_Content_Task_Workflow.md](../../../BA/05_Content_Task_Workflow.md), [12_State_Machines.md](../../../BA/12_State_Machines.md)
+[05-content-task-workflow.md](../../../BA/05-content-task-workflow.md), [12-state-machines.md](../../../BA/12-state-machines.md)

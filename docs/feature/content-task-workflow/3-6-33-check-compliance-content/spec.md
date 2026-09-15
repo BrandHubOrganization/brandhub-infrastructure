@@ -24,7 +24,7 @@ tôi muốn kiểm tra content có vi phạm chính sách không,
 - Chạy check trên nội dung Task (loại Post): text (đạo văn), hình ảnh (bạo lực, dung tục).
 - Dùng API bên thứ 3 (moderation service) — trả về kết quả chuẩn nhất có thể.
 - Hiển thị bảng phân tích: từ ngữ/đoạn vi phạm cụ thể, mức độ nghiêm trọng, gợi ý sửa.
-- Nếu phát hiện vi phạm nghiêm trọng → có thể tự động đưa vào Content Moderation Queue để Admin review (xem [09_Admin_Management.md](../../../BA/09_Admin_Management.md) FR 3.10.4).
+- Nếu phát hiện vi phạm nghiêm trọng → có thể tự động đưa vào Content Moderation Queue để Admin review (xem [09-admin-management.md](../../../BA/09-admin-management.md) FR 3.10.4).
 
 ## 4. UI / UX
 
@@ -55,4 +55,4 @@ POST /api/v1/workspaces/{id}/tasks/{taskId}/compliance-check
 
 ## Tham chiếu BA
 
-[05_Content_Task_Workflow.md](../../../BA/05_Content_Task_Workflow.md)
+[05-content-task-workflow.md](../../../BA/05-content-task-workflow.md)

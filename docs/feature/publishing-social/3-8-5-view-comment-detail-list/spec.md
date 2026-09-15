@@ -52,4 +52,4 @@ GET /api/v1/workspaces/{id}/posts/{postId}/comments
 
 ## Tham chiếu BA
 
-[07_Publishing_Social_Collaborator.md](../../../BA/07_Publishing_Social_Collaborator.md)
+[07-publishing-social-collaborator.md](../../../BA/07-publishing-social-collaborator.md)

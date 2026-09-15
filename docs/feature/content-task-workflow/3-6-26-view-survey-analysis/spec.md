@@ -52,4 +52,4 @@ GET /api/v1/workspaces/{id}/tasks/{taskId}/survey/analysis
 
 ## Tham chiếu BA
 
-[05_Content_Task_Workflow.md](../../../BA/05_Content_Task_Workflow.md)
+[05-content-task-workflow.md](../../../BA/05-content-task-workflow.md)

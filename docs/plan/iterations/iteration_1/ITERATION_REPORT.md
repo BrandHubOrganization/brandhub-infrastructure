@@ -40,8 +40,8 @@
 | Deliverable | File/Link | Tác giả | Chất lượng |
 |---|---|---|---|
 | Video Generation Research Report | [Video_Generation_Research_Report.md](file:///d:/FPT/FA26/brandhub-infrastructure/docs/plan/iterations/iteration_1/Video_Generation_Research_Report.md) | Ân | ⭐⭐⭐⭐⭐ |
-| AI Fashion Model Platform Analysis | [DA-59_AI_Fashion_Model_Generation_Platforms.md](file:///d:/FPT/FA26/brandhub-infrastructure/docs/AI_Models/DA-59_AI_Fashion_Model_Generation_Platforms.md) | Tuấn | ⭐⭐⭐⭐ |
-| ChromaDB Collection Design Document | [DA-AI02-07_ChromaDB_Collection_Design.md](file:///d:/FPT/FA26/brandhub-infrastructure/docs/database/DA-AI02-07_ChromaDB_Collection_Design.md) | Tuấn | ⭐⭐⭐⭐⭐ |
+| AI Fashion Model Platform Analysis | [DA-59_AI_Fashion_Model_Generation_Platforms.md](file:///d:/FPT/FA26/brandhub-infrastructure/docs/ai-models/DA-59-ai-fashion-model-generation-platforms.md) | Tuấn | ⭐⭐⭐⭐ |
+| ChromaDB Collection Design Document | [DA-AI02-07-chromadb-collection-design.md](file:///d:/FPT/FA26/brandhub-infrastructure/docs/database/DA-AI02-07-chromadb-collection-design.md) | Tuấn | ⭐⭐⭐⭐⭐ |
 | FastAPI Project Scaffold & Foundation | [brandhub-ai-service](file:///d:/FPT/FA26/brandhub-ai-service) | Lộc | ⭐⭐⭐⭐⭐ |
 | AWS S3 Client & boto3 helper functions | `app/utils/s3.py` (brandhub-ai-service) | Lộc | ⭐⭐⭐⭐⭐ |
 | Docker Multi-stage configuration | `Dockerfile` (brandhub-ai-service) | Lộc | ⭐⭐⭐⭐⭐ |

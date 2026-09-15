@@ -23,7 +23,7 @@ tôi muốn upgrade lên Pro/Enterprise,
 
 - Danh sách Plan (Basic/Pro/Enterprise) hiển thị rõ giới hạn: số Workspace tối đa, credit AI/tháng, tính năng nâng cao.
 - Chọn Plan → chuyển sang Make Payment (FR 3.9.3) để thanh toán.
-- Upgrade thành công → cập nhật ngay giới hạn Workspace/credit cho toàn bộ Agency của User (Plan gắn cấp User/Owner, xem [08_Subscription_Billing.md](../../../BA/08_Subscription_Billing.md)).
+- Upgrade thành công → cập nhật ngay giới hạn Workspace/credit cho toàn bộ Agency của User (Plan gắn cấp User/Owner, xem [08-subscription-billing.md](../../../BA/08-subscription-billing.md)).
 
 ## 4. UI / UX
 
@@ -58,4 +58,4 @@ POST /api/v1/subscriptions/upgrade
 
 ## Tham chiếu BA
 
-[08_Subscription_Billing.md](../../../BA/08_Subscription_Billing.md)
+[08-subscription-billing.md](../../../BA/08-subscription-billing.md)

@@ -56,4 +56,4 @@ PATCH /api/v1/workspaces/{id}/tasks/{taskId}/detail
 
 ## Tham chiếu BA
 
-[05_Content_Task_Workflow.md](../../../BA/05_Content_Task_Workflow.md)
+[05-content-task-workflow.md](../../../BA/05-content-task-workflow.md)

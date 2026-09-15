@@ -22,7 +22,7 @@ tôi muốn cập nhật trạng thái buổi livestream,
 ## 3. Acceptance Criteria
 
 - 4 trạng thái chính: `PRE_LIVE → LIVE → POST_LIVE → DONE`, có thể `CANCEL` ở PRE_LIVE hoặc LIVE.
-- Xem chi tiết transition tại [12_State_Machines.md](../../../BA/12_State_Machines.md) mục 5.
+- Xem chi tiết transition tại [12-state-machines.md](../../../BA/12-state-machines.md) mục 5.
 - State này lồng bên trong Task cha — Task cha vẫn đi qua Approval Sequence (FR 3.6.9) sau khi Livestream state đạt DONE.
 
 ## 4. UI / UX
@@ -55,4 +55,4 @@ PATCH /api/v1/workspaces/{id}/tasks/{taskId}/livestream/status
 
 ## Tham chiếu BA
 
-[05_Content_Task_Workflow.md](../../../BA/05_Content_Task_Workflow.md), [12_State_Machines.md](../../../BA/12_State_Machines.md)
+[05-content-task-workflow.md](../../../BA/05-content-task-workflow.md), [12-state-machines.md](../../../BA/12-state-machines.md)

@@ -56,4 +56,4 @@ tôi muốn hệ thống tự động đăng Reels lên Facebook,
 
 ## Tham chiếu BA
 
-[07_Publishing_Social_Collaborator.md](../../../BA/07_Publishing_Social_Collaborator.md)
+[07-publishing-social-collaborator.md](../../../BA/07-publishing-social-collaborator.md)

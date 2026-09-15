@@ -7,10 +7,10 @@ The main project plan is at `../BrandHub_Project_Plan.md`.
 
 | File | Iteration | Timeline | Owner |
 |---|---|---|---|
-| [AI_Iteration_1_Research_Evaluation.md](AI_Iteration_1_Research_Evaluation.md) | Iteration 1 — Research & Evaluation | Parallel with Sprints 5–6 (Weeks 9–12) | Tuấn, Ân, Lộc |
-| [AI_Iteration_2_RAG_LLM_Trends.md](AI_Iteration_2_RAG_LLM_Trends.md) | Iteration 2 — RAG, LLM & Trends | Parallel with Sprints 7–8 (Weeks 13–16) | Ân, Tuấn, Lộc |
-| [AI_Iteration_3_Image_Ambassador_Composition.md](AI_Iteration_3_Image_Ambassador_Composition.md) | Iteration 3 — Image, Ambassador & Composition | Parallel with Sprints 9–10 (Weeks 17–20) | Lộc, Tuấn |
-| [AI_Iteration_4_Video_Integration_Documentation.md](AI_Iteration_4_Video_Integration_Documentation.md) | Iteration 4 — Video, Integration & Documentation | Parallel with Sprints 11–12 (Weeks 21–24) | Ân, Lộc, All |
+| [ai-iteration-1-research-evaluation.md](ai-iteration-1-research-evaluation.md) | Iteration 1 — Research & Evaluation | Parallel with Sprints 5–6 (Weeks 9–12) | Tuấn, Ân, Lộc |
+| [ai-iteration-2-rag-llm-trends.md](ai-iteration-2-rag-llm-trends.md) | Iteration 2 — RAG, LLM & Trends | Parallel with Sprints 7–8 (Weeks 13–16) | Ân, Tuấn, Lộc |
+| [ai-iteration-3-image-ambassador-composition.md](ai-iteration-3-image-ambassador-composition.md) | Iteration 3 — Image, Ambassador & Composition | Parallel with Sprints 9–10 (Weeks 17–20) | Lộc, Tuấn |
+| [ai-iteration-4-video-integration-documentation.md](ai-iteration-4-video-integration-documentation.md) | Iteration 4 — Video, Integration & Documentation | Parallel with Sprints 11–12 (Weeks 21–24) | Ân, Lộc, All |
 
 ## AI Track Summary
 

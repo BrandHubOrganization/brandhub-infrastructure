@@ -54,4 +54,4 @@ POST /api/v1/subscriptions/downgrade
 
 ## Tham chiếu BA
 
-[08_Subscription_Billing.md](../../../BA/08_Subscription_Billing.md)
+[08-subscription-billing.md](../../../BA/08-subscription-billing.md)

@@ -22,7 +22,7 @@ tôi muốn xác nhận đồng ý với Media Campaign,
 ## 3. Acceptance Criteria
 
 - Cần cả 2 phía approve (giống cơ chế Package, FR 3.5.4).
-- Khi `APPROVED` → **tự động sinh N Task vào backlog** của Workspace (mỗi đầu việc trong Campaign = 1 Task, xem [05_Content_Task_Workflow.md](../../../BA/05_Content_Task_Workflow.md)).
+- Khi `APPROVED` → **tự động sinh N Task vào backlog** của Workspace (mỗi đầu việc trong Campaign = 1 Task, xem [05-content-task-workflow.md](../../../BA/05-content-task-workflow.md)).
 - Task sinh ra ở mức độ thô: chỉ có tên + deadline, CHƯA có người thực hiện hay yêu cầu chi tiết — cần Identify Task Detail (FR 3.6.1) sau đó.
 - Campaign chuyển trạng thái `IN_PROGRESS` ngay sau khi sinh Task.
 
@@ -58,4 +58,4 @@ POST /api/v1/workspaces/{id}/campaigns/{campaignId}/deploy
 
 ## Tham chiếu BA
 
-[04_Media_Package_Campaign.md](../../../BA/04_Media_Package_Campaign.md), [12_State_Machines.md](../../../BA/12_State_Machines.md)
+[04-media-package-campaign.md](../../../BA/04-media-package-campaign.md), [12-state-machines.md](../../../BA/12-state-machines.md)

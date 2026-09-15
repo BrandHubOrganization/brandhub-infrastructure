@@ -22,7 +22,7 @@ và tái sử dụng lại mà không bị trừ credit AI thêm lần nữa.
 ## 3. Acceptance Criteria
 
 - Hiển thị lịch sử content đã tạo trong Workspace (liên kết Content Version, FR 3.6.10).
-- Khi user chọn tái sử dụng 1 content/asset đã tạo trước đó (ví dụ dùng lại ảnh AI đã generate cho bài khác) → **KHÔNG trừ credit AI thêm** (chỉ trừ credit lần generate đầu tiên, xem [08_Subscription_Billing.md](../../../BA/08_Subscription_Billing.md)).
+- Khi user chọn tái sử dụng 1 content/asset đã tạo trước đó (ví dụ dùng lại ảnh AI đã generate cho bài khác) → **KHÔNG trừ credit AI thêm** (chỉ trừ credit lần generate đầu tiên, xem [08-subscription-billing.md](../../../BA/08-subscription-billing.md)).
 
 ## 4. UI / UX
 
@@ -53,4 +53,4 @@ GET /api/v1/workspaces/{id}/content-history
 
 ## Tham chiếu BA
 
-[05_Content_Task_Workflow.md](../../../BA/05_Content_Task_Workflow.md)
+[05-content-task-workflow.md](../../../BA/05-content-task-workflow.md)

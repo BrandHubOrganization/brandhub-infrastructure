@@ -21,7 +21,7 @@ tôi muốn xác nhận đồng ý với Media Package đã thương lượng,
 
 ## 3. Acceptance Criteria
 
-- Cần **CẢ 2 PHÍA xác nhận approve** — `approvedByAgencyAt` VÀ `approvedByClientAt` đều phải có giá trị mới coi Package là `APPROVED` (xem [12_State_Machines.md](../../../BA/12_State_Machines.md) mục 2).
+- Cần **CẢ 2 PHÍA xác nhận approve** — `approvedByAgencyAt` VÀ `approvedByClientAt` đều phải có giá trị mới coi Package là `APPROVED` (xem [12-state-machines.md](../../../BA/12-state-machines.md) mục 2).
 - 1 bên approve trước, chờ bên còn lại — không tự động approve khi chỉ có 1 phía xác nhận.
 - Sau khi `APPROVED` → Package trở thành cơ sở để tạo Media Campaign (FR 3.5.5).
 
@@ -54,4 +54,4 @@ POST /api/v1/workspaces/{id}/media-package/approve
 
 ## Tham chiếu BA
 
-[04_Media_Package_Campaign.md](../../../BA/04_Media_Package_Campaign.md), [12_State_Machines.md](../../../BA/12_State_Machines.md)
+[04-media-package-campaign.md](../../../BA/04-media-package-campaign.md), [12-state-machines.md](../../../BA/12-state-machines.md)
