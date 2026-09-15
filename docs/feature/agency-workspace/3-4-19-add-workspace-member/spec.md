@@ -21,7 +21,7 @@ tôi muốn thêm 1 thành viên Agency vào Workspace,
 
 ## 3. Acceptance Criteria
 
-- Chọn 1 `AgencyMember` (điều kiện bắt buộc: người này phải đã là Member của Agency chứa Workspace này — xem [03_Agency_Workspace_Management.md](../../../BA/03_Agency_Workspace_Management.md) mục 'Quan hệ Agency Member ↔ Workspace Member').
+- Chọn 1 `AgencyMember` (điều kiện bắt buộc: người này phải đã là Member của Agency chứa Workspace này — xem [03-agency-workspace-management.md](../../../BA/03-agency-workspace-management.md) mục 'Quan hệ Agency Member ↔ Workspace Member').
 - Chọn role: `OWNER` | `MANAGER` | `MEMBER` (bao gồm Creator).
 - Tạo `WorkspaceMember` mới — **role này CHỈ áp dụng cho Workspace đang thêm vào**, không ảnh hưởng role của người đó ở Workspace khác trong cùng Agency.
 
@@ -56,4 +56,4 @@ POST /api/v1/workspaces/{id}/members
 
 ## Tham chiếu BA
 
-[01_Organization_Structure.md](../../../BA/01_Organization_Structure.md), [03_Agency_Workspace_Management.md](../../../BA/03_Agency_Workspace_Management.md)
+[01-organization-structure.md](../../../BA/01-organization-structure.md), [03-agency-workspace-management.md](../../../BA/03-agency-workspace-management.md)

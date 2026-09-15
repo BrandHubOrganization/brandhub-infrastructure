@@ -23,7 +23,7 @@ tôi muốn AI tạo caption cho bài đăng,
 
 - Input: topic, tone, platform đích, độ dài mong muốn.
 - AI trả về 1 hoặc nhiều phương án caption để Creator chọn/chỉnh sửa.
-- Trừ credit AI theo lượt generate (xem [08_Subscription_Billing.md](../../../BA/08_Subscription_Billing.md)).
+- Trừ credit AI theo lượt generate (xem [08-subscription-billing.md](../../../BA/08-subscription-billing.md)).
 
 ## 4. UI / UX
 
@@ -56,4 +56,4 @@ POST /api/v1/ai/generate-caption
 
 ## Tham chiếu BA
 
-[06_AI_Features.md](../../../BA/06_AI_Features.md)
+[06-ai-features.md](../../../BA/06-ai-features.md)

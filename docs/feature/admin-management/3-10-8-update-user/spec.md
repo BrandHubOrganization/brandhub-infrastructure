@@ -54,4 +54,4 @@ PATCH /api/v1/admin/users/{userId}
 
 ## Tham chiếu BA
 
-[09_Admin_Management.md](../../../BA/09_Admin_Management.md)
+[09-admin-management.md](../../../BA/09-admin-management.md)

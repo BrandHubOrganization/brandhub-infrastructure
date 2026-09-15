@@ -45,7 +45,7 @@ GET /api/v1/agencies/{id}/ai-credit?month=2026-09
 
 ## 7. Edge Cases
 
-- Tháng mới bắt đầu, credit reset — cần xác nhận cơ chế reset hàng tháng hay cộng dồn khi thiết kế kỹ thuật ([11_Data_Entities_Glossary.md](../../../BA/11_Data_Entities_Glossary.md) câu hỏi mở AICreditLedger).
+- Tháng mới bắt đầu, credit reset — cần xác nhận cơ chế reset hàng tháng hay cộng dồn khi thiết kế kỹ thuật ([11-data-entities-glossary.md](../../../BA/11-data-entities-glossary.md) câu hỏi mở AICreditLedger).
 
 ## 8. Definition of Done
 
@@ -57,4 +57,4 @@ GET /api/v1/agencies/{id}/ai-credit?month=2026-09
 
 ## Tham chiếu BA
 
-[08_Subscription_Billing.md](../../../BA/08_Subscription_Billing.md)
+[08-subscription-billing.md](../../../BA/08-subscription-billing.md)

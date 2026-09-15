@@ -1,10 +1,10 @@
 // BrandHub Workload Dashboard
-// Đọc BrandHub_Master_Plan.md (nguồn kế hoạch, luôn có) + jira_status.json (nguồn status thật, optional)
+// Đọc brandhub-master-plan.md (nguồn kế hoạch, luôn có) + jira_status.json (nguồn status thật, optional)
 // Không hardcode task nào — toàn bộ parse runtime từ 2 file trên.
 
 // Absolute path từ site root — hoạt động cả khi chạy trực tiếp (docs/dashboard/index.html
 // qua Live Server) lẫn khi nhúng qua VitePress /raw/dashboard/index.html (base: '/').
-const MD_PATH = '/plan/BrandHub_Master_Plan.md';
+const MD_PATH = '/plan/brandhub-master-plan.md';
 const JSON_PATH = '/plan/jira_status.json';
 
 const STATUS_COLORS = {

@@ -1,0 +1,781 @@
+  // BrandHub — Database Schema V2 (DBML for dbdiagram.io)
+  // STATUS: DESIGN — chưa áp dụng vào scripts/init-postgres.sql thật.
+  // Thiết kế cho nghiệp vụ V2: Agency -> Workspace -> Media Package -> Media Campaign -> Task
+  // Nguồn: docs/ba/11-data-entities-glossary.md, docs/database/database-strategy.md
+  //
+  // PostgreSQL (21 tables):
+  //   Identity:     users, user_oauth_providers, user_refresh_tokens, user_system_roles
+  //   Organization: agencies, agency_members, agency_invitations, workspaces,
+  //                 workspace_members, workspace_invitations, workspace_templates, client_profiles
+  //   Commerce:     media_packages, workspace_media_packages, media_campaigns
+  //   Collaborator: third_party_collaborators, campaign_collaborators
+  //   Billing:      subscription_plans, user_subscriptions, transactions, ai_credit_ledgers, audit_logs
+  //
+  // MongoDB (10 collections):
+  //   business-service: tasks, task_approvals, posts, content_requests, material_repository,
+  //                      brand_collections, hashtag_collections, content_versions,
+  //                      social_accounts, notifications
+  //   ai-service:        knowledge_documents, ai_usage_logs
+  //   publisher-service: publish_logs
+
+  // ============================================================
+  // ENUMS
+  // ============================================================
+
+  Enum user_status {
+    ACTIVE
+    SUSPENDED
+    DELETED
+  }
+
+  Enum oauth_provider {
+    GOOGLE
+    FACEBOOK
+  }
+
+  Enum workspace_member_role {
+    OWNER
+    MANAGER
+    CREATOR
+    CLIENT
+  }
+
+  Enum entity_status {
+    ACTIVE
+    SOFT_DELETED
+    INACTIVE
+  }
+
+  Enum invitation_status {
+    PENDING
+    ACCEPTED
+    EXPIRED
+    REVOKED
+  }
+
+  Enum package_negotiation_status {
+    DRAFT
+    CLIENT_REQUESTED_CHANGE
+    AGENCY_COUNTERED
+    APPROVED
+  }
+
+  Enum campaign_status {
+    DRAFT
+    APPROVED
+    IN_PROGRESS
+    COMPLETED
+  }
+
+  Enum content_request_status {
+    PENDING
+    IN_PROGRESS
+    ACCEPTED
+    DENIED
+  }
+
+  Enum task_type {
+    POST
+    LIVESTREAM
+    SURVEY
+  }
+
+  Enum task_source_type {
+    CAMPAIGN
+    CONTENT_REQUEST
+    MANUAL
+  }
+
+  Enum task_status {
+    BACKLOG
+    DETAIL_IDENTIFIED
+    ASSIGNED
+    IN_PROGRESS
+    QC_REVIEW
+    MANAGER_REVIEW
+    CLIENT_REVIEW
+    COMPLETED
+  }
+
+  Enum task_approval_step {
+    CREATOR
+    QC
+    MANAGER
+    CLIENT
+  }
+
+  Enum task_approval_action {
+    SUBMIT
+    APPROVE
+    REJECT
+  }
+
+  Enum collaborator_type {
+    NEWSPAPER
+    BANNER
+    TV
+    OTHER
+  }
+
+  Enum cooperation_status {
+    CONTACTED
+    NEGOTIATING
+    CONFIRMED
+    LIVE
+  }
+
+  Enum subscription_plan_name {
+    BASIC
+    PRO
+    ENTERPRISE
+  }
+
+  Enum subscription_status {
+    ACTIVE
+    EXPIRED
+    CANCELLED
+    TRIALING
+  }
+
+  Enum transaction_status {
+    PENDING
+    COMPLETED
+    FAILED
+    REFUNDED
+  }
+
+  Enum transaction_type {
+    UPGRADE_PLAN
+    BUY_CREDIT
+  }
+
+  Enum audit_action {
+    LOGIN
+    LOGOUT
+    TOKEN_REFRESH
+    PASSWORD_RESET
+    CREATE
+    UPDATE
+    DELETE
+    ROLE_CHANGE
+    PERMISSION_CHANGE
+  }
+
+  Enum social_platform {
+    FACEBOOK
+    INSTAGRAM
+    TIKTOK
+    THREADS
+  }
+
+  Enum social_account_status {
+    ACTIVE
+    EXPIRING_SOON
+    EXPIRED
+    REVOKED
+  }
+
+  Enum post_publish_status {
+    PENDING
+    IN_PROGRESS
+    DONE
+    FAIL
+  }
+
+  Enum livestream_sub_status {
+    PRE_LIVE
+    LIVE
+    POST_LIVE
+    DONE
+    CANCEL
+  }
+
+  Enum notification_type {
+    TASK_ASSIGNED
+    TASK_APPROVAL_NEEDED
+    TASK_REJECTED
+    PACKAGE_APPROVAL_NEEDED
+    CAMPAIGN_APPROVAL_NEEDED
+    CONTENT_REQUEST_DENIED
+    POST_PUBLISHED
+    POST_FAILED
+    AGENCY_INVITE
+    WORKSPACE_INVITE
+    SUBSCRIPTION_EXPIRING
+  }
+
+  // ============================================================
+  // POSTGRESQL — IDENTITY (4 tables, không đổi so với V1)
+  // ============================================================
+
+  Table users [note: 'PostgreSQL — Identity — business-service'] {
+    id                    uuid         [pk, default: `gen_random_uuid()`]
+    email                 varchar(255) [unique, not null]
+    password_hash         varchar      [note: 'null if OAuth-only']
+    full_name             varchar(255) [not null]
+    avatar_url            varchar
+    status                user_status  [not null, default: 'ACTIVE']
+    is_active             boolean      [not null, default: true]
+    preferences           jsonb        [not null, default: '{}']
+    last_login_at         timestamptz
+    last_password_change  timestamptz
+    otp_code              varchar(6)
+    otp_expiry            timestamptz
+    email_verified_at     timestamptz
+    created_at            timestamptz  [not null, default: `now()`]
+    updated_at            timestamptz  [not null, default: `now()`]
+
+    indexes { email [unique] }
+  }
+
+  Table user_oauth_providers [note: 'PostgreSQL — Identity — 1NF split from users'] {
+    id          uuid           [pk, default: `gen_random_uuid()`]
+    user_id     uuid           [not null, ref: > users.id]
+    provider    oauth_provider [not null]
+    provider_id varchar(255)   [not null]
+    created_at  timestamptz    [not null, default: `now()`]
+
+    indexes {
+      user_id
+      (provider, provider_id) [unique]
+    }
+  }
+
+  Table user_refresh_tokens [note: 'PostgreSQL — Identity — 1NF split from users'] {
+    id          uuid         [pk, default: `gen_random_uuid()`]
+    user_id     uuid         [not null, ref: > users.id]
+    token_hash  varchar(255) [not null, unique]
+    jti         varchar(255) [not null, unique]
+    expires_at  timestamptz  [not null]
+    device_info jsonb        [not null, default: '{}']
+    created_at  timestamptz  [not null, default: `now()`]
+
+    indexes {
+      user_id
+      jti [unique]
+      expires_at
+    }
+  }
+
+  Table user_system_roles [note: 'PostgreSQL — Identity — ADMIN/USER system-level only'] {
+    id          uuid        [pk, default: `gen_random_uuid()`]
+    user_id     uuid        [not null, unique, ref: > users.id]
+    system_role varchar(50) [not null, default: 'USER', note: 'CHECK IN (ADMIN, USER)']
+    granted_by  uuid        [ref: > users.id]
+    granted_at  timestamptz [not null, default: `now()`]
+
+    indexes { user_id [unique] }
+  }
+
+  // ============================================================
+  // POSTGRESQL — ORGANIZATION: AGENCY & WORKSPACE (NEW group V2)
+  // ============================================================
+
+  Table agencies [note: 'PostgreSQL — Organization — NEW V2 — anchor, mỗi Agency đúng 1 Owner'] {
+    id          uuid          [pk, default: `gen_random_uuid()`]
+    name        varchar(255)  [not null]
+    owner_id    uuid          [not null, ref: > users.id, note: '1 Agency = 1 Owner cố định']
+    logo_url    varchar
+    description text
+    status      entity_status [not null, default: 'ACTIVE']
+    deleted_at  timestamptz   [note: 'soft delete, khôi phục 30 ngày']
+    created_at  timestamptz   [not null, default: `now()`]
+    updated_at  timestamptz   [not null, default: `now()`]
+
+    indexes { owner_id }
+  }
+
+  Table agency_members [note: 'PostgreSQL — Organization — NEW V2 — junction, KHÔNG có cột role'] {
+    id         uuid        [pk, default: `gen_random_uuid()`]
+    agency_id  uuid        [not null, ref: > agencies.id]
+    user_id    uuid        [not null, ref: > users.id]
+    joined_at  timestamptz [not null, default: `now()`]
+
+    indexes { (agency_id, user_id) [unique] }
+  }
+
+  Table agency_invitations [note: 'PostgreSQL — Organization — NEW V2 — hết hạn 3 ngày'] {
+    id            uuid               [pk, default: `gen_random_uuid()`]
+    agency_id     uuid               [not null, ref: > agencies.id]
+    invited_email varchar(255)       [not null]
+    invited_by    uuid               [not null, ref: > users.id]
+    token         varchar(255)       [not null, unique]
+    status        invitation_status  [not null, default: 'PENDING']
+    expires_at    timestamptz        [not null, note: '3 ngày từ created_at']
+    accepted_at   timestamptz
+    created_at    timestamptz        [not null, default: `now()`]
+
+    indexes {
+      agency_id
+      token [unique]
+      (agency_id, invited_email) [unique]
+    }
+  }
+
+  Table workspaces [note: 'PostgreSQL — Organization — ĐỔI V2: agency_id FK thay vì đứng độc lập'] {
+    id                     uuid          [pk, default: `gen_random_uuid()`]
+    agency_id              uuid          [not null, ref: > agencies.id]
+    name                   varchar(255)  [not null]
+    media_package_id       uuid          [ref: > media_packages.id, note: 'nullable lúc mới tạo, set khi chọn Package']
+    timezone_config        varchar(100)  [not null, default: 'Asia/Ho_Chi_Minh']
+    settings               jsonb         [not null, default: '{}']
+    status                 entity_status [not null, default: 'ACTIVE']
+    deleted_at             timestamptz
+    created_at             timestamptz   [not null, default: `now()`]
+    updated_at             timestamptz   [not null, default: `now()`]
+
+    indexes { agency_id }
+  }
+
+  Table workspace_members [note: 'PostgreSQL — Organization — ĐỔI V2: role theo TỪNG Workspace, gộp CLIENT vào đây'] {
+    id                 uuid                   [pk, default: `gen_random_uuid()`]
+    workspace_id       uuid                   [not null, ref: > workspaces.id]
+    user_id            uuid                   [ref: > users.id, note: 'nullable nếu role=CLIENT chưa tự đăng ký, dùng client_profile_id']
+    client_profile_id  uuid                   [ref: > client_profiles.id, note: 'chỉ set khi role=CLIENT']
+    role               workspace_member_role  [not null]
+    added_by           uuid                   [ref: > users.id]
+    joined_at          timestamptz
+    is_active          boolean                [not null, default: true]
+    created_at         timestamptz            [not null, default: `now()`]
+    updated_at         timestamptz            [not null, default: `now()`]
+
+    indexes {
+      workspace_id
+      (workspace_id, user_id) [unique]
+      (workspace_id, client_profile_id) [unique]
+    }
+  }
+
+  Table workspace_invitations [note: 'PostgreSQL — Organization — không đổi so với V1'] {
+    id            uuid         [pk, default: `gen_random_uuid()`]
+    workspace_id  uuid         [not null, ref: > workspaces.id]
+    invited_email varchar(255) [not null]
+    role          workspace_member_role [not null]
+    invited_by    uuid         [not null, ref: > users.id]
+    token         varchar(255) [not null, unique]
+    status        invitation_status [not null, default: 'PENDING']
+    expires_at    timestamptz  [not null]
+    accepted_at   timestamptz
+    created_at    timestamptz  [not null, default: `now()`]
+
+    indexes {
+      workspace_id
+      token [unique]
+      (workspace_id, invited_email) [unique]
+    }
+  }
+
+  Table workspace_templates [note: 'PostgreSQL — Organization — NEW V2 — lưu cấu hình Workspace để tái sử dụng'] {
+    id             uuid         [pk, default: `gen_random_uuid()`]
+    agency_id      uuid         [not null, ref: > agencies.id]
+    name           varchar(255) [not null]
+    source_workspace_id uuid    [ref: > workspaces.id, note: 'Workspace gốc được lưu thành template']
+    config_snapshot jsonb       [not null, note: 'snapshot settings tại thời điểm lưu']
+    created_by     uuid         [not null, ref: > users.id]
+    created_at     timestamptz  [not null, default: `now()`]
+
+    indexes { agency_id }
+  }
+
+  Table client_profiles [note: 'PostgreSQL — Organization — NEW V2 — tách bảng riêng khỏi users, tái sử dụng xuyên Agency'] {
+    id              uuid         [pk, default: `gen_random_uuid()`]
+    linked_user_id  uuid         [ref: > users.id, note: 'nullable — set khi Client tự đăng ký/liên kết account']
+    display_name    varchar(255) [not null]
+    email           varchar(255) [not null, note: 'CỐ ĐỊNH, không đổi được qua FR 3.3.4']
+    company         varchar(255)
+    phone           varchar(50)
+    note            text
+    created_at      timestamptz  [not null, default: `now()`]
+    updated_at      timestamptz  [not null, default: `now()`]
+
+    indexes {
+      linked_user_id
+      email
+    }
+  }
+
+  // ============================================================
+  // POSTGRESQL — COMMERCE: MEDIA PACKAGE & CAMPAIGN (NEW V2)
+  // ============================================================
+
+  Table media_packages [note: 'PostgreSQL — Commerce — NEW V2 — gộp Template+Custom 1 bảng (xem database-strategy.md mục 4.3)'] {
+    id                 uuid         [pk, default: `gen_random_uuid()`]
+    name               varchar(255) [not null]
+    is_template        boolean      [not null, default: false, note: 'true=Admin template dùng chung, false=custom riêng 1 Workspace']
+    package_type       varchar(50)  [not null, note: 'by_duration | by_budget | full_delegation']
+    duration_weeks     int
+    budget_amount      decimal(14,2)
+    scope_description  text
+    created_by         uuid         [not null, ref: > users.id, note: 'Admin cho template, Owner/Manager cho custom']
+    created_at         timestamptz  [not null, default: `now()`]
+    updated_at         timestamptz  [not null, default: `now()`]
+
+    indexes { is_template }
+  }
+
+  Table workspace_media_packages [note: 'PostgreSQL — Commerce — NEW V2 — đàm phán, ACID 2-bên-approve (Hard Rule 4)'] {
+    id                     uuid                        [pk, default: `gen_random_uuid()`]
+    workspace_id           uuid                        [not null, unique, ref: > workspaces.id]
+    package_id             uuid                        [not null, ref: > media_packages.id]
+    negotiation_status     package_negotiation_status  [not null, default: 'DRAFT']
+    final_terms            jsonb                       [not null, default: '{}', note: 'giá/thời gian/hình thức đã chốt']
+    approved_by_agency_at  timestamptz                 [note: 'NULL cho tới khi Owner/Manager approve bản mới nhất']
+    approved_by_client_at  timestamptz                 [note: 'NULL cho tới khi Client approve bản mới nhất — reset khi 1 bên sửa lại']
+    created_at             timestamptz                 [not null, default: `now()`]
+    updated_at             timestamptz                 [not null, default: `now()`]
+
+    indexes { workspace_id [unique] }
+  }
+
+  Table media_campaigns [note: 'PostgreSQL — Commerce — NEW V2 — immutable sau approve (docs/ba/13 mục 6)'] {
+    id                        uuid             [pk, default: `gen_random_uuid()`]
+    workspace_media_package_id uuid            [not null, ref: > workspace_media_packages.id]
+    name                      varchar(255)     [not null]
+    strategy_detail           text
+    brand_guideline           text
+    timeline                  jsonb            [not null, default: '{}']
+    status                    campaign_status  [not null, default: 'DRAFT']
+    approved_by_agency_at     timestamptz
+    approved_by_client_at     timestamptz
+    created_at                timestamptz      [not null, default: `now()`]
+    updated_at                timestamptz      [not null, default: `now()`]
+
+    indexes { workspace_media_package_id }
+  }
+
+  // ============================================================
+  // POSTGRESQL — THIRD-PARTY COLLABORATOR (NEW V2, module hoàn toàn mới)
+  // ============================================================
+
+  Table third_party_collaborators [note: 'PostgreSQL — Collaborator — NEW V2 — danh bạ chung cấp Agency (docs/ba/13 mục 8)'] {
+    id           uuid                [pk, default: `gen_random_uuid()`]
+    agency_id    uuid                [not null, ref: > agencies.id]
+    partner_name varchar(255)        [not null]
+    partner_type collaborator_type   [not null]
+    contact_info jsonb               [not null, default: '{}']
+    notes        text
+    created_by   uuid                [not null, ref: > users.id]
+    created_at   timestamptz         [not null, default: `now()`]
+    updated_at   timestamptz         [not null, default: `now()`]
+
+    indexes { agency_id }
+  }
+
+  Table campaign_collaborators [note: 'PostgreSQL — Collaborator — NEW V2 — N-N, trạng thái theo TỪNG Campaign'] {
+    id                  uuid                [pk, default: `gen_random_uuid()`]
+    media_campaign_id   uuid                [not null, ref: > media_campaigns.id]
+    collaborator_id     uuid                [not null, ref: > third_party_collaborators.id]
+    cooperation_status  cooperation_status  [not null, default: 'CONTACTED']
+    updated_by          uuid                [ref: > users.id]
+    updated_at          timestamptz         [not null, default: `now()`]
+
+    indexes { (media_campaign_id, collaborator_id) [unique] }
+  }
+
+  // ============================================================
+  // POSTGRESQL — BILLING (đổi phạm vi gắn Plan: User thay vì Workspace)
+  // ============================================================
+
+  Table subscription_plans [note: 'PostgreSQL — Billing — master data, không đổi so với V1'] {
+    id               uuid                     [pk, default: `gen_random_uuid()`]
+    name             subscription_plan_name   [not null, unique]
+    display_name     varchar(100)             [not null]
+    price_monthly    decimal(12,2)            [not null]
+    max_workspaces   int                      [not null, note: '-1 = unlimited']
+    ai_credits_month int                      [not null, note: '-1 = unlimited']
+    features         jsonb                    [not null, default: '[]']
+    is_active        boolean                  [not null, default: true]
+    created_at       timestamptz              [not null, default: `now()`]
+
+    indexes { name [unique] }
+  }
+
+  Table user_subscriptions [note: 'PostgreSQL — Billing — ĐỔI TÊN V2 từ workspace_subscriptions, gắn cấp User/Owner'] {
+    id                   uuid                 [pk, default: `gen_random_uuid()`]
+    user_id              uuid                 [not null, unique, ref: > users.id, note: 'Plan áp dụng toàn bộ Agency của Owner này']
+    plan_id              uuid                 [not null, ref: > subscription_plans.id]
+    status               subscription_status  [not null, default: 'TRIALING']
+    current_period_start timestamptz          [not null]
+    current_period_end   timestamptz          [not null]
+    cancelled_at         timestamptz
+    created_at           timestamptz          [not null, default: `now()`]
+    updated_at           timestamptz          [not null, default: `now()`]
+
+    indexes {
+      user_id [unique]
+      (status, current_period_end)
+    }
+  }
+
+  Table transactions [note: 'PostgreSQL — Billing — ĐỔI TÊN V2 từ payments, gộp invoices — PayOS, ACID'] {
+    id             uuid                [pk, default: `gen_random_uuid()`]
+    user_id        uuid                [not null, ref: > users.id]
+    type           transaction_type    [not null]
+    amount         decimal(12,2)       [not null]
+    currency       varchar(3)          [not null, default: 'VND']
+    status         transaction_status  [not null, default: 'PENDING']
+    ref_id         varchar(255)        [note: 'planId khi upgrade, hoặc số lượng credit khi buy_credit']
+    payos_tx_id    varchar(255)        [unique, note: 'External PayOS transaction ID']
+    paid_at        timestamptz
+    failed_reason  varchar
+    created_at     timestamptz         [not null, default: `now()`]
+    updated_at     timestamptz         [not null, default: `now()`]
+
+    indexes {
+      user_id
+      payos_tx_id [unique]
+    }
+  }
+
+  Table ai_credit_ledgers [note: 'PostgreSQL — Billing — NEW V2 — reset hàng tháng, KHÔNG rollover (docs/ba/13 mục 7)'] {
+    id             uuid         [pk, default: `gen_random_uuid()`]
+    agency_id      uuid         [not null, ref: > agencies.id]
+    creator_id     uuid         [ref: > users.id, note: 'nullable — NULL = tổng Agency, non-null = hạn mức riêng 1 Creator']
+    month          varchar(7)   [not null, note: 'YYYY-MM']
+    used_amount    int          [not null, default: 0]
+    monthly_limit  int          [note: 'set qua FR 3.9.7 — nullable = dùng chung hạn mức Agency']
+    created_at     timestamptz  [not null, default: `now()`]
+    updated_at     timestamptz  [not null, default: `now()`]
+
+    indexes { (agency_id, creator_id, month) [unique] }
+  }
+
+  Table audit_logs [note: 'PostgreSQL — Billing — append-only, không đổi so với V1'] {
+    id            bigserial    [pk]
+    agency_id     uuid         [note: 'Nullable — ADMIN global actions']
+    user_id       uuid         [not null, note: 'Soft ref intentional — persist sau khi user bị xoá']
+    action        audit_action [not null]
+    resource_type varchar(50)  [not null]
+    resource_id   varchar(255)
+    old_value     jsonb
+    new_value     jsonb
+    created_at    timestamptz  [not null, default: `now()`]
+
+    indexes {
+      (user_id, created_at)
+      (agency_id, created_at)
+      (resource_type, resource_id)
+    }
+  }
+
+  // ============================================================
+  // MONGODB — 10 COLLECTIONS
+  // Note: soft refs tới PostgreSQL, filter workspaceId bắt buộc.
+  // ============================================================
+
+  Table tasks [note: 'MongoDB — NEW V2, thay posts — generic 3 loại (docs/database/database-strategy.md mục 4.4)'] {
+    _id                     ObjectId          [pk]
+    workspaceId             string            [not null, note: 'Soft ref → workspaces.id (PG)']
+    sourceType              task_source_type  [not null]
+    sourceRefId             string            [note: 'Soft ref → media_campaigns.id hoặc content_requests._id, tuỳ sourceType']
+    type                    task_type         [not null]
+    title                   string            [not null]
+    description             string
+    assigneeId              string            [note: 'Soft ref → users.id (PG)']
+    qcAssigneeId            string            [note: 'Soft ref → users.id (PG) — tùy chọn']
+    requiresClientApproval  boolean           [not null, default: false]
+    status                  task_status       [not null, default: 'BACKLOG']
+    typeMetadata            object            [note: 'field riêng theo type: platformTargets[] (post), preLiveScript (livestream), formSchema (survey)']
+    dueDate                 date
+    createdAt               date              [not null]
+    updatedAt               date              [not null]
+
+    indexes {
+      (workspaceId, status)
+      (workspaceId, assigneeId)
+      (workspaceId, type)
+    }
+  }
+
+  Table task_approvals [note: 'MongoDB — NEW V2 — tách khỏi tasks, GIỮ approval cũ khi step sau reject (docs/ba/13 mục 4)'] {
+    _id       ObjectId              [pk]
+    taskId    string                [not null, note: 'ref → tasks._id, cùng DB']
+    step      task_approval_step    [not null]
+    action    task_approval_action  [not null]
+    actorId   string                [not null, note: 'Soft ref → users.id (PG)']
+    comment   string
+    createdAt date                  [not null]
+
+    indexes { (taskId, step, createdAt) }
+  }
+
+  Table posts [note: 'MongoDB — ĐỔI NGHĨA V2 — chỉ bài ĐÃ PUBLISH thành công (kết quả Task type=post hoàn thành)'] {
+    _id             ObjectId              [pk]
+    workspaceId     string                [not null, note: 'Soft ref → workspaces.id (PG)']
+    taskId          string                [not null, note: 'Soft ref → tasks._id — link về Task gốc']
+    platform        social_platform       [not null]
+    socialAccountId string                [note: 'Soft ref → social_accounts._id']
+    contentText     string                [not null]
+    mediaUrls       string[]
+    status          post_publish_status   [not null, default: 'PENDING']
+    scheduledAt     date
+    publishedAt     date
+    externalPostId  string
+    reactionCount   int                   [default: 0]
+    commentCount    int                   [default: 0]
+    shareCount      int                   [default: 0]
+    createdAt       date                  [not null]
+    updatedAt       date                  [not null]
+
+    indexes {
+      (workspaceId, status)
+      (workspaceId, scheduledAt)
+    }
+  }
+
+  Table content_requests [note: 'MongoDB — ĐỔI FSM V2 — pending/in_progress/accepted/denied (denied=terminal), docs/ba/13 mục 5'] {
+    _id                      ObjectId                [pk]
+    workspaceId              string                  [not null, note: 'Soft ref → workspaces.id (PG)']
+    createdByClientProfileId string                  [not null, note: 'Soft ref → client_profiles.id (PG) — CHỈ Client tạo']
+    title                    string                  [not null]
+    description              string
+    status                   content_request_status  [not null, default: 'PENDING']
+    generatedTaskId          string                  [note: 'Soft ref → tasks._id — set khi status=ACCEPTED']
+    createdAt                date                    [not null]
+    updatedAt                date                    [not null]
+
+    indexes { (workspaceId, status) }
+  }
+
+  Table material_repository [note: 'MongoDB — NEW V2 — kho ảnh/video raw vs retouched'] {
+    _id          ObjectId    [pk]
+    workspaceId  string      [not null, note: 'Soft ref → workspaces.id (PG)']
+    taskId       string      [note: 'Soft ref → tasks._id, nullable nếu upload chung Workspace']
+    fileUrl      string      [not null, note: 'S3 URL']
+    fileType     string      [note: 'image | video']
+    isRetouched  boolean     [not null, default: false]
+    uploadedBy   string      [not null, note: 'Soft ref → users.id (PG)']
+    createdAt    date        [not null]
+
+    indexes { (workspaceId, taskId) }
+  }
+
+  Table brand_collections [note: 'MongoDB — NEW V2 — tài liệu Client cung cấp làm tham khảo'] {
+    _id          ObjectId  [pk]
+    workspaceId  string    [not null, note: 'Soft ref → workspaces.id (PG)']
+    title        string    [not null]
+    fileUrl      string
+    description  string
+    uploadedBy   string    [note: 'Soft ref → client_profiles.id hoặc users.id (PG)']
+    createdAt    date      [not null]
+
+    indexes { workspaceId }
+  }
+
+  Table hashtag_collections [note: 'MongoDB — NEW V2 — kho hashtag theo Workspace'] {
+    _id          ObjectId  [pk]
+    workspaceId  string    [not null, note: 'Soft ref → workspaces.id (PG)']
+    name         string    [not null]
+    hashtags     string[]  [not null]
+    createdBy    string    [note: 'Soft ref → users.id (PG)']
+    createdAt    date      [not null]
+    updatedAt    date      [not null]
+
+    indexes { workspaceId }
+  }
+
+  Table content_versions [note: 'MongoDB — NEW V2 — lịch sử version nội dung (Content History)'] {
+    _id             ObjectId  [pk]
+    taskId          string    [not null, note: 'ref → tasks._id']
+    versionNumber   int       [not null]
+    contentSnapshot object    [not null, note: 'snapshot nội dung tại thời điểm version']
+    createdBy       string    [not null, note: 'Soft ref → users.id (PG)']
+    createdAt       date      [not null]
+
+    indexes { (taskId, versionNumber) }
+  }
+
+  Table social_accounts [note: 'MongoDB — giữ nguyên V1, bỏ ZALO_OA khỏi enum platform'] {
+    _id              ObjectId              [pk]
+    workspaceId      string                [not null, note: 'Soft ref → workspaces.id (PG)']
+    clientProfileId  string                [note: 'Soft ref → client_profiles.id (PG)']
+    platform         social_platform       [not null]
+    accountName      string                [not null]
+    accountId        string                [not null]
+    encryptedToken   string                [not null]
+    encryptedIv      string                [not null]
+    tokenExpiresAt   date                  [not null]
+    tokenStatus      social_account_status [not null, default: 'ACTIVE']
+    isActive         boolean               [not null, default: true]
+    createdAt        date                  [not null]
+    updatedAt        date                  [not null]
+
+    indexes {
+      workspaceId
+      (workspaceId, platform, accountId) [unique]
+    }
+  }
+
+  Table notifications [note: 'MongoDB — giữ nguyên V1, thêm type mới cho Package/Campaign/Task V2'] {
+    _id         ObjectId          [pk]
+    workspaceId string            [not null, note: 'Soft ref → workspaces.id (PG)']
+    userId      string            [not null, note: 'Soft ref → users.id (PG)']
+    type        notification_type [not null]
+    title       string            [not null]
+    body        string
+    metadata    object
+    isRead      boolean           [not null, default: false]
+    createdAt   date              [not null, note: 'TTL index — auto-expire 30 ngày']
+
+    indexes {
+      (userId, isRead)
+      (workspaceId, userId)
+    }
+  }
+
+  // ============================================================
+  // TABLE GROUPS
+  // ============================================================
+
+  TableGroup postgresql_identity {
+    users
+    user_oauth_providers
+    user_refresh_tokens
+    user_system_roles
+  }
+
+  TableGroup postgresql_organization {
+    agencies
+    agency_members
+    agency_invitations
+    workspaces
+    workspace_members
+    workspace_invitations
+    workspace_templates
+    client_profiles
+  }
+
+  TableGroup postgresql_commerce {
+    media_packages
+    workspace_media_packages
+    media_campaigns
+  }
+
+  TableGroup postgresql_collaborator {
+    third_party_collaborators
+    campaign_collaborators
+  }
+
+  TableGroup postgresql_billing {
+    subscription_plans
+    user_subscriptions
+    transactions
+    ai_credit_ledgers
+    audit_logs
+  }
+
+  TableGroup mongodb_task_content {
+    tasks
+    task_approvals
+    posts
+    content_requests
+    material_repository
+    brand_collections
+    hashtag_collections
+    content_versions
+  }
+
+  TableGroup mongodb_business_other {
+    social_accounts
+    notifications
+  }

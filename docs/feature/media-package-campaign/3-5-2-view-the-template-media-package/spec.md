@@ -56,4 +56,4 @@ GET /api/v1/workspaces/{id}/media-package
 
 ## Tham chiếu BA
 
-[04_Media_Package_Campaign.md](../../../BA/04_Media_Package_Campaign.md)
+[04-media-package-campaign.md](../../../BA/04-media-package-campaign.md)

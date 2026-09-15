@@ -22,7 +22,7 @@ tôi muốn viết kịch bản chi tiết cho buổi livestream,
 ## 3. Acceptance Criteria
 
 - Editor soạn script — có thể dùng chung Content Writing View (FR 3.6.10) hoặc form riêng theo timeline (segment theo mốc thời gian, giống mẫu Form Creator trong sơ đồ: 0:10, 15:20, 21:30...).
-- Có thể dùng AI hỗ trợ (Generate Livestream Script, xem [06_AI_Features.md](../../../BA/06_AI_Features.md) FR 3.7.11) làm bản gợi ý trước khi tự viết/chỉnh sửa.
+- Có thể dùng AI hỗ trợ (Generate Livestream Script, xem [06-ai-features.md](../../../BA/06-ai-features.md) FR 3.7.11) làm bản gợi ý trước khi tự viết/chỉnh sửa.
 - Checklist thực tế kèm theo (từ sơ đồ Flow diagram): ý tưởng/chiến lược target, kịch bản, tính toán rủi ro, quay phim/chụp/setup chuẩn bị, BTS quay bằng camera, người đảm sát/diễn viên, retouch source cắt cam + video edit để chạy hook.
 
 ## 4. UI / UX
@@ -55,4 +55,4 @@ PATCH /api/v1/workspaces/{id}/tasks/{taskId}/livestream/script
 
 ## Tham chiếu BA
 
-[05_Content_Task_Workflow.md](../../../BA/05_Content_Task_Workflow.md)
+[05-content-task-workflow.md](../../../BA/05-content-task-workflow.md)

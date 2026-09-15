@@ -23,7 +23,7 @@ tôi muốn theo dõi và cập nhật trạng thái Content Request của Clien
 
 - 4 trạng thái: `pending → in_progress → accepted` (sinh Task mới) hoặc `denied`.
 - **Chỉ Manager set trạng thái** — Client hoàn toàn không có quyền tự chuyển trạng thái (chỉ xem).
-- Khi set `accepted` → **hệ thống tự động sinh 1 Task mới** trong backlog, gắn `sourceType=content_request`, `sourceRefId` trỏ về Content Request này (xem [12_State_Machines.md](../../../BA/12_State_Machines.md) mục 1).
+- Khi set `accepted` → **hệ thống tự động sinh 1 Task mới** trong backlog, gắn `sourceType=content_request`, `sourceRefId` trỏ về Content Request này (xem [12-state-machines.md](../../../BA/12-state-machines.md) mục 1).
 - Ghi chú bổ sung từ nguồn: luồng thực tế ngoài đời — Template Package (số bài, thời gian, chất lượng) → team thảo luận cụ thể hóa bài viết → ra kế hoạch truyền thông (tiêu đề, nền tảng) → thảo luận với Client → hợp đồng chính thức. Đây là mô tả bối cảnh vận hành, không phải bước riêng trong FR.
 
 ## 4. UI / UX
@@ -57,4 +57,4 @@ PATCH /api/v1/workspaces/{id}/content-requests/{requestId}/status
 
 ## Tham chiếu BA
 
-[04_Media_Package_Campaign.md](../../../BA/04_Media_Package_Campaign.md), [12_State_Machines.md](../../../BA/12_State_Machines.md)
+[04-media-package-campaign.md](../../../BA/04-media-package-campaign.md), [12-state-machines.md](../../../BA/12-state-machines.md)

@@ -57,4 +57,4 @@ POST /api/v1/auth/login
 
 ## Tham chiếu BA
 
-[02_Authentication_Profile.md](../../../BA/02_Authentication_Profile.md)
+[02-authentication-profile.md](../../../BA/02-authentication-profile.md)

@@ -21,7 +21,7 @@ Chạy lại mỗi khi muốn đồng bộ tiến độ Jira mới nhất vào d
 |---|---|---|
 | `docs/dashboard.md` | VitePress page, route `/dashboard` | Nhúng iframe trỏ `/dashboard/index.html` |
 | `frontend/public/dashboard/index.html` | Vite static asset | Layout + style dashboard thật |
-| `frontend/public/dashboard/dashboard.js` | Vite static asset | Parse `BrandHub_Master_Plan.md` + merge `jira_status.json`, render chart/bảng |
+| `frontend/public/dashboard/dashboard.js` | Vite static asset | Parse `brandhub-master-plan.md` + merge `jira_status.json`, render chart/bảng |
 | `docs/plan/jira_status.json` | gitignored | Snapshot status Jira, tự tạo bằng `export-jira.js` |
 
 **Vì sao dashboard nằm ở `frontend/public/` chứ không `docs/`:** VitePress coi mọi thư mục có `README.md`/`index.md` trong `docs/` (srcDir) là 1 route markdown — đặt `index.html` cùng cấp gây route trùng lồng nhau (nav lặp 3 lớp). `frontend/public/` là static passthrough thật của Vite, không qua markdown router.

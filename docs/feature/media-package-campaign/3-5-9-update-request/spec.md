@@ -55,4 +55,4 @@ PATCH /api/v1/workspaces/{id}/content-requests/{requestId}
 
 ## Tham chiếu BA
 
-[04_Media_Package_Campaign.md](../../../BA/04_Media_Package_Campaign.md), [12_State_Machines.md](../../../BA/12_State_Machines.md)
+[04-media-package-campaign.md](../../../BA/04-media-package-campaign.md), [12-state-machines.md](../../../BA/12-state-machines.md)

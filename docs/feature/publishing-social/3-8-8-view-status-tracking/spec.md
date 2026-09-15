@@ -22,7 +22,7 @@ tôi muốn xem trạng thái publish của bài đăng,
 ## 3. Acceptance Criteria
 
 - 4 trạng thái: `PENDING → IN_PROGRESS → DONE` hoặc `FAIL`.
-- Xem transition chi tiết tại [12_State_Machines.md](../../../BA/12_State_Machines.md) mục 7.
+- Xem transition chi tiết tại [12-state-machines.md](../../../BA/12-state-machines.md) mục 7.
 
 ## 4. UI / UX
 
@@ -53,4 +53,4 @@ GET /api/v1/workspaces/{id}/posts/{postId}/status
 
 ## Tham chiếu BA
 
-[07_Publishing_Social_Collaborator.md](../../../BA/07_Publishing_Social_Collaborator.md), [12_State_Machines.md](../../../BA/12_State_Machines.md)
+[07-publishing-social-collaborator.md](../../../BA/07-publishing-social-collaborator.md), [12-state-machines.md](../../../BA/12-state-machines.md)

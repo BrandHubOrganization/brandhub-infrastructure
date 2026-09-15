@@ -55,4 +55,4 @@ PATCH /api/v1/agencies/{id}/ai-credit/{creatorId}/limit
 
 ## Tham chiếu BA
 
-[08_Subscription_Billing.md](../../../BA/08_Subscription_Billing.md)
+[08-subscription-billing.md](../../../BA/08-subscription-billing.md)

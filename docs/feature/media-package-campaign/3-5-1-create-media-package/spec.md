@@ -22,10 +22,10 @@ tôi muốn tạo/chọn Media Package cho Workspace,
 ## 3. Acceptance Criteria
 
 - Admin đã tạo sẵn các Package mẫu (2 tuần, 3 tuần...) — Owner/Manager chọn 1 trong số đó, hoặc custom Package mới riêng cho Agency.
-- **Thứ tự nghiệp vụ đã confirm**: Workspace được tạo TRƯỚC (FR 3.4.12), Manager chọn Package template NGAY SAU khi tạo Workspace, trước khi mời Client vào (xem [04_Media_Package_Campaign.md](../../../BA/04_Media_Package_Campaign.md) mục 1).
+- **Thứ tự nghiệp vụ đã confirm**: Workspace được tạo TRƯỚC (FR 3.4.12), Manager chọn Package template NGAY SAU khi tạo Workspace, trước khi mời Client vào (xem [04-media-package-campaign.md](../../../BA/04-media-package-campaign.md) mục 1).
 - Nếu Owner/Manager chưa chọn Package khi tạo Workspace → hệ thống gửi thông báo nhắc Manager hoàn thành bước này.
 - Template cần dễ tùy chỉnh theo ý Client (không cứng nhắc).
-- **Thiết kế DB đề xuất**: tách 2 bảng `MediaPackageTemplate` (Admin tạo) và `MediaPackageCustom` (Owner/Manager tạo) — Workspace chỉ lưu `packageRefId` + `packageRefType` tham chiếu tới 1 trong 2 (xem [11_Data_Entities_Glossary.md](../../../BA/11_Data_Entities_Glossary.md)).
+- **Thiết kế DB đề xuất**: tách 2 bảng `MediaPackageTemplate` (Admin tạo) và `MediaPackageCustom` (Owner/Manager tạo) — Workspace chỉ lưu `packageRefId` + `packageRefType` tham chiếu tới 1 trong 2 (xem [11-data-entities-glossary.md](../../../BA/11-data-entities-glossary.md)).
 
 ## 4. UI / UX
 
@@ -64,4 +64,4 @@ POST /api/v1/agencies/{id}/media-package-custom
 
 ## Tham chiếu BA
 
-[04_Media_Package_Campaign.md](../../../BA/04_Media_Package_Campaign.md), [12_State_Machines.md](../../../BA/12_State_Machines.md)
+[04-media-package-campaign.md](../../../BA/04-media-package-campaign.md), [12-state-machines.md](../../../BA/12-state-machines.md)
