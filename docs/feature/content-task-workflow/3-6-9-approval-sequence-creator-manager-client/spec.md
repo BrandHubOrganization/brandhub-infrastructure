@@ -26,7 +26,7 @@ tôi muốn tham gia đúng vai trò của mình trong chuỗi duyệt Task,
 - **Reject ở BẤT KỲ bước nào → Task luôn quay về trạng thái `ASSIGNED`** — Creator (người làm ban đầu) sửa lại nội dung rồi submit lại.
 - **[SỬA 2026-09-15, override bản 2026-09-14]** Approval các step TRƯỚC step bị reject KHÔNG bị xoá. Ví dụ: QC đã approve → Manager reject → về `ASSIGNED` → Creator submit lại → **đi thẳng vào `MANAGER_REVIEW`, không phải qua lại `QC_REVIEW`**. Manager có thể chủ động gửi lại QC thủ công nếu thấy cần, không tự động.
 - Đi hết chuỗi không bị reject → Task chuyển `COMPLETED`.
-- Chi tiết đầy đủ transition xem [12_State_Machines.md](../../../BA/12_State_Machines.md) mục 4.
+- Chi tiết đầy đủ transition xem [12-state-machines.md](../../../BA/12-state-machines.md) mục 4.
 
 ## 4. UI / UX
 
@@ -72,4 +72,4 @@ GET /api/v1/workspaces/{id}/tasks/{taskId}/approvals
 
 ## Tham chiếu BA
 
-[05_Content_Task_Workflow.md](../../../BA/05_Content_Task_Workflow.md), [12_State_Machines.md](../../../BA/12_State_Machines.md)
+[05-content-task-workflow.md](../../../BA/05-content-task-workflow.md), [12-state-machines.md](../../../BA/12-state-machines.md)

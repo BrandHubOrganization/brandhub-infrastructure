@@ -22,7 +22,7 @@ tôi muốn AI gợi ý đối tác truyền thông phù hợp,
 ## 3. Acceptance Criteria
 
 - Input: ngành hàng, đối tượng target, ngân sách dự kiến → AI trả về list gợi ý đối tác (báo, banner, TV), có phân cấp option (ưu tiên theo mức độ phù hợp).
-- AI chỉ **gợi ý** — không tự động liên hệ hay ký kết. Kết quả gợi ý có thể được **thêm mới vào danh bạ `ThirdPartyCollaborator` cấp Agency**, hoặc **link vào Campaign hiện tại** nếu đối tác đó đã có sẵn trong danh bạ (record `CampaignCollaborator`) — xem [11_Data_Entities_Glossary.md](../../../BA/11_Data_Entities_Glossary.md).
+- AI chỉ **gợi ý** — không tự động liên hệ hay ký kết. Kết quả gợi ý có thể được **thêm mới vào danh bạ `ThirdPartyCollaborator` cấp Agency**, hoặc **link vào Campaign hiện tại** nếu đối tác đó đã có sẵn trong danh bạ (record `CampaignCollaborator`) — xem [11-data-entities-glossary.md](../../../BA/11-data-entities-glossary.md).
 
 ## 4. UI / UX
 
@@ -54,8 +54,8 @@ POST /api/v1/workspaces/{id}/campaigns/{campaignId}/collaborators
 
 ## Out of Scope
 
-- Tự động liên hệ/ký kết với đối tác (chỉ gợi ý, xem [07_Publishing_Social_Collaborator.md](../../../BA/07_Publishing_Social_Collaborator.md)).
+- Tự động liên hệ/ký kết với đối tác (chỉ gợi ý, xem [07-publishing-social-collaborator.md](../../../BA/07-publishing-social-collaborator.md)).
 
 ## Tham chiếu BA
 
-[06_AI_Features.md](../../../BA/06_AI_Features.md)
+[06-ai-features.md](../../../BA/06-ai-features.md)

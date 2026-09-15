@@ -24,7 +24,7 @@ tôi muốn tạo 1 Workspace mới,
 - Form nhập `name`, chọn `timezoneConfig` (mặc định theo Agency hoặc user tự chọn).
 - **Bắt buộc chọn 1 người làm Manager** ngay lúc tạo — có thể là **chính Owner tự nhận** làm Manager của Workspace này, hoặc **chọn 1 Member khác** đã có trong Agency (cả 2 đều hợp lệ — [CONFIRMED 2026-09-14]).
 - Tạo `Workspace` + `WorkspaceMember` (role=MANAGER) cho người được chọn trong 1 transaction.
-- Sau khi tạo, hệ thống nhắc Manager chọn Media Package template (xem [04_Media_Package_Campaign.md](../../../BA/04_Media_Package_Campaign.md)) — nếu chưa chọn, gửi thông báo nhắc nhở (theo FR 3.5.1).
+- Sau khi tạo, hệ thống nhắc Manager chọn Media Package template (xem [04-media-package-campaign.md](../../../BA/04-media-package-campaign.md)) — nếu chưa chọn, gửi thông báo nhắc nhở (theo FR 3.5.1).
 
 ## 4. UI / UX
 
@@ -45,7 +45,7 @@ POST /api/v1/agencies/{id}/workspaces
 
 ## 7. Edge Cases
 
-- Owner chọn chính mình làm Manager → vẫn tạo `WorkspaceMember` record bình thường với role=MANAGER cho Owner đó (Owner không tự động có quyền Workspace nếu không có record — xem [01_Organization_Structure.md](../../../BA/01_Organization_Structure.md)).
+- Owner chọn chính mình làm Manager → vẫn tạo `WorkspaceMember` record bình thường với role=MANAGER cho Owner đó (Owner không tự động có quyền Workspace nếu không có record — xem [01-organization-structure.md](../../../BA/01-organization-structure.md)).
 
 ## 8. Definition of Done
 
@@ -57,4 +57,4 @@ POST /api/v1/agencies/{id}/workspaces
 
 ## Tham chiếu BA
 
-[01_Organization_Structure.md](../../../BA/01_Organization_Structure.md), [03_Agency_Workspace_Management.md](../../../BA/03_Agency_Workspace_Management.md)
+[01-organization-structure.md](../../../BA/01-organization-structure.md), [03-agency-workspace-management.md](../../../BA/03-agency-workspace-management.md)

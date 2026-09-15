@@ -61,7 +61,7 @@
 
 ## 6. Blocked tasks & Dependencies
 
-*(Điền nếu có — lưu ý rủi ro Google Veo API limited preview, đã ghi trong AI_Iteration_4_Video_Integration_Documentation.md)*
+*(Điền nếu có — lưu ý rủi ro Google Veo API limited preview, đã ghi trong ai-iteration-4-video-integration-documentation.md)*
 
 ---
 

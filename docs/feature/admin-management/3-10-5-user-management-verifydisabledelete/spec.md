@@ -21,7 +21,7 @@ tôi muốn chuyển đổi trạng thái 1 User (verify/disable/delete),
 
 ## 3. Acceptance Criteria
 
-- 1 action duy nhất `PATCH .../status` nhận `action` = `verify` | `disable` | `delete` (soft) — gộp thay vì 3 endpoint riêng, theo chủ đích thiết kế gọn (xem [09_Admin_Management.md](../../../BA/09_Admin_Management.md) mục 'User Management gộp FR').
+- 1 action duy nhất `PATCH .../status` nhận `action` = `verify` | `disable` | `delete` (soft) — gộp thay vì 3 endpoint riêng, theo chủ đích thiết kế gọn (xem [09-admin-management.md](../../../BA/09-admin-management.md) mục 'User Management gộp FR').
 
 ## 4. UI / UX
 
@@ -53,4 +53,4 @@ PATCH /api/v1/admin/users/{userId}/status
 
 ## Tham chiếu BA
 
-[09_Admin_Management.md](../../../BA/09_Admin_Management.md)
+[09-admin-management.md](../../../BA/09-admin-management.md)

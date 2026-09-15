@@ -54,4 +54,4 @@ POST /api/v1/ai/suggest-hashtags
 
 ## Tham chiếu BA
 
-[06_AI_Features.md](../../../BA/06_AI_Features.md)
+[06-ai-features.md](../../../BA/06-ai-features.md)

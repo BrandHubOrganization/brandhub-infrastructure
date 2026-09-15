@@ -23,7 +23,7 @@ tôi muốn xem kho hashtag của Workspace,
 
 - List hashtag theo Workspace, phân loại theo mục đích sử dụng (xem FR 3.6.19).
 - Hashtag do Client thêm được đánh dấu **bắt buộc dùng** cho sự kiện tương ứng — khác hashtag Creator tự thêm (tùy chọn).
-- Có tích hợp gợi ý từ AI (xem [06_AI_Features.md](../../../BA/06_AI_Features.md) FR 3.7.10 Suggest Hashtag Trend).
+- Có tích hợp gợi ý từ AI (xem [06-ai-features.md](../../../BA/06-ai-features.md) FR 3.7.10 Suggest Hashtag Trend).
 
 ## 4. UI / UX
 
@@ -54,4 +54,4 @@ GET /api/v1/workspaces/{id}/hashtags
 
 ## Tham chiếu BA
 
-[05_Content_Task_Workflow.md](../../../BA/05_Content_Task_Workflow.md)
+[05-content-task-workflow.md](../../../BA/05-content-task-workflow.md)
