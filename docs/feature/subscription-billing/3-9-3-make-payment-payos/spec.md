@@ -60,4 +60,4 @@ POST /api/v1/payments/callback (webhook từ PayOS)
 
 ## Tham chiếu BA
 
-[08_Subscription_Billing.md](../../../BA/08_Subscription_Billing.md)
+[08-subscription-billing.md](../../../BA/08-subscription-billing.md)

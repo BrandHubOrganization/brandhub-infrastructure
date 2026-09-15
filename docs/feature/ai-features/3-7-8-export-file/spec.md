@@ -53,4 +53,4 @@ GET /api/v1/ai/assets/{assetId}/export?format=mp4
 
 ## Tham chiếu BA
 
-[06_AI_Features.md](../../../BA/06_AI_Features.md)
+[06-ai-features.md](../../../BA/06-ai-features.md)

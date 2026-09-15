@@ -51,7 +51,7 @@ Kết luận chính: `Z-Image` cho chất lượng hình ảnh tổng thể tố
 |---|---|
 | Branch | `docs/DA-59-analyze-ai-fashion-model-platforms` |
 | Commit | `3ba1704` — `docs(DA-59): write report analyze AI model fashion` |
-| Files changed | `docs/AI_Models/DA-59_AI_Fashion_Model_Generation_Platforms.md`; ghi chú hỗ trợ cục bộ `Model AI.docx` |
+| Files changed | `docs/ai-models/DA-59-ai-fashion-model-generation-platforms.md`; ghi chú hỗ trợ cục bộ `Model AI.docx` |
 | Thời gian | Khoảng 2 giờ trong tổng 4 giờ đã ghi nhận cho DA-59 |
 
 **Công việc thực hiện:**
@@ -70,7 +70,7 @@ Kết luận chính: `Z-Image` cho chất lượng hình ảnh tổng thể tố
 |---|---|
 | Branch | `docs/DA-59-analyze-ai-fashion-model-platforms` |
 | Commit | `3ba1704` — báo cáo tổng hợp kết quả test và comparison matrix |
-| Files changed | `docs/AI_Models/DA-59_AI_Fashion_Model_Generation_Platforms.md` |
+| Files changed | `docs/ai-models/DA-59-ai-fashion-model-generation-platforms.md` |
 | Thời gian | Khoảng 2 giờ trong tổng 4 giờ đã ghi nhận cho DA-59 |
 
 **Công việc thực hiện:**

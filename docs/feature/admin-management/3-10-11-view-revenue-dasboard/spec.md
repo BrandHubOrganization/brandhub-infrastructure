@@ -54,4 +54,4 @@ GET /api/v1/admin/revenue?from=...&to=...
 
 ## Tham chiếu BA
 
-[09_Admin_Management.md](../../../BA/09_Admin_Management.md)
+[09-admin-management.md](../../../BA/09-admin-management.md)

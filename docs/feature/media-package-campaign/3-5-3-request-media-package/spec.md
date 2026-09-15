@@ -23,7 +23,7 @@ tôi muốn đề xuất thay đổi cho Media Package,
 
 - Client gửi yêu cầu thay đổi: giá, thời gian, sự kiện, hình thức...
 - Owner/Manager phản hồi: chấp nhận, từ chối, hoặc counter-offer (đề xuất khác).
-- Quá trình lặp lại nhiều vòng (`negotiationStatus` chuyển qua lại `CLIENT_REQUESTED_CHANGE ↔ AGENCY_COUNTERED`, xem [12_State_Machines.md](../../../BA/12_State_Machines.md) mục 2) — cho đến khi cả 2 bên chốt được gói cuối cùng.
+- Quá trình lặp lại nhiều vòng (`negotiationStatus` chuyển qua lại `CLIENT_REQUESTED_CHANGE ↔ AGENCY_COUNTERED`, xem [12-state-machines.md](../../../BA/12-state-machines.md) mục 2) — cho đến khi cả 2 bên chốt được gói cuối cùng.
 
 ## 4. UI / UX
 
@@ -59,4 +59,4 @@ POST /api/v1/workspaces/{id}/media-package/counter-offer
 
 ## Tham chiếu BA
 
-[04_Media_Package_Campaign.md](../../../BA/04_Media_Package_Campaign.md), [12_State_Machines.md](../../../BA/12_State_Machines.md)
+[04-media-package-campaign.md](../../../BA/04-media-package-campaign.md), [12-state-machines.md](../../../BA/12-state-machines.md)

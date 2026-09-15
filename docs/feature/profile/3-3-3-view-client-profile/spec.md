@@ -21,7 +21,7 @@ tôi muốn xem Client Profile của mình,
 
 ## 3. Acceptance Criteria
 
-- Hiển thị field riêng của Client Profile: `displayName`, `company`, `phone`, `note` (xem [11_Data_Entities_Glossary.md](../../../BA/11_Data_Entities_Glossary.md) mục ClientProfile).
+- Hiển thị field riêng của Client Profile: `displayName`, `company`, `phone`, `note` (xem [11-data-entities-glossary.md](../../../BA/11-data-entities-glossary.md) mục ClientProfile).
 - Client Profile **độc lập với User Profile** thông thường (FR 3.3.1) — 1 User có cả 2 loại profile nếu họ vừa là Owner Agency của mình, vừa là Client ở Agency khác.
 - Khi User này được invite vào 1 Workspace mới (Agency khác) với vai trò Client → **tự động dùng lại Client Profile đã có**, không phải khai báo lại từ đầu.
 
@@ -54,4 +54,4 @@ GET /api/v1/client-profile/me
 
 ## Tham chiếu BA
 
-[02_Authentication_Profile.md](../../../BA/02_Authentication_Profile.md)
+[02-authentication-profile.md](../../../BA/02-authentication-profile.md)

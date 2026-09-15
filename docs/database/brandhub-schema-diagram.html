@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BrandHub — Database Schema Diagram V2 (DESIGN)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f4f4f5; overflow: hidden; height: 100vh; }
+
+  /* ── Toolbar ── */
+  .toolbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 48px; z-index: 100;
+    background: #fff; border-bottom: 1px solid #e4e4e7;
+    display: flex; align-items: center; gap: 8px; padding: 0 16px;
+  }
+  .toolbar-title { font-weight: 700; font-size: 0.9rem; color: #0a0a0a; margin-right: 8px; }
+  .toolbar-title span { color: #f05a28; }
+  .toolbar-status { font-size: 0.68rem; color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; padding: 2px 8px; border-radius: 4px; font-weight: 600; margin-right: 8px; }
+  .tb-sep { width: 1px; height: 24px; background: #e4e4e7; margin: 0 4px; }
+  .tb-btn {
+    padding: 5px 12px; border-radius: 6px; border: 1px solid #e4e4e7;
+    font-size: 0.8rem; font-weight: 500; cursor: pointer; background: #fafafa; color: #3f3f46;
+    transition: all 0.15s;
+  }
+  .tb-btn:hover { border-color: #f05a28; color: #f05a28; }
+  .tb-btn.active { background: #f05a28; color: #fff; border-color: #f05a28; }
+  .zoom-label { font-size: 0.78rem; color: #71717a; min-width: 42px; text-align: center; font-family: monospace; }
+  .legend { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #71717a; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* ── Canvas ── */
+  #canvas-wrap {
+    position: fixed; top: 48px; left: 0; right: 0; bottom: 0;
+    overflow: hidden; cursor: grab;
+  }
+  #canvas-wrap.panning { cursor: grabbing; }
+  #canvas { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+
+  /* ── SVG Refs ── */
+  #svg-layer {
+    position: absolute; top: 0; left: 0; pointer-events: none;
+    overflow: visible;
+  }
+  .ref-line { stroke: #a1a1aa; stroke-width: 1.5; fill: none; }
+  .ref-line.highlight { stroke: #f05a28; stroke-width: 2; }
+
+  /* ── Table cards ── */
+  .table-card {
+    position: absolute; background: #fff; border-radius: 10px;
+    border: 1.5px solid #e4e4e7; min-width: 220px; max-width: 280px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07); cursor: move; user-select: none;
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+  .table-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); border-color: #d4d4d8; }
+  .table-card.dragging { box-shadow: 0 8px 32px rgba(0,0,0,0.18); z-index: 50; border-color: #f05a28; }
+  .table-card.highlighted { border-color: #f05a28; }
+
+  .card-header {
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid #f4f4f5;
+    border-radius: 10px 10px 0 0;
+  }
+  .card-title { font-size: 0.85rem; font-weight: 700; color: #0a0a0a; font-family: 'Geist Mono', monospace; }
+  .card-subtitle { font-size: 0.68rem; color: #a1a1aa; margin-top: 2px; font-weight: 400; }
+  .card-badge {
+    display: inline-block; font-size: 0.62rem; font-weight: 600; padding: 1px 6px;
+    border-radius: 4px; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .badge-mongo { background: #e8f5e9; color: #2e7d32; }
+  .badge-postgres { background: #e3f2fd; color: #1565c0; }
+  .badge-new { background: #fef3c7; color: #92400e; margin-left: 4px; }
+
+  .card-fields { padding: 4px 0; }
+  .field-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 3px 12px; font-size: 0.75rem;
+    border-left: 2px solid transparent;
+    transition: background 0.1s;
+  }
+  .field-row:hover { background: #fafafa; }
+  .field-row.is-pk { border-left-color: #f05a28; }
+  .field-row.is-fk { border-left-color: #6366f1; }
+  .field-name { color: #0a0a0a; font-family: 'Geist Mono', monospace; font-size: 0.73rem; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .field-type { color: #a1a1aa; font-size: 0.68rem; font-family: monospace; white-space: nowrap; }
+  .field-tag {
+    font-size: 0.6rem; padding: 0 4px; border-radius: 3px; font-weight: 600;
+    background: #fff0eb; color: #f05a28; white-space: nowrap;
+  }
+  .field-tag.fk { background: #ede9fe; color: #6366f1; }
+  .field-tag.uq { background: #f0fdf4; color: #16a34a; }
+
+  .card-footer { padding: 6px 12px; border-top: 1px solid #f4f4f5; }
+  .field-count { font-size: 0.68rem; color: #a1a1aa; }
+
+  /* ── Group labels ── */
+  .group-label {
+    position: absolute; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; padding: 3px 10px; border-radius: 6px; pointer-events: none;
+  }
+  .group-mongo { color: #2e7d32; background: rgba(46,125,50,0.08); border: 1px solid rgba(46,125,50,0.2); }
+  .group-postgres { color: #1565c0; background: rgba(21,101,192,0.08); border: 1px solid rgba(21,101,192,0.2); }
+
+  /* ── Mini-map ── */
+  #minimap {
+    position: fixed; bottom: 16px; right: 16px; width: 160px; height: 100px;
+    background: rgba(255,255,255,0.95); border: 1px solid #e4e4e7; border-radius: 8px;
+    overflow: hidden; z-index: 90; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  #minimap canvas { width: 100%; height: 100%; }
+  .minimap-viewport {
+    position: absolute; border: 1.5px solid #f05a28; border-radius: 2px; pointer-events: none;
+  }
+
+  /* ── Tooltip ── */
+  #tooltip {
+    position: fixed; z-index: 200; background: #09090b; color: #fafafa;
+    font-size: 0.72rem; padding: 6px 10px; border-radius: 6px; pointer-events: none;
+    max-width: 260px; line-height: 1.5; display: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <span class="toolbar-title">Brand<span>Hub</span> Schema V2</span>
+  <span class="toolbar-status">DESIGN — chưa migrate</span>
+  <div class="tb-sep"></div>
+  <button class="tb-btn" onclick="zoomIn()">＋</button>
+  <span class="zoom-label" id="zoom-label">100%</span>
+  <button class="tb-btn" onclick="zoomOut()">－</button>
+  <button class="tb-btn" onclick="resetView()">Reset</button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn active" id="btn-refs" onclick="toggleRefs()">Refs</button>
+  <button class="tb-btn" id="btn-compact" onclick="toggleCompact()">Compact</button>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#e8f5e9;border:1px solid #2e7d32"></div>MongoDB</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e3f2fd;border:1px solid #1565c0"></div>PostgreSQL</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#fff0eb;border:1px solid #f05a28"></div>PK</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ede9fe;border:1px solid #6366f1"></div>FK</div>
+  </div>
+</div>
+
+<div id="canvas-wrap">
+  <div id="canvas">
+    <svg id="svg-layer" width="6200" height="2400"></svg>
+  </div>
+</div>
+
+<div id="minimap"><canvas id="mm-canvas"></canvas><div class="minimap-viewport" id="mm-viewport"></div></div>
+<div id="tooltip"></div>
+
+<script>
+// ── Schema Data V2 — DESIGN, chưa áp dụng init-postgres.sql thật ──
+// Nguồn: brandhub-dbml.dbml, docs/ba/11-data-entities-glossary.md
+// PostgreSQL: 21 tables (Identity×4, Organization×8, Commerce×3, Collaborator×2, Billing×5)
+// MongoDB: 10 collections (business-service)
+const SCHEMA = {
+  tables: [
+
+    // ══════════════════════════════════════════
+    // POSTGRESQL — IDENTITY (4 tables, không đổi V1)
+    // ══════════════════════════════════════════
+    {
+      name: 'users', db: 'postgres', note: 'PostgreSQL · Identity · business-service',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'email', type: 'varchar(255)', unique: true, notNull: true },
+        { name: 'password_hash', type: 'varchar', note: 'null if OAuth-only' },
+        { name: 'full_name', type: 'varchar(255)', notNull: true },
+        { name: 'avatar_url', type: 'varchar' },
+        { name: 'status', type: 'user_status', notNull: true, note: 'ACTIVE | SUSPENDED | DELETED' },
+        { name: 'is_active', type: 'boolean', notNull: true },
+        { name: 'preferences', type: 'jsonb', notNull: true },
+        { name: 'last_login_at', type: 'timestamptz' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'user_oauth_providers', db: 'postgres', note: 'PostgreSQL · Identity',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'user_id', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'provider', type: 'oauth_provider', notNull: true, note: 'GOOGLE | FACEBOOK' },
+        { name: 'provider_id', type: 'varchar(255)', notNull: true },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'user_refresh_tokens', db: 'postgres', note: 'PostgreSQL · Identity',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'user_id', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'token_hash', type: 'varchar(255)', unique: true, notNull: true },
+        { name: 'jti', type: 'varchar(255)', unique: true, notNull: true },
+        { name: 'expires_at', type: 'timestamptz', notNull: true },
+        { name: 'device_info', type: 'jsonb', notNull: true },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'user_system_roles', db: 'postgres', note: 'PostgreSQL · Identity · ADMIN/USER only',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'user_id', type: 'uuid', fk: 'users.id', unique: true, notNull: true },
+        { name: 'system_role', type: 'varchar(50)', notNull: true, note: 'ADMIN | USER' },
+        { name: 'granted_by', type: 'uuid', fk: 'users.id' },
+        { name: 'granted_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+
+    // ══════════════════════════════════════════
+    // POSTGRESQL — ORGANIZATION: AGENCY & WORKSPACE (NEW V2, 8 tables)
+    // ══════════════════════════════════════════
+    {
+      name: 'agencies', db: 'postgres', isNew: true, note: 'PostgreSQL · Organization · NEW V2 · 1 Agency = 1 Owner',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'name', type: 'varchar(255)', notNull: true },
+        { name: 'owner_id', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'logo_url', type: 'varchar' },
+        { name: 'description', type: 'text' },
+        { name: 'status', type: 'entity_status', notNull: true },
+        { name: 'deleted_at', type: 'timestamptz', note: 'soft delete 30 ngày' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'agency_members', db: 'postgres', isNew: true, note: 'PostgreSQL · Organization · NEW V2 · junction, KHÔNG có role',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'agency_id', type: 'uuid', fk: 'agencies.id', notNull: true },
+        { name: 'user_id', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'joined_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'agency_invitations', db: 'postgres', isNew: true, note: 'PostgreSQL · Organization · NEW V2 · hết hạn 3 ngày',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'agency_id', type: 'uuid', fk: 'agencies.id', notNull: true },
+        { name: 'invited_email', type: 'varchar(255)', notNull: true },
+        { name: 'invited_by', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'token', type: 'varchar(255)', unique: true, notNull: true },
+        { name: 'status', type: 'invitation_status', notNull: true },
+        { name: 'expires_at', type: 'timestamptz', notNull: true },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'workspaces', db: 'postgres', note: 'PostgreSQL · Organization · ĐỔI V2 · agency_id FK thật',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'agency_id', type: 'uuid', fk: 'agencies.id', notNull: true },
+        { name: 'name', type: 'varchar(255)', notNull: true },
+        { name: 'media_package_id', type: 'uuid', fk: 'media_packages.id', note: 'nullable lúc mới tạo' },
+        { name: 'timezone_config', type: 'varchar(100)', notNull: true },
+        { name: 'settings', type: 'jsonb', notNull: true },
+        { name: 'status', type: 'entity_status', notNull: true },
+        { name: 'deleted_at', type: 'timestamptz' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'workspace_members', db: 'postgres', note: 'PostgreSQL · Organization · ĐỔI V2 · role theo TỪNG Workspace, gộp CLIENT',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'workspace_id', type: 'uuid', fk: 'workspaces.id', notNull: true },
+        { name: 'user_id', type: 'uuid', fk: 'users.id', note: 'nullable nếu CLIENT chưa đăng ký' },
+        { name: 'client_profile_id', type: 'uuid', fk: 'client_profiles.id', note: 'chỉ set khi role=CLIENT' },
+        { name: 'role', type: 'workspace_member_role', notNull: true, note: 'OWNER | MANAGER | CREATOR | CLIENT' },
+        { name: 'added_by', type: 'uuid', fk: 'users.id' },
+        { name: 'joined_at', type: 'timestamptz' },
+        { name: 'is_active', type: 'boolean', notNull: true },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'workspace_invitations', db: 'postgres', note: 'PostgreSQL · Organization · không đổi V1',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'workspace_id', type: 'uuid', fk: 'workspaces.id', notNull: true },
+        { name: 'invited_email', type: 'varchar(255)', notNull: true },
+        { name: 'role', type: 'workspace_member_role', notNull: true },
+        { name: 'invited_by', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'token', type: 'varchar(255)', unique: true, notNull: true },
+        { name: 'status', type: 'invitation_status', notNull: true },
+        { name: 'expires_at', type: 'timestamptz', notNull: true },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'workspace_templates', db: 'postgres', isNew: true, note: 'PostgreSQL · Organization · NEW V2',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'agency_id', type: 'uuid', fk: 'agencies.id', notNull: true },
+        { name: 'name', type: 'varchar(255)', notNull: true },
+        { name: 'source_workspace_id', type: 'uuid', fk: 'workspaces.id' },
+        { name: 'config_snapshot', type: 'jsonb', notNull: true },
+        { name: 'created_by', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'client_profiles', db: 'postgres', isNew: true, note: 'PostgreSQL · Organization · NEW V2 · tách bảng riêng khỏi users',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'linked_user_id', type: 'uuid', fk: 'users.id', note: 'nullable — liên kết khi Client tự đăng ký' },
+        { name: 'display_name', type: 'varchar(255)', notNull: true },
+        { name: 'email', type: 'varchar(255)', notNull: true, note: 'CỐ ĐỊNH, không đổi được (FR 3.3.4)' },
+        { name: 'company', type: 'varchar(255)' },
+        { name: 'phone', type: 'varchar(50)' },
+        { name: 'note', type: 'text' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+
+    // ══════════════════════════════════════════
+    // POSTGRESQL — COMMERCE: MEDIA PACKAGE & CAMPAIGN (NEW V2, 3 tables)
+    // ══════════════════════════════════════════
+    {
+      name: 'media_packages', db: 'postgres', isNew: true, note: 'PostgreSQL · Commerce · NEW V2 · gộp Template+Custom',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'name', type: 'varchar(255)', notNull: true },
+        { name: 'is_template', type: 'boolean', notNull: true },
+        { name: 'package_type', type: 'varchar(50)', notNull: true, note: 'by_duration | by_budget | full_delegation' },
+        { name: 'duration_weeks', type: 'int' },
+        { name: 'budget_amount', type: 'decimal(14,2)' },
+        { name: 'scope_description', type: 'text' },
+        { name: 'created_by', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'workspace_media_packages', db: 'postgres', isNew: true, note: 'PostgreSQL · Commerce · NEW V2 · ACID 2-bên-approve',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'workspace_id', type: 'uuid', fk: 'workspaces.id', unique: true, notNull: true },
+        { name: 'package_id', type: 'uuid', fk: 'media_packages.id', notNull: true },
+        { name: 'negotiation_status', type: 'package_negotiation_status', notNull: true },
+        { name: 'final_terms', type: 'jsonb', notNull: true },
+        { name: 'approved_by_agency_at', type: 'timestamptz' },
+        { name: 'approved_by_client_at', type: 'timestamptz', note: 'reset khi 1 bên sửa final_terms' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'media_campaigns', db: 'postgres', isNew: true, note: 'PostgreSQL · Commerce · NEW V2 · immutable sau approve',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'workspace_media_package_id', type: 'uuid', fk: 'workspace_media_packages.id', notNull: true },
+        { name: 'name', type: 'varchar(255)', notNull: true },
+        { name: 'strategy_detail', type: 'text' },
+        { name: 'brand_guideline', type: 'text' },
+        { name: 'timeline', type: 'jsonb', notNull: true },
+        { name: 'status', type: 'campaign_status', notNull: true },
+        { name: 'approved_by_agency_at', type: 'timestamptz' },
+        { name: 'approved_by_client_at', type: 'timestamptz' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+
+    // ══════════════════════════════════════════
+    // POSTGRESQL — THIRD-PARTY COLLABORATOR (NEW V2, 2 tables)
+    // ══════════════════════════════════════════
+    {
+      name: 'third_party_collaborators', db: 'postgres', isNew: true, note: 'PostgreSQL · Collaborator · NEW V2 · danh bạ cấp Agency',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'agency_id', type: 'uuid', fk: 'agencies.id', notNull: true },
+        { name: 'partner_name', type: 'varchar(255)', notNull: true },
+        { name: 'partner_type', type: 'collaborator_type', notNull: true, note: 'newspaper | banner | tv | other' },
+        { name: 'contact_info', type: 'jsonb', notNull: true },
+        { name: 'notes', type: 'text' },
+        { name: 'created_by', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'campaign_collaborators', db: 'postgres', isNew: true, note: 'PostgreSQL · Collaborator · NEW V2 · N-N theo Campaign',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'media_campaign_id', type: 'uuid', fk: 'media_campaigns.id', notNull: true },
+        { name: 'collaborator_id', type: 'uuid', fk: 'third_party_collaborators.id', notNull: true },
+        { name: 'cooperation_status', type: 'cooperation_status', notNull: true, note: 'contacted | negotiating | confirmed | live' },
+        { name: 'updated_by', type: 'uuid', fk: 'users.id' },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+
+    // ══════════════════════════════════════════
+    // POSTGRESQL — BILLING (5 tables, đổi phạm vi gắn Plan)
+    // ══════════════════════════════════════════
+    {
+      name: 'subscription_plans', db: 'postgres', note: 'PostgreSQL · Billing · không đổi V1',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'name', type: 'subscription_plan_name', unique: true, notNull: true },
+        { name: 'display_name', type: 'varchar(100)', notNull: true },
+        { name: 'price_monthly', type: 'decimal(12,2)', notNull: true },
+        { name: 'max_workspaces', type: 'int', notNull: true },
+        { name: 'ai_credits_month', type: 'int', notNull: true },
+        { name: 'features', type: 'jsonb', notNull: true },
+        { name: 'is_active', type: 'boolean', notNull: true },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'user_subscriptions', db: 'postgres', note: 'PostgreSQL · Billing · ĐỔI TÊN V2 · gắn cấp User/Owner',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'user_id', type: 'uuid', fk: 'users.id', unique: true, notNull: true },
+        { name: 'plan_id', type: 'uuid', fk: 'subscription_plans.id', notNull: true },
+        { name: 'status', type: 'subscription_status', notNull: true },
+        { name: 'current_period_start', type: 'timestamptz', notNull: true },
+        { name: 'current_period_end', type: 'timestamptz', notNull: true },
+        { name: 'cancelled_at', type: 'timestamptz' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'transactions', db: 'postgres', note: 'PostgreSQL · Billing · ĐỔI TÊN V2 · gộp invoices, PayOS',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'user_id', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'type', type: 'transaction_type', notNull: true, note: 'upgrade_plan | buy_credit' },
+        { name: 'amount', type: 'decimal(12,2)', notNull: true },
+        { name: 'status', type: 'transaction_status', notNull: true },
+        { name: 'payos_tx_id', type: 'varchar(255)', unique: true },
+        { name: 'paid_at', type: 'timestamptz' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'ai_credit_ledgers', db: 'postgres', isNew: true, note: 'PostgreSQL · Billing · NEW V2 · reset hàng tháng, không rollover',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'agency_id', type: 'uuid', fk: 'agencies.id', notNull: true },
+        { name: 'creator_id', type: 'uuid', fk: 'users.id', note: 'nullable = tổng Agency' },
+        { name: 'month', type: 'varchar(7)', notNull: true, note: 'YYYY-MM' },
+        { name: 'used_amount', type: 'int', notNull: true },
+        { name: 'monthly_limit', type: 'int' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'audit_logs', db: 'postgres', note: 'PostgreSQL · Billing · không đổi V1 · append-only',
+      fields: [
+        { name: 'id', type: 'bigserial', pk: true },
+        { name: 'agency_id', type: 'uuid', note: 'Nullable — ADMIN global actions' },
+        { name: 'user_id', type: 'uuid', notNull: true, note: 'Soft ref intentional' },
+        { name: 'action', type: 'audit_action', notNull: true },
+        { name: 'resource_type', type: 'varchar(50)', notNull: true },
+        { name: 'resource_id', type: 'varchar(255)' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+
+    // ══════════════════════════════════════════
+    // MONGODB — 10 COLLECTIONS
+    // ══════════════════════════════════════════
+    {
+      name: 'tasks', db: 'mongo', isNew: true, note: 'MongoDB · NEW V2 · thay posts · generic 3 loại',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'sourceType', type: 'task_source_type', notNull: true, note: 'campaign | content_request | manual' },
+        { name: 'sourceRefId', type: 'string', note: 'Soft ref → media_campaigns.id / content_requests._id' },
+        { name: 'type', type: 'task_type', notNull: true, note: 'post | livestream | survey' },
+        { name: 'title', type: 'string', notNull: true },
+        { name: 'assigneeId', type: 'string', note: 'Soft ref → users.id (PG)' },
+        { name: 'qcAssigneeId', type: 'string', note: 'Soft ref → users.id (PG), tùy chọn' },
+        { name: 'requiresClientApproval', type: 'boolean', notNull: true },
+        { name: 'status', type: 'task_status', notNull: true },
+        { name: 'typeMetadata', type: 'object' },
+        { name: 'dueDate', type: 'date' },
+        { name: 'createdAt', type: 'date', notNull: true },
+        { name: 'updatedAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'task_approvals', db: 'mongo', isNew: true, note: 'MongoDB · NEW V2 · giữ approval cũ khi reject',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'taskId', type: 'string', notNull: true, note: 'ref → tasks._id' },
+        { name: 'step', type: 'task_approval_step', notNull: true, note: 'creator | qc | manager | client' },
+        { name: 'action', type: 'task_approval_action', notNull: true, note: 'submit | approve | reject' },
+        { name: 'actorId', type: 'string', notNull: true, note: 'Soft ref → users.id (PG)' },
+        { name: 'comment', type: 'string' },
+        { name: 'createdAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'posts', db: 'mongo', note: 'MongoDB · ĐỔI NGHĨA V2 · chỉ bài ĐÃ publish',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'taskId', type: 'string', notNull: true, note: 'Soft ref → tasks._id' },
+        { name: 'platform', type: 'social_platform', notNull: true, note: 'FACEBOOK | INSTAGRAM | TIKTOK | THREADS' },
+        { name: 'contentText', type: 'string', notNull: true },
+        { name: 'status', type: 'post_publish_status', notNull: true, note: 'PENDING | IN_PROGRESS | DONE | FAIL' },
+        { name: 'scheduledAt', type: 'date' },
+        { name: 'publishedAt', type: 'date' },
+        { name: 'createdAt', type: 'date', notNull: true },
+        { name: 'updatedAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'content_requests', db: 'mongo', note: 'MongoDB · ĐỔI FSM V2 · denied=terminal',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'createdByClientProfileId', type: 'string', notNull: true, note: 'Soft ref → client_profiles.id (PG)' },
+        { name: 'title', type: 'string', notNull: true },
+        { name: 'status', type: 'content_request_status', notNull: true, note: 'pending | in_progress | accepted | denied' },
+        { name: 'generatedTaskId', type: 'string', note: 'Soft ref → tasks._id, set khi accepted' },
+        { name: 'createdAt', type: 'date', notNull: true },
+        { name: 'updatedAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'material_repository', db: 'mongo', isNew: true, note: 'MongoDB · NEW V2 · raw vs retouched',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'taskId', type: 'string', note: 'Soft ref → tasks._id' },
+        { name: 'fileUrl', type: 'string', notNull: true },
+        { name: 'isRetouched', type: 'boolean', notNull: true },
+        { name: 'uploadedBy', type: 'string', notNull: true, note: 'Soft ref → users.id (PG)' },
+        { name: 'createdAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'brand_collections', db: 'mongo', isNew: true, note: 'MongoDB · NEW V2 · tài liệu Client cung cấp',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'title', type: 'string', notNull: true },
+        { name: 'fileUrl', type: 'string' },
+        { name: 'createdAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'hashtag_collections', db: 'mongo', isNew: true, note: 'MongoDB · NEW V2 · kho hashtag theo Workspace',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'name', type: 'string', notNull: true },
+        { name: 'hashtags', type: 'string[]', notNull: true },
+        { name: 'createdAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'content_versions', db: 'mongo', isNew: true, note: 'MongoDB · NEW V2 · Content History',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'taskId', type: 'string', notNull: true, note: 'ref → tasks._id' },
+        { name: 'versionNumber', type: 'int', notNull: true },
+        { name: 'contentSnapshot', type: 'object', notNull: true },
+        { name: 'createdAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'social_accounts', db: 'mongo', note: 'MongoDB · giữ nguyên V1, bỏ ZALO_OA',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'clientProfileId', type: 'string', note: 'Soft ref → client_profiles.id (PG)' },
+        { name: 'platform', type: 'social_platform', notNull: true },
+        { name: 'accountName', type: 'string', notNull: true },
+        { name: 'encryptedToken', type: 'string', notNull: true },
+        { name: 'tokenStatus', type: 'social_account_status', notNull: true },
+        { name: 'createdAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'notifications', db: 'mongo', note: 'MongoDB · giữ nguyên V1, thêm type mới',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'userId', type: 'string', notNull: true, note: 'Soft ref → users.id (PG)' },
+        { name: 'type', type: 'notification_type', notNull: true },
+        { name: 'isRead', type: 'boolean', notNull: true },
+        { name: 'createdAt', type: 'date', notNull: true, note: 'TTL 30 ngày' },
+      ]
+    },
+  ],
+
+  refs: [
+    // Identity FK chains
+    { from: 'user_oauth_providers.user_id', to: 'users.id' },
+    { from: 'user_refresh_tokens.user_id', to: 'users.id' },
+    { from: 'user_system_roles.user_id', to: 'users.id' },
+    // Organization FK chains (NEW V2)
+    { from: 'agencies.owner_id', to: 'users.id' },
+    { from: 'agency_members.agency_id', to: 'agencies.id' },
+    { from: 'agency_members.user_id', to: 'users.id' },
+    { from: 'agency_invitations.agency_id', to: 'agencies.id' },
+    { from: 'workspaces.agency_id', to: 'agencies.id' },
+    { from: 'workspaces.media_package_id', to: 'media_packages.id' },
+    { from: 'workspace_members.workspace_id', to: 'workspaces.id' },
+    { from: 'workspace_members.client_profile_id', to: 'client_profiles.id' },
+    { from: 'workspace_invitations.workspace_id', to: 'workspaces.id' },
+    { from: 'workspace_templates.agency_id', to: 'agencies.id' },
+    // Commerce FK chains (NEW V2)
+    { from: 'workspace_media_packages.workspace_id', to: 'workspaces.id' },
+    { from: 'workspace_media_packages.package_id', to: 'media_packages.id' },
+    { from: 'media_campaigns.workspace_media_package_id', to: 'workspace_media_packages.id' },
+    // Collaborator FK chains (NEW V2)
+    { from: 'third_party_collaborators.agency_id', to: 'agencies.id' },
+    { from: 'campaign_collaborators.media_campaign_id', to: 'media_campaigns.id' },
+    { from: 'campaign_collaborators.collaborator_id', to: 'third_party_collaborators.id' },
+    // Billing FK chains
+    { from: 'user_subscriptions.user_id', to: 'users.id' },
+    { from: 'user_subscriptions.plan_id', to: 'subscription_plans.id' },
+    { from: 'transactions.user_id', to: 'users.id' },
+    { from: 'ai_credit_ledgers.agency_id', to: 'agencies.id' },
+  ]
+};
+
+// ── Layout positions ──
+const LAYOUT = {
+  // PostgreSQL Identity (top-left cluster)
+  users:                         { x: 60,   y: 60 },
+  user_oauth_providers:          { x: 60,   y: 500 },
+  user_refresh_tokens:           { x: 60,   y: 760 },
+  user_system_roles:             { x: 360,  y: 500 },
+  // PostgreSQL Organization (center-left cluster)
+  agencies:                      { x: 700,  y: 60 },
+  agency_members:                { x: 700,  y: 420 },
+  agency_invitations:            { x: 700,  y: 660 },
+  workspaces:                    { x: 1040, y: 60 },
+  workspace_members:             { x: 1040, y: 420 },
+  workspace_invitations:         { x: 1380, y: 420 },
+  workspace_templates:           { x: 1040, y: 780 },
+  client_profiles:               { x: 1380, y: 60 },
+  // PostgreSQL Commerce (center-right cluster)
+  media_packages:                { x: 1740, y: 60 },
+  workspace_media_packages:      { x: 1740, y: 420 },
+  media_campaigns:                { x: 1740, y: 780 },
+  // PostgreSQL Collaborator (right cluster)
+  third_party_collaborators:     { x: 2100, y: 60 },
+  campaign_collaborators:        { x: 2100, y: 420 },
+  // PostgreSQL Billing (far right cluster)
+  subscription_plans:            { x: 2460, y: 60 },
+  user_subscriptions:            { x: 2460, y: 420 },
+  transactions:                  { x: 2460, y: 780 },
+  ai_credit_ledgers:             { x: 2820, y: 420 },
+  audit_logs:                    { x: 2820, y: 60 },
+  // MongoDB (bottom half)
+  tasks:                         { x: 60,   y: 1200 },
+  task_approvals:                { x: 460,  y: 1200 },
+  posts:                         { x: 860,  y: 1200 },
+  content_requests:              { x: 1260, y: 1200 },
+  material_repository:           { x: 1660, y: 1200 },
+  brand_collections:             { x: 60,   y: 1720 },
+  hashtag_collections:           { x: 460,  y: 1720 },
+  content_versions:              { x: 860,  y: 1720 },
+  social_accounts:               { x: 1260, y: 1720 },
+  notifications:                 { x: 1660, y: 1720 },
+};
+
+// ── State ──
+let scale = 1, panX = 0, panY = 0;
+let showRefs = true, compactMode = false;
+let isPanning = false, panStart = { x: 0, y: 0 };
+let cardPositions = {};
+let draggingCard = null, dragOffset = { x: 0, y: 0 };
+
+const canvas = document.getElementById('canvas');
+const svg = document.getElementById('svg-layer');
+const wrap = document.getElementById('canvas-wrap');
+const tooltip = document.getElementById('tooltip');
+
+// ── Build cards ──
+function buildCards() {
+  document.querySelectorAll('.table-card,.group-label').forEach(e => e.remove());
+
+  SCHEMA.tables.forEach(table => {
+    const pos = LAYOUT[table.name] || { x: 100, y: 100 };
+    cardPositions[table.name] = { ...pos };
+
+    const card = document.createElement('div');
+    card.className = 'table-card';
+    card.id = 'card-' + table.name;
+    card.style.left = pos.x + 'px';
+    card.style.top = pos.y + 'px';
+
+    const isMongo = table.db === 'mongo';
+    const badgeClass = isMongo ? 'badge-mongo' : 'badge-postgres';
+    const badgeText = isMongo ? 'MongoDB' : 'PostgreSQL';
+    const newBadge = table.isNew ? '<span class="card-badge badge-new">NEW V2</span>' : '';
+
+    const visibleFields = compactMode
+      ? table.fields.filter(f => f.pk || f.fk || f.notNull)
+      : table.fields;
+
+    const fieldsHtml = visibleFields.map(f => {
+      const tags = [];
+      if (f.pk) tags.push('<span class="field-tag">PK</span>');
+      if (f.fk) tags.push('<span class="field-tag fk">FK</span>');
+      if (f.unique) tags.push('<span class="field-tag uq">UQ</span>');
+      const rowClass = f.pk ? 'is-pk' : f.fk ? 'is-fk' : '';
+      const noteAttr = f.note ? `data-note="${f.note.replace(/"/g, '&quot;')}"` : '';
+      return `<div class="field-row ${rowClass}" ${noteAttr}>
+        <span class="field-name">${f.name}</span>
+        <span class="field-type">${f.type}</span>
+        ${tags.join('')}
+      </div>`;
+    }).join('');
+
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="card-title">${table.name}</div>
+        <div class="card-subtitle">${table.note}</div>
+        <span class="card-badge ${badgeClass}">${badgeText}</span>${newBadge}
+      </div>
+      <div class="card-fields">${fieldsHtml}</div>
+      <div class="card-footer"><span class="field-count">${table.fields.length} fields</span></div>
+    `;
+
+    card.addEventListener('mousedown', onCardMouseDown);
+    card.addEventListener('mouseover', e => {
+      const row = e.target.closest('.field-row[data-note]');
+      if (row) { tooltip.textContent = row.dataset.note; tooltip.style.display = 'block'; }
+    });
+    card.addEventListener('mousemove', e => {
+      tooltip.style.left = (e.clientX + 14) + 'px';
+      tooltip.style.top = (e.clientY - 8) + 'px';
+    });
+    card.addEventListener('mouseout', () => { tooltip.style.display = 'none'; });
+
+    canvas.appendChild(card);
+  });
+
+  updateSVG();
+}
+
+// ── Card drag ──
+function onCardMouseDown(e) {
+  if (e.button !== 0) return;
+  e.stopPropagation();
+  const card = e.currentTarget;
+  draggingCard = card;
+  card.classList.add('dragging');
+  const rect = card.getBoundingClientRect();
+  dragOffset.x = (e.clientX - rect.left) / scale;
+  dragOffset.y = (e.clientY - rect.top) / scale;
+  const tname = card.id.replace('card-', '');
+  highlightConnected(tname);
+}
+
+window.addEventListener('mousemove', e => {
+  if (draggingCard) {
+    const canvasRect = canvas.getBoundingClientRect();
+    const x = (e.clientX - canvasRect.left) / scale - dragOffset.x;
+    const y = (e.clientY - canvasRect.top) / scale - dragOffset.y;
+    draggingCard.style.left = x + 'px';
+    draggingCard.style.top = y + 'px';
+    const tname = draggingCard.id.replace('card-', '');
+    cardPositions[tname] = { x, y };
+    updateSVG();
+    return;
+  }
+  if (isPanning) {
+    panX += e.clientX - panStart.x;
+    panY += e.clientY - panStart.y;
+    panStart = { x: e.clientX, y: e.clientY };
+    applyTransform();
+  }
+});
+
+window.addEventListener('mouseup', () => {
+  if (draggingCard) { draggingCard.classList.remove('dragging'); draggingCard = null; clearHighlights(); }
+  if (isPanning) { isPanning = false; wrap.classList.remove('panning'); }
+});
+
+wrap.addEventListener('mousedown', e => {
+  if (e.button === 0 && !draggingCard) {
+    isPanning = true;
+    panStart = { x: e.clientX, y: e.clientY };
+    wrap.classList.add('panning');
+  }
+});
+
+// ── Zoom ──
+wrap.addEventListener('wheel', e => {
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? 0.9 : 1.1;
+  const rect = wrap.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  panX = mouseX - (mouseX - panX) * delta;
+  panY = mouseY - (mouseY - panY) * delta;
+  scale = Math.max(0.2, Math.min(2.5, scale * delta));
+  applyTransform();
+}, { passive: false });
+
+function applyTransform() {
+  canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+  document.getElementById('zoom-label').textContent = Math.round(scale * 100) + '%';
+}
+
+function zoomIn() { scale = Math.min(2.5, scale * 1.15); applyTransform(); }
+function zoomOut() { scale = Math.max(0.2, scale / 1.15); applyTransform(); }
+function resetView() { scale = 0.32; panX = 20; panY = 20; applyTransform(); }
+function toggleRefs() {
+  showRefs = !showRefs;
+  document.getElementById('btn-refs').classList.toggle('active', showRefs);
+  svg.style.display = showRefs ? '' : 'none';
+}
+function toggleCompact() {
+  compactMode = !compactMode;
+  document.getElementById('btn-compact').classList.toggle('active', compactMode);
+  buildCards();
+}
+
+// ── SVG Refs ──
+function getFieldRowCenter(tableName, fieldName) {
+  const card = document.getElementById('card-' + tableName);
+  if (!card) return null;
+  const table = SCHEMA.tables.find(t => t.name === tableName);
+  if (!table) return null;
+  const visibleFields = compactMode
+    ? table.fields.filter(f => f.pk || f.fk || f.notNull)
+    : table.fields;
+  const idx = visibleFields.findIndex(f => f.name === fieldName);
+  if (idx < 0) return null;
+  const cardRect = { x: cardPositions[tableName].x, y: cardPositions[tableName].y };
+  const headerH = 78;
+  const fieldH = 24;
+  const rowY = cardRect.y + headerH + idx * fieldH + fieldH / 2;
+  return { x: cardRect.x, y: rowY, w: card.offsetWidth };
+}
+
+function updateSVG() {
+  if (!showRefs) return;
+  svg.innerHTML = '';
+  SCHEMA.refs.forEach(ref => {
+    const [fTable, fField] = ref.from.split('.');
+    const [tTable, tField] = ref.to.split('.');
+    const from = getFieldRowCenter(fTable, fField);
+    const to = getFieldRowCenter(tTable, tField);
+    if (!from || !to) return;
+    const fromRight = from.x + (document.getElementById('card-' + fTable)?.offsetWidth || 240);
+    const toRight = to.x + (document.getElementById('card-' + tTable)?.offsetWidth || 240);
+    const fromIsRight = from.x < to.x;
+    const x1 = fromIsRight ? fromRight : from.x;
+    const x2 = fromIsRight ? to.x : toRight;
+    const y1 = from.y;
+    const y2 = to.y;
+    const cp = Math.abs(x2 - x1) * 0.4 + 20;
+    const d = `M ${x1} ${y1} C ${x1 + (fromIsRight ? cp : -cp)} ${y1}, ${x2 + (fromIsRight ? -cp : cp)} ${y2}, ${x2} ${y2}`;
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('class', 'ref-line');
+    path.setAttribute('data-from', fTable);
+    path.setAttribute('data-to', tTable);
+    const markerId = `arr-${fTable}-${fField}`.replace(/[^a-z0-9]/gi, '_');
+    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+    marker.setAttribute('id', markerId);
+    marker.setAttribute('markerWidth', '8');
+    marker.setAttribute('markerHeight', '8');
+    marker.setAttribute('refX', '6');
+    marker.setAttribute('refY', '3');
+    marker.setAttribute('orient', 'auto');
+    const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    arrow.setAttribute('d', 'M0,0 L0,6 L8,3 z');
+    arrow.setAttribute('fill', '#a1a1aa');
+    marker.appendChild(arrow);
+    svg.appendChild(marker);
+    path.setAttribute('marker-end', `url(#${markerId})`);
+    svg.appendChild(path);
+  });
+}
+
+function highlightConnected(tableName) {
+  svg.querySelectorAll('.ref-line').forEach(line => {
+    const from = line.dataset.from;
+    const to = line.dataset.to;
+    if (from === tableName || to === tableName) {
+      line.classList.add('highlight');
+      const other = from === tableName ? to : from;
+      document.getElementById('card-' + other)?.classList.add('highlighted');
+    }
+  });
+}
+
+function clearHighlights() {
+  svg.querySelectorAll('.ref-line').forEach(l => l.classList.remove('highlight'));
+  document.querySelectorAll('.table-card').forEach(c => c.classList.remove('highlighted'));
+}
+
+// ── Init ──
+buildCards();
+resetView();
+setTimeout(updateSVG, 100);
+</script>
+</body>
+</html>
