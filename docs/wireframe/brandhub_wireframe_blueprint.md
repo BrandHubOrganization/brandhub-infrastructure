@@ -1,4 +1,7 @@
 # BRANDHUB WIREFRAME BLUEPRINT & SOLUTIONS ARCHITECTURE
+
+> ⚠️ **[STALE 2026-09-15]** Wireframe này thiết kế theo model nghiệp vụ CŨ (5 role, Workspace 1 tầng, không có Agency/Media Package/Media Campaign). Nghiệp vụ đã đổi hoàn toàn sang V2 — xem `docs/BA/00_Overview.md` và `docs/BA/01_Organization_Structure.md`. Cần redesign lại toàn bộ 7 màn hình theo cấu trúc Agency→Workspace 3 tầng trước khi dùng làm căn cứ code UI — quy mô lớn, chưa thực hiện, để làm ở phiên sau.
+
 **Dự án:** BrandHub (AI-Powered Multi-Channel Content Platform)  
 **Vai trò:** UX/UI Specialist & Solutions Architect (shadcn/ui Specialist)  
 **Tác giả:** Loc20904 

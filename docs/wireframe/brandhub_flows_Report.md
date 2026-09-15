@@ -1,3 +1,5 @@
+> ⚠️ **[STALE 2026-09-15]** User flow theo model nghiệp vụ CŨ (Workspace 1 tầng, không Agency/Package/Campaign, naming role cũ AccountManager). Xem `docs/BA/00_Overview.md` cho model V2.
+
 # BÁO CÁO HOÀN THÀNH TÁC VỤ: DA-E08-03
 
 **Tên tác vụ:** Draw user flow diagrams for 3 main flows: content creation, approval, publishing  

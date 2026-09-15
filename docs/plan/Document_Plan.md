@@ -1,5 +1,7 @@
 # BrandHub — SEP490 Document Plan & Task Details
 
+> ⚠️ **[STALE 2026-09-15]** File này viết theo model nghiệp vụ CŨ (6 role: ADMIN/OWNER/MANAGER/CREATOR/PUBLISHER/CLIENT, Workspace 1 tầng, ~135 FR, 60 use case). Nghiệp vụ đã đổi hoàn toàn sang V2 (Agency→Workspace 3 tầng, role V2: OWNER/MANAGER/CREATOR/CLIENT/ADMIN/GUEST, 125 FR) — xem `docs/BA/00_Overview.md`. **Cần re-scope toàn bộ file này** (số role, số use case, ERD, screen flow theo role) trước khi dùng làm căn cứ viết report — quy mô tương đương re-scope Master Plan, chưa thực hiện, để làm ở phiên sau.
+
 > Kế hoạch viết 3 capstone reports cho SEP490 Fall 2026.
 > Mỗi task ghi rõ: Report → Section → Mục. Click **Task ID** để nhảy tới chi tiết Phần 2.
 
