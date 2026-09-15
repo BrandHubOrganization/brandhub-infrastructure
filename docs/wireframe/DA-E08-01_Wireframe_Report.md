@@ -1,3 +1,5 @@
+> ⚠️ **[STALE 2026-09-15]** Wireframe theo model nghiệp vụ CŨ (Workspace 1 tầng, ROLE_OWNER/MANAGER mời thành viên trực tiếp, không có Agency/Package/Campaign). Xem `docs/BA/00_Overview.md` cho model V2.
+
 # BÁO CÁO KẾT QUẢ THỰC HIỆN TASK [DA-E08-01]
 ## THIẾT KẾ FIGMA WIREFRAME CHO CÁC MÀN HÌNH CHÍNH - BRANDHUB PLATFORM
 

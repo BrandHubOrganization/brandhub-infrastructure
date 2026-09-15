@@ -1,3 +1,5 @@
+> ⚠️ **[STALE 2026-09-15]** Checklist tham chiếu wireframe theo model nghiệp vụ CŨ (Workspace 1 tầng). Xem `docs/BA/00_Overview.md` cho model V2.
+
 # CHECK-LIST: TỪ WIREFRAME ĐẾN CODE (REACT + SHADCN/UI)
 **Dự án:** BrandHub MVP  
 **Mục tiêu:** Hướng dẫn quy trình chuẩn hóa từng bước để lập trình viên Frontend chuyển đổi từ bản vẽ wireframe Figma sang mã nguồn React thực tế sử dụng tối đa thư viện `shadcn/ui` có sẵn.
