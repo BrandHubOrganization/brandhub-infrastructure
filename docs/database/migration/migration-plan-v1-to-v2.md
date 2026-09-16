@@ -11,6 +11,8 @@
 - [x] `workspace_member_permissions` (V1) — **bỏ hẳn**. Không dùng thật trong code hiện tại (không có query nào override quyền theo bảng này), 4 role cố định V2 đủ cover nghiệp vụ. YAGNI — thêm lại sau nếu phát sinh nhu cầu override lẻ.
 - [x] Merge `user_subscriptions` 1-Owner-nhiều-Workspace — **bỏ qua**, chưa có data thật.
 - [x] Môi trường: dev/staging trống/seed data — **drop & recreate sạch**. Không cần viết data-migration script (Giai đoạn C dưới đây bị loại khỏi scope thực thi).
+- [x] **2026-09-16 (audit BA lần 2):** `workspace_member_role` bỏ `OWNER` — role Workspace chỉ còn MANAGER/CREATOR/CLIENT (Agency Owner tham gia workspace mang role MANAGER hoặc CREATOR như người thường). `agency_members` thêm cột `role` (OWNER/MEMBER). `workspace_members` thêm ràng buộc tối đa 1 MANAGER active/workspace (partial unique index). `workspaces` thêm `created_by`.
+  **⚠️ Cảnh báo Giai đoạn D:** `WorkspaceServiceImpl.createWorkspace()` (code V1 hiện tại) hardcode `member.setRole(MemberRole.OWNER)` khi tạo workspace — logic này **sai hoàn toàn** với schema mới, phải đổi thành gán `MANAGER` cho người được chỉ định lúc tạo (theo BA `03-agency-workspace-management.md` FR 3.4.12: bắt buộc gán đúng 1 Manager ngay lúc tạo, Owner có thể tự nhận hoặc gán người khác).
 
 ---
 
