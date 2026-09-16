@@ -10,14 +10,22 @@
 --   - client_profiles / media_packages / tasks+task_approvals: per DBML as-is.
 --   - workspace_member_permissions: DROPPED, not recreated (YAGNI — 4 fixed roles suffice).
 --   - No data migration from V1 — dev/staging drop & recreate.
+--   - workspace_member_role: OWNER removed (Agency-level only), now MANAGER/CREATOR/CLIENT.
+--     Agency Owner participating in a workspace holds MANAGER or CREATOR like anyone else.
+--   - agency_members: added role column (OWNER/MEMBER) — explicit instead of deriving from agencies.owner_id.
+--   - workspace_members: at most 1 active MANAGER per workspace (no co-manage), enforced via partial unique index.
+--   - workspaces: added created_by for audit consistency with other tables.
+--   - ai_credit_ledgers: split into ai_credit_ledgers (Agency-wide monthly usage, no user)
+--     + ai_credit_creator_limits (per-Creator cap set by Owner, config only, not usage tracking).
 --
--- PostgreSQL tables (20):
+-- PostgreSQL tables (23):
 --   Identity:     users, user_oauth_providers, user_refresh_tokens, user_system_roles
 --   Organization: agencies, agency_members, agency_invitations, workspaces,
 --                 workspace_members, workspace_invitations, workspace_templates, client_profiles
 --   Commerce:     media_packages, workspace_media_packages, media_campaigns
 --   Collaborator: third_party_collaborators, campaign_collaborators
---   Billing:      subscription_plans, user_subscriptions, transactions, ai_credit_ledgers, audit_logs
+--   Billing:      subscription_plans, user_subscriptions, transactions,
+--                 ai_credit_ledgers, ai_credit_creator_limits, audit_logs
 -- ============================================================
 
 BEGIN;
@@ -39,7 +47,12 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE workspace_member_role AS ENUM ('OWNER', 'MANAGER', 'CREATOR', 'CLIENT');
+    CREATE TYPE workspace_member_role AS ENUM ('MANAGER', 'CREATOR', 'CLIENT');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE agency_member_role AS ENUM ('OWNER', 'MEMBER');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -208,10 +221,11 @@ BEFORE UPDATE ON agencies
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 CREATE TABLE IF NOT EXISTS agency_members (
-    id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    agency_id  UUID        NOT NULL REFERENCES agencies(id) ON DELETE RESTRICT,
-    user_id    UUID        NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-    joined_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    id         UUID               PRIMARY KEY DEFAULT gen_random_uuid(),
+    agency_id  UUID               NOT NULL REFERENCES agencies(id) ON DELETE RESTRICT,
+    user_id    UUID               NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    role       agency_member_role NOT NULL DEFAULT 'MEMBER',
+    joined_at  TIMESTAMPTZ        NOT NULL DEFAULT NOW(),
     UNIQUE (agency_id, user_id)
 );
 
@@ -259,6 +273,7 @@ CREATE TABLE IF NOT EXISTS workspaces (
     id              UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
     agency_id       UUID          NOT NULL REFERENCES agencies(id) ON DELETE RESTRICT,
     name            VARCHAR(255)  NOT NULL,
+    created_by      UUID          NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     workspace_media_package_id UUID,
     timezone_config VARCHAR(100)  NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',
     settings        JSONB         NOT NULL DEFAULT '{}',
@@ -295,17 +310,19 @@ CREATE TABLE IF NOT EXISTS workspace_members (
 CREATE INDEX IF NOT EXISTS idx_wm_workspace_id ON workspace_members(workspace_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_wm_unique_user ON workspace_members(workspace_id, user_id) WHERE user_id IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_wm_unique_client ON workspace_members(workspace_id, client_profile_id) WHERE client_profile_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_wm_one_manager ON workspace_members(workspace_id) WHERE role = 'MANAGER' AND is_active = TRUE;
 
 DROP TRIGGER IF EXISTS trg_workspace_members_updated_at ON workspace_members;
 CREATE TRIGGER trg_workspace_members_updated_at
 BEFORE UPDATE ON workspace_members
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
+-- CHỈ dành cho CLIENT (actor ngoài Agency). MANAGER/CREATOR gán thẳng vào workspace_members
+-- (FR 3.4.19 Add Workspace Member), không qua bảng này — không cần accept/token/expires_at.
 CREATE TABLE IF NOT EXISTS workspace_invitations (
     id            UUID                  PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id  UUID                  NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     invited_email VARCHAR(255)          NOT NULL,
-    role          workspace_member_role NOT NULL,
     invited_by    UUID                  NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     token         VARCHAR(255)          NOT NULL UNIQUE,
     status        invitation_status     NOT NULL DEFAULT 'PENDING',
@@ -490,18 +507,32 @@ FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 CREATE TABLE IF NOT EXISTS ai_credit_ledgers (
     id             UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
     agency_id      UUID         NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
-    creator_id     UUID         REFERENCES users(id) ON DELETE CASCADE,
     month          VARCHAR(7)   NOT NULL,
     used_amount    INT          NOT NULL DEFAULT 0,
-    monthly_limit  INT,
     created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-    UNIQUE (agency_id, creator_id, month)
+    UNIQUE (agency_id, month)
 );
 
 DROP TRIGGER IF EXISTS trg_ai_credit_ledgers_updated_at ON ai_credit_ledgers;
 CREATE TRIGGER trg_ai_credit_ledgers_updated_at
 BEFORE UPDATE ON ai_credit_ledgers
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TABLE IF NOT EXISTS ai_credit_creator_limits (
+    id             UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+    agency_id      UUID         NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
+    creator_id     UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    monthly_limit  INT          NOT NULL,
+    set_by         UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    UNIQUE (agency_id, creator_id)
+);
+
+DROP TRIGGER IF EXISTS trg_ai_credit_creator_limits_updated_at ON ai_credit_creator_limits;
+CREATE TRIGGER trg_ai_credit_creator_limits_updated_at
+BEFORE UPDATE ON ai_credit_creator_limits
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 CREATE TABLE IF NOT EXISTS audit_logs (
