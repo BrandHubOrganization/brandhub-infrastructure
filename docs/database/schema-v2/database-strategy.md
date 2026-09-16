@@ -162,6 +162,10 @@ workspace_members.client_profile_id → client_profiles.id (nullable, chỉ set 
 | `brand_collections` | **MỚI** — tài liệu Client cung cấp | |
 | `hashtag_collections` | **MỚI** — kho hashtag theo Workspace | |
 | `content_versions` | **MỚI** — lịch sử version nội dung | |
+| `livestream_sessions` | **MỚI 2026-09-16** — con Task loại livestream (idea/script/status) | FR 3.6.22-24, trước đây gộp mơ hồ vào `tasks.typeMetadata` |
+| `survey_forms` | **MỚI 2026-09-16** — con Task loại survey (form câu hỏi) | FR 3.6.25 |
+| `survey_responses` | **MỚI 2026-09-16** — câu trả lời khảo sát | Tách riêng `survey_forms` vì high write throughput |
+| `mail_templates` | **MỚI 2026-09-16** — mẫu email CRUD + gửi | FR 3.6.28-32, thiếu hoàn toàn ở thiết kế trước |
 | `social_accounts` | Giữ nguyên V1, bỏ `ZALO_OA` khỏi enum platform | |
 | `knowledge_documents`, `ai_usage_logs`, `publish_logs`, `notifications` | Giữ nguyên V1 | Không phụ thuộc Agency/Workspace model |
 
@@ -209,10 +213,14 @@ Không đổi so với V1 — độc lập với model nghiệp vụ Agency/Work
 │  ── Organization (NEW) ──                ├── brand_collections   (NEW)    │
 │  ├── agencies                   (NEW)    ├── hashtag_collections (NEW)    │
 │  ├── agency_members              (NEW)    ├── content_versions    (NEW)    │
-│  ├── agency_invitations          (NEW)    ├── social_accounts             │
-│  ├── workspaces               (đổi FK)    └── notifications               │
-│  ├── workspace_members          (đổi)                                     │
-│  ├── workspace_invitations                Redis (cache — không đổi)       │
+│  ├── agency_invitations          (NEW)    ├── livestream_sessions (NEW)    │
+│  ├── workspaces               (đổi FK)    ├── survey_forms        (NEW)    │
+│  ├── workspace_members          (đổi)     ├── survey_responses    (NEW)    │
+│  ├── workspace_invitations                ├── mail_templates      (NEW)    │
+│                                            ├── social_accounts             │
+│                                            └── notifications               │
+│                                                                            │
+│                                            Redis (cache — không đổi)       │
 │  ├── workspace_templates         (NEW)                                    │
 │  ├── client_profiles          (đổi tên)                                   │
 │  ── Commerce (NEW) ──                                                     │
