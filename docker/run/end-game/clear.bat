@@ -5,6 +5,7 @@ set CONFIRM=%~1
 set SCRIPT_DIR=%~dp0
 set DOCKER_DIR=%SCRIPT_DIR%..\..
 set PROJECT_NAME=brandhub
+set INFRA_FILES=-f docker-compose.infra.databases.yml -f docker-compose.infra.ai-data.yml -f docker-compose.infra.cache-broker.yml
 
 echo [BrandHub] Docker cleanup for BrandHub resources only
 echo [WARN] This removes BrandHub containers, BrandHub named volumes, BrandHub network,
@@ -37,8 +38,8 @@ if errorlevel 1 (
 )
 
 echo [1/6] Stopping BrandHub compose stacks and removing BrandHub compose volumes...
-docker compose -p %PROJECT_NAME% -f docker-compose.infra.yml -f docker-compose.dev.yml down -v --remove-orphans
-docker compose -p %PROJECT_NAME% -f docker-compose.infra.yml -f docker-compose.apps.yml -f docker-compose.dev.yml down -v --remove-orphans
+docker compose -p %PROJECT_NAME% %INFRA_FILES% -f docker-compose.dev.yml down -v --remove-orphans
+docker compose -p %PROJECT_NAME% %INFRA_FILES% -f docker-compose.apps.yml -f docker-compose.dev.yml down -v --remove-orphans
 
 echo [2/6] Removing leftover BrandHub containers...
 for /f "tokens=*" %%i in ('docker ps -aq --filter "label=com.docker.compose.project=%PROJECT_NAME%"') do docker rm -f %%i

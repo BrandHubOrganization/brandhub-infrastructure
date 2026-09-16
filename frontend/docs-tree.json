@@ -1,18 +1,133 @@
 [
   {
-    "name": "AI_Models",
-    "path": "/AI_Models",
+    "name": "ai-models",
+    "path": "/ai-models",
     "type": "directory",
     "children": [
       {
-        "name": "DA-59_AI_Fashion_Model_Generation_Platforms.md",
-        "path": "/AI_Models/DA-59_AI_Fashion_Model_Generation_Platforms",
+        "name": "iteration-2",
+        "path": "/ai-models/iteration-2",
+        "type": "directory",
+        "children": [
+          {
+            "name": "ai-iteration-2-implementation-blueprint.md",
+            "path": "/ai-models/iteration-2/ai-iteration-2-implementation-blueprint",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "ai-iteration-2-system-architecture-report.md",
+            "path": "/ai-models/iteration-2/ai-iteration-2-system-architecture-report",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "ai-iteration-2-tasks-overview-report.md",
+            "path": "/ai-models/iteration-2/ai-iteration-2-tasks-overview-report",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "rag-generation-pipeline-task-details.md",
+            "path": "/ai-models/iteration-2/rag-generation-pipeline-task-details",
+            "type": "file",
+            "ext": ".md"
+          }
+        ]
+      },
+      {
+        "name": "ai-generation-pipeline-task-details.md",
+        "path": "/ai-models/ai-generation-pipeline-task-details",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "Research_Model_Generate_Advertise_Image.md",
-        "path": "/AI_Models/Research_Model_Generate_Advertise_Image",
+        "name": "ai-iteration-1-report-an.md",
+        "path": "/ai-models/ai-iteration-1-report-an",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "ai-meeting-summary.md",
+        "path": "/ai-models/ai-meeting-summary",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "benchmark-30-prompts.md",
+        "path": "/ai-models/benchmark-30-prompts",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "camera-movement-ai-prompts.md",
+        "path": "/ai-models/camera-movement-ai-prompts",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "DA-568-trend-prediction-bm25-design.md",
+        "path": "/ai-models/DA-568-trend-prediction-bm25-design",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "DA-569-graph-virality-score-design.md",
+        "path": "/ai-models/DA-569-graph-virality-score-design",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "DA-570-text-normalization-pipeline-design.md",
+        "path": "/ai-models/DA-570-text-normalization-pipeline-design",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "DA-59-ai-fashion-model-generation-platforms.md",
+        "path": "/ai-models/DA-59-ai-fashion-model-generation-platforms",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "DA-AI04-99-01-data-collection-layer-design.md",
+        "path": "/ai-models/DA-AI04-99-01-data-collection-layer-design",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "DA-AI04-99-07-crawl-trend-blueprint.md",
+        "path": "/ai-models/DA-AI04-99-07-crawl-trend-blueprint",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "report-brand-knowledge-ingestion-ai03-01.md",
+        "path": "/ai-models/report-brand-knowledge-ingestion-ai03-01",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "report-crawl-trend-analysis.md",
+        "path": "/ai-models/report-crawl-trend-analysis",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "research-model-generate-advertise-image.md",
+        "path": "/ai-models/research-model-generate-advertise-image",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "trend-crawler-flow-task-details.md",
+        "path": "/ai-models/trend-crawler-flow-task-details",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "video-generation-research-report.md",
+        "path": "/ai-models/video-generation-research-report",
         "type": "file",
         "ext": ".md"
       }
@@ -24,129 +139,44 @@
     "type": "directory",
     "children": [
       {
-        "name": "endpoints",
-        "path": "/api/endpoints",
-        "type": "directory",
-        "children": [
-          {
-            "name": "00_conventions.md",
-            "path": "/api/endpoints/00_conventions",
-            "type": "file",
-            "ext": ".md"
-          },
-          {
-            "name": "01_auth.md",
-            "path": "/api/endpoints/01_auth",
-            "type": "file",
-            "ext": ".md"
-          },
-          {
-            "name": "02_user.md",
-            "path": "/api/endpoints/02_user",
-            "type": "file",
-            "ext": ".md"
-          },
-          {
-            "name": "03_workspace.md",
-            "path": "/api/endpoints/03_workspace",
-            "type": "file",
-            "ext": ".md"
-          },
-          {
-            "name": "04_client.md",
-            "path": "/api/endpoints/04_client",
-            "type": "file",
-            "ext": ".md"
-          },
-          {
-            "name": "05_post.md",
-            "path": "/api/endpoints/05_post",
-            "type": "file",
-            "ext": ".md"
-          },
-          {
-            "name": "06_content_request.md",
-            "path": "/api/endpoints/06_content_request",
-            "type": "file",
-            "ext": ".md"
-          },
-          {
-            "name": "07_social_account.md",
-            "path": "/api/endpoints/07_social_account",
-            "type": "file",
-            "ext": ".md"
-          },
-          {
-            "name": "08_analytics.md",
-            "path": "/api/endpoints/08_analytics",
-            "type": "file",
-            "ext": ".md"
-          },
-          {
-            "name": "09_report.md",
-            "path": "/api/endpoints/09_report",
-            "type": "file",
-            "ext": ".md"
-          },
-          {
-            "name": "10_subscription.md",
-            "path": "/api/endpoints/10_subscription",
-            "type": "file",
-            "ext": ".md"
-          },
-          {
-            "name": "11_admin.md",
-            "path": "/api/endpoints/11_admin",
-            "type": "file",
-            "ext": ".md"
-          },
-          {
-            "name": "DA-E07-02_AI-service-endpoints.md",
-            "path": "/api/endpoints/DA-E07-02_AI-service-endpoints",
-            "type": "file",
-            "ext": ".md"
-          }
-        ]
-      },
-      {
-        "name": "DA-E07-01_Business_Service_Endpoints.md",
-        "path": "/api/DA-E07-01_Business_Service_Endpoints",
+        "name": "DA-E07-01-business-service-endpoints.md",
+        "path": "/api/DA-E07-01-business-service-endpoints",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "DA-E07-04_API_Response_Format.md",
-        "path": "/api/DA-E07-04_API_Response_Format",
+        "name": "DA-E07-04-api-response-format.md",
+        "path": "/api/DA-E07-04-api-response-format",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "DA-E07-05_OpenAPI_Spec.md",
-        "path": "/api/DA-E07-05_OpenAPI_Spec",
+        "name": "DA-E07-05-openapi-spec-bs.md",
+        "path": "/api/DA-E07-05-openapi-spec-bs",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "DA-E07-06_OpenAPI_Spec.md",
-        "path": "/api/DA-E07-06_OpenAPI_Spec",
+        "name": "DA-E07-06-openapi-spec-as.md",
+        "path": "/api/DA-E07-06-openapi-spec-as",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "DA-E11-03_Redis_Rate_Limiting_Filter.md",
-        "path": "/api/DA-E11-03_Redis_Rate_Limiting_Filter",
+        "name": "DA-E11-03-redis-rate-limiting-filter.md",
+        "path": "/api/DA-E11-03-redis-rate-limiting-filter",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "DA-RS256_JWT_Flow.html",
-        "path": "/view?file=api/DA-RS256_JWT_Flow.html",
+        "name": "DA-RS256-jwt-flow.html",
+        "path": "/view?file=api/DA-RS256-jwt-flow.html",
         "type": "file",
         "ext": ".html"
       },
       {
-        "name": "DA-RS256_JWT_Flow.md",
-        "path": "/api/DA-RS256_JWT_Flow",
+        "name": "DA-RS256-jwt-flow.md",
+        "path": "/api/DA-RS256-jwt-flow",
         "type": "file",
         "ext": ".md"
       }
@@ -158,40 +188,137 @@
     "type": "directory",
     "children": [
       {
-        "name": "brandhub_arch_reference_style.html",
-        "path": "/view?file=architecture/brandhub_arch_reference_style.html",
+        "name": "arch-reference-style.html",
+        "path": "/view?file=architecture/arch-reference-style.html",
         "type": "file",
         "ext": ".html"
       },
       {
-        "name": "brandhub_architecture.html",
-        "path": "/view?file=architecture/brandhub_architecture.html",
+        "name": "architecture.html",
+        "path": "/view?file=architecture/architecture.html",
         "type": "file",
         "ext": ".html"
       },
       {
-        "name": "brandhub_db_ownership_diagram.html",
-        "path": "/view?file=architecture/brandhub_db_ownership_diagram.html",
+        "name": "brand-rag-pipeline-design.md",
+        "path": "/architecture/brand-rag-pipeline-design",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "db-ownership-diagram.html",
+        "path": "/view?file=architecture/db-ownership-diagram.html",
         "type": "file",
         "ext": ".html"
       },
       {
-        "name": "brandhub_polyrepo_structure.html",
-        "path": "/view?file=architecture/brandhub_polyrepo_structure.html",
+        "name": "local-run-architecture.md",
+        "path": "/architecture/local-run-architecture",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "polyrepo-structure.html",
+        "path": "/view?file=architecture/polyrepo-structure.html",
         "type": "file",
         "ext": ".html"
       },
       {
-        "name": "rabbitmq_publisher_contract.html",
-        "path": "/view?file=architecture/rabbitmq_publisher_contract.html",
+        "name": "rabbitmq-publisher-contract.html",
+        "path": "/view?file=architecture/rabbitmq-publisher-contract.html",
         "type": "file",
         "ext": ".html"
       },
       {
-        "name": "social_platforms_api_specs.html",
-        "path": "/view?file=architecture/social_platforms_api_specs.html",
+        "name": "social-platforms-api-specs.html",
+        "path": "/view?file=architecture/social-platforms-api-specs.html",
         "type": "file",
         "ext": ".html"
+      }
+    ]
+  },
+  {
+    "name": "BA",
+    "path": "/BA",
+    "type": "directory",
+    "children": [
+      {
+        "name": "00-overview.md",
+        "path": "/BA/00-overview",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "01-organization-structure.md",
+        "path": "/BA/01-organization-structure",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "02-authentication-profile.md",
+        "path": "/BA/02-authentication-profile",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "03-agency-workspace-management.md",
+        "path": "/BA/03-agency-workspace-management",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "04-media-package-campaign.md",
+        "path": "/BA/04-media-package-campaign",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "05-content-task-workflow.md",
+        "path": "/BA/05-content-task-workflow",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "06-ai-features.md",
+        "path": "/BA/06-ai-features",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "07-publishing-social-collaborator.md",
+        "path": "/BA/07-publishing-social-collaborator",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "08-subscription-billing.md",
+        "path": "/BA/08-subscription-billing",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "09-admin-management.md",
+        "path": "/BA/09-admin-management",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "10-roles-permissions-matrix.md",
+        "path": "/BA/10-roles-permissions-matrix",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "11-data-entities-glossary.md",
+        "path": "/BA/11-data-entities-glossary",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "12-state-machines.md",
+        "path": "/BA/12-state-machines",
+        "type": "file",
+        "ext": ".md"
       }
     ]
   },
@@ -201,78 +328,1867 @@
     "type": "directory",
     "children": [
       {
-        "name": "brandhub_dbml.dbml",
-        "path": "/database/brandhub_dbml.dbml",
+        "name": "brandhub-dbml.dbml",
+        "path": "/database/brandhub-dbml.dbml",
         "type": "file",
         "ext": ".dbml"
       },
       {
-        "name": "brandhub_erd.puml",
-        "path": "/database/brandhub_erd.puml",
+        "name": "brandhub-erd.puml",
+        "path": "/database/brandhub-erd.puml",
         "type": "file",
         "ext": ".puml"
       },
       {
-        "name": "brandhub_schema_diagram.html",
-        "path": "/view?file=database/brandhub_schema_diagram.html",
+        "name": "brandhub-schema-diagram.html",
+        "path": "/view?file=database/brandhub-schema-diagram.html",
         "type": "file",
         "ext": ".html"
       },
       {
-        "name": "DA-AI02-07_ChromaDB_Collection_Design.md",
-        "path": "/database/DA-AI02-07_ChromaDB_Collection_Design",
+        "name": "DA-AI02-07-chromadb-collection-design.md",
+        "path": "/database/DA-AI02-07-chromadb-collection-design",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "DA-E06-04_Indexing_Strategy.md",
-        "path": "/database/DA-E06-04_Indexing_Strategy",
+        "name": "DA-AI04-99-05-hybrid-db-schema.md",
+        "path": "/database/DA-AI04-99-05-hybrid-db-schema",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "DA-E06-06_Redis_Key_Patterns_vn.md",
-        "path": "/database/DA-E06-06_Redis_Key_Patterns_vn",
+        "name": "DA-AI04-99-06-redis-neo4j-upsert-flow.md",
+        "path": "/database/DA-AI04-99-06-redis-neo4j-upsert-flow",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "DA-E06-06_Redis_Key_Patterns.md",
-        "path": "/database/DA-E06-06_Redis_Key_Patterns",
+        "name": "DA-E06-04-indexing-strategy.md",
+        "path": "/database/DA-E06-04-indexing-strategy",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "DA-E06-08_Database_Access_Rules.md",
-        "path": "/database/DA-E06-08_Database_Access_Rules",
+        "name": "DA-E06-06-redis-key-patterns.md",
+        "path": "/database/DA-E06-06-redis-key-patterns",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "Database_Strategy.md",
-        "path": "/database/Database_Strategy",
+        "name": "DA-E06-08-database-access-rules.md",
+        "path": "/database/DA-E06-08-database-access-rules",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "database-strategy.md",
+        "path": "/database/database-strategy",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "erd-entity-descriptions.md",
+        "path": "/database/erd-entity-descriptions",
         "type": "file",
         "ext": ".md"
       }
     ]
   },
   {
-    "name": "deployment",
-    "path": "/deployment",
+    "name": "feature",
+    "path": "/feature",
     "type": "directory",
-    "children": []
+    "children": [
+      {
+        "name": "admin-management",
+        "path": "/feature/admin-management",
+        "type": "directory",
+        "children": [
+          {
+            "name": "3-10-1-push-notification",
+            "path": "/feature/admin-management/3-10-1-push-notification",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/admin-management/3-10-1-push-notification/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-10-11-view-revenue-dasboard",
+            "path": "/feature/admin-management/3-10-11-view-revenue-dasboard",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/admin-management/3-10-11-view-revenue-dasboard/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-10-12-export-report-file-pdf",
+            "path": "/feature/admin-management/3-10-12-export-report-file-pdf",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/admin-management/3-10-12-export-report-file-pdf/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-10-2-platform-statistics-overview",
+            "path": "/feature/admin-management/3-10-2-platform-statistics-overview",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/admin-management/3-10-2-platform-statistics-overview/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-10-3-system-health-monitoring",
+            "path": "/feature/admin-management/3-10-3-system-health-monitoring",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/admin-management/3-10-3-system-health-monitoring/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-10-4-content-moderation-queue",
+            "path": "/feature/admin-management/3-10-4-content-moderation-queue",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/admin-management/3-10-4-content-moderation-queue/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-10-5-user-management-verifydisabledelete",
+            "path": "/feature/admin-management/3-10-5-user-management-verifydisabledelete",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/admin-management/3-10-5-user-management-verifydisabledelete/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-10-6-view-user",
+            "path": "/feature/admin-management/3-10-6-view-user",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/admin-management/3-10-6-view-user/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-10-7-create-user",
+            "path": "/feature/admin-management/3-10-7-create-user",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/admin-management/3-10-7-create-user/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-10-8-update-user",
+            "path": "/feature/admin-management/3-10-8-update-user",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/admin-management/3-10-8-update-user/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-10-9-deactive-user",
+            "path": "/feature/admin-management/3-10-9-deactive-user",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/admin-management/3-10-9-deactive-user/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "agency-workspace",
+        "path": "/feature/agency-workspace",
+        "type": "directory",
+        "children": [
+          {
+            "name": "3-4-1-list-agency",
+            "path": "/feature/agency-workspace/3-4-1-list-agency",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-1-list-agency/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-10-list-workspace",
+            "path": "/feature/agency-workspace/3-4-10-list-workspace",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-10-list-workspace/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-11-view-workspace-dashboard",
+            "path": "/feature/agency-workspace/3-4-11-view-workspace-dashboard",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-11-view-workspace-dashboard/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-12-create-workspace",
+            "path": "/feature/agency-workspace/3-4-12-create-workspace",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-12-create-workspace/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-13-view-workspace-profile",
+            "path": "/feature/agency-workspace/3-4-13-view-workspace-profile",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-13-view-workspace-profile/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-14-update-workspace-profile",
+            "path": "/feature/agency-workspace/3-4-14-update-workspace-profile",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-14-update-workspace-profile/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-15-delete-workspace",
+            "path": "/feature/agency-workspace/3-4-15-delete-workspace",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-15-delete-workspace/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-16-leave-workspace",
+            "path": "/feature/agency-workspace/3-4-16-leave-workspace",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-16-leave-workspace/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-17-save-workspace-template",
+            "path": "/feature/agency-workspace/3-4-17-save-workspace-template",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-17-save-workspace-template/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-18-view-workspace-members",
+            "path": "/feature/agency-workspace/3-4-18-view-workspace-members",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-18-view-workspace-members/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-19-add-workspace-member",
+            "path": "/feature/agency-workspace/3-4-19-add-workspace-member",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-19-add-workspace-member/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-2-view-agency-dashboard",
+            "path": "/feature/agency-workspace/3-4-2-view-agency-dashboard",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-2-view-agency-dashboard/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-20-update-workspace-member-role",
+            "path": "/feature/agency-workspace/3-4-20-update-workspace-member-role",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-20-update-workspace-member-role/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-21-remove-workspace-member",
+            "path": "/feature/agency-workspace/3-4-21-remove-workspace-member",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-21-remove-workspace-member/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-3-create-agency",
+            "path": "/feature/agency-workspace/3-4-3-create-agency",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-3-create-agency/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-4-view-agency-profile",
+            "path": "/feature/agency-workspace/3-4-4-view-agency-profile",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-4-view-agency-profile/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-5-update-agency-profile",
+            "path": "/feature/agency-workspace/3-4-5-update-agency-profile",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-5-update-agency-profile/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-6-remove-agency",
+            "path": "/feature/agency-workspace/3-4-6-remove-agency",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-6-remove-agency/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-7-invite-agency-member",
+            "path": "/feature/agency-workspace/3-4-7-invite-agency-member",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-7-invite-agency-member/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-8-view-agency-invitation-status",
+            "path": "/feature/agency-workspace/3-4-8-view-agency-invitation-status",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-8-view-agency-invitation-status/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-4-9-remove-member",
+            "path": "/feature/agency-workspace/3-4-9-remove-member",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/agency-workspace/3-4-9-remove-member/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "ai-features",
+        "path": "/feature/ai-features",
+        "type": "directory",
+        "children": [
+          {
+            "name": "3-7-1-view-trending-topics-suggestions",
+            "path": "/feature/ai-features/3-7-1-view-trending-topics-suggestions",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/ai-features/3-7-1-view-trending-topics-suggestions/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-7-10-suggest-hashtag-trend",
+            "path": "/feature/ai-features/3-7-10-suggest-hashtag-trend",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/ai-features/3-7-10-suggest-hashtag-trend/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-7-11-generate-livestream-script",
+            "path": "/feature/ai-features/3-7-11-generate-livestream-script",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/ai-features/3-7-11-generate-livestream-script/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-7-12-recommend-collaborator",
+            "path": "/feature/ai-features/3-7-12-recommend-collaborator",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/ai-features/3-7-12-recommend-collaborator/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-7-2-generate-caption",
+            "path": "/feature/ai-features/3-7-2-generate-caption",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/ai-features/3-7-2-generate-caption/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-7-3-generate-ambassador",
+            "path": "/feature/ai-features/3-7-3-generate-ambassador",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/ai-features/3-7-3-generate-ambassador/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-7-4-view-image-style-template",
+            "path": "/feature/ai-features/3-7-4-view-image-style-template",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/ai-features/3-7-4-view-image-style-template/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-7-5-generate-image",
+            "path": "/feature/ai-features/3-7-5-generate-image",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/ai-features/3-7-5-generate-image/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-7-6-view-video-style-template",
+            "path": "/feature/ai-features/3-7-6-view-video-style-template",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/ai-features/3-7-6-view-video-style-template/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-7-7-generate-video",
+            "path": "/feature/ai-features/3-7-7-generate-video",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/ai-features/3-7-7-generate-video/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-7-8-export-file",
+            "path": "/feature/ai-features/3-7-8-export-file",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/ai-features/3-7-8-export-file/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-7-9-crawl-schedule-config",
+            "path": "/feature/ai-features/3-7-9-crawl-schedule-config",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/ai-features/3-7-9-crawl-schedule-config/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "authentication",
+        "path": "/feature/authentication",
+        "type": "directory",
+        "children": [
+          {
+            "name": "3-2-1-sign-up",
+            "path": "/feature/authentication/3-2-1-sign-up",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/authentication/3-2-1-sign-up/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-2-2-sign-in-with-email",
+            "path": "/feature/authentication/3-2-2-sign-in-with-email",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/authentication/3-2-2-sign-in-with-email/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-2-3-sign-in-with-google-oauth",
+            "path": "/feature/authentication/3-2-3-sign-in-with-google-oauth",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/authentication/3-2-3-sign-in-with-google-oauth/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-2-4-reset-password",
+            "path": "/feature/authentication/3-2-4-reset-password",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/authentication/3-2-4-reset-password/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-2-5-change-password",
+            "path": "/feature/authentication/3-2-5-change-password",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/authentication/3-2-5-change-password/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-2-6-otp-verification",
+            "path": "/feature/authentication/3-2-6-otp-verification",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/authentication/3-2-6-otp-verification/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-2-7-two-factor-authentication-2fa-totp",
+            "path": "/feature/authentication/3-2-7-two-factor-authentication-2fa-totp",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/authentication/3-2-7-two-factor-authentication-2fa-totp/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-2-8-sign-out",
+            "path": "/feature/authentication/3-2-8-sign-out",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/authentication/3-2-8-sign-out/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-2-9-deactivate-account",
+            "path": "/feature/authentication/3-2-9-deactivate-account",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/authentication/3-2-9-deactivate-account/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "content-task-workflow",
+        "path": "/feature/content-task-workflow",
+        "type": "directory",
+        "children": [
+          {
+            "name": "3-6-1-identify-task-detail",
+            "path": "/feature/content-task-workflow/3-6-1-identify-task-detail",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-1-identify-task-detail/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-10-content-writting-view",
+            "path": "/feature/content-task-workflow/3-6-10-content-writting-view",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-10-content-writting-view/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-11-view-material-repository",
+            "path": "/feature/content-task-workflow/3-6-11-view-material-repository",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-11-view-material-repository/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-12-add-material-repository",
+            "path": "/feature/content-task-workflow/3-6-12-add-material-repository",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-12-add-material-repository/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-13-update-material-repository",
+            "path": "/feature/content-task-workflow/3-6-13-update-material-repository",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-13-update-material-repository/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-14-remove-material-repository",
+            "path": "/feature/content-task-workflow/3-6-14-remove-material-repository",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-14-remove-material-repository/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-15-apply-watermark",
+            "path": "/feature/content-task-workflow/3-6-15-apply-watermark",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-15-apply-watermark/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-16-download-material",
+            "path": "/feature/content-task-workflow/3-6-16-download-material",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-16-download-material/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-17-apply-hastag",
+            "path": "/feature/content-task-workflow/3-6-17-apply-hastag",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-17-apply-hastag/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-18-view-hastag-collection",
+            "path": "/feature/content-task-workflow/3-6-18-view-hastag-collection",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-18-view-hastag-collection/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-19-add-hastag-collection",
+            "path": "/feature/content-task-workflow/3-6-19-add-hastag-collection",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-19-add-hastag-collection/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-2-assign-task-to-creator",
+            "path": "/feature/content-task-workflow/3-6-2-assign-task-to-creator",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-2-assign-task-to-creator/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-20-update-hastag-collection",
+            "path": "/feature/content-task-workflow/3-6-20-update-hastag-collection",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-20-update-hastag-collection/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-21-remove-hastag-collection",
+            "path": "/feature/content-task-workflow/3-6-21-remove-hastag-collection",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-21-remove-hastag-collection/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-22-write-livestream-idea",
+            "path": "/feature/content-task-workflow/3-6-22-write-livestream-idea",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-22-write-livestream-idea/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-23-write-livestream-script",
+            "path": "/feature/content-task-workflow/3-6-23-write-livestream-script",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-23-write-livestream-script/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-24-track-livestream-status",
+            "path": "/feature/content-task-workflow/3-6-24-track-livestream-status",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-24-track-livestream-status/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-25-create-survey",
+            "path": "/feature/content-task-workflow/3-6-25-create-survey",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-25-create-survey/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-26-view-survey-analysis",
+            "path": "/feature/content-task-workflow/3-6-26-view-survey-analysis",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-26-view-survey-analysis/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-27-generate-meeting-link",
+            "path": "/feature/content-task-workflow/3-6-27-generate-meeting-link",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-27-generate-meeting-link/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-28-view-mail-template",
+            "path": "/feature/content-task-workflow/3-6-28-view-mail-template",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-28-view-mail-template/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-29-create-mail-template",
+            "path": "/feature/content-task-workflow/3-6-29-create-mail-template",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-29-create-mail-template/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-3-add-comments-on-task",
+            "path": "/feature/content-task-workflow/3-6-3-add-comments-on-task",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-3-add-comments-on-task/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-30-update-mail-template",
+            "path": "/feature/content-task-workflow/3-6-30-update-mail-template",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-30-update-mail-template/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-31-delete-mail-template",
+            "path": "/feature/content-task-workflow/3-6-31-delete-mail-template",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-31-delete-mail-template/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-32-send-email-via-template",
+            "path": "/feature/content-task-workflow/3-6-32-send-email-via-template",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-32-send-email-via-template/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-33-check-compliance-content",
+            "path": "/feature/content-task-workflow/3-6-33-check-compliance-content",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-33-check-compliance-content/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-34-check-copyright-infringement",
+            "path": "/feature/content-task-workflow/3-6-34-check-copyright-infringement",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-34-check-copyright-infringement/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-35-view-content-history",
+            "path": "/feature/content-task-workflow/3-6-35-view-content-history",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-35-view-content-history/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-4-list-task-view",
+            "path": "/feature/content-task-workflow/3-6-4-list-task-view",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-4-list-task-view/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-5-calendar-task-view",
+            "path": "/feature/content-task-workflow/3-6-5-calendar-task-view",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-5-calendar-task-view/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-6-grantt-timeline-task-view",
+            "path": "/feature/content-task-workflow/3-6-6-grantt-timeline-task-view",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-6-grantt-timeline-task-view/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-7-kanban-board-task-view",
+            "path": "/feature/content-task-workflow/3-6-7-kanban-board-task-view",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-7-kanban-board-task-view/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-8-view-task-filter",
+            "path": "/feature/content-task-workflow/3-6-8-view-task-filter",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-8-view-task-filter/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-6-9-approval-sequence-creator-manager-client",
+            "path": "/feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "media-package-campaign",
+        "path": "/feature/media-package-campaign",
+        "type": "directory",
+        "children": [
+          {
+            "name": "3-5-1-create-media-package",
+            "path": "/feature/media-package-campaign/3-5-1-create-media-package",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/media-package-campaign/3-5-1-create-media-package/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-5-10-cancel-request",
+            "path": "/feature/media-package-campaign/3-5-10-cancel-request",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/media-package-campaign/3-5-10-cancel-request/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-5-2-view-the-template-media-package",
+            "path": "/feature/media-package-campaign/3-5-2-view-the-template-media-package",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/media-package-campaign/3-5-2-view-the-template-media-package/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-5-3-request-media-package",
+            "path": "/feature/media-package-campaign/3-5-3-request-media-package",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/media-package-campaign/3-5-3-request-media-package/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-5-4-approve-media-package",
+            "path": "/feature/media-package-campaign/3-5-4-approve-media-package",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/media-package-campaign/3-5-4-approve-media-package/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-5-5-create-media-campaign",
+            "path": "/feature/media-package-campaign/3-5-5-create-media-campaign",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/media-package-campaign/3-5-5-create-media-campaign/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-5-6-approve-media-campaign",
+            "path": "/feature/media-package-campaign/3-5-6-approve-media-campaign",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/media-package-campaign/3-5-6-approve-media-campaign/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-5-7-create-content-request",
+            "path": "/feature/media-package-campaign/3-5-7-create-content-request",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/media-package-campaign/3-5-7-create-content-request/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-5-8-track-request-status",
+            "path": "/feature/media-package-campaign/3-5-8-track-request-status",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/media-package-campaign/3-5-8-track-request-status/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-5-9-update-request",
+            "path": "/feature/media-package-campaign/3-5-9-update-request",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/media-package-campaign/3-5-9-update-request/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "profile",
+        "path": "/feature/profile",
+        "type": "directory",
+        "children": [
+          {
+            "name": "3-3-1-view-user-profile",
+            "path": "/feature/profile/3-3-1-view-user-profile",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/profile/3-3-1-view-user-profile/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-3-2-update-profile",
+            "path": "/feature/profile/3-3-2-update-profile",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/profile/3-3-2-update-profile/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-3-3-view-client-profile",
+            "path": "/feature/profile/3-3-3-view-client-profile",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/profile/3-3-3-view-client-profile/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-3-4-update-client-profile",
+            "path": "/feature/profile/3-3-4-update-client-profile",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/profile/3-3-4-update-client-profile/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "publishing-social",
+        "path": "/feature/publishing-social",
+        "type": "directory",
+        "children": [
+          {
+            "name": "3-8-1-connect-social-account",
+            "path": "/feature/publishing-social/3-8-1-connect-social-account",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/publishing-social/3-8-1-connect-social-account/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-8-10-publish-facebook-story",
+            "path": "/feature/publishing-social/3-8-10-publish-facebook-story",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/publishing-social/3-8-10-publish-facebook-story/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-8-11-publish-facebook-reels",
+            "path": "/feature/publishing-social/3-8-11-publish-facebook-reels",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/publishing-social/3-8-11-publish-facebook-reels/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-8-12-publish-instagram-post",
+            "path": "/feature/publishing-social/3-8-12-publish-instagram-post",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/publishing-social/3-8-12-publish-instagram-post/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-8-13-publish-instagram-reels",
+            "path": "/feature/publishing-social/3-8-13-publish-instagram-reels",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/publishing-social/3-8-13-publish-instagram-reels/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-8-14-publish-instagram-story",
+            "path": "/feature/publishing-social/3-8-14-publish-instagram-story",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/publishing-social/3-8-14-publish-instagram-story/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-8-15-publish-tiktok-video",
+            "path": "/feature/publishing-social/3-8-15-publish-tiktok-video",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/publishing-social/3-8-15-publish-tiktok-video/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-8-16-publish-threads-post",
+            "path": "/feature/publishing-social/3-8-16-publish-threads-post",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/publishing-social/3-8-16-publish-threads-post/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-8-2-disconnect-account",
+            "path": "/feature/publishing-social/3-8-2-disconnect-account",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/publishing-social/3-8-2-disconnect-account/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-8-3-view-dashboard-post",
+            "path": "/feature/publishing-social/3-8-3-view-dashboard-post",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/publishing-social/3-8-3-view-dashboard-post/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-8-4-view-post-track-detail",
+            "path": "/feature/publishing-social/3-8-4-view-post-track-detail",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/publishing-social/3-8-4-view-post-track-detail/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-8-5-view-comment-detail-list",
+            "path": "/feature/publishing-social/3-8-5-view-comment-detail-list",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/publishing-social/3-8-5-view-comment-detail-list/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-8-6-preview-post",
+            "path": "/feature/publishing-social/3-8-6-preview-post",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/publishing-social/3-8-6-preview-post/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-8-7-schedule-platform-post",
+            "path": "/feature/publishing-social/3-8-7-schedule-platform-post",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/publishing-social/3-8-7-schedule-platform-post/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-8-8-view-status-tracking",
+            "path": "/feature/publishing-social/3-8-8-view-status-tracking",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/publishing-social/3-8-8-view-status-tracking/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-8-9-publish-facebook-post",
+            "path": "/feature/publishing-social/3-8-9-publish-facebook-post",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/publishing-social/3-8-9-publish-facebook-post/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "subscription-billing",
+        "path": "/feature/subscription-billing",
+        "type": "directory",
+        "children": [
+          {
+            "name": "3-9-1-upgrade-plan",
+            "path": "/feature/subscription-billing/3-9-1-upgrade-plan",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/subscription-billing/3-9-1-upgrade-plan/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-9-2-downgrade-plan",
+            "path": "/feature/subscription-billing/3-9-2-downgrade-plan",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/subscription-billing/3-9-2-downgrade-plan/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-9-3-make-payment-payos",
+            "path": "/feature/subscription-billing/3-9-3-make-payment-payos",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/subscription-billing/3-9-3-make-payment-payos/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-9-4-view-invoice-history",
+            "path": "/feature/subscription-billing/3-9-4-view-invoice-history",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/subscription-billing/3-9-4-view-invoice-history/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-9-5-view-ai-credit-tracking",
+            "path": "/feature/subscription-billing/3-9-5-view-ai-credit-tracking",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/subscription-billing/3-9-5-view-ai-credit-tracking/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-9-6-buy-credit",
+            "path": "/feature/subscription-billing/3-9-6-buy-credit",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/subscription-billing/3-9-6-buy-credit/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          },
+          {
+            "name": "3-9-7-set-credit",
+            "path": "/feature/subscription-billing/3-9-7-set-credit",
+            "type": "directory",
+            "children": [
+              {
+                "name": "spec.md",
+                "path": "/feature/subscription-billing/3-9-7-set-credit/spec",
+                "type": "file",
+                "ext": ".md"
+              }
+            ]
+          }
+        ]
+      }
+    ]
   },
   {
-    "name": "design",
-    "path": "/design",
+    "name": "guides",
+    "path": "/guides",
     "type": "directory",
-    "children": []
+    "children": [
+      {
+        "name": "jira-claude-setup.md",
+        "path": "/guides/jira-claude-setup",
+        "type": "file",
+        "ext": ".md"
+      }
+    ]
+  },
+  {
+    "name": "idea",
+    "path": "/idea",
+    "type": "directory",
+    "children": [
+      {
+        "name": "crawl-data-algorithm",
+        "path": "/idea/crawl-data-algorithm",
+        "type": "directory",
+        "children": [
+          {
+            "name": "architecture.md",
+            "path": "/idea/crawl-data-algorithm/architecture",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "crawl-data-analysis.md",
+            "path": "/idea/crawl-data-algorithm/crawl-data-analysis",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "crawl-data-interactive.html",
+            "path": "/view?file=idea/crawl-data-algorithm/crawl-data-interactive.html",
+            "type": "file",
+            "ext": ".html"
+          },
+          {
+            "name": "crawl-data.m4a",
+            "path": "/idea/crawl-data-algorithm/crawl-data.m4a",
+            "type": "file",
+            "ext": ".m4a"
+          },
+          {
+            "name": "market-comparison.md",
+            "path": "/idea/crawl-data-algorithm/market-comparison",
+            "type": "file",
+            "ext": ".md"
+          }
+        ]
+      }
+    ]
   },
   {
     "name": "plan",
     "path": "/plan",
     "type": "directory",
     "children": [
+      {
+        "name": "audit",
+        "path": "/plan/audit",
+        "type": "directory",
+        "children": [
+          {
+            "name": "backend-api-completeness-audit-2026-09-03.md",
+            "path": "/plan/audit/backend-api-completeness-audit-2026-09-03",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "jira-language-cleanup-tracking-2026-09-03.md",
+            "path": "/plan/audit/jira-language-cleanup-tracking-2026-09-03",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "jira-status-audit-2026-07-11.md",
+            "path": "/plan/audit/jira-status-audit-2026-07-11",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "jira-status-audit-2026-08-03.md",
+            "path": "/plan/audit/jira-status-audit-2026-08-03",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "jira-status-audit-2026-09-03.md",
+            "path": "/plan/audit/jira-status-audit-2026-09-03",
+            "type": "file",
+            "ext": ".md"
+          }
+        ]
+      },
       {
         "name": "iterations",
         "path": "/plan/iterations",
@@ -291,6 +2207,12 @@
                   {
                     "name": "anha.md",
                     "path": "/plan/iterations/iteration_1/members/anha",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "locnt.md",
+                    "path": "/plan/iterations/iteration_1/members/locnt",
                     "type": "file",
                     "ext": ".md"
                   },
@@ -431,26 +2353,32 @@
             ]
           },
           {
-            "name": "AI_Iteration_1_Research_Evaluation.md",
-            "path": "/plan/iterations/AI_Iteration_1_Research_Evaluation",
+            "name": "ai-iteration-1-research-evaluation.md",
+            "path": "/plan/iterations/ai-iteration-1-research-evaluation",
             "type": "file",
             "ext": ".md"
           },
           {
-            "name": "AI_Iteration_2_RAG_LLM_Trends.md",
-            "path": "/plan/iterations/AI_Iteration_2_RAG_LLM_Trends",
+            "name": "ai-iteration-2-rag-llm-trends.md",
+            "path": "/plan/iterations/ai-iteration-2-rag-llm-trends",
             "type": "file",
             "ext": ".md"
           },
           {
-            "name": "AI_Iteration_3_Image_Ambassador_Composition.md",
-            "path": "/plan/iterations/AI_Iteration_3_Image_Ambassador_Composition",
+            "name": "ai-iteration-3-image-ambassador-composition.md",
+            "path": "/plan/iterations/ai-iteration-3-image-ambassador-composition",
             "type": "file",
             "ext": ".md"
           },
           {
-            "name": "AI_Iteration_4_Video_Integration_Documentation.md",
-            "path": "/plan/iterations/AI_Iteration_4_Video_Integration_Documentation",
+            "name": "ai-iteration-4-video-integration-documentation.md",
+            "path": "/plan/iterations/ai-iteration-4-video-integration-documentation",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "ai-iteration-5-graphrag-trend-detection.md",
+            "path": "/plan/iterations/ai-iteration-5-graphrag-trend-detection",
             "type": "file",
             "ext": ".md"
           },
@@ -468,8 +2396,38 @@
         "type": "directory",
         "children": [
           {
-            "name": "Jira_Upload_Tracking.md",
-            "path": "/plan/json/Jira_Upload_Tracking",
+            "name": "da366_ref.json",
+            "path": "/plan/json/da366_ref.json",
+            "type": "file",
+            "ext": ".json"
+          },
+          {
+            "name": "da574_583.json",
+            "path": "/plan/json/da574_583.json",
+            "type": "file",
+            "ext": ".json"
+          },
+          {
+            "name": "document-upload-tracking.md",
+            "path": "/plan/json/document-upload-tracking",
+            "type": "file",
+            "ext": ".md"
+          },
+          {
+            "name": "jira_audit_raw.txt",
+            "path": "/plan/json/jira_audit_raw.txt",
+            "type": "file",
+            "ext": ".txt"
+          },
+          {
+            "name": "jira_epics_raw.txt",
+            "path": "/plan/json/jira_epics_raw.txt",
+            "type": "file",
+            "ext": ".txt"
+          },
+          {
+            "name": "jira-upload-tracking.md",
+            "path": "/plan/json/jira-upload-tracking",
             "type": "file",
             "ext": ".md"
           }
@@ -609,8 +2567,8 @@
                     "ext": ".md"
                   },
                   {
-                    "name": "locnv.md",
-                    "path": "/plan/sprints/sprint_03/members/locnv",
+                    "name": "locnt.md",
+                    "path": "/plan/sprints/sprint_03/members/locnt",
                     "type": "file",
                     "ext": ".md"
                   },
@@ -665,8 +2623,8 @@
                     "ext": ".md"
                   },
                   {
-                    "name": "locnv.md",
-                    "path": "/plan/sprints/sprint_04/members/locnv",
+                    "name": "locnt.md",
+                    "path": "/plan/sprints/sprint_04/members/locnt",
                     "type": "file",
                     "ext": ".md"
                   },
@@ -721,6 +2679,12 @@
                     "ext": ".md"
                   },
                   {
+                    "name": "locnt.md",
+                    "path": "/plan/sprints/sprint_05/members/locnt",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
                     "name": "phuocnc.md",
                     "path": "/plan/sprints/sprint_05/members/phuocnc",
                     "type": "file",
@@ -729,6 +2693,12 @@
                   {
                     "name": "trungle.md",
                     "path": "/plan/sprints/sprint_05/members/trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "tuannm.md",
+                    "path": "/plan/sprints/sprint_05/members/tuannm",
                     "type": "file",
                     "ext": ".md"
                   }
@@ -765,12 +2735,78 @@
                     "ext": ".md"
                   },
                   {
+                    "name": "locnt.md",
+                    "path": "/plan/sprints/sprint_06/members/locnt",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "phuocnc.md",
+                    "path": "/plan/sprints/sprint_06/members/phuocnc",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
                     "name": "trungle.md",
                     "path": "/plan/sprints/sprint_06/members/trungle",
                     "type": "file",
                     "ext": ".md"
+                  },
+                  {
+                    "name": "tuannm.md",
+                    "path": "/plan/sprints/sprint_06/members/tuannm",
+                    "type": "file",
+                    "ext": ".md"
                   }
                 ]
+              },
+              {
+                "name": "assign_post_sprint6_epics.py",
+                "path": "/plan/sprints/sprint_06/assign_post_sprint6_epics.py",
+                "type": "file",
+                "ext": ".py"
+              },
+              {
+                "name": "create_e12_auth_additions.py",
+                "path": "/plan/sprints/sprint_06/create_e12_auth_additions.py",
+                "type": "file",
+                "ext": ".py"
+              },
+              {
+                "name": "create_e49_landingpage.py",
+                "path": "/plan/sprints/sprint_06/create_e49_landingpage.py",
+                "type": "file",
+                "ext": ".py"
+              },
+              {
+                "name": "create_landingpage_epic.py",
+                "path": "/plan/sprints/sprint_06/create_landingpage_epic.py",
+                "type": "file",
+                "ext": ".py"
+              },
+              {
+                "name": "delete_e12_auth_tasks.py",
+                "path": "/plan/sprints/sprint_06/delete_e12_auth_tasks.py",
+                "type": "file",
+                "ext": ".py"
+              },
+              {
+                "name": "fix_jira_10tasks.bat",
+                "path": "/plan/sprints/sprint_06/fix_jira_10tasks.bat",
+                "type": "file",
+                "ext": ".bat"
+              },
+              {
+                "name": "fix_jira_10tasks.py",
+                "path": "/plan/sprints/sprint_06/fix_jira_10tasks.py",
+                "type": "file",
+                "ext": ".py"
+              },
+              {
+                "name": "fix_jira.bat",
+                "path": "/plan/sprints/sprint_06/fix_jira.bat",
+                "type": "file",
+                "ext": ".bat"
               },
               {
                 "name": "PLAN.md",
@@ -797,6 +2833,12 @@
                 "type": "directory",
                 "children": [
                   {
+                    "name": "locnt.md",
+                    "path": "/plan/sprints/sprint_07/members/locnt",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
                     "name": "phuocnc.md",
                     "path": "/plan/sprints/sprint_07/members/phuocnc",
                     "type": "file",
@@ -805,6 +2847,12 @@
                   {
                     "name": "trungle.md",
                     "path": "/plan/sprints/sprint_07/members/trungle",
+                    "type": "file",
+                    "ext": ".md"
+                  },
+                  {
+                    "name": "tuannm.md",
+                    "path": "/plan/sprints/sprint_07/members/tuannm",
                     "type": "file",
                     "ext": ".md"
                   }
@@ -1267,14 +3315,14 @@
         ]
       },
       {
-        "name": "BrandHub_Master_Plan.md",
-        "path": "/plan/BrandHub_Master_Plan",
+        "name": "brandhub-master-plan.md",
+        "path": "/plan/brandhub-master-plan",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "Jira_Status_Audit_2026-07-11.md",
-        "path": "/plan/Jira_Status_Audit_2026-07-11",
+        "name": "document-plan.md",
+        "path": "/plan/document-plan",
         "type": "file",
         "ext": ".md"
       },
@@ -1287,19 +3335,883 @@
     ]
   },
   {
-    "name": "report",
-    "path": "/report",
-    "type": "directory",
-    "children": []
-  },
-  {
     "name": "rule",
     "path": "/rule",
     "type": "directory",
     "children": [
       {
+        "name": "feature-workflow.md",
+        "path": "/rule/feature-workflow",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
         "name": "git-commit-convention.md",
         "path": "/rule/git-commit-convention",
+        "type": "file",
+        "ext": ".md"
+      }
+    ]
+  },
+  {
+    "name": "screenshots",
+    "path": "/screenshots",
+    "type": "directory",
+    "children": [
+      {
+        "name": "D15",
+        "path": "/screenshots/D15",
+        "type": "directory",
+        "children": [
+          {
+            "name": "DA-D15-01.png",
+            "path": "/screenshots/D15/DA-D15-01.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-02.png",
+            "path": "/screenshots/D15/DA-D15-02.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-03.png",
+            "path": "/screenshots/D15/DA-D15-03.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-04.png",
+            "path": "/screenshots/D15/DA-D15-04.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-05.png",
+            "path": "/screenshots/D15/DA-D15-05.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-06.png",
+            "path": "/screenshots/D15/DA-D15-06.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-07.png",
+            "path": "/screenshots/D15/DA-D15-07.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-08.png",
+            "path": "/screenshots/D15/DA-D15-08.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-09.png",
+            "path": "/screenshots/D15/DA-D15-09.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-11.png",
+            "path": "/screenshots/D15/DA-D15-11.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-12.png",
+            "path": "/screenshots/D15/DA-D15-12.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-13.png",
+            "path": "/screenshots/D15/DA-D15-13.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-14.png",
+            "path": "/screenshots/D15/DA-D15-14.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-15.png",
+            "path": "/screenshots/D15/DA-D15-15.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-16.png",
+            "path": "/screenshots/D15/DA-D15-16.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-17.png",
+            "path": "/screenshots/D15/DA-D15-17.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-18.png",
+            "path": "/screenshots/D15/DA-D15-18.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-19.png",
+            "path": "/screenshots/D15/DA-D15-19.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-20.png",
+            "path": "/screenshots/D15/DA-D15-20.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-21.png",
+            "path": "/screenshots/D15/DA-D15-21.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-22.png",
+            "path": "/screenshots/D15/DA-D15-22.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-23.png",
+            "path": "/screenshots/D15/DA-D15-23.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-24.png",
+            "path": "/screenshots/D15/DA-D15-24.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-25.png",
+            "path": "/screenshots/D15/DA-D15-25.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-26.png",
+            "path": "/screenshots/D15/DA-D15-26.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D15-27.png",
+            "path": "/screenshots/D15/DA-D15-27.png",
+            "type": "file",
+            "ext": ".png"
+          }
+        ]
+      },
+      {
+        "name": "D16",
+        "path": "/screenshots/D16",
+        "type": "directory",
+        "children": [
+          {
+            "name": "DA-D16-01.png",
+            "path": "/screenshots/D16/DA-D16-01.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-02.png",
+            "path": "/screenshots/D16/DA-D16-02.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-03.png",
+            "path": "/screenshots/D16/DA-D16-03.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-04.png",
+            "path": "/screenshots/D16/DA-D16-04.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-05.png",
+            "path": "/screenshots/D16/DA-D16-05.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-06.png",
+            "path": "/screenshots/D16/DA-D16-06.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-07.png",
+            "path": "/screenshots/D16/DA-D16-07.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-08.png",
+            "path": "/screenshots/D16/DA-D16-08.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-09.png",
+            "path": "/screenshots/D16/DA-D16-09.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-10.png",
+            "path": "/screenshots/D16/DA-D16-10.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-11.png",
+            "path": "/screenshots/D16/DA-D16-11.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-12.png",
+            "path": "/screenshots/D16/DA-D16-12.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-13.png",
+            "path": "/screenshots/D16/DA-D16-13.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-14.png",
+            "path": "/screenshots/D16/DA-D16-14.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-15.png",
+            "path": "/screenshots/D16/DA-D16-15.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-16.png",
+            "path": "/screenshots/D16/DA-D16-16.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-17.png",
+            "path": "/screenshots/D16/DA-D16-17.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-18.png",
+            "path": "/screenshots/D16/DA-D16-18.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-19.png",
+            "path": "/screenshots/D16/DA-D16-19.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-20.png",
+            "path": "/screenshots/D16/DA-D16-20.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-21.png",
+            "path": "/screenshots/D16/DA-D16-21.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-22.png",
+            "path": "/screenshots/D16/DA-D16-22.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-23.png",
+            "path": "/screenshots/D16/DA-D16-23.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-24.png",
+            "path": "/screenshots/D16/DA-D16-24.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-25.png",
+            "path": "/screenshots/D16/DA-D16-25.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D16-26.png",
+            "path": "/screenshots/D16/DA-D16-26.png",
+            "type": "file",
+            "ext": ".png"
+          }
+        ]
+      },
+      {
+        "name": "D17",
+        "path": "/screenshots/D17",
+        "type": "directory",
+        "children": [
+          {
+            "name": "DA-D17-01.png",
+            "path": "/screenshots/D17/DA-D17-01.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-02.png",
+            "path": "/screenshots/D17/DA-D17-02.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-03.png",
+            "path": "/screenshots/D17/DA-D17-03.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-04.png",
+            "path": "/screenshots/D17/DA-D17-04.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-05.png",
+            "path": "/screenshots/D17/DA-D17-05.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-06.png",
+            "path": "/screenshots/D17/DA-D17-06.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-07.png",
+            "path": "/screenshots/D17/DA-D17-07.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-08.png",
+            "path": "/screenshots/D17/DA-D17-08.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-09.png",
+            "path": "/screenshots/D17/DA-D17-09.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-10.png",
+            "path": "/screenshots/D17/DA-D17-10.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-11.png",
+            "path": "/screenshots/D17/DA-D17-11.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-12.png",
+            "path": "/screenshots/D17/DA-D17-12.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-13.png",
+            "path": "/screenshots/D17/DA-D17-13.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-14.png",
+            "path": "/screenshots/D17/DA-D17-14.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-15.png",
+            "path": "/screenshots/D17/DA-D17-15.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-16.png",
+            "path": "/screenshots/D17/DA-D17-16.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-17.png",
+            "path": "/screenshots/D17/DA-D17-17.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-18.png",
+            "path": "/screenshots/D17/DA-D17-18.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-19.png",
+            "path": "/screenshots/D17/DA-D17-19.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-20.png",
+            "path": "/screenshots/D17/DA-D17-20.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-21.png",
+            "path": "/screenshots/D17/DA-D17-21.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-22.png",
+            "path": "/screenshots/D17/DA-D17-22.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-23.png",
+            "path": "/screenshots/D17/DA-D17-23.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-24.png",
+            "path": "/screenshots/D17/DA-D17-24.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-25.png",
+            "path": "/screenshots/D17/DA-D17-25.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-26.png",
+            "path": "/screenshots/D17/DA-D17-26.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-27.png",
+            "path": "/screenshots/D17/DA-D17-27.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D17-28.png",
+            "path": "/screenshots/D17/DA-D17-28.png",
+            "type": "file",
+            "ext": ".png"
+          }
+        ]
+      },
+      {
+        "name": "D18",
+        "path": "/screenshots/D18",
+        "type": "directory",
+        "children": [
+          {
+            "name": "DA-D18-01.png",
+            "path": "/screenshots/D18/DA-D18-01.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-02.png",
+            "path": "/screenshots/D18/DA-D18-02.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-03.png",
+            "path": "/screenshots/D18/DA-D18-03.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-04.png",
+            "path": "/screenshots/D18/DA-D18-04.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-05.png",
+            "path": "/screenshots/D18/DA-D18-05.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-06.png",
+            "path": "/screenshots/D18/DA-D18-06.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-07.png",
+            "path": "/screenshots/D18/DA-D18-07.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-08.png",
+            "path": "/screenshots/D18/DA-D18-08.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-09.png",
+            "path": "/screenshots/D18/DA-D18-09.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-10.png",
+            "path": "/screenshots/D18/DA-D18-10.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-11.png",
+            "path": "/screenshots/D18/DA-D18-11.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-12.png",
+            "path": "/screenshots/D18/DA-D18-12.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-13.png",
+            "path": "/screenshots/D18/DA-D18-13.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-14.png",
+            "path": "/screenshots/D18/DA-D18-14.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-15.png",
+            "path": "/screenshots/D18/DA-D18-15.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-16.png",
+            "path": "/screenshots/D18/DA-D18-16.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-17.png",
+            "path": "/screenshots/D18/DA-D18-17.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-18.png",
+            "path": "/screenshots/D18/DA-D18-18.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-19.png",
+            "path": "/screenshots/D18/DA-D18-19.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-20.png",
+            "path": "/screenshots/D18/DA-D18-20.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-21.png",
+            "path": "/screenshots/D18/DA-D18-21.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-22.png",
+            "path": "/screenshots/D18/DA-D18-22.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-23.png",
+            "path": "/screenshots/D18/DA-D18-23.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-24.png",
+            "path": "/screenshots/D18/DA-D18-24.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-25.png",
+            "path": "/screenshots/D18/DA-D18-25.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-26.png",
+            "path": "/screenshots/D18/DA-D18-26.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-27.png",
+            "path": "/screenshots/D18/DA-D18-27.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-28.png",
+            "path": "/screenshots/D18/DA-D18-28.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-29.png",
+            "path": "/screenshots/D18/DA-D18-29.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-30.png",
+            "path": "/screenshots/D18/DA-D18-30.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-31.png",
+            "path": "/screenshots/D18/DA-D18-31.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-32.png",
+            "path": "/screenshots/D18/DA-D18-32.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D18-33.png",
+            "path": "/screenshots/D18/DA-D18-33.png",
+            "type": "file",
+            "ext": ".png"
+          }
+        ]
+      },
+      {
+        "name": "D19",
+        "path": "/screenshots/D19",
+        "type": "directory",
+        "children": [
+          {
+            "name": "DA-D19-01.png",
+            "path": "/screenshots/D19/DA-D19-01.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-02.png",
+            "path": "/screenshots/D19/DA-D19-02.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-03.png",
+            "path": "/screenshots/D19/DA-D19-03.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-04.png",
+            "path": "/screenshots/D19/DA-D19-04.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-05.png",
+            "path": "/screenshots/D19/DA-D19-05.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-06.png",
+            "path": "/screenshots/D19/DA-D19-06.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-07.png",
+            "path": "/screenshots/D19/DA-D19-07.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-08.png",
+            "path": "/screenshots/D19/DA-D19-08.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-09.png",
+            "path": "/screenshots/D19/DA-D19-09.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-10.png",
+            "path": "/screenshots/D19/DA-D19-10.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-11.png",
+            "path": "/screenshots/D19/DA-D19-11.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-12.png",
+            "path": "/screenshots/D19/DA-D19-12.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-13.png",
+            "path": "/screenshots/D19/DA-D19-13.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-14.png",
+            "path": "/screenshots/D19/DA-D19-14.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-15.png",
+            "path": "/screenshots/D19/DA-D19-15.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-16.png",
+            "path": "/screenshots/D19/DA-D19-16.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-17.png",
+            "path": "/screenshots/D19/DA-D19-17.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-18.png",
+            "path": "/screenshots/D19/DA-D19-18.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-19.png",
+            "path": "/screenshots/D19/DA-D19-19.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-20.png",
+            "path": "/screenshots/D19/DA-D19-20.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-21.png",
+            "path": "/screenshots/D19/DA-D19-21.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-22.png",
+            "path": "/screenshots/D19/DA-D19-22.png",
+            "type": "file",
+            "ext": ".png"
+          },
+          {
+            "name": "DA-D19-23.png",
+            "path": "/screenshots/D19/DA-D19-23.png",
+            "type": "file",
+            "ext": ".png"
+          }
+        ]
+      },
+      {
+        "name": "missing-screens.md",
+        "path": "/screenshots/missing-screens",
         "type": "file",
         "ext": ".md"
       }
@@ -1311,32 +4223,38 @@
     "type": "directory",
     "children": [
       {
-        "name": "brandhub_components_Report.md",
-        "path": "/wireframe/brandhub_components_Report",
+        "name": "components-report.md",
+        "path": "/wireframe/components-report",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "brandhub_flows_Report.md",
-        "path": "/wireframe/brandhub_flows_Report",
+        "name": "DA-E08-01-wireframe-report.md",
+        "path": "/wireframe/DA-E08-01-wireframe-report",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "brandhub_wireframe_blueprint.md",
-        "path": "/wireframe/brandhub_wireframe_blueprint",
+        "name": "flows-report.md",
+        "path": "/wireframe/flows-report",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "DA-E08-01_Wireframe_Report.md",
-        "path": "/wireframe/DA-E08-01_Wireframe_Report",
+        "name": "install-animate-report.md",
+        "path": "/wireframe/install-animate-report",
         "type": "file",
         "ext": ".md"
       },
       {
-        "name": "wireframe_to_code_checklist.md",
-        "path": "/wireframe/wireframe_to_code_checklist",
+        "name": "wireframe-blueprint.md",
+        "path": "/wireframe/wireframe-blueprint",
+        "type": "file",
+        "ext": ".md"
+      },
+      {
+        "name": "wireframe-to-code-checklist.md",
+        "path": "/wireframe/wireframe-to-code-checklist",
         "type": "file",
         "ext": ".md"
       }
@@ -1347,5 +4265,17 @@
     "path": "/dashboard",
     "type": "file",
     "ext": ".md"
+  },
+  {
+    "name": "flow-ai-system-main-flow.drawio.png",
+    "path": "/flow-ai-system-main-flow.drawio.png",
+    "type": "file",
+    "ext": ".png"
+  },
+  {
+    "name": "team-rules.html",
+    "path": "/view?file=team-rules.html",
+    "type": "file",
+    "ext": ".html"
   }
 ]
