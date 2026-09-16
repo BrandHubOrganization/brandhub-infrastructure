@@ -11,9 +11,10 @@
   //   Collaborator: third_party_collaborators, campaign_collaborators
   //   Billing:      subscription_plans, user_subscriptions, transactions, ai_credit_ledgers, audit_logs
   //
-  // MongoDB (10 collections):
+  // MongoDB (14 collections — cập nhật 2026-09-16: +livestream_sessions, +survey_forms, +survey_responses, +mail_templates):
   //   business-service: tasks, task_approvals, posts, content_requests, material_repository,
   //                      brand_collections, hashtag_collections, content_versions,
+  //                      livestream_sessions, survey_forms, survey_responses, mail_templates,
   //                      social_accounts, notifications
   //   ai-service:        knowledge_documents, ai_usage_logs
   //   publisher-service: publish_logs
@@ -58,6 +59,12 @@
     CLIENT_REQUESTED_CHANGE
     AGENCY_COUNTERED
     APPROVED
+  }
+
+  Enum package_type {
+    BY_DURATION
+    BY_BUDGET
+    FULL_DELEGATION
   }
 
   Enum campaign_status {
@@ -190,6 +197,17 @@
     CANCEL
   }
 
+  Enum post_content_subtype {
+    POST
+    STORY
+    REELS
+  }
+
+  Enum mail_template_type {
+    CUSTOM
+    SYSTEM_DEFAULT
+  }
+
   Enum notification_type {
     TASK_ASSIGNED
     TASK_APPROVAL_NEEDED
@@ -316,7 +334,7 @@
     id                     uuid          [pk, default: `gen_random_uuid()`]
     agency_id              uuid          [not null, ref: > agencies.id]
     name                   varchar(255)  [not null]
-    media_package_id       uuid          [ref: > media_packages.id, note: 'nullable lúc mới tạo, set khi chọn Package']
+    workspace_media_package_id uuid      [ref: > workspace_media_packages.id, note: 'nullable lúc mới tạo — suy ra qua workspace_media_packages.workspace_id (unique 1-1), KHÔNG trỏ thẳng media_packages (tránh 2 nguồn nói khác nhau về Package đang áp dụng)']
     timezone_config        varchar(100)  [not null, default: 'Asia/Ho_Chi_Minh']
     settings               jsonb         [not null, default: '{}']
     status                 entity_status [not null, default: 'ACTIVE']
@@ -338,6 +356,8 @@
     is_active          boolean                [not null, default: true]
     created_at         timestamptz            [not null, default: `now()`]
     updated_at         timestamptz            [not null, default: `now()`]
+
+    Note: 'CHECK constraint bắt buộc ở DDL thật: (role = CLIENT AND client_profile_id IS NOT NULL AND user_id IS NULL) OR (role != CLIENT AND user_id IS NOT NULL AND client_profile_id IS NULL) — đúng 1 trong 2 identity cột theo role, không được cả 2 hoặc cả 2 đều NULL.'
 
     indexes {
       workspace_id
@@ -381,8 +401,11 @@
     id              uuid         [pk, default: `gen_random_uuid()`]
     linked_user_id  uuid         [ref: > users.id, note: 'nullable — set khi Client tự đăng ký/liên kết account']
     display_name    varchar(255) [not null]
-    email           varchar(255) [not null, note: 'CỐ ĐỊNH, không đổi được qua FR 3.3.4']
+    email           varchar(255) [not null, note: 'CỐ ĐỊNH, không đổi được qua FR 3.3.4 — unique KHÔNG áp toàn cục (1 email có thể là Client của nhiều Agency khác nhau)']
     company         varchar(255)
+    brand_name      varchar(255) [note: 'thương hiệu đại diện — carry-over từ clients.brand_name V1']
+    industry        varchar(100) [note: 'carry-over từ clients.industry V1']
+    logo_url        varchar      [note: 'carry-over từ clients.logo_url V1']
     phone           varchar(50)
     note            text
     created_at      timestamptz  [not null, default: `now()`]
@@ -402,7 +425,7 @@
     id                 uuid         [pk, default: `gen_random_uuid()`]
     name               varchar(255) [not null]
     is_template        boolean      [not null, default: false, note: 'true=Admin template dùng chung, false=custom riêng 1 Workspace']
-    package_type       varchar(50)  [not null, note: 'by_duration | by_budget | full_delegation']
+    package_type       package_type [not null]
     duration_weeks     int
     budget_amount      decimal(14,2)
     scope_description  text
@@ -542,7 +565,7 @@
 
   Table audit_logs [note: 'PostgreSQL — Billing — append-only, không đổi so với V1'] {
     id            bigserial    [pk]
-    agency_id     uuid         [note: 'Nullable — ADMIN global actions']
+    agency_id     uuid         [note: 'Soft ref intentional (giống user_id) — nullable cho ADMIN global actions, persist sau khi agency bị xoá']
     user_id       uuid         [not null, note: 'Soft ref intentional — persist sau khi user bị xoá']
     action        audit_action [not null]
     resource_type varchar(50)  [not null]
@@ -575,7 +598,8 @@
     qcAssigneeId            string            [note: 'Soft ref → users.id (PG) — tùy chọn']
     requiresClientApproval  boolean           [not null, default: false]
     status                  task_status       [not null, default: 'BACKLOG']
-    typeMetadata            object            [note: 'field riêng theo type: platformTargets[] (post), preLiveScript (livestream), formSchema (survey)']
+    currentContentVersionId string            [note: 'Soft ref → content_versions._id — bản nội dung MỚI NHẤT của Task loại post, tránh phải suy luận qua query content_versions mỗi lần đọc']
+    typeMetadata            object            [note: 'field riêng theo type: platformTargets[] (post), livestreamSessionId (livestream, soft ref → livestream_sessions._id), surveyFormId (survey, soft ref → survey_forms._id)']
     dueDate                 date
     createdAt               date              [not null]
     updatedAt               date              [not null]
@@ -604,16 +628,29 @@
     workspaceId     string                [not null, note: 'Soft ref → workspaces.id (PG)']
     taskId          string                [not null, note: 'Soft ref → tasks._id — link về Task gốc']
     platform        social_platform       [not null]
+    contentSubType  post_content_subtype  [not null, default: 'POST', note: 'FR 3.8.9-3.8.16 — Post/Story/Reels khác luồng publish hoàn toàn']
     socialAccountId string                [note: 'Soft ref → social_accounts._id']
     contentText     string                [not null]
     mediaUrls       string[]
+    altText         string[]              [note: 'accessibility text song song mediaUrls — chuẩn Meta/IG API, yêu cầu pháp lý 1 số thị trường']
+    firstComment    string                [note: 'bình luận đầu tiên tự động (hashtag dài) — chuẩn ngành Instagram/TikTok, giữ caption sạch']
+    mentionedAccounts string[]            [note: 'tag brand/KOL hợp tác']
+    location        string                [note: 'geotag — FR không nhắc trực tiếp nhưng chuẩn FB/IG post API, phổ biến bài F&B/sự kiện địa phương']
+    videoDurationSeconds int              [note: 'validate giới hạn platform trước publish: Reels 90s, TikTok 600s, IG Story 15s/segment']
+    videoAspectRatio string               [note: 'vd 9:16, 1:1, 16:9 — Reels/Story bắt buộc 9:16']
     status          post_publish_status   [not null, default: 'PENDING']
+    errorCode       string                [note: 'lý do fail: rate_limit | token_expired | content_policy_violation | network_error...']
+    retryCount      int                   [not null, default: 0]
+    lastRetryAt     date
     scheduledAt     date
     publishedAt     date
+    storyExpiresAt  date                  [note: 'Story tự hủy sau 24h trên FB/IG — null nếu contentSubType != STORY']
     externalPostId  string
+    platformSpecificMeta object           [note: 'field riêng trả về theo platform: FB permalink_url, TikTok share_url+video_id, IG media_id+media_type']
     reactionCount   int                   [default: 0]
     commentCount    int                   [default: 0]
     shareCount      int                   [default: 0]
+    comments        object[]              [note: 'FR 3.8.5 View Comment Detail List — {authorName, text, commentedAt, sentiment}, không chỉ đếm số']
     createdAt       date                  [not null]
     updatedAt       date                  [not null]
 
@@ -629,6 +666,8 @@
     createdByClientProfileId string                  [not null, note: 'Soft ref → client_profiles.id (PG) — CHỈ Client tạo']
     title                    string                  [not null]
     description              string
+    targetPlatforms          social_platform[]       [note: 'nền tảng đăng tải dự kiến — FR 3.5.8 kế hoạch truyền thông cần rõ platform trước khi thảo luận với Client']
+    proposedDate             date                    [note: 'khung thời gian mong muốn đăng, thảo luận trước khi accept thành Task']
     status                   content_request_status  [not null, default: 'PENDING']
     generatedTaskId          string                  [note: 'Soft ref → tasks._id — set khi status=ACCEPTED']
     createdAt                date                    [not null]
@@ -643,7 +682,10 @@
     taskId       string      [note: 'Soft ref → tasks._id, nullable nếu upload chung Workspace']
     fileUrl      string      [not null, note: 'S3 URL']
     fileType     string      [note: 'image | video']
+    fileSize     int         [note: 'bytes — UI hiển thị + validate giới hạn upload']
+    dimensions   object      [note: '{width, height} cho ảnh, {width, height, durationSeconds} cho video — validate tỷ lệ platform trước publish']
     isRetouched  boolean     [not null, default: false]
+    usedInTaskIds string[]   [note: 'brand asset tái sử dụng nhiều Task — không chỉ 1 taskId lúc upload, cần biết mọi nơi đã dùng để cảnh báo raw-image']
     uploadedBy   string      [not null, note: 'Soft ref → users.id (PG)']
     createdAt    date        [not null]
 
@@ -685,6 +727,58 @@
     indexes { (taskId, versionNumber) }
   }
 
+  Table livestream_sessions [note: 'MongoDB — NEW V2 — con của Task loại livestream, FR 3.6.22-3.6.24 (docs/BA/11 dòng 35)'] {
+    _id           ObjectId              [pk]
+    taskId        string                [not null, note: 'Soft ref → tasks._id']
+    idea          string                [note: 'FR 3.6.22 Write Livestream Idea — ý tưởng + mục tiêu hướng tới']
+    targetGoal    string
+    script        string                [note: 'FR 3.6.23 Write Livestream Script — kịch bản đầy đủ']
+    subStatus     livestream_sub_status [not null, default: 'PRE_LIVE', note: 'FR 3.6.24 Track Livestream Status']
+    meetingLink   string                [note: 'FR 3.6.27 Generate Meeting Link — Google Meet tự động tạo']
+    startedAt     date
+    endedAt       date
+    createdAt     date                  [not null]
+    updatedAt     date                  [not null]
+
+    indexes { taskId }
+  }
+
+  Table survey_forms [note: 'MongoDB — NEW V2 — con của Task loại survey, FR 3.6.25 (docs/BA/11 dòng 36)'] {
+    _id           ObjectId  [pk]
+    taskId        string    [not null, note: 'Soft ref → tasks._id']
+    title         string    [not null]
+    questions     object[]  [note: 'Form Creator — {questionText, questionType, options[], timeSlotStart, timeSlotEnd} theo BA mục 3 (time slot 0:10, 15:20...)']
+    createdBy     string    [not null, note: 'Soft ref → users.id (PG)']
+    createdAt     date      [not null]
+    updatedAt     date      [not null]
+
+    indexes { taskId }
+  }
+
+  Table survey_responses [note: 'MongoDB — NEW V2 — câu trả lời khảo sát, tách khỏi survey_forms vì high write throughput'] {
+    _id           ObjectId  [pk]
+    surveyFormId  string    [not null, note: 'ref → survey_forms._id, cùng DB']
+    respondentId  string    [note: 'Soft ref → users.id hoặc client_profiles.id (PG), nullable nếu anonymous']
+    answers       object[]  [not null, note: '{questionId, answerValue}']
+    submittedAt   date      [not null]
+
+    indexes { (surveyFormId, submittedAt) }
+  }
+
+  Table mail_templates [note: 'MongoDB — NEW V2 — FR 3.6.28-3.6.32, hoàn toàn thiếu ở thiết kế trước'] {
+    _id           ObjectId          [pk]
+    workspaceId   string            [not null, note: 'Soft ref → workspaces.id (PG)']
+    name          string            [not null]
+    subject       string            [not null]
+    bodyHtml      string            [not null]
+    type          mail_template_type [not null, default: 'CUSTOM', note: 'SYSTEM_DEFAULT = mẫu có sẵn, CUSTOM = user tự tạo hoặc clone từ default']
+    createdBy     string            [note: 'Soft ref → users.id (PG)']
+    createdAt     date              [not null]
+    updatedAt     date              [not null]
+
+    indexes { workspaceId }
+  }
+
   Table social_accounts [note: 'MongoDB — giữ nguyên V1, bỏ ZALO_OA khỏi enum platform'] {
     _id              ObjectId              [pk]
     workspaceId      string                [not null, note: 'Soft ref → workspaces.id (PG)']
@@ -696,6 +790,8 @@
     encryptedIv      string                [not null]
     tokenExpiresAt   date                  [not null]
     tokenStatus      social_account_status [not null, default: 'ACTIVE']
+    permissions      string[]              [note: 'OAuth scope đã cấp, vd pages_manage_posts/instagram_content_publish — validate trước khi cho chọn platform lúc tạo Task']
+    connectedBy      string                [note: 'Soft ref → users.id (PG) — audit trail ai connect tài khoản social nhạy cảm của Client']
     isActive         boolean               [not null, default: true]
     createdAt        date                  [not null]
     updatedAt        date                  [not null]
@@ -715,11 +811,12 @@
     body        string
     metadata    object
     isRead      boolean           [not null, default: false]
-    createdAt   date              [not null, note: 'TTL index — auto-expire 30 ngày']
+    createdAt   date              [not null]
 
     indexes {
       (userId, isRead)
       (workspaceId, userId)
+      createdAt [note: 'TTL index — db.notifications.createIndex({createdAt:1},{expireAfterSeconds:2592000}), auto-expire 30 ngày']
     }
   }
 
@@ -773,6 +870,10 @@
     brand_collections
     hashtag_collections
     content_versions
+    livestream_sessions
+    survey_forms
+    survey_responses
+    mail_templates
   }
 
   TableGroup mongodb_business_other {

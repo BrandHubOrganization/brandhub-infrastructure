@@ -2,7 +2,7 @@
 
 > **STATUS: DESIGN** — schema mới cho nghiệp vụ V2 (Agency → Workspace → Media Package → Media Campaign → Task), chưa áp dụng vào `scripts/init-postgres.sql` thật.
 > **Owner:** Trung | **Priority:** 🟡 Medium
-> **Nguồn:** `docs/ba/11-data-entities-glossary.md`, `docs/database/database-strategy.md`
+> **Nguồn:** `docs/BA/11-data-entities-glossary.md`, `docs/database/schema-v2/database-strategy.md`
 > **Source ERD:** [`brandhub-erd.puml`](./brandhub-erd.puml) · [`brandhub-dbml.dbml`](./brandhub-dbml.dbml) · [`brandhub-schema-diagram.html`](./brandhub-schema-diagram.html)
 
 ---
@@ -15,7 +15,7 @@
 
 ## 2. Entity Descriptions
 
-BrandHub V2's ERD chứa **31 entity**: **21 PostgreSQL** tables (identity, tổ chức Agency/Workspace, thương mại Package/Campaign, Third-party Collaborator, billing) và **10 MongoDB** collections (Task/content thực thi, operational data). Xem [`database-strategy.md`](./database-strategy.md) cho storage-split rationale và các quyết định thiết kế.
+BrandHub V2's ERD chứa **35 entity**: **21 PostgreSQL** tables (identity, tổ chức Agency/Workspace, thương mại Package/Campaign, Third-party Collaborator, billing) và **14 MongoDB** collections (Task/content thực thi, operational data — cập nhật 2026-09-16: +livestream_sessions, +survey_forms, +survey_responses, +mail_templates). Xem [`database-strategy.md`](./database-strategy.md) cho storage-split rationale và các quyết định thiết kế.
 
 ### 2.1 PostgreSQL — Identity Group (4 tables, không đổi so với V1)
 
@@ -64,7 +64,7 @@ BrandHub V2's ERD chứa **31 entity**: **21 PostgreSQL** tables (identity, tổ
 | 21 | `ai_credit_ledgers` | **MỚI** | Sổ credit AI theo tháng, reset hàng tháng, KHÔNG rollover. |
 | — | `audit_logs` | Không đổi | Append-only, log hành động nhạy cảm. |
 
-### 2.6 MongoDB Collections (10 collections)
+### 2.6 MongoDB Collections (14 collections)
 
 | # | Entity | Trạng thái | Description |
 |---|---|---|---|
@@ -76,8 +76,12 @@ BrandHub V2's ERD chứa **31 entity**: **21 PostgreSQL** tables (identity, tổ
 | 27 | `brand_collections` | **MỚI** | Tài liệu Client cung cấp làm tham khảo. |
 | 28 | `hashtag_collections` | **MỚI** | Kho hashtag theo Workspace. |
 | 29 | `content_versions` | **MỚI** | Lịch sử version nội dung (Content History). |
-| 30 | `social_accounts` | Giữ nguyên, bỏ `ZALO_OA` | Tài khoản social đã connect (Facebook/Instagram/TikTok/Threads). |
-| 31 | `notifications` | Giữ nguyên, thêm type mới | Thông báo, thêm loại cho Package/Campaign/Task approval. |
+| 30 | `livestream_sessions` | **MỚI 2026-09-16** | Con của Task loại livestream — idea/script/status (FR 3.6.22-24). |
+| 31 | `survey_forms` | **MỚI 2026-09-16** | Con của Task loại survey — form câu hỏi (FR 3.6.25). |
+| 32 | `survey_responses` | **MỚI 2026-09-16** | Câu trả lời khảo sát, tách riêng vì high write throughput. |
+| 33 | `mail_templates` | **MỚI 2026-09-16** | Mẫu email CRUD + gửi (FR 3.6.28-32) — thiếu hoàn toàn ở thiết kế trước. |
+| 34 | `social_accounts` | Giữ nguyên, bỏ `ZALO_OA` | Tài khoản social đã connect (Facebook/Instagram/TikTok/Threads). |
+| 35 | `notifications` | Giữ nguyên, thêm type mới | Thông báo, thêm loại cho Package/Campaign/Task approval. |
 
 ---
 
