@@ -92,10 +92,16 @@ Task:            Creator làm → [QC Creator khác, tùy chọn] → Manager du
 
 Mỗi tầng approval đều yêu cầu **đồng thuận 2 phía** (Agency internal + Client) trước khi tiến sang bước kế — điểm chung xuyên suốt toàn bộ nghiệp vụ BrandHub V2, khác với hệ thống cũ (chỉ cần nội bộ Agency duyệt qua các cấp, Client duyệt cuối 1 lần).
 
-## 5. Câu hỏi RBAC còn mở (cần quyết định trước khi code)
+## 5. Câu hỏi RBAC đã chốt [CONFIRMED 2026-09-17]
 
-1. **[09-admin-management.md]** Admin có xóa được Admin khác không? Số lượng Admin tối đa?
-2. **[02-authentication-profile.md]** Field cụ thể của User Profile (FR 3.3.1) — CSV để ngỏ, chưa liệt kê field.
-3. **[05-content-task-workflow.md]** Check Copyright Infringement (FR 3.6.34) — "cần làm rõ hơn", CSV chưa mô tả kỹ chi tiết kỹ thuật.
-4. **[05-content-task-workflow.md]** Mail Template (FR 3.6.28–3.6.32) — CSV chưa gán role cụ thể.
-5. **[07-publishing-social-collaborator.md]** Third-party Collaborator — entity/DB schema và số hiệu FR chính thức chưa được định nghĩa, cần bổ sung CSV gốc.
+1. **[09-admin-management.md]** Admin KHÔNG xóa được Admin khác. Không giới hạn cứng số lượng Admin.
+2. **[02-authentication-profile.md]** Field cụ thể của User Profile (FR 3.3.1) — đã chốt đầy đủ 10 field (fullName, avatar, email, phone, professionalTitle, bio, portfolioUrl, workingLanguage, timezone, joinedAt).
+3. **[05-content-task-workflow.md]** Check Copyright Infringement (FR 3.6.34) — dùng API bên thứ 3 (reverse image search).
+4. **[05-content-task-workflow.md]** Mail Template (FR 3.6.28–3.6.32) — tính năng chung toàn bộ USER, không giới hạn theo role Workspace.
+5. **[07-publishing-social-collaborator.md]** Third-party Collaborator — entity/DB schema đã chốt tại [11-data-entities-glossary.md](11-data-entities-glossary.md) (đóng 2026-09-15); số hiệu FR chính thức trong CSV gốc vẫn còn treo, cần Trung tự bổ sung khi cập nhật CSV.
+
+## 6. Câu hỏi RBAC còn mở khác (phát sinh 2026-09-17, cần tiếp tục quyết định khi thiết kế kỹ thuật)
+
+1. **[05-content-task-workflow.md]** Content Writing (FR 3.6.10) — đã mở role cho cả MANAGER sửa trực tiếp nội dung (không chỉ CREATOR), cần thiết kế UI/API rõ cơ chế khóa/lock khi 2 người cùng sửa đồng thời để tránh mất dữ liệu (concurrent edit).
+2. **[12-state-machines.md]** Approval Sequence reject-loop giờ luôn quay lại `[QC_REVIEW]` khi có giao QC — cần xác nhận thêm: nếu Task **không giao QC** (QC optional = không chọn), reject ở Manager/Client vẫn chỉ quay về `[ASSIGNED]` như cũ, không phát sinh thêm bước nào.
+3. **[04-media-package-campaign.md], [12-state-machines.md]** Campaign Addendum — mới thêm entity, chưa xác định rõ role nào được TẠO Addendum (đề xuất mặc định giống Campaign gốc: OWNER/MANAGER/CLIENT, cần Trung xác nhận có đúng không hay chỉ nội bộ Agency mới tạo được, không cho Client tự tạo Addendum).

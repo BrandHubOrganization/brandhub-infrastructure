@@ -142,8 +142,8 @@ docker compose -p brandhub -f docker-compose.infra.yml -f docker-compose.apps.ym
 
 ## Database Initialization
 
-- **PostgreSQL**: `scripts/init-postgres.sql` creates `subscription_plans`, `subscriptions`, `payments`, `audit_logs` tables and seeds 4 plans.
-- **MongoDB**: `scripts/init-mongo.js` creates 9 collections with schema validators and indexes — run manually against the Atlas cluster, not auto-applied at container init.
+- **PostgreSQL**: `scripts/init-postgres.sql` creates 15 tables (V1) and seeds 4 plans (FREE/BASIC/PRO/ENTERPRISE).
+- **MongoDB**: `scripts/init-mongo.js` creates 12 collections (V1) with schema validators and indexes — run manually against the Atlas cluster, not auto-applied at container init.
 
 ## Volumes
 

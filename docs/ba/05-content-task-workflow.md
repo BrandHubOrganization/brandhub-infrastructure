@@ -85,7 +85,8 @@ Role toàn bộ: CREATOR, CLIENT, MANAGER.
 - Dựa trên công nghệ viết chữ vector giống Google Docs.
 - **Tự động chuyển font chữ đúng chuẩn khi đăng bài** — giải quyết pain point hiện tại của người làm content phải copy phần font chữ muốn đổi qua công cụ ngoài (ví dụ Unikey/Yantext) trước khi đăng.
 - Có **Content History/Version**: xem ai chỉnh sửa phần nào, khôi phục lại các version trước đó nếu cần.
-- Role: CREATOR.
+- **[CONFIRMED 2026-09-17]** Role sửa nội dung trực tiếp: **CREATOR và MANAGER** đều sửa được field content trực tiếp (không chỉ Creator) — Manager có thể cần override sửa gấp khi Creator không online hoặc chỉnh nhỏ không cần giao lại việc. Content History (trên) ghi rõ ai sửa phần nào để không mất minh bạch khi có nhiều người cùng sửa. Client vẫn chỉ dừng ở mức Add Comment (mục 2) — không sửa trực tiếp nội dung.
+- Role: CREATOR, MANAGER.
 
 ## 7. Material & Brand Resources (FR 3.6.11 – 3.6.17)
 
@@ -111,13 +112,13 @@ Role toàn bộ: CREATOR, CLIENT, MANAGER.
 ## 8. Compliance & Copyright (FR 3.6.33 – 3.6.35)
 
 - **Check Compliance Content** (3.6.33): check đạo văn, bạo lực, hình ảnh dung tục. Dùng API kéo về để có kết quả chuẩn nhất, trả về bảng phân tích từ ngữ + đoạn không đúng chuẩn — giúp Creator hiểu và tự fix trước khi vi phạm chính sách nền tảng hoặc mất khả năng lên trending. Role: CREATOR, CLIENT.
-- **Check Copyright Infringement** (3.6.34): check bản quyền hình ảnh, thương hiệu. Ghi chú nguồn: "phần này cần làm rõ hơn" — chưa có đặc tả chi tiết, cần bổ sung khi thiết kế. Role: CREATOR, CLIENT.
+- **Check Copyright Infringement** (3.6.34): check bản quyền hình ảnh, thương hiệu. **[CONFIRMED 2026-09-17]** Dùng API bên thứ 3 (reverse image search — ví dụ Google Vision API / TinEye hoặc tương đương) để đối chiếu ảnh đầu ra với nguồn ảnh có sẵn trên Internet, giống cách Check Compliance Content (3.6.33) đã dùng API ngoài để có kết quả chuẩn. Trả về cảnh báo nếu phát hiện ảnh trùng khớp nguồn có bản quyền, để Creator tự thay ảnh trước khi đăng. Role: CREATOR, CLIENT.
 - **View Content History** (3.6.35): không trừ credit AI khi user tái sử dụng tài nguyên đã tạo trước đó. Role: CREATOR, CLIENT, MANAGER.
 
 ## 9. Mail Template (FR 3.6.28 – 3.6.32)
 
 - View/Create/Update/Delete Mail Template, Send Email via Template — CRUD chuẩn cho mẫu email + gửi email thực tế.
-- CSV gốc chưa gán role cụ thể cho nhóm FR này — cần làm rõ thêm ở giai đoạn thiết kế chi tiết.
+- **[CONFIRMED 2026-09-17]** Đây là tính năng chung cho **toàn bộ user đã đăng nhập** — không giới hạn theo role Workspace cụ thể (khác với đa số FR nhóm 3.6 vốn giới hạn theo CREATOR/MANAGER/CLIENT). Role: USER (bất kỳ ai có tài khoản, không cần thuộc Workspace nào để dùng Mail Template cá nhân).
 
 ## 10. Tham chiếu Media Platform Post (chi tiết trong sơ đồ)
 

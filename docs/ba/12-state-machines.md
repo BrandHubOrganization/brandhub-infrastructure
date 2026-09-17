@@ -79,6 +79,8 @@ cả 2 bên approve
 - Giống Package, `APPROVED` yêu cầu đồng thuận 2 phía.
 - Trạng thái `IN_PROGRESS`/`COMPLETED` của Campaign phụ thuộc tổng hợp trạng thái các Task con — không tự set tay.
 
+**[CONFIRMED 2026-09-17] Campaign Addendum — bổ sung cho tính immutable:** Campaign gốc sau `APPROVED` vẫn immutable (không sửa trực tiếp), nhưng khi phát sinh khối lượng công việc lớn giữa chiến dịch (không phải 1 task lẻ qua Content Request hay Manager add thủ công), Agency tạo 1 **Campaign Addendum** — bản bổ sung link tới Campaign gốc (`parentCampaignId`), có thể chứa nhiều Task mới, cũng phải qua chu trình duyệt 2 phía riêng (Draft → Approved) như Campaign gốc. Mục đích: Task lớn phát sinh giữa kỳ vẫn truy vết được về đúng Campaign nào sinh ra nó, phục vụ báo cáo/billing — không để lẫn vào Task rời không rõ nguồn gốc như Manual Task đơn lẻ. Xem entity đề xuất tại [11-data-entities-glossary.md](11-data-entities-glossary.md).
+
 ## 4. Task — Approval Sequence (chi tiết nhất, có reject-loop)
 
 ```
@@ -124,9 +126,11 @@ Creator thực hiện nội dung
               [COMPLETED]  quay về [ASSIGNED]
 ```
 
-**Quy tắc reject (SỬA 2026-09-15, override bản 2026-09-14):** dù bị reject ở bước nào (QC, Manager, hay Client), Task luôn **quay về đúng bước `[ASSIGNED]`** để Creator sửa lại nội dung. Nhưng **các approval đã pass ở step TRƯỚC step bị reject KHÔNG bị xoá** — chỉ record `TaskApproval` của chính step bị reject bị đánh `reject`, các step trước đó giữ nguyên `approve` trong lịch sử.
+**Quy tắc reject (SỬA 2026-09-17, override bản 2026-09-15):** dù bị reject ở bước nào (QC, Manager, hay Client), Task luôn **quay về đúng bước `[ASSIGNED]`** để Creator sửa lại nội dung. Các approval đã pass ở step TRƯỚC step bị reject **KHÔNG bị xoá khỏi lịch sử** — record `TaskApproval` của chính step bị reject bị đánh `reject`, các step trước đó giữ nguyên `approve` trong lịch sử (để audit).
 
-Ví dụ: QC đã approve → Manager reject → quay về `[ASSIGNED]` → Creator sửa lại → submit lại → **đi thẳng vào `[MANAGER_REVIEW]` lại (không phải qua `[QC_REVIEW]` lần 2)**, trừ khi Manager thấy nội dung sửa ảnh hưởng phần QC đã duyệt và muốn gửi lại QC thủ công (quyết định UI khi thiết kế, không tự động).
+**[CONFIRMED 2026-09-17]** Tuy nhiên khi Creator sửa lại và submit lại, Task **luôn đi lại từ `[QC_REVIEW]` (nếu Task có giao QC)**, kể cả khi QC đã approve ở lượt trước và bước bị reject là Manager/Client — không bỏ qua QC lần 2. Lý do: nội dung đã bị sửa nên bản QC duyệt trước không còn đảm bảo đúng với bản mới, cần QC xác nhận lại cho chắc.
+
+Ví dụ: QC đã approve → Manager reject → quay về `[ASSIGNED]` → Creator sửa lại → submit lại → **đi lại từ `[QC_REVIEW]`** (nếu Task này có giao QC) → QC approve lại → mới tới `[MANAGER_REVIEW]`.
 
 > Kỹ thuật: bảng `TaskApproval` phải lưu theo từng step riêng (không chỉ 1 field `status` tổng) để giữ lịch sử approve cũ khi step sau bị reject — xem [11-data-entities-glossary.md](11-data-entities-glossary.md).
 
@@ -162,4 +166,4 @@ Nếu Task loại `post` và đạt `[COMPLETED]` → chuyển tiếp sang hàng
 ```
 
 - Tương ứng FR 3.8.8 View Status Tracking: "Pending, In Progress, Done, Fail".
-- `FAIL` không tự động retry trong phạm vi tài liệu này — cần bổ sung quyết định retry-policy khi thiết kế kỹ thuật publisher-service (đã có tiền lệ retry 3 lần exponential backoff ở hệ thống cũ, cần xác nhận lại có áp dụng tiếp cho V2 hay không).
+- **[CONFIRMED 2026-09-17]** `FAIL` **có retry tự động, theo config** — số lần retry và backoff không hardcode, đọc từ setting (kế thừa tiền lệ retry 3 lần exponential backoff ở hệ thống cũ làm giá trị mặc định, nhưng phải config được để chỉnh khi cần mà không cần deploy lại code publisher-service).

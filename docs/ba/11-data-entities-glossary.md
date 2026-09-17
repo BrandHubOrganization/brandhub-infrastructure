@@ -133,10 +133,23 @@ cooperationStatus (contacted | negotiating | confirmed | live),
 updatedBy (FK User), updatedAt
 ```
 
-## 3. Câu hỏi thiết kế còn mở (cần quyết định trước khi tạo migration thật)
+## 3. Quyết định thiết kế đã chốt [CONFIRMED 2026-09-17]
 
-1. **ClientProfile**: dùng chung bảng `User` (thêm cột) hay tách bảng riêng hoàn toàn? Ảnh hưởng cách 1 User vừa là Owner Agency A vừa là Client ở Agency B.
-2. **MediaPackageTemplate vs MediaPackageCustom**: theo FR 3.5.1 nguồn gợi ý tách 2 bảng riêng, cột tham chiếu trong Workspace lưu ID trỏ tới 1 trong 2 — cần xác nhận lại có dùng polymorphic reference (`packageRefType` + `packageRefId`) hay dùng chung 1 bảng `MediaPackage` với cột `isTemplate`.
-3. **Task 3 loại**: dùng 1 bảng `Task` chung với cột `type` (đề xuất ở trên) hay 3 bảng riêng (`PostTask`, `LivestreamTask`, `SurveyTask`) kế thừa 1 bảng `Task` gốc? Ảnh hưởng độ phức tạp query nhưng tăng rõ ràng field riêng theo loại.
+1. **ClientProfile**: **tách bảng riêng hoàn toàn khỏi `User`** — vì 1 User có thể có **nhiều Client Profile khác nhau** (không phải 1-1 với User). Field:
+   ```
+   id, userId (FK User, KHÔNG unique — 1 user có thể có nhiều ClientProfile),
+   displayName, company, phone, note,
+   createdAt, updatedAt
+   -- KHÔNG có field email riêng update được (email cố định theo FR 3.3.4, lấy từ User gốc)
+   ```
+2. **MediaPackageTemplate vs MediaPackageCustom**: **giữ 2 bảng riêng** như đề xuất gốc (không gộp về 1 bảng + cột `isTemplate`). Workspace/`WorkspaceMediaPackage` dùng polymorphic reference (`packageRefType` + `packageRefId`) để trỏ tới đúng 1 trong 2 bảng.
+3. **Task 3 loại**: **3 bảng riêng** (`PostTask`, `LivestreamTask`, `SurveyTask`) kế thừa 1 bảng `Task` gốc (field chung: id, workspaceId, sourceType, sourceRefId, assigneeId, qcAssigneeId, status, dueDate...) — chọn hướng này để phục vụ scale (mỗi loại task sẽ có nhiều field riêng phát sinh về sau, tách bảng giúp thêm field mới không ảnh hưởng 2 loại khác, tránh 1 bảng `Task` phình to với nhiều cột null theo loại).
 4. ~~**ThirdPartyCollaborator**: tên entity chính thức + có cần bảng riêng cho lịch sử thay đổi trạng thái hợp tác không?~~ **[ĐÃ ĐÓNG 2026-09-15]** — danh bạ chung cấp Agency, N-N qua `CampaignCollaborator` (xem trên). Audit trail lịch sử đổi trạng thái: chưa yêu cầu bảng riêng, `updatedAt`/`updatedBy` trên `CampaignCollaborator` là đủ cho MVP.
-5. ~~**AICreditLedger**: reset hàng tháng hay cộng dồn?~~ **[ĐÃ ĐÓNG 2026-09-15]** — reset hàng tháng về hạn mức gốc, **không rollover**. Set Credit (FR 3.9.7) vẫn là câu hỏi mở: hạn mức cứng hay soft warning — chưa confirm.
+5. **AICreditLedger**: reset hàng tháng về hạn mức gốc, **không rollover** *(đã đóng 2026-09-15)*. Set Credit (FR 3.9.7): **hạn mức cứng (hard limit)** — hết credit thì chặn hẳn thao tác AI, không phải soft warning. Xem [08-subscription-billing.md](08-subscription-billing.md).
+6. **CampaignAddendum** (MỚI 2026-09-17) — bản bổ sung link tới Campaign gốc, dùng khi có khối lượng công việc lớn phát sinh giữa chiến dịch (khác Manual Task đơn lẻ, khác Content Request từ Client). Xem state machine tại [12-state-machines.md](12-state-machines.md) mục 3.
+   ```
+   id, parentCampaignId (FK MediaCampaign), name, reason,
+   status (draft | approved), approvedByAgencyAt, approvedByClientAt,
+   createdAt, updatedAt
+   ```
+   Task sinh ra từ Addendum set `sourceType = campaign_addendum`, `sourceRefId` trỏ tới `CampaignAddendum.id` (mở rộng enum `sourceType` của `Task` ở mục 2, hiện đang chỉ có `campaign | content_request | manual`).
