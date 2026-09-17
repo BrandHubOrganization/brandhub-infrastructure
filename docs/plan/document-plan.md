@@ -228,9 +228,9 @@
 | Task ID | Description | Assignee | Priority |
 |---|---|---|---|
 | [DA-D13-01](#da-d13-01) | **[R3 §2.1]** Write Actors Description — 6 role: ADMIN, OWNER, MANAGER, CREATOR, CLIENT, GUEST — nhấn mạnh role gán theo Workspace, không cố định toàn cục | Tuấn | 🔴 |
-| [DA-D13-02](#da-d13-02) | **[R3 §2.2.2]** Write Use Case Descriptions — Authentication + Profile + Agency & Workspace (FR 3.2–3.4, 34 UC) | Lộc | 🔴 |
-| [DA-D13-03](#da-d13-03) | **[R3 §2.2.2]** Write Use Case Descriptions — Media Package & Campaign + Content & Task Workflow (FR 3.5–3.6, 45 UC) | Tuấn | 🔴 |
-| [DA-D13-04](#da-d13-04) | **[R3 §2.2.2]** Write Use Case Descriptions — AI Features + Publishing & Collaborator + Subscription + Admin (FR 3.7–3.10, 46 UC) | Ân | 🔴 |
+| [DA-D13-02](#da-d13-02) | **[R3 §2.2.2]** Write Use Case Descriptions — Authentication + Profile + Agency & Workspace (FR 3.2–3.4, 31 UC — UC-01–31, see `docs/ba/use-cases/01`, `02`) | Lộc | 🔴 |
+| [DA-D13-03](#da-d13-03) | **[R3 §2.2.2]** Write Use Case Descriptions — Media Package & Campaign + Content & Task Workflow (FR 3.5–3.6, 42 UC — UC-32–73, see `docs/ba/use-cases/03`, `04`) | Tuấn | 🔴 |
+| [DA-D13-04](#da-d13-04) | **[R3 §2.2.2]** Write Use Case Descriptions — AI Features + Publishing & Collaborator + Subscription + Admin (FR 3.7–3.10, 32 UC — UC-74–106, see `docs/ba/use-cases/05`–`08`) | Ân | 🔴 |
 
 ---
 

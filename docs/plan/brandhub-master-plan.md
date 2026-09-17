@@ -130,10 +130,10 @@
 
 | Task ID                                                                                                                                  | Description                                                                                                             | Assignee          | Priority    |
 | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------- | ----------- |
-| [DA-E03-01](#da-e03-01-list-and-group-all-60-use-cases-by-6-roles-admin-owner-manager-creator-client-guest) | List and group all 60 use cases by 6 roles (Admin, Owner, Manager, Creator, Client, Guest) | Phước (Publisher) | 🔴 Critical |
-| [DA-E03-02](#da-e03-02-write-detailed-descriptions-for-uc-0120-admin-owner-flows)                                                 | Write detailed descriptions for UC 01–20 (Admin + Owner flows) — actor, description, main flow, alt flows        | Trung (Leader)    | 🔴 Critical |
-| [DA-E03-03](#da-e03-03-write-detailed-descriptions-for-uc-2140-manager-creator-flows)                                    | Write detailed descriptions for UC 21–40 (Manager + Creator flows)                                      | Phước (Publisher) | 🔴 Critical |
-| [DA-E03-04](#da-e03-04-write-detailed-descriptions-for-uc-4160-client-social-publishing-flows)                                     | Write detailed descriptions for UC 41–60 (Client + Social Publishing flows)                                       | Phước (Publisher) | 🟡 High     |
+| [DA-E03-01](#da-e03-01-list-and-group-all-105-use-cases-by-6-roles-admin-owner-manager-creator-client-guest) | List and group all 105 use cases by 6 roles (Admin, Owner, Manager, Creator, Client, Guest) — **DONE**, see `docs/ba/use-cases/` | Phước (Publisher) | 🔴 Critical |
+| [DA-E03-02](#da-e03-02-write-detailed-descriptions-for-uc-0112-authentication--profile-flows)                                                 | Write detailed descriptions for UC-01–12 (Authentication + Profile flows) — actor, description, main flow, alt flows — **DONE**, see `docs/ba/use-cases/01-authentication-profile.md`        | Trung (Leader)    | 🔴 Critical |
+| [DA-E03-03](#da-e03-03-write-detailed-descriptions-for-uc-1373-agency-workspace-media-packagecampaign--content-task-workflow-flows)                                    | Write detailed descriptions for UC-13–73 (Agency/Workspace, Media Package/Campaign, Content & Task Workflow flows) — **DONE**, see `docs/ba/use-cases/02-agency-workspace.md`, `03-media-package-campaign.md`, `04-content-task-workflow.md`                                      | Phước (Publisher) | 🔴 Critical |
+| [DA-E03-04](#da-e03-04-write-detailed-descriptions-for-uc-74106-ai-publishing-subscription--admin-flows)                                     | Write detailed descriptions for UC-74–106 (AI, Publishing, Subscription, Admin flows) — **DONE**, see `docs/ba/use-cases/05-ai-features.md`, `06-publishing-social.md`, `07-subscription.md`, `08-admin-management.md`                                       | Phước (Publisher) | 🟡 High     |
 | [DA-E03-05](#da-e03-05-review-uc-list-with-mentor-update-based-on-feedback)                                                              | Review UC list with mentor, update based on feedback                                                                    | All (Team)        | 🟡 High     |
 | [DA-E03-06](#da-e03-06-finalize-uc-table-into-excel-file-brandhubusecasesxlsx)                                                           | Finalize UC table into Excel file (BrandHub_UseCases.xlsx)                                                              | Phước (Publisher) | 🟢 Medium   |
 
@@ -934,7 +934,7 @@
 | Sprint    | Weeks | Phase          | Key Deliverables                                                                     |
 | --------- | ----- | -------------- | ------------------------------------------------------------------------------------ |
 | Sprint 1  | 1–2   | Initiation     | Project registered, team roles confirmed, workspace + repos created                  |
-| Sprint 2  | 3–4   | Requirements   | 60 Use Cases documented, architecture diagrams, ADRs, Capstone form                  |
+| Sprint 2  | 3–4   | Requirements   | 105 Use Cases documented, architecture diagrams, ADRs, Capstone form                  |
 | Sprint 3  | 5–6   | Design         | Database schema (MongoDB + PostgreSQL), API spec, Figma wireframes                   |
 | Sprint 4  | 7–8   | Infrastructure | Docker Compose running, CI/CD pipelines active, API Gateway running                  |
 | Sprint 5  | 9–10  | Auth & RBAC    | Register/Login/OAuth working, JWT + refresh tokens, RBAC enforced                    |
@@ -1496,83 +1496,83 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 ---
 
-### DA-E03-01 — List and group all 60 use cases by 6 roles (Admin, Owner, Manager, Creator, Client, Guest)
+### DA-E03-01 — List and group all 105 use cases by 6 roles (Admin, Owner, Manager, Creator, Client, Guest)
 
-**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical
+**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical | **Status:** ✅ DONE 2026-09-17
 
 **Goal:** Produce a complete, numbered, role-grouped use case inventory that gives every team member a shared reference for what BrandHub must do before any detailed writing begins.
 
 **Acceptance Criteria:**
 
-- [ ] Exactly 60 use cases are listed, each with a unique ID (UC-01 through UC-60)
-- [ ] Each use case is assigned to exactly one primary role (Admin, Owner, Manager, Creator, Client, or Guest)
-- [ ] The list is stored in a shared document and accessible to the full team for review and comment
+- [x] Exactly 105 use cases are listed, each with a unique ID (UC-01 through UC-106, no gaps/duplicates) — count corrected from the original 60-UC placeholder after cross-checking the real source CSV (`Các FR của hệ thống - Use Case.csv`)
+- [x] Each use case is assigned to exactly one primary role (Admin, Owner, Manager, Creator, Client, or Guest) — see `docs/ba/use-cases/00-index.md` role grouping table
+- [x] The list is stored in a shared document and accessible to the full team for review and comment — `docs/ba/use-cases/`
 
 **Technical Notes:**
 
-- Group use cases in blocks by role rather than interleaving to make the split for DA-E03-02, DA-E03-03, DA-E03-04 clean and non-overlapping
+- Grouped by domain (8 files matching `docs/ba/02-09` FR groups) rather than by role blocks — cleaner mapping to FR source, avoids UC-to-FR drift
+
+**Output:** `docs/ba/use-cases/00-index.md` (index) + 8 domain files.
 
 **Dependencies:** Blocks: DA-E03-02, DA-E03-03, DA-E03-04, DA-E03-06. Blocked by: DA-E01-01.
 
 ---
 
-### DA-E03-02 — Write detailed descriptions for UC 01–20 (Admin + Owner flows)
+### DA-E03-02 — Write detailed descriptions for UC-01–12 (Authentication + Profile flows)
 
-**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
+**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical | **Status:** ✅ DONE 2026-09-17
 
-**Goal:** Produce fully described use cases for UC-01 through UC-20 so that Admin and Owner feature requirements are unambiguous for backend developers implementing those flows.
+**Goal:** Produce fully described use cases for UC-01 through UC-12 so that Authentication and Profile feature requirements are unambiguous for backend developers implementing those flows.
 
 **Acceptance Criteria:**
 
-- [ ] Each of UC-01 to UC-20 includes: Actor, Preconditions, Main Flow (numbered steps), Alternative Flows, and Postconditions
-- [ ] Admin use cases cover at minimum: user management, subscription management, platform configuration, audit log review
-- [ ] Owner use cases cover at minimum: workspace creation, member invitation, client onboarding, subscription tier management
+- [x] Each of UC-01 to UC-12 includes: Actor, Precondition, Main Flow (numbered steps), Alternative Flows — see `docs/ba/use-cases/01-authentication-profile.md`
+- [x] Covers: Sign Up/In (email + Google OAuth), Password Reset/Change, 2FA, Sign Out, Deactivate Account, personal Profile + Client Profile
 
 **Technical Notes:**
 
-- Reference the role enum values exactly as they appear in the JWT: ADMIN, OWNER — these must match any permission checks in business-service
+- Role split changed from the original "Admin + Owner" assumption to the real FR grouping (Authentication + Profile, FR 3.2–3.3) — matches `docs/ba/02-authentication-profile.md`, not the old 6-role-fixed model
 
 **Dependencies:** Blocks: DA-E03-05, DA-E04-01. Blocked by: DA-E03-01.
 
 ---
 
-### DA-E03-03 — Write detailed descriptions for UC 21–40 (Manager + Creator flows)
+### DA-E03-03 — Write detailed descriptions for UC-13–73 (Agency/Workspace, Media Package/Campaign & Content Task Workflow flows)
 
-**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical
+**Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical | **Status:** ✅ DONE 2026-09-17
 
-**Goal:** Produce fully described use cases for UC-21 through UC-40 covering the core day-to-day content workflow so developers building content and approval features have precise requirements.
+**Goal:** Produce fully described use cases for UC-13 through UC-73 covering the core day-to-day content workflow so developers building content and approval features have precise requirements.
 
 **Acceptance Criteria:**
 
-- [ ] Each of UC-21 to UC-40 includes: Actor, Preconditions, Main Flow, Alternative Flows, and Postconditions
-- [ ] Manager use cases cover at minimum: assigning content to creators, reviewing drafts, managing approval workflows, reporting to clients
-- [ ] Creator use cases cover at minimum: AI content generation, image generation, draft editing, submitting for approval, scheduling posts
+- [x] Each of UC-13 to UC-73 includes: Actor, Precondition, Main Flow, Alternative Flows — see `docs/ba/use-cases/02-agency-workspace.md`, `03-media-package-campaign.md`, `04-content-task-workflow.md`
+- [x] Manager use cases cover: Workspace/Agency management, assigning content to creators, reviewing drafts, Task Approval Sequence, reporting to clients
+- [x] Creator use cases cover: content writing, material/hashtag management, livestream/survey flows, task views, submitting for approval
 
 **Technical Notes:**
 
-- The approval workflow use case must clearly distinguish between MANAGER approval and CLIENT approval as separate states
-- AI generation steps in creator flows must specify which ai-service endpoint is called (e.g., /ai/content, /ai/image)
+- The approval workflow use case (UC-47) clearly distinguishes CREATOR → (optional QC) → MANAGER → CLIENT as sequential, restart-from-start-on-reject steps, matching `docs/ba/05-content-task-workflow.md` §4
 
 **Dependencies:** Blocks: DA-E03-05, DA-E04-01. Blocked by: DA-E03-01.
 
 ---
 
-### DA-E03-04 — Write detailed descriptions for UC 41–60 (Client + Social Publishing flows)
+### DA-E03-04 — Write detailed descriptions for UC-74–106 (AI, Publishing, Subscription & Admin flows)
 
-**Assignee:** Phước (Publisher) | **Priority:** 🟡 High
+**Assignee:** Phước (Publisher) | **Priority:** 🟡 High | **Status:** ✅ DONE 2026-09-17
 
-**Goal:** Produce fully described use cases for UC-41 through UC-60 covering Client portal interactions and automated social publishing so the publisher-service and client portal are built to spec.
+**Goal:** Produce fully described use cases for UC-74 through UC-106 covering AI features, Client/publishing portal interactions, subscription/billing, and Admin management so downstream services are built to spec.
 
 **Acceptance Criteria:**
 
-- [ ] Each of UC-41 to UC-60 includes: Actor, Preconditions, Main Flow, Alternative Flows, and Postconditions
-- [ ] Client use cases cover at minimum: viewing content calendar, approving/rejecting posts, viewing analytics
-- [ ] Social publishing use cases cover at minimum: scheduling a post, RabbitMQ-triggered publish job, callback on success/failure, retry on failure
+- [x] Each of UC-74 to UC-106 includes: Actor, Precondition, Main Flow, Alternative Flows — see `docs/ba/use-cases/05-ai-features.md`, `06-publishing-social.md`, `07-subscription.md`, `08-admin-management.md`
+- [x] Client-relevant use cases cover: connecting social accounts, viewing post dashboard/detail, subscription/credit management
+- [x] Social publishing use cases cover: preview/schedule/track, per-platform publish (Facebook/Instagram/TikTok/Threads), fail-state tracking
 
 **Technical Notes:**
 
-- Publishing flow use cases must reference the RabbitMQ message contract defined in DA-E07-03 once available; flag any assumptions made before that task completes
-- Client flows must note that all data access is scoped by both workspaceId and clientId per the access rules in DA-E06-08
+- Publishing flow use cases (UC-87–89) reference System/CREATOR as dual actor (queued job + manual trigger context) — flag any RabbitMQ contract assumptions once DA-E07-03 is available
+- Zalo OA explicitly out of scope — 4 platforms only (Facebook/Instagram/TikTok/Threads)
 
 **Dependencies:** Blocks: DA-E03-05, DA-E04-01. Blocked by: DA-E03-01.
 
@@ -1582,7 +1582,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Assignee:** All (Team) | **Priority:** 🟡 High
 
-**Goal:** Validate the full 60-use-case set with the assigned mentor to catch scope, feasibility, or completeness issues before the team invests effort writing detailed requirements documents.
+**Goal:** Validate the full 105-use-case set with the assigned mentor to catch scope, feasibility, or completeness issues before the team invests effort writing detailed requirements documents.
 
 **Acceptance Criteria:**
 
@@ -1603,7 +1603,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Acceptance Criteria:**
 
 - [ ] BrandHub_UseCases.xlsx contains columns: UC ID, Title, Actor, Priority, Status, Related Epic, Brief Description
-- [ ] All 60 use cases are present with no blank required fields
+- [ ] All 105 use cases are present with no blank required fields
 - [ ] File is uploaded to the shared project folder and linked from the project wiki
 
 **Dependencies:** Blocks: None. Blocked by: DA-E03-05.
