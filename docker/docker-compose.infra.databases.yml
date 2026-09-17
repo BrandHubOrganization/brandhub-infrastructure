@@ -25,7 +25,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ../scripts/init-postgres.sql:/docker-entrypoint-initdb.d/init-postgres.sql
+      - ../scripts/init-postgres-v2.sql:/docker-entrypoint-initdb.d/init-postgres-v2.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
