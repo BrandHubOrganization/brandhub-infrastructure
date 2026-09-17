@@ -1,5 +1,10 @@
 # DA-E06-04 — Indexing Strategy
 
+> **⚠️ STATUS: V1-ERA — LỖI THỜI, CHƯA MIGRATE SANG V2 (2026-09-17).**
+> Tài liệu này mô tả index cho schema **V1** (15 bảng PG + 12 collection Mongo). Nó **không khớp** schema V2 hiện hành: nhiều bảng/collection đã đổi/bỏ/đổi nghĩa (`password_reset_tokens`, `workspace_member_permissions`, `clients`, `workspace_subscriptions`, `invoices`, `payments` đã bỏ/đổi; `knowledge_documents`, `publish_logs`, `report_jobs` không còn; `posts` đổi nghĩa; thêm 14 collection business-service mới).
+> **Index V2 đã khai báo inline trong [`brandhub-dbml.dbml`](./brandhub-dbml.dbml)** (mỗi `Table` có block `indexes { … }`). Việc viết `$jsonSchema` + index creation script cho 14 collection business-service thuộc **Epic E51** — chưa làm, theo dõi ở [`migration-plan-v1-to-v2.md`](../migration/migration-plan-v1-to-v2.md) Giai đoạn B bước 4.
+> Nội dung bên dưới giữ nguyên làm tham khảo V1, không dùng cho V2.
+
 **Sprint:** 3 | **Owner:** Trung (Leader) | **Priority:** 🟡 High  
 **Blocked by:** DA-E06-02 (MongoDB schema), DA-E06-03 (PG schema)  
 **Blocks:** DA-E06-07 (init scripts)
@@ -8,7 +13,7 @@
 
 ## 1. Mục tiêu
 
-Xác định toàn bộ indexes cần thiết cho 15 bảng PostgreSQL và 8 collection MongoDB để đảm bảo API performance từ ngày đầu, không phải optimize sau launch.
+Xác định toàn bộ indexes cần thiết cho 15 bảng PostgreSQL và 8 collection MongoDB (V1) để đảm bảo API performance từ ngày đầu, không phải optimize sau launch.
 
 **Nguyên tắc chung:**
 - Index theo query pattern thực tế, không index thừa

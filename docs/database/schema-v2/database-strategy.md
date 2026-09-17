@@ -120,6 +120,7 @@ db.tasks.find({ workspaceId: ctx.workspaceId, status: 'COMPLETED' })
 | `user_subscriptions` | ACID upgrade/downgrade | **ĐỔI TÊN** từ `workspace_subscriptions` — Plan gắn cấp **User/Owner**, áp dụng toàn bộ Agency của họ |
 | `transactions` | Atomic, PayOS, ACID | **ĐỔI TÊN** từ `payments`, gộp `invoices` |
 | `ai_credit_ledgers` | Reset hàng tháng, không rollover | **MỚI** |
+| `ai_credit_creator_limits` | Config hạn mức credit riêng từng Creator (Owner set) | **MỚI 2026-09-16** |
 | `audit_logs` | Append-only, không đổi | Không đổi |
 
 ### 4.2 Quyết định thiết kế: `client_profiles` tách bảng riêng
@@ -232,6 +233,7 @@ Không đổi so với V1 — độc lập với model nghiệp vụ Agency/Work
 │  ├── user_subscriptions        (đổi tên, gắn User thay Workspace)         │
 │  ├── transactions               (đổi tên, gộp invoices)                   │
 │  ├── ai_credit_ledgers           (NEW)                                    │
+│  ├── ai_credit_creator_limits    (NEW, per-Creator cap)                   │
 │  └── audit_logs                                                           │
 ├──────────────────────────────────────────────────────────────────────────┤
 │                            ai-service                                     │

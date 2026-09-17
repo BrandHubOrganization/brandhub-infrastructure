@@ -352,16 +352,29 @@ entity "ai_credit_ledgers" as ai_credit_ledgers <<PostgreSQL, NEW V2>> {
   * id : uuid <<PK>>
   --
   * agency_id : uuid <<FK>>
-  creator_id : uuid <<FK>>
   * month : varchar(7)
   * used_amount : int
-  monthly_limit : int
   * created_at : timestamptz
   * updated_at : timestamptz
 }
 note right of ai_credit_ledgers
   Reset hàng tháng, KHÔNG rollover
-  UNIQUE(agency_id, creator_id, month)
+  UNIQUE(agency_id, month) — không gắn user
+end note
+
+entity "ai_credit_creator_limits" as ai_credit_creator_limits <<PostgreSQL, NEW 2026-09-16>> {
+  * id : uuid <<PK>>
+  --
+  * agency_id : uuid <<FK>>
+  * creator_id : uuid <<FK>>
+  * monthly_limit : int
+  * set_by : uuid <<FK>>
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of ai_credit_creator_limits
+  Config hạn mức credit RIÊNG từng Creator
+  UNIQUE(agency_id, creator_id)
 end note
 
 entity "audit_logs" as audit_logs <<PostgreSQL>> {
@@ -381,7 +394,7 @@ note right of audit_logs
 end note
 
 ' ============================================================
-' MONGODB — 10 COLLECTIONS (soft ref, không có FK thật)
+' MONGODB — 14 COLLECTIONS (business-service, soft ref, không có FK thật)
 ' ============================================================
 
 entity "tasks" as tasks <<MongoDB, NEW V2>> {
@@ -505,6 +518,66 @@ entity "content_versions" as content_versions <<MongoDB, NEW V2>> {
   * createdAt : date
 }
 
+entity "livestream_sessions" as livestream_sessions <<MongoDB, NEW V2>> {
+  * _id : ObjectId <<PK>>
+  --
+  * taskId : string
+  idea : string
+  targetGoal : string
+  script : string
+  * subStatus : livestream_sub_status
+  meetingLink : string
+  startedAt : date
+  endedAt : date
+  * createdAt : date
+  * updatedAt : date
+}
+note right of livestream_sessions
+  Con của Task loại livestream — FR 3.6.22-3.6.24
+end note
+
+entity "survey_forms" as survey_forms <<MongoDB, NEW V2>> {
+  * _id : ObjectId <<PK>>
+  --
+  * taskId : string
+  * title : string
+  questions : object[]
+  * createdBy : string
+  * createdAt : date
+  * updatedAt : date
+}
+note right of survey_forms
+  Con của Task loại survey — FR 3.6.25
+end note
+
+entity "survey_responses" as survey_responses <<MongoDB, NEW V2>> {
+  * _id : ObjectId <<PK>>
+  --
+  * surveyFormId : string
+  respondentId : string
+  * answers : object[]
+  * submittedAt : date
+}
+note right of survey_responses
+  Tách khỏi survey_forms vì high write throughput
+end note
+
+entity "mail_templates" as mail_templates <<MongoDB, NEW V2>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string
+  * name : string
+  * subject : string
+  * bodyHtml : string
+  * type : mail_template_type
+  createdBy : string
+  * createdAt : date
+  * updatedAt : date
+}
+note right of mail_templates
+  FR 3.6.28-3.6.32
+end note
+
 entity "social_accounts" as social_accounts <<MongoDB>> {
   * _id : ObjectId <<PK>>
   --
@@ -571,9 +644,11 @@ users ||--o{ transactions
 note as N1
   MongoDB collections (tasks, task_approvals, posts,
   content_requests, material_repository, brand_collections,
-  hashtag_collections, content_versions, social_accounts,
-  notifications) dùng SOFT REFERENCE tới PostgreSQL — không
-  có FK constraint thật, join ở application layer.
+  hashtag_collections, content_versions, livestream_sessions,
+  survey_forms, survey_responses, mail_templates,
+  social_accounts, notifications) dùng SOFT REFERENCE tới
+  PostgreSQL — không có FK constraint thật, join ở
+  application layer.
   Xem docs/database/database-strategy.md mục 5.
 end note
 

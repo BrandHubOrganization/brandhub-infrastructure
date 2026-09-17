@@ -1,5 +1,5 @@
   // BrandHub — Database Schema V2 (DBML for dbdiagram.io)
-  // STATUS: DESIGN — chưa áp dụng vào scripts/init-postgres.sql thật.
+  // STATUS: DESIGN — init-postgres-v2.sql đã viết (23 bảng) nhưng CHƯA wire vào docker-compose; scripts/init-postgres.sql (V1, 15 bảng) vẫn được mount thật.
   // Thiết kế cho nghiệp vụ V2: Agency -> Workspace -> Media Package -> Media Campaign -> Task
   // Nguồn: docs/BA/11-data-entities-glossary.md, docs/database/schema-v2/database-strategy.md
   //
@@ -12,7 +12,7 @@
   //   Billing:      subscription_plans, user_subscriptions, transactions,
   //                 ai_credit_ledgers, ai_credit_creator_limits, audit_logs
   //
-  // MongoDB (15 collections — cập nhật 2026-09-16: +livestream_sessions, +survey_forms, +survey_responses,
+  // MongoDB (17 collections — cập nhật 2026-09-16: +livestream_sessions, +survey_forms, +survey_responses,
   //          +mail_templates, +ai_usage_logs field schema (trước chỉ nhắc tên)):
   //   business-service: tasks, task_approvals, posts, content_requests, material_repository,
   //                      brand_collections, hashtag_collections, content_versions,
@@ -606,7 +606,7 @@
   }
 
   // ============================================================
-  // MONGODB — 10 COLLECTIONS
+  // MONGODB — 14 COLLECTIONS (business-service)
   // Note: soft refs tới PostgreSQL, filter workspaceId bắt buộc.
   // ============================================================
 
