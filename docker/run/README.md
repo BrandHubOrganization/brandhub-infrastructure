@@ -28,8 +28,8 @@ Script: `run.bat`. Hỗ trợ 3 mode:
 
 | Mode       | Lệnh                  | Nội dung                                                                                     |
 | ---------- | --------------------- | -------------------------------------------------------------------------------------------- |
-| `infra`    | `.\run\run.bat infra` | Databases + Cache/Broker + Dev: PostgreSQL, Redis, RabbitMQ, pgAdmin, RedisInsight           |
-| `infra_ai` | `.\run\run.bat infra_ai` | AI Data + Databases + Cache/Broker + Dev: Neo4j, ChromaDB, PostgreSQL, Redis, RabbitMQ, pgAdmin, RedisInsight |
+| `infra`    | `.\run\run.bat infra` | Databases + Cache/Broker + Dev: PostgreSQL, Redis, RabbitMQ, pgAdmin           |
+| `infra_ai` | `.\run\run.bat infra_ai` | AI Data + Databases + Cache/Broker + Dev: Neo4j, ChromaDB, PostgreSQL, Redis, RabbitMQ, pgAdmin |
 | `full`     | `.\run\run.bat full`  | Toàn bộ infra + dev tools + app services (thêm `docker-compose.apps.yml`)                    |
 
 Chạy `run.bat` không tham số sẽ hiện menu chọn mode (1/2/3).
