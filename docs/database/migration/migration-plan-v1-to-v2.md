@@ -1,6 +1,6 @@
 # Migration Plan — Database V1 → V2
 
-> **STATUS: PLAN — chưa thực thi.** Tài liệu mô tả các công việc cần làm để migrate `scripts/init-postgres.sql` (V1, 15 bảng) sang schema V2 (`docs/database/schema-v2/brandhub-dbml.dbml`, 21 bảng PostgreSQL + 14 collection MongoDB).
+> **STATUS: PLAN — chưa thực thi.** Tài liệu mô tả các công việc cần làm để migrate `scripts/init-postgres.sql` (V1, 15 bảng) sang schema V2 (`docs/database/schema-v2/brandhub-dbml.dbml`, 23 bảng PostgreSQL + 17 collection MongoDB).
 > Nguồn: `docs/database/schema-v2/database-strategy.md`, `docs/database/schema-v2/brandhub-dbml.dbml`.
 
 ---
@@ -31,10 +31,10 @@
 | `subscription_plans` | `subscription_plans` (đổi field: bỏ `max_clients`/`max_posts_month`, thêm `max_workspaces`) | Map field trùng tên, field mới cần giá trị default theo tier | — |
 
 ### Bảng hoàn toàn mới (chỉ tạo, không cần map data)
-`agencies`, `agency_members`, `agency_invitations`, `workspace_templates`, `media_packages`, `workspace_media_packages`, `media_campaigns`, `third_party_collaborators`, `campaign_collaborators`, `ai_credit_ledgers`.
+`agencies`, `agency_members`, `agency_invitations`, `workspace_templates`, `media_packages`, `workspace_media_packages`, `media_campaigns`, `third_party_collaborators`, `campaign_collaborators`, `ai_credit_ledgers`, `ai_credit_creator_limits`.
 
-### MongoDB — 10 collection (business-service: 8, ai-service: giữ nguyên, publisher-service: giữ nguyên)
-Chưa có collection nào tồn tại (0% code). Không phải migrate — là **tạo mới từ đầu**: `tasks`, `task_approvals`, `posts` (đổi nghĩa), `content_requests` (đổi FSM), `material_repository`, `brand_collections`, `hashtag_collections`, `content_versions`.
+### MongoDB — 17 collection (business-service: 14, ai-service: 2, publisher-service: 1)
+Chưa có collection nào tồn tại (0% code). Không phải migrate — là **tạo mới từ đầu** (12 collection mới): `tasks`, `task_approvals`, `posts` (đổi nghĩa), `content_requests` (đổi FSM), `material_repository`, `brand_collections`, `hashtag_collections`, `content_versions`, `livestream_sessions`, `survey_forms`, `survey_responses`, `mail_templates`; giữ nguyên V1: `social_accounts`, `notifications`.
 
 ---
 
@@ -45,8 +45,8 @@ Chưa có collection nào tồn tại (0% code). Không phải migrate — là *
 2. Chốt toàn bộ mục 0 với Trung, ghi quyết định vào `database-strategy.md` (bỏ dòng "STATUS: DESIGN").
 
 ### Giai đoạn B — Schema DDL — ✅ DONE 2026-09-16
-3. ✅ `scripts/init-postgres-v2.sql` — 20 bảng (bỏ `workspace_member_permissions` theo quyết định mục 0), enum V2 đầy đủ, trigger `updated_at` + audit-log immutability, seed 3 subscription plan (BASIC/PRO/ENTERPRISE). File V1 giữ nguyên không sửa, dùng làm tham khảo/rollback.
-4. ⬜ Mongo schema validation (`$jsonSchema`) + index creation script cho 8 collection business-service mới — chưa làm, thuộc Epic E51 riêng.
+3. ✅ `scripts/init-postgres-v2.sql` — 23 bảng (bỏ `workspace_member_permissions` theo quyết định mục 0), enum V2 đầy đủ, trigger `updated_at` + audit-log immutability, seed 3 subscription plan (BASIC/PRO/ENTERPRISE). File V1 giữ nguyên không sửa, dùng làm tham khảo/rollback.
+4. ⬜ Mongo schema validation (`$jsonSchema`) + index creation script cho 14 collection business-service (12 mới + 2 giữ nguyên V1) — chưa làm, thuộc Epic E51 riêng.
 
 ### Giai đoạn C — Data migration — BỎ QUA (theo mục 0: không có data thật cần giữ)
 ~~5. Viết script migration data riêng~~
@@ -58,7 +58,7 @@ Chưa có collection nào tồn tại (0% code). Không phải migrate — là *
 9. Cập nhật `RequireRoleAspect` — thêm check khi role=CLIENT chưa có `user_id` (chỉ có `client_profile_id`).
 10. Cập nhật `openapi.yaml` — toàn bộ request/response DTO đổi theo bảng mới (workspace, client, billing endpoints).
 11. Cập nhật `brandhub-web-dashboard` — type TypeScript, API call theo model Agency mới.
-12. Viết code business logic cho 8 MongoDB collection mới (Task, Approval, Content Request FSM mới, Material, Brand Collection, Hashtag, Content Version) — đây là phần lớn nhất, 0% code hiện tại, tách riêng thành nhiều task con theo FR (đã có trong `brandhub-master-plan.md` Epic E51).
+12. Viết code business logic cho 14 MongoDB collection business-service (Task, Approval, Content Request FSM mới, Material, Brand Collection, Hashtag, Content Version, Livestream Session, Survey, Mail Template) — đây là phần lớn nhất, 0% code hiện tại, tách riêng thành nhiều task con theo FR (đã có trong `brandhub-master-plan.md` Epic E51).
 
 ### Giai đoạn E — Kiểm chứng & rollback
 13. Test integration đầy đủ trên staging: tạo agency → workspace → invite client → tạo media package → tạo campaign → tạo task, đi hết luồng chính trước khi merge.
@@ -74,7 +74,7 @@ Chưa có collection nào tồn tại (0% code). Không phải migrate — là *
 | 1 Owner nhiều Workspace nhưng V2 chỉ 1 `user_subscriptions`/Owner | Cao | Có thể mất data billing nếu không quyết rule trước (mục 0) |
 | `workspace_member_permissions` biến mất khỏi V2 | Trung | Nếu đang dùng thật ngoài code audit đã thấy, mất tính năng fine-grained override |
 | `clients.service_package` (jsonb tự do) → 3 bảng có cấu trúc | Trung | Data cũ thiếu field, cần default hoặc để trống chờ sửa tay |
-| MongoDB 8 collection mới — 0% code, không phải "migrate" mà là "xây từ đầu" | Cao (nhưng đã biết trước) | Tách task riêng theo Epic E51, không gộp vào migration DB này |
+| MongoDB 14 collection business-service — 0% code, không phải "migrate" mà là "xây từ đầu" | Cao (nhưng đã biết trước) | Tách task riêng theo Epic E51, không gộp vào migration DB này |
 
 ---
 

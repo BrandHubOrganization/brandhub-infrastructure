@@ -59,6 +59,7 @@
 - Toàn bộ công việc trong Media Campaign được **đẩy tự động vào Workspace, tạo thành bảng backlog công việc** (giống Jira backlog).
 - **Lưu ý mức độ chi tiết ở giai đoạn này**: backlog sinh ra CHƯA đầy đủ quy trình triển khai, chưa có yêu cầu cụ thể — chỉ mới là tên công việc + thời gian thông thường. Chi tiết hóa xảy ra ở bước Identify Task Detail (xem [05-content-task-workflow.md](05-content-task-workflow.md)).
 - **[CONFIRMED 2026-09-15]** Sau khi approved và đã đẩy backlog, Campaign **immutable** — không sửa lại được. Muốn thêm nội dung giữa chiến dịch → dùng Content Request (mục 4 dưới) hoặc Manager add Task thủ công (FR 3.6.10), không amend Campaign gốc.
+- **[CONFIRMED 2026-09-17]** Với khối lượng công việc lớn phát sinh giữa chiến dịch (không phải 1 task lẻ) — dùng **Campaign Addendum**: bản bổ sung link tới Campaign gốc, đi qua chu trình duyệt 2 phía riêng, tách biệt Manual Task đơn lẻ ra khỏi Campaign có nguồn gốc rõ ràng để phục vụ báo cáo/billing. Xem chi tiết state machine tại [12-state-machines.md](12-state-machines.md) mục 3, entity tại [11-data-entities-glossary.md](11-data-entities-glossary.md).
 - Role: OWNER/MANAGER/CLIENT.
 
 ## 4. Content Request — kênh bổ sung riêng (FR 3.5.7 – 3.5.10)

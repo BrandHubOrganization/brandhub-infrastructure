@@ -15,7 +15,7 @@
 
 ## 2. Entity Descriptions
 
-BrandHub V2's ERD chứa **35 entity**: **21 PostgreSQL** tables (identity, tổ chức Agency/Workspace, thương mại Package/Campaign, Third-party Collaborator, billing) và **14 MongoDB** collections (Task/content thực thi, operational data — cập nhật 2026-09-16: +livestream_sessions, +survey_forms, +survey_responses, +mail_templates). Xem [`database-strategy.md`](./database-strategy.md) cho storage-split rationale và các quyết định thiết kế.
+BrandHub V2's ERD chứa **37 entity**: **23 PostgreSQL** tables (identity, tổ chức Agency/Workspace, thương mại Package/Campaign, Third-party Collaborator, billing) và **14 MongoDB** collections (Task/content thực thi, operational data — cập nhật 2026-09-16: +livestream_sessions, +survey_forms, +survey_responses, +mail_templates). Xem [`database-strategy.md`](./database-strategy.md) cho storage-split rationale và các quyết định thiết kế.
 
 ### 2.1 PostgreSQL — Identity Group (4 tables, không đổi so với V1)
 
@@ -54,7 +54,7 @@ BrandHub V2's ERD chứa **35 entity**: **21 PostgreSQL** tables (identity, tổ
 | 16 | `third_party_collaborators` | Danh bạ đối tác truyền thông ngoài (báo/banner/TV) cấp Agency, tái sử dụng qua nhiều Campaign. |
 | 17 | `campaign_collaborators` | Bảng liên kết N-N — trạng thái hợp tác (`contacted`/`negotiating`/`confirmed`/`live`) theo TỪNG Campaign. |
 
-### 2.5 PostgreSQL — Billing Group (5 tables, đổi phạm vi gắn Plan)
+### 2.5 PostgreSQL — Billing Group (6 tables, đổi phạm vi gắn Plan)
 
 | # | Entity | Trạng thái | Description |
 |---|---|---|---|
@@ -62,26 +62,27 @@ BrandHub V2's ERD chứa **35 entity**: **21 PostgreSQL** tables (identity, tổ
 | 19 | `user_subscriptions` | **ĐỔI TÊN** | Từ `workspace_subscriptions` — Plan gắn cấp **User/Owner**, áp dụng toàn bộ Agency của họ. |
 | 20 | `transactions` | **ĐỔI TÊN** | Từ `payments`, gộp `invoices` — giao dịch PayOS, ACID. |
 | 21 | `ai_credit_ledgers` | **MỚI** | Sổ credit AI theo tháng, reset hàng tháng, KHÔNG rollover. |
+| 22 | `ai_credit_creator_limits` | **MỚI 2026-09-16** | Cấu hình giới hạn credit RIÊNG từng Creator (Owner set), chỉ config — usage thật đọc từ `ai_usage_logs`. |
 | — | `audit_logs` | Không đổi | Append-only, log hành động nhạy cảm. |
 
 ### 2.6 MongoDB Collections (14 collections)
 
 | # | Entity | Trạng thái | Description |
 |---|---|---|---|
-| 22 | `tasks` | **MỚI**, thay `posts` V1 | Đơn vị công việc chung 3 loại (post/livestream/survey), dùng chung Approval Sequence. |
-| 23 | `task_approvals` | **MỚI**, tách khỏi `tasks` | Lịch sử duyệt theo từng step — giữ nguyên approval cũ khi step sau bị reject. |
-| 24 | `posts` | **ĐỔI NGHĨA** | Chỉ còn bài ĐÃ PUBLISH thành công lên social (kết quả Task type=post hoàn thành). |
-| 25 | `content_requests` | **ĐỔI FSM** | `pending → in_progress → accepted/denied`, `denied` là trạng thái terminal. |
-| 26 | `material_repository` | **MỚI** | Kho ảnh/video, phân biệt raw vs đã retouch. |
-| 27 | `brand_collections` | **MỚI** | Tài liệu Client cung cấp làm tham khảo. |
-| 28 | `hashtag_collections` | **MỚI** | Kho hashtag theo Workspace. |
-| 29 | `content_versions` | **MỚI** | Lịch sử version nội dung (Content History). |
-| 30 | `livestream_sessions` | **MỚI 2026-09-16** | Con của Task loại livestream — idea/script/status (FR 3.6.22-24). |
-| 31 | `survey_forms` | **MỚI 2026-09-16** | Con của Task loại survey — form câu hỏi (FR 3.6.25). |
-| 32 | `survey_responses` | **MỚI 2026-09-16** | Câu trả lời khảo sát, tách riêng vì high write throughput. |
-| 33 | `mail_templates` | **MỚI 2026-09-16** | Mẫu email CRUD + gửi (FR 3.6.28-32) — thiếu hoàn toàn ở thiết kế trước. |
-| 34 | `social_accounts` | Giữ nguyên, bỏ `ZALO_OA` | Tài khoản social đã connect (Facebook/Instagram/TikTok/Threads). |
-| 35 | `notifications` | Giữ nguyên, thêm type mới | Thông báo, thêm loại cho Package/Campaign/Task approval. |
+| 23 | `tasks` | **MỚI**, thay `posts` V1 | Đơn vị công việc chung 3 loại (post/livestream/survey), dùng chung Approval Sequence. |
+| 24 | `task_approvals` | **MỚI**, tách khỏi `tasks` | Lịch sử duyệt theo từng step — giữ nguyên approval cũ khi step sau bị reject. |
+| 25 | `posts` | **ĐỔI NGHĨA** | Chỉ còn bài ĐÃ PUBLISH thành công lên social (kết quả Task type=post hoàn thành). |
+| 26 | `content_requests` | **ĐỔI FSM** | `pending → in_progress → accepted/denied`, `denied` là trạng thái terminal. |
+| 27 | `material_repository` | **MỚI** | Kho ảnh/video, phân biệt raw vs đã retouch. |
+| 28 | `brand_collections` | **MỚI** | Tài liệu Client cung cấp làm tham khảo. |
+| 29 | `hashtag_collections` | **MỚI** | Kho hashtag theo Workspace. |
+| 30 | `content_versions` | **MỚI** | Lịch sử version nội dung (Content History). |
+| 31 | `livestream_sessions` | **MỚI 2026-09-16** | Con của Task loại livestream — idea/script/status (FR 3.6.22-24). |
+| 32 | `survey_forms` | **MỚI 2026-09-16** | Con của Task loại survey — form câu hỏi (FR 3.6.25). |
+| 33 | `survey_responses` | **MỚI 2026-09-16** | Câu trả lời khảo sát, tách riêng vì high write throughput. |
+| 34 | `mail_templates` | **MỚI 2026-09-16** | Mẫu email CRUD + gửi (FR 3.6.28-32) — thiếu hoàn toàn ở thiết kế trước. |
+| 35 | `social_accounts` | Giữ nguyên, bỏ `ZALO_OA` | Tài khoản social đã connect (Facebook/Instagram/TikTok/Threads). |
+| 36 | `notifications` | Giữ nguyên, thêm type mới | Thông báo, thêm loại cho Package/Campaign/Task approval. |
 
 ---
 
@@ -96,5 +97,5 @@ Full FK relationship diagram nằm ở [`brandhub-erd.puml`](./brandhub-erd.puml
 - **MongoDB collections** dùng **soft reference** (string ID, không FK enforce) về `workspaceId`/`userId`/`clientProfileId` PostgreSQL — nhất quán với chiến lược đa DB, referential integrity thực thi ở application layer.
 
 ::: warning Ghi chú thay đổi lớn nhất
-So với V1 (17 entity theo mô tả gốc cũ, thực tế tăng lên 23 entity trước khi V2), schema V2 tăng lên **31 entity** — chủ yếu do 3 nhóm hoàn toàn mới: Organization (Agency layer, 8 bảng), Commerce (Media Package/Campaign, 3 bảng), Third-party Collaborator (2 bảng). Đây là thiết kế **DESIGN**, chưa migrate vào DB thật.
+So với V1 (17 entity theo mô tả gốc cũ, thực tế tăng lên 23 entity trước khi V2), schema V2 tăng lên **37 entity** (23 PostgreSQL + 14 MongoDB) — chủ yếu do 3 nhóm hoàn toàn mới: Organization (Agency layer, 8 bảng), Commerce (Media Package/Campaign, 3 bảng), Third-party Collaborator (2 bảng). Đây là thiết kế **DESIGN**, chưa migrate vào DB thật.
 :::

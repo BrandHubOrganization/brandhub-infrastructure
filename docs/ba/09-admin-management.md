@@ -22,14 +22,14 @@ Toàn bộ role: ADMIN. Admin tách biệt hoàn toàn khỏi cấu trúc Agency
 
 **Lưu ý số hiệu FR**: CSV gốc nhảy từ 3.10.9 sang 3.10.11 (không có 3.10.10) — giữ nguyên số hiệu như nguồn gốc, không tự đánh số lại để tránh lệch tham chiếu khi đối chiếu về sau.
 
-## Câu hỏi mở — CHƯA CÓ CÂU TRẢ LỜI (ghi chú gốc từ CSV, cần Trung quyết định)
+## Quyền hạn giữa các Admin [CONFIRMED 2026-09-17]
 
 CSV gốc tại FR 3.10.9 (Deactivate User) có note treo:
 > "admin có xoá được admin không? hệ thống có bao nhiêu admin?"
 
-Đây là câu hỏi nghiệp vụ **chưa được confirm trong session này** — cần Trung trả lời trước khi thiết kế RBAC cho Admin:
-1. Admin có thể xóa/deactivate Admin khác không (self-service hay cần Super Admin riêng)?
-2. Hệ thống giới hạn số lượng Admin tối đa, hay không giới hạn?
+Đã confirm với Trung:
+- **Admin KHÔNG xóa/deactivate được Admin khác** — không có phân cấp Super Admin trong phạm vi RBAC (mọi Admin ngang quyền, không ai override được Admin khác qua API).
+- Số lượng Admin: không giới hạn cứng trong hệ thống — việc tạo/gỡ Admin xử lý ngoài luồng RBAC ứng dụng (ví dụ: qua thao tác trực tiếp DB/vận hành nội bộ), không thuộc phạm vi feature cần code trong `docs/feature`.
 
 ## Content Moderation Queue (3.10.4) — liên kết với Compliance Check
 
