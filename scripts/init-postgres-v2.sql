@@ -142,11 +142,13 @@ $$ LANGUAGE plpgsql;
 CREATE TABLE IF NOT EXISTS users (
     id             UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
     email          VARCHAR(255) NOT NULL UNIQUE,
+    phone          VARCHAR(20)  UNIQUE,
     password_hash  VARCHAR,
     full_name      VARCHAR(255) NOT NULL,
     avatar_url     VARCHAR,
     status         user_status  NOT NULL DEFAULT 'ACTIVE',
     is_active      BOOLEAN      NOT NULL DEFAULT TRUE,
+    last_banned_at TIMESTAMPTZ,
     preferences    JSONB        NOT NULL DEFAULT '{}',
     last_login_at  TIMESTAMPTZ,
     last_password_change TIMESTAMPTZ,

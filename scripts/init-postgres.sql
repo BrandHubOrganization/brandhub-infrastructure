@@ -97,6 +97,7 @@ CREATE TABLE IF NOT EXISTS users (
     avatar_url     VARCHAR,
     status         user_status  NOT NULL DEFAULT 'ACTIVE',
     is_active      BOOLEAN      NOT NULL DEFAULT TRUE,
+    last_banned_at TIMESTAMPTZ,
     preferences    JSONB        NOT NULL DEFAULT '{}',
     last_login_at  TIMESTAMPTZ,
     last_password_change TIMESTAMPTZ,
