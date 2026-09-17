@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quy định Team BrandHub</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+  :root {
+    --color-text-primary: #1a1a2e;
+    --color-text-secondary: #57606a;
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #F7F8FA;
+    --color-border-secondary: #E0E0E0;
+    --color-border-tertiary: #EBEBEB;
+    --accent: #e85d04;
+    --accent-light: #fff3e0;
+    --accent-border: #f5cba7;
+    --fine-bg: #fff8f0;
+    --sidebar-w: 240px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; scroll-padding-top: 20px; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary);
+    line-height: 1.7;
+  }
+
+  /* ── Layout ── */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--color-background-primary);
+    border-right: 1px solid var(--color-border-secondary);
+    padding: 24px 20px 32px;
+  }
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--color-border-tertiary);
+  }
+  .sidebar-logo i { font-size: 20px; color: var(--accent); }
+  .sidebar-logo span { font-size: 14px; font-weight: 700; color: #111; }
+
+  .toc-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #aaa;
+    margin-bottom: 10px;
+  }
+
+  .toc-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .toc-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+    border: 1px solid transparent;
+  }
+  .toc-link:hover { background: var(--accent-light); color: var(--accent); }
+  .toc-link i { font-size: 14px; flex-shrink: 0; width: 16px; text-align: center; }
+  .toc-link .num { font-weight: 700; font-size: 10px; color: var(--accent); min-width: 16px; }
+
+  /* ── Main ── */
+  .main-content {
+    flex: 1;
+    min-width: 0;
+    padding: 28px 32px 48px;
+  }
+
+  /* ── Header ── */
+  .hdr { text-align: center; margin-bottom: 24px; }
+  .hdr h1 { font-size: 18px; font-weight: 700; color: #111; }
+  .hdr p  { font-size: 11px; color: #aaa; margin-top: 3px; }
+
+  /* ── Container ── */
+  .container { max-width: 820px; margin: 0 auto; }
+
+  /* ── Section card ── */
+  .section {
+    background: var(--color-background-primary);
+    border: 1px solid var(--color-border-secondary);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    scroll-margin-top: 20px;
+  }
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--color-border-tertiary);
+  }
+  .section-head i { font-size: 20px; color: var(--accent); flex-shrink: 0; }
+  .section-head h2 { font-size: 14px; font-weight: 700; color: #111; }
+
+  /* ── Rule list ── */
+  .rule-list { list-style: none; padding: 0; }
+  .rule-list > li {
+    padding: 11px 0;
+    border-bottom: 1px solid var(--color-border-tertiary);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .rule-list > li:last-child { border-bottom: none; }
+
+  .rule-num {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 1px;
+  }
+  .rule-body { flex: 1; font-size: 13px; }
+  .rule-body strong { color: var(--accent); }
+
+  /* ── Sub rules ── */
+  .sub-rule {
+    margin-top: 6px;
+    padding-left: 14px;
+    border-left: 2px solid var(--accent-border);
+    list-style: none;
+  }
+  .sub-rule li {
+    border-bottom: none;
+    padding: 3px 0;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+  .sub-rule li::before {
+    content: '•';
+    color: var(--accent);
+    font-weight: bold;
+    margin-right: 7px;
+  }
+
+  /* ── Fine box ── */
+  .fine-box {
+    background: var(--fine-bg);
+    border: 1px solid var(--accent-border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+  .fine-box strong { color: var(--color-text-primary); }
+
+  /* ── Tags ── */
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+    background: var(--accent-light);
+    color: var(--accent);
+    border: 1px solid var(--accent-border);
+  }
+
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; margin: 6px 0 2px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td {
+    text-align: left;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--color-border-tertiary);
+  }
+  th {
+    font-weight: 700;
+    color: var(--color-text-primary);
+    background: var(--fine-bg);
+    white-space: nowrap;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  td:last-child, th:last-child { text-align: right; white-space: nowrap; }
+
+  .highlight { color: var(--accent); font-weight: 700; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 12px;
+  }
+
+  /* ── Mobile toggle ── */
+  .toc-toggle {
+    display: none;
+    position: fixed;
+    bottom: 20px; right: 16px;
+    width: 42px; height: 42px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,.18);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-overlay { display: none; }
+
+  @media (max-width: 860px) {
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+      box-shadow: 2px 0 12px rgba(0,0,0,.1);
+    }
+    .sidebar.open { transform: translateX(0); }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.35);
+      z-index: 199;
+    }
+    .sidebar-overlay.show { display: block; }
+
+    .toc-toggle { display: flex; }
+
+    .main-content { padding: 20px 12px 36px; }
+    .section { padding: 18px 16px; }
+    table { font-size: 11px; }
+    th, td { padding: 7px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ====== SIDEBAR ====== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <i class="ti ti-brand-android"></i>
+      <span>BrandHub Rules</span>
+    </div>
+    <div class="toc-label">Mục lục</div>
+    <ul class="toc-list">
+      <li><a class="toc-link" href="#sec1"><i class="ti ti-calendar-event"></i><span>1. Lịch họp &amp; Chuyên cần</span></a></li>
+      <li><a class="toc-link" href="#sec2"><i class="ti ti-run"></i><span>2. Trễ việc trong Sprint</span></a></li>
+      <li><a class="toc-link" href="#sec3"><i class="ti ti-scale"></i><span>3. Quy định chung</span></a></li>
+      <li><a class="toc-link" href="#sec4"><i class="ti ti-git-branch"></i><span>4. Code &amp; Git</span></a></li>
+      <li><a class="toc-link" href="#sec5"><i class="ti ti-messages"></i><span>5. Giao tiếp nhóm</span></a></li>
+      <li><a class="toc-link" href="#sec6"><i class="ti ti-checklist"></i><span>6. Standup hàng ngày</span></a></li>
+      <li><a class="toc-link" href="#sec7"><i class="ti ti-file-text"></i><span>7. Tài liệu &amp; Bàn giao</span></a></li>
+      <li><a class="toc-link" href="#sec8"><i class="ti ti-refresh"></i><span>8. Retrospective</span></a></li>
+    </ul>
+  </aside>
+
+  <!-- ====== OVERLAY (mobile) ====== -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ====== MAIN ====== -->
+  <main class="main-content">
+
+    <div class="hdr">
+      <h1>Quy định Team BrandHub</h1>
+      <p>Quy định làm việc nhóm — áp dụng từ tháng 8/2026 &nbsp;·&nbsp; v1.0 · 09/08/2026</p>
+    </div>
+
+    <div class="container">
+
+      <!-- ====== SECTION 1: LỊCH HỌP ====== -->
+      <div class="section" id="sec1">
+        <div class="section-head">
+          <i class="ti ti-calendar-event"></i>
+          <h2>1. Lịch họp &amp; Chuyên cần</h2>
+        </div>
+
+        <ol class="rule-list">
+          <li>
+            <span class="rule-num">1</span>
+            <span class="rule-body">
+              <strong>4 buổi họp / tuần</strong> — mỗi buổi kéo dài 4 tiếng.
+              Mỗi thành viên phải tham gia <strong>ít nhất 3/4 buổi</strong> mỗi tuần.
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">2</span>
+            <span class="rule-body">
+              <strong>Hình thức tham gia:</strong> Trực tiếp tại địa điểm nhóm, hoặc online
+              (qua Google Meet / Discord) <strong>chỉ khi có lý do bất khả kháng</strong>
+              và đã báo trước cho nhóm trưởng.
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">3</span>
+            <span class="rule-body">
+              <strong>Chọn giờ họp hàng tuần:</strong> Mỗi <strong>Chủ nhật</strong>,
+              nhóm trưởng sẽ gửi bình chọn (poll) vào group chat để mọi người chọn
+              khung giờ rảnh trong tuần (Nếu không bình chọn thì mặc định là đồng ý toàn bộ). Kết quả poll được chốt vào
+              <strong>tối Chủ nhật</strong>.
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">4</span>
+            <span class="rule-body">
+              <strong>Đi trễ:</strong>
+              <ul class="sub-rule">
+                <li>Được đi trễ tối đa <strong>10 phút</strong>.</li>
+                <li>Trễ quá 10 phút: <strong>phải báo trước</strong> trong group chat.</li>
+                <li>Trễ quá 10 phút <strong>không báo trước</strong>: phạt <span class="highlight">10.000đ / lần</span>.</li>
+              </ul>
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">5</span>
+            <span class="rule-body">
+              <strong>Vắng họp:</strong>
+              <ul class="sub-rule">
+                <li>Mỗi tuần được vắng <strong>tối đa 1 buổi</strong> (có lý do và đã báo trước).</li>
+                <li>Vắng quá 1 buổi/tuần: phạt <span class="highlight">20.000đ / buổi vượt</span>.</li>
+                <li>Vắng không báo trước: phạt <span class="highlight">30.000đ / buổi</span>.</li>
+              </ul>
+            </span>
+          </li>
+        </ol>
+
+        <div class="fine-box">
+          <i class="ti ti-coin" style="font-size:14px;vertical-align:-2px;color:var(--accent)"></i>
+          <strong>Tiền phạt chuyên cần</strong> được nộp vào quỹ chung của nhóm,
+          dùng để chi cho đồ án (in ấn, dụng cụ) hoặc liên hoan ăn nhậu sau này.
+        </div>
+      </div>
+
+      <!-- ====== SECTION 2: TRỄ VIỆC SPRINT ====== -->
+      <div class="section" id="sec2">
+        <div class="section-head">
+          <i class="ti ti-run"></i>
+          <h2>2. Trễ việc trong Sprint</h2>
+        </div>
+
+        <ol class="rule-list">
+          <li>
+            <span class="rule-num">1</span>
+            <span class="rule-body">
+              <strong>Deadline task:</strong> Mỗi task trong sprint có deadline rõ ràng
+              ghi trên Jira. Thành viên cam kết hoàn thành
+              <strong>đúng deadline</strong> đã phân công.
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">2</span>
+            <span class="rule-body">
+              <strong>Báo chậm tiến độ:</strong> Khi thấy có nguy cơ trễ task, phải
+              <strong>báo ngay</strong> trong standup hàng ngày hoặc group chat
+              <strong>trước deadline ít nhất 24h</strong>.
+              <ul class="sub-rule">
+                <li>Báo sớm → nhóm điều phối, hỗ trợ, không phạt.</li>
+                <li>Không báo hoặc báo sát deadline (&lt;24h) → xem như trễ không lý do.</li>
+              </ul>
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">3</span>
+            <span class="rule-body">
+              <strong>Mức phạt trễ task:</strong>
+            </span>
+          </li>
+        </ol>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Lỗi</th>
+                <th>Mức phạt</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Trễ task (có báo trước ≥ 24h)</td>
+                <td>Không phạt — nhắc nhở</td>
+              </tr>
+              <tr>
+                <td>Trễ task (không báo trước)</td>
+                <td><span class="highlight">10.000đ / task</span></td>
+              </tr>
+              <tr>
+                <td>Block tiến độ người khác</td>
+                <td><span class="highlight">10.000đ</span> (phạt 1 lần)</td>
+              </tr>
+              <tr>
+                <td>Block kéo dài nhiều ngày</td>
+                <td>Thêm <span class="highlight">5.000đ / ngày</span> block</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <ol class="rule-list" start="4" style="margin-top:14px;">
+          <li>
+            <span class="rule-num">4</span>
+            <span class="rule-body">
+              <strong>Task bị reject:</strong> Task bị trả lại khi review do lỗi cơ bản
+              hoặc sai yêu cầu → tính như trễ task không báo trước.
+            </span>
+          </li>
+        </ol>
+
+        <div class="fine-box">
+          <i class="ti ti-coin" style="font-size:14px;vertical-align:-2px;color:var(--accent)"></i>
+          <strong>Tiền phạt sprint</strong> được nộp vào quỹ chung, dùng chi cho
+          đồ án (mua tài nguyên, thuê server, in ấn) hoặc liên hoan cuối kỳ.
+          Nhóm trưởng công khai số dư quỹ mỗi cuối sprint.
+        </div>
+      </div>
+
+      <!-- ====== SECTION 3: QUY ĐỊNH CHUNG ====== -->
+      <div class="section" id="sec3">
+        <div class="section-head">
+          <i class="ti ti-scale"></i>
+          <h2>3. Quy định chung</h2>
+        </div>
+
+        <ol class="rule-list">
+          <li>
+            <span class="rule-num">1</span>
+            <span class="rule-body">
+              <strong>Minh bạch quỹ phạt:</strong> Nhóm trưởng ghi chép đầy đủ vào
+              sheet công khai. Cập nhật số dư mỗi cuối sprint.
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">2</span>
+            <span class="rule-body">
+              <strong>Miễn / giảm phạt:</strong> Trường hợp bất khả kháng (ốm đau,
+              việc gia đình, thi cử) → báo nhóm trưởng. Nhóm vote quyết định
+              miễn/giảm phạt.
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">3</span>
+            <span class="rule-body">
+              <strong>Áp dụng cho TẤT CẢ thành viên</strong>, kể cả nhóm trưởng.
+              Không có ngoại lệ.
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">4</span>
+            <span class="rule-body">
+              <strong>Điều chỉnh quy định:</strong> Mọi thay đổi phải được thảo luận và
+              được <strong>ít nhất 3/5 thành viên</strong> đồng ý.
+            </span>
+          </li>
+        </ol>
+      </div>
+
+      <!-- ====== SECTION 4: CODE & GIT ====== -->
+      <div class="section" id="sec4">
+        <div class="section-head">
+          <i class="ti ti-git-branch"></i>
+          <h2>4. Code &amp; Git</h2>
+        </div>
+
+        <ol class="rule-list">
+          <li>
+            <span class="rule-num">1</span>
+            <span class="rule-body">
+              <strong>Quy tắc đặt tên branch:</strong> tuân thủ định dạng
+              <code style="font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:11px;background:#f0f0f0;padding:1px 5px;border-radius:3px;">&lt;type&gt;/DA-&lt;id&gt;-&lt;mô-tả-kebab-case&gt;</code>.
+              Chỉ dùng chữ thường, dấu <code>-</code> thay khoảng trắng.
+              <ul class="sub-rule">
+                <li>Tính năng mới: <code>feat/DA-47-user-schema</code></li>
+                <li>Sửa bug: <code>fix/DA-58-mobile-responsive</code></li>
+                <li>Cấu hình, CI/CD: <code>chore/DA-90-cicd-pipeline</code></li>
+                <li>Tài liệu: <code>docs/DA-2-readme-setup</code></li>
+              </ul>
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">2</span>
+            <span class="rule-body">
+              <strong>Commit message:</strong> Viết bằng <strong>tiếng Anh</strong>, theo chuẩn
+              <code style="font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:11px;background:#f0f0f0;padding:1px 5px;border-radius:3px;">&lt;type&gt;(DA-&lt;id&gt;): &lt;mô tả ngắn&gt;</code>.
+              Mỗi commit nhỏ, tập trung vào 1 việc. Commit thường xuyên — không dồn hết vào 1 commit cuối ngày.
+              <ul class="sub-rule">
+                <li>Hợp lệ: <code>feat(DA-47): tạo schema bảng Users</code></li>
+                <li>Hợp lệ: <code>fix(DA-58): sửa lỗi responsive trên mobile</code></li>
+                <li>Không hợp lệ: <code>update code</code>, <code>fix bug</code> (thiếu mã DA-xx)</li>
+              </ul>
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">3</span>
+            <span class="rule-body">
+              <strong>Tự merge code:</strong> Được phép tự merge PR của mình
+              <strong>nếu đảm bảo cả 2 điều kiện</strong>:
+              <ul class="sub-rule">
+                <li>Code <strong>không ảnh hưởng</strong> đến code chung (shared modules, core logic, API contract).</li>
+                <li>Đã <strong>test kỹ</strong> và xác nhận không gây lỗi.</li>
+              </ul>
+              Nếu code merge lên <strong>có conflict</strong> hoặc <strong>đang làm chung</strong> với thành viên khác:
+              <ul class="sub-rule">
+                <li>Phải <strong>thông báo riêng</strong> cho họ để cùng resolve conflict.</li>
+                <li>Hoặc thông báo để họ <strong>pull code mới về</strong> trước khi tiếp tục làm.</li>
+              </ul>
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">4</span>
+            <span class="rule-body">
+              <strong>Push code:</strong> Push lên remote <strong>cuối mỗi ngày làm việc</strong>.
+              Không được giữ code local quá 1 ngày.
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">5</span>
+            <span class="rule-body">
+              <strong>Merge conflict:</strong> Trước khi tạo PR, phải
+              <strong>rebase hoặc merge develop vào branch feat</strong> và
+              tự resolve conflict trên branch của mình. Không merge khi còn conflict chưa giải quyết.
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">6</span>
+            <span class="rule-body">
+              <strong>Các quy tắc bắt buộc khác:</strong>
+              <ul class="sub-rule">
+                <li><strong>Không push thẳng</strong> lên develop hoặc main — mọi thay đổi phải qua PR.</li>
+                <li><strong>Không force push</strong> (<code>git push --force</code>) lên branch đã có PR open.</li>
+                <li><strong>Không commit file nhạy cảm</strong>: <code>.env</code>, <code>*.key</code>, <code>credentials.*</code>.</li>
+                <li><strong>Xóa branch sau merge</strong> để giữ repo sạch.</li>
+                <li><strong>Luôn pull develop trước</strong> khi tạo branch mới để tránh conflict không cần thiết.</li>
+                <li>Branch <strong>phải tạo từ develop</strong>, không tạo từ main hoặc branch của người khác.</li>
+              </ul>
+            </span>
+          </li>
+        </ol>
+
+        <div class="fine-box" style="margin-top:14px;">
+          <i class="ti ti-coin" style="font-size:14px;vertical-align:-2px;color:var(--accent)"></i>
+          <strong>Vi phạm Git:</strong>
+          <table style="margin-top:6px;">
+            <thead><tr><th>Lỗi</th><th>Mức phạt</th></tr></thead>
+            <tbody>
+              <tr><td>Push code debug, console.log, file rác lên repo</td><td><span class="highlight">10.000đ</span></td></tr>
+              <tr><td>Push thẳng lên develop (không qua PR)</td><td><span class="highlight">20.000đ</span></td></tr>
+              <tr><td>Force push lên branch đã có PR open</td><td><span class="highlight">30.000đ</span></td></tr>
+              <tr><td>Commit file nhạy cảm (.env, key, credentials)</td><td><span class="highlight">50.000đ</span></td></tr>
+              <tr><td>Tự merge khi có conflict chưa resolve / không báo cho người liên quan</td><td><span class="highlight">10.000đ</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ====== SECTION 5: GIAO TIẾP NHÓM ====== -->
+      <div class="section" id="sec5">
+        <div class="section-head">
+          <i class="ti ti-messages"></i>
+          <h2>5. Giao tiếp nhóm</h2>
+        </div>
+
+        <ol class="rule-list">
+          <li>
+            <span class="rule-num">1</span>
+            <span class="rule-body">
+              <strong>Kênh chính thức:</strong> Mọi trao đổi công việc qua
+              <strong>group chat chung</strong>. Hạn chế chat riêng để cả nhóm cùng nắm được thông tin.
+              <ul class="sub-rule">
+                <li><strong>Discord:</strong> Họp online, share màn hình, voice chat khi tổ chức họp online.</li>
+                <li><strong>Zalo:</strong> Trao đổi nhanh, thông báo khẩn, poll chọn giờ họp.</li>
+                <li><strong>Slack:</strong> Kênh chat chính của team — chia channel riêng cho từng mảng (backend, frontend, devops, general). Tích hợp bot GitHub/Jira để nhận thông báo commit, PR, CI/CD, cập nhật task tự động. Mọi thảo luận chuyên môn, review code, debug, chia sẻ tài liệu đều tập trung ở đây.</li>
+              </ul>
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">2</span>
+            <span class="rule-body">
+              <strong>Thời gian phản hồi:</strong>
+              <ul class="sub-rule">
+                <li><strong>Slack (task không khẩn, Jira):</strong> Phản hồi <strong>trong vòng 4 giờ</strong>, giờ hành chính <strong>8h–18h</strong>. Ngoài giờ không bắt buộc.</li>
+                <li><strong>Zalo (thông báo quan trọng, khẩn cấp):</strong> Phản hồi <strong>trong vòng 2 giờ</strong>, kéo dài đến <strong>22h</strong> kể cả ngoài giờ hành chính. Các thông báo như thay đổi deadline, họp khẩn, sự cố production đều qua Zalo.</li>
+              </ul>
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">3</span>
+            <span class="rule-body">
+              <strong>Reaction xác nhận đã đọc:</strong> Với mọi tin nhắn được tag tên
+              hoặc giao task, phải thả <strong>emoji reaction</strong> (👍 ✅ 👀) để
+              báo hiệu đã đọc và nắm được nội dung.
+              <ul class="sub-rule">
+                <li>Slack: reaction trong <strong>4h</strong> (giờ hành chính).</li>
+                <li>Zalo (tin khẩn): reaction trong <strong>1h</strong>, đến 22h.</li>
+                <li>Không reaction đúng hạn → phạt <span class="highlight">5.000đ / lần</span>.</li>
+              </ul>
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">4</span>
+            <span class="rule-body">
+              <strong>Không phản hồi:</strong> Quá <strong>24h</strong> không trả lời
+              tin nhắn quan trọng không có lý do → phạt
+              <span class="highlight">10.000đ</span>.
+            </span>
+          </li>
+        </ol>
+      </div>
+
+      <!-- ====== SECTION 6: STANDUP HÀNG NGÀY ====== -->
+      <div class="section" id="sec6">
+        <div class="section-head">
+          <i class="ti ti-checklist"></i>
+          <h2>6. Standup hàng ngày</h2>
+        </div>
+
+        <ol class="rule-list">
+          <li>
+            <span class="rule-num">1</span>
+            <span class="rule-body">
+              <strong>Hình thức:</strong> Gửi tin nhắn vào group chat
+              <strong>trước 10:00 sáng</strong> mỗi ngày làm việc. Không cần họp
+              riêng, standup async qua text.
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">2</span>
+            <span class="rule-body">
+              <strong>Nội dung standup</strong> — đúng 3 ý, ngắn gọn:
+              <ul class="sub-rule">
+                <li><strong>Hôm qua</strong> đã làm được gì?</li>
+                <li><strong>Hôm nay</strong> sẽ làm gì?</li>
+                <li><strong>Có blocker / khó khăn</strong> gì cần giúp không?</li>
+              </ul>
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">3</span>
+            <span class="rule-body">
+              <strong>Không gửi standup:</strong> Phạt <span class="highlight">5.000đ / ngày</span>.
+              Cuối tuần tổng kết, nếu tuần đó gửi đủ 5/5 ngày thì không phạt ngày nào.
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">4</span>
+            <span class="rule-body">
+              <strong>Nêu blocker sớm:</strong> Nếu gặp blocker, không đợi đến standup
+              hôm sau mới báo — báo ngay trong group để nhóm hỗ trợ kịp thời.
+            </span>
+          </li>
+        </ol>
+      </div>
+
+      <!-- ====== SECTION 7: TÀI LIỆU & BÀN GIAO ====== -->
+      <div class="section" id="sec7">
+        <div class="section-head">
+          <i class="ti ti-file-text"></i>
+          <h2>7. Tài liệu &amp; Bàn giao</h2>
+        </div>
+
+        <ol class="rule-list">
+          <li>
+            <span class="rule-num">1</span>
+            <span class="rule-body">
+              <strong>Cập nhật Jira:</strong> Khi hoàn thành task hoặc chuyển
+              trạng thái, phải <strong>update ngay</strong> trên Jira để cả nhóm
+              theo dõi được tiến độ. Không update → nhắc nhở, tái phạm phạt
+              <span class="highlight">5.000đ</span>.
+            </span>
+          </li>
+          <li>
+            <span class="rule-num">3</span>
+            <span class="rule-body">
+              <strong>Bàn giao khi nghỉ dài:</strong> Nghỉ <strong>>2 ngày</strong>
+              liên tục, phải bàn giao task đang làm cho 1 thành viên khác.
+              Ghi rõ: task đang làm dở, đã xong phần nào, còn phần nào, file nào
+              liên quan.
+            </span>
+          </li>
+        </ol>
+      </div>
+
+      <p class="footer">Team BrandHub · Quy định có hiệu lực từ 09/08/2026</p>
+
+    </div>
+  </main>
+
+</div>
+
+<!-- ====== MOBILE TOC TOGGLE ====== -->
+<button class="toc-toggle" id="tocToggle" aria-label="Mục lục">
+  <i class="ti ti-list"></i>
+</button>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const toggle = document.getElementById('tocToggle');
+
+  function open()  { sidebar.classList.add('open'); overlay.classList.add('show'); }
+  function close() { sidebar.classList.remove('open'); overlay.classList.remove('show'); }
+
+  toggle.addEventListener('click', () => sidebar.classList.contains('open') ? close() : open());
+  overlay.addEventListener('click', close);
+
+  // Close sidebar when a link is clicked (mobile)
+  sidebar.querySelectorAll('.toc-link').forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 860) close();
+    });
+  });
+</script>
+
+</body>
+</html>

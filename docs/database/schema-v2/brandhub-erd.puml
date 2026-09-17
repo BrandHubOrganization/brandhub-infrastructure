@@ -1,0 +1,655 @@
+@startuml BrandHub ERD V2
+' STATUS: DESIGN — chưa áp dụng vào scripts/init-postgres.sql thật.
+' Nguồn: brandhub-dbml.dbml, docs/ba/11-data-entities-glossary.md
+skinparam shadowing false
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 80
+
+skinparam entity {
+  BackgroundColor #FAFAFA
+  BorderColor #555555
+  FontSize 12
+}
+
+' ============================================================
+' POSTGRESQL — IDENTITY (4 tables, không đổi so với V1)
+' ============================================================
+
+entity "users" as users <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * email : varchar(255) <<UQ>>
+  password_hash : varchar
+  * full_name : varchar(255)
+  avatar_url : varchar
+  * status : user_status
+  * is_active : boolean
+  * preferences : jsonb
+  last_login_at : timestamptz
+  last_password_change : timestamptz
+  otp_code : varchar(6)
+  otp_expiry : timestamptz
+  email_verified_at : timestamptz
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+
+entity "user_oauth_providers" as oauth <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * user_id : uuid <<FK>>
+  * provider : oauth_provider
+  * provider_id : varchar(255)
+  * created_at : timestamptz
+}
+note right of oauth
+  UNIQUE(provider, provider_id)
+end note
+
+entity "user_refresh_tokens" as refresh_tokens <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * user_id : uuid <<FK>>
+  * token_hash : varchar(255) <<UQ>>
+  * jti : varchar(255) <<UQ>>
+  * expires_at : timestamptz
+  * device_info : jsonb
+  * created_at : timestamptz
+}
+
+entity "user_system_roles" as system_roles <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * user_id : uuid <<FK, UQ>>
+  * system_role : varchar(50)
+  granted_by : uuid <<FK>>
+  * granted_at : timestamptz
+}
+note right of system_roles
+  CHECK system_role IN ('ADMIN','USER')
+end note
+
+' ============================================================
+' POSTGRESQL — ORGANIZATION: AGENCY & WORKSPACE (NEW group V2)
+' ============================================================
+
+entity "agencies" as agencies <<PostgreSQL, NEW V2>> {
+  * id : uuid <<PK>>
+  --
+  * name : varchar(255)
+  * owner_id : uuid <<FK>>
+  logo_url : varchar
+  description : text
+  * status : entity_status
+  deleted_at : timestamptz
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of agencies
+  1 Agency = 1 Owner cố định
+  Soft delete, khôi phục 30 ngày
+end note
+
+entity "agency_members" as agency_members <<PostgreSQL, NEW V2>> {
+  * id : uuid <<PK>>
+  --
+  * agency_id : uuid <<FK>>
+  * user_id : uuid <<FK>>
+  * joined_at : timestamptz
+}
+note right of agency_members
+  UNIQUE(agency_id, user_id)
+  KHÔNG có cột role
+end note
+
+entity "agency_invitations" as agency_invitations <<PostgreSQL, NEW V2>> {
+  * id : uuid <<PK>>
+  --
+  * agency_id : uuid <<FK>>
+  * invited_email : varchar(255)
+  * invited_by : uuid <<FK>>
+  * token : varchar(255) <<UQ>>
+  * status : invitation_status
+  * expires_at : timestamptz
+  accepted_at : timestamptz
+  * created_at : timestamptz
+}
+note right of agency_invitations
+  Hết hạn 3 ngày
+end note
+
+entity "workspaces" as workspaces <<PostgreSQL, CHANGED V2>> {
+  * id : uuid <<PK>>
+  --
+  * agency_id : uuid <<FK>>
+  * name : varchar(255)
+  media_package_id : uuid <<FK>>
+  * timezone_config : varchar(100)
+  * settings : jsonb
+  * status : entity_status
+  deleted_at : timestamptz
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of workspaces
+  ĐỔI V2: agency_id FK thay vì đứng độc lập
+  Owner suy ra qua agency.owner_id
+end note
+
+entity "workspace_members" as workspace_members <<PostgreSQL, CHANGED V2>> {
+  * id : uuid <<PK>>
+  --
+  * workspace_id : uuid <<FK>>
+  user_id : uuid <<FK>>
+  client_profile_id : uuid <<FK>>
+  * role : workspace_member_role
+  added_by : uuid <<FK>>
+  joined_at : timestamptz
+  * is_active : boolean
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of workspace_members
+  role: OWNER | MANAGER | CREATOR | CLIENT
+  ĐỔI V2: CLIENT gộp vào đây thay vì bảng clients riêng
+  UNIQUE(workspace_id, user_id)
+  UNIQUE(workspace_id, client_profile_id)
+end note
+
+entity "workspace_invitations" as workspace_invitations <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * workspace_id : uuid <<FK>>
+  * invited_email : varchar(255)
+  * role : workspace_member_role
+  * invited_by : uuid <<FK>>
+  * token : varchar(255) <<UQ>>
+  * status : invitation_status
+  * expires_at : timestamptz
+  accepted_at : timestamptz
+  * created_at : timestamptz
+}
+
+entity "workspace_templates" as workspace_templates <<PostgreSQL, NEW V2>> {
+  * id : uuid <<PK>>
+  --
+  * agency_id : uuid <<FK>>
+  * name : varchar(255)
+  source_workspace_id : uuid <<FK>>
+  * config_snapshot : jsonb
+  * created_by : uuid <<FK>>
+  * created_at : timestamptz
+}
+
+entity "client_profiles" as client_profiles <<PostgreSQL, NEW V2>> {
+  * id : uuid <<PK>>
+  --
+  linked_user_id : uuid <<FK>>
+  * display_name : varchar(255)
+  * email : varchar(255)
+  company : varchar(255)
+  phone : varchar(50)
+  note : text
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of client_profiles
+  Tách bảng riêng khỏi users
+  Tái sử dụng xuyên nhiều Agency/Workspace
+  email CỐ ĐỊNH, không đổi được (FR 3.3.4)
+end note
+
+' ============================================================
+' POSTGRESQL — COMMERCE: MEDIA PACKAGE & CAMPAIGN (NEW V2)
+' ============================================================
+
+entity "media_packages" as media_packages <<PostgreSQL, NEW V2>> {
+  * id : uuid <<PK>>
+  --
+  * name : varchar(255)
+  * is_template : boolean
+  * package_type : varchar(50)
+  duration_weeks : int
+  budget_amount : decimal(14,2)
+  scope_description : text
+  * created_by : uuid <<FK>>
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of media_packages
+  Gộp Template+Custom 1 bảng
+  is_template=true: Admin template dùng chung
+  is_template=false: custom copy riêng 1 Workspace
+end note
+
+entity "workspace_media_packages" as ws_media_packages <<PostgreSQL, NEW V2>> {
+  * id : uuid <<PK>>
+  --
+  * workspace_id : uuid <<FK, UQ>>
+  * package_id : uuid <<FK>>
+  * negotiation_status : package_negotiation_status
+  * final_terms : jsonb
+  approved_by_agency_at : timestamptz
+  approved_by_client_at : timestamptz
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of ws_media_packages
+  ACID 2-bên-approve (Hard Rule 4)
+  1 bên sửa final_terms → reset cột approve bên kia
+end note
+
+entity "media_campaigns" as media_campaigns <<PostgreSQL, NEW V2>> {
+  * id : uuid <<PK>>
+  --
+  * workspace_media_package_id : uuid <<FK>>
+  * name : varchar(255)
+  strategy_detail : text
+  brand_guideline : text
+  * timeline : jsonb
+  * status : campaign_status
+  approved_by_agency_at : timestamptz
+  approved_by_client_at : timestamptz
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of media_campaigns
+  Immutable sau approve
+  Auto-gen Task backlog khi approved
+end note
+
+' ============================================================
+' POSTGRESQL — THIRD-PARTY COLLABORATOR (NEW V2)
+' ============================================================
+
+entity "third_party_collaborators" as collaborators <<PostgreSQL, NEW V2>> {
+  * id : uuid <<PK>>
+  --
+  * agency_id : uuid <<FK>>
+  * partner_name : varchar(255)
+  * partner_type : collaborator_type
+  * contact_info : jsonb
+  notes : text
+  * created_by : uuid <<FK>>
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of collaborators
+  Danh bạ chung cấp Agency
+  KHÔNG gắn cứng 1 Campaign
+end note
+
+entity "campaign_collaborators" as campaign_collaborators <<PostgreSQL, NEW V2>> {
+  * id : uuid <<PK>>
+  --
+  * media_campaign_id : uuid <<FK>>
+  * collaborator_id : uuid <<FK>>
+  * cooperation_status : cooperation_status
+  updated_by : uuid <<FK>>
+  * updated_at : timestamptz
+}
+note right of campaign_collaborators
+  N-N: trạng thái hợp tác THEO TỪNG Campaign
+  UNIQUE(media_campaign_id, collaborator_id)
+end note
+
+' ============================================================
+' POSTGRESQL — BILLING (đổi phạm vi gắn Plan: User thay vì Workspace)
+' ============================================================
+
+entity "subscription_plans" as subscription_plans <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * name : subscription_plan_name <<UQ>>
+  * display_name : varchar(100)
+  * price_monthly : decimal(12,2)
+  * max_workspaces : int
+  * ai_credits_month : int
+  * features : jsonb
+  * is_active : boolean
+  * created_at : timestamptz
+}
+
+entity "user_subscriptions" as user_subscriptions <<PostgreSQL, RENAMED V2>> {
+  * id : uuid <<PK>>
+  --
+  * user_id : uuid <<FK, UQ>>
+  * plan_id : uuid <<FK>>
+  * status : subscription_status
+  * current_period_start : timestamptz
+  * current_period_end : timestamptz
+  cancelled_at : timestamptz
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of user_subscriptions
+  ĐỔI TÊN V2 từ workspace_subscriptions
+  Plan gắn cấp User/Owner, áp dụng toàn bộ Agency
+end note
+
+entity "transactions" as transactions <<PostgreSQL, RENAMED V2>> {
+  * id : uuid <<PK>>
+  --
+  * user_id : uuid <<FK>>
+  * type : transaction_type
+  * amount : decimal(12,2)
+  * currency : varchar(3)
+  * status : transaction_status
+  ref_id : varchar(255)
+  payos_tx_id : varchar(255) <<UQ>>
+  paid_at : timestamptz
+  failed_reason : varchar
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of transactions
+  ĐỔI TÊN V2 từ payments, gộp invoices
+  PayOS, ACID toàn bộ process
+end note
+
+entity "ai_credit_ledgers" as ai_credit_ledgers <<PostgreSQL, NEW V2>> {
+  * id : uuid <<PK>>
+  --
+  * agency_id : uuid <<FK>>
+  * month : varchar(7)
+  * used_amount : int
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of ai_credit_ledgers
+  Reset hàng tháng, KHÔNG rollover
+  UNIQUE(agency_id, month) — không gắn user
+end note
+
+entity "ai_credit_creator_limits" as ai_credit_creator_limits <<PostgreSQL, NEW 2026-09-16>> {
+  * id : uuid <<PK>>
+  --
+  * agency_id : uuid <<FK>>
+  * creator_id : uuid <<FK>>
+  * monthly_limit : int
+  * set_by : uuid <<FK>>
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+note right of ai_credit_creator_limits
+  Config hạn mức credit RIÊNG từng Creator
+  UNIQUE(agency_id, creator_id)
+end note
+
+entity "audit_logs" as audit_logs <<PostgreSQL>> {
+  * id : bigserial <<PK>>
+  --
+  agency_id : uuid
+  * user_id : uuid
+  * action : audit_action
+  * resource_type : varchar(50)
+  resource_id : varchar(255)
+  old_value : jsonb
+  new_value : jsonb
+  * created_at : timestamptz
+}
+note right of audit_logs
+  Append-only, không UPDATE/DELETE
+end note
+
+' ============================================================
+' MONGODB — 14 COLLECTIONS (business-service, soft ref, không có FK thật)
+' ============================================================
+
+entity "tasks" as tasks <<MongoDB, NEW V2>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string
+  * sourceType : task_source_type
+  sourceRefId : string
+  * type : task_type
+  * title : string
+  description : string
+  assigneeId : string
+  qcAssigneeId : string
+  * requiresClientApproval : boolean
+  * status : task_status
+  typeMetadata : object
+  dueDate : date
+  * createdAt : date
+  * updatedAt : date
+}
+note right of tasks
+  THAY posts V1 — generic 3 loại: post/livestream/survey
+  sourceType: campaign | content_request | manual
+end note
+
+entity "task_approvals" as task_approvals <<MongoDB, NEW V2>> {
+  * _id : ObjectId <<PK>>
+  --
+  * taskId : string
+  * step : task_approval_step
+  * action : task_approval_action
+  * actorId : string
+  comment : string
+  * createdAt : date
+}
+note right of task_approvals
+  Tách khỏi tasks — GIỮ approval cũ khi step sau reject
+end note
+
+entity "posts" as posts <<MongoDB, CHANGED MEANING V2>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string
+  * taskId : string
+  * platform : social_platform
+  socialAccountId : string
+  * contentText : string
+  mediaUrls : string[]
+  * status : post_publish_status
+  scheduledAt : date
+  publishedAt : date
+  externalPostId : string
+  reactionCount : int
+  commentCount : int
+  shareCount : int
+  * createdAt : date
+  * updatedAt : date
+}
+note right of posts
+  ĐỔI NGHĨA V2 — chỉ bài ĐÃ PUBLISH thành công
+end note
+
+entity "content_requests" as content_requests <<MongoDB, CHANGED FSM V2>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string
+  * createdByClientProfileId : string
+  * title : string
+  description : string
+  * status : content_request_status
+  generatedTaskId : string
+  * createdAt : date
+  * updatedAt : date
+}
+note right of content_requests
+  status: pending → in_progress → accepted/denied
+  denied = TERMINAL (khác V1)
+end note
+
+entity "material_repository" as material_repository <<MongoDB, NEW V2>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string
+  taskId : string
+  * fileUrl : string
+  fileType : string
+  * isRetouched : boolean
+  * uploadedBy : string
+  * createdAt : date
+}
+
+entity "brand_collections" as brand_collections <<MongoDB, NEW V2>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string
+  * title : string
+  fileUrl : string
+  description : string
+  uploadedBy : string
+  * createdAt : date
+}
+
+entity "hashtag_collections" as hashtag_collections <<MongoDB, NEW V2>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string
+  * name : string
+  * hashtags : string[]
+  createdBy : string
+  * createdAt : date
+  * updatedAt : date
+}
+
+entity "content_versions" as content_versions <<MongoDB, NEW V2>> {
+  * _id : ObjectId <<PK>>
+  --
+  * taskId : string
+  * versionNumber : int
+  * contentSnapshot : object
+  * createdBy : string
+  * createdAt : date
+}
+
+entity "livestream_sessions" as livestream_sessions <<MongoDB, NEW V2>> {
+  * _id : ObjectId <<PK>>
+  --
+  * taskId : string
+  idea : string
+  targetGoal : string
+  script : string
+  * subStatus : livestream_sub_status
+  meetingLink : string
+  startedAt : date
+  endedAt : date
+  * createdAt : date
+  * updatedAt : date
+}
+note right of livestream_sessions
+  Con của Task loại livestream — FR 3.6.22-3.6.24
+end note
+
+entity "survey_forms" as survey_forms <<MongoDB, NEW V2>> {
+  * _id : ObjectId <<PK>>
+  --
+  * taskId : string
+  * title : string
+  questions : object[]
+  * createdBy : string
+  * createdAt : date
+  * updatedAt : date
+}
+note right of survey_forms
+  Con của Task loại survey — FR 3.6.25
+end note
+
+entity "survey_responses" as survey_responses <<MongoDB, NEW V2>> {
+  * _id : ObjectId <<PK>>
+  --
+  * surveyFormId : string
+  respondentId : string
+  * answers : object[]
+  * submittedAt : date
+}
+note right of survey_responses
+  Tách khỏi survey_forms vì high write throughput
+end note
+
+entity "mail_templates" as mail_templates <<MongoDB, NEW V2>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string
+  * name : string
+  * subject : string
+  * bodyHtml : string
+  * type : mail_template_type
+  createdBy : string
+  * createdAt : date
+  * updatedAt : date
+}
+note right of mail_templates
+  FR 3.6.28-3.6.32
+end note
+
+entity "social_accounts" as social_accounts <<MongoDB>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string
+  clientProfileId : string
+  * platform : social_platform
+  * accountName : string
+  * accountId : string
+  * encryptedToken : string
+  * encryptedIv : string
+  * tokenExpiresAt : date
+  * tokenStatus : social_account_status
+  * isActive : boolean
+  * createdAt : date
+  * updatedAt : date
+}
+note right of social_accounts
+  platform: FACEBOOK | INSTAGRAM | TIKTOK | THREADS
+  (ZALO_OA đã loại khỏi scope)
+end note
+
+entity "notifications" as notifications <<MongoDB>> {
+  * _id : ObjectId <<PK>>
+  --
+  * workspaceId : string
+  * userId : string
+  * type : notification_type
+  * title : string
+  body : string
+  metadata : object
+  * isRead : boolean
+  * createdAt : date
+}
+
+' ============================================================
+' RELATIONSHIPS — PostgreSQL FK thật
+' ============================================================
+
+users ||--o{ oauth
+users ||--o{ refresh_tokens
+users ||--o| system_roles
+users ||--o{ agencies : owner_id
+users }o--o{ agency_members
+agencies ||--o{ agency_members
+agencies ||--o{ agency_invitations
+agencies ||--o{ workspaces
+agencies ||--o{ workspace_templates
+agencies ||--o{ collaborators
+agencies ||--o{ ai_credit_ledgers
+workspaces ||--o{ workspace_members
+workspaces ||--o{ workspace_invitations
+workspaces ||--o| ws_media_packages
+client_profiles ||--o{ workspace_members
+media_packages ||--o{ workspaces : media_package_id
+media_packages ||--o{ ws_media_packages
+ws_media_packages ||--o{ media_campaigns
+media_campaigns ||--o{ campaign_collaborators
+collaborators ||--o{ campaign_collaborators
+users ||--o| user_subscriptions
+subscription_plans ||--o{ user_subscriptions
+users ||--o{ transactions
+
+' MongoDB soft refs (không FK thật — vẽ dashed line ở diagram tool riêng nếu cần)
+note as N1
+  MongoDB collections (tasks, task_approvals, posts,
+  content_requests, material_repository, brand_collections,
+  hashtag_collections, content_versions, livestream_sessions,
+  survey_forms, survey_responses, mail_templates,
+  social_accounts, notifications) dùng SOFT REFERENCE tới
+  PostgreSQL — không có FK constraint thật, join ở
+  application layer.
+  Xem docs/database/database-strategy.md mục 5.
+end note
+
+@enduml

@@ -86,6 +86,29 @@ export default {
     },
     plugins: [
       {
+        // Vite dev server transforms EVERY .html request through its HTML plugin
+        // pipeline (injects @vite/client, strips <title>, etc) — even static files
+        // sitting in public/. That breaks the Workload Dashboard (public/dashboard/index.html)
+        // which needs to run standalone inside an iframe. Serve it as raw bytes, bypassing
+        // Vite's transform entirely, before any other middleware sees the request.
+        name: 'serve-dashboard-raw',
+        enforce: 'pre',
+        apply: 'serve',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            const url = (req.url ?? '').split('?')[0];
+            if (!url.startsWith('/dashboard/')) return next();
+            const relPath = url.slice('/dashboard/'.length);
+            const absPath = path.resolve(__dirname, '../public/dashboard', relPath);
+            if (!fs.existsSync(absPath) || !fs.statSync(absPath).isFile()) return next();
+            const ext = path.extname(absPath);
+            const contentType = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8' }[ext] || 'application/octet-stream';
+            res.setHeader('Content-Type', contentType);
+            res.end(fs.readFileSync(absPath));
+          });
+        }
+      },
+      {
         name: 'html-doc-viewer',
         enforce: 'pre',
         apply: 'serve',
@@ -204,8 +227,9 @@ export default {
         enforce: 'pre',
         transform(code, id) {
           const cleanId = id.split('?')[0];
-          // Escape raw HTML-like tags and double curly braces for all markdown files EXCEPT index.md (homepage)
-          if (cleanId.endsWith('.md') && !cleanId.endsWith('index.md') && !cleanId.endsWith('view.md')) {
+          // Escape raw HTML-like tags and double curly braces for all markdown files EXCEPT index.md (homepage),
+          // view.md (HtmlViewer component), and dashboard.md (Workload Dashboard iframe)
+          if (cleanId.endsWith('.md') && !cleanId.endsWith('index.md') && !cleanId.endsWith('view.md') && !cleanId.endsWith('dashboard.md')) {
             console.log('TRANSFORMING MD FILE:', cleanId);
             const escaped = escapeMarkdownHtml(code);
             return escaped;
@@ -221,7 +245,8 @@ export default {
       { text: 'Home', link: '/' },
       { text: 'Project Plan', link: '/plan/BrandHub_Project_Plan' },
       { text: 'Sprints', link: '/plan/sprints/README' },
-      { text: 'AI Iterations', link: '/plan/iterations/README' }
+      { text: 'AI Iterations', link: '/plan/iterations/README' },
+      { text: 'Dashboard', link: '/dashboard' }
     ],
     // Configure a dummy group to force VitePress to render the sidebar container,
     // which then mounts our custom DocsTree component in the sidebar slot.

@@ -1,0 +1,143 @@
+# Core infrastructure stack only.
+# Run with:
+#   docker compose -f docker-compose.infra.yml up -d
+# Add docker-compose.dev.yml when local host ports or pgAdmin are needed.
+
+services:
+  # Relational database for subscription plans and transactional data.
+  # The init script runs only when the postgres_data volume is created the first time.
+  postgres:
+    image: postgres:17-alpine
+    container_name: brandhub-postgres
+    restart: unless-stopped
+    environment:
+      # Values must come from .env. Do not use default credentials here.
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../scripts/init-postgres.sql:/docker-entrypoint-initdb.d/init-postgres.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - brandhub-network
+
+  # Shared Redis instance for cache, JWT blacklist, OAuth state, and rate limiting.
+  # Host port exposure belongs in docker-compose.dev.yml, not in this infra file.
+  redis:
+    image: redis:7.2-alpine
+    container_name: brandhub-redis
+    command:
+      - redis-server
+      # Password protects local/shared Redis from accidental unauthenticated access.
+      - --requirepass
+      - ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      # AOF keeps Redis data across restarts together with the mounted volume.
+      - --appendonly
+      - "yes"
+      # Memory limit prevents Redis from consuming all container/host memory.
+      - --maxmemory
+      - ${REDIS_MAXMEMORY:?REDIS_MAXMEMORY is required}
+      # Good default for cache-heavy usage: evict least recently used keys.
+      - --maxmemory-policy
+      - ${REDIS_MAXMEMORY_POLICY:?REDIS_MAXMEMORY_POLICY is required}
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:?REDIS_PASSWORD is required}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+  # Message broker for async jobs and publisher-service workflows.
+  # The management UI port is exposed only by docker-compose.dev.yml.
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: brandhub-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:?RABBITMQ_USERNAME is required}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+  # Vector database for AI/RAG features and raw collected data storage.
+  # Auth: ChromaDB local does not support built-in auth (cloud-only feature).
+  # Security relies on internal network isolation — no host port exposed in infra compose.
+  chromadb:
+    image: chromadb/chroma:0.6.3
+    container_name: brandhub-chromadb
+    environment:
+      # Persist data to the mounted volume (default is /chroma/chroma).
+      IS_PERSISTENT: "TRUE"
+      # Disable telemetry in local development.
+      ANONYMIZED_TELEMETRY: "FALSE"
+    volumes:
+      - chroma-data:/chroma/chroma
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/api/v1/heartbeat || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+  # Graph database for knowledge graphs, relationship analysis, and raw collected data.
+  # Neo4j 5.26 runs as the neo4j user by default — non-root, no custom Dockerfile needed.
+  neo4j:
+    image: neo4j:5.26-community
+    container_name: brandhub-neo4j
+    environment:
+      # Auth is set via NEO4J_AUTH in .env: neo4j/<password>
+      NEO4J_AUTH: ${NEO4J_AUTH:?NEO4J_AUTH is required}
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+# Named volumes keep data stable even if containers are recreated.
+volumes:
+  postgres_data:
+    name: brandhub-postgres-data
+  redis-data:
+    name: brandhub-redis-data
+  rabbitmq-data:
+    name: brandhub-rabbitmq-data
+  chroma-data:
+    name: brandhub-chroma-data
+  neo4j-data:
+    name: brandhub-neo4j-data
+  neo4j-logs:
+    name: brandhub-neo4j-logs
+
+# Shared bridge network used by infra, app, and dev compose files.
+networks:
+  brandhub-network:
+    name: brandhub-network
+    driver: bridge
