@@ -39,7 +39,7 @@ if not "%MODE%"=="" goto resolve
 
 echo.
 echo Select a mode:
-echo   [1] infra    - Databases + Cache/Broker + Dev ^(PostgreSQL, Redis, RabbitMQ, pgAdmin, RedisInsight^)
+echo   [1] infra    - Databases + Cache/Broker + Dev ^(PostgreSQL, Redis, RabbitMQ, pgAdmin^)
 echo   [2] infra_ai - AI Data + Databases + Cache/Broker + Dev ^(Neo4j, ChromaDB, PostgreSQL, Redis, RabbitMQ, pgAdmin, RedisInsight^)
 echo   [3] full     - all infra + dev tools + app services
 echo.
