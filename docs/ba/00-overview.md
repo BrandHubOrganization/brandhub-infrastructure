@@ -35,6 +35,7 @@
 | [10-roles-permissions-matrix.md](10-roles-permissions-matrix.md) | Bảng role tổng hợp, ma trận quyền theo từng FR | Toàn bộ |
 | [11-data-entities-glossary.md](11-data-entities-glossary.md) | Danh sách entity mới/đổi, field sơ bộ, câu hỏi thiết kế DB còn mở | Nền cho DB schema |
 | [12-state-machines.md](12-state-machines.md) | Sơ đồ trạng thái chi tiết từng transition: Content Request, Package, Campaign, Task Approval Sequence, Livestream, Collaborator, Post Publish | Bổ sung chi tiết cho 04, 05, 07 |
+| [use-cases/](use-cases/00-index.md) | 105 Use Case đầy đủ (actor, precondition, main flow, alt flow), nhóm theo 8 domain — nguồn: `Các FR của hệ thống - Use Case.csv` | Toàn bộ, map 1-1 UC ↔ FR |
 
 ## Cách đọc bộ tài liệu này
 
