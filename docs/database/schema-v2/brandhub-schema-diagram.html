@@ -154,8 +154,8 @@
 <script>
 // ── Schema Data V2 — DESIGN, chưa áp dụng init-postgres.sql thật ──
 // Nguồn: brandhub-dbml.dbml, docs/ba/11-data-entities-glossary.md
-// PostgreSQL: 21 tables (Identity×4, Organization×8, Commerce×3, Collaborator×2, Billing×5)
-// MongoDB: 10 collections (business-service)
+// PostgreSQL: 23 tables (Identity×4, Organization×8, Commerce×3, Collaborator×2, Billing×6)
+// MongoDB: 14 collections (business-service)
 const SCHEMA = {
   tables: [
 
@@ -400,7 +400,7 @@ const SCHEMA = {
     },
 
     // ══════════════════════════════════════════
-    // POSTGRESQL — BILLING (5 tables, đổi phạm vi gắn Plan)
+    // POSTGRESQL — BILLING (6 tables, đổi phạm vi gắn Plan)
     // ══════════════════════════════════════════
     {
       name: 'subscription_plans', db: 'postgres', note: 'PostgreSQL · Billing · không đổi V1',
@@ -445,14 +445,24 @@ const SCHEMA = {
       ]
     },
     {
-      name: 'ai_credit_ledgers', db: 'postgres', isNew: true, note: 'PostgreSQL · Billing · NEW V2 · reset hàng tháng, không rollover',
+      name: 'ai_credit_ledgers', db: 'postgres', isNew: true, note: 'PostgreSQL · Billing · NEW V2 · reset hàng tháng, không rollover, không gắn user',
       fields: [
         { name: 'id', type: 'uuid', pk: true },
         { name: 'agency_id', type: 'uuid', fk: 'agencies.id', notNull: true },
-        { name: 'creator_id', type: 'uuid', fk: 'users.id', note: 'nullable = tổng Agency' },
         { name: 'month', type: 'varchar(7)', notNull: true, note: 'YYYY-MM' },
         { name: 'used_amount', type: 'int', notNull: true },
-        { name: 'monthly_limit', type: 'int' },
+        { name: 'created_at', type: 'timestamptz', notNull: true },
+        { name: 'updated_at', type: 'timestamptz', notNull: true },
+      ]
+    },
+    {
+      name: 'ai_credit_creator_limits', db: 'postgres', isNew: true, note: 'PostgreSQL · Billing · NEW 2026-09-16 · config cap RIÊNG từng Creator (Owner set), không track usage',
+      fields: [
+        { name: 'id', type: 'uuid', pk: true },
+        { name: 'agency_id', type: 'uuid', fk: 'agencies.id', notNull: true },
+        { name: 'creator_id', type: 'uuid', fk: 'users.id', notNull: true },
+        { name: 'monthly_limit', type: 'int', notNull: true },
+        { name: 'set_by', type: 'uuid', fk: 'users.id', notNull: true, note: 'luôn là Owner (BA 3.9.7)' },
         { name: 'created_at', type: 'timestamptz', notNull: true },
         { name: 'updated_at', type: 'timestamptz', notNull: true },
       ]
@@ -471,7 +481,7 @@ const SCHEMA = {
     },
 
     // ══════════════════════════════════════════
-    // MONGODB — 10 COLLECTIONS
+    // MONGODB — 14 COLLECTIONS (business-service)
     // ══════════════════════════════════════════
     {
       name: 'tasks', db: 'mongo', isNew: true, note: 'MongoDB · NEW V2 · thay posts · generic 3 loại',
@@ -575,6 +585,58 @@ const SCHEMA = {
       ]
     },
     {
+      name: 'livestream_sessions', db: 'mongo', isNew: true, note: 'MongoDB · NEW V2 · con của Task livestream · FR 3.6.22-24',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'taskId', type: 'string', notNull: true, note: 'Soft ref → tasks._id' },
+        { name: 'idea', type: 'string', note: 'FR 3.6.22' },
+        { name: 'targetGoal', type: 'string' },
+        { name: 'script', type: 'string', note: 'FR 3.6.23' },
+        { name: 'subStatus', type: 'livestream_sub_status', notNull: true, note: 'PRE_LIVE | …' },
+        { name: 'meetingLink', type: 'string', note: 'FR 3.6.27' },
+        { name: 'startedAt', type: 'date' },
+        { name: 'endedAt', type: 'date' },
+        { name: 'createdAt', type: 'date', notNull: true },
+        { name: 'updatedAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'survey_forms', db: 'mongo', isNew: true, note: 'MongoDB · NEW V2 · con của Task survey · FR 3.6.25',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'taskId', type: 'string', notNull: true, note: 'Soft ref → tasks._id' },
+        { name: 'title', type: 'string', notNull: true },
+        { name: 'questions', type: 'object[]', note: '{questionText, questionType, options[], timeSlotStart, timeSlotEnd}' },
+        { name: 'createdBy', type: 'string', notNull: true, note: 'Soft ref → users.id (PG)' },
+        { name: 'createdAt', type: 'date', notNull: true },
+        { name: 'updatedAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'survey_responses', db: 'mongo', isNew: true, note: 'MongoDB · NEW V2 · high write throughput',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'surveyFormId', type: 'string', notNull: true, note: 'ref → survey_forms._id' },
+        { name: 'respondentId', type: 'string', note: 'Soft ref → users.id / client_profiles.id (PG), nullable nếu anonymous' },
+        { name: 'answers', type: 'object[]', notNull: true, note: '{questionId, answerValue}' },
+        { name: 'submittedAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'mail_templates', db: 'mongo', isNew: true, note: 'MongoDB · NEW V2 · FR 3.6.28-32',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'name', type: 'string', notNull: true },
+        { name: 'subject', type: 'string', notNull: true },
+        { name: 'bodyHtml', type: 'string', notNull: true },
+        { name: 'type', type: 'mail_template_type', notNull: true, note: 'SYSTEM_DEFAULT | CUSTOM' },
+        { name: 'createdBy', type: 'string', note: 'Soft ref → users.id (PG)' },
+        { name: 'createdAt', type: 'date', notNull: true },
+        { name: 'updatedAt', type: 'date', notNull: true },
+      ]
+    },
+    {
       name: 'social_accounts', db: 'mongo', note: 'MongoDB · giữ nguyên V1, bỏ ZALO_OA',
       fields: [
         { name: '_id', type: 'ObjectId', pk: true },
@@ -629,6 +691,9 @@ const SCHEMA = {
     { from: 'user_subscriptions.plan_id', to: 'subscription_plans.id' },
     { from: 'transactions.user_id', to: 'users.id' },
     { from: 'ai_credit_ledgers.agency_id', to: 'agencies.id' },
+    { from: 'ai_credit_creator_limits.agency_id', to: 'agencies.id' },
+    { from: 'ai_credit_creator_limits.creator_id', to: 'users.id' },
+    { from: 'ai_credit_creator_limits.set_by', to: 'users.id' },
   ]
 };
 
@@ -660,6 +725,7 @@ const LAYOUT = {
   user_subscriptions:            { x: 2460, y: 420 },
   transactions:                  { x: 2460, y: 780 },
   ai_credit_ledgers:             { x: 2820, y: 420 },
+  ai_credit_creator_limits:      { x: 2820, y: 780 },
   audit_logs:                    { x: 2820, y: 60 },
   // MongoDB (bottom half)
   tasks:                         { x: 60,   y: 1200 },
@@ -667,11 +733,15 @@ const LAYOUT = {
   posts:                         { x: 860,  y: 1200 },
   content_requests:              { x: 1260, y: 1200 },
   material_repository:           { x: 1660, y: 1200 },
+  livestream_sessions:           { x: 2060, y: 1200 },
+  survey_forms:                  { x: 2460, y: 1200 },
   brand_collections:             { x: 60,   y: 1720 },
   hashtag_collections:           { x: 460,  y: 1720 },
   content_versions:              { x: 860,  y: 1720 },
   social_accounts:               { x: 1260, y: 1720 },
   notifications:                 { x: 1660, y: 1720 },
+  survey_responses:              { x: 2060, y: 1720 },
+  mail_templates:                { x: 2460, y: 1720 },
 };
 
 // ── State ──

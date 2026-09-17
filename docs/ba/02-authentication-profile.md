@@ -46,7 +46,17 @@
 ## 2. Profile (FR 3.3)
 
 ### 3.3.1 — View User Profile
-- **Câu hỏi mở (chưa chốt)**: cần xác định rõ những field nào thuộc User Profile — CSV gốc ghi "sẽ cần những field nào?" như 1 câu hỏi treo, chưa có câu trả lời cụ thể trong nguồn hiện tại. Cần làm rõ thêm ở giai đoạn thiết kế field/DB schema.
+- **[CONFIRMED 2026-09-17]** Field chuẩn cho User Profile — thiết kế theo nhu cầu thực tế của người làm truyền thông (Agency member):
+  - Họ tên đầy đủ (`fullName`)
+  - Avatar (`avatarUrl`)
+  - Email (`email`) — cố định, không sửa được ở đây (đổi email là flow riêng, nếu có)
+  - Số điện thoại (`phone`)
+  - Chức danh/vai trò chuyên môn (`professionalTitle` — ví dụ: Content Creator, Photographer, Account Manager — khác với `role` hệ thống ở Workspace, đây chỉ là label mô tả nghề nghiệp)
+  - Bio ngắn (`bio`)
+  - Portfolio/link mẫu việc đã làm (`portfolioUrl`, có thể nhiều link)
+  - Ngôn ngữ làm việc (`workingLanguage`)
+  - Timezone cá nhân (`timezone` — khác với Timezone Configuration của Workspace ở FR 3.4.13, đây là timezone hiển thị UI cho riêng user)
+  - Ngày tham gia hệ thống (`joinedAt`)
 - Role: USER.
 
 ### 3.3.2 — Update User Profile
@@ -57,6 +67,7 @@
 - Khi 1 User đóng vai trò **Client** tham gia vào Workspace của Agency khác (không phải Agency của chính họ), hệ thống có 1 **Client Profile riêng biệt** với User Profile thông thường.
 - Mục đích: khi Client đó tham gia workspace của Agency khác (dự án khác), **không cần cập nhật lại thông tin từ đầu** — chỉ cần dùng lại Client Profile đã có.
 - Đây chính là cơ chế hỗ trợ "Client là actor ngoài, tái sử dụng profile xuyên Agency/Workspace" đã nêu ở [01-organization-structure.md](01-organization-structure.md) mục 5.
+- **[CONFIRMED 2026-09-17]** `ClientProfile` là **bảng tách riêng hoàn toàn khỏi `User`** (không dùng chung bảng User + thêm cột) — vì **1 User có thể có nhiều Client Profile khác nhau** (ví dụ: cùng 1 người vừa là Client của Agency A với thông tin công ty X, vừa là Client của Agency B với thông tin công ty Y — 2 profile độc lập, không gộp chung). Xem chi tiết field ở [11-data-entities-glossary.md](11-data-entities-glossary.md).
 - Role: USER (với vai trò Client).
 
 ### 3.3.4 — Update Client Profile

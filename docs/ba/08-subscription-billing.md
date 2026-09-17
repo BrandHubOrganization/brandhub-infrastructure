@@ -25,5 +25,5 @@
 
 ### Credit AI — 2 lớp kiểm soát
 - **View AI Credit Tracking** (3.9.5): cả Creator (xem mình đã dùng bao nhiêu) và Owner (giám sát toàn Agency) đều xem được.
-- **Set Credit** (3.9.7): CHỈ Owner mới đặt được hạn mức tiêu credit cho từng Creator — đây là cơ chế kiểm soát chi phí AI nội bộ Agency, ngăn 1 Creator dùng vượt quá ngân sách được cấp.
+- **Set Credit** (3.9.7): CHỈ Owner mới đặt được hạn mức tiêu credit cho từng Creator — đây là cơ chế kiểm soát chi phí AI nội bộ Agency, ngăn 1 Creator dùng vượt quá ngân sách được cấp. **[CONFIRMED 2026-09-17]** Hạn mức là **cứng (hard limit)** — khi Creator dùng hết credit được cấp, hệ thống **chặn hẳn** thao tác AI tiếp theo của Creator đó (không phải chỉ cảnh báo/soft warning), cho tới khi Owner cấp thêm hoặc reset hạn mức tháng sau.
 - **Buy Credit** (3.9.6): CHỈ Owner mua thêm — Creator không tự mua credit cho mình.

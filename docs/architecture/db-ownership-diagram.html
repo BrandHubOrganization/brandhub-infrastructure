@@ -189,8 +189,8 @@ em     { font-style: italic; color: #555; }
 <body>
 
 <div class="hdr">
-  <h1>Database Ownership Diagram — BrandHub</h1>
-  <p>Each service owns its own data store · No cross-service direct DB access · Microservice independence enforced</p>
+  <h1>Database Ownership Diagram — BrandHub V2</h1>
+  <p>Each service owns its own data store · No cross-service direct DB access · Agency → Workspace → Media Package → Campaign → Task model</p>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -233,22 +233,25 @@ em     { font-style: italic; color: #555; }
         <div class="db-row">
           <div class="db-card dbc-mongo">
             <i class="ti ti-database dc-icon"></i>
-            <div class="dc-name">MongoDB</div>
+            <div class="dc-name">MongoDB — 14 col.</div>
             <div class="dc-cols">
-              users · workspaces<br>
-              clients · posts<br>
-              content_requests<br>
-              social_accounts
+              tasks · task_approvals<br>
+              posts · content_requests<br>
+              material_repository<br>
+              brand/hashtag_collections<br>
+              content_versions · livestream<br>
+              survey_forms/responses<br>
+              mail_templates<br>
+              social_accounts · notifications
             </div>
           </div>
           <div class="db-card dbc-pg">
             <i class="ti ti-database dc-icon"></i>
-            <div class="dc-name">PostgreSQL</div>
+            <div class="dc-name">PostgreSQL — 23 tbl.</div>
             <div class="dc-cols">
-              subscriptions<br>
-              payments<br>
-              invoices<br>
-              audit_logs
+              Identity (4) · Organization (8)<br>
+              Commerce (3) · Collaborator (2)<br>
+              Billing (6)
             </div>
           </div>
         </div>
@@ -312,6 +315,13 @@ em     { font-style: italic; color: #555; }
             </div>
           </div>
         </div>
+        <div class="db-card dbc-mongo db-card-wide" style="display:flex;align-items:center;gap:10px;padding:7px 10px">
+          <i class="ti ti-database dc-icon" style="font-size:16px;flex-shrink:0"></i>
+          <div>
+            <div class="dc-name" style="font-size:10.5px">MongoDB — 2 col.</div>
+            <div class="dc-cols" style="margin-top:1px">knowledge_documents · ai_usage_logs</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -328,13 +338,23 @@ em     { font-style: italic; color: #555; }
 
     <div class="domain dom-pub">
       <div style="text-align:center;font-size:10px;color:#BDBDBD;padding:10px 0 4px;font-weight:500;letter-spacing:0.4px">
-        — no database access —
+        — only 1 own collection —
+      </div>
+
+      <div class="db-section" style="padding-top:0">
+        <div class="db-card dbc-mongo db-card-wide" style="display:flex;align-items:center;gap:10px;padding:7px 10px">
+          <i class="ti ti-database dc-icon" style="font-size:16px;flex-shrink:0"></i>
+          <div>
+            <div class="dc-name" style="font-size:10.5px">MongoDB — 1 col.</div>
+            <div class="dc-cols" style="margin-top:1px">publish_logs (job status history)</div>
+          </div>
+        </div>
       </div>
 
       <div class="no-db-card">
         <div class="no-db-title">
           <i class="ti ti-database-off" style="font-size:16px;color:#BDBDBD"></i>
-          &nbsp;No Direct DB Access
+          &nbsp;No Business-Service DB Access
         </div>
 
         <div style="font-size:10px;font-weight:600;color:#888;margin-bottom:4px">
@@ -381,10 +401,10 @@ em     { font-style: italic; color: #555; }
   <div class="cross-body">
     <!-- MongoDB snippet -->
     <div class="code-box cb-mongo">
-      <div class="code-box-title" style="color:#3F51B5">MongoDB</div>
-      <div class="code"><span class="ck">workspaces</span> {</div>
+      <div class="code-box-title" style="color:#3F51B5">MongoDB (tasks)</div>
+      <div class="code"><span class="ck">tasks</span> {</div>
       <div class="code" style="padding-left:12px">
-        <span class="ck">subscriptionId:</span> <span class="cv">string</span>
+        <span class="ck">workspaceId:</span> <span class="cv">string</span>
         <span style="color:#aaa;font-size:9px"> // FK to PG</span>
       </div>
       <div class="code"><span class="ck">}</span></div>
@@ -404,14 +424,13 @@ em     { font-style: italic; color: #555; }
 
     <!-- PostgreSQL snippet -->
     <div class="code-box cb-pg">
-      <div class="code-box-title" style="color:#336791">PostgreSQL</div>
-      <div class="code"><span class="ck">subscriptions</span> {</div>
+      <div class="code-box-title" style="color:#336791">PostgreSQL (workspaces)</div>
+      <div class="code"><span class="ck">workspaces</span> {</div>
       <div class="code" style="padding-left:12px">
         <span class="ck">id:</span> <span class="cs">UUID (PK)</span>
       </div>
       <div class="code" style="padding-left:12px">
-        <span class="ck">workspaceId:</span> <span class="cv">string</span>
-        <span style="color:#aaa;font-size:9px"> // from Mongo</span>
+        <span class="ck">agencyId:</span> <span class="cv">UUID (FK)</span>
       </div>
       <div class="code"><span class="ck">}</span></div>
     </div>
@@ -419,7 +438,9 @@ em     { font-style: italic; color: #555; }
 
   <div class="cross-note">
     <strong>Rule:</strong> business-service queries MongoDB và PostgreSQL <strong>riêng biệt</strong>, sau đó join trong application memory.
-    Không thực hiện JOIN trực tiếp ở DB engine level.
+    Không thực hiện JOIN trực tiếp ở DB engine level giữa 2 loại DB.
+    Mọi document Mongo tham chiếu tới entity PostgreSQL (workspace, agency, client_profile...) chỉ bằng <strong>ID string</strong> — không có ràng buộc FK thật.
+    Bên trong PostgreSQL, FK vẫn dùng bình thường (vd: <code style="font-size:9.5px">workspaces.agency_id → agencies.id</code>).
     Đây là cách duy nhất cross-DB reference được phép trong hệ thống — ai-service và publisher-service <strong>không được</strong> biết về cấu trúc này.
   </div>
 </div>
@@ -434,7 +455,7 @@ em     { font-style: italic; color: #555; }
       <i class="ti ti-server" style="font-size:13px"></i>
       business-service
     </div>
-    <strong>Sole owner</strong> của MongoDB, PostgreSQL, Redis.
+    <strong>Sole owner</strong> của PostgreSQL (23 bảng), 14 MongoDB collection nghiệp vụ, và Redis.
     Mọi CRUD đều qua service này.
     ai-service và publisher-service <strong>không được</strong> kết nối trực tiếp vào bất kỳ DB nào trong nhóm này.
   </div>
@@ -444,9 +465,9 @@ em     { font-style: italic; color: #555; }
       <i class="ti ti-brain" style="font-size:13px"></i>
       ai-service
     </div>
-    <strong>Sole owner</strong> của ChromaDB và ghi vào S3.
-    Không bao giờ kết nối MongoDB hoặc PostgreSQL.
-    Lấy business context qua <em>REST API</em> từ business-service khi cần.
+    <strong>Sole owner</strong> của ChromaDB, ghi vào S3, và 2 MongoDB collection (<code style="font-size:9.5px">knowledge_documents</code>, <code style="font-size:9.5px">ai_usage_logs</code>).
+    Không bao giờ kết nối PostgreSQL hay MongoDB business collections.
+    Lấy business context (Workspace/Agency/brand info) qua <em>REST API</em> từ business-service khi cần.
   </div>
 
   <div class="rule-card rc-pub">
@@ -454,7 +475,8 @@ em     { font-style: italic; color: #555; }
       <i class="ti ti-send" style="font-size:13px"></i>
       publisher-service
     </div>
-    <strong>Zero DB access.</strong> Toàn bộ data (nội dung + token + config) được đóng gói trong RabbitMQ message bởi business-service trước khi enqueue.
+    Chỉ sở hữu 1 collection riêng (<code style="font-size:9.5px">publish_logs</code>).
+    Toàn bộ data cần để publish (nội dung + token + config) được đóng gói trong RabbitMQ message bởi business-service trước khi enqueue.
     Sau publish gửi callback HTTP.
   </div>
 
@@ -463,8 +485,8 @@ em     { font-style: italic; color: #555; }
 <!-- Schema Reference -->
 <div style="margin-top:20px;border:1px solid #E0E0E0;border-radius:12px;overflow:hidden">
   <div style="background:#F5F5F5;padding:10px 16px;border-bottom:1px solid #E0E0E0;display:flex;gap:20px;align-items:center">
-    <span style="font-size:11.5px;font-weight:700;color:#333">Schema Reference</span>
-    <span style="font-size:10px;color:#999">Nguồn: init-postgres.sql · init-mongo.js</span>
+    <span style="font-size:11.5px;font-weight:700;color:#333">Schema Reference — V2</span>
+    <span style="font-size:10px;color:#999">Nguồn: docs/database/schema-v2/brandhub-dbml.dbml · init-postgres-v2.sql</span>
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:#fff">
@@ -472,32 +494,36 @@ em     { font-style: italic; color: #555; }
     <!-- PostgreSQL -->
     <div style="padding:12px 16px;border-right:1px solid #E8E8E8">
       <div style="font-size:11px;font-weight:700;color:#444;margin-bottom:8px;display:flex;align-items:center;gap:6px">
-        <i class="ti ti-database" style="font-size:13px;color:#336791"></i> PostgreSQL — 4 tables
+        <i class="ti ti-database" style="font-size:13px;color:#336791"></i> PostgreSQL — 23 tables (business-service)
       </div>
 
       <table style="width:100%;border-collapse:collapse;font-size:10px">
         <thead>
           <tr style="background:#F5F5F5">
-            <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Table</th>
-            <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Mô tả</th>
+            <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Nhóm</th>
+            <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Bảng</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">subscription_plans</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Định nghĩa gói FREE/BASIC/PRO/ENTERPRISE, giới hạn posts · platforms · clients · AI credits, giá</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">Identity (4)</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">users, user_oauth_providers, user_refresh_tokens, user_system_roles</td>
           </tr>
           <tr style="background:#FAFAFA">
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">subscriptions</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Gói đang dùng của từng workspace, trạng thái, ngày bắt đầu/kết thúc, auto-renew</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">Organization (8)</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">agencies, agency_members, agency_invitations, workspaces, workspace_members, workspace_invitations, workspace_templates, client_profiles</td>
           </tr>
           <tr>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">payments</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Lịch sử thanh toán, transaction ID, invoice number/URL</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">Commerce (3)</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">media_packages, workspace_media_packages, media_campaigns</td>
           </tr>
           <tr style="background:#FAFAFA">
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">audit_logs</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Log mọi hành động user (action, resource, IP, timestamp, JSONB details)</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">Collaborator (2)</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">third_party_collaborators, campaign_collaborators</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">Billing (6)</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">subscription_plans, user_subscriptions, transactions, ai_credit_ledgers, ai_credit_creator_limits, audit_logs</td>
           </tr>
         </tbody>
       </table>
@@ -506,52 +532,28 @@ em     { font-style: italic; color: #555; }
     <!-- MongoDB -->
     <div style="padding:12px 16px">
       <div style="font-size:11px;font-weight:700;color:#444;margin-bottom:8px;display:flex;align-items:center;gap:6px">
-        <i class="ti ti-database" style="font-size:13px;color:#4CAF50"></i> MongoDB — 9 collections
+        <i class="ti ti-database" style="font-size:13px;color:#4CAF50"></i> MongoDB — 17 collections (3 services)
       </div>
 
       <table style="width:100%;border-collapse:collapse;font-size:10px">
         <thead>
           <tr style="background:#F5F5F5">
-            <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Collection</th>
-            <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Mô tả</th>
+            <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Service</th>
+            <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Collections</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">users</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Tài khoản, role: ADMIN · OWNER · MANAGER · CREATOR · CLIENT</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">business (14)</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">tasks, task_approvals, posts, content_requests, material_repository, brand_collections, hashtag_collections, content_versions, livestream_sessions, survey_forms, survey_responses, mail_templates, social_accounts, notifications</td>
           </tr>
           <tr style="background:#FAFAFA">
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">workspaces</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Agency workspace, ref → <code style="font-size:9.5px">ownerId</code> (user)</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">ai (2)</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">knowledge_documents, ai_usage_logs</td>
           </tr>
           <tr>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">clients</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Brand client thuộc workspace, có <code style="font-size:9.5px">accountManagerId</code></td>
-          </tr>
-          <tr style="background:#FAFAFA">
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">social_accounts</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">OAuth tokens các nền tảng (FB/IG/TikTok…) của client, có <code style="font-size:9.5px">tokenExpiresAt</code></td>
-          </tr>
-          <tr>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">content_requests</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Yêu cầu tạo nội dung, có <code style="font-size:9.5px">assignedTo</code>, <code style="font-size:9.5px">status</code></td>
-          </tr>
-          <tr style="background:#FAFAFA">
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">posts</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Bài đăng đã tạo, có <code style="font-size:9.5px">scheduledAt</code>, <code style="font-size:9.5px">status</code></td>
-          </tr>
-          <tr>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">campaigns</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Chiến dịch marketing (nhóm posts)</td>
-          </tr>
-          <tr style="background:#FAFAFA">
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">knowledge_documents</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Tài liệu brand knowledge dùng cho RAG (ai-service đọc qua API)</td>
-          </tr>
-          <tr>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;white-space:nowrap">notifications</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666">Thông báo in-app cho user, có <code style="font-size:9.5px">isRead</code></td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">publisher (1)</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">publish_logs</td>
           </tr>
         </tbody>
       </table>
@@ -562,7 +564,7 @@ em     { font-style: italic; color: #555; }
 
 <!-- Footer -->
 <div style="text-align:center;margin-top:18px;font-size:10px;color:#ccc">
-  BrandHub v1.0 · Database Ownership Diagram · 2026
+  BrandHub V2 · Database Ownership Diagram · 2026-09-17
 </div>
 
 </body>
