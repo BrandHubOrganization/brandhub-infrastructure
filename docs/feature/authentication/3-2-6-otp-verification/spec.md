@@ -7,7 +7,7 @@
 | Domain | Authentication (FR 3.2) |
 | Role | USER |
 | Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Trạng thái tài liệu | Confirmed — đã code (email-based verify-otp/resend-otp) |
 
 ## 1. Objective
 
@@ -44,8 +44,9 @@ POST /api/v1/auth/otp/resend
 
 ## 6. Error Handling
 
-- OTP sai → 400 `INVALID_OTP` (có giới hạn số lần thử, ví dụ 5 lần trước khi session bị hủy).
-- OTP hết hạn → 400 `OTP_EXPIRED`.
+- OTP sai → 400 `OTP_INVALID` (đã code, thay cho `INVALID_OTP`).
+- OTP hết hạn → 400 `OTP_INVALID` (dùng chung code, không tách `OTP_EXPIRED`).
+- Sai 5 lần liên tiếp → 400 `OTP_TOO_MANY_ATTEMPTS` (đã code: đếm attempt qua Redis, hủy OTP hiện tại khi chạm ngưỡng).
 
 ## 7. Edge Cases
 
