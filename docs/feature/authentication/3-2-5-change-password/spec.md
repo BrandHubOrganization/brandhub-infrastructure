@@ -7,7 +7,7 @@
 | Domain | Authentication (FR 3.2) |
 | Role | USER |
 | Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Trạng thái tài liệu | Confirmed — đã code |
 
 ## 1. Objective
 
@@ -39,7 +39,7 @@ PATCH /api/v1/auth/change-password
 
 ## 6. Error Handling
 
-- `currentPassword` sai → 400 `INVALID_CURRENT_PASSWORD`.
+- `currentPassword` sai → 400 `WRONG_CURRENT_PASSWORD` (đã code, thay cho `INVALID_CURRENT_PASSWORD`).
 - `newPassword` giống `currentPassword` → 400 `SAME_AS_CURRENT_PASSWORD`.
 
 ## 7. Edge Cases

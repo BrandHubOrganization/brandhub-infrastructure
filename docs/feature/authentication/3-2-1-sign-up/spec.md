@@ -7,7 +7,7 @@
 | Domain | Authentication (FR 3.2) |
 | Role | GUEST |
 | Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Trạng thái tài liệu | Confirmed — đã code |
 
 ## 1. Objective
 
@@ -43,7 +43,7 @@ POST /api/v1/auth/register
 ## 6. Error Handling
 
 - Email đã tồn tại (case-insensitive) → 409 `EMAIL_ALREADY_EXISTS`.
-- Password không đủ mạnh → 400 `WEAK_PASSWORD`.
+- Password không đủ mạnh (<8 ký tự hoặc thiếu số) → 400 `VALIDATION_ERROR` (đã code: dùng chung code này, không có `WEAK_PASSWORD` riêng).
 - Email sai format → 400 `VALIDATION_ERROR`.
 
 ## 7. Edge Cases

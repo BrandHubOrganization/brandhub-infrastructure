@@ -272,6 +272,10 @@
 | [DA-E12-08](#da-e12-08-implement-change-password-phát-sinh-ngoài-plan-gốc) 🆕                                                                               | Implement Change Password (authenticated user updates their own password)                                                                                  | Trung (Leader) | 🟡 High     |
 | [DA-E12-09](#da-e12-09-implement-facebook-oauth-login-phát-sinh-ngoài-plan-gốc) 🆕                                                                          | Implement Facebook OAuth login (callback, create user if not yet registered)                                                                               | Trung (Leader) | 🟡 High     |
 | [DA-E12-10](#da-e12-10-implement-github-oauth-login-phát-sinh-ngoài-plan-gốc) 🆕                                                                            | Implement GitHub OAuth login (callback, create user if not yet registered)                                                                                 | Trung (Leader) | 🟡 High     |
+| [DA-E12-11](#da-e12-11-implement-two-factor-authentication-2fa-totp-phát-sinh-ngoài-plan-gốc) 🆕                                                            | Implement Two-Factor Authentication (2FA, TOTP) — setup/confirm/disable/verify                                                                              | Trung (Leader) | 🟡 High     |
+| [DA-E12-12](#da-e12-12-implement-deactivate-account-phát-sinh-ngoài-plan-gốc) 🆕                                                                            | Implement Deactivate Account (soft-delete, chặn owner Agency active)                                                                                        | Trung (Leader) | 🟡 High     |
+| [DA-E12-13](#da-e12-13-implement-otp-attempt-lockout-phát-sinh-ngoài-plan-gốc) 🆕                                                                           | Implement OTP attempt lockout (5 lần sai → hủy session, fix rate-limit error code)                                                                          | Trung (Leader) | 🟢 Medium   |
+| [DA-E12-14](#da-e12-14-fix-logoutrequireuserid-500--google-oauth-bug-phát-sinh-ngoài-plan-gốc) 🆕 🐛                                                        | Fix Logout/RequireUserId 500 error + Google OAuth token exchange bug (JSON → form-urlencoded)                                                               | Trung (Leader) | 🔴 Critical |
 | [DA-E11-14](#da-e11-14-add-all-jpa-models-from-database-schema-for-business-service-repository-layer-phát-sinh-ngoài-plan-gốc-gắn-sai-epic-trên-jira) 🆕 ⚠️ | Add all JPA models from database schema for business-service + repository layer _(gắn sai epic trên Jira — nội dung thuộc data layer, không phải Gateway)_ | Trung (Leader) | 🔴 Critical |
 
 ### EPIC E13 — User & Profile Management
@@ -3096,6 +3100,104 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - GitHub OAuth không trả email trực tiếp trong token response mặc định nếu user để private — cần gọi thêm `GET /user/emails` API của GitHub nếu email null từ profile response
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E12-01, DA-E12-02].
+
+---
+
+### DA-E12-11 — Implement Two-Factor Authentication (2FA, TOTP) _(phát sinh, ngoài plan gốc)_
+
+**Assignee:** Trung (Leader) | **Priority:** 🟡 High
+
+**Goal:** Cho phép user bật/tắt 2FA TOTP (RFC 6238), bắt buộc xác thực OTP sau login khi đã bật, dùng chung app authenticator chuẩn (Google Authenticator, Authy...).
+
+**Acceptance Criteria:**
+
+- [x] `POST /api/v1/auth/2fa/setup` sinh secret, lưu Redis `2fa:setup:{userId}` (TTL 10 phút), trả `qrCodeUrl` dạng `otpauth://totp/...`, KHÔNG trả secret thô ra response
+- [x] `POST /api/v1/auth/2fa/confirm` verify code đúng với secret pending → set `twoFactorEnabled=true`, `totpSecret` lưu DB, xóa secret pending khỏi Redis
+- [x] `POST /api/v1/auth/2fa/disable` verify code đúng → tắt 2FA, xóa `totpSecret`
+- [x] Login khi 2FA bật → trả `twoFactorToken` (JWT riêng, TTL 5 phút, claim `type=2fa`), KHÔNG trả access/refresh token
+- [x] `POST /api/v1/auth/2fa/verify` nhận `twoFactorToken` + code → verify TOTP, issue access+refresh token giống login thường
+- [x] Time-step window ±1 (clock drift), Base32 secret, HMAC-SHA1, 6 digit, 30s step
+
+**Technical Notes:**
+
+- `TotpUtil` hand-rolled theo RFC 6238, không phụ thuộc thư viện ngoài
+- Error codes: `TWO_FA_ALREADY_ENABLED`, `TWO_FA_NOT_ENABLED`, `TWO_FA_CODE_INVALID`, `TWO_FA_TOKEN_INVALID`
+
+**Ghi chú:** Không có trong plan gốc — phát sinh từ audit toàn diện authentication (2026-09-18). Code đã implement (`AuthController` 4 endpoint `/2fa/*`, `AuthServiceImpl`, `TotpUtil`, `TwoFactorSetupResponse`). Docs: `docs/feature/authentication/3-2-7-two-factor-authentication-2fa-totp/{spec,plan,task,test}.md`. Jira: DA-1232, status In Review.
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E12-01, DA-E12-02].
+
+---
+
+### DA-E12-12 — Implement Deactivate Account _(phát sinh, ngoài plan gốc)_
+
+**Assignee:** Trung (Leader) | **Priority:** 🟡 High
+
+**Goal:** Cho phép user tự vô hiệu hóa tài khoản (soft-delete), chặn nếu đang là owner duy nhất của 1 Agency active.
+
+**Acceptance Criteria:**
+
+- [x] `POST /api/v1/auth/deactivate` yêu cầu access token + verify lại `password`
+- [x] Password sai → 400 `WRONG_CURRENT_PASSWORD`
+- [x] User là owner của Agency `status=ACTIVE` → chặn, 409 `AGENCY_OWNERSHIP_ACTIVE`, buộc transfer ownership trước khi được deactivate
+- [x] Set `User.status=DEACTIVATED` — soft delete, không xóa cứng record User/Agency/Workspace
+- [x] Sau deactivate, login trả 403 `ACCOUNT_DEACTIVATED`; refresh token cũng bị từ chối
+
+**Technical Notes:**
+
+- `AgencyRepository.findByOwnerId` (mới thêm) để check active agency ownership
+- `checkStatus()` dùng chung trong `login`/`refresh`/2FA-`verify` để chặn account deactivated đồng nhất
+
+**Ghi chú:** Không có trong plan gốc — phát sinh từ audit toàn diện authentication (2026-09-18). Code đã implement (`AuthController.deactivate`, `AuthServiceImpl.deactivate`, `DeactivateRequest` DTO, `ErrorCode.ACCOUNT_DEACTIVATED`/`AGENCY_OWNERSHIP_ACTIVE`). Docs: `docs/feature/authentication/3-2-9-deactivate-account/{spec,plan,task,test}.md`. Jira: DA-1233, status In Review.
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E12-01, DA-E12-02].
+
+---
+
+### DA-E12-13 — Implement OTP attempt lockout _(phát sinh, ngoài plan gốc)_
+
+**Assignee:** Trung (Leader) | **Priority:** 🟢 Medium
+
+**Goal:** Chặn brute-force mã OTP đăng ký/verify email — sai quá 5 lần thì hủy OTP hiện tại, buộc resend.
+
+**Acceptance Criteria:**
+
+- [x] Redis counter `otp:attempt:{email}` tăng mỗi lần sai code, TTL 10 phút (khớp OTP TTL)
+- [x] Đạt 5 lần sai → xóa `otpCode`/`otpExpiry` của user, trả 400 `OTP_TOO_MANY_ATTEMPTS`
+- [x] Verify đúng hoặc resend OTP → reset counter về 0
+- [x] Rate-limit resend OTP (60s cooldown) trả đúng `RATE_LIMIT_EXCEEDED` (trước đó dùng nhầm mã `RESET_TOKEN_USED`)
+
+**Technical Notes:**
+
+- `ErrorCode.OTP_TOO_MANY_ATTEMPTS` (mới thêm)
+- Áp dụng chung cho luồng Sign Up (DA-E12-01) và OTP Verification vì dùng chung hàm `verifyOtp()`
+
+**Ghi chú:** Không có trong plan gốc — phát hiện qua audit test coverage (2026-09-18): spec/test.md đã ghi "sai 5 lần hủy session" nhưng code cũ chưa có giới hạn thử. Docs: `docs/feature/authentication/3-2-6-otp-verification/test.md`, `3-2-1-sign-up/test.md`. Jira: DA-1234, status In Review.
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E12-01].
+
+---
+
+### DA-E12-14 — Fix Logout/RequireUserId 500 error + Google OAuth bug _(phát sinh, ngoài plan gốc)_
+
+**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
+
+**Goal:** Fix 3 lỗi phát hiện qua audit toàn diện authentication — logout/requireUserId trả 500 thay vì lỗi có kiểm soát, Google OAuth flow không chạy được.
+
+**Bugs fixed:**
+
+- [x] `AuthServiceImpl.logout()` — access token hết hạn/tampered ném `JwtException` không bắt → 500. Fix: try/catch, trả 200 idempotent, vẫn revoke refresh token nếu có.
+- [x] `AuthController.requireUserId()` — token hợp lệ nhưng subject không phải UUID (hoặc JWT lỗi) → `IllegalArgumentException`/`JwtException` không bắt → 500. Fix: catch → 401 `INVALID_CREDENTIALS`.
+- [x] `GoogleOAuthService.fetchProfile()` — token exchange gửi JSON body, Google API yêu cầu `application/x-www-form-urlencoded` → luôn fail. Fix: dùng `MultiValueMap` + `MediaType.APPLICATION_FORM_URLENCODED`.
+
+**Technical Notes:**
+
+- `requireUserId()` là entrypoint chung cho mọi endpoint yêu cầu `Authorization: Bearer` (link/phone, set-password, 2FA, deactivate, me...) — fix áp dụng toàn bộ
+- Bug OAuth liên quan trực tiếp DA-E12-06 (Google OAuth Login) — đây là fix cho flow đã implement ở đó, không phải feature mới
+
+**Ghi chú:** Không có trong plan gốc — phát hiện qua audit test coverage cho ngoại lệ/unhappy-case (2026-09-18). Docs: `docs/feature/authentication/3-2-8-sign-out/test.md` (TC-02, TC-06), `3-2-3-sign-in-with-google-oauth/{spec,test}.md` (TC-05, TC-07). Jira: DA-1235, status In Review.
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E12-02, DA-E12-04, DA-E12-06].
 
 ---
 
