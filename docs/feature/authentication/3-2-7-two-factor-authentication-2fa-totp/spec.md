@@ -7,7 +7,7 @@
 | Domain | Authentication (FR 3.2) |
 | Role | USER |
 | Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Trạng thái tài liệu | Confirmed — đã code (setup/confirm/disable/verify) |
 
 ## 1. Objective
 
@@ -45,6 +45,10 @@ POST /api/v1/auth/2fa/confirm
 POST /api/v1/auth/2fa/disable
 { "code": "string" }
 → 200 { "success": true, "data": null }
+
+POST /api/v1/auth/2fa/verify   (BỔ SUNG — spec cũ thiếu; hoàn tất luồng login-2FA)
+{ "twoFactorToken": "string", "code": "string" }
+→ 200 { "success": true, "data": { "accessToken", "tokenType", "expiresIn", "requireTwoFactor": false } }
 ```
 
 ## 6. Error Handling
