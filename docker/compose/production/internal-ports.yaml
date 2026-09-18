@@ -1,0 +1,20 @@
+# Only Nginx publishes ports in production. Services use the Docker network.
+services:
+  postgres:
+    ports: !reset []
+  redis:
+    ports: !reset []
+  rabbitmq:
+    ports: !reset []
+  chromadb:
+    ports: !reset []
+  neo4j:
+    ports: !reset []
+  api-gateway:
+    ports: !reset []
+  business-service:
+    ports: !reset []
+  ai-service:
+    ports: !reset []
+  publisher-service:
+    ports: !reset []
