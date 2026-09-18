@@ -24,7 +24,7 @@ services:
       - brandhub-network
 
 volumes:
-  postgres-v2-data:
+  postgres_data:
     name: brandhub-postgres-v2-data
 
 networks:
