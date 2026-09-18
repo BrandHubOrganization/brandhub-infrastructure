@@ -22,6 +22,13 @@
 
 Mở Jira, xem task được giao, ghi nhớ mã task (ví dụ `DA-47`), kéo task sang **In Progress**.
 
+**Nếu công việc phát sinh chưa có task trên Jira** (ví dụ phát hiện qua audit/review, hoặc bug ngoài scope task đang làm):
+
+1. Tạo task Jira mới (Task hoặc Bug tùy loại), đặt tên theo đúng pattern `[DA-Exx-yy] <Mô tả>` — số `yy` nối tiếp task cuối cùng của epic đó (không trùng số).
+2. **Gán vào đúng Epic** (field `parent`) và **gán đúng Sprint hiện tại đang active** (field Sprint) — không để task mồ côi không epic/không sprint.
+3. Ghi rõ trong description: `Ghi chú: Không có trong plan gốc — phát sinh từ <lý do>. Docs: <đường dẫn liên quan>.`
+4. Bổ sung ngay task đó vào `brandhub-master-plan.md` — thêm dòng vào bảng Epic tương ứng + mục chi tiết theo mẫu các task `_(phát sinh, ngoài plan gốc)_` đã có sẵn (xem EPIC E12 làm ví dụ).
+
 ### Bước 2 — Làm tài liệu Report 3 (SRS) và Report 4 (SDD)
 
 Mỗi task/FR cần cập nhật **2 tài liệu report**:
@@ -67,9 +74,18 @@ buộc phủ đủ **happy case** và **unhappy case** (edge case, error case).
 **Backend (`brandhub-business-service`)**:
 - Entity, controller, service interface đã triển khai sẵn → chỉ cần **implement service impl**.
 - Viết test cho phần logic nghiệp vụ.
+- **Bắt buộc tuân thủ** `brandhub-business-service/rule.md` — package structure, API
+  response format (`ApiResponse<T>`), ErrorCode enum, JPA/transaction convention, JWT/BCrypt
+  security, clean code (method ≤30 dòng, ≤3 params, không magic number/string), test coverage
+  (≥80% service layer). Checklist đầy đủ ở §13 file đó — chạy qua trước khi mở PR.
 
 **Frontend (`brandhub-web-dashboard` / `brandhub-mobile-app`)**:
 - Code UI theo spec, đảm bảo **responsive** trên các kích thước màn hình.
+- **Bắt buộc tuân thủ** `brandhub-web-dashboard/rule.md` — theme light/dark (token semantic,
+  không hardcode hex), i18n (`t()`, key song song vi/en), component dùng chung (Button/Input/
+  Spinner, không tự chế), TypeScript nghiêm ngặt (không `any`), kiến trúc feature-based
+  (`pages/[feature]/components/`, orchestrator <150 dòng), clean code (hàm ≤30 dòng, file
+  ≤300 dòng). Checklist đầy đủ ở §12 file đó — chạy qua trước khi mở PR.
 
 > Làm cẩn thận, check kỹ. Không làm ẩu bằng AI — sửa lại tốn công hơn nhiều.
 
@@ -130,6 +146,8 @@ Cập nhật cột **`Hiện trạng`** trong file
 |----------|-----------|
 | Quy trình 4 file feature | `brandhub-infrastructure/docs/rule/feature-workflow.md` |
 | Git commit convention | `brandhub-infrastructure/docs/rule/git-commit-convention.md` |
+| Chuẩn code Backend | `brandhub-business-service/rule.md` |
+| Chuẩn code Frontend | `brandhub-web-dashboard/rule.md` |
 | Mẫu spec/plan/task/test | `brandhub-infrastructure/docs/feature/definition/` |
 | Đặc tả từng feature | `brandhub-infrastructure/docs/feature/<tên-feature>/` |
 | Phân tích nghiệp vụ (BA) | `brandhub-infrastructure/docs/ba/` |

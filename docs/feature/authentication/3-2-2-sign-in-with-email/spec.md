@@ -7,7 +7,7 @@
 | Domain | Authentication (FR 3.2) |
 | Role | GUEST |
 | Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Trạng thái tài liệu | Confirmed — đã code (twoFactorToken + /2fa/verify) |
 
 ## 1. Objective
 
@@ -35,7 +35,11 @@ tôi muốn đăng nhập bằng email và password,
 ```
 POST /api/v1/auth/login
 { "email": "string", "password": "string" }
-→ 200 { "success": true, "data": { "accessToken", "refreshToken", "require2FA": boolean } }
+→ 2FA TẮT:
+  200 { "success": true, "data": { "accessToken", "tokenType", "expiresIn", "requireTwoFactor": false } }
+→ 2FA BẬT (chặn trước khi cấp token — khác đề xuất cũ):
+  200 { "success": true, "data": { "accessToken": null, "requireTwoFactor": true, "twoFactorToken": "..." } }
+  → FE gọi POST /api/v1/auth/2fa/verify { twoFactorToken, code } để lấy token đầy đủ.
 ```
 
 ## 6. Error Handling
