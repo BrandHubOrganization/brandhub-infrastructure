@@ -1,0 +1,11 @@
+name: brandhub
+
+include:
+  - path:
+      - ../shared/databases.yml
+      - ../shared/cache-broker.yml
+      - ../shared/chroma.yml
+      - ../shared/neo4j.yml
+      - ../shared/apps.yml
+      - ./internal-ports.yaml
+  - ./nginx.yaml
