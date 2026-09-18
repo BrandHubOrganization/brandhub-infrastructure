@@ -7,7 +7,7 @@
 | Domain | Authentication (FR 3.2) |
 | Role | USER |
 | Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Trạng thái tài liệu | Confirmed — đã code (token qua email) |
 
 ## 1. Objective
 
@@ -44,7 +44,9 @@ POST /api/v1/auth/reset-password
 ## 6. Error Handling
 
 - Email không tồn tại → vẫn trả 200 (không tiết lộ), không gửi email thật.
-- Token/OTP hết hạn hoặc sai → 400 `INVALID_OR_EXPIRED_TOKEN`.
+- Token hết hạn hoặc sai → 400 `RESET_TOKEN_INVALID` (đã code, thay cho `INVALID_OR_EXPIRED_TOKEN`).
+- Token đã dùng lần 2 → 400 `RESET_TOKEN_USED`.
+- `newPassword` không đủ mạnh → 400 `VALIDATION_ERROR`.
 
 ## 7. Edge Cases
 

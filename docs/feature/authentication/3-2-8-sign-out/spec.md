@@ -7,7 +7,7 @@
 | Domain | Authentication (FR 3.2) |
 | Role | USER |
 | Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Trạng thái tài liệu | Confirmed — đã code (lastUsedLoginMethod = FE local storage) |
 
 ## 1. Objective
 
@@ -22,7 +22,7 @@ nhưng vẫn được gợi ý nhanh phương thức đăng nhập tôi hay dùn
 ## 3. Acceptance Criteria
 
 - Bấm Sign Out → revoke refresh token hiện tại, xóa token khỏi client storage.
-- **Lưu lại `lastUsedLoginMethod`** (ví dụ: `email` hoặc `google_oauth`) vào local storage/cookie (không cần gửi server, hoặc gửi kèm 1 field nhẹ trên User nếu cần đồng bộ đa thiết bị — quyết định khi thiết kế kỹ thuật).
+- **Lưu lại `lastUsedLoginMethod`** (ví dụ: `email` hoặc `google_oauth`) — **ĐÃ CHỐT: FE local storage**, không có thay đổi backend (đồng bộ đa thiết bị KHÔNG yêu cầu ở phạm vi này).
 - Lần sau vào `/login`, nút tương ứng `lastUsedLoginMethod` được hiển thị nổi bật hơn (ví dụ badge "Đã dùng lần trước").
 
 ## 4. UI / UX
