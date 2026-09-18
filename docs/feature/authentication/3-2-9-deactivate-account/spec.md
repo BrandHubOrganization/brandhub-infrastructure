@@ -7,7 +7,7 @@
 | Domain | Authentication (FR 3.2) |
 | Role | USER |
 | Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Trạng thái tài liệu | Confirmed — đã code (chặn owner Agency active) |
 
 ## 1. Objective
 
@@ -39,12 +39,12 @@ POST /api/v1/auth/deactivate
 
 ## 6. Error Handling
 
-- Password xác nhận sai → 400 `INVALID_PASSWORD`.
+- Password xác nhận sai → 400 `WRONG_CURRENT_PASSWORD` (đã code, thay cho `INVALID_PASSWORD`).
 - User là Owner duy nhất của 1+ Agency đang có Workspace hoạt động → cần cảnh báo rõ hậu quả trước khi cho deactivate (xem Edge Cases).
 
 ## 7. Edge Cases
 
-- **[CẦN QUYẾT ĐỊNH KHI THIẾT KẾ]** User là Owner của Agency đang hoạt động, deactivate account thì Agency đó xử lý thế nào — Agency cũng bị khóa theo, hay cần transfer ownership trước khi được deactivate? CSV chưa đề cập trường hợp này, cần hỏi lại Trung.
+- **ĐÃ CHỐT**: User là Owner của Agency `ACTIVE` → **chặn deactivate** (409 `AGENCY_OWNERSHIP_ACTIVE`), buộc transfer ownership trước khi được deactivate.
 
 ## 8. Definition of Done
 

@@ -7,7 +7,7 @@
 | Domain | Authentication (FR 3.2) |
 | Role | GUEST |
 | Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Trạng thái tài liệu | Confirmed — đã code (bug form-urlencoded đã fix) |
 
 ## 1. Objective
 
