@@ -155,6 +155,8 @@ CREATE TABLE IF NOT EXISTS users (
     otp_code       VARCHAR(6),
     otp_expiry     TIMESTAMPTZ,
     email_verified_at TIMESTAMPTZ,
+    two_factor_enabled BOOLEAN   NOT NULL DEFAULT FALSE,
+    totp_secret      VARCHAR(64),
     created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
@@ -183,6 +185,8 @@ CREATE TABLE IF NOT EXISTS user_refresh_tokens (
     token_hash  VARCHAR(255) NOT NULL UNIQUE,
     jti         VARCHAR(255) NOT NULL UNIQUE,
     expires_at  TIMESTAMPTZ  NOT NULL,
+    ip_address  VARCHAR(45),
+    user_agent  VARCHAR(255),
     device_info JSONB        NOT NULL DEFAULT '{}',
     created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
