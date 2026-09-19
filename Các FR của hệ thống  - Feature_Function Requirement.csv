@@ -1,0 +1,168 @@
+Tiêu đề,Tên FR,Hiện trạng,Thay đổi / Mô Tả,Role,Người làm tài liệu ,Code,Note,Đã thực hiện xong tài liệu 
+3.2,Authentication,,,,,,,
+3.2.1,Sign Up,,Người dùng đăng nhập bằng email có verify OTP để coi email thật và check lỗi email viết hoa chữ đầu hay không thì cũng chung 1 tk ,GUEST,Lộc,Trung,,
+3.2.2,Sign In With Email ,,Đăng nhập không cần gửi OTP ,GUEST,Lộc,Trung,,
+3.2.3,Sign In with Google OAuth,,Coi lại login hiện tại vẫn chưa chạy được ,GUEST,Lộc,Trung,,
+3.2.4,Reset Password,,Đổi mật khẩu khi người dùng quên sẽ gửi một link đổi mật khẩu hoặc một mã OTP đến để người dùng xác nhận rồi thay đổi,USER,Lộc,Trung,,
+3.2.5,Change Password,,"Thay đổi mật khẩu, nhớ là thay đổi phải có confirm lại ",USER,Lộc,Trung,,
+3.2.6,OTP Verification,,Màn hình điền OTP,USER,Lộc,Trung,,
+3.2.7,"Two-Factor Authentication (2FA, TOTP)",,"Hiện tại đang có hiện trạng xác nhận 2 cách là scan QR bỏ vào app Authen và Nhập mã OTP 
+Nên bỏ cái copy của secret key và cái backup codes",USER,Lộc,Trung,,
+3.2.8,Sign Out ,,Đăng xuất nhưng phải lưu thông tin nền tảng last used lại để họ đăng nhập tiện hơn ,USER,Lộc,Trung,,
+3.2.9,Delete Account ,,Xóa mềm,USER,Lộc,Trung,,
+3.3,Profile,,,,,,,
+3.3.1,View User Profile,,sẽ cần những filed nào ?,USER,Trung,Trung,,
+3.3.2,Update User Profile,,Chuyển thành 1 FR là Update Profile,USER,Trung,Trung,,
+3.3.3,View Client Profile,,Khi người dùng là client thì sẽ có thêm một profile để giúp khi tham gia các workspace khác với vai trò là một client thì không cần phải cập nhật lại các thông tin của họ và chỉ cần sử dụng các profile cũ ,USER,Trung,Trung,,
+3.3.4,Update Client profile,,ko được update email ,USER,Trung,Trung,,
+3.4,Agency & Workspace,,,,,,,
+3.4.1,List Agency,,Mỗi người dùng đều là chủ của các Agency nên họ có trang để list ra các Agency họ đang sở hữu ( là các agency mà họ chính là owner),USER,Trung,Trung,,
+3.4.2,View Agency Dashboard,,"Coi được các thông tin của công ty, biểu đồ phân tích công việc, ...",OWNER,Trung,Trung,,
+3.4.3,Create Agency,,Có owner id được liên kết với id của một user duy nhất là người tạo ra agency đó ,USER,Trung,Trung,,
+3.4.4,View Agency Profile ,,Coi thông tin của công ty và đó là công ty đại điện để khách hàng có thể hiểu được thôgn tin về công ty ,OWNER/MEMBER,Trung,Trung,,
+3.4.5,Update Agency Profile ,,Update thông tin ,OWNER,Trung,Trung,,
+3.4.6,Remove Agency,,"Xóa có confirm xóa hay không nhưng chỉ là xóa mềm, có thể khôi phục lại trong 30 ngày ",OWNER,Trung,Trung,,
+3.4.7,Invite Agency Member,,Qua mail và qua thông báo -> khi mời vào trong công ty thì một người không có role gì trong công ty cả: chỉ là một member thông thường còn người thành lập ban đầu có role là owner,OWNER,Trung,Trung,,
+3.4.8,View Agency Invitation Status,,"Khi thêm người vào trong agency thì người được thêm và người thêm có thể thấy được lời mời, nó sẽ tự hết hạng trong 3 ngày ",OWNER/USER(invited),Trung,Trung,,
+3.4.9,Remove Member,,"Xóa member ra khỏi công ty, họ công còn được sử dụng các thông tin gì của công ty nữa, không được quyền truy cập nhưng các tài nguyên họ tạo ra cho agency đó vẫn còn vì nó thuộc tài sản chung, khi thêm họ vào lại thì vẫn được chỉnh sửa và sử dụng tiếp ",OWNER,Trung,Trung,,
+3.4.10,List Workspace,,Coi được các workpace của agency mà minh có trong workspace đó còn với owner thì có thể coi được toàn bộ ,OWNER/MEMBER,Trung,Trung,,
+3.4.11,View Workspace Dashboard,,Xem được các thông tin chung của từng workspace và thống kê,OWNER/MANAGER,Trung,Trung,,
+3.4.12,Create Workspace,,"Khi tạo workspace thì phải thêm tí nhất 1 thành viên và gán người đó là manager của workspace đó, có toàn bộ các quyền quản lý ",OWNER,Trung,Trung,,
+3.4.13,View Workspace Profile,,Các thông tin vể workspace và có thể update được trường giá trị vô cùng quan  trọng đó là Timezone Configuration => dùng để định nghĩa mốc thời gian chuẩn của space này hoạt động (nguyên là mỗi sự kiên tổ chức ở một nơi khác nhau và mốc thời gian theo UTC giúp cho bài viết viral tùy chỉnh theo địa điểm làm truyền thông,OWNER/MEMBER/CLIENT(particicapted),Trung,Trung,,
+3.4.14,Update Workspace Profile,,Update thông tin của workspace,OWNER/MANAGER,Trung,Trung,,
+3.4.15,Delete Workspace,,"Chí có OWNER mới được xóa workspace và có thể khôi phục được trong vào 30 ngày, khi xóa thì các thành viên cũng không được quy cập, đổi qua trạng thái inactive cho toàn bộ các dữ liệu trong đó ",OWNER,Trung,Trung,,
+3.4.16,Leave Workspace,,"Rời workspace nhưng không phải là rời agency, khi rời thì vẫn trong agency đó ",MEMBER/CLIENT(particicapted),Trung,Trung,,
+3.4.17,Save Workspace Templete,,"Để thuận tiện hơn cho người owner có thể tạo workspace thì họ có thể lưu lại teamplete của workspace đó có với các thông tin cơ bản, cách triển khai workspace thành các templete khác nhau để có thể sử dụng sau này ",OWNER,Trung,Trung,,
+3.4.18,View Workspace Members,,Coi được các thành viên ,OWNER/MEMBER/CLIENT(particicapted),Trung,Trung,,
+3.4.19,Add Workspace Member,,Thêm member trong Agency vào workspace với role cụ thể ,OWNER/MANAGER,Trung,Trung,,
+3.4.20,Update Workspace Member Role,,đọc cái view members,OWNER/MANAGER,Trung,Trung,,
+3.4.21,Remove Workspace Member,,Xóa thành viên khỏi ,OWNER/MANAGER,Trung,Trung,,
+3.5,Media package & Media package,,,,,,,
+3.5.1,Create Media Package,,"- Có sẵn các pakage mãu (2 tuần, 3 tuần, ..) do admin tạo từ trước -> owner có thể chọn các gói truyền thông hoặc custom thêm gói truyền thông mới cho agency của mình
+- Khi mà tạo Workspace bắt buộc phải có cái template media package khi mà thằng Owner chưa nhập thì thông báo manager
++ Templete ở mức dễ nhất để thay đổi theo ý của client
+
+Theo DB thì là nên tạo table riêng của thg owner và của custom khi mà bên cột của chọn media package thì chỉ cần lấy ID của table đó thôi đễ dễ dàng đỡ time complex và nhanh hơn
+",OWNER/MANAGER,Lộc,Lộc,,
+3.5.2,View the template Media package,,"Client (chiến lược truyền thông mẫu như là dài, ngắn). Để giúp cho Client có thể coi được mẫu chiến dịch truyền thông được triển khai sẽ tổ chức với quy mô thế nào, nhân sự ra sao, hình dùng trước được sẽ book agency này trong bao lâu. Có cũng gói là phó mặt toàn bộ cho agency thực hiện miễn là đủ KPI. 
+=> các gói truyền thông sẽ chia theo nhiều kiểu: 
++ Trong khoản thời gian sẽ làm những gì
++ Với số tiền sẽ làm những gì
++ Phó mặt toàn bộ ",OWNER/MANAGER/CLIENT,Lộc,Lộc,,
+3.5.3,Request Media package,,"Với một bộ pagkage mẫu do công ty cung cấp như thế thì CLIENT sẽ được quyền thảo luận lại, đưa ra các yêu cầu về giá, về thông tin tổng quan như thời gian, ... các sự kiện, hình thức, giá và owner hoặc manager đó sẽ chấp nhận hay không hoặc chuyển đổi thành một thay đổi khác để phù hợp hơn với họ. Quá trình đó được diễn ra cho đến khi cả 2 bên chốt được gói cuối cùng. ",CLIENT,Lộc,Lộc,,
+3.5.4,Approve Media  package,,Khi xong và chấp nhận được gói truyền thông theo đúng thóa thuẩn của cả 2 bên thì cả 2 cùng đồng ý với các yêu cầu và chỉnh sửa ,MANAGER/CLIENT,Lộc,Lộc,,
+3.5.5,Create Media Campaign,,"Hợp đồng dựa trên Media Pakage đã được chọn và thống nhất giữa 2 bên nhưng có tính chi tiết hơn, có nội dung được triển khai phù hợp với brand của client, nó không phải hợp đồng mà đó là chiến lược thực hiện ",MANAGER,Lộc,Lộc,,
+3.5.6,Approve Media Campaign,,"Sau khi đưa chiến lược ra và cả 2 bên đồng ý thì tiến hành nhấn triển khai và toàn bộ các công việc để trong media campaign đó sẽ được đẩy vào trong workspace thành một bảng backlog công việc (giống với jira) nhưng chưa đầy đủ quy trình triển khai , yêu cầu cụ thể mà mới chỉ là các công việc, thời gian thông thường",MANAGER,Lộc,Lộc,,
+3.5.7,Create Content Request,," Client hoặc Manager tạo được công việc mới rồi chờ manager coi đồng ý làm bài đó hay không, nếu đồng ý thì mới accepted để phân chia task cho role khác thực hiện. Note lại đẻ sau này tính công việc bổ sung ",MANAGER/CLIENT,Lộc,Lộc,,
+3.5.8,Track Request Status,,"Manager điều chỉnh status của các yêu cầu do client đưa lên thêm công việc mới, điều chỉnh từ pending -> in progress -> accept (chuyển công việc vào trong list backlog) 
+
+ở các trạng thái 
+- pending 
+- in progress
+- accept 
+- denied
+4 chế độ này do agency setting chứ client không được set 
+Templete media pakage: Bào gồm số lượng bài, thời gian thực hiện, chất lượng nối dung, ....
+<team truyền thông thảo luận để cụ thể các bài viết>
+Cho ra một kế hoạch truyền thông: Bao gồm tiêu đề bài viết, nền tảng đăng tải, ...
+<thảo luận với client kế hoạch này có ok không ?>
+cho ra hợp đồng chỉnh thức để ký ",MANAGER/CLIENT,Lộc,Lộc,,
+3.5.9,Update Request,,Điều chỉnh nội dung của content muốn thêm vào nhưng chỉ được làm khi đang ở trạng thái pending  ,MANAGER/CLIENT,Lộc,Lộc,,
+3.5.10,Cancel Request,,Khi mà cái bên track request chỉ có thể bổ yêu cầu khi mà status bên request phải PENDING mà status thì không có quyền được xóa nữa,MANAGER/CLIENT,Lộc,Lộc,,
+3.6,Content & Workflow,,,,,,,
+3.6.1,Identify Task Detail,,"Khi các công việc đang ở phần backlog (là các công việc được triển khai từ media campain) thì chỉ đưa các công việc, tiêu đề của công việc và yêu cầu đầu ra nhưng chưa cụ thể ai làm, làm gì, .....-> đến phần này thì manager sẽ thêm đầy đủ thông tin người làm, ngày đăng, yêu cầu chi tiết và các trường dữ liệu khác tùy theo kiểu công việc  ",MANAGER,Lộc,Lộc,,
+3.6.2,Assign Task To Creator,,Gắn công việc cho người làm và người chịu trách nhiệm check lại công việc đó ,MANAGER,Lộc,Lộc,,
+3.6.3,Add Comments On Task,,"Đưa ra các nhận xét, yêu cầu chỉnh sửa ","CREATOR, CLIENT, MANAGER",Lộc,Lộc,,
+3.6.4,List Task View ,,Kiểu coi list task giống như trong jira ,"CREATOR, CLIENT, MANAGER",Phước,Phước,,
+3.6.5,Calendar Task View ,,"Kiểu coi thông tin công việc chi tiết giống với google calendar và có thể kéo thả, ... ","CREATOR, CLIENT, MANAGER",Phước,Phước,,
+3.6.6,Grantt Timeline Task View,,Kiểu coi time đổ kiểu waterfall tiến trình công việc ,"CREATOR, CLIENT, MANAGER",Phước,Phước,,
+3.6.7,Kanban Board Task View ,,Làm giống kiểu board kéo thả trạng thái công việc trong jira (làm thêm 3 kiểu view board),"CREATOR, CLIENT, MANAGER",Phước,Phước,,
+3.6.8,View Task Filter ,,"Filter data cho toàn bộ các view theo các trường dữ liệu có filter có sort có search thông tin công việc theo toàn bộ cáct trường dữ liệu, tham khảo hướng làm của jira để đảm bảo được chi tiết ","CREATOR, CLIENT, MANAGER",Phước,Phước,,
+3.6.9,Approval Sequence (Creator -> Manager -> Client),,"Mọi công việc khi làm xong thì phải duyệt theo phân cấp từ Creator -> Creator (là người được gán quyền quản lý chất lượng, coi lại check nếu có) -> Manager -> Client (nếu task đó có yêu cầu cần duyệt thông qua khách hàng). Xong đủ quy trình này thì mới đưa vào task được hoàn thành. nếu bị trả về lại thì quay lại quy trình như ban đầu. khi trả lại thì trả lại từ trước đầu người làm creator ở bước đầu tiên ","CREATOR, CLIENT, MANAGER",Phước,Phước,,
+3.6.10,Content Writting View ,,"Dựa trên công nghệ viết chữ vector của google doc và tích tự chuyển font chữ khi đăng bài đúng với nổi đau của người làm content là phải copy phần font chữ muốn đổi qua yantext. Có thêm Content History/Version để coi ai chỉnh sửa phần nào, khôi phục lại các bảng version trước đó nếu cần thiết ",CREATOR,Trung,Trung,,
+3.6.11,View Material Repository ,,"Có kho ảnh của người chụp ảnh hoặc editer
+- Phân loại theo dạng raw hoặc đã retouched
+- Làm cảnh báo ảnh raw 
+và Brand Asset Upload for Reference (là các tài liệu do CLIENT cung cấp để giúp cho CREATOR có thể sử dụng nó)","CREATOR, CLIENT, MANAGER",Tuấn,Tuấn,Nghiên cứu về dùng S3 hay liên kết google drive của người dùng vào ,
+3.6.12,Add Material Repository ,,,"CREATOR, CLIENT, MANAGER",Tuấn,Tuấn,,
+3.6.13,Update Material Repository ,,,"CREATOR, CLIENT, MANAGER",Tuấn,Tuấn,,
+3.6.14,Remove Material Repository ,,,"CREATOR, CLIENT, MANAGER",Tuấn,Tuấn,,
+3.6.15,Apply Watermark ,,Làm giống với https://www.img2go.com/vi/watermark-image -> sau khi ảnh hoặc các ẩn phẩm đã qua chỉnh sửa rồi thì có sẽ tool giúp cho CREATOR có thể thêm phần watermark thương hiệu có thể cho client cung cấp logo để đánh giấu bản quyền của ấn phẩm ,CREATOR,Trung,Trung,,
+3.6.16,Download Material,,Toàn bộ người dùng có thể download tài liệu từ workspace về máy local để lưu trữ hoặc với mục đích khác dùng cho chỉnh sửa ,"CREATOR, CLIENT, MANAGER",Tuấn,Tuấn,,
+3.6.17,Apply Hastag ,,Thêm hastag có thể một hoặc nhiều cho bài đăng hoặc bài sự kiện chiến dịch ,CREATOR,Tuấn,Tuấn,,
+3.6.18,View Hastag Collection,,"Có một kho hastag dành riêng cho một workspace: Creator tự thêm, Client thêm bắt buộc mang tính đặt thù cho sự kiện ngoài ra thì AI còn có thể reacomend đc các hashtag phù hợp ","CREATOR, CLIENT, MANAGER",Tuấn,Tuấn,,
+3.6.19,Add Hastag Collection,,Thêm hastag có thể một hoặc nhiều cho bài đăng hoặc bài sự kiện chiến dịch . Khi thêm thì có phân loại rõ ràng là mục đích của nó là gì ,"CREATOR, CLIENT, MANAGER",Tuấn,Tuấn,,
+3.6.20,Update Hastag Collection,,Câp nhật hashtag mới ,"CREATOR, CLIENT, MANAGER",Tuấn,Tuấn,,
+3.6.21,Remove Hastag Collection,,"Xóa hashtag cũ, khi xóa rồi thì không xóa các cái đã đuọc áp dụng, xóa ở đây là xóa mềm ","CREATOR, CLIENT, MANAGER",Tuấn,Tuấn,,
+3.6.22,Write Livestream Idea,,Điền idea và hướng tới mục tiêu ,"MANAGER, CREATOR",Phước,Phước,,
+3.6.23,Write Livestream Script,,Viết kịch bản đầy đủ cho một phiên livesstream,CREATOR,Phước,Phước,,
+3.6.24,Track Livestream Status,,Hiển thị tiến độ của Live Stream,CREATOR,Phước,Phước,,
+3.6.25,Create Survey ,,Tạo khảo sát cho workshop,CREATOR,Phước,Phước,,
+3.6.26,View Survey Analysis ,,Coi kết quả tổng quát của khảo sát,"CREATOR, CLIENT, MANAGER",Phước,Phước,,
+3.6.27,Generate Meeting Link,,Tự động tạo link google meet ,CREATOR,Phước,Phước,,
+3.6.28,View Mail Template,,Hiển thị mẫu email,"CREATOR, CLIENT, MANAGER",Trung,Trung,,
+3.6.29,Create Mail Template,,"Tạo mẫu email, có thể áp dụng sử dụng template mẫu",CREATOR,Trung,Trung,,
+3.6.30,Update Mail Template,,Chỉnh sửa lại email vừa tạo hoặc email mẫu,CREATOR,Trung,Trung,,
+3.6.31,Delete Mail Template,,Xóa email vừa tạo hoặc dùng email mẫu,CREATOR,Trung,Trung,,
+3.6.32,Send Email via Template,,Gửi Email,CREATOR,Trung,Trung,,
+3.6.33,Check Compliance Content ,,"Check đạo văn. bạo lưc, hình ảnh dung tục. Phần này sử dụng API kéo về để cho ra kết quả chuẩn nhất, có bảng phân tích từ ngữ, các đoạn không đúng đàn hoàn, giúp cho người làm việc hiểu được và có thể fix các lỗi để không vi phạm các nọi dung của nền tàng hoặc không lên được trending ","CREATOR, CLIENT, MANAGER",Tuấn,Tuấn,,
+3.6.34,Check Copyright Infringement  ,API nào,"Check bản quyền hình ảnh, thương hiệu. Phần này cần làm rõ hơn ","CREATOR, CLIENT, MANAGER",Tuấn,Tuấn,Tìm hiểu cách làm (TẠM),
+3.6.35,View Content History,,Không trừ credit khi người dùng sử dụng lại tài nguyên đã tạo trước đó,"CREATOR, CLIENT, MANAGER",Tuấn,Tuấn,,
+3.6.36,Chat Realtime,,,"CREATOR, CLIENT, MANAGER",Lộc,Lộc,,
+3.7,AI Features,,,,,,,
+3.7.1,View Trending Topics Suggestions,,Có một cái màn hình dashboard để user xem các keyword trend hiện tại.,CREATOR,Ân,Ân,,
+3.7.2,Generate Caption,,Sử dụng LLM và promt để tạo ra caption cho bài post.,CREATOR,Ân,Ân,,
+3.7.3,Generate Ambassador ,,"Dùng LLM để generate ra các Model cho người dụng sử dụng nếu không có các model của brand.
+Các model được sử dụng để generate Image và Video.","CREATOR, CLIENT, MANAGER",Tuấn,Tuấn,,
+3.7.4,View Image Style Template ,,"Hệ thống gợi ý các template mẫu như phong cách anime, mùa xuân, hồi ức,...
+cho người dùng để tọa ra các Image với các phong cách mà không cần phải mô tả nhiều. ",CREATOR,Lộc,Lộc,,
+3.7.5,Generate Image ,,"Sử dụng LLM và promt để tạo ra Image cho bài post.
+Việc sinh Image sẽ dựa vào input từ form + model + others materials chuyển thành prompt.
+Có LoRA lại model LLM gen Image.",CREATOR,Lộc,Lộc,,
+3.7.6,View Video Style Template ,,Tương tự như FR 3.7.4 nhưng áp dụng với LLM gen Video.,CREATOR,Ân,Ân,,
+3.7.7,Generate Video ,,"Sử dụng LLM và promt để tạo ra Image cho bài post.
+Sử dụng các API gen video 3th party.
+Có thể mở rộng thành studio.",CREATOR,Ân,Ân,,
+3.7.8,Export File ,,"Export các file về máy người dùng sau khi generate trên hệ thống với nhiều định dạng, chủ yếu upload lên social thì mp4 hoặc webM",CREATOR,Tuấn,Tuấn,"Export nhiều định dạng, còn dowload thì chỉ 1 định dạng thôi",
+3.7.9,Crawl Schedule Config,,"Cấu hình cho bộ cào data phục vụ tìm kiếm keyword trend.
+thời gian, cào page nào, một lần bao nhiêu bài ... ",ADMIN,Ân,Ân,,
+3.7.10,Suggest hashtag trend,,Ở 2 chỗ: gợi ý hashtag trend cho content creator khi viết content và khi add hashtag collection thì recommend các hashtag để các thành viên có thêm vào,"CREATOR, CLIENT, MANAGER",Tuấn,Tuấn,,
+3.7.11,Generate Livestream Script,,Tạo mẫu kịch bản cho live stream,CREATOR,,,,
+3.7.12,Recommend Collaborator,,"Đưa ra các bên thứ 3 như: Báo điện tử, trang chạy panner, kênh truyền hình TV để khách hàng có thể chọn làm đói tác truyền thông cho chiến dịch, có phân cấp option, ... ","CREATOR, CLIENT, MANAGER",,,,
+3.8,Publishing & Social,,,,,,,
+3.8.1,Connect Social Account ,,Kết nối tài khoản này cho client thực hiện để login vào trong toàn bộ các tài khoản đăng bài tự động ,CLIENT,Phước,Phước,,
+3.8.2,Disconnect Account,,Khi đã connect tài khoản thì có thể ngắt tài khoản để log out mạng xã hội,CLIENT,Phước,Phước,,
+3.8.3,View Dashboard Post,,Hiển thị bảng trang tổng quát ở trong workspace khi mà đã đăng thành công bài post lên mạng xã hội,"CREATOR, CLIENT, MANAGER",Phước,Phước,,
+3.8.4,View Posted Detail,,"Trang hiển thị bài đăng thành công có thể coi chi tiết bài đăng và tổng số reactions tương tác và comment bài đăng đó ví dụ như: count reaction, comment, share","CREATOR, CLIENT, MANAGER",Phước,Phước,,
+3.8.5,Preview Post,,Khi mà content creator sửa bài hoặc làm bài thì có thể chọn xem trước layout của từng mạng xã hội khác nhau,"CREATOR, CLIENT, MANAGER",Phước,Phước,,
+3.8.6,Schedule Platform Post,,Trang hiển thị lịch đăng bài mà có thể coi những bài đó ở trong lịch cụ thể,"CREATOR, CLIENT, MANAGER",Phước,Phước,,
+3.8.7,Track Post Status,,"Coi quá trình tiến độ bài làm từ bước nào rồi với thông tin Pending, In Progress, Done, Fail","CREATOR, CLIENT, MANAGER",Phước,Phước,,
+3.8.8,Publish Facebook Post,,Bài đăng đẩy lên Facebook bài content hoặc video và ảnh,CREATOR,Phước,Phước,,
+3.8.9,Publish Facebook Story,,Bài đăng đẩy lên Story của Facebook,CREATOR,Phước,Phước,,
+3.8.10,Publish Facebook Reels ,,Đẩy lên những video Reels lên Facebook,CREATOR,Phước,Phước,,
+3.8.11,Publish Instagram Post,,Đẩy bài đăng lên mạng xã hội Instagram,CREATOR,Phước,Phước,,
+3.8.12,Publish Instagram Reels,,Đẩy video dài hoặc ngắn lên Reels Instagram,CREATOR,Phước,Phước,,
+3.8.13,Publish Instagram Story,,Đẩy bài Story lên Instagram,CREATOR,Phước,Phước,,
+3.8.14,Publish TikTok Video,,Đẩy vídeo ngắn lên Tiktok,CREATOR,Phước,Phước,,
+3.8.15,Publish Threads Post,,Đẩy bài đăng lên mạng xã hội trên Threads,CREATOR,Phước,Phước,,
+3.9,Subscription,,,,,,,
+3.9.1,Upgrade Plan,,"Default của user khi mới tạo tại khoản sẽ là Basic 
+Upgrade lên gói Pro/Enterprise để có thể tạo nhiều workspace, nhiều credit để sử dụng tính năng AI, và sử dụng được các tính năng nâng cao khác",USER,Tuấn,Tuấn,,
+3.9.2,Downgrade Plan,,Huỷ gói khi người dùng không còn nhu cầu sử dụng nữa,USER,Tuấn,Tuấn,"nghiên cứu, xem thêm vài cái mẫu thử của họ",
+3.9.3,Make Payment (PayOs),,"Tính năng tạo Transaction cho các tính năng nâng gói, mua thêm creadit (tuân thủ ACID)",USER,Tuấn,Tuấn,,
+3.9.4,View Invoice History,,Xem lịch sử giao dịch của tài khoản,USER,Tuấn,Tuấn,,
+3.9.5,View AI Credit Tracking,,"Giám sát lượng credit mà CREATOR đã sử dụng cho các tính năng AI trong tháng (tạo ảnh, tạo content, tạo video)",USER,Tuấn,Tuấn,,
+3.9.6,Buy Credit,,Mua thêm creadit để tiếp tục sử dụng tính năng AI khi sử dụng hết creadit có trong các gói Pro/Enterprise,USER,Tuấn,Tuấn,,
+3.9.7,Set Credit,,OWNER đặt hạn mức tiêu tốn credit cho WORKSPACE,OWNER ,Tuấn,Tuấn,,
+3.10,Admin Management,,,,,,,
+3.10.1,Push Notification ,,"Tạo thông báo toàn hệ thống, có phân chia các user ","ADMIN,OWNER",Ân,Ân,,
+3.10.2,Platform Statistics Overview,,"Màn hình thông kê cho admin cái nhìn tổng quan về hệ thống sẽ hiển thị các thông tin và chart về user, doanh thu, các agency đang hoạt động",ADMIN,Ân,Ân,,
+3.10.3,System Health Monitoring,,"Hiển thị cho ADMIN xem Server tại thời điểm đó đang tiêu tốn tài nguyên như thế nào(%CPU, %RAM, ...) trong hệ thống microservice và server đó có còn đang sống không",ADMIN,Tuấn,Tuấn,,
+3.10.4,Content Moderation Queue,,"Hiển thị các content do CREATOR tạo ra bị dính vào chính sách kiểm duyệt của hệ thống, ADMIN có thể check lại để xem quyết định của hệ thống có đúng hay không",ADMIN,Ân,Ân,,
+3.10.5,User Management (Verify/Deactive),,"Chuyển đổi trạng thái của người dùng giúp admin có thể điều chỉnh trực tiếp trạng thái của họ, để như này để không cần tách quá nhiều FR riêng lẻ",ADMIN,Ân,Ân,,
+3.10.6,View User,,Xem danh sách USER đang có trong hệ thống,ADMIN,Ân,Ân,,
+3.10.7,Create User,,Tạo USER mới vào hệ thống,ADMIN,Ân,Ân,,
+3.10.8,Update User,,Chỉnh sửa thông tin của USER có trong hệ thống,ADMIN,Ân,Ân,,
+3.10.9,Deactive User,,Tạm khoá Account của người dùng,ADMIN,Ân,Ân,,
+3.10.11,View Revenue Dasboard,,Xem doanh thu của hệ thống đã thu được từ plan và credit,ADMIN,Ân,Ân,,
+3.10.12,Export Report File PDF,,"xuất báo cáo cho các trang quản lí User, Revenue, ... dạng PDF",ADMIN,Ân,Ân,,
