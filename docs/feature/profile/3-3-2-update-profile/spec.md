@@ -24,6 +24,7 @@ tôi muốn cập nhật thông tin profile của mình,
 - Form cho sửa: `fullName`, `avatarUrl` (upload ảnh), `phone`.
 - **Không cho sửa `email`** ở FR này — đổi email cần luồng riêng có xác thực (không nằm trong CSV hiện tại, coi là out of scope).
 - Lưu thành công → toast confirm, cập nhật lại UI ngay không cần reload.
+- **[CHỐT 2026-09-20]** Avatar upload lưu thật lên S3 qua `POST /api/v1/users/me/avatar` (multipart `file`) — endpoint + `FileStorageService` (S3) đã có sẵn ở backend; FE `AvatarUploadModal` hiện chỉ set preview URL local, cần wire gọi endpoint và gắn `avatarUrl` trả về.
 
 ## 4. UI / UX
 
