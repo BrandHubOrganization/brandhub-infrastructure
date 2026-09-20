@@ -28,6 +28,7 @@ nhưng dữ liệu vẫn được giữ lại phòng trường hợp tôi quay l
 ## 4. UI / UX
 
 - Trang `/settings/account`, mục Deactivate ở cuối, có warning rõ ràng trước khi confirm.
+- **[CHỐT 2026-09-20]** FE nút "Deactivate" trên trang Profile (`/profile`) phải gọi thật `POST /api/v1/auth/deactivate` (nhập password → confirm), sau thành công clear auth + redirect `/login`. Hiện trạng FE là stub (chỉ toast), cần wire.
 
 ## 5. API Contract (đề xuất, cần xác nhận khi thiết kế kỹ thuật)
 
