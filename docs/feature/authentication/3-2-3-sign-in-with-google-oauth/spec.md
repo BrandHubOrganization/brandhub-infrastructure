@@ -24,6 +24,7 @@ tôi muốn đăng nhập bằng tài khoản Google,
 - Nút "Đăng nhập với Google" → redirect Google OAuth consent screen.
 - Callback thành công → nếu email đã có `User` (kể cả tạo qua Sign Up thường) → login vào account đó; nếu chưa có → tạo `User` mới với `emailVerified=true` (Google đã verify email).
 - **Phải fix được lỗi hiện tại khiến flow không hoạt động** trước khi coi FR này hoàn thành — cần điều tra nguyên nhân cụ thể (callback URL sai, thiếu client secret, CORS...) khi bắt tay code.
+- **[CHỐT 2026-09-20]** Nếu user đã bật 2FA (`twoFactorEnabled=true`) → sau khi Google xác thực email, **bắt buộc qua màn hình nhập TOTP** trước khi cấp accessToken (không bypass 2FA qua OAuth). Đảo ngược "known limitation" cũ ghi trong plan.
 
 ## 4. UI / UX
 
