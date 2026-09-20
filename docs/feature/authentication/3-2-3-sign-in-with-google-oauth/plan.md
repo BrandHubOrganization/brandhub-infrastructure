@@ -13,7 +13,7 @@ Flow cũ KHÔNG chạy vì `GoogleOAuthService.fetchProfile()` gửi token-excha
 - `OAuthService` (base): build consent URL, exchange code, lưu state CSRF Redis `oauth:state:{state}`, map email→User (merge theo chuẩn hóa email).
 - `GoogleOAuthService.fetchProfile()` (đã fix): token exchange form-encoded → gọi `/oauth2/v2/userinfo` → `OAuthProfile(id, email, name, picture)`.
 - Callback: email đã có User → login; chưa → tạo User `emailVerified=true`.
-- **2FA không áp dụng cho OAuth** (OAuth bỏ qua password; known limitation, ngoài scope).
+- **2FA (CHỐT 2026-09-20)**: sau khi resolve user + check `ACTIVE`, nếu `twoFactorEnabled=true` → sinh `twoFactorToken` (tái dùng `jwtUtil.generateTwoFactorToken`) và redirect FE `/2fa-verify?twoFactorToken=...` **thay vì** cấp accessToken/refresh. Tái dùng endpoint `POST /auth/2fa/verify` hiện có (provider-agnostic).
 
 ## Luồng
 
