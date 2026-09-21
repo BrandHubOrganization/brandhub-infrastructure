@@ -22,8 +22,10 @@ Body: { displayName, company?, phone?, note?, logoUrl?, website?, industry?, loc
 
 Khác so với spec.md (đề xuất thêm `email`):
 
-- **Bỏ `email`** — align theo BA (email lấy từ `User`). Request chỉ còn `displayName` (required) + `company`/`phone`/`note` (optional).
+- **Bỏ `email`** — align theo BA (email lấy từ `User`). Request thật (`ClientProfileRequest.java`) đủ: `displayName` (required), `company`, `phone`, `note`, `logoUrl`, `website`, `industry`, `location`, `description`, `socialLinks: Map<String,String>`. Khớp đúng với field đã liệt ở `3-3-3-view-client-profile/plan.md`.
 - Upsert: nếu chưa có → tạo mới; có rồi → update. Giữ `PUT` + upsert thay vì `PATCH`.
+- **Full-overwrite, không partial-patch** — mỗi lần `PUT` phải gửi đủ field, field nào thiếu bị ghi `null` (không giữ giá trị cũ).
+- **[SỬA 2026-09-21]** `PUT /client-profile/me?agencyId=...` — `agencyId` bắt buộc, xác định đúng profile nào (theo Agency nào) đang được update. Upsert giờ theo `(userId, agencyId)` thay vì `userId` số ít — khớp đúng BA đa-profile.
 
 ## 3. Data Model + Migration
 
