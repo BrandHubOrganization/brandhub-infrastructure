@@ -7,7 +7,7 @@
 | Domain | Agency & Workspace (FR 3.4) |
 | Role | OWNER |
 | Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Trạng thái tài liệu | Confirmed — đã code (xác nhận 2026-09-21, xem task.md/test.md đã update) |
 
 ## 1. Objective
 
