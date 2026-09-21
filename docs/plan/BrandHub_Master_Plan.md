@@ -614,7 +614,7 @@
 
 ### EPIC AI-06 — Commercial Image Generation Pipeline 🔀
 
-> **Mở rộng theo kiến trúc v2.0 (Self-Hosted Architecture & 6 Topic LoRAs):** Triển khai Self-Hosted SDXL + Hệ sinh thái 6 Topic LoRAs trọng điểm (Food & Beverage, Fashion, Entertainment, Cosmetics, Tech, Living) kèm cơ chế Intent Routing tự động bắt tín hiệu prompt + Identity LoRA Serving Engine (SDXL-Lightning 4-step kiểm chứng song song), Form-to-Prompt Engine (Core UX), Batch Concurrency, Brand Safety Guardrails, Benchmark 20 Prompts, Canonical Identity Curation, Identity Dataset Standardization, Cloud Training Fault-Tolerance (Resume), Multi-Adapter LoRA Dynamic Loading & S3 Versioned Registry. Toàn bộ hình ảnh thương mại và danh tính đại sứ được xử lý độc lập trên cụm GPU riêng qua HTTP Adapter, loại bỏ hoàn toàn phụ thuộc vào Cloud API bên thứ 3 (Stability AI). Phân bổ nhân sự: Lộc (Backend/Client Adapter/Dynamic Loader), Ân (Prompt/Safety/Dataset), Tuấn (GPU Serving/Identity LoRA/Checkpoint).
+> **Mở rộng theo kiến trúc v2.0 (Self-Hosted Architecture, 6 Topic LoRAs, Commercial Studio & Brand Ambassador IP-Adapter — Tổng cộng 33 tasks chia thành 5 Phase):** Triển khai Self-Hosted SDXL + Hệ sinh thái 6 Topic LoRAs trọng điểm (Food & Beverage, Fashion, Entertainment, Cosmetics, Tech, Living) kèm cơ chế Intent Routing tự động bắt tín hiệu prompt + Identity LoRA Serving Engine (SDXL-Lightning 4-step kiểm chứng song song), Form-to-Prompt Engine (Core UX), Batch Concurrency, Brand Safety Guardrails, Benchmark 20 Prompts, Canonical Identity Curation, Identity Dataset Standardization, Cloud Training Fault-Tolerance (Resume), Multi-Adapter LoRA Dynamic Loading & S3 Versioned Registry. Nâng cấp toàn diện Commercial Studio Harmonization & Advanced Canvas Control (Phase 4) và mở rộng Brand Ambassador Dual-Image IP-Adapter & 1-Click Storyboards (Phase 5, nâng quy mô từ 29 lên 33 tasks). Toàn bộ hình ảnh thương mại và danh tính đại sứ được xử lý độc lập trên cụm GPU riêng qua HTTP Adapter, loại bỏ hoàn toàn phụ thuộc vào Cloud API bên thứ 3 (Stability AI). Phân bổ nhân sự: Lộc (Backend/Client Adapter/Dynamic Loader/Studio), Ân (Prompt/Safety/Dataset/Catalog), Tuấn (GPU Serving/Identity LoRA/IP-Adapter/Checkpoint).
 
 | Task ID | Description | Assignee | Priority |
 | :--- | :--- | :--- | :--- |
@@ -646,6 +646,16 @@
 | [DA-AI06-23](#da-ai06-23--identity-lora-fine-tuning-pipeline-for-virtual-identity) | Topic & Identity LoRA Fine-Tuning Pipeline (Kohya_ss/Diffusers cho 6 Domain Topics và Virtual Identity) | Tuấn (AI) | 🔴 Critical |
 | [DA-AI06-24](#da-ai06-24--identity-lora-artifact-packaging--s3-versioned-registry) | LoRA Artifact Packaging & S3 Versioned Registry (Namespace topics/ & identities/, metadata) | Tuấn & Lộc | 🟡 High |
 | [DA-AI06-25](#da-ai06-25--identity-lora-dynamic-loader--model-compatibility-check) | Multi-Adapter Dynamic LoRA Loader & Model Compatibility Check (Warm Pre-load 6 Topic LoRAs, Hot-swap < 25ms, Handoff sang AI-07) | Tuấn & Lộc | 🟡 High |
+| **Phase 4: Commercial Studio Harmonization & Advanced Canvas Control (Post-Evaluation Upgrade)** | | | |
+| [DA-AI06-26](#da-ai06-26--product-studio-canvas-transform--2d-pose-positioning-engine) | Product Studio Canvas Transform & 2D Pose Positioning Engine (X/Y, Scale, Rotation, Flip & Surface Semantics) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI06-27](#da-ai06-27--visual-optical-harmonizer--dual-layer-directional-shadow-engine) | Visual Optical Harmonizer & Dual-Layer Directional Shadow Engine (Reinhard LAB, Ambient Bleed, Penumbra Shadow) | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI06-28](#da-ai06-28--fast-llm-commercial-studio-prompt-rewriter--surface-semantics) | Fast LLM Commercial Studio Prompt Rewriter & Placement Surface Semantics (Groq LLaMA 3.3 / Gemini fallback) | Ân & Lộc | 🟡 High |
+| [DA-AI06-29](#da-ai06-29--dual-mode-interactive-studio-controller) | Dual-Mode Interactive Studio Controller (Quick 1-Click Presets & Granular Fine-Tune Sliders on /studio) | Lộc (Sub-lead) | 🟡 High |
+| **Phase 5: Brand Ambassador IP-Adapter & 1-Click Storyboards (Advanced Visual Consistency)** | | | |
+| [DA-AI06-30](#da-ai06-30--dual-image-ip-adapter-integration-on-sdxl-inference-worker-colab-t4kaggle-p100) | Dual-Image IP-Adapter Integration on SDXL Inference Worker (Colab T4/Kaggle P100) | Tuấn & Lộc | 🔴 Critical |
+| [DA-AI06-31](#da-ai06-31--brand-ambassador-model-sheet-presets-ngoc-chau-22--storage-catalog) | Brand Ambassador Model Sheet Presets (Ngọc Châu 22) & Storage Catalog | Ân & Lộc | 🟡 High |
+| [DA-AI06-32](#da-ai06-32--seamless-1-click-storyboards-ui--zero-cutout-routing) | Seamless 1-Click Storyboards UI & Zero-Cutout Routing | Lộc (Sub-lead) | 🔴 Critical |
+| [DA-AI06-33](#da-ai06-33--e2e-integration-testing--character-consistency-benchmarks) | E2E Integration Testing & Character Consistency Benchmarks | Lộc, Tuấn, Ân | 🔴 Critical |
 
 ### EPIC AI-07 — Virtual Brand Ambassador (SDXL + Identity LoRA + DWPose ControlNet) 🔀
 
@@ -7452,6 +7462,196 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 - Pre-load toàn bộ 6 Topic LoRAs vào GPU Worker loại bỏ 100% hiện tượng VRAM Thrashing và nghẽn mạng S3 khi phục vụ tải thực tế.
 
 **Dependencies:** Blocks: DA-AI07-04, DA-AI07-05. Blocked by: DA-AI06-01, DA-AI06-23, DA-AI06-24.
+
+---
+
+### DA-AI06-26 — Product Studio Canvas Transform & 2D Pose Positioning Engine
+
+**Assignee:** Lộc (Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng hệ thống điều khiển tọa độ không gian 2D trên Canvas: cho phép tùy biến linh hoạt tọa độ ngang $X \in [0.0, 1.0]$ (Quy tắc 1/3 bố cục), tọa độ dọc $Y \in [0.0, 1.0]$ (sàn, bục, bay lơ lửng), tỷ lệ thu phóng ($0.20 - 0.90$), xoay góc nghiêng 2D ($-45^\circ \text{ đến } +45^\circ$), lật ảnh đối xứng và lựa chọn bề mặt tiếp xúc (`on_podium`, `on_floor`, `floating`, `on_shelf`, `in_water`).
+
+**Acceptance Criteria:**
+
+- [ ] Cập nhật schema `ProductPlacementTransform` và mở rộng `ProductStudioGenerateRequest` trong `app/schemas/product_studio.py`
+- [ ] Nâng cấp hàm `scale_and_position_product` trong `app/services/image/product_matting.py` hỗ trợ xoay `Image.rotate(-rotation, expand=True)`, lật `transpose(FLIP_LEFT_RIGHT)`, tính toán tọa độ neo chính xác theo kích thước sau xoay.
+- [ ] Trả về Bounding Box chuẩn xác `(x1, y1, x2, y2)` để `inpainting_mask.py` khoét mặt nạ inpaint và `shadow_injection.py` vẽ bóng tiếp xúc ăn khớp 100%.
+- [ ] Bảo đảm backward-compatible: nếu không truyền tham số mới, hệ thống giữ nguyên mặc định căn giữa `pos_x=0.50`, `pos_y=0.82`, `scale=0.50`.
+- [ ] 100% unit tests kiểm thử các phép biến đổi hình học đều PASSED.
+
+**Technical Notes:**
+
+- Thực hiện hoàn toàn in-memory qua Pillow/NumPy, thời gian xử lý $< 10\text{ms}$, tiêu tốn 0 MB VRAM GPU.
+
+**Dependencies:** Blocks: DA-AI06-27, DA-AI06-29. Blocked by: DA-AI06-14.
+
+---
+
+### DA-AI06-27 — Visual Optical Harmonizer & Dual-Layer Directional Shadow Engine
+
+**Assignee:** Lộc (Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Khắc phục triệt để hiện tượng "sticker dán đè" bằng bộ hòa trộn quang học CPU (0 VRAM, ~20ms): Reinhard Color Adaptation có bảo toàn Luminance & Logo ($L^*$), Ambient Light Bleeding (Soft-light blend 3-5px mép viền), và Dual-layer Directional Shadow (Contact AO + Penumbra Cast Shadow xiên ngả theo hướng sáng).
+
+**Acceptance Criteria:**
+
+- [ ] Hàm `reinhard_color_transfer_preserve_luminance()` trong `app/services/image/product_compositor.py`:
+  - Chuyển đổi sang không gian màu CIELAB.
+  - Bảo toàn $\ge 95\%$ kênh $L^*$ và vùng logo, chỉ nhuộm màu trên kênh $a^*, b^*$ với hệ số `harmonization_level` (mặc định $0.35$ / $35\%$).
+- [ ] Hàm `apply_ambient_bleed()`: Trích xuất viền trong $3-5\text{px}$ và hòa trộn màu trung bình của hậu cảnh qua chế độ Soft-Light, xóa bỏ viền cắt sắc lẹm.
+- [ ] Hàm `generate_directional_shadow()` trong `app/services/image/shadow_injection.py`:
+  - Layer 1: Contact Occlusion Shadow ôm sát đáy sản phẩm.
+  - Layer 2: Directional Cast Penumbra Shadow sử dụng ma trận Affine Shear ngả theo góc sáng, suy giảm độ đậm và tăng độ nhòe theo khoảng cách.
+  - Tự động làm mờ hoặc tắt bóng khi `placement_surface == "floating"`.
+- [ ] Đạt chuẩn bảo toàn thương hiệu: chữ in và logo bao bì sắc nét nguyên bản, màu sắc vỏ sản phẩm ngấm tự nhiên ánh sáng studio.
+
+**Technical Notes:**
+
+- Vectorized computation bằng OpenCV/NumPy giúp toàn bộ pipeline hòa trộn chỉ mất ~15-25ms trên CPU.
+
+**Dependencies:** Blocks: DA-AI06-29. Blocked by: DA-AI06-26.
+
+---
+
+### DA-AI06-28 — Fast LLM Commercial Studio Prompt Rewriter & Placement Surface Semantics
+
+**Assignee:** Ân (AI) & Lộc (Sub-lead) | **Priority:** 🟡 High
+
+**Goal:** Xây dựng tầng tự động dịch thuật và nâng cấp mô tả tiếng Việt tự do thành Prompt Studio 5 phân đoạn chuẩn commercial quốc tế qua Groq LLaMA 3.3 70B (~250ms, fallback Gemini 1.5 Flash), tự động tiêm từ khóa bề mặt nâng đỡ (`on_podium`, `floating`...) và Studio Negative Guardrails.
+
+**Acceptance Criteria:**
+
+- [ ] Cập nhật `app/services/image/prompt_synthesizer.py`:
+  - Nhận diện tiếng Việt và chuyển mạch sang Fast LLM Rewriter qua Groq API (fallback Gemini khi timeout/429).
+  - Chuẩn hóa prompt theo cấu trúc 5 phân đoạn: Subject Placement + Pedestal/Surface + Studio Lighting & Ambience + Technical Camera Specs.
+  - Tự động cộng hưởng từ khóa theo `placement_surface` (ví dụ `on_podium` $\to$ `"standing gracefully on a minimalist travertine stone display pedestal"`).
+  - Tự động tiêm negative prompt chuyên biệt chặn vẽ thêm sản phẩm thừa, chặn bệt màu.
+- [ ] Độ trễ xử lý $\le 300\text{ms}$, tỷ lệ fallback thành công $100\%$.
+
+**Technical Notes:**
+
+- Tận dụng `app/services/llm.py` và Groq client đã có sẵn trong repo để giữ zero new dependencies.
+
+**Dependencies:** Blocks: DA-AI06-29. Blocked by: DA-AI06-07.
+
+---
+
+### DA-AI06-29 — Dual-Mode Interactive Studio Controller (Quick Presets & Fine-Tune Sliders)
+
+**Assignee:** Lộc (Sub-lead) | **Priority:** 🟡 High
+
+**Goal:** Nâng cấp giao diện Web Studio (`app/templates/studio.html`) tích hợp đồng thời cả 2 phương án điều khiển: Bộ nút bấm chọn nhanh 1 chạm (Quick Presets: Trái / Giữa / Phải, Bục đá / Sàn / Bay lửng) VÀ Bộ thanh trượt tinh chỉnh trực quan (Position X/Y, Scale, Rotation, Harmonization Level 0-100%) phục vụ cả người dùng phổ thông lẫn kiểm thử chuyên sâu.
+
+**Acceptance Criteria:**
+
+- [ ] Cập nhật giao diện `studio.html` với khu vực "Studio Stage & Canvas Controls":
+  - Nút bấm chọn nhanh: `[⬅️ Trái 1/3]`, `[🎯 Chính giữa]`, `[➡️ Phải 1/3]`.
+  - Nút chọn bề mặt: `[🏛️ Bục đá]`, `[🪵 Sàn gỗ]`, `[✨ Bay lơ lửng]`, `[💧 Mặt nước]`.
+  - Bảng tinh chỉnh chi tiết (collapsible / direct): Thanh trượt Position X (0-100%), Position Y (0-100%), Scale (20-90%), Rotation (-45° đến +45°), Harmonization Level (0-100%, mặc định 35%).
+- [ ] Cập nhật script JavaScript gửi đúng payload mở rộng lên endpoint `POST /api/v1/ai/image/generate/product-studio`.
+- [ ] Hiển thị thông số kỹ thuật (Server-Timing, Harmonization Level, Transform applied) trên thanh trạng thái kết quả.
+
+**Technical Notes:**
+
+- Giao diện Dark Theme hiện đại, đồng bộ phong cách phòng thu thương mại cao cấp.
+
+**Dependencies:** Blocked by: DA-AI06-26, DA-AI06-27, DA-AI06-28. Blocks: DA-AI06-32.
+
+---
+
+### DA-AI06-30 — Dual-Image IP-Adapter Integration on SDXL Inference Worker (Colab T4/Kaggle P100)
+
+**Assignee:** Tuấn & Lộc | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng và tích hợp worker suy luận SDXL hỗ trợ Dual-Image IP-Adapter (`ip-adapter_sdxl_vit-h`) trên hạ tầng GPU điện toán đám mây (Google Colab T4 / Kaggle P100), cho phép truyền đồng thời ảnh người mẫu đại sứ (Ngọc Châu 22) và ảnh sản phẩm thương mại để tổng hợp hình ảnh nhất quán mà không cần huấn luyện lại mô hình, phơi bày API qua FastAPI và Cloudflare Tunnel.
+
+**Acceptance Criteria:**
+
+- [ ] Hoàn thiện script/notebook worker (`BrandHub_SDXL_Inference_Worker_IPAdapter_v1.0.ipynb`) chạy ổn định trên môi trường GPU Google Colab T4 (16GB VRAM) và Kaggle GPU P100 (16GB VRAM).
+- [ ] Nạp trọng số Base Model `SG161222/RealVisXL_V4.0` (FP16) kết hợp `ip-adapter_sdxl_vit-h.safetensors` và CLIP Image Encoder (`laion/CLIP-ViT-H-14-laion2B-s32B-b79K`).
+- [ ] Hỗ trợ tiếp nhận đồng thời 2 ảnh tham chiếu (`ambassador_image`, `product_image`) với các thang đo trọng số điều khiển độc lập (`ip_adapter_scale_ambassador`, `ip_adapter_scale_product`, dải tối ưu 0.6 - 0.8).
+- [ ] Tích hợp máy chủ FastAPI ngầm trên worker, phơi bày endpoint `/generate` và tự động thiết lập Cloudflare Tunnel công khai (`trycloudflare.com`).
+- [ ] Tối ưu hóa bộ nhớ: VRAM sử dụng khi inference $\le 12.5\text{GB}$, thời gian sinh ảnh đạt 8s–12s/ảnh (30 steps EulerAncestral).
+
+**Technical Notes:**
+
+- Nạp IP-Adapter trực tiếp vào `StableDiffusionXLPipeline` bằng phương thức `load_ip_adapter`.
+- Áp dụng kỹ thuật SDPA (`torch.nn.functional.scaled_dot_product_attention`) để tăng tốc và tiết kiệm bộ nhớ FP16.
+- Hỗ trợ cơ chế suy diễn đơn ảnh (chỉ đại sứ hoặc chỉ sản phẩm) để tương thích ngược.
+
+**Dependencies:** Blocks: DA-AI06-32, DA-AI06-33. Blocked by: DA-AI06-01, DA-AI06-16.
+
+---
+
+### DA-AI06-31 — Brand Ambassador Model Sheet Presets (Ngọc Châu 22) & Storage Catalog
+
+**Assignee:** Ân & Lộc | **Priority:** 🟡 High
+
+**Goal:** Xây dựng bộ hồ sơ Model Sheet chuẩn hóa cho Đại sứ thương hiệu độc quyền "Ngọc Châu (22 tuổi - Việt Nam)", quản lý danh mục ảnh tham chiếu đa góc mặt và biểu cảm trên AWS S3 / Local Storage Catalog, đồng thời đóng gói catalog metadata vào backend.
+
+**Acceptance Criteria:**
+
+- [ ] Tuyển chọn và chuẩn hóa bộ Model Sheet tham chiếu cho đại sứ "Ngọc Châu 22" (bao gồm góc chính diện, góc nghiêng 45°, biểu cảm nụ cười thương mại rạng rỡ, đặc điểm nhận dạng nốt ruồi xương hàm phải).
+- [ ] Xây dựng catalog quản lý tại `brandhub-ai-service/resources/ambassadors/ngoc_chau_22/` hoặc AWS S3 prefix `models/ambassadors/ngoc_chau_22/`.
+- [ ] Tạo file đặc tả metadata `ambassador_catalog.json` chứa: `ambassador_id`, `name`, `age`, `nationality`, `key_features`, `recommended_prompt_triggers`, `default_reference_image_path`.
+- [ ] Thiết lập cơ chế cache in-memory CLIP visual embeddings cho ảnh tham chiếu của Ngọc Châu để triệt tiêu thời gian đọc đĩa lặp lại khi có request.
+
+**Technical Notes:**
+
+- Định dạng ảnh chuẩn PNG 1024x1024, lọc mờ Laplacian variance $\ge 120$ và chuẩn hóa ánh sáng studio trung tính.
+- Tích hợp helper function `get_ambassador_preset(ambassador_id: str)` trong catalog engine.
+
+**Dependencies:** Blocks: DA-AI06-32, DA-AI06-33. Blocked by: DA-AI06-21.
+
+---
+
+### DA-AI06-32 — Seamless 1-Click Storyboards UI & Zero-Cutout Routing
+
+**Assignee:** Lộc (Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Nâng cấp Web Studio (`/studio`) với giao diện Storyboards 1-Click thông minh: tự động chuyển đổi giữa chế độ Chụp tĩnh 2 Pha (Cụm 8 - Canvas cắt dán & hòa trộn quang học) và chế độ Đại sứ Tự nhiên (Cụm 9 - Zero-Cutout IP-Adapter), tự động ẩn các thanh trượt 2D khi chọn người mẫu để tối giản thao tác người dùng theo triết lý Ponytail.
+
+**Acceptance Criteria:**
+
+- [ ] Nâng cấp giao diện `app/templates/studio.html` tích hợp thanh chọn Storyboard 1-Click (Card selection: Thoa son trước gương, Cầm serum bên cửa sổ, Chụp sản phẩm tĩnh mặt nước...).
+- [ ] Logic Zero-Cutout tự động: Khi người dùng chọn "Đại sứ Ngọc Châu", hệ thống tự động ẩn toàn bộ thanh trượt căn chỉnh 2D (Position, Scale, Rotation), chuyển quyền composition hoàn toàn cho IP-Adapter SDXL.
+- [ ] Nếu người dùng chọn "Không dùng người mẫu" (Chụp tĩnh), giao diện lập tức kích hoạt lại bộ điều khiển Canvas Transform 2D và Optical Harmonizer của Cụm 8.
+- [ ] Nút CTA duy nhất "🚀 SÁNG TẠO CHIẾN DỊCH 1-CLICK" điều hướng thông minh đến endpoint phù hợp dựa trên ngữ cảnh lựa chọn.
+- [ ] Hiển thị đầy đủ telemetry trực quan (Latency, IP-Adapter scale, Token count < 40 tokens) trên giao diện kết quả.
+
+**Technical Notes:**
+
+- Triết lý Ponytail: Tận dụng JavaScript thuần trên frontend template, không thêm framework nặng bên ngoài.
+- Prompt tiếng Anh tự động sinh ra ngắn gọn dưới 40 tokens, bảo toàn cửa sổ CLIP 77 tokens của SDXL.
+
+**Dependencies:** Blocks: DA-AI06-33. Blocked by: DA-AI06-29, DA-AI06-30, DA-AI06-31.
+
+---
+
+### DA-AI06-33 — E2E Integration Testing & Character Consistency Benchmarks
+
+**Assignee:** Lộc, Tuấn, Ân | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng bộ kiểm thử tích hợp End-to-End (E2E) và đo kiểm benchmark định lượng độ nhất quán danh tính đại sứ Ngọc Châu (Face Similarity $\ge 0.85$), tương tác ngón tay tự nhiên (không dị tật), tính đồng nhất quang học và đo lường độ trễ toàn trình.
+
+**Acceptance Criteria:**
+
+- [ ] Xây dựng test suite E2E tự động (`tests/test_ip_adapter_storyboard_e2e.py`) kiểm tra luồng từ Frontend Form $\rightarrow$ FastAPI Gateway $\rightarrow$ Colab GPU Worker $\rightarrow$ Rendered Output.
+- [ ] Thực thi bộ Benchmark trên 3 kịch bản thương mại chính:
+  1. Kịch bản 1: Ngọc Châu thoa son MAC trước gương studio.
+  2. Kịch bản 2: Ngọc Châu nâng chai serum bên cửa sổ nắng mai.
+  3. Kịch bản 3: Chụp sản phẩm tĩnh mặt nước (kiểm tra tương thích ngược luồng Cụm 8).
+  - [ ] Nghiệm thu chất lượng định lượng:
+    - Cosine Face Similarity giữa ảnh sinh và Model Sheet gốc đạt $\ge 0.85$ trên $\ge 85\%$ số ảnh sinh.
+    - Không phát sinh lỗi viền cắt dán 2D (Zero-Cutout hoàn hảo, ngón tay ôm tự nhiên quanh sản phẩm).
+    - Độ trễ toàn trình (E2E Latency) đạt 8s–12s/ảnh trên Colab GPU T4.
+- [ ] Biên soạn báo cáo nghiệm thu kỹ thuật và cập nhật vào tài liệu hệ thống.
+
+**Technical Notes:**
+
+- Sử dụng InsightFace buffalo_l để tự động tính toán cosine similarity score giữa khuôn mặt sinh ra và Model Sheet gốc.
+
+**Dependencies:** Blocked by: DA-AI06-30, DA-AI06-31, DA-AI06-32.
 
 ---
 
