@@ -26,12 +26,14 @@ Khác so với spec.md (đề xuất thêm `email`):
 
 ## 3. Data Model
 
-`client_profile` sau align BA:
+`client_profile` sau align BA — **[SỬA XONG 2026-09-21]** đã thêm `agency_id`, khớp đúng BA đa-profile-theo-Agency:
 
 | Field | Type | Note |
 |---|---|---|
 | id | UUID | PK |
-| user_id | UUID | FK `users`, **không unique** (1 User → nhiều ClientProfile theo Agency) |
+| user_id | UUID | FK `users` |
+| agency_id | UUID | **MỚI** — FK `agencies`. `ClientProfileRepository.findByUserIdAndAgencyId(userId, agencyId)` thay cho `findByUserId` cũ (số ít). Cho phép 1 user có nhiều `ClientProfile` độc lập theo từng Agency, đúng BA §3.3.3.
+| GET/PUT `/client-profile/me?agencyId=...` | — | `agencyId` bắt buộc, truyền qua query param — breaking API so với bản cũ (không còn suy luận ngầm 1 profile/user). FE (`pages/client-profile/index.tsx`) lấy `agencyId` từ URL query, hiện lỗi rõ (`clientProfile.missingAgencyId`) nếu thiếu thay vì gọi API mù. |
 | display_name | varchar | not null |
 | company | varchar | null |
 | phone | varchar | null |
