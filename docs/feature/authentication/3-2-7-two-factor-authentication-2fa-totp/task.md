@@ -11,7 +11,7 @@
 - [x] `controller/AuthController.java` — endpoint `/2fa/setup|confirm|disable|verify`.
 - [x] DTO: `TwoFactorSetupResponse`, `TwoFactorConfirmRequest`, `TwoFactorVerifyRequest`.
 - [x] `mvn compile` pass.
-- [ ] Viết unit test cho `TotpUtil` (generate/verify đúng, reject sai code).
-- [ ] FE: render QR từ `qrCodeUrl`, UI `/settings/security` (ngoài plan BE).
+- [ ] Viết unit test cho `TotpUtil` (generate/verify đúng, reject sai code) — và test service cho 4 method setup/confirm/disable/verify. **Xác nhận (2026-09-21): chưa có test nào cho 2FA** trong `brandhub-business-service/src/test` — đang bổ sung.
+- [x] **[XÁC NHẬN 2026-09-21 — SỬA LẠI, dòng cũ ghi sai]** FE đã có đầy đủ: `pages/security/index.tsx` (enable/QR/confirm/disable UI đầy đủ), `pages/auth/TwoFactorVerifyPage.tsx` (bước nhập code khi login), route `/security` đã khai ở `AppRoutes.tsx`. Không phải "ngoài plan BE" hay còn thiếu — dòng cũ do Grep sai pattern (`settings/security` thay vì đúng path `pages/security`).
 
 > Ghi chú: bỏ copy secret + backup codes theo quyết định đã chốt.
