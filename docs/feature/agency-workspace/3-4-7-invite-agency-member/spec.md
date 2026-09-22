@@ -7,7 +7,7 @@
 | Domain | Agency & Workspace (FR 3.4) |
 | Role | OWNER |
 | Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Trạng thái tài liệu | Confirmed — đã code (xác nhận 2026-09-21, khớp task.md/test.md) — **GAP**: xem mục 7 |
 
 ## 1. Objective
 
@@ -45,6 +45,7 @@ POST /api/v1/agencies/{id}/invitations
 ## 7. Edge Cases
 
 - Email được mời chưa có User account trên hệ thống → vẫn gửi được lời mời qua email, khi họ đăng ký bằng đúng email đó thì tự động accept invitation.
+- **[GAP xác nhận 2026-09-21, đã chốt với team]** AC ghi "gửi email + tạo notification trong app" — code hiện tại (`AgencyServiceImpl.inviteMember`, `MailService.sendAgencyInvitationEmail`) **chỉ gửi email, không có notification in-app nào**. Đã xác nhận: hệ thống **chưa có module notification chung nào** — không code phần này trong đợt hiện tại, giữ nguyên chỉ-email cho tới khi module notification được xây (task riêng, ngoài phạm vi FR 3.4.7).
 
 ## 8. Definition of Done
 
