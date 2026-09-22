@@ -26,6 +26,7 @@ tôi muốn bật 2FA cho tài khoản,
 - **KHÔNG cung cấp backup codes** (thay đổi so với hiện trạng — đơn giản hóa UI, giảm surface quản lý).
 - Sau khi scan, user nhập mã OTP từ app để confirm 2FA đã setup đúng → bật `twoFactorEnabled=true`.
 - Khi login (FR 3.2.2), nếu `twoFactorEnabled=true` → sau email/password đúng, yêu cầu nhập mã OTP từ app trước khi cấp token.
+- **[CHỐT 2026-09-20]** Áp dụng cho **mọi phương thức đăng nhập**, kể cả Google OAuth (FR 3.2.3): sau khi Google xác thực email, nếu `twoFactorEnabled=true` → yêu cầu nhập TOTP trước khi cấp token.
 
 ## 4. UI / UX
 

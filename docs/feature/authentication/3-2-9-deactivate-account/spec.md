@@ -28,6 +28,8 @@ nhưng dữ liệu vẫn được giữ lại phòng trường hợp tôi quay l
 ## 4. UI / UX
 
 - Trang `/settings/account`, mục Deactivate ở cuối, có warning rõ ràng trước khi confirm.
+- **[CHỐT 2026-09-20]** FE nút "Deactivate" trên trang Profile (`/profile`) phải gọi thật `POST /api/v1/auth/deactivate` (nhập password → confirm), sau thành công clear auth + redirect `/login`.
+- **[XÁC NHẬN 2026-09-21 — đã wire xong]** `pages/profile/index.tsx` (Danger Zone section) đã gọi thật `authService.deactivate(password)` qua `handleDeactivate`, thành công thì `useAuthStore.getState().logout()` + `navigate("/login")`. Không còn là stub.
 
 ## 5. API Contract (đề xuất, cần xác nhận khi thiết kế kỹ thuật)
 

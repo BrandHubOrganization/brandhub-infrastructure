@@ -7,7 +7,7 @@
 | Domain | Agency & Workspace (FR 3.4) |
 | Role | OWNER |
 | Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Trạng thái tài liệu | Confirmed — đã code phần soft-delete (xác nhận 2026-09-21); **restore + cascade Workspace CHƯA code**, đúng như TODO đã ghi ở task.md (chờ DA-E16-10) |
 
 ## 1. Objective
 

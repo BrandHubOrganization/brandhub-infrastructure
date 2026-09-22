@@ -9,5 +9,6 @@
 - [x] `DeactivateRequest` DTO.
 - [x] Error `ACCOUNT_DEACTIVATED` (login sau deactivate).
 - [x] `mvn compile` pass.
-- [ ] Test: deactivate xong → login bị chặn 403, data còn trong DB.
-- [ ] Test: Owner Agency active → 409, không deactivate.
+- [x] FE: `authService.deactivate()`, `pages/profile/index.tsx` (Danger Zone, modal password, `handleDeactivate`) — **xác nhận đã wire thật, không phải stub**.
+- [ ] Test: deactivate xong → login bị chặn 403, data còn trong DB — **xác nhận (2026-09-21): chưa có `AuthServiceImplTest` case nào cho `deactivate()`**, chưa test.
+- [ ] Test: Owner Agency active → 409, không deactivate — **chưa có, xác nhận qua Grep test file**.
