@@ -48,7 +48,7 @@ Khác so với spec.md (đề xuất thêm `email`):
 
 ## 4. Luồng xử lý
 
-1. `findByUserId(currentUser.getId())` → `CLIENT_PROFILE_NOT_FOUND` nếu không có.
+1. `findByUserIdAndAgencyId(currentUser.getId(), agencyId)` → `CLIENT_PROFILE_NOT_FOUND` nếu không có.
 2. Map → `ClientProfileResponse`.
 
 ## 5. Dependencies

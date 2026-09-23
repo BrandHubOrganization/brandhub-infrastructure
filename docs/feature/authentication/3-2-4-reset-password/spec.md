@@ -50,7 +50,7 @@ POST /api/v1/auth/reset-password
 
 ## 7. Edge Cases
 
-- User request reset password nhiều lần liên tiếp → chỉ token/OTP mới nhất còn hiệu lực, các token cũ tự invalid.
+- User request reset password nhiều lần liên tiếp (trước khi dùng token) → **chỉ token mới nhất còn hiệu lực**: ngay khi tạo token mới, hệ thống tự động vô hiệu hoá (xoá) token cũ, nhờ Redis reverse-index theo `userId` (`pwd:reset:user:{userId}` → token hiện hành). Token cũ dùng lại sẽ trả `400 RESET_TOKEN_INVALID` dù chưa hết TTL.
 
 ## 8. Definition of Done
 

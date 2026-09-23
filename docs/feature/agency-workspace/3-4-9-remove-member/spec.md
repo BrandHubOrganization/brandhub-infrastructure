@@ -6,8 +6,8 @@
 | Feature | Remove Member |
 | Domain | Agency & Workspace (FR 3.4) |
 | Role | OWNER |
-| Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Confirmed — đã code (xác nhận 2026-09-21, khớp task.md/test.md) |
+| Version | 2.2 — Cập nhật 2026-09-23 — ErrorCode riêng `CANNOT_REMOVE_OWNER` (409) |
+| Trạng thái tài liệu | Confirmed — đã code, đã thêm mã lỗi riêng `CANNOT_REMOVE_OWNER` (409) thay cho `FORBIDDEN` (403) |
 
 ## 1. Objective
 
@@ -28,19 +28,22 @@ nhưng không muốn mất các tài nguyên họ đã tạo ra khi còn làm vi
 
 ## 4. UI / UX
 
-- Nút Remove trong danh sách Member ở `/agencies/:id/members`.
+- Nút Remove trong danh sách Member ở `/agencies/:agencyId/members`.
 
-## 5. API Contract (đề xuất, cần xác nhận khi thiết kế kỹ thuật)
+## 5. API Contract (khớp code thật)
 
 ```
-DELETE /api/v1/agencies/{id}/members/{memberId}
+DELETE /api/v1/agencies/{agencyId}/members/{memberId}
 → 200 { "success": true, "data": null }
 ```
 
+Route path khớp đúng. `memberId` là `AgencyMember.id` (không phải `userId`).
+
 ## 6. Error Handling
 
-- Không phải Owner → 403 `FORBIDDEN`.
-- Xóa chính Owner (không hợp lệ, Owner không thể tự remove mình qua FR này) → 409 `CANNOT_REMOVE_OWNER`.
+- Không phải Owner của Agency → 403 `NOT_AGENCY_OWNER`.
+- `memberId` không tồn tại hoặc không thuộc agency này → 404 `NOT_FOUND`.
+- Cố xóa member có role OWNER → **409 `CANNOT_REMOVE_OWNER`** ("Cannot remove the owner of the agency"). Mã lỗi riêng đã được thêm vào `ErrorCode` (`HttpStatus.CONFLICT`) — **trước đây dùng chung `FORBIDDEN` (403), nay đã thay**.
 
 ## 7. Edge Cases
 
@@ -48,7 +51,7 @@ DELETE /api/v1/agencies/{id}/members/{memberId}
 
 ## 8. Definition of Done
 
-- Remove thành công, mất quyền truy cập ngay, tài nguyên cũ vẫn còn, thêm lại vẫn dùng tiếp được (test case rõ ràng).
+- Remove thành công, mất quyền truy cập ngay, tài nguyên cũ vẫn còn, thêm lại vẫn dùng tiếp được (test case rõ ràng). Chặn xóa Owner đã hoạt động đúng (trả 409 `CANNOT_REMOVE_OWNER`).
 
 ## Out of Scope
 

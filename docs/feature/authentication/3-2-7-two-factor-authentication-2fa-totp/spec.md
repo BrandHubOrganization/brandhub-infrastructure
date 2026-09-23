@@ -6,7 +6,7 @@
 | Feature | Two-Factor Authentication (2FA, TOTP) |
 | Domain | Authentication (FR 3.2) |
 | Role | USER |
-| Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
+| Version | 2.1 (2026-09-23) — field response `/2fa/setup` đổi `qrCodeUrl` → `otpAuthUrl` |
 | Trạng thái tài liệu | Confirmed — đã code (setup/confirm/disable/verify) |
 
 ## 1. Objective
@@ -30,31 +30,40 @@ tôi muốn bật 2FA cho tài khoản,
 
 ## 4. UI / UX
 
-- Trang `/settings/security` phần 2FA — chỉ hiển thị QR, không có nút copy/download backup codes.
+- Trang `/settings/security` phần 2FA — chỉ hiển thị QR (FE render từ `data.otpAuthUrl`), không có nút copy/download backup codes.
 
 ## 5. API Contract (đề xuất, cần xác nhận khi thiết kế kỹ thuật)
 
 ```
-POST /api/v1/auth/2fa/setup
-→ 200 { "success": true, "data": { "qrCodeUrl": "string" } }
+POST /api/v1/auth/2fa/setup   (Authorization: Bearer — bắt buộc)
+→ 200 { "success": true, "data": { "otpAuthUrl": "string" } }   -- otpauth://totp/... URI để FE render QR
 -- KHÔNG trả secretKey plain text trong response cho FE hiển thị/copy
+-- Secret sinh mới CHƯA lưu DB, chỉ lưu tạm Redis (TTL 10 phút) chờ /confirm
 
-POST /api/v1/auth/2fa/confirm
-{ "code": "string" }
+POST /api/v1/auth/2fa/confirm   (Authorization: Bearer — bắt buộc)
+{ "code": "string" }   -- 6 số
 → 200 { "success": true, "data": null }
 
-POST /api/v1/auth/2fa/disable
-{ "code": "string" }
+POST /api/v1/auth/2fa/disable   (Authorization: Bearer — bắt buộc)
+{ "code": "string" }   -- 6 số
 → 200 { "success": true, "data": null }
 
-POST /api/v1/auth/2fa/verify   (BỔ SUNG — spec cũ thiếu; hoàn tất luồng login-2FA)
+POST /api/v1/auth/2fa/verify   (PUBLIC — không cần Bearer, dùng trong luồng login khi user đã bật 2FA)
 { "twoFactorToken": "string", "code": "string" }
 → 200 { "success": true, "data": { "accessToken", "tokenType", "expiresIn", "requireTwoFactor": false } }
+  + Set-Cookie refreshToken (giống login thường)
 ```
 
 ## 6. Error Handling
 
-- Mã confirm sai lúc setup → 400 `INVALID_2FA_CODE`, không bật 2FA.
+| ErrorCode | HTTP | Route | Ý nghĩa |
+|---|---|---|---|
+| `TWO_FA_ALREADY_ENABLED` | 400 | setup, confirm | 2FA đã bật sẵn cho user |
+| `TWO_FA_NOT_ENABLED` | 400 | confirm, disable, verify | confirm/verify: không có secret pending trong Redis (hết hạn 10 phút hoặc chưa gọi `/setup`) — **tên mã hơi phản trực giác, không có nghĩa đen "2FA chưa bật"** ở case confirm; disable/verify: user thực sự chưa bật 2FA hoặc `totpSecret=null` |
+| `TWO_FA_CODE_INVALID` | 400 | confirm, disable, verify | Mã TOTP nhập sai |
+| `TWO_FA_TOKEN_INVALID` | 401 | verify | `twoFactorToken` không parse được, sai claim `type`, hoặc user trong token không tồn tại |
+| `ACCOUNT_SUSPENDED` / `ACCOUNT_DEACTIVATED` | 403 | verify | Tài khoản bị khóa/vô hiệu hóa (check giống login thường) |
+
 - User mất access app Authenticator, không còn backup codes để khôi phục → PHẢI liên hệ support/Admin để disable 2FA thủ công (chấp nhận trade-off vì đã bỏ backup codes).
 
 ## 7. Edge Cases

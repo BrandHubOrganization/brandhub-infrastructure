@@ -18,7 +18,7 @@ Authorization: Bearer <access-token>
 → 200 ApiResponse<Void> (data = null)
 ```
 
-Khác so với spec.md: không lệch đáng kể. Spec ghi `409 CANNOT_REMOVE_OWNER` — code dùng `FORBIDDEN` (403) khi cố xóa OWNER (xem mục 6).
+Khớp spec.md: cố xóa OWNER → `409 CANNOT_REMOVE_OWNER` (mục 6).
 
 ## 3. Data Model
 
@@ -30,7 +30,7 @@ Khác so với spec.md: không lệch đáng kể. Spec ghi `409 CANNOT_REMOVE_O
 
 1. `findAgencyOrThrow(agencyId)` → 404; owner-check → 403 `NOT_AGENCY_OWNER`.
 2. Tìm member theo `memberId` + `agencyId` → nếu không `NOT_FOUND`.
-3. Nếu `member.role == OWNER` → 403 `FORBIDDEN` (không xóa Owner qua FR này).
+3. Nếu `member.role == OWNER` → 409 `CANNOT_REMOVE_OWNER` (không xóa Owner qua FR này).
 4. `agencyMemberRepository.delete(member)`.
 
 ## 5. Dependencies
@@ -42,5 +42,5 @@ Khác so với spec.md: không lệch đáng kể. Spec ghi `409 CANNOT_REMOVE_O
 
 ## 6. Rủi ro kỹ thuật
 
-- **`CANNOT_REMOVE_OWNER` vs `FORBIDDEN`:** spec ghi 409 `CANNOT_REMOVE_OWNER`, code dùng 403 `FORBIDDEN` (error code chung). Nếu cần phân biệt rõ, bổ sung error code riêng. Ghi chú để BA quyết.
+- **`CANNOT_REMOVE_OWNER`:** đã bổ sung error code riêng `CANNOT_REMOVE_OWNER` (`HttpStatus.CONFLICT`, "Cannot remove the owner of the agency") — thay cho `FORBIDDEN` dùng chung trước đây. FE cần xử lý 409 riêng nếu muốn hiện thông báo khác.
 - **Task `IN_PROGRESS` của member bị xóa (spec mục 7):** không auto unassign — đúng spec, Manager reassign thủ công. Không cần xử lý.
