@@ -1,0 +1,30 @@
+services:
+  chromadb:
+    image: chromadb/chroma:0.6.3
+    container_name: brandhub-chromadb
+    ports:
+      - "${CHROMADB_HOST_PORT:?CHROMADB_HOST_PORT is required}:8000"
+    environment:
+      IS_PERSISTENT: "TRUE"
+      ANONYMIZED_TELEMETRY: "FALSE"
+    volumes:
+      - chroma-data:/chroma/chroma
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/api/v1/heartbeat || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+
+volumes:
+  chroma-data:
+    name: brandhub-chroma-data
+
+networks:
+  brandhub-network:
+    name: brandhub-network
+    driver: bridge

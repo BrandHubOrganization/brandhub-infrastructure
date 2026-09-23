@@ -1,0 +1,5 @@
+name: brandhub
+
+include:
+  - ../dev/compose.yaml
+  - ../shared/chroma.yml

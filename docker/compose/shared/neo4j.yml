@@ -1,0 +1,32 @@
+services:
+  neo4j:
+    image: neo4j:5.26-community
+    container_name: brandhub-neo4j
+    ports:
+      - "${NEO4J_HOST_PORT_HTTP:?NEO4J_HOST_PORT_HTTP is required}:7474"
+      - "${NEO4J_HOST_PORT_BOLT:?NEO4J_HOST_PORT_BOLT is required}:7687"
+    environment:
+      NEO4J_AUTH: ${NEO4J_AUTH:?NEO4J_AUTH is required}
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+volumes:
+  neo4j-data:
+    name: brandhub-neo4j-data
+  neo4j-logs:
+    name: brandhub-neo4j-logs
+
+networks:
+  brandhub-network:
+    name: brandhub-network
+    driver: bridge

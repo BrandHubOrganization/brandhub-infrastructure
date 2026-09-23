@@ -1,0 +1,27 @@
+# Dev tools: pgAdmin.
+
+services:
+  pgadmin:
+    image: dpage/pgadmin4:9
+    container_name: brandhub-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:?PGADMIN_DEFAULT_EMAIL is required}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:?PGADMIN_DEFAULT_PASSWORD is required}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "${PGADMIN_HOST_PORT:?PGADMIN_HOST_PORT is required}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - brandhub-network
+
+volumes:
+  pgadmin_data:
+    name: brandhub-pgadmin-data
+
+networks:
+  brandhub-network:
+    name: brandhub-network
+    driver: bridge
