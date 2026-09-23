@@ -1,7 +1,7 @@
 {
   "exportedAt": "2026-09-18 17:16:27",
   "project": "DA",
-  "total": 527,
+  "total": 532,
   "tasks": [
     {
       "taskId": "DA-E06-03",
@@ -3164,6 +3164,36 @@
       "jiraKey": "DA-1234",
       "status": "In review",
       "assignee": "Trung"
+    },
+    {
+      "taskId": "DA-AI06-34",
+      "jiraKey": "DA-1250",
+      "status": "In Progress",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-AI06-35",
+      "jiraKey": "DA-1251",
+      "status": "In Progress",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-AI06-36",
+      "jiraKey": "DA-1252",
+      "status": "In Progress",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-AI06-37",
+      "jiraKey": "DA-1253",
+      "status": "In Progress",
+      "assignee": "Lộc"
+    },
+    {
+      "taskId": "DA-AI06-38",
+      "jiraKey": "DA-1254",
+      "status": "In Progress",
+      "assignee": "Lộc"
     }
   ]
 }
