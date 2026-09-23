@@ -2,7 +2,7 @@
 
 | ID | Mô tả | AC | Kết quả mong đợi | Loại | Trạng thái |
 |---|---|---|---|---|---|
-| TC-01 | Setup khi chưa bật 2FA | AC "hiển thị QR" | 200, `qrCodeUrl` dạng `otpauth://totp/...`, KHÔNG có `secretKey` | Happy | Chưa test |
+| TC-01 | Setup khi chưa bật 2FA | AC "hiển thị QR" | 200, `otpAuthUrl` dạng `otpauth://totp/...`, KHÔNG có `secretKey`/`qrCodeUrl` | Happy | Chưa test |
 | TC-02 | Setup khi đã bật | AC "confirm → bật" | 400 `TWO_FA_ALREADY_ENABLED` | Error | Chưa test |
 | TC-03 | Confirm code đúng (sinh từ secret pending) | AC "nhập OTP confirm" | 200, `twoFactorEnabled=true` trong DB | Happy | Chưa test |
 | TC-04 | Confirm code sai | Error "mã confirm sai" | 400 `TWO_FA_CODE_INVALID`, 2FA vẫn tắt | Error | Chưa test |

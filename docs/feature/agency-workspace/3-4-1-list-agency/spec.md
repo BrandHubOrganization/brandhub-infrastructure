@@ -6,8 +6,8 @@
 | Feature | List Agency |
 | Domain | Agency & Workspace (FR 3.4) |
 | Role | OWNER |
-| Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Version | 2.1 — Cập nhật 2026-09-23 — đồng bộ theo code thật |
+| Trạng thái tài liệu | Confirmed — đã code (`AgencyController.listMyAgencies`, `AgencyServiceImpl.listMyAgencies`) |
 
 ## 1. Objective
 
@@ -21,21 +21,46 @@ tôi muốn xem danh sách các Agency tôi đang sở hữu,
 
 ## 3. Acceptance Criteria
 
-- List tất cả `Agency` có `ownerId = current user`.
-- Mỗi item hiển thị: tên, logo, số Workspace, ngày tạo.
-- Bấm vào 1 Agency → vào Agency Dashboard (FR 3.4.2).
+- List tất cả `Agency` mà current user là Owner (`ownerId = current user`) **hoặc** là Member (có `AgencyMember` record) — code thật gộp cả 2 nguồn (`findByOwnerIdAndStatusNot` + `agencyMemberRepository.findByUserId`), loại trừ `SOFT_DELETED`.
+- Mỗi item trả về đầy đủ field của Agency (xem API Contract) — không có `workspaceCount` tính sẵn trong response hiện tại.
+- Bấm vào 1 Agency → vào Agency Dashboard (FR 3.4.2 — hiện chưa có endpoint riêng, dùng GET chi tiết FR 3.4.4).
 - Có nút 'Tạo Agency mới' → FR 3.4.3.
 
 ## 4. UI / UX
 
 - Trang `/agencies` (landing sau login nếu User có ≥1 Agency; nếu chưa có Agency nào → hiển thị empty state mời tạo mới).
 
-## 5. API Contract (đề xuất, cần xác nhận khi thiết kế kỹ thuật)
+## 5. API Contract (khớp code thật)
 
 ```
 GET /api/v1/agencies
-→ 200 { "success": true, "data": [{ "id", "name", "logoUrl", "workspaceCount", "createdAt" }] }
+→ 200 { "success": true, "data": [ AgencyResponse, ... ] }
 ```
+
+`AgencyResponse` (dùng chung cho List/Create/Get/Update):
+
+| Field | Kiểu/Ghi chú |
+|---|---|
+| id | UUID |
+| name | string |
+| ownerId | UUID |
+| logoUrl | string |
+| description | string |
+| category | enum AgencyCategory: MARKETING, FNB, FASHION, BEAUTY, TECHNOLOGY, REAL_ESTATE, EDUCATION, HEALTHCARE, RETAIL, FINANCE, ENTERTAINMENT, OTHER |
+| companySize | enum CompanySize: SIZE_1_10, SIZE_11_50, SIZE_51_200, SIZE_201_500, SIZE_500_PLUS |
+| website | string |
+| phone | string |
+| location | string |
+| brandColor | string (hex) |
+| logoIcon | string |
+| tagline | string |
+| foundedYear | integer |
+| facebookUrl | string |
+| linkedinUrl | string |
+| instagramUrl | string |
+| status | enum EntityStatus (ACTIVE / SOFT_DELETED / ...) |
+| createdAt | OffsetDateTime |
+| updatedAt | OffsetDateTime |
 
 ## 6. Error Handling
 

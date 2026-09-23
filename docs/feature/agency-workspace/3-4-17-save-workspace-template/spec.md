@@ -5,51 +5,61 @@
 | FR Code | 3.4.17 |
 | Feature | Save Workspace Template |
 | Domain | Agency & Workspace (FR 3.4) |
-| Role | OWNER |
-| Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Role | Agency member đã đăng nhập (chưa có `@RequireRole` giới hạn cụ thể trong code) |
+| Version | 2.1 — Cập nhật 2026-09-23 — đồng bộ theo code thật |
+| Trạng thái tài liệu | Đã code |
 
 ## 1. Objective
 
-Cho phép Owner lưu lại cấu hình 1 Workspace hiện có thành Template để tái sử dụng khi tạo Workspace mới sau này.
+Cho phép user lưu lại cấu hình 1 Workspace hiện có thành Template (resource độc lập `/api/v1/workspace-templates`) để tái sử dụng, xem, và xóa sau này.
 
 ## 2. User Story
 
-Là một Owner,
+Là một thành viên Agency,
 tôi muốn lưu cấu hình Workspace hiện tại thành template,
 để tạo Workspace mới tương tự nhanh hơn trong tương lai.
 
 ## 3. Acceptance Criteria
 
-- Bấm 'Lưu thành Template' từ 1 Workspace đang có → tạo `WorkspaceTemplate` chứa: thông tin cơ bản (không bao gồm Member/Client cụ thể), cách triển khai (ví dụ: Media Package template đã dùng).
-- Template này xuất hiện trong danh sách chọn khi tạo Workspace mới (mở rộng UX cho FR 3.4.12, không bắt buộc).
+- Tạo `WorkspaceTemplate` gồm: `name` (bắt buộc), `sourceWorkspaceId` (optional, Workspace gốc), `configSnapshot` (bắt buộc, chuỗi JSON snapshot cấu hình).
+- `WorkspaceTemplate` KHÔNG nested dưới `/agencies/{id}` hay `/workspaces/{id}` — là resource riêng biệt `/api/v1/workspace-templates`, có 4 endpoint: tạo (POST), danh sách (GET), chi tiết (GET /{templateId}), xóa (DELETE /{templateId}).
+- `agencyId` và `createdBy` được set tự động theo `currentUser` (không truyền trong request body).
 
 ## 4. UI / UX
 
-- Nút trong Workspace Settings; danh sách Template hiển thị ở `/agencies/:id/workspace-templates`.
+- Nút trong Workspace Settings; danh sách Template hiển thị ở trang riêng cho template (không phải nested `/agencies/:id/workspace-templates`).
 
-## 5. API Contract (đề xuất, cần xác nhận khi thiết kế kỹ thuật)
+## 5. API Contract
 
 ```
-POST /api/v1/workspaces/{id}/save-as-template
-{ "templateName": "string" }
-→ 201 { "success": true, "data": { "templateId" } }
+POST /api/v1/workspace-templates
+{ "name": "string", "sourceWorkspaceId"?: "uuid", "configSnapshot": "string" }
+→ 200 { "success": true, "data": WorkspaceTemplateResponse }
 
-GET /api/v1/agencies/{id}/workspace-templates
-→ 200 { "success": true, "data": [{ "id", "templateName", "basedOnWorkspaceId" }] }
+GET /api/v1/workspace-templates
+→ 200 { "success": true, "data": [WorkspaceTemplateResponse, ...] }
+
+GET /api/v1/workspace-templates/{templateId}
+→ 200 { "success": true, "data": WorkspaceTemplateResponse }
+
+DELETE /api/v1/workspace-templates/{templateId}
+→ 200 { "success": true, "data": null }
 ```
+
+`WorkspaceTemplateResponse` gồm: `id`, `agencyId`, `name`, `sourceWorkspaceId`, `configSnapshot`, `createdBy`, `createdAt`.
 
 ## 6. Error Handling
 
-- Không phải Owner → 403 `FORBIDDEN`.
+- `name` hoặc `configSnapshot` trống → 400 `VALIDATION_ERROR`.
+- Không có `@RequireRole` cụ thể trên các endpoint này trong code hiện tại — cần double-check với BE liệu có giới hạn quyền theo Agency/role dự kiến hay chưa.
 
 ## 7. Edge Cases
 
-- Workspace gốc bị xóa sau khi đã lưu Template → Template vẫn tồn tại độc lập (không phụ thuộc Workspace gốc còn sống hay không).
+- Workspace gốc (`sourceWorkspaceId`) bị xóa sau khi đã lưu Template → Template vẫn tồn tại độc lập (`configSnapshot` không phụ thuộc Workspace gốc còn sống hay không).
 
 ## 8. Definition of Done
 
-- Lưu Template thành công, dùng lại được khi tạo Workspace mới.
+- Lưu/xem/xóa Template thành công qua `/api/v1/workspace-templates`, dùng lại được khi tạo Workspace mới.
 
 ## Out of Scope
 
