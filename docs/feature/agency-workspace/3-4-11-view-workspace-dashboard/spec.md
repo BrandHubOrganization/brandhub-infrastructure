@@ -5,9 +5,9 @@
 | FR Code | 3.4.11 |
 | Feature | View Workspace Dashboard |
 | Domain | Agency & Workspace (FR 3.4) |
-| Role | OWNER/MEMBER |
-| Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Role | MANAGER/CREATOR/CLIENT |
+| Version | 2.1 — Cập nhật 2026-09-23 — đồng bộ theo code thật |
+| Trạng thái tài liệu | Draft — chưa code (chưa có endpoint dashboard riêng trong `WorkspaceController`) |
 
 ## 1. Objective
 
@@ -15,14 +15,14 @@ Hiển thị thông tin chung và thống kê của 1 Workspace.
 
 ## 2. User Story
 
-Là một Owner hoặc Member của Workspace,
+Là một thành viên (MANAGER/CREATOR/CLIENT) của Workspace,
 tôi muốn xem dashboard của Workspace,
 để nắm tình hình công việc đang triển khai.
 
 ## 3. Acceptance Criteria
 
 - Hiển thị: số Task theo trạng thái (backlog/in progress/completed), số Client đang làm việc, Campaign đang active.
-- Chỉ user có quyền truy cập Workspace (Owner Agency, hoặc có WorkspaceMember record) mới xem được.
+- Chỉ user có `WorkspaceMember` record (role MANAGER/CREATOR/CLIENT) ở Workspace này mới xem được — không còn khái niệm "Owner Agency" ở cấp Workspace (Owner chỉ tồn tại ở cấp Agency).
 
 ## 4. UI / UX
 

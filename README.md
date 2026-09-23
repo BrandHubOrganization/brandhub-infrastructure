@@ -10,15 +10,19 @@ All infrastructure-as-code for running the full BrandHub platform locally or in 
 
 ```
 brandhub-infrastructure/
-├── docker/
-│   ├── docker-compose.infra.yml  # Core infra: postgres, redis, rabbitmq, chromadb, neo4j
-│   ├── docker-compose.dev.yml    # Overlay: host ports for infra + pgadmin
-│   ├── docker-compose.apps.yml   # 5 app services (api-gateway, business, ai, publisher, web-dashboard)
-│   ├── run-compose.bat           # Wrapper: infra+dev by default, "full" arg adds apps
-│   └── .env.example              # All environment variables with defaults
-└── scripts/
-    ├── init-postgres.sql       # Subscription plans, payments, audit_logs tables + seed data
-    └── init-mongo.js           # Collections, validators, and performance indexes (run against Atlas, not local)
+  docker/
+    compose/
+      dev/compose.yaml
+      dev-ai/compose.yaml
+      production/compose.yaml
+      shared/
+      .env.example
+    run_dev.bat
+    run_dev_ai.bat
+    run_production.bat
+  scripts/
+    init-postgres-v2.sql
+    init-mongo.js
 ```
 
 See [docs/architecture/local-run-architecture.md](docs/architecture/local-run-architecture.md) for the full breakdown of how the compose files compose and the service dependency chain.
@@ -43,11 +47,11 @@ Clone the infrastructure repository to your local machine.
 
 ### 3. Environment Configuration
 
-Navigate to the `docker` directory and set up your `.env` file:
+Navigate to the `docker` directory and set up your `compose/.env` file:
 
 ```bash
 cd docker
-cp .env.example .env
+cp compose/.env.example compose/.env
 ```
 
 Open the `.env` file in your preferred text editor and fill in the required secrets (JWT keys, AES_SECRET_KEY, API keys, OAuth credentials, etc.). `run-compose.bat` also auto-copies `.env.example` to `.env` on first run if missing.
@@ -56,11 +60,12 @@ Open the `.env` file in your preferred text editor and fill in the required secr
 
 ```bash
 cd docker
-run-compose.bat          # infra (postgres/redis/rabbitmq/chromadb/neo4j) + dev host ports + pgadmin
-run-compose.bat full     # same, plus the 5 app services (build from sibling repos)
+run_dev.bat             # PostgreSQL, Redis, RabbitMQ, pgAdmin 4
+run_dev_ai.bat          # dev + ChromaDB
+run_production.bat      # all infrastructure and app services
 ```
 
-There is no single `docker-compose.yml` — the stack is split across `docker-compose.infra.yml`, `docker-compose.dev.yml`, and `docker-compose.apps.yml`, combined via `-f`. MongoDB is not part of the compose stack; `MONGODB_URI` in `.env` must point to an Atlas (cloud) cluster.
+See [docker/README.md](docker/README.md) for environment composition and commands. MongoDB remains external via MONGODB_URI in compose/.env.
 
 It may take a few minutes for all services to become healthy.
 
@@ -120,7 +125,7 @@ Alternatively, you can find and kill the process using the port:
 **Solution**: ChromaDB can take longer to initialize, especially on the first run. The AI service should eventually retry and connect, but you can also manually restart the AI service after ChromaDB is healthy:
 
 ```bash
-docker compose -p brandhub -f docker-compose.infra.yml -f docker-compose.apps.yml -f docker-compose.dev.yml restart ai-service
+docker compose --env-file compose/.env -f compose/production/compose.yaml restart ai-service
 ```
 
 ## Services Reference

@@ -6,8 +6,8 @@
 | Feature | Update Agency Profile |
 | Domain | Agency & Workspace (FR 3.4) |
 | Role | OWNER |
-| Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Version | 2.2 — Cập nhật 2026-09-23 — bổ sung error case `FILE_READ_ERROR` (logo upload) |
+| Trạng thái tài liệu | Confirmed — đã code (xác nhận 2026-09-21, khớp task.md/test.md) |
 
 ## 1. Objective
 
@@ -21,29 +21,38 @@ tôi muốn cập nhật thông tin Agency Profile,
 
 ## 3. Acceptance Criteria
 
-- Form sửa: `name`, `description`, `logoUrl`.
-- Chỉ Owner của chính Agency đó được sửa.
+- Form sửa: **toàn bộ field của `AgencyRequest`** — `name` (bắt buộc), `logoUrl`, `description`, `category`, `companySize`, `website`, `phone`, `location`, `brandColor`, `logoIcon`, `tagline`, `foundedYear`, `facebookUrl`, `linkedinUrl`, `instagramUrl` (xem bảng field tại FR 3.4.3). Đây là PUT toàn bộ (full replace), không phải PATCH từng phần — request body cần truyền đủ field, field nào không truyền sẽ bị set null.
+- Chỉ Owner của chính Agency đó được sửa (`agency.getOwnerId().equals(currentUser.getId())`, else `NOT_AGENCY_OWNER`).
+- Logo cập nhật qua endpoint multipart riêng `POST /{agencyId}/logo` (AC3), không qua field `logoUrl` của form chính (tương tự FR 3.4.3). Lỗi đọc file → 400 `FILE_READ_ERROR` (xem mục 6).
 
 ## 4. UI / UX
 
-- Trang `/agencies/:id/profile/edit`.
+- Trang `/agencies/:agencyId/profile/edit`.
 
-## 5. API Contract (đề xuất, cần xác nhận khi thiết kế kỹ thuật)
+## 5. API Contract (khớp code thật)
 
 ```
-PATCH /api/v1/agencies/{id}
-{ "name"?, "description"?, "logoUrl"? }
-→ 200 { "success": true, "data": { ...updated agency... } }
+PUT /api/v1/agencies/{agencyId}
+{ AgencyRequest }
+→ 200 { "success": true, "data": AgencyResponse }
+
+POST /api/v1/agencies/{agencyId}/logo   (multipart/form-data, field "file")
+→ 200 { "success": true, "data": AgencyResponse }
 ```
+
+Method thật là **PUT**, không phải PATCH. `AgencyRequest`/`AgencyResponse` — xem bảng field đầy đủ tại FR 3.4.3 / FR 3.4.1.
 
 ## 6. Error Handling
 
-- Không phải Owner → 403 `FORBIDDEN`.
+- Không phải Owner → 403 `NOT_AGENCY_OWNER`.
 - `name` trống → 400 `VALIDATION_ERROR`.
+- Agency không tồn tại → 404 `AGENCY_NOT_FOUND`.
+- Upload logo (`POST /{agencyId}/logo`) lỗi đọc file (`IOException` khi `file.getBytes()`) → 400 `FILE_READ_ERROR` (không phải 500 — `AgencyServiceImpl.updateLogo` bắt `IOException` và ném `BusinessException(FILE_READ_ERROR)`).
+- Upload logo không phải Owner → 403 `NOT_AGENCY_OWNER` (check giống Flow A, cùng field `agency.getOwnerId()`).
 
 ## 7. Edge Cases
 
-- Không có edge case đặc biệt ngoài quyền hạn.
+- Vì là PUT full-replace, FE cần truyền lại toàn bộ field hiện có (kể cả field không đổi) để tránh vô tình xóa dữ liệu branding đã nhập trước đó.
 
 ## 8. Definition of Done
 
