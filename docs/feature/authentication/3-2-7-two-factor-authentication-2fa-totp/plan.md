@@ -4,7 +4,7 @@
 
 ## Phạm vi kỹ thuật
 
-- **brandhub-business-service** (backend). FE render QR từ `qrCodeUrl` — ngoài phạm vi plan này.
+- **brandhub-business-service** (backend). FE render QR từ `otpAuthUrl` — ngoài phạm vi plan này.
 - File sửa/tạo:
   - `util/TotpUtil.java` (MỚI) — RFC 6238 HMAC-SHA1 + Base32, stdlib.
   - `model/User.java` — thêm `twoFactorEnabled` (boolean), `totpSecret` (String).
@@ -17,7 +17,7 @@
 
 ```
 POST /api/v1/auth/2fa/setup     (Authorization: Bearer)
-  → 200 { success:true, data:{ qrCodeUrl:"otpauth://totp/BrandHub:...@..." } }
+  → 200 { success:true, data:{ otpAuthUrl:"otpauth://totp/BrandHub:...@..." } }
   Không trả secretKey plaintext.
 
 POST /api/v1/auth/2fa/confirm   { code:"123456" } (Authorization)
@@ -31,7 +31,7 @@ POST /api/v1/auth/2fa/verify    { twoFactorToken:"...", code:"123456" }  (KHÔNG
   (điểm hoàn tất login khi 2FA bật; set refresh cookie như login thường)
 ```
 
-Khác spec.md: bổ sung `/2fa/verify` (spec thiếu) — bắt buộc để hoàn tất luồng login-2FA. Confirm/disable require Authorization (cần đăng nhập), verify thì không.
+`/2fa/verify` bắt buộc để hoàn tất luồng login-2FA (đã có trong spec.md mục 5). Confirm/disable require Authorization (cần đăng nhập), verify thì không.
 
 ## Data Model
 
@@ -54,4 +54,5 @@ Khác spec.md: bổ sung `/2fa/verify` (spec thiếu) — bắt buộc để ho�
 
 - **Clock drift** giữa server/app Authenticator → cho phép ±1 step (WINDOW=1).
 - **Mất app Authenticator** không có backup code (đã bỏ) → phải nhờ Admin (FR 3.10.5), chấp nhận trade-off đã chốt.
-- **Bỏ copy secret** → FE không cần secret, giảm surface. QR render từ `qrCodeUrl` (có thể dùng lib QR phía FE).
+- **Bỏ copy secret** → FE không cần secret, giảm surface. QR render từ `otpAuthUrl` (có thể dùng lib QR phía FE).
+- **Đổi tên field 2026-09-23:** `TwoFactorSetupResponse` đổi `qrCodeUrl` → `otpAuthUrl` để phản ánh đúng nội dung (đây là `otpauth://` URI, không phải URL ảnh QR). FE đọc `data.otpAuthUrl`.

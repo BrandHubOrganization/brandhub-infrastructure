@@ -618,6 +618,8 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     action        audit_action NOT NULL,
     resource_type VARCHAR(50)  NOT NULL,
     resource_id   VARCHAR(255),
+    ip_address    VARCHAR(45),
+    user_agent    VARCHAR(512),
     old_value     JSONB,
     new_value     JSONB,
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()

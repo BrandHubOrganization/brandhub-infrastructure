@@ -45,7 +45,7 @@ ALTER TABLE client_profile ADD COLUMN IF NOT EXISTS social_links jsonb;
 
 ## 4. Luồng xử lý
 
-1. `findByUserId(currentUser.getId())` → upsert (create/update).
+1. `findByUserIdAndAgencyId(currentUser.getId(), agencyId)` → upsert (create/update).
 2. Set `displayName`, `company`, `phone`, `note` (không đổi `userId`).
 3. `save` → trả `ClientProfileResponse`.
 
