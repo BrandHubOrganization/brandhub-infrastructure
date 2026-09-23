@@ -62,6 +62,29 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
+    CREATE TYPE agency_category AS ENUM (
+        'MARKETING', 'FNB', 'FASHION', 'BEAUTY', 'TECHNOLOGY', 'REAL_ESTATE',
+        'EDUCATION', 'HEALTHCARE', 'RETAIL', 'FINANCE', 'ENTERTAINMENT', 'OTHER'
+    );
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE workspace_industry AS ENUM (
+        'FNB', 'FASHION', 'BEAUTY', 'TECHNOLOGY', 'REAL_ESTATE', 'EDUCATION',
+        'HEALTHCARE', 'SERVICES', 'RETAIL', 'OTHER'
+    );
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE company_size AS ENUM (
+        'SIZE_1_10', 'SIZE_11_50', 'SIZE_51_200', 'SIZE_201_500', 'SIZE_500_PLUS'
+    );
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
     CREATE TYPE invitation_status AS ENUM ('PENDING', 'ACCEPTED', 'EXPIRED', 'REVOKED');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
@@ -208,15 +231,27 @@ CREATE TABLE IF NOT EXISTS user_system_roles (
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS agencies (
-    id          UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
-    name        VARCHAR(255)  NOT NULL,
-    owner_id    UUID          NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-    logo_url    VARCHAR,
-    description TEXT,
-    status      entity_status NOT NULL DEFAULT 'ACTIVE',
-    deleted_at  TIMESTAMPTZ,
-    created_at  TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
-    updated_at  TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+    id             UUID             PRIMARY KEY DEFAULT gen_random_uuid(),
+    name           VARCHAR(255)     NOT NULL,
+    owner_id       UUID             NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    logo_url       VARCHAR,
+    description    TEXT,
+    category       agency_category,
+    company_size   company_size,
+    website        VARCHAR(255),
+    phone          VARCHAR(30),
+    location       VARCHAR(255),
+    brand_color    VARCHAR(9),
+    logo_icon      VARCHAR(50),
+    tagline        VARCHAR(140),
+    founded_year   INTEGER,
+    facebook_url   VARCHAR(255),
+    linkedin_url   VARCHAR(255),
+    instagram_url  VARCHAR(255),
+    status         entity_status    NOT NULL DEFAULT 'ACTIVE',
+    deleted_at     TIMESTAMPTZ,
+    created_at     TIMESTAMPTZ      NOT NULL DEFAULT NOW(),
+    updated_at     TIMESTAMPTZ      NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_agencies_owner_id ON agencies(owner_id);
@@ -238,37 +273,46 @@ CREATE TABLE IF NOT EXISTS agency_members (
 CREATE INDEX IF NOT EXISTS idx_agency_members_agency_id ON agency_members(agency_id);
 
 CREATE TABLE IF NOT EXISTS agency_invitations (
-    id            UUID              PRIMARY KEY DEFAULT gen_random_uuid(),
-    agency_id     UUID              NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
-    invited_email VARCHAR(255)      NOT NULL,
-    invited_by    UUID              NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-    token         VARCHAR(255)      NOT NULL UNIQUE,
-    status        invitation_status NOT NULL DEFAULT 'PENDING',
-    expires_at    TIMESTAMPTZ       NOT NULL,
+    id            UUID                  PRIMARY KEY DEFAULT gen_random_uuid(),
+    agency_id     UUID                  NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
+    invited_email VARCHAR(255)          NOT NULL,
+    invited_by    UUID                  NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    token         VARCHAR(255)          NOT NULL UNIQUE,
+    note          VARCHAR(500),
+    workspace_id  UUID,
+    role          workspace_member_role,
+    status        invitation_status     NOT NULL DEFAULT 'PENDING',
+    expires_at    TIMESTAMPTZ           NOT NULL,
     accepted_at   TIMESTAMPTZ,
-    created_at    TIMESTAMPTZ       NOT NULL DEFAULT NOW(),
-    UNIQUE (agency_id, invited_email)
+    created_at    TIMESTAMPTZ           NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_agency_inv_agency_id ON agency_invitations(agency_id);
+-- Chỉ chặn trùng khi còn PENDING — cho phép mời lại email đã REVOKED/EXPIRED/ACCEPTED
+-- trước đó (khớp check pendingInvitationExists trong AgencyServiceImpl.inviteMember).
+CREATE UNIQUE INDEX IF NOT EXISTS idx_agency_inv_unique_pending
+    ON agency_invitations(agency_id, invited_email) WHERE status = 'PENDING';
 
 CREATE TABLE IF NOT EXISTS client_profiles (
     id              UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-    linked_user_id  UUID         REFERENCES users(id) ON DELETE SET NULL,
+    user_id         UUID         REFERENCES users(id) ON DELETE SET NULL,
+    agency_id       UUID         REFERENCES agencies(id) ON DELETE CASCADE,
     display_name    VARCHAR(255) NOT NULL,
-    email           VARCHAR(255) NOT NULL,
     company         VARCHAR(255),
-    brand_name      VARCHAR(255),
     industry        VARCHAR(100),
-    logo_url        VARCHAR,
+    logo_url        VARCHAR(500),
     phone           VARCHAR(50),
+    website         VARCHAR(255),
+    location        VARCHAR(255),
+    description     TEXT,
+    social_links    JSONB,
     note            TEXT,
     created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_client_profiles_linked_user_id ON client_profiles(linked_user_id);
-CREATE INDEX IF NOT EXISTS idx_client_profiles_email ON client_profiles(email);
+CREATE INDEX IF NOT EXISTS idx_client_profiles_user_id ON client_profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_client_profiles_agency_id ON client_profiles(agency_id);
 
 DROP TRIGGER IF EXISTS trg_client_profiles_updated_at ON client_profiles;
 CREATE TRIGGER trg_client_profiles_updated_at
@@ -276,17 +320,31 @@ BEFORE UPDATE ON client_profiles
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 CREATE TABLE IF NOT EXISTS workspaces (
-    id              UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
-    agency_id       UUID          NOT NULL REFERENCES agencies(id) ON DELETE RESTRICT,
-    name            VARCHAR(255)  NOT NULL,
-    created_by      UUID          NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    id              UUID              PRIMARY KEY DEFAULT gen_random_uuid(),
+    agency_id       UUID              NOT NULL REFERENCES agencies(id) ON DELETE RESTRICT,
+    name            VARCHAR(255)      NOT NULL,
+    created_by      UUID              NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     workspace_media_package_id UUID,
-    timezone_config VARCHAR(100)  NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',
-    settings        JSONB         NOT NULL DEFAULT '{}',
-    status          entity_status NOT NULL DEFAULT 'ACTIVE',
+    timezone_config VARCHAR(100)      NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',
+    settings        JSONB             NOT NULL DEFAULT '{}',
+    industry        workspace_industry,
+    company_size    company_size,
+    website         VARCHAR(255),
+    phone           VARCHAR(30),
+    location        VARCHAR(255),
+    description     VARCHAR(500),
+    brand_color     VARCHAR(9),
+    logo_icon       VARCHAR(50),
+    logo_url        VARCHAR(255),
+    tagline         VARCHAR(140),
+    founded_year    INTEGER,
+    facebook_url    VARCHAR(255),
+    linkedin_url    VARCHAR(255),
+    instagram_url   VARCHAR(255),
+    status          entity_status     NOT NULL DEFAULT 'ACTIVE',
     deleted_at      TIMESTAMPTZ,
-    created_at      TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+    created_at      TIMESTAMPTZ       NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ       NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_workspaces_agency_id ON workspaces(agency_id);
@@ -295,6 +353,14 @@ DROP TRIGGER IF EXISTS trg_workspaces_updated_at ON workspaces;
 CREATE TRIGGER trg_workspaces_updated_at
 BEFORE UPDATE ON workspaces
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- agency_invitations.workspace_id references a table created after it above.
+DO $$ BEGIN
+    ALTER TABLE agency_invitations
+        ADD CONSTRAINT fk_agency_inv_workspace_id
+        FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 CREATE TABLE IF NOT EXISTS workspace_members (
     id                 UUID                   PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -307,8 +373,11 @@ CREATE TABLE IF NOT EXISTS workspace_members (
     is_active          BOOLEAN                NOT NULL DEFAULT TRUE,
     created_at         TIMESTAMPTZ            NOT NULL DEFAULT NOW(),
     updated_at         TIMESTAMPTZ            NOT NULL DEFAULT NOW(),
+    -- CLIENT luôn cần client_profile_id; user_id đi kèm khi client là user thật đã
+    -- accept invitation (tự login), NULL khi manager tự thêm client thủ công (chưa
+    -- có tài khoản). Role khác CLIENT luôn cần user_id, không bao giờ có client_profile_id.
     CONSTRAINT chk_workspace_members_identity CHECK (
-        (role = 'CLIENT' AND client_profile_id IS NOT NULL AND user_id IS NULL)
+        (role = 'CLIENT' AND client_profile_id IS NOT NULL)
         OR (role != 'CLIENT' AND user_id IS NOT NULL AND client_profile_id IS NULL)
     )
 );
@@ -331,6 +400,7 @@ CREATE TABLE IF NOT EXISTS workspace_invitations (
     invited_email VARCHAR(255)          NOT NULL,
     invited_by    UUID                  NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     token         VARCHAR(255)          NOT NULL UNIQUE,
+    role          workspace_member_role,
     status        invitation_status     NOT NULL DEFAULT 'PENDING',
     expires_at    TIMESTAMPTZ           NOT NULL,
     accepted_at   TIMESTAMPTZ,
