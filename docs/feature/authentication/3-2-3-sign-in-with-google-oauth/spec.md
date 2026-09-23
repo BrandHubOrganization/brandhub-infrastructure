@@ -1,73 +1,59 @@
-# UC — Sign In with Google OAuth
+# 3.2.3 Sign In With Google OAuth
 
-| | |
-|---|---|
-| FR Code | 3.2.3 |
-| Feature | Sign In with Google OAuth |
-| Domain | Authentication (FR 3.2) |
-| Role | GUEST |
-| Version | 2.1 (khớp code thật, đồng bộ 2026-09-23) |
-| Trạng thái tài liệu | Confirmed — đã code, chạy được (bug form-urlencoded đã fix) |
+## Function Trigger
+Begins when a Guest activates the "Sign in with Google" button on the sign-in or registration screen, which sends the browser to the Google authorization entry point of the application.
 
-## 1. Objective
+## Function Description
+- **Actors / Roles:** GUEST. The same mechanism also serves a signed-in user who links Google to an existing account from settings, which is outside this feature.
+- **Purpose:** Let a user sign in with an existing Google account, create a local account on first use, and honour two-factor authentication when it is enabled.
+- **Interface:** A "Sign in with Google" button on both the sign-in and the registration screen. The flow is a redirect handshake: the browser leaves the application for Google's consent screen and returns to the application, which then sends the browser back to the sign-in screen carrying the result.
+- **Data Processing:** The system issues and stores a single-use state value, exchanges the authorization code for a Google access token, fetches the Google profile, links the Google identity to an existing account or creates a new verified one, checks the account status, and then issues tokens or a two-factor challenge.
 
-Cho phép user đăng nhập nhanh qua Google OAuth. Flow là **backend-driven redirect**: FE điều hướng thẳng sang BE (`GoogleOAuthController`), BE tự redirect sang Google, nhận callback, exchange code, rồi redirect ngược về FE kèm token — không phải flow FE tự gọi Google SDK rồi POST JSON lên BE.
+## Screen Layout
+Figure — Google sign-in entry and return:
+- Entry: "Sign in with Google" button on /login and /register.
+- Return: the browser lands on /oauth-callback, which reads the token from the address fragment, loads the profile and continues to the Dashboard / Agency list.
+- When two-factor authentication is enabled the browser lands on the two-factor code screen (3.2.7) instead.
 
-## 2. User Story
+## Function Details
+### Data Specifications
+- **Input required:** nothing entered by the user; the authorization code and the state value returned by Google.
+- **Input optional:** none.
+- **System data:** providerId, email, emailVerifiedAt, passwordHash, twoFactorEnabled, status, lastLoginAt, workspaceId, accessToken, refreshToken.
+- **Output:** on success the access token is carried in the return address and the refresh token is set as an HTTP-only cookie. When two-factor authentication is enabled a two-factor challenge token is carried instead and no cookie is set.
 
-Là một Guest,
-tôi muốn đăng nhập bằng tài khoản Google,
-để không cần nhớ thêm password riêng cho BrandHub.
+### Business Rules
+- **BR-01:** The state value is single-use, stored for 10 minutes and removed on first use. A missing, mismatched or expired state → 400 OAUTH_STATE_INVALID and the browser is returned to the sign-in screen with a generic error.
+- **BR-02:** A failed token exchange, or a Google profile without an email address or with an unverified email address → 400 OAUTH_CODE_INVALID and the browser is returned with a generic error.
+- **BR-03:** On first use of a Google identity, a local account is created with no password and the email address already verified. An existing account matching the Google email address is reused and the Google identity is linked to it, so no duplicate account is created.
+- **BR-04:** A suspended or deactivated account → 403 ACCOUNT_SUSPENDED and the browser is returned with a generic error.
+- **BR-05:** When two-factor authentication is enabled, Google sign-in does not bypass it: no access token and no refresh token are issued, and a two-factor challenge token is returned so the user completes Two-Factor Authentication (3.2.7). This applies to every sign-in method.
+- **BR-06:** The access token is carried in the fragment of the return address, never as a query parameter.
 
-## 3. Acceptance Criteria
+### Validation
+- The user cancels consent or Google returns an error → the return carries no authorization code and the browser is sent back with a generic error, without any further call to Google.
+- The Google profile has no email address, or the email address is not verified → the sign-in is rejected with a generic error.
 
-- Nút "Đăng nhập với Google" → redirect Google OAuth consent screen.
-- Callback thành công → nếu email đã có `User` (kể cả tạo qua Sign Up thường) → login vào account đó; nếu chưa có → tạo `User` mới với `emailVerifiedAt=now` (Google đã verify email), không có `passwordHash`.
-- Bug form-urlencoded (Google reject request JSON body khi exchange token) đã fix: `GoogleOAuthService` dùng `MultiValueMap` + `APPLICATION_FORM_URLENCODED`. Flow chạy được thực tế.
-- **[CHỐT 2026-09-20]** Nếu user đã bật 2FA (`twoFactorEnabled=true`) → sau khi Google xác thực email, **bắt buộc qua màn hình nhập TOTP** trước khi cấp accessToken (không bypass 2FA qua OAuth). BE redirect `{FRONTEND_URL}/2fa-verify?twoFactorToken=...`, FE tiếp tục FR 3.2.7 verify-2FA để lấy accessToken thật.
+## Functionalities
+### Normal Flow
+1. The Guest activates "Sign in with Google" on /login or /register.
+2. The system issues a single-use state value valid for 10 minutes and sends the browser to Google's consent screen.
+3. The user authenticates with Google and grants consent.
+4. Google returns the browser to the application with an authorization code and the state value.
+5. The system validates the state value, exchanges the code for a Google access token and fetches the Google profile.
+6. The system links the Google identity to an existing account with the same email address, or creates a new verified account with no password.
+7. The system checks the account status and, with two-factor authentication disabled, records the sign-in and issues an access token and a refresh token.
+8. The system sends the browser back to the application with the access token and sets the refresh token cookie.
+9. The application reads the token, loads the profile and continues to the Dashboard / Agency list.
 
-## 4. UI / UX
+### Abnormal Cases
+- The user cancels consent or Google returns an error → the browser is sent back with a generic error and no further call to Google is made.
+- The state value is missing, already used or expired, or belongs to another provider → the browser is sent back with a generic error.
+- The token exchange fails, or the Google profile has no email address or an unverified email address → the browser is sent back with a generic error.
+- The account is suspended or deactivated → the browser is sent back with a generic error.
+- Two-factor authentication is enabled → the browser is sent to the two-factor code screen (3.2.7) and no tokens are issued.
 
-- Nút Google OAuth đặt cùng trang `/login` và `/register`.
-
-## 5. API Contract (đã code — redirect-based, không phải JSON response)
-
-```
-GET /api/v1/auth/oauth/google → 302 redirect sang Google consent
-GET /api/v1/auth/oauth/google/callback?code=...&state=...
-(Google cũng có thể callback tới alias /login/oauth2/code/google)
-→ Thành công, không 2FA: 302 redirect {FRONTEND_URL}/oauth-callback#token={accessToken}
-  (Set-Cookie refreshToken: HttpOnly/Secure/SameSite=Strict, path=/api/v1/auth)
-→ Thành công, có 2FA: 302 redirect {FRONTEND_URL}/2fa-verify?twoFactorToken=...
-  (chưa cấp accessToken/refreshToken, chưa Set-Cookie)
-→ Lỗi: 302 redirect {FRONTEND_URL}/oauth-callback?error=oauth_failed
-  (hoặc ?error=OAUTH_EMAIL_MISMATCH / OAUTH_ALREADY_LINKED redirect về /settings nếu đang ở link-mode)
-```
-
-Không có endpoint nào trong flow này trả JSON `{accessToken, refreshToken, isNewUser}` trực tiếp — accessToken nằm trên URL fragment (`#token=`), FE tự đọc `window.location.hash` rồi gọi `GET /api/v1/users/me`.
-
-Ngoài scope Sign In (không thuộc guest flow, không vẽ trong sequence-flow của FR này): `GET /api/v1/auth/oauth/google/link?token=...` — link-mode cho user đã đăng nhập muốn gắn thêm Google vào account hiện tại (thuộc Settings/Account Linking).
-
-## 6. Error Handling
-
-- Google trả lỗi/user cancel consent (callback không kèm `code`) → `302` redirect `{FRONTEND_URL}/oauth-callback?error=oauth_failed`, không gọi Google API nào thêm.
-- Email Google đã được dùng bởi account khác qua Sign Up thường → gắn thêm Google provider vào account đó (không tạo account trùng), theo logic chuẩn hóa email (lowercase + trim).
-- State CSRF sai/hết hạn/đã dùng → `OAUTH_STATE_INVALID` (400) → redirect `?error=oauth_failed`.
-- Token exchange với Google thất bại (token null) hoặc profile thiếu email/`verified_email != true` → `OAUTH_CODE_INVALID` (400) → redirect `?error=oauth_failed`.
-- User bị suspend/inactive → `ACCOUNT_SUSPENDED` (403) → redirect `?error=oauth_failed`.
-
-## 7. Edge Cases
-
-- User bấm Google OAuth nhưng đã có account email/password cùng email → login thẳng vào account cũ, không tạo account riêng cho "Google user".
-
-## 8. Definition of Done
-
-- Flow chạy được thực tế (bug form-urlencoded đã fix). Verify bằng test đăng nhập thật vẫn còn `[ ]` mở trong task.md.
-
-## Out of Scope
-
-- OAuth provider khác ngoài Google (Facebook, GitHub... không thuộc CSV V2 hiện tại).
-
-## Tham chiếu BA
-
-[02-authentication-profile.md](../../../BA/02-authentication-profile.md)
+## Post-Conditions
+- The Google identity is linked to a local account, created on first use with the email address already verified and with no password.
+- The sign-in is recorded and the last sign-in time is updated, unless the user still has to complete two-factor verification.
+- An access token and a refresh token cookie are issued, or a two-factor challenge token when two-factor authentication is enabled.

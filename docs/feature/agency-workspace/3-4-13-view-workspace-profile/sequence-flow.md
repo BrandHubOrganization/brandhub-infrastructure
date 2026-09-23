@@ -1,35 +1,38 @@
 # Sequence Flow — View Workspace Profile
 
-> Bổ sung cho `spec.md` (FR 3.4.13). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
+> Companion to `spec.md` (FR 3.4.13). This file lists each step as actor → action → system, in enough detail to draw the sequence diagram directly. It does not restate business rules — see `spec.md` for those.
 >
-> Cập nhật: 2026-09-23. Khớp code thật (`WorkspaceController.getWorkspace`, `WorkspaceServiceImpl.getWorkspace`).
+> Updated: 2026-09-23.
 
 ## Actors
 
-- **User** — thành viên Workspace (MANAGER/CREATOR/CLIENT).
-- **FE** — brandhub-web-dashboard (React).
-- **BE** — brandhub-business-service (Spring Boot).
-- **DB** — PostgreSQL (`workspaces`).
+- **Client** — a Workspace member (MANAGER, CREATOR, CLIENT).
+- **System** — the application service handling the request.
+- **Database** — the persistent store holding Workspace and membership records.
 
 ---
 
-## Flow A — Xem chi tiết Workspace
+## Flow A — View Workspace details
 
-1. User → FE: mở `/workspaces/:id/profile`.
-2. FE → BE: `GET /api/v1/workspaces/{workspaceId}`.
-3. BE (`WorkspaceServiceImpl.getWorkspace`):
-   a. `findWorkspaceOrThrow(workspaceId)` — không tồn tại → `404 WORKSPACE_NOT_FOUND`.
-   b. `assertMember(workspaceId, currentUser.id)`: query `workspace_members` theo `workspaceId + userId + isActive=true` — không có bản ghi → `403 WORKSPACE_ACCESS_DENIED` (check thủ công trong service method, không dùng `@RequireRole` vì aspect đó không resolve đúng workspace theo path variable).
-   c. `toResponse(workspace)`: parse `settings` JSON (`timezone`, `defaultPlatforms`) qua `ObjectMapper` — parse lỗi thì fallback `WorkspaceSettings(null, null)` (không throw).
-4. BE → DB: 2 SELECT (workspace, membership check).
-5. BE → FE: `200 { data: WorkspaceResponse }` (đầy đủ field: id, name, agencyId, settings, industry, companySize, website, phone, location, description, brandColor, logoIcon, logoUrl, tagline, foundedYear, facebookUrl, linkedinUrl, instagramUrl, createdAt).
-6. FE: hiển thị trang profile Workspace, bao gồm `settings.timezone`.
+1. Client → System: open `/workspaces/:id/profile`.
+2. System → Database: look up the Workspace by its identifier; a missing Workspace is rejected with 404 `WORKSPACE_NOT_FOUND`.
+3. System → Database: read the caller's active membership row for that same Workspace; a missing row is rejected with 403 `WORKSPACE_ACCESS_DENIED`.
+4. System: map the Workspace to its profile, parsing the stored settings into timezone and default platforms.
+5. System: when the stored settings cannot be parsed, fall back to empty settings without raising an error.
+6. System → Client: the full Workspace profile — id, name, agencyId, settings, industry, companySize, website, phone, location, description, brandColor, logoIcon, logoUrl, tagline, foundedYear, social links, createdAt.
+7. Client: render the Workspace profile, including the Workspace timezone.
 
 ---
 
-## Error paths tổng hợp
+## Error paths
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | Status | Error code |
 |---|---|---|---|
-| View | Workspace không tồn tại | 404 | `WORKSPACE_NOT_FOUND` |
-| View | Caller không phải active member của workspace này | 403 | `WORKSPACE_ACCESS_DENIED` |
+| View | Workspace does not exist | 404 | `WORKSPACE_NOT_FOUND` |
+| View | Caller is not an active member of that Workspace | 403 | `WORKSPACE_ACCESS_DENIED` |
+
+## Notes
+
+- The membership check is performed explicitly for the Workspace named in the request, rather than through a generic role check.
+- A malformed settings payload degrades to empty settings instead of failing the request.
+- The flow is read-only.

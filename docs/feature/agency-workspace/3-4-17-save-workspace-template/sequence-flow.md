@@ -1,62 +1,57 @@
 # Sequence Flow — Save Workspace Template
 
-> Bổ sung cho `spec.md` (FR 3.4.17). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
+> Companion to `spec.md` (FR 3.4.17). This file lists each step as actor → action → system, in enough detail to draw the sequence diagram directly. It does not restate business rules — see `spec.md` for those.
 >
-> Cập nhật: 2026-09-23. Khớp code thật (`WorkspaceTemplateController`, service tương ứng — xác nhận qua Grep controller `/api/v1/workspace-templates`).
+> Updated: 2026-09-23.
 
 ## Actors
 
-- **User** — thành viên Agency đã đăng nhập (không có `@RequireRole` giới hạn cụ thể trong code).
-- **FE** — brandhub-web-dashboard (React).
-- **BE** — brandhub-business-service (Spring Boot).
-- **DB** — PostgreSQL (`workspace_templates`).
+- **Client** — a signed-in Agency member.
+- **System** — the application service handling the request.
+- **Database** — the persistent store holding template records.
 
 ---
 
-## Flow A — Tạo Template từ Workspace hiện có
+## Flow A — Save a template from an existing Workspace
 
-1. User → FE: trong Workspace Settings, bấm "Lưu thành Template", điền `name`, `configSnapshot` (JSON snapshot cấu hình hiện tại, FE tự build từ `WorkspaceResponse` đang xem), `sourceWorkspaceId` (optional, workspace gốc).
-2. FE → BE: `POST /api/v1/workspace-templates` `{name, sourceWorkspaceId?, configSnapshot}`.
-3. BE:
-   a. Validate `name`/`configSnapshot` không trống (`@Valid`) — trống → `400 VALIDATION_ERROR`.
-   b. `agencyId` và `createdBy` set tự động theo `currentUser` (không lấy từ request body).
-   c. `INSERT workspace_templates`.
-4. BE → DB: 1 INSERT.
-5. BE → FE: `200 { data: WorkspaceTemplateResponse }` (`id`, `agencyId`, `name`, `sourceWorkspaceId`, `configSnapshot`, `createdBy`, `createdAt`).
-6. FE: hiển thị toast thành công, thêm vào danh sách Template.
+1. Client → System: in Workspace settings, choose "Save as Template" and supply the name, the configuration snapshot built from the Workspace currently being viewed, and optionally the source Workspace.
+2. System: validate that the name and the configuration snapshot are not empty; an empty value is rejected with 400 `VALIDATION_ERROR`.
+3. System: attach the caller's Agency and creator identity automatically, without taking them from the request.
+4. System → Database: insert the template row.
+5. System → Client: the stored template — id, agencyId, name, sourceWorkspaceId, configSnapshot, createdBy, createdAt.
+6. Client: show a success confirmation and add the template to the template list.
 
-## Flow B — Xem danh sách Template
+## Flow B — List templates
 
-1. User → FE: mở trang danh sách Template.
-2. FE → BE: `GET /api/v1/workspace-templates`.
-3. BE: query `workspace_templates` theo `agencyId` của `currentUser` (hoặc theo phạm vi mà service quy định).
-4. BE → FE: `200 { data: [WorkspaceTemplateResponse, ...] }`.
+1. Client → System: open the template list screen.
+2. System → Database: read the templates in the caller's Agency scope.
+3. System → Client: the list of template summaries.
 
-## Flow C — Xem chi tiết Template
+## Flow C — View a template's detail
 
-1. User → FE: bấm vào 1 Template.
-2. FE → BE: `GET /api/v1/workspace-templates/{templateId}`.
-3. BE: tìm theo `id` — không tồn tại → `404 NOT_FOUND` (theo pattern chung).
-4. BE → FE: `200 { data: WorkspaceTemplateResponse }`.
+1. Client → System: open one template.
+2. System → Database: look up the template by its identifier; a missing template is rejected with 404 `NOT_FOUND`.
+3. System → Client: the template detail.
 
-## Flow D — Xóa Template
+## Flow D — Delete a template
 
-1. User → FE: bấm "Xóa" trên 1 Template.
-2. FE → BE: `DELETE /api/v1/workspace-templates/{templateId}`.
-3. BE: tìm theo `id` — không tồn tại → `404 NOT_FOUND`; xóa record.
-4. BE → DB: `DELETE workspace_templates WHERE id = ?`.
-5. BE → FE: `200 { data: null }`.
+1. Client → System: choose Delete on a template.
+2. System → Database: look up the template by its identifier; a missing template is rejected with 404 `NOT_FOUND`.
+3. System → Database: remove the template row.
+4. System → Client: confirmation that the template has been deleted.
 
 ---
 
-## Error paths tổng hợp
+## Error paths
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | Status | Error code |
 |---|---|---|---|
-| Create | `name` trống | 400 | `VALIDATION_ERROR` |
-| Create | `configSnapshot` trống | 400 | `VALIDATION_ERROR` |
-| Detail / Delete | `templateId` không tồn tại | 404 | `NOT_FOUND` |
+| Create | `name` empty | 400 | `VALIDATION_ERROR` |
+| Create | Configuration snapshot empty | 400 | `VALIDATION_ERROR` |
+| Detail / Delete | Template does not exist | 404 | `NOT_FOUND` |
 
-## Ghi chú khác biệt so với spec.md gốc
+## Notes
 
-- `spec.md` mục 6 tự ghi chú "chưa double-check với BE liệu có giới hạn quyền theo Agency/role dự kiến hay chưa" — sequence-flow này giữ nguyên cảnh báo đó (không có `@RequireRole` cụ thể xác nhận được trên các endpoint `/workspace-templates`), không phát sinh thêm drift mới.
+- Templates are a standalone resource and are not nested inside an Agency or a Workspace.
+- No specific role restriction is currently applied to these actions; whether access should be limited by Agency or role is still to be confirmed.
+- A template stays available even after its source Workspace is deleted, because the stored snapshot does not depend on the source Workspace.

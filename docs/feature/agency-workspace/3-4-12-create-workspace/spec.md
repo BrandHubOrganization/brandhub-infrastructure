@@ -1,70 +1,95 @@
-# UC — Create Workspace
+# 3.4.12 Create Workspace
 
 | | |
 |---|---|
 | FR Code | 3.4.12 |
 | Feature | Create Workspace |
 | Domain | Agency & Workspace (FR 3.4) |
-| Role | Agency member (bất kỳ) — tạo Workspace thuộc Agency mình |
-| Version | 2.1 — Cập nhật 2026-09-23 — đồng bộ theo code thật |
-| Trạng thái tài liệu | Đã code |
+| Role | Agency member (any) — creates a Workspace inside their own Agency |
+| Version | 2.2 — 2026-09-23 — rewritten to the standard FR format |
+| Document status | Implemented |
 
-## 1. Objective
+## Function Trigger
 
-Cho phép user tạo Workspace mới trong Agency; người tạo mặc định trở thành MANAGER của Workspace, có thể tùy chọn gán thêm thành viên (kể cả chuyển giao vai trò MANAGER) ngay lúc tạo.
+Begins when an Agency member submits the Create Workspace form with a Workspace name and the target Agency.
 
-## 2. User Story
+## Function Description
 
-Là một thành viên Agency,
-tôi muốn tạo 1 Workspace mới,
-để bắt đầu 1 không gian làm việc cho team và Client.
+- **Actors / Roles:** Any member of the Agency in which the Workspace is created.
+- **Purpose:** Creates a Workspace inside an Agency; the creator becomes its MANAGER by default, and members may optionally be assigned — including transferring the MANAGER role — at creation time.
+- **Interface:** Create Workspace form — name input, Agency field, the extended Workspace profile fields (industry, company size, website, phone, location, description, brand colour, logo icon, tagline, founded year, Facebook/LinkedIn/Instagram links), and an optional member-assignment block.
+- **Data Processing:** The system validates the request, creates the Workspace row, inserts the creator's membership in the same transaction, then applies any assignment entries — demoting the creator to CREATOR when the MANAGER role was transferred.
 
-## 3. Acceptance Criteria
+## Screen Layout
 
-- Form nhập `name` (bắt buộc), `agencyId` (bắt buộc, nằm trong body — KHÔNG phải path param), cùng các field mở rộng: `industry` (enum `WorkspaceIndustry`), `companySize` (enum `CompanySize`), `website`, `phone`, `location`, `description`, `brandColor`, `logoIcon`, `tagline`, `foundedYear`, `facebookUrl`, `linkedinUrl`, `instagramUrl`.
-- Người gọi API (`currentUser`) mặc định được gán `WorkspaceMember` với role=MANAGER.
-- Có thể truyền kèm `assignMembers` (danh sách `{userId, role}`, role thuộc `MANAGER|CREATOR|CLIENT`) để gán thêm thành viên ngay lúc tạo. Nếu trong `assignMembers` có chọn MỘT người KHÁC làm MANAGER, hệ thống chuyển giao: người tạo tự động xuống role CREATOR, người được chọn giữ MANAGER (đảm bảo đúng 1 MANAGER áp dụng ngay từ lúc tạo).
-- Tạo `Workspace` + `WorkspaceMember` (người tạo) trong 1 transaction; các entry trong `assignMembers` được xử lý ngay sau đó.
+Figure — Create Workspace Screen:
+- A single form screen scoped to one Agency.
+- Name input (required) and the target Agency (required).
+- Optional extended fields: industry, company size, website, phone, location, description, brand colour, logo icon, tagline, founded year, and social links.
+- Optional member-assignment block letting the user pick Agency members and a role each (MANAGER / CREATOR / CLIENT).
+- A "Create" action; on success the user is taken into the new Workspace.
 
-## 4. UI / UX
+## Function Details
 
-- Trang tạo Workspace trong phạm vi 1 Agency. Có thể chọn thêm thành viên Agency để gán vào Workspace ngay lúc tạo (tùy chọn, không bắt buộc).
+### Data Specifications
 
-## 5. API Contract
+- **Input required:** name; agencyId (carried in the request payload, not in the path).
+- **Input optional:** industry (WorkspaceIndustry enum), companySize (CompanySize enum), website, phone, location, description, brandColor, logoIcon, tagline, foundedYear, facebookUrl, linkedinUrl, instagramUrl, assignMembers (list of `{userId, role}` with role in MANAGER / CREATOR / CLIENT).
+- **System data:** The caller's authenticated identity; the Agency membership of the caller; default Workspace settings; the created Workspace identifier.
+- **Output:** The created Workspace — id, name, agencyId, settings, industry, companySize, website, phone, location, description, brandColor, logoIcon, logoUrl, tagline, foundedYear, facebookUrl, linkedinUrl, instagramUrl, createdAt.
 
-```
-POST /api/v1/workspaces
-{
-  "name": "string",
-  "agencyId": "uuid",
-  "industry"?: "FNB|FASHION|BEAUTY|TECHNOLOGY|REAL_ESTATE|EDUCATION|HEALTHCARE|SERVICES|RETAIL|OTHER",
-  "companySize"?: "SIZE_1_10|SIZE_11_50|SIZE_51_200|SIZE_201_500|SIZE_500_PLUS",
-  "website"?, "phone"?, "location"?, "description"?, "brandColor"?, "logoIcon"?, "tagline"?, "foundedYear"?,
-  "facebookUrl"?, "linkedinUrl"?, "instagramUrl"?,
-  "assignMembers"?: [{ "userId": "uuid", "role": "MANAGER|CREATOR|CLIENT" }]
-}
-→ 200 { "success": true, "data": WorkspaceResponse }
-```
+### Business Rules
 
-## 6. Error Handling
+- **BR-01:** The caller is inserted as a MANAGER of the new Workspace by default.
+- **BR-02:** If `assignMembers` names exactly one other user as MANAGER, the creator is automatically demoted to CREATOR and the chosen user holds MANAGER — a Workspace has exactly one active MANAGER at any time.
+- **BR-03:** The Workspace row and the creator's membership row are created in a single transaction; the `assignMembers` entries are applied immediately afterwards.
+- **BR-04:** `name` empty or `agencyId` missing → 400 `VALIDATION_ERROR`.
+- **BR-05:** More than one MANAGER entry in `assignMembers` besides the creator → 409 `MANAGER_ALREADY_ASSIGNED`.
+- **BR-06:** The caller must be a member of the target Agency — otherwise 403 `NOT_AGENCY_OWNER`.
+- **BR-07:** An `assignMembers` entry whose user is not a member of that Agency → 403 `NOT_AGENCY_MEMBER`.
+- **BR-08:** An `assignMembers` entry whose user record does not exist → `USER_NOT_FOUND`.
+- **BR-09:** An `assignMembers` entry whose user already has an active membership in the new Workspace is skipped without error (idempotent).
 
-- `name` trống → 400 `VALIDATION_ERROR`.
-- `agencyId` thiếu → 400 `VALIDATION_ERROR`.
-- Trong `assignMembers` có nhiều hơn 1 người role MANAGER (ngoài người tạo) → 409 `MANAGER_ALREADY_ASSIGNED` (mỗi Workspace chỉ có đúng 1 MANAGER active tại một thời điểm).
+### Validation
 
-## 7. Edge Cases
+- `name` empty → 400 `VALIDATION_ERROR`.
+- `agencyId` missing → 400 `VALIDATION_ERROR`.
+- `industry` must be a valid WorkspaceIndustry value; `companySize` must be a valid CompanySize value.
+- `foundedYear`, when supplied, must be a numeric year.
+- Every `assignMembers` role must be one of MANAGER / CREATOR / CLIENT.
 
-- Không truyền `assignMembers` → chỉ có duy nhất người tạo làm MANAGER.
-- Người tạo tự chọn chính mình vào `assignMembers` với role MANAGER → không coi là "người khác", người tạo vẫn giữ MANAGER bình thường.
+## Functionalities
 
-## 8. Definition of Done
+### Normal Flow
 
-- Tạo Workspace thành công qua `POST /api/v1/workspaces`, MANAGER được gán đúng (mặc định người tạo hoặc người được chỉ định qua `assignMembers`).
+1. User opens the Create Workspace form inside an Agency and fills in the name, the Agency, and any optional fields.
+2. System verifies the caller is a member of that Agency.
+3. System creates the Workspace row with default settings and records the caller as its creator.
+4. System inserts the creator's membership with role MANAGER — or with role CREATOR when the MANAGER role is being transferred.
+5. System applies the `assignMembers` entries, inserting a membership row for each valid entry.
+6. System returns the created Workspace and the user is taken into it; the MANAGER is either the creator or the user designated in `assignMembers`.
+
+### Abnormal Cases
+
+- `name` empty → 400 `VALIDATION_ERROR`; the user corrects the field and resubmits.
+- `agencyId` missing → 400 `VALIDATION_ERROR`; the user selects an Agency and resubmits.
+- Caller is not a member of the target Agency → 403 `NOT_AGENCY_OWNER`.
+- An `assignMembers` entry references a user outside the Agency → 403 `NOT_AGENCY_MEMBER`.
+- An `assignMembers` entry references a user that does not exist → `USER_NOT_FOUND`.
+- Two entries request MANAGER (besides the creator) → 409 `MANAGER_ALREADY_ASSIGNED`.
+- No `assignMembers` supplied → the creator is the only MANAGER.
+- The creator lists themselves in `assignMembers` as MANAGER → not treated as "another user"; the creator keeps MANAGER.
+
+## Post-Conditions
+
+- A Workspace row exists inside the Agency.
+- A membership row exists for the creator (MANAGER by default, CREATOR when the role was transferred) and for every valid `assignMembers` entry.
+- The new Workspace has exactly one active MANAGER.
 
 ## Out of Scope
 
-- Tạo Workspace từ Template có sẵn (xem FR 3.4.17 Save Workspace Template — đây là chiều ngược, tạo mới từ template là mở rộng UX, không bắt buộc trong CSV).
+- Creating a Workspace from a saved Template (see FR 3.4.17 Save Workspace Template — the reverse direction; creating from a template is a UX extension and not required).
 
-## Tham chiếu BA
+## References
 
 [01-organization-structure.md](../../../BA/01-organization-structure.md), [03-agency-workspace-management.md](../../../BA/03-agency-workspace-management.md)

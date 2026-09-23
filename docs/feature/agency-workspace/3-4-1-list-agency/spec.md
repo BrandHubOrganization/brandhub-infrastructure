@@ -1,83 +1,48 @@
-# UC — List Agency
+# 3.4.1 List Agency
 
-| | |
-|---|---|
-| FR Code | 3.4.1 |
-| Feature | List Agency |
-| Domain | Agency & Workspace (FR 3.4) |
-| Role | OWNER |
-| Version | 2.1 — Cập nhật 2026-09-23 — đồng bộ theo code thật |
-| Trạng thái tài liệu | Confirmed — đã code (`AgencyController.listMyAgencies`, `AgencyServiceImpl.listMyAgencies`) |
+## Function Trigger
+The user navigates to the Agencies page (`/agencies`) after signing in. This is the default landing page when the user already owns or belongs to at least one Agency.
 
-## 1. Objective
+## Function Description
+- **Actors / Roles:** Signed-in user (Agency Owner or Agency Member).
+- **Purpose:** Present every Agency the current user owns or belongs to, so the user can pick one to manage.
+- **Interface:** Agencies page (`/agencies`) — a grid of Agency cards showing name, logo and category, plus an empty state with a "Create new Agency" call to action when the user owns or belongs to no Agency.
+- **Data Processing:** The system merges the Agencies where the user is the Owner with the Agencies where the user holds an Agency Member record, de-duplicates the two sources, excludes soft-deleted Agencies, and returns the combined list together with the full profile of each Agency.
 
-Hiển thị danh sách Agency mà User hiện tại đang sở hữu (là Owner).
+## Screen Layout
+Figure — Agencies page:
+- A card per Agency, each showing name, logo and category.
+- Selecting a card moves the user into that Agency. The Agency Dashboard (3.4.2) has no screen of its own yet, so the Agency Profile (3.4.4) is shown in the meantime.
+- Empty state with a "Create new Agency" call to action when the user owns or belongs to no Agency.
 
-## 2. User Story
+## Function Details
+### Data Specifications
+- **Input required:** None — the request carries no parameters and no filters.
+- **Input optional:** None.
+- **System data:** Agency profile — id (UUID), name, ownerId (UUID), logoUrl, description, category (AgencyCategory: MARKETING, FNB, FASHION, BEAUTY, TECHNOLOGY, REAL_ESTATE, EDUCATION, HEALTHCARE, RETAIL, FINANCE, ENTERTAINMENT, OTHER), companySize (CompanySize: SIZE_1_10, SIZE_11_50, SIZE_51_200, SIZE_201_500, SIZE_500_PLUS), website, phone, location, brandColor, logoIcon, tagline, foundedYear, facebookUrl, linkedinUrl, instagramUrl, status (EntityStatus: ACTIVE / SOFT_DELETED), createdAt, updatedAt.
+- **Output:** The list of Agencies that match the current user, each with the full profile above; an empty list when the user owns or belongs to none.
 
-Là một User,
-tôi muốn xem danh sách các Agency tôi đang sở hữu,
-để chọn vào 1 Agency cụ thể để quản lý.
+### Business Rules
+- **BR-01:** The list contains the Agencies where the current user is the Owner, plus the Agencies where the user holds an Agency Member record (whatever the role).
+- **BR-02:** Agencies whose status is SOFT_DELETED are left out of the list.
+- **BR-03:** The result carries no pre-computed workspace count.
+- **BR-04:** Selecting an Agency leads to the Agency Dashboard (3.4.2). That screen has no data source of its own yet, so the Agency Profile (3.4.4) stands in until it is built.
 
-## 3. Acceptance Criteria
+### Validation
+- None — the operation returns a list for every signed-in user, including an empty one.
 
-- List tất cả `Agency` mà current user là Owner (`ownerId = current user`) **hoặc** là Member (có `AgencyMember` record) — code thật gộp cả 2 nguồn (`findByOwnerIdAndStatusNot` + `agencyMemberRepository.findByUserId`), loại trừ `SOFT_DELETED`.
-- Mỗi item trả về đầy đủ field của Agency (xem API Contract) — không có `workspaceCount` tính sẵn trong response hiện tại.
-- Bấm vào 1 Agency → vào Agency Dashboard (FR 3.4.2 — hiện chưa có endpoint riêng, dùng GET chi tiết FR 3.4.4).
-- Có nút 'Tạo Agency mới' → FR 3.4.3.
+## Functionalities
+### Normal Flow
+1. The user opens the Agencies page.
+2. The client requests the Agency list of the signed-in user.
+3. The system gathers the Agencies owned by the user and the Agencies where the user holds a membership, merges and de-duplicates both sources, drops soft-deleted entries, and returns the result.
+4. The client renders one card per Agency, showing name, logo and category.
+5. The user selects a card to move into that Agency.
 
-## 4. UI / UX
+### Abnormal Cases
+- The user owns and belongs to no Agency: an empty list is returned rather than an error, and the client shows the empty state with the "Create new Agency" call to action.
+- No signed-in session: the request is rejected with `401 UNAUTHORIZED` before any Agency logic runs.
 
-- Trang `/agencies` (landing sau login nếu User có ≥1 Agency; nếu chưa có Agency nào → hiển thị empty state mời tạo mới).
-
-## 5. API Contract (khớp code thật)
-
-```
-GET /api/v1/agencies
-→ 200 { "success": true, "data": [ AgencyResponse, ... ] }
-```
-
-`AgencyResponse` (dùng chung cho List/Create/Get/Update):
-
-| Field | Kiểu/Ghi chú |
-|---|---|
-| id | UUID |
-| name | string |
-| ownerId | UUID |
-| logoUrl | string |
-| description | string |
-| category | enum AgencyCategory: MARKETING, FNB, FASHION, BEAUTY, TECHNOLOGY, REAL_ESTATE, EDUCATION, HEALTHCARE, RETAIL, FINANCE, ENTERTAINMENT, OTHER |
-| companySize | enum CompanySize: SIZE_1_10, SIZE_11_50, SIZE_51_200, SIZE_201_500, SIZE_500_PLUS |
-| website | string |
-| phone | string |
-| location | string |
-| brandColor | string (hex) |
-| logoIcon | string |
-| tagline | string |
-| foundedYear | integer |
-| facebookUrl | string |
-| linkedinUrl | string |
-| instagramUrl | string |
-| status | enum EntityStatus (ACTIVE / SOFT_DELETED / ...) |
-| createdAt | OffsetDateTime |
-| updatedAt | OffsetDateTime |
-
-## 6. Error Handling
-
-- Không có lỗi đặc biệt — luôn trả list (rỗng nếu chưa có Agency).
-
-## 7. Edge Cases
-
-- User mới đăng ký, chưa từng tạo Agency → empty state, không lỗi.
-
-## 8. Definition of Done
-
-- List đúng chỉ các Agency user là Owner (không lẫn Agency họ chỉ là Member).
-
-## Out of Scope
-
-- List Agency mà user chỉ là Member (không phải Owner) — không thuộc FR này (Owner-only theo tên FR).
-
-## Tham chiếu BA
-
-[01-organization-structure.md](../../../BA/01-organization-structure.md), [03-agency-workspace-management.md](../../../BA/03-agency-workspace-management.md)
+## Post-Conditions
+- The list reflects exactly the Agencies the current user owns or belongs to, with soft-deleted Agencies excluded.
+- No Agency data is created, changed or removed.

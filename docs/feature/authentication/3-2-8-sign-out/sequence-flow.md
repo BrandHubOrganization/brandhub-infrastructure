@@ -1,52 +1,50 @@
 # Sequence Flow — Sign Out
 
-> Bổ sung cho `spec.md` (FR 3.2.8). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
->
-> Cập nhật: 2026-09-23. Khớp code thật tại thời điểm này (`AuthController.logout`, `AuthServiceImpl.logout`).
+> Companion to `spec.md` (3.2.8). Lists each actor → action → system step in enough detail to draw the sequence diagram directly; the business description lives in `spec.md`.
 
 ## Actors
 
-- **User** — đã đăng nhập.
-- **FE** — brandhub-web-dashboard (local storage cho `lastUsedLoginMethod`).
-- **BE** — brandhub-business-service.
-- **DB** — Redis (JWT blacklist), PostgreSQL (`audit_logs` — có `ip_address`, `user_agent`).
+- **User** — already signed in.
+- **Client** — the application the user interacts with, which also keeps the last sign-in method.
+- **System** — the application server.
+- **Database** — persistent store holding the recorded sign-out events.
+- **Token store** — short-lived state used to invalidate tokens that have been signed out.
 
 ---
 
-## Flow A — Đăng xuất thành công
+## Flow A — Successful sign-out
 
-1. User → FE: bấm "Sign Out".
-2. FE → BE: `POST /api/v1/auth/logout` (Header `Authorization: Bearer {accessToken}`, Cookie `refreshToken`, `X-Forwarded-For`, `User-Agent`).
-3. BE (`AuthController.logout`): thiếu/sai prefix `Bearer ` ở header → `401 INVALID_CREDENTIALS` — **response trả trực tiếp qua `response.setStatus` + `ApiResponse.error`, không throw `BusinessException`** (khác pattern các route khác), do route logout không dùng `requireUserId()` helper.
-4. BE (`AuthServiceImpl.logout`):
-   a. Parse `accessToken` → lấy `userId`, blacklist accessToken (JWT `jti` vào Redis) — token đã hết hạn/parse lỗi → bắt `JwtException`, bỏ qua (không throw lỗi, vẫn tiếp tục coi là thành công — idempotent).
-   b. Có `refreshToken` (từ Cookie) → blacklist luôn refreshToken — lỗi parse cũng bỏ qua tương tự.
-   c. Có `userId` hợp lệ → `INSERT audit_logs (userId, LOGOUT, resourceType=USER, ipAddress, userAgent)` — `ipAddress` từ header `X-Forwarded-For`, `userAgent` từ header `User-Agent`.
-5. BE → FE: `200 { success: true, data: null }` + Set-Cookie `refreshToken=""` (`maxAge=0` — xóa cookie khỏi browser).
-6. FE: xóa `accessToken` khỏi store/memory, **ghi `lastUsedLoginMethod`** (`email` hoặc `google_oauth`, tùy phương thức đăng nhập gần nhất) vào `localStorage` — hoàn toàn phía FE, **không có API call nào tới BE cho việc này** (đúng theo spec — "ĐÃ CHỐT: FE local storage").
-7. FE: điều hướng `/login`, đọc lại `localStorage["lastUsedLoginMethod"]` để hiển thị badge "Đã dùng lần trước" ở nút tương ứng.
+1. User → Client: activates "Sign Out".
+2. Client → System: submits the sign-out carrying the access token, the refresh cookie, the source address and the client description.
+3. System: the access token is missing or malformed → 401 INVALID_CREDENTIALS, answered directly by the request handling rather than through the standard error path, because this endpoint does not require a resolved caller identity first.
+4. System:
+   a. Reads the access token and identifies the account, then invalidates the access token in the token store. An expired or unreadable token is caught and ignored, so the request continues as a success.
+   b. When a refresh token is present in the cookie, invalidates it as well; an unreadable token is ignored in the same way.
+   c. When a caller identity is available, records the sign-out event with the caller, the event kind, the source address taken from the forwarding header and the client description taken from the client header.
+5. System → Client: 200 with no data, and clears the refresh cookie by setting it with an immediate expiry.
+6. Client: clears the stored access token and records the sign-in method used last, either email or Google, entirely on the client, with no call to the system for this.
+7. Client: returns to /login and reads the recorded method to highlight the matching button.
 
-## Flow B — Logout khi token đã hết hạn/không hợp lệ
+## Flow B — Sign-out with an expired or unusable access token
 
-1–2. Giống Flow A, nhưng `accessToken` đã hết hạn hoặc bị sửa đổi.
-3. BE: header vẫn có prefix `Bearer ` hợp lệ về mặt format → không bị chặn ở controller.
-4. BE (`logout`): `jwtUtil.parseToken(accessToken)` ném `JwtException` → bắt, bỏ qua, `userId=null` → không blacklist accessToken được (đã invalid sẵn), không ghi audit log (vì không biết `userId`) — vẫn cố blacklist `refreshToken` nếu có.
-5. BE → FE: **vẫn `200 { success: true }`** — logout luôn idempotent, không bao giờ trả lỗi vì token invalid ở bước này (khớp spec mục 6).
-6–7. Giống Flow A.
+1–2. Same as Flow A, but the access token is expired or has been tampered with.
+3. System: the header is still well formed, so the request is not rejected here.
+4. System: reading the access token fails, the failure is caught and ignored, and no caller identity is available. The access token is left alone because it is already unusable, nothing is recorded because the account is unknown, and the refresh token is still invalidated when present.
+5. System → Client: still 200 with no data. The sign-out is always treated as successful and never fails because of an unusable token.
+6–7. Same as Flow A.
 
 ---
 
-## Error paths tổng hợp (dùng cho sequence "alt"/"opt" fragments)
+## Error paths summary (for "alt"/"opt" fragments)
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | HTTP | Error code |
 |---|---|---|---|
-| Logout | Thiếu header `Authorization` hoặc sai prefix `Bearer ` | 401 | `INVALID_CREDENTIALS` |
-| Logout | accessToken hết hạn/invalid (nhưng có header) | 200 | — (idempotent, không lỗi) |
-| Logout | refreshToken hết hạn/invalid | 200 | — (idempotent, không lỗi) |
+| Sign out | The access token is missing or malformed | 401 | `INVALID_CREDENTIALS` |
+| Sign out | The access token is expired or unusable, but the header is well formed | 200 | — (idempotent, no error) |
+| Sign out | The refresh token is expired or unusable | 200 | — (idempotent, no error) |
 
-## Audit log (đã fix drift)
+## Notes
 
-- `AuditLog` (model `com.brandhub.business.model.AuditLog`) nay có thêm 2 field: `ipAddress` (cột `ip_address` VARCHAR 45) và `userAgent` (cột `user_agent` VARCHAR 512).
-- `AuthServiceImpl.logout` **lưu** `ipAddress`/`userAgent` nhận từ controller vào bản ghi audit — trước đây nhận param nhưng bỏ qua.
-- Migration: `brandhub-infrastructure/scripts/migrations/2026-09-23-audit-log-ip-user-agent.sql`.
-- Bản trước ghi "AuditLog không có field `ip`/`userAgent`, tham số nhận qua header KHÔNG được lưu" — **không còn đúng**, đã cập nhật.
+- Sign-out never fails on account of an unusable token, so the client can always complete the local part of signing out.
+- The last sign-in method is remembered locally, so it is not shared across devices.
+- Only the tokens of the device that signed out are invalidated; sessions on other devices stay valid, unlike a password change which invalidates every refresh token.
