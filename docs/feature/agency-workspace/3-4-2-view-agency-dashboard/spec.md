@@ -6,8 +6,8 @@
 | Feature | View Agency Dashboard |
 | Domain | Agency & Workspace (FR 3.4) |
 | Role | OWNER |
-| Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Version | 2.1 — Cập nhật 2026-09-23 — đồng bộ theo code thật |
+| Trạng thái tài liệu | Draft — BA confirmed, **chưa code** (không có endpoint dashboard riêng trong `AgencyController`/`AgencyServiceImpl` hiện tại) |
 
 ## 1. Objective
 
@@ -22,18 +22,24 @@ tôi muốn xem dashboard tổng quan của Agency,
 ## 3. Acceptance Criteria
 
 - Hiển thị: số Workspace, số Member, số Client đang làm việc (đếm distinct qua các Workspace), hoạt động gần đây.
-- Chỉ Owner của chính Agency đó xem được (kiểm tra `agency.ownerId === currentUser.id`).
+- Chỉ Owner của chính Agency đó xem được (kiểm tra `agency.ownerId === currentUser.id`) — pattern giống các method khác trong `AgencyServiceImpl` (ví dụ `updateAgency`, `removeAgency` đều so `agency.getOwnerId().equals(currentUser.getId())`, ném `ErrorCode.NOT_AGENCY_OWNER`).
 
 ## 4. UI / UX
 
-- Trang `/agencies/:id/dashboard`.
+- Trang `/agencies/:agencyId/dashboard`.
 
-## 5. API Contract (đề xuất, cần xác nhận khi thiết kế kỹ thuật)
+## 5. API Contract (đề xuất, cần xác nhận khi thiết kế kỹ thuật — CHƯA CODE)
+
+Chưa có endpoint dashboard riêng. Khi cài đặt, dùng `agencyId` (không phải `id`) để khớp path param thật của các endpoint Agency khác (`{agencyId}`), và cơ sở dữ liệu để tính số liệu là các bảng/field thật đã có:
 
 ```
-GET /api/v1/agencies/{id}/dashboard
+GET /api/v1/agencies/{agencyId}/dashboard
 → 200 { "success": true, "data": { "workspaceCount", "memberCount", "clientCount", "recentActivity": [...] } }
 ```
+
+- `memberCount`: đếm qua `AgencyMemberRepository.findByAgencyId` (bảng `agency_members`, role OWNER/MEMBER).
+- `workspaceCount`, `clientCount`: chưa có repository method tổng hợp sẵn — cần bổ sung khi code (Workspace/ClientProfile theo agencyId).
+- Agency cơ sở dùng field thật của `Agency` entity (xem bảng field tại FR 3.4.1/3.4.4), không phải field giả định cũ.
 
 ## 6. Error Handling
 
