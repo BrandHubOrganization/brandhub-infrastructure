@@ -5,9 +5,9 @@
 | FR Code | 3.4.15 |
 | Feature | Delete Workspace |
 | Domain | Agency & Workspace (FR 3.4) |
-| Role | OWNER |
-| Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Role | Agency OWNER (đề xuất — chưa xác nhận, xem ghi chú) |
+| Version | 2.1 — Cập nhật 2026-09-23 — đồng bộ theo code thật |
+| Trạng thái tài liệu | Draft — chưa code (không có endpoint DELETE/restore nào cho Workspace trong `WorkspaceController`; `Workspace` entity có sẵn field `status` (`EntityStatus`) và `deletedAt` nhưng chưa có service/API sử dụng cho soft-delete) |
 
 ## 1. Objective
 

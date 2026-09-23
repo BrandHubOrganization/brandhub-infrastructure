@@ -5,39 +5,41 @@
 | FR Code | 3.4.13 |
 | Feature | View Workspace Profile |
 | Domain | Agency & Workspace (FR 3.4) |
-| Role | OWNER/MANAGER |
-| Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Role | MANAGER/CREATOR/CLIENT |
+| Version | 2.2 — Cập nhật 2026-09-23 — đồng bộ theo code thật (bổ sung membership check) |
+| Trạng thái tài liệu | Đã code |
 
 ## 1. Objective
 
-Xem thông tin Workspace, đặc biệt field Timezone Configuration — mốc thời gian chuẩn hoạt động của Workspace.
+Xem thông tin chi tiết Workspace, bao gồm cấu hình timezone và các field branding/thông tin doanh nghiệp.
 
 ## 2. User Story
 
-Là một Owner hoặc Manager,
-tôi muốn xem thông tin Workspace bao gồm cấu hình timezone,
-để hiểu Workspace đang vận hành theo mốc giờ nào.
+Là một thành viên Workspace,
+tôi muốn xem thông tin Workspace bao gồm cấu hình timezone và branding,
+để hiểu Workspace đang vận hành theo mốc giờ nào và cấu hình thương hiệu ra sao.
 
 ## 3. Acceptance Criteria
 
-- Hiển thị: `name`, `timezoneConfig`, `mediaPackageTemplate` (nếu đã chọn), ngày tạo, danh sách Client đang hoạt động.
-- **Timezone Configuration quan trọng**: định nghĩa mốc thời gian chuẩn của Workspace — dùng để tối ưu giờ đăng bài viral theo địa điểm tổ chức sự kiện thực tế (khác timezone hệ thống mặc định).
+- Hiển thị đầy đủ field của `WorkspaceResponse`: `id`, `name`, `agencyId`, `settings` (chứa `timezoneConfig`, `defaultPlatforms`...), `industry`, `companySize`, `website`, `phone`, `location`, `description`, `brandColor`, `logoIcon`, `logoUrl`, `tagline`, `foundedYear`, `facebookUrl`, `linkedinUrl`, `instagramUrl`, `createdAt`.
+- Không có field `mediaPackageTemplate` hay danh sách Client đang hoạt động trong response thật — đây là phần chưa được code, cần làm rõ nếu vẫn cần hiển thị (Out of Scope tạm thời).
+- Caller phải là active `WorkspaceMember` của chính workspace đang xem — kiểm tra thủ công trong `WorkspaceServiceImpl.getWorkspace` (không dùng `@RequireRole` vì aspect đó không check đúng workspace theo path).
 
 ## 4. UI / UX
 
 - Trang `/workspaces/:id/profile`.
 
-## 5. API Contract (đề xuất, cần xác nhận khi thiết kế kỹ thuật)
+## 5. API Contract
 
 ```
-GET /api/v1/workspaces/{id}
-→ 200 { "success": true, "data": { "id", "name", "timezoneConfig", "mediaPackageTemplateId", "createdAt" } }
+GET /api/v1/workspaces/{workspaceId}
+→ 200 { "success": true, "data": WorkspaceResponse }
 ```
 
 ## 6. Error Handling
 
-- Không có quyền truy cập → 403 `FORBIDDEN`.
+- Workspace không tồn tại → 404 `WORKSPACE_NOT_FOUND`.
+- Caller không phải active member của chính workspace này → 403 `WORKSPACE_ACCESS_DENIED` (check thủ công trong `getWorkspace`, không dùng `@RequireRole` vì aspect đó check sai workspace).
 
 ## 7. Edge Cases
 

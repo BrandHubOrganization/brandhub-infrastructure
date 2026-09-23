@@ -6,8 +6,8 @@
 | Feature | View User Profile |
 | Domain | Profile (FR 3.3) |
 | Role | USER |
-| Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Version | 2.1 (sync với code thật, 2026-09-23) |
+| Trạng thái tài liệu | Đã code — spec khớp `UserController`/`UserServiceImpl` |
 
 ## 1. Objective
 
@@ -21,23 +21,29 @@ tôi muốn xem thông tin profile của mình,
 
 ## 3. Acceptance Criteria
 
-- Hiển thị các field cơ bản: `fullName`, `email`, `avatarUrl`, `phone` (nếu có), `createdAt` (ngày tham gia).
-- **[CÂU HỎI MỞ — CSV chưa chốt]** danh sách field đầy đủ của User Profile chưa được xác định trong CSV gốc (nguyên văn: "sẽ cần những field nào?"). Cần Trung xác nhận thêm field nào khác (ví dụ: bio, timezone cá nhân, ngôn ngữ ưu tiên...) trước khi thiết kế DB chính thức.
+- Hiển thị đầy đủ field: `userId`, `email`, `fullName`, `avatarUrl`, `phone` (nếu có), `role`, `workspaceId`, `timezone`, `notificationPreferences`, `createdAt` (ngày tham gia).
+- `role` lấy từ `user_system_roles` (mặc định `USER` nếu chưa có bản ghi); `workspaceId` lấy từ token, fallback sang 1 workspace đang active của user nếu token không có sẵn.
+- `timezone` và `notificationPreferences` được parse từ field JSON `preferences` lưu trên `users`.
 
 ## 4. UI / UX
 
 - Trang `/settings/profile`, phần view (không cho sửa trực tiếp — chuyển sang FR 3.3.2 Update Profile khi bấm Edit).
 
-## 5. API Contract (đề xuất, cần xác nhận khi thiết kế kỹ thuật)
+## 5. API Contract
 
 ```
 GET /api/v1/users/me
-→ 200 { "success": true, "data": { "id", "fullName", "email", "avatarUrl", "phone", "createdAt" } }
+Authorization: Bearer <access-token>
+→ 200 { "success": true, "data": {
+    "userId", "email", "fullName", "avatarUrl", "phone",
+    "role", "workspaceId", "timezone", "notificationPreferences", "createdAt"
+  } }
 ```
 
 ## 6. Error Handling
 
 - Token hết hạn/không hợp lệ → 401 `UNAUTHORIZED`.
+- User không tồn tại trong DB (lý thuyết, token hợp lệ nhưng bị xoá) → 404 `USER_NOT_FOUND`.
 
 ## 7. Edge Cases
 
@@ -45,11 +51,11 @@ GET /api/v1/users/me
 
 ## 8. Definition of Done
 
-- Hiển thị đúng toàn bộ field đã chốt (tạm thời theo danh sách cơ bản trên, mở rộng sau khi có câu trả lời CSV).
+- Hiển thị đúng toàn bộ field ở mục 3, khớp response thật của `GET /api/v1/users/me`.
 
 ## Out of Scope
 
-- Field mở rộng chưa chốt (xem câu hỏi mở AC).
+- Không có (field đã chốt đầy đủ theo code hiện tại).
 
 ## Tham chiếu BA
 
