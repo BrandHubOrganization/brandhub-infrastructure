@@ -1,72 +1,69 @@
 # Sequence Flow — Add Workspace Member
 
-> Bổ sung cho `spec.md` (FR 3.4.19). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
+> Companion to `spec.md` (FR 3.4.19). This file lists each step as actor → action → system, in enough detail to draw the sequence diagram directly. It does not restate business rules — see `spec.md` for those.
 >
-> Cập nhật: 2026-09-23. Khớp code thật (`WorkspaceController.inviteMember`/`assignMembers`, `WorkspaceServiceImpl`).
+> Updated: 2026-09-23.
 
 ## Actors
 
-- **MANAGER** — MANAGER của Workspace, người thêm thành viên.
-- **FE** — brandhub-web-dashboard (React).
-- **BE** — brandhub-business-service (Spring Boot).
-- **DB** — PostgreSQL (`workspace_invitations`, `workspace_members`, `agency_members`, `users`).
-- **Mail** — gửi email lời mời.
+- **Client** — the MANAGER of the Workspace, adding the member.
+- **System** — the application service handling the request.
+- **Database** — the persistent store holding invitation, membership, Agency membership, and user records.
+- **Notification service** — sends the invitation email.
 
 ---
 
-## Flow A — Invite qua email (luồng chính của FR này)
+## Flow A — Invite by email
 
-1. MANAGER → FE: trong `/workspaces/:id/members`, bấm "Thêm thành viên" → tab "Mời qua email", điền `email`, `role`, `note` (optional).
-2. FE → BE: `POST /api/v1/workspaces/{workspaceId}/members/invite` `{email, role, note?}`.
-3. BE: `@RequireRole({MemberRole.MANAGER})` chặn trước — không phải MANAGER của workspace này → `403 FORBIDDEN`.
-4. BE (`WorkspaceServiceImpl.inviteMember`):
-   a. Chuẩn hóa `email` (`trim().toLowerCase()`).
-   b. Check email đã có `WorkspaceMember` active trong workspace này chưa (qua `userRepository.findByEmail` → `workspaceMemberRepository.findByWorkspaceIdAndUserIdAndIsActiveTrue`) — có rồi → `409 ALREADY_IN_WORKSPACE`.
-   c. Check đã có invitation `PENDING` chưa hết hạn cho email đó ở workspace này chưa → `409 INVITATION_ALREADY_PENDING`.
-   d. Nếu `role = MANAGER`: đếm `countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId, MANAGER)` — nếu > 0 → `409 MANAGER_ALREADY_ASSIGNED`.
-   e. `INSERT workspace_invitations` (status=PENDING, token=UUID random, expiresAt=now+7 ngày — hằng số `INVITATION_EXPIRY_DAYS=7`).
-5. BE → Mail: `mailService.sendWorkspaceInvitationEmail(email, workspace.name, token, note)`.
-6. BE → FE: `200 { data: null }` (endpoint trả `Void`, không trả invitation).
-7. FE: hiện toast thành công.
+1. Client → System: on `/workspaces/:id/members`, choose "Add Member", open the "Invite by email" tab, and fill in the email, the role, and an optional note.
+2. System: check the caller's role in the Workspace before handling the request — a caller who is not the Workspace MANAGER is rejected with 403 `FORBIDDEN`.
+3. System: validate the request — a missing or malformed email, or a missing role, is rejected with 400 `VALIDATION_ERROR`.
+4. System: normalise the email address.
+5. System → Database: check whether the email already belongs to an active member of the Workspace; if so, reject with 409 `ALREADY_IN_WORKSPACE`.
+6. System → Database: check whether a pending, unexpired invitation already exists for that email in the Workspace; if so, reject with 409 `INVITATION_ALREADY_PENDING`.
+7. System → Database (when the role is MANAGER): count the Workspace's active MANAGERs; a count above zero is rejected with 409 `MANAGER_ALREADY_ASSIGNED`.
+8. System → Database: insert the invitation with a pending status, a random token, and an expiry.
+9. System → Notification service: send the invitation email carrying the Workspace name, the token, and the note.
+10. System → Client: confirmation that the invitation has been sent — no invitation details are returned.
 
-### Nhánh phụ — Accept invitation (hoàn tất Invite)
+### Sub-flow — Accept the invitation
 
-8. Invitee bấm link email → FE → BE: `POST /api/v1/workspaces/invitations/accept` `{token}`.
-9. BE (`acceptInvitation`): validate token/status/expiry/email khớp → nếu `role=MANAGER` và đã có MANAGER active → `409 MANAGER_ALREADY_ASSIGNED`; nếu email đã là `WorkspaceMember` active → `409 ALREADY_IN_WORKSPACE`; hợp lệ → `INSERT workspace_members` (role theo invitation), update invitation `status=ACCEPTED`.
-10. BE → FE: `200 { data: WorkspaceMemberResponse }`.
+1. Invitee follows the email link; Client → System: submit the invitation token.
+2. System: validate the token, its status, its expiry, and that it matches the invitee; when the invitation carries the MANAGER role and the Workspace already has an active MANAGER, reject with 409 `MANAGER_ALREADY_ASSIGNED`; when the email is already an active member, reject with 409 `ALREADY_IN_WORKSPACE`.
+3. System → Database: insert the membership row with the invited role and mark the invitation accepted.
+4. System → Client: the created member entry.
 
-## Flow B — Assign trực tiếp (luồng phụ, không cần accept)
+## Flow B — Assign directly
 
-1. MANAGER → FE: tab "Gán từ Agency", chọn 1+ người có sẵn trong Agency, chọn role cho từng người.
-2. FE → BE: `POST /api/v1/workspaces/{workspaceId}/members/assign` `{members: [{userId, role}, ...]}`.
-3. BE: `@RequireRole({MemberRole.MANAGER})` chặn — không phải MANAGER → `403 FORBIDDEN`.
-4. BE (`WorkspaceServiceImpl.assignMembers` → `assignMembersInternal`):
-   Với mỗi entry `{userId, role}`:
-   a. Check `AgencyMember` tồn tại cho `userId` trong agency của workspace — không có → `403 NOT_AGENCY_MEMBER`.
-   b. Check đã có `WorkspaceMember` active cho `userId` này chưa — có rồi → thêm `userId` vào `skippedUserIds`, bỏ qua entry này (idempotent, không lỗi), tiếp tục entry kế tiếp.
-   c. Nếu `role = MANAGER`: đếm MANAGER active hiện tại — nếu > 0 → `409 MANAGER_ALREADY_ASSIGNED`.
-   d. Query `User` theo `userId` — không tồn tại → `USER_NOT_FOUND`.
-   e. `INSERT workspace_members` (isActive=true ngay, không cần accept) — thêm vào `added`.
-5. BE → DB: N lượt INSERT (theo số entry hợp lệ, không tính entry bị skip).
-6. BE → FE: `200 { data: AssignMembersResponse }` — `{ added: [WorkspaceMemberResponse, ...], skippedUserIds: [uuid, ...] }`.
-7. FE: cập nhật bảng thành viên với `added`; có thể hiển thị cảnh báo cho các `userId` trong `skippedUserIds` (đã là member sẵn).
+1. Client → System: open the "Assign from Agency" tab, pick one or more existing Agency members, and choose a role for each.
+2. System: check the caller's role — a caller who is not the Workspace MANAGER is rejected with 403 `FORBIDDEN`.
+3. System: validate the request — an empty member list is rejected with 400 `VALIDATION_ERROR`.
+4. System: for each entry:
+   - System → Database: check the entry's user is an Agency member; if not, reject with 403 `NOT_AGENCY_MEMBER`.
+   - System → Database: check whether the user already has an active membership in the Workspace; if so, add the identifier to the skipped list and move on without error.
+   - System → Database (when the entry requests MANAGER): count the Workspace's active MANAGERs; a count above zero is rejected with 409 `MANAGER_ALREADY_ASSIGNED`.
+   - System → Database: read the user record; a missing user raises `USER_NOT_FOUND`.
+   - System → Database: insert the membership row as active immediately, and add it to the added list.
+5. System → Client: the members added together with the identifiers that were skipped because those users were already active members.
+6. Client: refresh the member table with the members added and show a notice for the skipped users.
 
 ---
 
-## Error paths tổng hợp
+## Error paths
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | Status | Error code |
 |---|---|---|---|
-| Invite / Assign | Không phải MANAGER của Workspace | 403 | `FORBIDDEN` |
-| Invite | Email đã là WorkspaceMember active | 409 | `ALREADY_IN_WORKSPACE` |
-| Invite | Đã có invitation PENDING cho email | 409 | `INVITATION_ALREADY_PENDING` |
-| Invite / Assign | `role=MANAGER` nhưng workspace đã có MANAGER active | 409 | `MANAGER_ALREADY_ASSIGNED` |
-| Assign | `userId` không phải AgencyMember của agency | 403 | `NOT_AGENCY_MEMBER` |
-| Assign | `userId` không tồn tại trong `users` | — | `USER_NOT_FOUND` |
-| Invite | `email`/`role` thiếu hoặc sai định dạng | 400 | `VALIDATION_ERROR` |
-| Assign | `members` rỗng | 400 | `VALIDATION_ERROR` |
+| Invite / Assign | Caller is not the MANAGER of the Workspace | 403 | `FORBIDDEN` |
+| Invite | Email already belongs to an active member | 409 | `ALREADY_IN_WORKSPACE` |
+| Invite | A pending invitation already exists for the email | 409 | `INVITATION_ALREADY_PENDING` |
+| Invite / Assign | MANAGER role requested while the Workspace already has an active MANAGER | 409 | `MANAGER_ALREADY_ASSIGNED` |
+| Assign | Entry's user is not an Agency member | 403 | `NOT_AGENCY_MEMBER` |
+| Assign | Entry's user does not exist | — | `USER_NOT_FOUND` |
+| Invite | Email missing or malformed, or role missing | 400 | `VALIDATION_ERROR` |
+| Assign | Member list empty | 400 | `VALIDATION_ERROR` |
 
-## Ghi chú khác biệt so với spec.md gốc
+## Notes
 
-- Không có — spec.md đã cập nhật đầy đủ Error Handling (`ALREADY_IN_WORKSPACE`, `NOT_AGENCY_MEMBER`, `USER_NOT_FOUND`) và Edge Cases (hành vi `skippedUserIds`), khớp code thật.
-- Đây là FR có 2 luồng độc lập (invite/assign) — sequence-flow bao phủ luồng chính (Invite, Flow A) làm trọng tâm, Flow B (Assign) ghi đầy đủ như luồng phụ cùng mức chi tiết vì cả 2 đều đã code và đều nằm trong scope FR 3.4.19.
+- The invitation path does not create a membership — the invitee must accept before becoming a member; the assignment path creates active memberships immediately.
+- Both paths enforce the single-MANAGER rule, so a Workspace never has more than one active MANAGER.
+- Users who are already active members are reported in the skipped list rather than silently ignored; the rest of the batch is still processed.

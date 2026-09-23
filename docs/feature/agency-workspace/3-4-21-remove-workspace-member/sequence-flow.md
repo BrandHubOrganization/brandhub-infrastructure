@@ -1,41 +1,42 @@
 # Sequence Flow — Remove Workspace Member
 
-> Bổ sung cho `spec.md` (FR 3.4.21). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
+> Companion to `spec.md` (FR 3.4.21). This file lists each step as actor → action → system, in enough detail to draw the sequence diagram directly. It does not restate business rules — see `spec.md` for those.
 >
-> Cập nhật: 2026-09-23. Khớp code thật (`WorkspaceController.removeMember`, `WorkspaceServiceImpl.removeMember` + `assertNotLastManager`).
+> Updated: 2026-09-23.
 
 ## Actors
 
-- **MANAGER** — MANAGER của Workspace, người xóa thành viên.
-- **FE** — brandhub-web-dashboard (React).
-- **BE** — brandhub-business-service (Spring Boot).
-- **DB** — PostgreSQL (`workspace_members`).
+- **Client** — the MANAGER of the Workspace, removing the member.
+- **System** — the application service handling the request.
+- **Database** — the persistent store holding membership records.
 
 ---
 
-## Flow A — Xóa (soft-delete) thành viên khỏi Workspace
+## Flow A — Remove a member from the Workspace
 
-1. MANAGER → FE: trong `/workspaces/:id/members`, bấm "Remove" trên 1 Member, xác nhận (confirm dialog).
-2. FE → BE: `DELETE /api/v1/workspaces/{workspaceId}/members/{memberId}`.
-3. BE: `@RequireRole({MemberRole.MANAGER})` chặn trước — không phải MANAGER của workspace này → `403 FORBIDDEN`.
-4. BE (`WorkspaceServiceImpl.removeMember`):
-   a. `workspaceMemberRepository.findById(memberId)`, filter `member.workspaceId == workspaceId && member.isActive` — không thỏa (không tồn tại / không active / thuộc workspace khác) → `404 NOT_FOUND`.
-   b. `assertNotLastManager(workspaceId, member)`: nếu `member.role != MANAGER` → pass ngay. Nếu `member.role == MANAGER` → đếm `countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId, MANAGER)` — nếu `<= 1` (member này là MANAGER active duy nhất) → `409 LAST_OWNER_CANNOT_BE_REMOVED`.
-   c. Set `member.isActive = false`, `updatedAt = now()`.
-5. BE → DB: `UPDATE workspace_members SET is_active = false, updated_at = ? WHERE id = ?`.
-6. BE → FE: `200 { data: null }`.
-7. FE: cập nhật bảng thành viên, member biến mất khỏi danh sách active. `AgencyMember` record của người này không bị đụng tới (member vẫn còn trong Agency, còn ở các Workspace khác nếu có).
+1. Client → System: on `/workspaces/:id/members`, choose Remove for a member and confirm in the dialog.
+2. System: check the caller's role in the Workspace before handling the request — a caller who is not the Workspace MANAGER is rejected with 403 `FORBIDDEN`.
+3. System → Database: look up the member; a member that does not exist, is not active, or belongs to another Workspace is rejected with 404 `NOT_FOUND`.
+4. System: apply the last-MANAGER guard:
+   - When the member's role is not MANAGER, continue.
+   - When the member's role is MANAGER, count the Workspace's active MANAGERs; a count of one or fewer is rejected with 409 `LAST_OWNER_CANNOT_BE_REMOVED`.
+5. System: mark the membership inactive and record the update timestamp.
+6. System → Database: write the deactivated membership.
+7. System → Client: confirmation that the membership has been deactivated.
+8. Client: refresh the member table; the member disappears from the active list. The member's Agency membership is untouched, so they remain in the Agency and in any other Workspace they take part in.
 
 ---
 
-## Error paths tổng hợp
+## Error paths
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | Status | Error code |
 |---|---|---|---|
-| Remove | Không phải MANAGER của Workspace | 403 | `FORBIDDEN` |
-| Remove | `memberId` không tồn tại / không active / không thuộc `workspaceId` này | 404 | `NOT_FOUND` |
-| Remove | Member là MANAGER active duy nhất của workspace | 409 | `LAST_OWNER_CANNOT_BE_REMOVED` |
+| Remove | Caller is not the MANAGER of the Workspace | 403 | `FORBIDDEN` |
+| Remove | Member does not exist, is not active, or belongs to another Workspace | 404 | `NOT_FOUND` |
+| Remove | Member is the only active MANAGER of the Workspace | 409 | `LAST_OWNER_CANNOT_BE_REMOVED` |
 
-## Ghi chú khác biệt so với spec.md gốc
+## Notes
 
-- Không có — spec.md và sequence-flow đã khớp code thật, guard last-MANAGER (`assertNotLastManager`, dùng chung với FR 3.4.16 và 3.4.20) đã được phản ánh đầy đủ.
+- The last-MANAGER guard is shared with FR 3.4.16 Leave Workspace and FR 3.4.20 Update Workspace Member Role, and the error code is named after the owner concept while being applied to the Workspace-level MANAGER context.
+- Removal is a soft delete; the membership row is retained with an inactive flag.
+- The member's Agency membership is never touched.

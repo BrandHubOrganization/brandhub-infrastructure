@@ -1,64 +1,82 @@
-# UC — Leave Workspace
+# 3.4.16 Leave Workspace
 
 | | |
 |---|---|
 | FR Code | 3.4.16 |
 | Feature | Leave Workspace |
 | Domain | Agency & Workspace (FR 3.4) |
-| Role | MANAGER/CREATOR/CLIENT (bất kỳ active member nào rời chính workspace của mình) |
-| Version | 3.0 — Cập nhật 2026-09-23 — viết lại hoàn toàn, đã code |
-| Trạng thái tài liệu | Đã code |
+| Role | MANAGER / CREATOR / CLIENT (any active member leaving their own Workspace) |
+| Version | 3.1 — 2026-09-23 — rewritten to the standard FR format |
+| Document status | Implemented |
 
-## 1. Objective
+## Function Trigger
 
-Cho phép 1 Member tự rời khỏi 1 Workspace, nhưng vẫn còn trong Agency (rời Workspace ≠ rời Agency).
+Begins when an active member of a Workspace confirms leaving that Workspace.
 
-## 2. User Story
+## Function Description
 
-Là một Member,
-tôi muốn rời khỏi 1 Workspace tôi không còn tham gia,
-nhưng vẫn giữ tư cách thành viên Agency để tham gia Workspace khác.
+- **Actors / Roles:** Any active member of the Workspace — MANAGER, CREATOR, or CLIENT — acting on their own membership only.
+- **Purpose:** Lets a member leave a Workspace they no longer take part in while keeping their Agency membership, so they can still join other Workspaces.
+- **Interface:** "Leave Workspace" action in Workspace settings or the members screen, shown only to the signed-in user themselves, followed by a confirmation dialog.
+- **Data Processing:** The system locates the caller's own active membership in the Workspace and marks it inactive, without touching the caller's Agency membership.
 
-## 3. Acceptance Criteria
+## Screen Layout
 
-- Bấm "Rời Workspace" (confirm dialog).
-- Endpoint không có `@RequireRole` — bất kỳ user đã đăng nhập nào cũng gọi được, vì action chỉ áp dụng lên chính `WorkspaceMember` record của `currentUser` (lấy `userId` từ `AuthenticatedUser` principal, không nhận tham số member khác).
-- Soft-delete: set `WorkspaceMember.isActive = false` cho record của `currentUser` tại workspace này — **không đụng `AgencyMember`**, user vẫn còn trong Agency và các Workspace khác đang tham gia.
-- Nếu `currentUser` không phải active member của workspace này → 403 `WORKSPACE_ACCESS_DENIED` (không tìm thấy membership để leave).
-- **Guard last-MANAGER:** nếu `currentUser` đang là MANAGER active DUY NHẤT của workspace → chặn, ném `LAST_OWNER_CANNOT_BE_REMOVED` (409) — phải chuyển giao MANAGER cho người khác trước (qua FR 3.4.20 Update Workspace Member Role) rồi mới leave được.
+Figure — Leave Workspace Dialog:
+- A "Leave Workspace" action inside Workspace settings or the members screen, visible only to the signed-in user.
+- A confirmation dialog explaining that the member leaves this Workspace but remains in the Agency.
+- A blocked state with a clear message when the member is the last MANAGER of the Workspace.
 
-## 4. UI / UX
+## Function Details
 
-- Nút "Rời Workspace" trong Workspace Settings/Members (chỉ hiện với chính user đó).
+### Data Specifications
 
-## 5. API Contract
+- **Input required:** The Workspace identifier; the caller's authenticated identity (taken from the session principal, never from the request).
+- **Input optional:** None.
+- **System data:** The caller's active membership row in that Workspace; the count of active MANAGERs in the Workspace.
+- **Output:** Confirmation that the membership has been deactivated; no other data is returned.
 
-```
-DELETE /api/v1/workspaces/{workspaceId}/leave
-→ 200 { "success": true, "data": null }
-```
+### Business Rules
 
-Không có request body — `userId` lấy từ `AuthenticatedUser` principal (JWT), không truyền qua path/body.
+- **BR-01:** The action applies only to the caller's own membership — no other member can be targeted, and the caller identity always comes from the session principal.
+- **BR-02:** Leaving is a soft delete: the caller's membership is marked inactive; the caller's Agency membership is never modified, so they remain in the Agency and in their other Workspaces.
+- **BR-03:** A caller without an active membership in that Workspace → 403 `WORKSPACE_ACCESS_DENIED`.
+- **BR-04:** Last-MANAGER guard — if the caller is the only active MANAGER of the Workspace, the request is blocked with 409 `LAST_OWNER_CANNOT_BE_REMOVED`; the MANAGER role must be handed over first through FR 3.4.20 Update Workspace Member Role.
+- **BR-05:** No role check is applied to the action, because it can only ever affect the caller's own membership.
+- **BR-06:** The last-MANAGER guard applies only when the membership being deactivated carries the MANAGER role.
 
-## 6. Error Handling
+### Validation
 
-- `currentUser` không phải active member của workspace này → 403 `WORKSPACE_ACCESS_DENIED`.
-- `currentUser` là MANAGER active duy nhất của workspace → 409 `LAST_OWNER_CANNOT_BE_REMOVED`.
+- The caller must hold an active membership in that Workspace; otherwise 403 `WORKSPACE_ACCESS_DENIED`.
+- The caller must not be the only active MANAGER of the Workspace; otherwise 409 `LAST_OWNER_CANNOT_BE_REMOVED`.
 
-## 7. Edge Cases
+## Functionalities
 
-- MANAGER duy nhất muốn leave → phải gán MANAGER khác trước (qua Update Workspace Member Role, FR 3.4.20) rồi mới leave được.
-- CREATOR/CLIENT leave khi vẫn còn nhiều thành viên khác → luôn cho phép, không có guard nào khác ngoài last-MANAGER (guard chỉ áp dụng khi role bị xóa là MANAGER).
-- Gọi endpoint 2 lần liên tiếp (đã leave rồi gọi lại) → lần 2 không tìm thấy active membership → 403 `WORKSPACE_ACCESS_DENIED`.
+### Normal Flow
 
-## 8. Definition of Done
+1. Member opens Workspace settings or the members screen and chooses "Leave Workspace".
+2. Member confirms in the dialog.
+3. System looks up the caller's own active membership in the Workspace; if none exists the request fails with 403 `WORKSPACE_ACCESS_DENIED`.
+4. System applies the last-MANAGER guard: members who are not MANAGER pass, and a MANAGER passes when another active MANAGER exists.
+5. System marks the membership inactive.
+6. The member is taken out of the Workspace back to the Workspace list, while remaining in the Agency and in their other Workspaces.
 
-- Leave thành công qua `DELETE /{workspaceId}/leave`, vẫn còn trong Agency; chặn đúng trường hợp MANAGER duy nhất.
+### Abnormal Cases
+
+- Caller has no active membership in that Workspace → 403 `WORKSPACE_ACCESS_DENIED`.
+- Caller is the only active MANAGER of the Workspace → 409 `LAST_OWNER_CANNOT_BE_REMOVED`; another MANAGER must be assigned first through FR 3.4.20 Update Workspace Member Role.
+- A CREATOR or CLIENT leaves while other members remain → always allowed; no guard other than the last-MANAGER guard applies.
+- The action is invoked twice in a row → the second call finds no active membership and fails with 403 `WORKSPACE_ACCESS_DENIED`.
+
+## Post-Conditions
+
+- The caller's membership in the Workspace is inactive and the Workspace no longer appears in their list.
+- The caller's Agency membership is untouched; they remain in the Agency and in their other Workspaces.
 
 ## Out of Scope
 
-- Tự động chọn MANAGER thay thế khi MANAGER duy nhất leave (phải làm thủ công trước qua FR 3.4.20).
+- Automatically choosing a replacement MANAGER when the only MANAGER leaves (the handover must be done beforehand through FR 3.4.20).
 
-## Tham chiếu BA
+## References
 
 [01-organization-structure.md](../../../BA/01-organization-structure.md), [03-agency-workspace-management.md](../../../BA/03-agency-workspace-management.md)

@@ -1,73 +1,77 @@
-# UC — View Client Profile
+# 3.3.3 View Client Profile
 
-| | |
-|---|---|
-| FR Code | 3.3.3 |
-| Feature | View Client Profile |
-| Domain | Profile (FR 3.3) |
-| Role | USER |
-| Version | 2.1 (sync với code thật, 2026-09-23) |
-| Trạng thái tài liệu | Đã code — spec khớp `ClientProfileController`/`ClientProfileServiceImpl` |
+## Function Trigger
 
-## 1. Objective
+Begins when a user acting as a Client opens the Client Profile screen in the context of a specific Agency, or when an Agency member opens the Agency's Client list while adding a Client to a workspace.
 
-Hiển thị Client Profile riêng biệt khi User đóng vai trò Client tham gia Workspace của Agency khác — cho phép tái sử dụng thông tin trong phạm vi **cùng 1 Agency** mà không cần khai lại.
+## Function Description
 
-## 2. User Story
+- **Actors / Roles:** A user acting as a Client in a workspace of an Agency; Agency members (Owner/Manager) when viewing the Agency's Client list.
+- **Purpose:** Show the Client Profile held for one specific Agency, independently of the user's own User Profile (3.3.1), so the Client can confirm what that Agency sees and so details can be reused within the same Agency without re-entering them.
+- **Interface:** The Client Profile screen at `/client-profile`, scoped to the Agency currently in context (the Agency is taken from the page context / URL). The screen shows the Client Profile as a read-only card. A separate Client list view, also in an Agency context, shows every Client Profile held by that Agency and is used as a picker when adding a Client to a workspace. In both cases the Agency identifier must be supplied by the caller; no Agency is assumed.
+- **Data Processing:** The system resolves the caller's identity from the access token only, looks up the Client Profile by the pair (user, agency), and returns the complete field set. For the list view, the system returns every Client Profile belonging to the given Agency.
 
-Là một User đang đóng vai trò Client ở 1 Workspace của Agency khác,
-tôi muốn xem Client Profile của mình,
-để xác nhận thông tin đang được Agency đó nhìn thấy khi làm việc với tôi.
+## Screen Layout
 
-## 3. Acceptance Criteria
+Figure — Client Profile Screen (`/client-profile`, Agency context):
 
-- Hiển thị field của Client Profile: `id`, `userId`, `agencyId`, `displayName`, `company`, `phone`, `note`, `logoUrl`, `website`, `industry`, `location`, `description`, `socialLinks`, `createdAt`, `updatedAt` (xem [11-data-entities-glossary.md](../../../BA/11-data-entities-glossary.md) mục ClientProfile).
-- Client Profile **độc lập với User Profile** thông thường (FR 3.3.1) — 1 User có cả 2 loại profile nếu họ vừa là Owner Agency của mình, vừa là Client ở Agency khác.
-- ClientProfile được khoá theo cặp **(userId, agencyId)**, KHÔNG global: 1 User làm Client ở Agency A và Agency B → 2 bản ghi `ClientProfile` riêng biệt, độc lập hoàn toàn (khác `displayName`, `company`... nếu muốn).
-- "Tái sử dụng" chỉ đúng trong phạm vi **cùng 1 Agency**: nếu User đã là Client ở 1 Workspace của Agency A, khi được mời vào Workspace khác cùng Agency A → dùng lại đúng `ClientProfile(userId, agencyId=A)` đó. Nếu được mời làm Client ở Agency B (khác Agency A) → hệ thống dùng `ClientProfile(userId, agencyId=B)` riêng, độc lập với bản ở Agency A.
-- ClientProfile được tạo lần đầu qua accept-invitation, HOẶC qua lần đầu gọi update (upsert — xem FR 3.3.4).
+- Header: page title "Client Profile" and the Agency currently in context.
+- Center: read-only card — display name, company, phone number, note, logo, website, industry, location, description, social links, and the created and last-updated dates.
+- Buttons: Edit — routes to Update Client Profile (3.3.4).
+- Footer: none.
+- When no Agency is in context, the screen shows a clear error instead of requesting data.
 
-## 4. UI / UX
+Figure — Client List (Agency context):
 
-- Trang `/client-profile` (tách biệt route với `/settings/profile`), FE lấy `agencyId` hiện tại từ URL query (`useSearchParams`), hoặc tab riêng trong Settings nếu User đang có vai trò Client ở bất kỳ Workspace nào.
+- Center: list of the Agency's Client Profiles — display name, company, and contact details.
+- Used when adding a Client to a workspace, so an existing Client Profile can be reused.
 
-## 5. API Contract
+## Function Details
 
-```
-GET /api/v1/client-profile/me?agencyId={agencyId}
-Authorization: Bearer <access-token>
-→ 200 { "success": true, "data": {
-    "id", "userId", "agencyId", "displayName", "company", "phone", "note",
-    "logoUrl", "website", "industry", "location", "description", "socialLinks",
-    "createdAt", "updatedAt"
-  } }
+### Data Specifications
 
-GET /api/v1/client-profile?agencyId={agencyId}
-→ 200 { "success": true, "data": [ { ...same shape... }, ... ] }
-// Danh sách Client Profile của 1 Agency — dùng để Agency chọn khi thêm Client vào Workspace.
-```
+- **Input required:** The Agency identifier, for both the Client Profile view and the Agency Client list.
+- **Input optional:** None.
+- **System data:** `client_profiles`, keyed by the pair (userId, agencyId) — `id`, `userId`, `agencyId`, `displayName`, `company`, `phone`, `note`, `logoUrl`, `website`, `industry`, `location`, `description`, `socialLinks`, `createdAt`, `updatedAt`.
+- **Output:** The complete Client Profile field set for one Agency, or the list of Client Profiles held by an Agency.
 
-`agencyId` là query param **bắt buộc** ở cả 2 endpoint.
+### Business Rules
 
-## 6. Error Handling
+- **BR-01:** A Client Profile is keyed by the pair (user, agency) and is never global — one user may hold several independent Client Profiles, one per Agency.
+- **BR-02:** Reuse of a Client Profile applies only within the same Agency. When the user is already a Client in one workspace of Agency A and is later invited into another workspace of the same Agency A, the existing (user, Agency A) record is reused and no new record is created. An invitation from Agency B uses a separate (user, Agency B) record, independent of the Agency A record.
+- **BR-03:** A Client Profile is created either when a Client invitation is accepted, or on the first update for that Agency (upsert — see 3.3.4). Viewing never creates a record.
+- **BR-04:** The Agency identifier is mandatory; no default Agency is assumed.
+- **BR-05:** A Client Profile is independent of the user's own User Profile — one user may hold both at the same time, for example owning their own Agency while being a Client of another Agency.
+- **BR-06:** A user who is a Client of Agency A and of Agency B holds two independent records. No data is shared between them: the display name, company, and other fields may differ per Agency.
 
-- Chưa có `ClientProfile` cho cặp (userId, agencyId) này → 404 `CLIENT_PROFILE_NOT_FOUND`.
-- Thiếu query param `agencyId` → 400 `VALIDATION_ERROR` (Spring `@RequestParam` bắt buộc).
-- Token hết hạn/không hợp lệ → 401 `UNAUTHORIZED`.
+### Validation
 
-## 7. Edge Cases
+- Missing Agency identifier → 400 `VALIDATION_ERROR`.
+- No Client Profile exists for the (user, agency) pair → 404 `CLIENT_PROFILE_NOT_FOUND`.
+- Missing, expired, or invalid access token → 401 `UNAUTHORIZED`.
 
-- User đồng thời là Owner Agency A và Client ở Workspace của Agency B → 2 profile tồn tại độc lập, UI cần phân biệt rõ ngữ cảnh đang xem (User Profile vs Client Profile).
-- User là Client ở cả Agency A và Agency B → 2 bản ghi `ClientProfile` độc lập, không lẫn dữ liệu giữa 2 agency.
+## Functionalities
 
-## 8. Definition of Done
+### Normal Flow
 
-- Client Profile hiển thị đúng theo `agencyId` truyền vào; verify bằng test cùng 1 user, 2 `agencyId` khác nhau trả về 2 profile độc lập.
+1. The user opens the Client Profile screen in the context of a specific Agency.
+2. The application determines the Agency identifier from the current context.
+3. The application requests the signed-in user's Client Profile for that Agency.
+4. The system resolves the caller's identity from the access token.
+5. The system looks up the Client Profile by the pair (user, agency) (BR-01).
+6. The system returns the complete Client Profile field set.
+7. The application renders the Client Profile for the Agency currently in context.
+8. Alternatively, an Agency member opens the Agency's Client list; the system returns every Client Profile held by that Agency, and the application displays them for selection when adding a Client to a workspace (BR-02).
 
-## Out of Scope
+### Abnormal Cases
 
-- Đổi vai trò Client thành Member nội bộ Agency (không có trong CSV).
+- No Client Profile exists for the (user, agency) pair → 404 `CLIENT_PROFILE_NOT_FOUND`. Viewing never creates one (BR-03).
+- Missing Agency identifier → 400 `VALIDATION_ERROR`.
+- Missing, expired, or invalid access token → 401 `UNAUTHORIZED`.
+- The user owns Agency A while also being a Client of Agency B → both profiles exist independently, and the interface must make clear which context is being viewed (own User Profile versus Client Profile).
+- The user is a Client of both Agency A and Agency B → two independent records are displayed, never mixed.
 
-## Tham chiếu BA
+## Post-Conditions
 
-[02-authentication-profile.md](../../../BA/02-authentication-profile.md)
+- The Client Profile for the requested Agency is displayed with the values currently stored for that pair.
+- No data is changed; the operation is read-only.

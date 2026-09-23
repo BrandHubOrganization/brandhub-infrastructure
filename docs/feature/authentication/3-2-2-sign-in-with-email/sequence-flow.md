@@ -1,48 +1,54 @@
 # Sequence Flow — Sign In With Email
 
-> Bổ sung cho `spec.md` (FR 3.2.2). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
->
-> Cập nhật: 2026-09-23. Khớp code thật tại thời điểm này (`AuthController.login`, `AuthServiceImpl.login`).
+> Companion to `spec.md` (3.2.2). Lists each actor → action → system step in enough detail to draw the sequence diagram directly; the business description lives in `spec.md`.
 
 ## Actors
 
-- **User** — đã có tài khoản.
-- **FE** — brandhub-web-dashboard (React).
-- **BE** — brandhub-business-service (Spring Boot).
-- **DB** — PostgreSQL (`users`, `user_system_roles`, `workspace_members`), Redis (JWT blacklist — không dùng ở login).
+- **User** — holds an existing account.
+- **Client** — the application the user interacts with.
+- **System** — the application server.
+- **Database** — persistent store holding accounts and their role assignments, plus workspace memberships.
+- **Token store** — short-lived state used to invalidate tokens that have been signed out.
 
 ---
 
-## Flow A — Đăng nhập thành công, không 2FA
+## Flow A — Successful sign-in without two-factor authentication
 
-1. User → FE: mở `/login`, điền `email` (thực chất field request tên là `identifier` — hỗ trợ cả email lẫn phone), `password`.
-2. FE → BE: `POST /api/v1/auth/login` `{identifier, password}`.
-3. BE (`AuthServiceImpl.login`):
-   a. `resolveByIdentifier`: nếu có `@` → tìm theo email (lowercase); ngược lại chuẩn hóa như số điện thoại (`PhoneUtil.normalize`) → tìm theo phone. Không tìm thấy → `401 INVALID_CREDENTIALS`.
-   b. `checkStatus`: `!user.isActive()` → `403 ACCOUNT_SUSPENDED`; `status=DEACTIVATED` → `403 ACCOUNT_DEACTIVATED`; `status` khác `ACTIVE` (không rơi 2 case trên) → `403 ACCOUNT_SUSPENDED`.
-   c. So khớp password bcrypt — sai hoặc `passwordHash=null` (tài khoản OAuth-only) → `401 INVALID_CREDENTIALS`.
-   d. `user.isTwoFactorEnabled() == false` → `completeLogin`: set `lastLoginAt`, ghi `AuditLog(LOGIN)`, resolve `workspaceId` active đầu tiên của user, sinh `accessToken` (JWT, kèm role + workspaceId) + `refreshToken`.
-4. BE → FE: `200 { accessToken, tokenType, expiresIn, requireTwoFactor=false }` + Set-Cookie `refreshToken` (HttpOnly, Secure, SameSite=Strict, path=`/api/v1/auth`).
-5. FE: lưu `accessToken` vào store, gọi `GET /api/v1/users/me` (hoặc `/api/v1/auth/me`) lấy profile → `setAuth(...)` → điều hướng Dashboard/Agency list.
+1. User → Client: opens /login and enters the identifier, which may be an email address or a phone number, together with the password.
+2. Client → System: submits the credentials.
+3. System:
+   a. Resolves the identifier: a value containing "@" is matched as an email address in lower case, anything else is normalized as a phone number and matched as a phone. No match → 401 INVALID_CREDENTIALS.
+   b. Checks the account status: inactive → 403 ACCOUNT_SUSPENDED; deactivated → 403 ACCOUNT_DEACTIVATED; any other status → 403 ACCOUNT_SUSPENDED.
+   c. Compares the submitted password with the stored password hash; a mismatch, or an account without a password, → 401 INVALID_CREDENTIALS.
+   d. With two-factor authentication disabled, completes the sign-in: records the sign-in time and the sign-in event, resolves the active workspace and issues an access token together with a refresh token.
+4. System → Database: persists the last sign-in time, the event record and the resolved workspace reference.
+5. System → Client: 200 with the access token, its type and its expiry, and sets the refresh token as an HTTP-only cookie scoped to the authentication area.
+6. Client: stores the access token, loads the profile and navigates to the Dashboard / Agency list.
 
-## Flow B — Đăng nhập, tài khoản có bật 2FA
+## Flow B — Sign-in on an account with two-factor authentication enabled
 
-Giống Flow A bước 1–3c, khác từ bước 3d:
+Same as Flow A steps 1–3c, diverging from step 3d:
 
-3d. `user.isTwoFactorEnabled() == true` → sinh `twoFactorToken` (JWT loại `type=2fa`, payload subject=userId) → **KHÔNG cấp accessToken/refreshToken ở bước này**.
-4. BE → FE: `200 { accessToken=null, tokenType=null, expiresIn=null, requireTwoFactor=true }` — `twoFactorToken` nằm trong `LoginResult` nội bộ, controller **không set Cookie refreshToken** ở nhánh này (`if (result.twoFactorToken() != null) return ...` — return sớm, bỏ qua đoạn set cookie).
-   - Response thật `LoginResponse.twoFactorChallenge(twoFactorToken)` — record `LoginResponse(accessToken, tokenType, expiresIn, requireTwoFactor, twoFactorToken)`, field `twoFactorToken` nằm trực tiếp trong `data` trả về FE (xác nhận từ `LoginResponse.java`).
-5. FE: nhận `requireTwoFactor=true` → lưu `twoFactorToken`, điều hướng `/2fa-verify` (component dùng chung — xem FR 3.2.7 Flow verify).
-6. Tiếp tục **FR 3.2.7 — verify 2FA**: FE → BE `POST /api/v1/auth/2fa/verify {twoFactorToken, code}` → thành công → `200` kèm accessToken thật + Set-Cookie refreshToken → FE tiếp bước 5 của Flow A.
+1. System: two-factor authentication is enabled, so it issues a two-factor challenge token instead of the tokens — no access token and no refresh token are produced at this step.
+2. System → Client: 200 carrying the challenge flag and the challenge token; no refresh cookie is set.
+3. Client: stores the challenge token and navigates to the two-factor code screen (3.2.7).
+4. Continues in Two-Factor Authentication (3.2.7): a correct code returns the real access token and sets the refresh cookie, after which the client resumes Flow A step 6.
 
 ---
 
-## Error paths tổng hợp (dùng cho sequence "alt"/"opt" fragments)
+## Error paths summary (for "alt"/"opt" fragments)
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | HTTP | Error code |
 |---|---|---|---|
-| Login | Không tìm thấy user theo identifier | 401 | `INVALID_CREDENTIALS` |
-| Login | Sai password / user không có password (OAuth-only) | 401 | `INVALID_CREDENTIALS` |
-| Login | `isActive()=false` hoặc `status` khác ACTIVE/DEACTIVATED | 403 | `ACCOUNT_SUSPENDED` |
-| Login | `status=DEACTIVATED` | 403 | `ACCOUNT_DEACTIVATED` |
-| Login (2FA nhánh phụ) | 2FA bật, chờ verify riêng | 200 | không lỗi — `requireTwoFactor=true` |
+| Sign in | No account matches the identifier | 401 | `INVALID_CREDENTIALS` |
+| Sign in | Wrong password, or an account without a password | 401 | `INVALID_CREDENTIALS` |
+| Sign in | Inactive account, or a status other than ACTIVE or DEACTIVATED | 403 | `ACCOUNT_SUSPENDED` |
+| Sign in | Status DEACTIVATED | 403 | `ACCOUNT_DEACTIVATED` |
+| Sign in | Two-factor authentication enabled, awaiting the separate verification | 200 | no error — the challenge flag is set |
+| Refresh | Missing cookie, unusable token, or a token issued before the latest password change | 401 | `REFRESH_TOKEN_INVALID` |
+| Refresh | Token invalidated by sign-out | 401 | `REFRESH_TOKEN_BLACKLISTED` |
+
+## Notes
+
+- The identifier field accepts both an email address and a phone number, which is why the same wrong-credential answer covers both.
+- The refresh token travels only as an HTTP-only cookie and is rotated on every successful refresh.

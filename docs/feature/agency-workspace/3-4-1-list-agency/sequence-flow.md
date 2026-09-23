@@ -1,40 +1,40 @@
 # Sequence Flow — List Agency
 
-> Bổ sung cho `spec.md` (FR 3.4.1). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
+> Companion to `spec.md` (FR 3.4.1). This file lists each actor → action → system step in enough detail to draw the sequence diagram directly. Business explanation lives in `spec.md`.
 >
-> Cập nhật: 2026-09-23. Khớp code thật tại thời điểm này (`AgencyController.listMyAgencies`, `AgencyServiceImpl.listMyAgencies`).
+> Updated 2026-09-23, matching the system as built today.
 
 ## Actors
 
-- **User** — người đang login (có thể là Owner của 0..N Agency, hoặc Member của Agency khác).
-- **FE** — brandhub-web-dashboard (React).
-- **BE** — brandhub-business-service (Spring Boot).
-- **DB** — PostgreSQL (`agencies`, `agency_members`).
+- **User** — signed in; may own several Agencies and may belong to other Agencies as a Member.
+- **Client** — the BrandHub web application.
+- **System** — the BrandHub service.
+- **Database** — PostgreSQL (`agencies`, `agency_members`).
 
 ---
 
-## Flow A — Xem danh sách Agency
+## Flow A — View the Agency list
 
-1. User → FE: login xong, vào trang `/agencies` (landing mặc định nếu có ≥1 Agency).
-2. FE → BE: `GET /api/v1/agencies`.
-3. BE (`AgencyServiceImpl.listMyAgencies`):
-   a. Query `agency_repository.findByOwnerIdAndStatusNot(currentUser.id, SOFT_DELETED)` → tập id Agency user là Owner.
-   b. Query `agencyMemberRepository.findByUserId(currentUser.id)` → gộp thêm id Agency user là Member (union vào cùng 1 `Set<UUID>`, loại trùng).
-   c. `findAllById(ids)`, filter lần nữa loại `status == SOFT_DELETED`, map sang `AgencyResponse`.
-4. BE → FE: `200 { data: [ AgencyResponse, ... ] }` (rỗng nếu user chưa thuộc Agency nào).
-5. FE: render danh sách. Nếu rỗng → hiện empty state kèm nút "Tạo Agency mới" (dẫn sang FR 3.4.3).
-6. User bấm vào 1 Agency → FE `navigate` sang trang chi tiết (dùng chung `GET /{agencyId}` của FR 3.4.4, chưa có Dashboard riêng theo FR 3.4.2).
+1. User → Client: signs in and opens the Agencies page, which is the default landing page when the user owns or belongs to at least one Agency.
+2. Client → System: requests the Agency list of the signed-in user (`GET /api/v1/agencies`).
+3. System — build the list:
+   a. Collects the Agencies the user owns, excluding those that are soft-deleted.
+   b. Collects the Agencies where the user holds a member record and merges them into the same set of identifiers, removing duplicates.
+   c. Loads the merged set by identifier, filters out any Agency that is soft-deleted once more, and maps each remaining Agency to its full profile.
+4. System → Client: the list of Agency profiles, empty when the user owns or belongs to none.
+5. Client: renders one card per Agency. When the list is empty, it shows the empty state with the "Create new Agency" call to action (3.4.3).
+6. User selects a card → the Client moves into that Agency, using the Agency profile of 3.4.4 because the Agency Dashboard of 3.4.2 has no screen of its own yet.
 
 ---
 
-## Error paths tổng hợp
+## Error paths
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | HTTP | Error code |
 |---|---|---|---|
-| List | Không có — luôn trả 200 kể cả list rỗng | — | — |
+| List | None — the list is always returned, including when it is empty | — | — |
 
-Không có nhánh lỗi nghiệp vụ nào cho FR này — chỉ có lỗi hạ tầng chung (401 nếu chưa login, do filter xác thực xử lý trước khi vào controller, không thuộc phạm vi service).
+The feature has no business failure path. Only the shared session failure applies: a request without a valid session is rejected with `401 UNAUTHORIZED` before it reaches the Agency logic.
 
-## Ghi chú khác biệt so với spec.md gốc
+## Notes
 
-- Không có khác biệt — spec.md đã mô tả đúng: response gộp cả Owner lẫn Member dù tên FR là "List Agency" theo góc nhìn Owner (mục "Out of Scope" của spec.md đã lưu ý về điểm này, đây không phải drift mà là ghi chú sẵn trong spec).
+- No divergence from `spec.md`: the result merges the Agencies the user owns with the Agencies the user belongs to, even though the feature is named from the Owner's point of view. `spec.md` states this in its business rules.

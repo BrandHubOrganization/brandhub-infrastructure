@@ -1,63 +1,49 @@
-# UC — View Agency Dashboard
+# 3.4.2 View Agency Dashboard
 
-| | |
-|---|---|
-| FR Code | 3.4.2 |
-| Feature | View Agency Dashboard |
-| Domain | Agency & Workspace (FR 3.4) |
-| Role | OWNER |
-| Version | 2.1 — Cập nhật 2026-09-23 — đồng bộ theo code thật |
-| Trạng thái tài liệu | Draft — BA confirmed, **chưa code** (không có endpoint dashboard riêng trong `AgencyController`/`AgencyServiceImpl` hiện tại) |
+## Function Trigger
+Proposed — not yet implemented. The intended trigger is the Owner opening the dashboard of one of their Agencies (`/agencies/:agencyId/dashboard`). No dashboard screen exists in the current system.
 
-## 1. Objective
+## Function Description
+- **Actors / Roles:** Agency Owner. Proposed — not yet implemented.
+- **Purpose:** Give the Owner an overview of one Agency — how many Workspaces and Members it has, how many Clients it serves, and what happened recently.
+- **Interface:** Agency Dashboard page (`/agencies/:agencyId/dashboard`) — proposed; not yet implemented.
+- **Data Processing:** The system would count the Members of the Agency, count the Workspaces belonging to it, count the distinct Clients across those Workspaces, and return them with a recent-activity list. Only the Member count can be derived from existing data today; the Workspace and Client counts and the recent-activity list still need to be designed.
 
-Hiển thị thông tin tổng quan của 1 Agency cho Owner.
+## Screen Layout
+Figure — Agency Dashboard:
+- Summary tiles for Workspace count, Member count and Client count.
+- A recent-activity list.
+- Proposed — not yet implemented; the layout is indicative only.
 
-## 2. User Story
+## Function Details
+### Data Specifications
+- **Input required:** The Agency identifier (`agencyId`).
+- **Input optional:** None.
+- **System data:** Agency profile (see 3.4.1 and 3.4.4), the Agency Member records of the Agency, the Workspaces belonging to the Agency, and the Client Profile records of those Workspaces. Recent activity has no agreed data source yet.
+- **Output:** Proposed — a summary holding the Workspace count, the Member count and the Client count, together with a recent-activity list. Not yet implemented.
 
-Là một Owner,
-tôi muốn xem dashboard tổng quan của Agency,
-để nắm được tình hình hoạt động chung.
+### Business Rules
+- **BR-01:** Only the Owner of the Agency may view its dashboard; anybody else is refused with `403 FORBIDDEN`.
+- **BR-02:** The Agency must exist and must not be soft-deleted; otherwise `404 AGENCY_NOT_FOUND`.
+- **BR-03:** The Member count covers every Agency Member record of the Agency, whatever the role.
+- **BR-04:** Proposed — not yet implemented: the Workspace and Client counts, and the recent-activity list, still have to be defined.
 
-## 3. Acceptance Criteria
+### Validation
+- Caller is not the Agency Owner → `403 FORBIDDEN`.
+- Agency does not exist or is soft-deleted → `404 AGENCY_NOT_FOUND`.
 
-- Hiển thị: số Workspace, số Member, số Client đang làm việc (đếm distinct qua các Workspace), hoạt động gần đây.
-- Chỉ Owner của chính Agency đó xem được (kiểm tra `agency.ownerId === currentUser.id`) — pattern giống các method khác trong `AgencyServiceImpl` (ví dụ `updateAgency`, `removeAgency` đều so `agency.getOwnerId().equals(currentUser.getId())`, ném `ErrorCode.NOT_AGENCY_OWNER`).
+## Functionalities
+### Normal Flow
+1. The Owner opens the Agency Dashboard. *(Proposed — not yet implemented.)*
+2. The client requests the dashboard summary for the Agency.
+3. The system confirms that the Agency exists and that the caller is its Owner.
+4. The system counts the Members of the Agency, its Workspaces, and the distinct Clients across those Workspaces, and collects the recent activity.
+5. The system returns the summary and the client renders it.
 
-## 4. UI / UX
+### Abnormal Cases
+- Caller is not the Agency Owner → `403 FORBIDDEN`, no data returned.
+- Agency does not exist or is soft-deleted → `404 AGENCY_NOT_FOUND`.
+- Agency just created, with no Workspace yet → every count is returned as zero, which is not an error.
 
-- Trang `/agencies/:agencyId/dashboard`.
-
-## 5. API Contract (đề xuất, cần xác nhận khi thiết kế kỹ thuật — CHƯA CODE)
-
-Chưa có endpoint dashboard riêng. Khi cài đặt, dùng `agencyId` (không phải `id`) để khớp path param thật của các endpoint Agency khác (`{agencyId}`), và cơ sở dữ liệu để tính số liệu là các bảng/field thật đã có:
-
-```
-GET /api/v1/agencies/{agencyId}/dashboard
-→ 200 { "success": true, "data": { "workspaceCount", "memberCount", "clientCount", "recentActivity": [...] } }
-```
-
-- `memberCount`: đếm qua `AgencyMemberRepository.findByAgencyId` (bảng `agency_members`, role OWNER/MEMBER).
-- `workspaceCount`, `clientCount`: chưa có repository method tổng hợp sẵn — cần bổ sung khi code (Workspace/ClientProfile theo agencyId).
-- Agency cơ sở dùng field thật của `Agency` entity (xem bảng field tại FR 3.4.1/3.4.4), không phải field giả định cũ.
-
-## 6. Error Handling
-
-- Không phải Owner → 403 `FORBIDDEN`.
-- Agency không tồn tại/đã soft-delete → 404 `AGENCY_NOT_FOUND`.
-
-## 7. Edge Cases
-
-- Agency vừa tạo, chưa có Workspace nào → dashboard hiển thị toàn 0, không lỗi.
-
-## 8. Definition of Done
-
-- Dashboard hiển thị đúng số liệu tổng hợp.
-
-## Out of Scope
-
-- Chart/biểu đồ chi tiết theo thời gian (có thể bổ sung sau, CSV chỉ yêu cầu overview).
-
-## Tham chiếu BA
-
-[01-organization-structure.md](../../../BA/01-organization-structure.md), [03-agency-workspace-management.md](../../../BA/03-agency-workspace-management.md)
+## Post-Conditions
+- No Agency data is created, changed or removed. *(Proposed — not yet implemented.)*

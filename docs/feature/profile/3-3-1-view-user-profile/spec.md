@@ -1,62 +1,69 @@
-# UC — View User Profile
+# 3.3.1 View User Profile
 
-| | |
-|---|---|
-| FR Code | 3.3.1 |
-| Feature | View User Profile |
-| Domain | Profile (FR 3.3) |
-| Role | USER |
-| Version | 2.1 (sync với code thật, 2026-09-23) |
-| Trạng thái tài liệu | Đã code — spec khớp `UserController`/`UserServiceImpl` |
+## Function Trigger
 
-## 1. Objective
+Begins when a signed-in user opens the Profile screen at `/settings/profile`.
 
-Hiển thị thông tin cá nhân của User đang đăng nhập.
+## Function Description
 
-## 2. User Story
+- **Actors / Roles:** Any authenticated user (role `USER`); a user reads only their own profile.
+- **Purpose:** Display the personal information the system holds for the signed-in user, so the user can verify it.
+- **Interface:** The Profile screen at `/settings/profile`, read-only section. Every field is rendered as text and cannot be edited here — the Edit action moves to Update Profile (3.3.2).
+- **Data Processing:** The system resolves the caller's identity from the access token only (no user identifier is accepted from the caller), loads the matching user record, resolves the system role, resolves the current workspace, and derives the timezone and notification preferences from the preferences data stored on that user record. No data is modified.
 
-Là một User,
-tôi muốn xem thông tin profile của mình,
-để kiểm tra thông tin cá nhân đã lưu trên hệ thống.
+## Screen Layout
 
-## 3. Acceptance Criteria
+Figure — Profile Screen (`/settings/profile`):
 
-- Hiển thị đầy đủ field: `userId`, `email`, `fullName`, `avatarUrl`, `phone` (nếu có), `role`, `workspaceId`, `timezone`, `notificationPreferences`, `createdAt` (ngày tham gia).
-- `role` lấy từ `user_system_roles` (mặc định `USER` nếu chưa có bản ghi); `workspaceId` lấy từ token, fallback sang 1 workspace đang active của user nếu token không có sẵn.
-- `timezone` và `notificationPreferences` được parse từ field JSON `preferences` lưu trên `users`.
+- Header: page title "Profile".
+- Center: read-only profile card — avatar image, full name, email address, phone number (when present), system role, workspace, timezone, notification preferences, and member-since date.
+- Buttons: Edit — routes to Update Profile (3.3.2).
+- Footer: none.
+- When no avatar has ever been set, a default initials avatar is shown in place of the avatar image.
 
-## 4. UI / UX
+## Function Details
 
-- Trang `/settings/profile`, phần view (không cho sửa trực tiếp — chuyển sang FR 3.3.2 Update Profile khi bấm Edit).
+### Data Specifications
 
-## 5. API Contract
+- **Input required:** None — the signed-in user's identity is derived from the access token; the caller cannot supply another user's identifier.
+- **Input optional:** None.
+- **System data:** `users` (userId, email, fullName, avatarUrl, phone, preferences JSON holding the timezone and notification preferences, createdAt); `user_system_roles` (system role); `workspace_members` (workspaceId).
+- **Output:** The complete profile field set — `userId`, `email`, `fullName`, `avatarUrl`, `phone`, `role`, `workspaceId`, `timezone`, `notificationPreferences`, `createdAt`.
 
-```
-GET /api/v1/users/me
-Authorization: Bearer <access-token>
-→ 200 { "success": true, "data": {
-    "userId", "email", "fullName", "avatarUrl", "phone",
-    "role", "workspaceId", "timezone", "notificationPreferences", "createdAt"
-  } }
-```
+### Business Rules
 
-## 6. Error Handling
+- **BR-01:** The caller's identity is taken from the access token only; no user identifier is accepted as a parameter, so a user can never read another user's profile.
+- **BR-02:** `role` is read from the user's system role records; when no role record exists, `role` defaults to `USER`.
+- **BR-03:** `workspaceId` is taken from the token; when the token carries none, the system falls back to the user's first active workspace membership.
+- **BR-04:** `timezone` and `notificationPreferences` have no dedicated columns — both are stored inside the JSON `preferences` field of the user record.
+- **BR-05:** `avatarUrl` is empty when the user has never uploaded an avatar; the interface then shows a default initials avatar. This is not an error.
 
-- Token hết hạn/không hợp lệ → 401 `UNAUTHORIZED`.
-- User không tồn tại trong DB (lý thuyết, token hợp lệ nhưng bị xoá) → 404 `USER_NOT_FOUND`.
+### Validation
 
-## 7. Edge Cases
+- No request body is accepted; validation is limited to authentication.
+- Missing, expired, or invalid access token → 401 `UNAUTHORIZED`.
+- The user record no longer exists (theoretical: a valid token held for a deleted user) → 404 `USER_NOT_FOUND`.
 
-- User chưa từng cập nhật avatar → trả `avatarUrl=null`, FE hiển thị avatar mặc định (initials).
+## Functionalities
 
-## 8. Definition of Done
+### Normal Flow
 
-- Hiển thị đúng toàn bộ field ở mục 3, khớp response thật của `GET /api/v1/users/me`.
+1. The signed-in user opens `/settings/profile`.
+2. The application requests the signed-in user's own profile.
+3. The system resolves the caller's identity from the access token and loads the matching user record.
+4. The system resolves the system role, applying the default when no role record exists (BR-02).
+5. The system resolves the current workspace, falling back to the first active workspace membership when the token carries none (BR-03).
+6. The system derives `timezone` and `notificationPreferences` from the stored preferences data (BR-04).
+7. The system returns the complete profile field set.
+8. The application renders the read-only profile card, showing a default initials avatar when no avatar exists (BR-05).
 
-## Out of Scope
+### Abnormal Cases
 
-- Không có (field đã chốt đầy đủ theo code hiện tại).
+- Missing, expired, or invalid access token → 401 `UNAUTHORIZED`.
+- User record no longer exists → 404 `USER_NOT_FOUND`.
+- No avatar set → `avatarUrl` is empty and the default initials avatar is shown; not an error.
 
-## Tham chiếu BA
+## Post-Conditions
 
-[02-authentication-profile.md](../../../BA/02-authentication-profile.md)
+- The signed-in user's profile is displayed with the values currently stored in the system.
+- No data is changed; the operation is read-only.

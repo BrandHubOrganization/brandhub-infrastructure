@@ -1,39 +1,41 @@
 # Sequence Flow — Leave Workspace
 
-> Bổ sung cho `spec.md` (FR 3.4.16). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
+> Companion to `spec.md` (FR 3.4.16). This file lists each step as actor → action → system, in enough detail to draw the sequence diagram directly. It does not restate business rules — see `spec.md` for those.
 >
-> Cập nhật: 2026-09-23. Khớp code thật (`WorkspaceController.leaveWorkspace`, `WorkspaceServiceImpl.leaveWorkspace` + `assertNotLastManager`).
+> Updated: 2026-09-23.
 
 ## Actors
 
-- **Member** — active member của Workspace (MANAGER/CREATOR/CLIENT), rời chính workspace của mình.
-- **FE** — brandhub-web-dashboard (React).
-- **BE** — brandhub-business-service (Spring Boot).
-- **DB** — PostgreSQL (`workspace_members`).
+- **Client** — an active member of the Workspace (MANAGER, CREATOR, CLIENT) leaving their own membership.
+- **System** — the application service handling the request.
+- **Database** — the persistent store holding membership records.
 
 ---
 
-## Flow A — Rời Workspace
+## Flow A — Leave a Workspace
 
-1. Member → FE: mở Workspace Settings/Members, bấm "Rời Workspace", xác nhận (confirm dialog).
-2. FE → BE: `DELETE /api/v1/workspaces/{workspaceId}/leave` (không có body, `userId` lấy từ JWT principal). Không có `@RequireRole` chặn — endpoint mở cho bất kỳ user đã đăng nhập nào.
-3. BE (`WorkspaceServiceImpl.leaveWorkspace`):
-   a. `workspaceMemberRepository.findByWorkspaceIdAndUserIdAndIsActiveTrue(workspaceId, currentUser.id)` — không tìm thấy (không phải member, hoặc đã leave rồi) → `403 WORKSPACE_ACCESS_DENIED`.
-   b. `assertNotLastManager(workspaceId, member)`: nếu `member.role != MANAGER` → pass. Nếu `member.role == MANAGER` → đếm `countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId, MANAGER)` — nếu `<= 1` → `409 LAST_OWNER_CANNOT_BE_REMOVED`.
-   c. Set `member.isActive = false`, `updatedAt = now()`.
-4. BE → DB: `UPDATE workspace_members SET is_active = false, updated_at = ? WHERE id = ?`.
-5. BE → FE: `200 { data: null }`.
-6. FE: điều hướng ra khỏi Workspace (về danh sách Workspace), user vẫn còn trong Agency và các Workspace khác. `AgencyMember` record không bị đụng tới.
+1. Client → System: open Workspace settings or the members screen, choose "Leave Workspace", and confirm in the dialog.
+2. System: accept the request for any signed-in user, since the action can only affect the caller's own membership; the caller identity is taken from the session principal and never from the request.
+3. System → Database: read the caller's active membership row for the Workspace; a missing row is rejected with 403 `WORKSPACE_ACCESS_DENIED`.
+4. System: apply the last-MANAGER guard:
+   - When the caller's role is not MANAGER, continue.
+   - When the caller's role is MANAGER, count the Workspace's active MANAGERs; a count of one or fewer is rejected with 409 `LAST_OWNER_CANNOT_BE_REMOVED`.
+5. System: mark the caller's membership inactive and record the update timestamp.
+6. System → Database: write the deactivated membership.
+7. System → Client: confirmation that the membership has been deactivated.
+8. Client: return to the Workspace list. The caller's Agency membership is untouched, so they remain in the Agency and in their other Workspaces.
 
 ---
 
-## Error paths tổng hợp
+## Error paths
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | Status | Error code |
 |---|---|---|---|
-| Leave | `currentUser` không phải active member của workspace này | 403 | `WORKSPACE_ACCESS_DENIED` |
-| Leave | `currentUser` là MANAGER active duy nhất của workspace | 409 | `LAST_OWNER_CANNOT_BE_REMOVED` |
+| Leave | Caller has no active membership in that Workspace | 403 | `WORKSPACE_ACCESS_DENIED` |
+| Leave | Caller is the only active MANAGER of the Workspace | 409 | `LAST_OWNER_CANNOT_BE_REMOVED` |
 
-## Ghi chú khác biệt so với spec.md gốc
+## Notes
 
-- Không có — FR này đã chuyển từ Draft sang Implemented; spec.md và sequence-flow viết lại hoàn toàn khớp `WorkspaceController.leaveWorkspace` / `WorkspaceServiceImpl.leaveWorkspace`, dùng chung guard `assertNotLastManager` với FR 3.4.20 và 3.4.21.
+- The last-MANAGER guard is shared with FR 3.4.20 Update Workspace Member Role and FR 3.4.21 Remove Workspace Member.
+- Only the membership row of the caller is ever touched; Agency membership is never modified.
+- Invoking the action a second time finds no active membership and fails with 403 `WORKSPACE_ACCESS_DENIED`.

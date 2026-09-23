@@ -1,58 +1,58 @@
 # Sequence Flow — Remove Agency
 
-> Bổ sung cho `spec.md` (FR 3.4.6). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
+> Companion to `spec.md` (FR 3.4.6). This file lists each actor → action → system step in enough detail to draw the sequence diagram directly. Business explanation lives in `spec.md`.
 >
-> Cập nhật: 2026-09-23. Khớp code thật tại thời điểm này (`AgencyController.removeAgency`/`restoreAgency`, `AgencyServiceImpl.removeAgency`/`restoreAgency`).
+> Updated 2026-09-23, matching the system as built today.
 
 ## Actors
 
 - **Owner**
-- **FE** — brandhub-web-dashboard (React).
-- **BE** — brandhub-business-service (Spring Boot).
-- **DB** — PostgreSQL (`agencies`, `workspaces`).
+- **Client** — the BrandHub web application.
+- **System** — the BrandHub service.
+- **Database** — PostgreSQL (`agencies`, `workspaces`).
 
 ---
 
-## Flow A — Soft-delete Agency (cascade Workspace con)
+## Flow A — Remove an Agency (cascading to its Workspaces)
 
-1. Owner → FE: bấm Remove ở Agency Settings → dialog confirm 2 lớp (nhập lại tên Agency, liệt kê hệ quả Workspace con).
-2. FE → BE: `DELETE /api/v1/agencies/{agencyId}`.
-3. BE (`AgencyServiceImpl.removeAgency`):
-   a. `findAgencyOrThrow(agencyId)` — không tồn tại → `404 AGENCY_NOT_FOUND`.
-   b. Check `agency.getOwnerId().equals(currentUser.getId())` — sai → `403 NOT_AGENCY_OWNER`.
-   c. `UPDATE agencies SET status = SOFT_DELETED, deletedAt = now()`.
-   d. Cascade: `workspaceRepository.findByAgencyId(agencyId)` → mỗi Workspace `UPDATE workspaces SET status = SOFT_DELETED, deletedAt = now()`.
-4. BE → FE: `200 { data: null }`.
-5. FE: hiện toast, redirect về `/agencies`.
+1. Owner → Client: selects Remove in the Agency settings → a two-step confirmation dialog asks the Owner to type the Agency name and states the consequences, including that the Workspaces of the Agency are affected.
+2. Client → System: submits the removal (`DELETE /api/v1/agencies/{agencyId}`).
+3. System — remove:
+   a. Loads the Agency by its identifier — not found → `404 AGENCY_NOT_FOUND`.
+   b. Confirms the caller is the Owner of the Agency — otherwise `403 NOT_AGENCY_OWNER`.
+   c. Marks the Agency SOFT_DELETED with the current time.
+   d. Cascades: loads every Workspace belonging to the Agency and marks each one SOFT_DELETED with the same removal time.
+4. System → Client: no data, the removal is done.
+5. Client: shows a confirmation and takes the user back to the Agency list.
 
-## Flow B — Restore Agency (trong 30 ngày, cascade Workspace con)
+## Flow B — Restore an Agency (within 30 days, cascading to its Workspaces)
 
-1. Owner → FE: vào danh sách Agency đã xóa (hoặc link trực tiếp), bấm Restore.
-2. FE → BE: `POST /api/v1/agencies/{agencyId}/restore`.
-3. BE (`AgencyServiceImpl.restoreAgency`):
-   a. `findAgencyOrThrow` — không tồn tại → `404 AGENCY_NOT_FOUND`.
-   b. Check Owner — sai → `403 NOT_AGENCY_OWNER`.
-   c. Check `status == SOFT_DELETED` — không phải (chưa từng bị xóa) → `400 AGENCY_NOT_DELETED`.
-   d. Check `deletedAt != null` và `now() <= deletedAt + 30 ngày` — quá hạn/null → `410 RESTORE_WINDOW_EXPIRED`.
-   e. `UPDATE agencies SET status = ACTIVE, deletedAt = null, updatedAt = now()`.
-   f. Cascade: `workspaceRepository.findByAgencyId(agencyId)` → mỗi Workspace `UPDATE workspaces SET status = ACTIVE, deletedAt = null, updatedAt = now()`.
-4. BE → FE: `200 { data: AgencyResponse }` (status = ACTIVE).
-5. FE: hiện toast thành công, cập nhật UI.
+1. Owner → Client: opens the removed Agencies or follows a direct link, and selects Restore.
+2. Client → System: submits the restore (`POST /api/v1/agencies/{agencyId}/restore`).
+3. System — restore:
+   a. Loads the Agency by its identifier — not found → `404 AGENCY_NOT_FOUND`.
+   b. Confirms the caller is the Owner of the Agency — otherwise `403 NOT_AGENCY_OWNER`.
+   c. Confirms the Agency is currently SOFT_DELETED — otherwise `400 AGENCY_NOT_DELETED`.
+   d. Confirms a removal time is recorded and that no more than 30 days have passed since it — otherwise `410 RESTORE_WINDOW_EXPIRED`.
+   e. Marks the Agency ACTIVE, clears its removal time and refreshes its update timestamp.
+   f. Cascades: loads every Workspace belonging to the Agency and marks ACTIVE, with the removal time cleared and the update timestamp refreshed, only those Workspaces whose removal time matches the removal batch of the Agency. A Workspace whose removal time differs — because it was removed on its own beforehand — is left untouched.
+4. System → Client: the Agency profile with the status ACTIVE.
+5. Client: shows a confirmation and refreshes the screen.
 
 ---
 
-## Error paths tổng hợp
+## Error paths
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | HTTP | Error code |
 |---|---|---|---|
-| Remove | Agency không tồn tại | 404 | `AGENCY_NOT_FOUND` |
-| Remove | Không phải Owner | 403 | `NOT_AGENCY_OWNER` |
-| Restore | Agency không tồn tại | 404 | `AGENCY_NOT_FOUND` |
-| Restore | Không phải Owner | 403 | `NOT_AGENCY_OWNER` |
-| Restore | Chưa từng bị xóa | 400 | `AGENCY_NOT_DELETED` |
-| Restore | Quá 30 ngày kể từ `deletedAt` | 410 | `RESTORE_WINDOW_EXPIRED` |
+| Remove | Agency does not exist | 404 | `AGENCY_NOT_FOUND` |
+| Remove | Caller is not the Owner | 403 | `NOT_AGENCY_OWNER` |
+| Restore | Agency does not exist | 404 | `AGENCY_NOT_FOUND` |
+| Restore | Caller is not the Owner | 403 | `NOT_AGENCY_OWNER` |
+| Restore | Agency was never removed | 400 | `AGENCY_NOT_DELETED` |
+| Restore | More than 30 days have passed since the removal | 410 | `RESTORE_WINDOW_EXPIRED` |
 
-## Ghi chú drift đã fix
+## Notes
 
-- Bản trước đánh dấu **[GAP]** "cascade Workspace con chưa code — `removeAgency`/`restoreAgency` chỉ thao tác trên bảng `agencies`". **Không còn đúng**: code hiện tại đã cascade hai chiều qua `workspaceRepository.findByAgencyId(agencyId)` — xóa Agency set Workspace con `SOFT_DELETED`/`deletedAt`, restore set Workspace con `ACTIVE`/`deletedAt = null`/`updatedAt`. GAP đã đóng.
-- Rủi ro còn lại (không phải GAP): cascade restore khôi phục **mọi** Workspace con, kể cả Workspace đã bị soft-delete độc lập trước đó → "hồi sinh" ngoài ý muốn. Xem spec.md mục "Cần xác nhận".
+- **Correction applied:** an earlier revision recorded that the removal and the restore acted on the Agency alone, with no effect on its Workspaces. That no longer holds. The removal marks every Workspace of the Agency SOFT_DELETED with the same removal time, and the restore marks ACTIVE again the Workspaces whose removal time matches the removal batch.
+- Remaining risk, by design rather than a defect: a Workspace that had already been removed on its own beforehand is recognised by its different removal time and is not brought back when the Agency is restored. Workspaces removed together with the Agency do come back.
