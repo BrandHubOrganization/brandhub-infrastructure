@@ -59,7 +59,7 @@
 
 ## 6. Blocked tasks & Dependencies
 
-*(Điền nếu có — lưu ý DA-AI07-01 cần GPU, rủi ro đã ghi trong AI_Iteration_3_Image_Ambassador_Composition.md)*
+*(Điền nếu có — lưu ý DA-AI07-01 cần GPU, rủi ro đã ghi trong ai-iteration-3-image-ambassador-composition.md)*
 
 ---
 
