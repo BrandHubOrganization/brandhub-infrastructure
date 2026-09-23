@@ -614,7 +614,7 @@
 
 ### EPIC AI-06 — Commercial Image Generation Pipeline 🔀
 
-> **Mở rộng theo kiến trúc v2.0 (Self-Hosted Architecture, 6 Topic LoRAs, Commercial Studio & Brand Ambassador IP-Adapter — Tổng cộng 33 tasks chia thành 5 Phase):** Triển khai Self-Hosted SDXL + Hệ sinh thái 6 Topic LoRAs trọng điểm (Food & Beverage, Fashion, Entertainment, Cosmetics, Tech, Living) kèm cơ chế Intent Routing tự động bắt tín hiệu prompt + Identity LoRA Serving Engine (SDXL-Lightning 4-step kiểm chứng song song), Form-to-Prompt Engine (Core UX), Batch Concurrency, Brand Safety Guardrails, Benchmark 20 Prompts, Canonical Identity Curation, Identity Dataset Standardization, Cloud Training Fault-Tolerance (Resume), Multi-Adapter LoRA Dynamic Loading & S3 Versioned Registry. Nâng cấp toàn diện Commercial Studio Harmonization & Advanced Canvas Control (Phase 4) và mở rộng Brand Ambassador Dual-Image IP-Adapter & 1-Click Storyboards (Phase 5, nâng quy mô từ 29 lên 33 tasks). Toàn bộ hình ảnh thương mại và danh tính đại sứ được xử lý độc lập trên cụm GPU riêng qua HTTP Adapter, loại bỏ hoàn toàn phụ thuộc vào Cloud API bên thứ 3 (Stability AI). Phân bổ nhân sự: Lộc (Backend/Client Adapter/Dynamic Loader/Studio), Ân (Prompt/Safety/Dataset/Catalog), Tuấn (GPU Serving/Identity LoRA/IP-Adapter/Checkpoint).
+> **Mở rộng theo kiến trúc v2.0 (Self-Hosted Architecture, 6 Topic LoRAs, Commercial Studio, Brand Ambassador IP-Adapter & FLUX.2 Native Multi-Reference Migration — Tổng cộng 38 tasks chia thành 6 Phase):** Triển khai Self-Hosted SDXL + Hệ sinh thái 6 Topic LoRAs trọng điểm (Food & Beverage, Fashion, Entertainment, Cosmetics, Tech, Living) kèm cơ chế Intent Routing tự động bắt tín hiệu prompt + Identity LoRA Serving Engine (SDXL-Lightning 4-step kiểm chứng song song), Form-to-Prompt Engine (Core UX), Batch Concurrency, Brand Safety Guardrails, Benchmark 20 Prompts, Canonical Identity Curation, Identity Dataset Standardization, Cloud Training Fault-Tolerance (Resume), Multi-Adapter LoRA Dynamic Loading & S3 Versioned Registry. Nâng cấp toàn diện Commercial Studio Harmonization & Advanced Canvas Control (Phase 4) và mở rộng Brand Ambassador Dual-Image IP-Adapter & 1-Click Storyboards (Phase 5, nâng quy mô từ 29 lên 33 tasks). Toàn bộ hình ảnh thương mại và danh tính đại sứ được xử lý độc lập trên cụm GPU riêng qua HTTP Adapter, loại bỏ hoàn toàn phụ thuộc vào Cloud API bên thứ 3 (Stability AI). Phân bổ nhân sự: Lộc (Backend/Client Adapter/Dynamic Loader/Studio), Ân (Prompt/Safety/Dataset/Catalog), Tuấn (GPU Serving/Identity LoRA/IP-Adapter/Checkpoint).
 
 | Task ID | Description | Assignee | Priority |
 | :--- | :--- | :--- | :--- |
@@ -656,6 +656,12 @@
 | [DA-AI06-31](#da-ai06-31--brand-ambassador-model-sheet-presets-ngoc-chau-22--storage-catalog) | Brand Ambassador Model Sheet Presets (Ngọc Châu 22) & Storage Catalog | Ân & Lộc | 🟡 High |
 | [DA-AI06-32](#da-ai06-32--seamless-1-click-storyboards-ui--zero-cutout-routing) | Seamless 1-Click Storyboards UI & Zero-Cutout Routing | Lộc (Sub-lead) | 🔴 Critical |
 | [DA-AI06-33](#da-ai06-33--e2e-integration-testing--character-consistency-benchmarks) | E2E Integration Testing & Character Consistency Benchmarks | Lộc, Tuấn, Ân | 🔴 Critical |
+| **Phase 6: FLUX.2 Native Multi-Reference Commercial Studio & Async Pipeline Migration** | | | |
+| [DA-AI06-34](#da-ai06-34--research-flux2-production-hardware--runtime-decision) | [DA-1250](https://letritrung2605.atlassian.net/browse/DA-1250) — Research FLUX.2 Production Hardware & Runtime Decision | Lộc (AI Sub-lead) | 🔴 Critical |
+| [DA-AI06-35](#da-ai06-35--durable-asynchronous-commercial-generation-orchestration) | [DA-1251](https://letritrung2605.atlassian.net/browse/DA-1251) — Durable Asynchronous Commercial Generation Orchestration | Lộc (AI Sub-lead) | 🔴 Critical |
+| [DA-AI06-36](#da-ai06-36--flux2-private-gpu-worker-idempotency--failure-recovery) | [DA-1252](https://letritrung2605.atlassian.net/browse/DA-1252) — FLUX.2 Private GPU Worker, Idempotency & Failure Recovery | Lộc (AI Sub-lead) | 🔴 Critical |
+| [DA-AI06-37](#da-ai06-37--commercial-studio-gateway-authentication--async-ui-contract) | [DA-1253](https://letritrung2605.atlassian.net/browse/DA-1253) — Commercial Studio Gateway Authentication & Async UI Contract | Lộc (AI Sub-lead) | 🟡 High |
+| [DA-AI06-38](#da-ai06-38--flux2-benchmark-canary-cutover--legacy-retirement) | [DA-1254](https://letritrung2605.atlassian.net/browse/DA-1254) — FLUX.2 Benchmark, Canary, Cutover & Legacy Retirement | Lộc (AI Sub-lead) | 🟡 High |
 
 ### EPIC AI-07 — Virtual Brand Ambassador (SDXL + Identity LoRA + DWPose ControlNet) 🔀
 
@@ -7652,6 +7658,111 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 - Sử dụng InsightFace buffalo_l để tự động tính toán cosine similarity score giữa khuôn mặt sinh ra và Model Sheet gốc.
 
 **Dependencies:** Blocked by: DA-AI06-30, DA-AI06-31, DA-AI06-32.
+
+---
+
+### DA-AI06-34 — Research FLUX.2 Production Hardware & Runtime Decision
+
+**Jira Key:** [`DA-1250`](https://letritrung2605.atlassian.net/browse/DA-1250) | **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Nghiên cứu, đánh giá và chốt quyết định kiến trúc mô hình FLUX.2 Klein 4B thay thế SDXL IP-Adapter + 2D sticker compositing; đối soát yêu cầu phần cứng (BF16, peak 11.8GB VRAM) trên RTX 5880 Ada, Kaggle Dual T4 và Cloud GPU.
+
+**Acceptance Criteria:**
+
+- [ ] Hoàn tất tài liệu đặc tả kiến trúc SRS Commercial Studio v2 (`docs/SRS_COMMERCIAL_IMAGE_GENERATION_v2.md`) với luồng Native Multi-Reference (2 ảnh tham chiếu: product index 0, ambassador index 1).
+- [ ] Báo cáo đánh giá tương thích phần cứng: khẳng định BF16 native bắt buộc, phân tích hạn chế sm_75/sm_60 (T4/P100), xác lập SLA latency sub-second (< 1.5s trên RTX 5880 Ada).
+- [ ] Xác nhận tính khả thi pháp lý thương mại hóa qua giấy phép mở Apache 2.0 của FLUX.2 Klein 4B (loại bỏ Klein 9B và FLUX.2-dev vì non-commercial).
+
+**Technical Notes:**
+
+- FLUX.2 Klein 4B sử dụng kiến trúc DiT (Diffusion Transformer) với text encoder Qwen2.5 7B.
+- Yêu cầu GPU hỗ trợ native bfloat16 (tối ưu nhất trên Ada Lovelace / Ampere).
+
+**Dependencies:** Blocks: DA-AI06-35, DA-AI06-36. Blocked by: DA-AI06-05.
+
+---
+
+### DA-AI06-35 — Durable Asynchronous Commercial Generation Orchestration
+
+**Jira Key:** [`DA-1251`](https://letritrung2605.atlassian.net/browse/DA-1251) | **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Thiết kế và hiện thực hóa cơ chế điều phối sinh ảnh thương mại bất đồng bộ bền vững (Durable Async Orchestration) qua Redis State Machine, hỗ trợ polling tiến độ và giải phóng bộ nhớ process memory.
+
+**Acceptance Criteria:**
+
+- [ ] API endpoint `POST /api/v2/ai/image/commercial/generate` hỗ trợ async submission trả về `generation_id` ngay lập tức hoặc synchronous execution theo flag client.
+- [ ] Lưu trữ trạng thái `CommercialGenerationState` (PENDING, PROCESSING, COMPLETED, FAILED) vào Redis với TTL 24h thay cho biến in-memory dictionary.
+- [ ] Endpoint `GET /api/v2/ai/image/commercial/generations/{generation_id}` trả về metadata, URL và telemetry ổn định giữa nhiều uvicorn workers.
+
+**Technical Notes:**
+
+- State machine chuyển dịch: `SUBMITTED` → `DISPATCHED` → `RUNNING` → `COMPLETED` / `FAILED`.
+- Tự động hủy job và hoàn trả quota nếu timeout vượt quá 120s.
+
+**Dependencies:** Blocks: DA-AI06-37. Blocked by: DA-AI06-34.
+
+---
+
+### DA-AI06-36 — FLUX.2 Private GPU Worker, Idempotency & Failure Recovery
+
+**Jira Key:** [`DA-1252`](https://letritrung2605.atlassian.net/browse/DA-1252) | **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Hoàn thiện worker GPU chuyên dụng (`flux2_commercial_worker.py`) với cơ chế xác thực Bearer token, thread safety lock, khử non-finite tensor (NaN guard) và tự phục hồi sau lỗi OOM.
+
+**Acceptance Criteria:**
+
+- [ ] Worker khởi chạy trên cổng 8001, tự động nạp `flux.2-klein-4b` và `ae.safetensors` một lần duy nhất vào CUDA BF16.
+- [ ] Cơ chế `_require_finite` ngăn ngừa 100% rủi ro sinh ảnh đen hoặc NaN.
+- [ ] Bắt lỗi `torch.cuda.OutOfMemoryError` trả HTTP 500 kèm chuỗi chuẩn `CUDA out of memory` để client kích hoạt xử lý khôi phục bộ nhớ.
+- [ ] Hỗ trợ đầy đủ các bucket thương mại: 1024x1024, 896x1120, 576x1024 (`MAX_OUTPUT_PIXELS = 1048576`).
+
+**Technical Notes:**
+
+- Tích hợp asyncio semaphore / threading lock bảo đảm worker chỉ xử lý 1 request GPU tại một thời điểm.
+- In-memory VRAM garbage collection (`torch.cuda.empty_cache()`) sau mỗi generation.
+
+**Dependencies:** Blocks: DA-AI06-38. Blocked by: DA-AI06-34.
+
+---
+
+### DA-AI06-37 — Commercial Studio Gateway Authentication & Async UI Contract
+
+**Jira Key:** [`DA-1253`](https://letritrung2605.atlassian.net/browse/DA-1253) | **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
+
+**Goal:** Tích hợp xác thực dịch vụ `X-Internal-Key`, chuẩn hóa contract Async UI giữa Web Studio frontend và Gateway API v2, loại bỏ hoàn toàn các trường dữ liệu 2D canvas transform cũ.
+
+**Acceptance Criteria:**
+
+- [ ] Gateway route `/api/v2/ai/image/commercial/generate` chặn 100% request thiếu hoặc sai `X-Internal-Key` (HTTP 401).
+- [ ] Prompt safety guardrail chặn từ khóa vi phạm chính sách trả HTTP 400 `policy_violation`.
+- [ ] Web Studio (`studio.html`) gọi endpoint v2, hỗ trợ hiển thị trạng thái sinh ảnh, telemetry (latency, VRAM, model preset Ngọc Châu) và hiển thị ảnh trực tiếp.
+
+**Technical Notes:**
+
+- Contract đơn giản hóa: chỉ nhận `prompt`, `aspect_ratio`, `ambassador_id`, `product_image`. Toàn bộ tính toán ánh sáng và vị trí do FLUX.2 tự động xử lý.
+
+**Dependencies:** Blocks: DA-AI06-38. Blocked by: DA-AI06-35, DA-AI06-36.
+
+---
+
+### DA-AI06-38 — FLUX.2 Benchmark, Canary, Cutover & Legacy Retirement
+
+**Jira Key:** [`DA-1254`](https://letritrung2605.atlassian.net/browse/DA-1254) | **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🟡 High
+
+**Goal:** Thực thi bộ kiểm thử benchmark định lượng 20 kịch bản thương mại (`commercial_20_prompts.json`), triển khai canary testing, cutover chính thức sang FLUX.2 v2 và decommission các pipeline SDXL 2D sticker cũ.
+
+**Acceptance Criteria:**
+
+- [ ] Benchmark 20 prompts đạt 100% success rate, p95 latency < 2.5s, không phát sinh CUDA OOM.
+- [ ] Đánh giá chất lượng: triệt tiêu hoàn toàn lỗi z-order ("thỏi son đè đầu người mẫu") và lỗi viền răng cưa 2D sticker.
+- [ ] Chuyển 100% traffic Web Studio sang API v2.
+- [ ] Dọn dẹp/lưu trữ an toàn các mã nguồn thừa của SDXL 2D compositing.
+
+**Technical Notes:**
+
+- Quy trình Canary: 10% traffic → 50% traffic → 100% cutover sau khi đối soát Face Similarity ≥ 0.85 và CLIP score.
+
+**Dependencies:** Blocks: None. Blocked by: DA-AI06-36, DA-AI06-37.
 
 ---
 
