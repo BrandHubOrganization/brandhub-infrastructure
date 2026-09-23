@@ -2,7 +2,7 @@
 
 > Tracking file: mỗi task/epic được đẩy lên Jira sẽ được tick ✅.
 > Format: `- [x] DA-XXX-XX — [Jira Key](URL) — Description`
-> **Tổng:** 54 Epics | 274 Tasks | Tất cả đã upload lên Jira
+> **Tổng:** 54 Epics | 279 Tasks | Tất cả đã upload lên Jira
 
 ---
 
@@ -316,6 +316,11 @@
 - [x] `DA-AI06-03` — [DA-255](https://letritrung2605.atlassian.net/browse/DA-255) — Implement batch generation (tao 3 variations cung luc de user chon) _(Assignee: Lộc (Frontend) | 🟡 High)_
 - [x] `DA-AI06-04` — [DA-270](https://letritrung2605.atlassian.net/browse/DA-270) — Brand safety filter (negative prompts mac dinh tranh content khong phu hop) _(Assignee: Lộc (Frontend) | 🔴 Critical)_
 - [x] `DA-AI06-05` — [DA-281](https://letritrung2605.atlassian.net/browse/DA-281) — Test 20 product prompts thuc te, danh gia chat luong va thoi gian generate _(Assignee: Lộc (Frontend) | 🟡 High)_
+- [x] `DA-AI06-34` — [DA-1250](https://letritrung2605.atlassian.net/browse/DA-1250) — Research FLUX.2 Production Hardware & Runtime Decision _(Assignee: Lộc (AI Sub-lead) | 🔴 Critical)_
+- [x] `DA-AI06-35` — [DA-1251](https://letritrung2605.atlassian.net/browse/DA-1251) — Durable Asynchronous Commercial Generation Orchestration _(Assignee: Lộc (AI Sub-lead) | 🔴 Critical)_
+- [x] `DA-AI06-36` — [DA-1252](https://letritrung2605.atlassian.net/browse/DA-1252) — FLUX.2 Private GPU Worker, Idempotency & Failure Recovery _(Assignee: Lộc (AI Sub-lead) | 🔴 Critical)_
+- [x] `DA-AI06-37` — [DA-1253](https://letritrung2605.atlassian.net/browse/DA-1253) — Commercial Studio Gateway Authentication & Async UI Contract _(Assignee: Lộc (AI Sub-lead) | 🟡 High)_
+- [x] `DA-AI06-38` — [DA-1254](https://letritrung2605.atlassian.net/browse/DA-1254) — FLUX.2 Benchmark, Canary, Cutover & Legacy Retirement _(Assignee: Lộc (AI Sub-lead) | 🟡 High)_
 
 ### EPIC AI-07 — [DA-99](https://letritrung2605.atlassian.net/browse/DA-99) — Virtual Brand Ambassador (InstantID)
 
