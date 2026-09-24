@@ -148,7 +148,7 @@ docker compose --env-file compose/.env -f compose/production/compose.yaml restar
 ## Database Initialization
 
 - **PostgreSQL**: `scripts/init-postgres.sql` creates 15 tables (V1) and seeds 4 plans (FREE/BASIC/PRO/ENTERPRISE).
-- **MongoDB**: `scripts/init-mongo.js` creates 12 collections (V1) with schema validators and indexes — run manually against the Atlas cluster, not auto-applied at container init.
+- **MongoDB**: `docs/database/init-mongo.js` creates 12 collections (V1) with schema validators and indexes — run manually against the Atlas cluster, not auto-applied at container init.
 
 ## Volumes
 
