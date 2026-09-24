@@ -1,79 +1,74 @@
-# UC — Update Client Profile
+# 3.3.4 Update Client Profile
 
-| | |
-|---|---|
-| FR Code | 3.3.4 |
-| Feature | Update Client Profile |
-| Domain | Profile (FR 3.3) |
-| Role | USER |
-| Version | 2.1 (sync với code thật, 2026-09-23) |
-| Trạng thái tài liệu | Đã code — spec khớp `ClientProfileController`/`ClientProfileServiceImpl` |
+## Function Trigger
 
-## 1. Objective
+Begins when a user acting as a Client saves edits to their Client Profile form in the context of a specific Agency.
 
-Cho phép cập nhật Client Profile, nhưng KHÔNG cho đổi email — email là khóa định danh cố định, lấy từ `User`/authStore, không lưu trên ClientProfile.
+## Function Description
 
-## 2. User Story
+- **Actors / Roles:** A user acting as a Client in a workspace of an Agency; the update applies only to the Agency currently in context.
+- **Purpose:** Let a Client keep the information one Agency sees up to date. The email address cannot be changed — it is the fixed identity of the user and is not held on the Client Profile. Keeping it fixed lets the Agency always identify the Client correctly.
+- **Interface:** The Client Profile screen (3.3.3) in edit mode, scoped to the Agency currently in context. Editable fields: display name (required), company, phone number, note, logo, website, industry, location, description, and social links. There is no email field in the form. Saving submits an update of the Client Profile for the current Agency.
+- **Data Processing:** The system resolves the caller's identity from the access token only, looks up the Client Profile by the pair (user, agency), creates it when absent (upsert), writes the complete submitted field set over the record, stamps the update time, and persists. The same record backs every workspace of that Agency, so a change is visible in all of them at once.
 
-Là một User đóng vai trò Client,
-tôi muốn cập nhật thông tin Client Profile của mình (trong phạm vi 1 Agency cụ thể),
-nhưng email của tôi phải giữ cố định để Agency luôn nhận diện đúng tôi.
+## Screen Layout
 
-## 3. Acceptance Criteria
+Figure — Client Profile Screen (`/client-profile`, edit mode, Agency context):
 
-- Form cho sửa: `displayName` (bắt buộc), `company`, `phone`, `note`, `logoUrl`, `website`, `industry`, `location`, `description`, `socialLinks`.
-- **KHÔNG có field email trong form/DTO** — `ClientProfileRequest` không có field này nên không thể gửi email qua FR này (không phải BE chặn bằng error code riêng, mà DTO không có chỗ chứa).
-- Mỗi lần cập nhật gắn với 1 `agencyId` cụ thể (khoá theo cặp `userId` + `agencyId`) — sửa Client Profile ở Agency A không ảnh hưởng bản ghi ở Agency B.
-- Lưu thành công → cập nhật đồng bộ hiển thị ở TẤT CẢ Workspace **cùng 1 Agency** đang dùng chung bản ghi `ClientProfile(userId, agencyId)` đó.
-- Endpoint là **upsert**: nếu chưa có `ClientProfile` cho cặp `(userId, agencyId)` này, BE tự tạo mới thay vì trả lỗi 404. ClientProfile được tạo lần đầu qua accept-invitation HOẶC qua lần đầu gọi update (upsert) — cả 2 đường đều hợp lệ.
-- Full-overwrite: mỗi lần gọi phải gửi đủ field cần giữ, field không gửi bị ghi `null` (không phải partial-patch).
+- Header: page title "Client Profile" and the Agency currently in context.
+- Center: the Client Profile card in edit mode — display name input (required), and company, phone number, note, logo, website, industry, location, description, and social links inputs.
+- Buttons: Save (primary) — submits the update; Cancel — discards the changes.
+- Footer: none.
+- No email field is present in the form.
 
-## 4. UI / UX
+## Function Details
 
-- Form edit trong trang Client Profile (FR 3.3.3), FE lấy `agencyId` hiện tại từ URL query.
+### Data Specifications
 
-## 5. API Contract
+- **Input required:** `displayName`; and the Agency identifier.
+- **Input optional:** `company`, `phone`, `note`, `logoUrl`, `website`, `industry`, `location`, `description`, `socialLinks`.
+- **System data:** `client_profiles`, keyed by the pair (userId, agencyId) — `id`, `userId`, `agencyId`, `displayName`, `company`, `phone`, `note`, `logoUrl`, `website`, `industry`, `location`, `description`, `socialLinks`, `createdAt`, `updatedAt`.
+- **Output:** The complete Client Profile field set after the record is created or updated.
 
-```
-PUT /api/v1/client-profile/me?agencyId={agencyId}
-Authorization: Bearer <access-token>
-{
-  "displayName": "string",
-  "company"?: "string", "phone"?: "string", "note"?: "string",
-  "logoUrl"?: "string", "website"?: "string", "industry"?: "string",
-  "location"?: "string", "description"?: "string",
-  "socialLinks"?: { "linkedin"?: "string", "facebook"?: "string", ... }
-}
-→ 200 { "success": true, "data": {
-    "id", "userId", "agencyId", "displayName", "company", "phone", "note",
-    "logoUrl", "website", "industry", "location", "description", "socialLinks",
-    "createdAt", "updatedAt"
-  } }
-```
+### Business Rules
 
-`agencyId` là query param bắt buộc.
+- **BR-01:** The action is an upsert — when no Client Profile exists for the (user, agency) pair, the system creates one instead of returning 404. A Client Profile is therefore created either when a Client invitation is accepted or on the first update for that Agency; both paths are valid.
+- **BR-02:** The update is a full overwrite, not a partial patch — every call must submit all fields that should be kept, because fields left out are written as empty.
+- **BR-03:** The update always applies to a single Agency; editing the Client Profile for Agency A does not affect the record held for Agency B.
+- **BR-04:** The update request carries no email field, so an email address cannot be submitted through this action. There is no dedicated error code for this case — it is structurally impossible rather than explicitly rejected.
+- **BR-05:** Because every workspace of the same Agency reads the same (user, agency) record, a successful update is reflected immediately in all workspaces of that Agency, with no manual synchronization.
+- **BR-06:** `displayName` is mandatory and must not be blank.
 
-## 6. Error Handling
+### Validation
 
-- `displayName` trống/blank → 400 `VALIDATION_ERROR`.
-- Thiếu query param `agencyId` → 400 `VALIDATION_ERROR`.
-- Token hết hạn/không hợp lệ → 401 `UNAUTHORIZED`.
-- **Ghi chú:** DTO (`ClientProfileRequest`) không có field `email` nên không thể gửi email qua endpoint này — không có `ErrorCode` riêng cho trường hợp này (`EMAIL_UPDATE_NOT_ALLOWED` không tồn tại trong `ErrorCode.java`).
+- `displayName` empty or blank → 400 `VALIDATION_ERROR`.
+- Missing Agency identifier → 400 `VALIDATION_ERROR`.
+- Missing, expired, or invalid access token → 401 `UNAUTHORIZED`.
 
-## 7. Edge Cases
+## Functionalities
 
-- Client cập nhật `displayName` khi đang có task đang chờ duyệt ở nhiều Workspace cùng Agency → tên hiển thị mới áp dụng ngay cho tất cả Workspace cùng Agency đó, không cần đồng bộ thủ công từng nơi.
-- Gọi update lần đầu cho 1 `agencyId` chưa từng có ClientProfile → tự tạo mới (upsert), không lỗi 404.
+### Normal Flow
 
-## 8. Definition of Done
+1. The user edits the Client Profile form in the context of the current Agency and clicks Save.
+2. The application submits the complete set of Client Profile fields that should be kept.
+3. The system resolves the caller's identity from the access token.
+4. The system looks up the Client Profile by the pair (user, agency).
+5. When the record exists it is updated; when it does not, the system creates it (BR-01).
+6. The system writes the submitted fields over the record (BR-02) and stamps the update time.
+7. The system persists the record and returns the complete Client Profile field set.
+8. The application confirms success and refreshes the display immediately; because all workspaces of the Agency share this record, the new values appear everywhere in that Agency at once (BR-05).
 
-- Update thành công mọi field trừ email (verify: DTO không có field email nên không thể gửi).
-- Upsert hoạt động đúng: tạo mới khi chưa có, update khi đã có, đều qua cùng `PUT /me?agencyId=...`.
+### Abnormal Cases
 
-## Out of Scope
+- `displayName` empty or blank → 400 `VALIDATION_ERROR`.
+- Missing Agency identifier → 400 `VALIDATION_ERROR`.
+- Missing, expired, or invalid access token → 401 `UNAUTHORIZED`.
+- First update for an Agency that has no Client Profile yet → the record is created (upsert), not a 404.
+- The Client updates their display name while tasks are pending approval in several workspaces of the same Agency → the new name applies immediately everywhere in that Agency, without manual synchronization (BR-05).
+- An email address is submitted → it cannot be carried by the update request, so it is never applied (BR-04).
 
-- Đổi email Client Profile (không có field email trong DTO, không nằm trong phạm vi FR này).
+## Post-Conditions
 
-## Tham chiếu BA
-
-[02-authentication-profile.md](../../../BA/02-authentication-profile.md)
+- A Client Profile exists for the (user, agency) pair and holds exactly the submitted field values; fields left out are empty (BR-02).
+- The updated values are visible in every workspace of the same Agency.
+- Records belonging to other Agencies are unchanged.

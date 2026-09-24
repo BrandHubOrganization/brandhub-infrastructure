@@ -1,64 +1,67 @@
 # Sequence Flow — Reset Password
 
-> Bổ sung cho `spec.md` (FR 3.2.4). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
->
-> Cập nhật: 2026-09-23. Khớp code thật tại thời điểm này (`AuthController`, `AuthServiceImpl.forgotPassword/resetPassword`), bao gồm cơ chế reverse-index mới để tự động invalidate token reset cũ.
+> Companion to `spec.md` (3.2.4). Lists each actor → action → system step in enough detail to draw the sequence diagram directly; the business description lives in `spec.md`.
 
 ## Actors
 
-- **User** — quên mật khẩu.
-- **FE** — brandhub-web-dashboard.
-- **BE** — brandhub-business-service.
-- **DB** — Redis (`pwd:reset:{token}` → userId; `pwd:reset:user:{userId}` → token hiện hành, TTL = `appProperties.passwordResetTtlSeconds`), PostgreSQL (`users`).
-- **Mail** — SMTP, gửi link reset.
+- **User** — has forgotten the password and cannot sign in.
+- **Client** — the application the user interacts with.
+- **System** — the application server.
+- **Database** — persistent store holding accounts.
+- **Token store** — short-lived state holding the reset token and the most recent token issued per account.
+- **Mail** — outbound email used to deliver the reset link.
 
 ---
 
-## Flow A — Quên mật khẩu → nhận link → đặt lại thành công
+## Flow A — Forgot password → link received → reset successful
 
-1. User → FE: mở `/forgot-password`, nhập `email`.
-2. FE → BE: `POST /api/v1/auth/forgot-password {email}`.
-3. BE (`forgotPassword`):
-   a. Tìm `User` theo email chuẩn hóa (lowercase+trim) — **không tìm thấy → return ngay, vẫn coi như thành công** (không tiết lộ email tồn tại hay không).
-   b. Có user → `GET pwd:reset:user:{userId}` từ Redis lấy `oldToken` (nếu có).
-   c. Nếu có `oldToken` → `DELETE pwd:reset:{oldToken}` (vô hiệu hoá token reset cũ ngay lập tức).
-   d. Sinh `token` mới random 32 byte hex (64 ký tự hex, `SecureRandom`).
-   e. `SET pwd:reset:{token} = userId` vào Redis, TTL = `passwordResetTtlSeconds`.
-   f. `SET pwd:reset:user:{userId} = token` vào Redis, cùng TTL (reverse-index, ghi đè giá trị cũ).
-   g. Gửi mail chứa link reset kèm token.
-4. BE → FE: `200 { success: true, data: null }` — **luôn 200 dù email có tồn tại hay không**.
-5. FE: hiện thông báo "nếu email tồn tại, bạn sẽ nhận được link" (generic message, không xác nhận email có hay không).
-6. User → click link email → FE mở `/reset-password?token=X`.
-7. User: nhập `newPassword`, `confirmPassword` (validate confirm khớp ở FE).
-8. FE → BE: `POST /api/v1/auth/reset-password {token, newPassword}`.
-9. BE (`resetPassword`):
-   a. `GET pwd:reset:{token}` từ Redis — không có → `400 RESET_TOKEN_INVALID`.
-   b. `DELETE pwd:reset:{token}` (atomic, tránh dùng lại) — nếu `delete` trả về false (race condition, token vừa bị xóa bởi request khác) → `400 RESET_TOKEN_USED`.
-   c. Tìm `User` theo userId lấy từ token — không có (data lỗi) → `400 RESET_TOKEN_INVALID`.
-   d. `DELETE pwd:reset:user:{userId}` (dọn dẹp reverse-index — token đã dùng xong).
-   e. `UPDATE users SET passwordHash=bcrypt(newPassword), lastPasswordChange=now`.
-   f. `INSERT audit_logs (PASSWORD_RESET)`.
-10. BE → FE: `200 { success: true, data: null }`.
-11. FE: toast thành công, điều hướng `/login`.
-    - **Hệ quả ngầm định**: mọi `refreshToken` cũ phát hành trước `lastPasswordChange` bị vô hiệu — không phải do revoke thủ công từng token, mà vì `AuthServiceImpl.refresh` so sánh `claims.getIssuedAt()` với `user.getLastPasswordChange()`, token cũ hơn → `401 REFRESH_TOKEN_INVALID` khi user cố dùng lại.
+1. User → Client: opens /forgot-password and enters the email address.
+2. Client → System: submits the password reset request.
+3. System:
+   a. Looks the account up by the normalized email address; when nothing matches it returns immediately and treats the request as successful, so the answer never reveals whether the account exists.
+   b. When an account matches, reads the most recent reset token issued for it, if any.
+   c. When an earlier token exists, invalidates it immediately.
+   d. Generates a new single-use token with a limited lifetime.
+   e. Stores the token against the account, and stores the token as the most recent one for that account, both with the same lifetime.
+   f. Sends the email carrying the reset link with the token.
+4. System → Client: 200 with no data, always, whether or not the email address exists.
+5. Client: shows a generic message stating that a link will arrive if the address exists.
+6. User → Client: opens the link from the email and lands on the reset screen with the token.
+7. User: enters the new password and the confirmation, which the screen validates before submission.
+8. Client → System: submits the reset with the token and the new password.
+9. System:
+   a. Reads the token: unknown or expired → 400 RESET_TOKEN_INVALID.
+   b. Consumes the token atomically; when the token was already consumed by a concurrent request → 400 RESET_TOKEN_USED.
+   c. Loads the account referenced by the token: missing → 400 RESET_TOKEN_INVALID.
+   d. Clears the record of the most recent token for the account.
+   e. Replaces the password hash and updates the last password change time.
+   f. Records the password change event.
+10. System → Client: 200 with no data.
+11. Client: shows a success message and returns to /login.
+    - Consequence: every refresh token issued before the last password change time is refused on its next use, because a refresh compares the issue time of the token with the last password change time of the account, giving 401 REFRESH_TOKEN_INVALID.
 
-## Flow B — Request forgot-password nhiều lần liên tiếp (token cũ tự invalidate)
+## Flow B — Repeated forgot-password requests supersede the earlier token
 
-1. User → FE → BE: `POST /forgot-password {email}` (lần 1) → BE sinh `token1`, lưu `pwd:reset:token1=userId` + `pwd:reset:user:{userId}=token1` (TTL). → `200`.
-2. User → FE → BE: `POST /forgot-password {email}` (lần 2, cùng email, trước khi dùng `token1`):
-   a. BE đọc `pwd:reset:user:{userId}` → thấy `token1` → `DELETE pwd:reset:token1` ngay.
-   b. Sinh `token2`, lưu `pwd:reset:token2=userId` + `pwd:reset:user:{userId}=token2` (ghi đè). → `200`.
-3. User dùng `token1` (từ email đầu, đã bị vô hiệu) để reset → `GET pwd:reset:token1` → không có (đã bị xoá ở bước 2a) → `400 RESET_TOKEN_INVALID` (ngay cả khi TTL gốc của `token1` chưa hết).
-4. User dùng `token2` (mới nhất) để reset → hợp lệ → theo Flow A bước 9 → `200`, reset thành công.
+1. User → Client → System: submits the request a first time. The system issues a first token, stores it against the account and records it as the most recent token for that account, both with the same lifetime, and returns 200.
+2. User → Client → System: submits the request a second time for the same address before the first token is used.
+   a. The system reads the most recent token for the account, finds the first token and invalidates it immediately.
+   b. The system issues a second token and records it as the most recent one, replacing the first, and returns 200.
+3. User presents the first token, which has been invalidated → the token is unknown → 400 RESET_TOKEN_INVALID, even though its original lifetime has not elapsed.
+4. User presents the second token → it is valid → the reset proceeds as Flow A step 9 and returns 200.
 
 ---
 
-## Error paths tổng hợp (dùng cho sequence "alt"/"opt" fragments)
+## Error paths summary (for "alt"/"opt" fragments)
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | HTTP | Error code |
 |---|---|---|---|
-| Forgot password | Email không tồn tại | 200 | — (im lặng, không lỗi) |
-| Reset password | Token không tồn tại/hết hạn/đã bị invalidate bởi request forgot-password mới hơn | 400 | `RESET_TOKEN_INVALID` |
-| Reset password | Token vừa bị dùng/xóa (race condition, 2 request reset cùng lúc) | 400 | `RESET_TOKEN_USED` |
-| Reset password | userId lấy từ token không map ra User (data lỗi) | 400 | `RESET_TOKEN_INVALID` |
-| Reset password | `newPassword` không đủ mạnh | 400 | `VALIDATION_ERROR` |
+| Forgot password | The email address does not exist | 200 | — (silent, no error) |
+| Reset password | The token is unknown, expired, or superseded by a newer request | 400 | `RESET_TOKEN_INVALID` |
+| Reset password | The token was just consumed, including two simultaneous requests | 400 | `RESET_TOKEN_USED` |
+| Reset password | The account referenced by the token no longer exists | 400 | `RESET_TOKEN_INVALID` |
+| Reset password | The new password does not meet the policy | 400 | `VALIDATION_ERROR` |
+
+## Notes
+
+- Only the most recent reset token per account is accepted, so a newer request immediately disables an earlier link.
+- The request step is deliberately silent: the same answer is returned for known and unknown addresses, which prevents discovering whether an account exists.

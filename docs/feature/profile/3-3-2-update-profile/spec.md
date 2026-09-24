@@ -1,73 +1,79 @@
-# UC — Update Profile
+# 3.3.2 Update Profile
 
-| | |
-|---|---|
-| FR Code | 3.3.2 |
-| Feature | Update Profile |
-| Domain | Profile (FR 3.3) |
-| Role | USER |
-| Version | 2.1 (sync với code thật, 2026-09-23) |
-| Trạng thái tài liệu | Đã code — spec khớp `UserController`/`UserServiceImpl` |
+## Function Trigger
 
-## 1. Objective
+Begins when a signed-in user saves edits to their profile fields on `/settings/profile`, or selects a new avatar image in the avatar upload dialog.
 
-Cho phép User cập nhật thông tin cá nhân. Gộp thành 1 FR duy nhất 'Update Profile' (theo ghi chú gốc CSV, không tách View riêng khỏi hành động Update ở tầng đặt tên FR).
+## Function Description
 
-## 2. User Story
+- **Actors / Roles:** Any authenticated user (role `USER`); a user updates only their own profile.
+- **Purpose:** Let the user keep their personal information accurate — display name, phone number, timezone, notification preferences — and refresh their avatar.
+- **Interface:** The Profile screen at `/settings/profile` in edit mode: an editable full-name field, a phone field, a timezone selector, notification-preference toggles, and a Save button. Saving submits a full update of the signed-in user's own profile (PUT semantics). The avatar is not part of that form — it is changed through a separate image-upload action opened from the avatar upload dialog.
+- **Data Processing:** The system loads the user record, writes the submitted full name and phone number, merges the submitted timezone and notification preferences into the stored preferences data (only fields actually submitted are overwritten; fields left out keep their previous values), persists the record, and returns the updated profile. The avatar upload is handled independently: the file is validated, stored in file storage, the previous avatar file is removed when one exists, and the new avatar reference is saved.
 
-Là một User,
-tôi muốn cập nhật thông tin profile của mình,
-để giữ thông tin cá nhân luôn chính xác.
+## Screen Layout
 
-## 3. Acceptance Criteria
+Figure — Profile Screen (`/settings/profile`, edit mode):
 
-- Form cho sửa: `fullName` (bắt buộc), `phone`, `timezone`, `notificationPreferences` (tất cả trừ `fullName` là optional — chỉ field được gửi mới bị ghi đè, field không gửi giữ nguyên giá trị cũ).
-- **Không cho sửa `email`** ở FR này — `UpdateProfileRequest` không có field `email` nên về mặt cấu trúc không thể gửi qua endpoint này (không phải BE âm thầm ignore).
-- `avatarUrl` **không nằm trong body update này** — đổi avatar qua endpoint multipart riêng `POST /api/v1/users/me/avatar`.
-- Lưu thành công → toast confirm, cập nhật lại UI ngay không cần reload.
-- Avatar upload lưu thật lên S3 qua `POST /api/v1/users/me/avatar` (multipart `file`) — endpoint + `FileStorageService` (S3).
+- Center: the profile card in edit mode — full-name input (required), phone input, timezone selector, notification-preference toggles. Email address and avatar are displayed but are not editable from this form.
+- Buttons: Save (primary) — submits the update; Cancel — discards the changes.
+- Footer: none.
 
-## 4. UI / UX
+Figure — Avatar Upload Dialog:
 
-- Trang `/settings/profile`, form edit inline hoặc modal.
-- Avatar: `AvatarUploadModal` gọi riêng `POST /api/v1/users/me/avatar`, không gộp chung với form fullName/phone/timezone.
+- Center: image file selector and preview of the selected image.
+- Buttons: Upload — submits the selected image; Cancel — closes the dialog without changes.
 
-## 5. API Contract
+## Function Details
 
-```
-PUT /api/v1/users/me
-Authorization: Bearer <access-token>
-{ "fullName": "string", "phone"?: "string", "timezone"?: "string", "notificationPreferences"?: {} }
-→ 200 { "success": true, "data": {
-    "userId", "email", "fullName", "avatarUrl", "phone",
-    "role", "workspaceId", "timezone", "notificationPreferences", "createdAt"
-  } }  // cùng shape với GET /api/v1/users/me
+### Data Specifications
 
-POST /api/v1/users/me/avatar
-Content-Type: multipart/form-data; field "file"
-→ 200 { "success": true, "data": { "avatarUrl": "string" } }
-```
+- **Input required:** `fullName`; and an image file for the avatar upload action.
+- **Input optional:** `phone`, `timezone`, `notificationPreferences`.
+- **System data:** `users` (`fullName`, `phone`, preferences JSON holding the timezone and notification preferences, `avatarUrl`).
+- **Output:** The complete updated profile field set — `userId`, `email`, `fullName`, `avatarUrl`, `phone`, `role`, `workspaceId`, `timezone`, `notificationPreferences`, `createdAt`; the avatar upload returns the new `avatarUrl`.
 
-## 6. Error Handling
+### Business Rules
 
-- `fullName` trống → 400 `VALIDATION_ERROR`.
-- Upload avatar: không có file → 400 `NO_FILE_PROVIDED`; sai content-type (không phải `image/*`) → 400 `INVALID_FILE_TYPE`; quá dung lượng cho phép (> 5MB) → 400 `FILE_TOO_LARGE`; lỗi đọc file (IO) → 400 `UPLOAD_FAILED`.
-- Lỗi serialize `preferences` JSON (hiếm) → 400 `INVALID_REQUEST`.
+- **BR-01:** The update request carries no email field and no avatar field, so neither can be submitted through this action — this is structural (there is no place to carry them), not a silent discard by the system. Changing the email address is out of scope for this feature.
+- **BR-02:** Only the fields actually submitted (non-empty) are overwritten inside the stored preferences data; fields left out keep their previous values.
+- **BR-03:** The avatar upload accepts image files only, up to 5 MB.
+- **BR-04:** When a new avatar is uploaded successfully, the previous avatar file in file storage is deleted.
+- **BR-05:** Removing the avatar (setting it to none) is a valid action and results in the default initials avatar, not an error.
+- **BR-06:** The avatar upload is independent of the profile field update; one failing does not roll back or block the other.
 
-## 7. Edge Cases
+### Validation
 
-- User xóa avatar (set null) → trả về avatar mặc định (initials), không lỗi.
-- Upload avatar mới khi đã có avatar cũ → BE xoá file cũ trên S3 sau khi upload file mới thành công.
+- `fullName` empty or blank → 400 `VALIDATION_ERROR`.
+- The preferences data cannot be serialized (rare) → 400 `INVALID_REQUEST`.
+- Avatar upload: no file provided → 400 `NO_FILE_PROVIDED`; the content type is not an image → 400 `INVALID_FILE_TYPE`; the file exceeds 5 MB → 400 `FILE_TOO_LARGE`; the file cannot be read → 400 `UPLOAD_FAILED`.
+- Missing, expired, or invalid access token → 401 `UNAUTHORIZED`.
+- The user record no longer exists (theoretical) → 404 `USER_NOT_FOUND`.
 
-## 8. Definition of Done
+## Functionalities
 
-- Update text field (fullName/phone/timezone/notificationPreferences) qua `PUT /me` thành công, không cho sửa email (verify bằng test: DTO không có field email nên không thể gửi).
-- Upload avatar qua `POST /me/avatar` thành công, độc lập với `PUT /me`.
+### Normal Flow
 
-## Out of Scope
+1. The user edits the form on `/settings/profile` and clicks Save.
+2. The application submits the changed profile fields.
+3. The system loads the user record and writes the submitted full name and phone number.
+4. The system merges the submitted timezone and notification preferences into the stored preferences data, overwriting only the fields submitted (BR-02).
+5. The system persists the record and returns the complete updated profile.
+6. The application shows a success confirmation and refreshes the displayed profile immediately, without a page reload.
+7. Separately, the user selects an image in the avatar upload dialog and submits it.
+8. The system validates the file (BR-03), stores it, deletes the previous avatar file when one exists (BR-04), saves the new avatar reference, and returns the new avatar value.
 
-- Đổi email (cần luồng xác thực riêng, không có trong CSV).
+### Abnormal Cases
 
-## Tham chiếu BA
+- `fullName` empty or blank → 400 `VALIDATION_ERROR`; the form stays open with the error shown.
+- Avatar upload with no file, a non-image type, a file over 5 MB, or an unreadable file → 400 `NO_FILE_PROVIDED` / `INVALID_FILE_TYPE` / `FILE_TOO_LARGE` / `UPLOAD_FAILED`.
+- Preferences data cannot be serialized → 400 `INVALID_REQUEST`.
+- User record no longer exists → 404 `USER_NOT_FOUND`.
+- Missing, expired, or invalid access token → 401 `UNAUTHORIZED`.
+- The avatar is removed instead of replaced → the default initials avatar is shown, with no error (BR-05).
 
-[02-authentication-profile.md](../../../BA/02-authentication-profile.md)
+## Post-Conditions
+
+- `fullName`, `phone`, `timezone`, and `notificationPreferences` hold the submitted values; fields left out of the request keep their previous values.
+- The avatar reference reflects the most recent successful upload, or the default initials avatar when the avatar was removed.
+- The avatar is stored independently of the profile field update.

@@ -1,47 +1,48 @@
 # Sequence Flow — Delete Workspace
 
-> FR 3.4.15 — **chưa implement, không có sequence thật.**
+> FR 3.4.15 — **proposed, not yet implemented: there is no real sequence to describe.**
 >
-> Cập nhật: 2026-09-23.
+> Updated: 2026-09-23.
 
-## Tình trạng code thật
+## Implementation status
 
-- `WorkspaceController` **không có** `DELETE /api/v1/workspaces/{id}` hay `POST /api/v1/workspaces/{id}/restore`.
-- `WorkspaceServiceImpl` không có method `deleteWorkspace`/`restoreWorkspace` nào.
-- `Workspace` entity có sẵn field `status` (`EntityStatus`) và `deletedAt`, nhưng **chưa có service/API nào dùng các field này cho soft-delete** — hiện tại các field này không được set bởi bất kỳ flow nào trong `WorkspaceServiceImpl`.
-- Không có sequence flow thật để mô tả — toàn bộ nội dung dưới đây là luồng dự kiến theo `spec.md`, chưa xác nhận kỹ thuật.
+- No delete or restore action exists for a Workspace.
+- The Workspace record already carries a status field and a deletion timestamp, but no handling currently writes to them for soft deletion.
+- There is therefore no implemented sequence to document. Every step below is an anticipated flow taken from `spec.md`, not yet confirmed technically and not yet built.
 
-## Actors (dự kiến)
+## Actors (anticipated)
 
-- **Owner** — Agency Owner (chưa xác nhận cấp quyền chính xác — xem ghi chú spec.md).
-- **FE** — brandhub-web-dashboard.
-- **BE** — brandhub-business-service (chưa có endpoint).
-- **DB** — PostgreSQL (`workspaces.status`, `workspaces.deletedAt`).
+- **Client** — the Agency owner performing the deletion.
+- **System** — the application service; no delete handling exists yet.
+- **Database** — the persistent store; the Workspace status and deletion timestamp fields exist but are unused.
 
-## Flow dự kiến (DRAFT — chưa code)
+---
 
-1. Owner → FE: mở Workspace Settings, bấm "Delete", nhập tên Workspace để xác nhận (confirm dialog).
-2. FE → BE: `DELETE /api/v1/workspaces/{id}` *(endpoint chưa tồn tại)*.
-3. BE (dự kiến): check `currentUser` là Owner (cấp Agency) — không phải, kể cả là MANAGER của Workspace → `403 FORBIDDEN`.
-4. BE (dự kiến): set `Workspace.status = SOFT_DELETED`, `deletedAt = now()`.
-5. BE (dự kiến): toàn bộ Member/Client mất quyền truy cập Workspace ngay; dữ liệu liên quan (Task, Campaign, Material...) chuyển `inactive`.
-6. BE → FE: `200 { data: null }`.
+## Anticipated flow (PROPOSED — not yet implemented)
 
-### Nhánh phụ — Restore (dự kiến, chưa code)
+1. Client → System: open Workspace settings and choose Delete, then type the Workspace name in the confirmation dialog.
+2. System (anticipated): confirm the caller is the Agency owner — any other caller, including the Workspace MANAGER, is rejected with 403 `FORBIDDEN`.
+3. System (anticipated): mark the Workspace as soft-deleted and record the deletion timestamp.
+4. System (anticipated): every member and Client loses access immediately, and all data inside the Workspace (Task, Campaign, Material and similar) becomes inactive.
+5. System → Client (anticipated): confirmation that the Workspace has been soft-deleted.
 
-1. Owner → FE: bấm "Restore" trong danh sách Workspace đã xóa (trong 30 ngày).
-2. FE → BE: `POST /api/v1/workspaces/{id}/restore` *(endpoint chưa tồn tại)*.
-3. BE (dự kiến): check còn trong hạn 30 ngày kể từ `deletedAt` — quá hạn → `410 RESTORE_WINDOW_EXPIRED`.
-4. BE (dự kiến): khôi phục `status`, khôi phục đúng trạng thái Task/Campaign trước khi xóa (không reset về backlog).
-5. BE → FE: `200 { data: WorkspaceResponse }`.
+### Sub-flow — Restore (anticipated, not yet implemented)
 
-## Error paths tổng hợp (dự kiến, chưa code)
+1. Client → System: choose Restore for a deleted Workspace within the 30-day window.
+2. System (anticipated): check that the 30-day window has not elapsed; otherwise reject with 410 `RESTORE_WINDOW_EXPIRED`.
+3. System (anticipated): clear the deletion state and bring back the previous statuses of the Tasks and Campaigns rather than resetting them to backlog.
+4. System → Client (anticipated): the restored Workspace profile.
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+---
+
+## Error paths (anticipated — not yet implemented)
+
+| Step | Failure condition | Status | Error code |
 |---|---|---|---|
-| Delete | Không phải Owner | 403 | `FORBIDDEN` (đề xuất) |
-| Restore | Quá 30 ngày | 410 | `RESTORE_WINDOW_EXPIRED` (đề xuất) |
+| Delete | Caller is not the Agency owner | 403 | `FORBIDDEN` (proposed) |
+| Restore | The 30-day window has elapsed | 410 | `RESTORE_WINDOW_EXPIRED` (proposed) |
 
-## Ghi chú khác biệt so với spec.md gốc
+## Notes
 
-- `spec.md` đã tự đánh dấu "Draft — chưa code" và mô tả rõ "Role: Agency OWNER (đề xuất — chưa xác nhận)" — sequence-flow này xác nhận thêm: `Workspace` entity đã có sẵn `status`/`deletedAt` (chuẩn bị hạ tầng cho soft-delete) nhưng chưa có code nghiệp vụ nào ghi vào 2 field đó, nên không có sequence thật để mô tả thêm ngoài phần DRAFT.
+- `spec.md` already marks this FR as proposed and not yet implemented; this file confirms that the Workspace record carries the status and deletion-timestamp fields as groundwork, but no handling writes to them, so there is no implemented sequence beyond the anticipated flow above.
+- The role allowed to delete is still unconfirmed — the Agency owner is proposed only.

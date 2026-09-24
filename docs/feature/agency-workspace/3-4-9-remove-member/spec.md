@@ -1,62 +1,59 @@
-# UC — Remove Member
+# 3.4.9 Remove Member
 
-| | |
-|---|---|
-| FR Code | 3.4.9 |
-| Feature | Remove Member |
-| Domain | Agency & Workspace (FR 3.4) |
-| Role | OWNER |
-| Version | 2.2 — Cập nhật 2026-09-23 — ErrorCode riêng `CANNOT_REMOVE_OWNER` (409) |
-| Trạng thái tài liệu | Confirmed — đã code, đã thêm mã lỗi riêng `CANNOT_REMOVE_OWNER` (409) thay cho `FORBIDDEN` (403) |
+## Function Trigger
+The Owner of an Agency opens the Member list of that Agency (`/agencies/:agencyId/members`), selects Remove on a member row and confirms.
 
-## 1. Objective
+## Function Description
+- **Actors / Roles:** Agency Owner.
+- **Purpose:** Let the Owner take a member out of the Agency so that person loses access, while everything they produced while working there stays with the Agency as shared property.
+- **Interface:** Member list page (`/agencies/:agencyId/members`) with a Remove action on each member row and a confirmation step.
+- **Data Processing:** The system loads the Agency, confirms the caller is its Owner, locates the member record inside that Agency, refuses the removal when the record is the Owner, and otherwise removes the member record. Removing the record ends the person's access to every Workspace of the Agency at once, while the resources they created remain in place, owned by the Agency as before.
 
-Xóa Member khỏi Agency — mất quyền truy cập nhưng tài nguyên họ tạo ra vẫn giữ nguyên (tài sản chung của Agency).
+## Screen Layout
+Figure — Member list:
+- One row per member with their name, email and member role.
+- A Remove action on each row behind a confirmation step, not offered for the Owner row.
+- On success the row disappears and the list refreshes.
 
-## 2. User Story
+## Function Details
+### Data Specifications
+- **Input required:** The Agency identifier (`agencyId`), the member record identifier (`memberId`) and a signed-in session as the Agency Owner.
+- **Input optional:** None.
+- **System data:** The Agency record and its Owner identifier (access check), and the member record with its Agency and its role.
+- **Output:** No data is returned. The member record is removed and the person loses access to the Agency and to all of its Workspaces.
 
-Là một Owner,
-tôi muốn xóa 1 Member khỏi Agency,
-nhưng không muốn mất các tài nguyên họ đã tạo ra khi còn làm việc.
+### Business Rules
+- **BR-01:** Only the Owner of the Agency may remove a member. Anybody else is refused with `403 NOT_AGENCY_OWNER`.
+- **BR-02:** The identifier used is the member record of the Agency, not the person's user identifier. A record that does not exist, or belongs to another Agency, is refused with `404 NOT_FOUND`.
+- **BR-03:** The Owner's own member record can never be removed, whatever the caller attempts. The attempt is refused with `409 CANNOT_REMOVE_OWNER`. There is no ownership transfer, so the Owner cannot hand the Agency over before stepping away.
+- **BR-04:** Removing a member ends their access to every Workspace of the Agency at once, including Workspaces where they held a manager or member role, because access everywhere rests on the member record that has just been removed.
+- **BR-05:** The resources the removed member created — tasks, materials, content and the like — are not removed and do not change owner. They stay with the Workspace and the Agency as shared property.
+- **BR-06:** When the person is invited back into the Agency later, they can edit and continue using the resources they created before, because that work never stopped belonging to the Agency.
+- **BR-07:** Work assigned to the removed member is not reassigned automatically. A manager has to handle it by hand.
 
-## 3. Acceptance Criteria
+### Validation
+- Caller is not the Agency Owner → `403 NOT_AGENCY_OWNER`.
+- The member record does not exist, or belongs to another Agency → `404 NOT_FOUND`.
+- The member record is the Owner's own → `409 CANNOT_REMOVE_OWNER`, and nothing is removed.
 
-- Bấm Remove Member (có confirm).
-- Xóa `AgencyMember` record — Member mất quyền truy cập MỌI Workspace của Agency đó ngay lập tức (kể cả Workspace họ đang có role Manager/Member).
-- **Tài nguyên họ tạo ra (Task, Material, Content...) KHÔNG bị xóa** — vẫn thuộc Workspace/Agency như tài sản chung.
-- Nếu được thêm lại vào Agency sau đó (Invite lại), họ **được chỉnh sửa/sử dụng tiếp** các tài nguyên cũ đó (không mất quyền truy cập vĩnh viễn với dữ liệu họ từng tạo).
+## Functionalities
+### Normal Flow
+1. The Owner opens the Member list of an Agency.
+2. The Owner selects Remove on a member row other than their own and confirms.
+3. The client submits the removal with the member record identifier.
+4. The system loads the Agency and confirms the caller is its Owner.
+5. The system locates the member record inside that Agency.
+6. The system removes the member record.
+7. The client drops the row and shows a confirmation. The person loses access to the Agency and to every one of its Workspaces immediately.
+8. The resources that person created stay in the Workspace and the Agency, unchanged and still usable.
 
-## 4. UI / UX
+### Abnormal Cases
+- Caller is not the Agency Owner → `403 NOT_AGENCY_OWNER`, nothing is removed.
+- The member record does not exist, or belongs to another Agency → `404 NOT_FOUND`.
+- Remove selected on the Owner's own row → `409 CANNOT_REMOVE_OWNER`, nothing is removed.
+- The removed member had work in progress assigned to them in a Workspace → the work is not unassigned automatically; a manager handles it by hand, because that work still belongs to the Workspace.
 
-- Nút Remove trong danh sách Member ở `/agencies/:agencyId/members`.
-
-## 5. API Contract (khớp code thật)
-
-```
-DELETE /api/v1/agencies/{agencyId}/members/{memberId}
-→ 200 { "success": true, "data": null }
-```
-
-Route path khớp đúng. `memberId` là `AgencyMember.id` (không phải `userId`).
-
-## 6. Error Handling
-
-- Không phải Owner của Agency → 403 `NOT_AGENCY_OWNER`.
-- `memberId` không tồn tại hoặc không thuộc agency này → 404 `NOT_FOUND`.
-- Cố xóa member có role OWNER → **409 `CANNOT_REMOVE_OWNER`** ("Cannot remove the owner of the agency"). Mã lỗi riêng đã được thêm vào `ErrorCode` (`HttpStatus.CONFLICT`) — **trước đây dùng chung `FORBIDDEN` (403), nay đã thay**.
-
-## 7. Edge Cases
-
-- Member bị xóa đang có Task đang `IN_PROGRESS` được assign cho họ ở 1 Workspace → Task đó KHÔNG tự động unassign, Manager cần xử lý thủ công (reassign) — vì tài nguyên/công việc vẫn thuộc Workspace.
-
-## 8. Definition of Done
-
-- Remove thành công, mất quyền truy cập ngay, tài nguyên cũ vẫn còn, thêm lại vẫn dùng tiếp được (test case rõ ràng). Chặn xóa Owner đã hoạt động đúng (trả 409 `CANNOT_REMOVE_OWNER`).
-
-## Out of Scope
-
-- Tự động reassign Task khi Member bị xóa (cần xử lý thủ công theo AC).
-
-## Tham chiếu BA
-
-[01-organization-structure.md](../../../BA/01-organization-structure.md), [03-agency-workspace-management.md](../../../BA/03-agency-workspace-management.md)
+## Post-Conditions
+- The member record no longer exists, and the person loses access to the Agency and to all of its Workspaces immediately.
+- The resources the person created remain with the Workspace and the Agency, and stay usable by anyone holding access.
+- Work assigned to the person remains assigned until a manager handles it.

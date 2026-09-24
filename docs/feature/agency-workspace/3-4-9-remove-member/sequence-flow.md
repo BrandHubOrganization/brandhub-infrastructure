@@ -1,50 +1,50 @@
 # Sequence Flow — Remove Member
 
-> Bổ sung cho `spec.md` (FR 3.4.9). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
+> Companion to `spec.md` (FR 3.4.9). This file lists each actor → action → system step in enough detail to draw the sequence diagram directly. Business explanation lives in `spec.md`.
 >
-> Cập nhật: 2026-09-23. Khớp code thật tại thời điểm này (`AgencyController.removeMember`, `AgencyServiceImpl.removeMember`).
+> Updated 2026-09-23, matching the system as built today.
 
 ## Actors
 
 - **Owner**
-- **FE** — brandhub-web-dashboard (React).
-- **BE** — brandhub-business-service (Spring Boot).
-- **DB** — PostgreSQL (`agency_members`).
+- **Client** — the BrandHub web application.
+- **System** — the BrandHub service.
+- **Database** — PostgreSQL (`agency_members`).
 
 ---
 
-## Flow A — Remove Member thành công
+## Flow A — A member is removed successfully
 
-1. Owner → FE: mở `/agencies/:agencyId/members`, bấm "Remove" trên 1 Member (không phải Owner) → dialog confirm.
-2. FE → BE: `DELETE /api/v1/agencies/{agencyId}/members/{memberId}` (`memberId` là `AgencyMember.id`, không phải `userId`).
-3. BE (`AgencyServiceImpl.removeMember`):
-   a. `findAgencyOrThrow(agencyId)`.
-   b. Check `agency.getOwnerId().equals(currentUser.getId())` — sai → `403 NOT_AGENCY_OWNER`.
-   c. Tìm `AgencyMember` theo `memberId`, filter `m.agencyId == agencyId` — không có → `404 NOT_FOUND`.
-   d. Check `member.getRole() == AgencyMemberRole.OWNER` — nếu đúng → `409 CANNOT_REMOVE_OWNER` (chặn xóa chính Owner).
-   e. `DELETE agency_members WHERE id = memberId`.
-4. BE → FE: `200 { data: null }`.
-5. FE: xóa dòng khỏi bảng Member, hiện toast. Member mất quyền truy cập mọi Workspace của Agency ngay lập tức (do các check quyền ở API khác đều dựa trên còn tồn tại `AgencyMember` record).
-6. Tài nguyên Member từng tạo (Task, Material, Content...) **không bị xóa/không đổi owner** — vẫn thuộc Workspace/Agency.
+1. Owner → Client: opens the Member list of the Agency, selects Remove on a member row other than their own, and confirms.
+2. Client → System: submits the removal with the member record identifier (`DELETE /api/v1/agencies/{agencyId}/members/{memberId}`). The identifier is the member record of the Agency, not the person's user identifier.
+3. System — remove:
+   a. Loads the Agency by its identifier — not found → `404 AGENCY_NOT_FOUND`.
+   b. Confirms the caller is the Owner of the Agency — otherwise `403 NOT_AGENCY_OWNER`.
+   c. Finds the member record by identifier inside that Agency — not found → `404 NOT_FOUND`.
+   d. Confirms the record is not the Owner's own — if it is → `409 CANNOT_REMOVE_OWNER`.
+   e. Removes the member record.
+4. System → Client: no data, the removal is done.
+5. Client: drops the row and shows a confirmation. The person loses access to the Agency and to every one of its Workspaces immediately, because access everywhere rests on the member record that has just been removed.
+6. The resources that person created — tasks, materials, content and the like — are neither removed nor reassigned. They stay with the Workspace and the Agency.
 
-## Flow B — Thử xóa Owner (bị chặn)
+## Flow B — The Owner's own record is targeted (refused)
 
-1. Owner → FE: bấm Remove trên chính dòng Owner (nếu FE không ẩn nút này) hoặc gọi trực tiếp API với `memberId` là bản ghi role OWNER.
-2. FE → BE: `DELETE /api/v1/agencies/{agencyId}/members/{memberId}`.
-3. BE: qua bước 3.a–3.c Flow A bình thường, đến 3.d: `member.getRole() == OWNER` → `throw BusinessException(ErrorCode.CANNOT_REMOVE_OWNER)`.
-4. BE → FE: `409 { errorCode: "CANNOT_REMOVE_OWNER" }`.
-5. FE: hiện lỗi, không xóa gì.
+1. Owner → Client: selects Remove on the Owner row, when the Client does not hide that action, or submits the removal directly with the Owner's member record identifier.
+2. Client → System: submits the removal (`DELETE /api/v1/agencies/{agencyId}/members/{memberId}`).
+3. System: runs steps 3.a to 3.c of Flow A as usual, then reaches 3.d — the record is the Owner's own, so the removal is refused with `409 CANNOT_REMOVE_OWNER`.
+4. System → Client: the refusal, `409 CANNOT_REMOVE_OWNER`.
+5. Client: shows the failure and removes nothing.
 
 ---
 
-## Error paths tổng hợp
+## Error paths
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | HTTP | Error code |
 |---|---|---|---|
-| Remove | Không phải Owner của Agency | 403 | `NOT_AGENCY_OWNER` |
-| Remove | `memberId` không tồn tại/không thuộc agency | 404 | `NOT_FOUND` |
-| Remove | `memberId` là chính Owner (chặn tự xóa/xóa Owner) | 409 | `CANNOT_REMOVE_OWNER` |
+| Remove | Caller is not the Owner of the Agency | 403 | `NOT_AGENCY_OWNER` |
+| Remove | The member record does not exist or belongs to another Agency | 404 | `NOT_FOUND` |
+| Remove | The member record is the Owner's own | 409 | `CANNOT_REMOVE_OWNER` |
 
-## Ghi chú drift đã fix
+## Notes
 
-- Bản trước ghi "[Sai lệch với bản audit trước] code dùng `ErrorCode.FORBIDDEN` (403), `ErrorCode` hiện không có `CANNOT_REMOVE_OWNER`". **Không còn đúng**: `ErrorCode` nay đã có `CANNOT_REMOVE_OWNER (HttpStatus.CONFLICT, "Cannot remove the owner of the agency")` và `AgencyServiceImpl.removeMember` ném mã này → **409**, không phải 403 `FORBIDDEN`. Drift đã đóng.
+- **Correction applied:** an earlier revision recorded the attempt to remove the Owner as refused with `403 FORBIDDEN`. The system now answers with its own code, `CANNOT_REMOVE_OWNER` at `409`, meaning the request conflicts with the state of the Agency rather than being forbidden outright. The correction is closed.

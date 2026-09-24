@@ -1,40 +1,40 @@
 # Sequence Flow — View Workspace Members
 
-> Bổ sung cho `spec.md` (FR 3.4.18). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
+> Companion to `spec.md` (FR 3.4.18). This file lists each step as actor → action → system, in enough detail to draw the sequence diagram directly. It does not restate business rules — see `spec.md` for those.
 >
-> Cập nhật: 2026-09-23. Khớp code thật (`WorkspaceController.listMembers`, `WorkspaceServiceImpl.listMembers`).
+> Updated: 2026-09-23.
 
 ## Actors
 
-- **User** — active member của Workspace (MANAGER/CREATOR/CLIENT).
-- **FE** — brandhub-web-dashboard (React).
-- **BE** — brandhub-business-service (Spring Boot).
-- **DB** — PostgreSQL (`workspaces`, `workspace_members`, `users`, `client_profiles`).
+- **Client** — an active member of the Workspace (MANAGER, CREATOR, CLIENT).
+- **System** — the application service handling the request.
+- **Database** — the persistent store holding Workspace, membership, user, and client profile records.
 
 ---
 
-## Flow A — Xem danh sách thành viên Workspace
+## Flow A — View the Workspace member list
 
-1. User → FE: mở `/workspaces/:id/members`.
-2. FE → BE: `GET /api/v1/workspaces/{workspaceId}/members`.
-3. BE (`WorkspaceServiceImpl.listMembers`):
-   a. `findWorkspaceOrThrow(workspaceId)` — không tồn tại → `404 WORKSPACE_NOT_FOUND`.
-   b. `assertMember(workspaceId, currentUser.id)` — caller không phải active member của workspace này → `403 WORKSPACE_ACCESS_DENIED`.
-   c. Query `workspace_members` theo `workspaceId` và `isActive = true`.
-   d. Lấy danh sách `userId` (loại bỏ null) → query `users` theo `findAllById`.
-   e. Lấy danh sách `clientProfileId` (loại bỏ null) → query `client_profiles` theo `findAllById`.
-   f. Map từng `WorkspaceMember`:
-      - Nếu có `userId`: lấy `fullName`/`email` từ `User`.
-      - Nếu không có `userId` (member kiểu CLIENT gán qua `addClient`): lấy `displayName` từ `ClientProfile` làm `fullName`, `email = null`.
-4. BE → DB: 5 SELECT (bước a, b, c, d, e).
-5. BE → FE: `200 { data: [WorkspaceMemberResponse, ...] }` (`id`, `workspaceId`, `userId`, `fullName`, `email`, `clientProfileId`, `role`, `joinedAt`, `isActive`).
-6. FE: render bảng thành viên kèm role.
+1. Client → System: open `/workspaces/:id/members`.
+2. System → Database: look up the Workspace by its identifier; a missing Workspace is rejected with 404 `WORKSPACE_NOT_FOUND`.
+3. System → Database: read the caller's active membership row for that same Workspace; a missing row is rejected with 403 `WORKSPACE_ACCESS_DENIED`.
+4. System → Database: read the Workspace's active membership rows.
+5. System: collect the referenced user identifiers and load the matching user records.
+6. System: collect the referenced client profile identifiers and load the matching client profiles.
+7. System: map each membership to a member entry — taking the full name and email from the user record when one is linked, or the client profile display name with an empty email when the member was attached through a client profile.
+8. System → Client: the member list — id, workspaceId, userId, fullName, email, clientProfileId, role, joinedAt, isActive.
+9. Client: render the member table with each member's role.
 
 ---
 
-## Error paths tổng hợp
+## Error paths
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | Status | Error code |
 |---|---|---|---|
-| List members | Workspace không tồn tại | 404 | `WORKSPACE_NOT_FOUND` |
-| List members | Caller không phải active member của workspace này | 403 | `WORKSPACE_ACCESS_DENIED` |
+| List members | Workspace does not exist | 404 | `WORKSPACE_NOT_FOUND` |
+| List members | Caller is not an active member of that Workspace | 403 | `WORKSPACE_ACCESS_DENIED` |
+
+## Notes
+
+- The membership check is performed explicitly for the Workspace named in the request, rather than through a generic role check.
+- A member attached through a client profile has no linked user record, so the display name comes from the client profile and the email is empty.
+- The flow is read-only.

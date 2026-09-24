@@ -1,61 +1,61 @@
 # Sequence Flow — Create Workspace
 
-> Bổ sung cho `spec.md` (FR 3.4.12). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
+> Companion to `spec.md` (FR 3.4.12). This file lists each step as actor → action → system, in enough detail to draw the sequence diagram directly. It does not restate business rules — see `spec.md` for those.
 >
-> Cập nhật: 2026-09-23. Khớp code thật (`WorkspaceController`, `WorkspaceServiceImpl.createWorkspace`).
+> Updated: 2026-09-23.
 
 ## Actors
 
-- **User** — thành viên Agency, người tạo Workspace.
-- **FE** — brandhub-web-dashboard (React).
-- **BE** — brandhub-business-service (Spring Boot).
-- **DB** — PostgreSQL (`workspaces`, `workspace_members`, `agency_members`, `users`).
+- **Client** — a member of the Agency, and the creator of the Workspace.
+- **System** — the application service handling the request.
+- **Database** — the persistent store holding Workspace, membership, Agency membership, and user records.
+- **Notification service** — dispatches any transactional email triggered during creation.
 
 ---
 
-## Flow A — Tạo Workspace, không kèm `assignMembers`
+## Flow A — Create a Workspace without member assignment
 
-1. User → FE: mở form tạo Workspace trong phạm vi 1 Agency, điền `name`, `agencyId` + các field mở rộng (industry, companySize, website, ...).
-2. FE → BE: `POST /api/v1/workspaces` `{name, agencyId, industry?, companySize?, website?, phone?, location?, description?, brandColor?, logoIcon?, tagline?, foundedYear?, facebookUrl?, linkedinUrl?, instagramUrl?}`.
-3. BE (`WorkspaceServiceImpl.createWorkspace`):
-   a. Check `currentUser` là `AgencyMember` của `agencyId` — không phải → `403 NOT_AGENCY_OWNER`.
-   b. `anotherManagerChosen` = false (không có `assignMembers`).
-   c. `INSERT workspaces` (settings mặc định `{}`, `createdBy = currentUser.id`).
-   d. `INSERT workspace_members` (userId=currentUser.id, role=MANAGER, isActive=true) — trong cùng transaction.
-4. BE → DB: 2 lệnh INSERT (bước c, d), 1 SELECT `agencyMemberRepository.findByAgencyIdAndUserId` (bước a).
-5. BE → FE: `200 { data: WorkspaceResponse }`.
-6. FE: chuyển hướng vào Workspace vừa tạo.
+1. Client → System: open the Create Workspace form inside an Agency and fill in the name, the Agency, and any optional fields.
+2. System: validate the request — `name` empty or `agencyId` missing is rejected with 400 `VALIDATION_ERROR`.
+3. System → Database: read the caller's Agency membership for the target Agency; a missing membership is rejected with 403 `NOT_AGENCY_OWNER`.
+4. System → Database: insert the Workspace row, with default settings and the caller recorded as its creator.
+5. System → Database: insert the creator's membership row with role MANAGER and active status, in the same transaction.
+6. Database → System: the created Workspace.
+7. System → Client: the created Workspace summary.
+8. Client: navigate into the new Workspace.
 
-## Flow B — Tạo Workspace kèm `assignMembers`, có chuyển giao MANAGER
+## Flow B — Create a Workspace with member assignment and MANAGER transfer
 
-1. User → FE: điền form, chọn thêm `assignMembers: [{userId, role}]`, trong đó có 1 người KHÁC (không phải `currentUser`) với `role = MANAGER`.
-2. FE → BE: `POST /api/v1/workspaces` (kèm `assignMembers`).
-3. BE (`createWorkspace`):
-   a. Check quyền Agency member — như Flow A bước a.
-   b. `anotherManagerChosen = true` (có entry `role=MANAGER` với `userId != currentUser.id`).
-   c. `INSERT workspaces`.
-   d. `INSERT workspace_members` cho người tạo với `role = CREATOR` (không phải MANAGER, vì đã chuyển giao).
-   e. Gọi `assignMembersInternal(workspaceId, agencyId, currentUser.id, assignMembers)`:
-      - Với mỗi entry: check `AgencyMember` tồn tại (`agencyMemberRepository.findByAgencyIdAndUserId`) — không có → `403 NOT_AGENCY_MEMBER`.
-      - Check đã có `WorkspaceMember` active cho `userId` này chưa — có rồi → bỏ qua (idempotent, không lỗi).
-      - Nếu `role = MANAGER`: đếm `countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId, MANAGER)` — nếu > 0 → `409 MANAGER_ALREADY_ASSIGNED` (nhưng ở bước này chưa có MANAGER nào khác vì người tạo đã xuống CREATOR, nên pass).
-      - `INSERT workspace_members` cho entry đó.
-4. BE → FE: `200 { data: WorkspaceResponse }`.
-5. FE: chuyển hướng vào Workspace vừa tạo, MANAGER là người được chỉ định.
+1. Client → System: fill in the form and add assignment entries, one of them naming a different user as MANAGER.
+2. System: validate the request as in Flow A.
+3. System → Database: read the caller's Agency membership; a missing membership is rejected with 403 `NOT_AGENCY_OWNER`.
+4. System: note that another user was chosen as MANAGER, so the creator will not hold that role.
+5. System → Database: insert the Workspace row.
+6. System → Database: insert the creator's membership row with role CREATOR.
+7. System: process each assignment entry:
+   - System → Database: read the Agency membership of the entry's user; a missing membership is rejected with 403 `NOT_AGENCY_MEMBER`.
+   - System → Database: check for an existing active membership for that user in the Workspace; if one exists, skip the entry without error.
+   - System → Database (when the entry requests MANAGER): count the active MANAGERs in the Workspace; a count above zero is rejected with 409 `MANAGER_ALREADY_ASSIGNED`.
+   - System → Database: read the user record; a missing user raises `USER_NOT_FOUND`.
+   - System → Database: insert the membership row for that entry.
+8. System → Client: the created Workspace summary.
+9. Client: navigate into the new Workspace, whose MANAGER is the designated user.
 
 ---
 
-## Error paths tổng hợp
+## Error paths
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | Status | Error code |
 |---|---|---|---|
-| Create | `name` trống (validation `@Valid`) | 400 | `VALIDATION_ERROR` |
-| Create | `agencyId` thiếu (validation `@Valid`) | 400 | `VALIDATION_ERROR` |
-| Create | `currentUser` không phải `AgencyMember` của `agencyId` | 403 | `NOT_AGENCY_OWNER` |
-| Create (assignMembers) | Entry có `userId` không phải `AgencyMember` của agency | 403 | `NOT_AGENCY_MEMBER` |
-| Create (assignMembers) | Entry `role=MANAGER` nhưng workspace đã có MANAGER active | 409 | `MANAGER_ALREADY_ASSIGNED` |
-| Create (assignMembers) | Entry `userId` không tồn tại trong `users` | (throw) | `USER_NOT_FOUND` |
+| Create | `name` empty | 400 | `VALIDATION_ERROR` |
+| Create | `agencyId` missing | 400 | `VALIDATION_ERROR` |
+| Create | Caller is not a member of the target Agency | 403 | `NOT_AGENCY_OWNER` |
+| Create (assignment) | An entry's user is not an Agency member | 403 | `NOT_AGENCY_MEMBER` |
+| Create (assignment) | An entry requests MANAGER while the Workspace already has an active MANAGER | 409 | `MANAGER_ALREADY_ASSIGNED` |
+| Create (assignment) | An entry's user does not exist in the user records | — | `USER_NOT_FOUND` |
 
-## Ghi chú khác biệt so với spec.md gốc
+## Notes
 
-- `spec.md` mục 6 chỉ liệt kê case "nhiều hơn 1 người role MANAGER trong `assignMembers`" → `409 MANAGER_ALREADY_ASSIGNED`; code thật còn 2 nhánh lỗi khác chưa được spec.md nhắc tới: `403 NOT_AGENCY_MEMBER` (entry không thuộc agency) và lỗi `USER_NOT_FOUND` khi `userId` không tồn tại — nên bổ sung vào spec.md mục 6 nếu cần đầy đủ.
+- The Workspace row and the creator's membership row are written in a single transaction; assignment entries are applied immediately afterwards.
+- The creator is MANAGER by default and is demoted to CREATOR when the MANAGER role is handed to another user, so the Workspace always ends up with exactly one active MANAGER.
+- An assignment entry for a user who is already an active member of the new Workspace is skipped without error.

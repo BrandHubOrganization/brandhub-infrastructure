@@ -1,99 +1,101 @@
 # Sequence Flow — OTP Verification
 
-> Bổ sung cho `spec.md` (FR 3.2.6). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
->
-> Cập nhật: 2026-09-23. Khớp code thật (`AuthController`/`AuthServiceImpl`). FR 3.2.6 gồm 2 luồng OTP độc lập: **email OTP** (xác thực email lúc Sign Up, FR 3.2.1) và **phone OTP** (liên kết số điện thoại). Cả hai gửi mã qua email (`mailService.sendOtpEmail`), phone OTP không dùng SMS dù tên route là "phone". 2FA có route riêng (`/2fa/verify`, xem FR 3.2.7), Reset Password không dùng OTP (xem FR 3.2.4), Deactivate OTP cho OAuth-only user thuộc FR 3.2.9.
+> Companion to `spec.md` (3.2.6). Lists each actor → action → system step in enough detail to draw the sequence diagram directly; the business description lives in `spec.md`. This feature covers two independent flows: email verification of an address at sign-up (3.2.1) and phone verification when a signed-in user links a phone number. Both deliver the code by email, so a phone code is not sent by SMS. Two-Factor Authentication has its own screen (3.2.7), Reset Password does not use a code (3.2.4), and the code used on the deactivation screen belongs to 3.2.9.
 
 ## Actors
 
-- **User** — đang Sign Up (email OTP) hoặc đã đăng nhập và muốn liên kết phone (phone OTP).
-- **FE** — brandhub-web-dashboard.
-- **BE** — brandhub-business-service.
-- **DB** — PostgreSQL (`users.otp_code`, `users.otp_expiry`, `users.phone`), Redis (`otp:attempt:{email}`, `otp:resend:{email}`, `phone:otp:{userId}`, `phone:otp:resend:{userId}`, `phone:otp:attempt:{userId}`).
+- **User** — signing up and verifying an email address, or signed in and linking a phone number.
+- **Client** — the application the user interacts with.
+- **System** — the application server.
+- **Database** — persistent store holding accounts, their verification state and their phone number.
+- **Token store** — short-lived state holding the codes, their expiry, the wrong-attempt counters and the resend cooldowns.
+- **Mail** — outbound email used to deliver every code.
 
 ---
 
-## Flow A — Verify Email OTP đúng
+## Flow A — Email code verified
 
-1. User → FE: sau Sign Up (FR 3.2.1), ở màn OTP nhập 6 số nhận qua email.
-2. FE → BE: `POST /api/v1/auth/verify-otp {email, otpCode}`.
-3. BE (`AuthServiceImpl.verifyOtp`):
-   a. Chuẩn hóa `email`, tìm `User` — không có → `404 USER_NOT_FOUND`.
-   b. `emailVerifiedAt != null` (đã verify trước đó) → return sớm, coi như thành công (idempotent), không check lại OTP.
-   c. `otpExpiry=null` hoặc `otpCode=null` hoặc đã hết hạn → `400 OTP_INVALID`.
-   d. So khớp `otpCode` — sai → tăng counter Redis `otp:attempt:{email}` (đặt TTL 10 phút ở lần đầu); nếu `attempts >= 5` → xóa `otpCode`/`otpExpiry` của User, xóa counter, trả `400 OTP_TOO_MANY_ATTEMPTS`; nếu chưa tới 5 → `400 OTP_INVALID`.
-   e. Đúng → xóa counter Redis, xóa `otpCode`/`otpExpiry`, set `emailVerifiedAt=now`.
-4. BE → FE: `200 { success: true, data: null }`.
-5. FE: tiếp tục luồng Sign Up — điều hướng `/login` để user tự đăng nhập.
+1. User → Client: after signing up (3.2.1), enters the six-digit code received by email.
+2. Client → System: submits the email address and the code.
+3. System:
+   a. Normalizes the email address and loads the account; missing → 404 USER_NOT_FOUND.
+   b. The email address is already verified → returns immediately as a success, without checking the code again.
+   c. The stored code is absent or expired → 400 OTP_INVALID.
+   d. The code does not match → the wrong-attempt counter for the address is increased, with a 10-minute window started on the first increase. On the fifth wrong attempt the stored code is discarded, the counter is cleared and the answer is 400 OTP_TOO_MANY_ATTEMPTS; below five attempts the answer is 400 OTP_INVALID.
+   e. The code matches → the counter is cleared, the stored code is discarded and the email address is marked as verified.
+4. System → Client: 200 with no data.
+5. Client: continues the sign-up journey and returns to /login so the user signs in.
 
-## Flow B — Resend Email OTP
+## Flow B — Email code resent
 
-1. User → FE: bấm "Gửi lại mã" (nút bị disable bởi countdown FE cho tới khi hết cooldown).
-2. FE → BE: `POST /api/v1/auth/resend-otp {email}`.
-3. BE (`AuthServiceImpl.resendOtp`):
-   a. Check Redis `otp:resend:{email}` — đã có (chưa hết cooldown 60s) → `429 RATE_LIMIT_EXCEEDED`.
-   b. Tìm `User` — không có → `404 USER_NOT_FOUND`.
-   c. `emailVerifiedAt != null` → return sớm, không gửi lại.
-   d. Sinh OTP mới, hạn 10 phút, `UPDATE users`.
-   e. `SET otp:resend:{email}="1"` TTL 60s (cooldown), xóa counter `otp:attempt:{email}`.
-   f. Gửi mail OTP mới.
-4. BE → FE: `200 { success: true, data: null }` (không có `nextResendAt`, FE tự quản lý countdown 60s ở client).
+1. User → Client: activates "Resend code", which stays disabled until the cooldown has elapsed.
+2. Client → System: submits the resend request with the email address.
+3. System:
+   a. The resend cooldown for the address is still running → 429 RATE_LIMIT_EXCEEDED.
+   b. The account is missing → 404 USER_NOT_FOUND.
+   c. The email address is already verified → returns immediately without sending anything.
+   d. Issues a new six-digit code valid for 10 minutes and updates the account.
+   e. Starts a 60-second cooldown for the address and clears the previous wrong-attempt counter.
+   f. Sends the new code by email.
+4. System → Client: 200 with no data. No next-allowed time is returned; the countdown is kept by the client.
 
-## Flow C — Sai Email OTP quá 5 lần
+## Flow C — Email code wrong five times
 
-1–2. Giống Flow A bước 1–2, lặp lại 5 lần với mã sai.
-3. Lần thứ 5: BE xóa `otpCode`/`otpExpiry` của User, trả `400 OTP_TOO_MANY_ATTEMPTS`.
-4. FE: hiện lỗi, bắt buộc user bấm "Gửi lại mã" (Flow B) để có OTP mới.
+1–2. Same as Flow A steps 1–2, repeated with a wrong code.
+3. On the fifth attempt the system discards the stored code and returns 400 OTP_TOO_MANY_ATTEMPTS.
+4. Client: shows the error and requires the user to request a new code through Flow B.
 
-## Flow D — Link Phone (gửi OTP)
+## Flow D — Phone linking, code issued
 
-1. User → FE: đã đăng nhập, vào màn liên kết số điện thoại, nhập số phone.
-2. FE → BE: `POST /api/v1/auth/link/phone {phone}`, header `Authorization: Bearer <token>`.
-3. BE (`AuthServiceImpl.linkPhone`):
-   a. Chuẩn hóa `phone` qua `PhoneUtil.normalize` — không hợp lệ → `400 INVALID_PHONE`.
-   b. Tìm `User` theo `userId` từ token — không có → `404 USER_NOT_FOUND`.
-   c. Phone đã được user khác dùng (`existsByPhone`) → `409 PHONE_ALREADY_IN_USE`.
-   d. Check Redis `phone:otp:resend:{userId}` — còn hiệu lực (chưa hết cooldown 60s) → `429 RATE_LIMIT_EXCEEDED`.
-   e. Sinh OTP 6 số, `SET phone:otp:{userId}="<otp>:<phone>"` TTL 10 phút.
-   f. `SET phone:otp:resend:{userId}="1"` TTL 60s (cooldown), `DEL phone:otp:attempt:{userId}` (reset counter sai).
-   g. Gửi OTP qua email (`mailService.sendOtpEmail`) tới email của user — **không phải SMS**.
-4. BE → FE: `200 { success: true, data: null }`.
-5. FE: chuyển sang màn nhập OTP cho phone.
+1. User → Client: signed in, opens the phone linking screen and enters the phone number.
+2. Client → System: submits the phone number carrying the access token.
+3. System:
+   a. Normalizes the phone number; invalid → 400 INVALID_PHONE.
+   b. Loads the account from the access token; missing → 404 USER_NOT_FOUND.
+   c. The phone number is already used by another account → 409 PHONE_ALREADY_IN_USE.
+   d. The resend cooldown for the account is still running → 429 RATE_LIMIT_EXCEEDED.
+   e. Issues a six-digit code valid for 10 minutes and stores it together with the phone number.
+   f. Starts a 60-second cooldown and clears the previous wrong-attempt counter.
+   g. Sends the code by email to the account address, not by SMS.
+4. System → Client: 200 with no data.
+5. Client: moves to the code entry screen for the phone number.
 
-## Flow E — Verify Phone OTP
+## Flow E — Phone code verified
 
-1. User → FE: nhập 6 số OTP nhận qua email.
-2. FE → BE: `POST /api/v1/auth/verify-phone-otp {otpCode}`, header `Authorization: Bearer <token>`.
-3. BE (`AuthServiceImpl.verifyPhoneOtp`):
-   a. Đọc Redis `phone:otp:{userId}` — không có (hết hạn hoặc chưa từng gọi link/phone) → `400 OTP_INVALID`.
-   b. Parse `"<otp>:<phone>"` — sai OTP hoặc format hỏng → tăng counter Redis `phone:otp:attempt:{userId}` (đặt TTL 10 phút ở lần tăng đầu tiên); nếu `attempts >= 5` → xóa `phone:otp:{userId}` + counter, trả `400 OTP_TOO_MANY_ATTEMPTS`; nếu chưa tới 5 → `400 OTP_INVALID`.
-   c. Đúng → xóa `phone:otp:{userId}` và `phone:otp:attempt:{userId}`.
-   d. Check lại `existsByPhone(phone)` (race condition: phone có thể bị user khác chiếm trong lúc chờ verify) → `409 PHONE_ALREADY_IN_USE` nếu có.
-   e. Tìm `User` theo `userId` — không có → `404 USER_NOT_FOUND`.
-   f. Set `user.phone = phone`, save.
-4. BE → FE: `200 { success: true, data: null }`.
-5. FE: hiện phone đã liên kết thành công.
+1. User → Client: enters the six-digit code received by email.
+2. Client → System: submits the code carrying the access token.
+3. System:
+   a. No pending code for the account, because it expired or was never requested → 400 OTP_INVALID.
+   b. The code does not match, or the stored value is malformed → the wrong-attempt counter for the account is increased, with a 10-minute window started on the first increase. On the fifth wrong attempt the pending code is discarded, the counter is cleared and the answer is 400 OTP_TOO_MANY_ATTEMPTS; below five attempts the answer is 400 OTP_INVALID.
+   c. The code matches → the pending code and the counter are cleared.
+   d. Re-checks whether the phone number has been taken by another account while the code was pending → 409 PHONE_ALREADY_IN_USE.
+   e. Loads the account; missing → 404 USER_NOT_FOUND.
+   f. Attaches the phone number to the account.
+4. System → Client: 200 with no data.
+5. Client: shows that the phone number has been linked.
 
 ---
 
-## Error paths tổng hợp (dùng cho sequence "alt"/"opt" fragments)
+## Error paths summary (for "alt"/"opt" fragments)
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | HTTP | Error code |
 |---|---|---|---|
-| Verify Email OTP | User không tồn tại | 404 | `USER_NOT_FOUND` |
-| Verify Email OTP | OTP hết hạn / đã bị xóa (null) | 400 | `OTP_INVALID` |
-| Verify Email OTP | OTP sai (chưa tới 5 lần) | 400 | `OTP_INVALID` |
-| Verify Email OTP | Sai OTP lần thứ 5 | 400 | `OTP_TOO_MANY_ATTEMPTS` |
-| Resend Email OTP | Chưa hết cooldown 60s | 429 | `RATE_LIMIT_EXCEEDED` |
-| Resend Email OTP | User không tồn tại | 404 | `USER_NOT_FOUND` |
-| Link Phone | Phone không hợp lệ | 400 | `INVALID_PHONE` |
-| Link Phone | Phone đã được dùng | 409 | `PHONE_ALREADY_IN_USE` |
-| Link Phone | Gọi lại trong vòng 60 giây (cooldown resend) | 429 | `RATE_LIMIT_EXCEEDED` |
-| Verify Phone OTP | Không có OTP session (hết hạn/đã hủy) | 400 | `OTP_INVALID` |
-| Verify Phone OTP | OTP sai (chưa tới 5 lần) | 400 | `OTP_INVALID` |
-| Verify Phone OTP | Sai OTP lần thứ 5 | 400 | `OTP_TOO_MANY_ATTEMPTS` |
-| Verify Phone OTP | Phone bị người khác lấy trước (race) | 409 | `PHONE_ALREADY_IN_USE` |
+| Verify email code | The account does not exist | 404 | `USER_NOT_FOUND` |
+| Verify email code | The code expired or was never issued | 400 | `OTP_INVALID` |
+| Verify email code | Wrong code, below five attempts | 400 | `OTP_INVALID` |
+| Verify email code | Fifth wrong code | 400 | `OTP_TOO_MANY_ATTEMPTS` |
+| Resend email code | The 60-second cooldown has not elapsed | 429 | `RATE_LIMIT_EXCEEDED` |
+| Resend email code | The account does not exist | 404 | `USER_NOT_FOUND` |
+| Link phone | The phone number is invalid | 400 | `INVALID_PHONE` |
+| Link phone | The phone number is already used by another account | 409 | `PHONE_ALREADY_IN_USE` |
+| Link phone | Repeated within the 60-second cooldown | 429 | `RATE_LIMIT_EXCEEDED` |
+| Verify phone code | No pending code, because it expired or was discarded | 400 | `OTP_INVALID` |
+| Verify phone code | Wrong code, below five attempts | 400 | `OTP_INVALID` |
+| Verify phone code | Fifth wrong code | 400 | `OTP_TOO_MANY_ATTEMPTS` |
+| Verify phone code | The phone number was taken by another account in the meantime | 409 | `PHONE_ALREADY_IN_USE` |
 
-## Ghi chú drift đã fix
+## Notes
 
-- Bản trước ghi "Phone OTP: không có giới hạn số lần thử sai (khác Email OTP) và không có rate-limit resend riêng ở code hiện tại". **Không còn đúng**: code hiện tại có rate-limit resend 60s cho `linkPhone` (Redis `phone:otp:resend:{userId}` → `429 RATE_LIMIT_EXCEEDED`) và giới hạn 5 lần thử sai cho `verifyPhoneOtp` (Redis `phone:otp:attempt:{userId}` → `400 OTP_TOO_MANY_ATTEMPTS`, xóa OTP). Đã cập nhật Flow D/E + bảng error paths.
+- Every code, for both the email and the phone flow, is delivered by email; the phone flow is named for the value being verified, not for the delivery channel.
+- The phone flow re-checks the phone number when the code is verified, because the number can be taken by another account while the code is pending.
+- Both flows discard the pending code after five wrong attempts, so a new code has to be requested.

@@ -1,50 +1,49 @@
-# Sequence Flow — Sign Up
+# Sequence Flow — Sign Up (Email)
 
-> Bổ sung cho `spec.md` (FR 3.2.1). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
->
-> Cập nhật: 2026-09-23. Khớp code thật tại thời điểm này (`AuthController`, `AuthServiceImpl`).
+> Companion to `spec.md` (3.2.1). Lists each actor → action → system step in enough detail to draw the sequence diagram directly; the business description lives in `spec.md`.
 
 ## Actors
 
-- **User** — Guest đăng ký tài khoản mới.
-- **FE** — brandhub-web-dashboard (React).
-- **BE** — brandhub-business-service (Spring Boot).
-- **DB** — PostgreSQL (`users`, `user_system_roles`).
-- **Mail** — SMTP, gửi OTP (đồng bộ trong `register`, không `@Async`).
+- **Guest** — unauthenticated visitor creating a new account.
+- **Client** — the application the user interacts with.
+- **System** — the application server.
+- **Database** — persistent store holding accounts and their role assignments.
+- **Mail** — outbound email used to deliver the verification code.
 
 ---
 
-## Flow A — Đăng ký thành công
+## Flow A — Successful registration
 
-1. User → FE: mở `/register`, điền `email`, `password`, `confirmPassword`, `fullName`.
-2. FE → BE: `POST /api/v1/auth/register` `{email, password, fullName}`.
-3. BE (`AuthServiceImpl.register`):
-   a. Chuẩn hóa `email` → `toLowerCase().trim()`.
-   b. Sinh OTP 6 số (`generateOtp`), hạn 10 phút.
-   c. `INSERT users` (passwordHash bcrypt, otpCode, otpExpiry) — nếu email đã tồn tại, DB constraint unique ném `DataIntegrityViolationException` → BE bắt và convert thành `409 EMAIL_ALREADY_EXISTS`.
-   d. `INSERT user_system_roles` (role=USER).
-4. BE → Mail (đồng bộ, trong transaction): `sendOtpEmail(email, otp)`.
-5. BE → FE: `201 { userId }`.
-6. FE: chuyển màn OTP Verification (FR 3.2.6), truyền `email` để gọi verify.
-7. Tiếp tục **FR 3.2.6 Flow verify-otp** — verify đúng → `emailVerifiedAt` được set. **KHÔNG tự động đăng nhập** (không cấp token ở bước verify-otp — user tự `POST /login` sau).
+1. Guest → Client: opens /register and fills in the email address, password, confirm password and full name.
+2. Client → System: submits the registration with the email address, password and full name.
+3. System:
+   a. Normalizes the email address to lower case and trims it.
+   b. Generates a six-digit one-time code valid for 10 minutes.
+   c. Creates the account with the hashed password and the pending code; a duplicate email address violates the uniqueness constraint and is translated into 409 EMAIL_ALREADY_EXISTS.
+   d. Assigns the default role USER.
+4. System → Mail (synchronous, inside the same transaction): sends the code to the registered email address.
+5. System → Client: 201, returning the identifier of the new account.
+6. Client: renders the OTP Verification screen (3.2.6) and carries the email address forward.
+7. Continues in OTP Verification (3.2.6): a correct code marks the email address as verified. The registration does not sign the user in; the user signs in separately afterwards.
 
-## Flow B — Đăng ký lại bằng email khác hoa/thường trong khi email cũ (chưa verify) đã tồn tại
+## Flow B — Registration repeated with a different letter case while the earlier address is still unverified
 
-1–2. Giống Flow A.
-3. BE: `email.toLowerCase().trim()` → trùng row cũ → `INSERT` vi phạm unique constraint → `DataIntegrityViolationException` → `409 EMAIL_ALREADY_EXISTS`.
-   - Không có nhánh "gửi lại OTP cho account cũ" — chỉ trả lỗi trùng email. Muốn resend, gọi riêng `POST /resend-otp`.
+1–2. Same as Flow A.
+3. System: normalizes the email address, the duplicate violates the uniqueness constraint and is translated into 409 EMAIL_ALREADY_EXISTS.
+   - No branch re-sends a code to the existing account; only the duplicate error is returned. A new code must be requested through the resend action (3.2.6).
 
 ---
 
-## Error paths tổng hợp (dùng cho sequence "alt"/"opt" fragments)
+## Error paths summary (for "alt"/"opt" fragments)
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | HTTP | Error code |
 |---|---|---|---|
-| Register | Email đã tồn tại (kể cả case-insensitive) | 409 | `EMAIL_ALREADY_EXISTS` |
-| Register | Password/email validate fail (Bean Validation) | 400 | `VALIDATION_ERROR` |
-| Verify OTP (FR 3.2.6) | OTP sai/hết hạn | 400 | `OTP_INVALID` |
-| Verify OTP | Sai 5 lần liên tiếp | 400 | `OTP_TOO_MANY_ATTEMPTS` |
+| Register | The email address already exists, including a different letter case | 409 | `EMAIL_ALREADY_EXISTS` |
+| Register | The email address or the password fails validation | 400 | `VALIDATION_ERROR` |
+| Verify OTP (3.2.6) | The code is wrong or expired | 400 | `OTP_INVALID` |
+| Verify OTP (3.2.6) | Five wrong codes in a row | 400 | `OTP_TOO_MANY_ATTEMPTS` |
 
-## Ghi chú
+## Notes
 
-- Mail gửi OTP là **đồng bộ**, nằm trong transaction `@Transactional` của `register` — không phải `@Async` như một số flow khác (agency invitation email là async, sign-up OTP thì không).
+- The verification email is sent synchronously inside the registration transaction rather than in the background, so a mail failure rolls the registration back.
+- The account exists from registration onwards, before the email address is verified.

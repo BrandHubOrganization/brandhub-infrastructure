@@ -1,69 +1,73 @@
-# Sequence Flow — Sign In with Google OAuth
+# Sequence Flow — Sign In With Google OAuth
 
-> Bổ sung cho `spec.md` (FR 3.2.3). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
->
-> Cập nhật: 2026-09-23. Khớp code thật tại thời điểm này (`GoogleOAuthController`, `OAuthService`, `GoogleOAuthService`). Backend-driven flow — FE điều hướng thẳng sang backend, không tự gọi Google SDK.
+> Companion to `spec.md` (3.2.3). Lists each actor → action → system step in enough detail to draw the sequence diagram directly; the business description lives in `spec.md`. The flow is server-driven: the browser navigates straight to the application, which performs the handshake with Google.
 
 ## Actors
 
-- **User** — Guest/User đăng nhập qua Google.
-- **FE** — brandhub-web-dashboard (React, `LoginPage`, `OAuthCallbackPage`).
-- **BE** — brandhub-business-service (`GoogleOAuthController`, `OAuthService`/`GoogleOAuthService`).
-- **Google** — Google OAuth 2.0 consent + token/userinfo endpoint.
-- **DB** — PostgreSQL (`users`, `user_oauth_providers`, `user_system_roles`), Redis (`oauth:state:*` CSRF state, TTL 10 phút).
+- **Guest** — signs in with an existing Google account.
+- **Browser / Client** — the application, which resumes control once the browser returns.
+- **System** — the application server.
+- **Google** — the Google authorization and profile service.
+- **Database** — persistent store holding accounts, their linked external identities and their role assignments.
+- **Token store** — short-lived state used to protect the handshake against replay.
 
 ---
 
-## Flow A — Đăng nhập Google thành công, user mới (chưa từng có account)
+## Flow A — Successful Google sign-in, first-time user
 
-1. User → FE (`/login`): bấm nút "Đăng nhập với Google" — `<a href="/api/v1/auth/oauth/google">`, browser điều hướng thẳng, rời SPA.
-2. FE → BE: `GET /api/v1/auth/oauth/google`.
-3. BE (`GoogleOAuthController.redirect` → `OAuthService.buildAuthorizationUrl()`): sinh `state` CSRF random 24 byte, lưu Redis `oauth:state:{state} = "GOOGLE|"` (không có `linkingUserId` — login-mode), TTL 10 phút.
-4. BE → User: `302 Redirect` sang `https://accounts.google.com/o/oauth2/v2/auth?client_id=...&redirect_uri=...&scope=openid email profile&state=...`.
-5. User → Google: đăng nhập + đồng ý consent.
-6. Google → BE: `302` tới `GET /api/v1/auth/oauth/google/callback?code=...&state=...`.
-7. BE (`callback`):
-   a. `handleCallback(code, state)`: lấy + xóa `oauth:state:{state}` khỏi Redis (`getAndDelete`) — không có → `400 OAUTH_STATE_INVALID`; provider trong state không khớp `GOOGLE` → cùng lỗi.
-   b. `fetchProfile(code)`: BE → Google `POST /token` (form-urlencoded: code, client_id, client_secret, redirect_uri, grant_type=authorization_code) đổi lấy `access_token`; token null → `400 OAUTH_CODE_INVALID`.
-   c. BE → Google: `GET /userinfo` (Bearer access_token) lấy `{id, email, verified_email, name, picture}`; thiếu email hoặc `verified_email != true` → `400 OAUTH_CODE_INVALID`.
-   d. Tìm `user_oauth_providers` theo `(GOOGLE, providerId)` — không có → `linkOrCreateUser`: tìm `User` theo email — không có → `INSERT users` mới (`emailVerifiedAt=now`, không có `passwordHash`) + `INSERT user_system_roles(USER)`; sau đó luôn `INSERT user_oauth_providers` (userId, GOOGLE, providerId).
-   e. Check `user.isActive()` / `status=ACTIVE` — sai → `403 ACCOUNT_SUSPENDED`.
-   f. `user.isTwoFactorEnabled()=false` → set `lastLoginAt`, ghi `AuditLog(LOGIN)`, resolve `workspaceId`, sinh `accessToken` + `refreshToken`.
-8. BE → DB: các INSERT/UPDATE ở bước 7d/7f (cùng transaction `@Transactional` trên `handleCallback`).
-9. BE → User: Set-Cookie `refreshToken` (HttpOnly/Secure/SameSite=Strict) + `302 Redirect` tới `{FRONTEND_URL}/oauth-callback#token={accessToken}` — **token nằm trong URL fragment**, không phải query string.
-10. FE (`OAuthCallbackPage` → `useOAuthCallback` → `resolveCallback()`): đọc `window.location.hash`, lấy token, gọi `GET /api/v1/users/me`, `setAuth(...)`, điều hướng tiếp (Dashboard, hoặc `consumeAuthRedirect()` nếu có lưu redirect trước đó — xem FR agency-workspace 3-4-7 Flow E cho pattern chung).
+1. Guest → Client: on /login, activates "Sign in with Google", which sends the browser straight to the application and leaves the single-page application.
+2. Client → System: requests the Google authorization entry point.
+3. System: generates a random single-use state value, stores it with a 10-minute lifetime and records that it belongs to a sign-in attempt rather than an account link.
+4. System → Browser: redirects to the Google consent screen with the client identifier, the return address, the requested scopes and the state value.
+5. Guest → Google: authenticates and grants consent.
+6. Google → System: returns the browser to the callback address with an authorization code and the state value.
+7. System:
+   a. Consumes the state value: a missing or unknown value → 400 OAUTH_STATE_INVALID; a value recorded for another provider → the same error.
+   b. Exchanges the authorization code with Google for a Google access token; a missing token → 400 OAUTH_CODE_INVALID.
+   c. Reads the Google profile; a missing email address, or an unverified one, → 400 OAUTH_CODE_INVALID.
+   d. Looks up the linked external identity: not found, so it looks the account up by email address. With no matching account it creates one with the email address already verified and no password, assigns the default role, and then links the external identity to it.
+   e. Checks the account status: inactive → 403 ACCOUNT_SUSPENDED.
+   f. With two-factor authentication disabled, records the sign-in time and event, resolves the active workspace and issues an access token together with a refresh token.
+8. System → Database: applies the account, role, identity-link and sign-in writes inside one transaction.
+9. System → Browser: sets the refresh token as an HTTP-only cookie and redirects to the return address of the application carrying the access token in the address fragment.
+10. Client: reads the access token from the address fragment, loads the profile, records the session and continues to the Dashboard / Agency list, honouring any pending destination.
 
-## Flow B — User đã có account email/password cùng email, đăng nhập Google lần đầu
+## Flow B — Existing email/password account signing in with Google for the first time
 
-Giống Flow A bước 1–7c, khác 7d:
+Same as Flow A steps 1–7c, diverging at 7d:
 
-7d'. Tìm `user_oauth_providers` theo `(GOOGLE, providerId)` — chưa có (lần đầu dùng Google) → `linkOrCreateUser` tìm `User` theo email → **đã tồn tại** (tạo qua Sign Up thường) → dùng row đó, **không tạo account mới** → `INSERT user_oauth_providers` gắn thêm provider Google vào account cũ.
-7e–10: tiếp tục như Flow A — login vào account cũ, không merge dữ liệu vì chỉ có 1 account từ đầu.
+7d'. The external identity is not linked yet, and the account lookup by email address finds an account created earlier through Sign Up, so that account is reused and the external identity is linked to it. No duplicate account is created.
+7e–10. Continue as Flow A: the existing account signs in, and no data is merged because there was only one account from the start.
 
-## Flow C — User đã có account, đăng nhập Google, tài khoản bật 2FA
+## Flow C — Account with two-factor authentication enabled
 
-Giống Flow A/B tới bước 7d, khác 7e trở đi:
+Same as Flow A or Flow B up to step 7d, diverging from 7e:
 
-7e. Check active/status OK.
-7f'. `user.isTwoFactorEnabled()=true` → sinh `twoFactorToken` (JWT `type=2fa`), **không** set lastLoginAt/audit log/access token.
-9'. BE → User: `302 Redirect` tới `{FRONTEND_URL}/2fa-verify?twoFactorToken=...` — token nằm trên **query param**, không phải cookie/fragment (khác Flow A). Không set Cookie refreshToken ở bước này.
-10'. FE (`TwoFactorVerifyPage`): đọc `twoFactorToken` từ URL. → tiếp tục **FR 3.2.7 verify-2FA**: `POST /api/v1/auth/2fa/verify {twoFactorToken, code}` → thành công → nhận accessToken thật + Set-Cookie refreshToken → FE tiếp bước 10 Flow A.
+7e. The account status check passes.
+7f'. Two-factor authentication is enabled, so a two-factor challenge token is issued and the sign-in time, the event record and the access token are all left untouched.
+9'. System → Browser: redirects to the two-factor code screen (3.2.7) carrying the challenge token as a query parameter, and sets no refresh cookie.
+10'. Client: reads the challenge token from the address and continues in Two-Factor Authentication (3.2.7). A correct code returns the real access token and sets the refresh cookie, after which the client resumes Flow A step 10.
 
-## Nhánh phụ — Lỗi / user hủy consent
+## Sub-flow — Error or consent cancelled
 
-- Google trả lỗi hoặc user bấm Cancel ở consent screen → Google callback về BE **không kèm `code`** → `callback.hasAuthorizationCode()=false` → BE `302 Redirect` `{FRONTEND_URL}/oauth-callback?error=oauth_failed`, không gọi Google API nào thêm.
-- `BusinessException` khác trong lúc xử lý (không phải `OAUTH_EMAIL_MISMATCH`/`OAUTH_ALREADY_LINKED`) → cùng redirect `?error=oauth_failed`.
-- Lỗi mạng gọi Google (`RestClientException`) → log cảnh báo (không log message/body vì có thể chứa credential), redirect `?error=oauth_failed`.
+- Google reports an error, or the user cancels on the consent screen, so the callback carries no authorization code → the browser is sent back to the sign-in area with a generic error and no further call to Google is made.
+- Any other handled failure while processing the callback, other than the account-linking errors, produces the same generic error.
+- A network failure while calling Google is logged without the request or response content, since it may carry credentials, and the browser is sent back with a generic error.
 
 ---
 
-## Error paths tổng hợp (dùng cho sequence "alt"/"opt" fragments)
+## Error paths summary (for "alt"/"opt" fragments)
 
-| Bước | Điều kiện lỗi | Hành vi | ErrorCode nội bộ |
+| Step | Failure condition | Behaviour | Error code |
 |---|---|---|---|
-| Callback | `state` không có trong Redis / provider không khớp | Redirect `?error=oauth_failed` | `OAUTH_STATE_INVALID` |
-| Callback | Google trả token null | Redirect `?error=oauth_failed` | `OAUTH_CODE_INVALID` |
-| Callback | Thiếu email hoặc `verified_email != true` | Redirect `?error=oauth_failed` | `OAUTH_CODE_INVALID` |
-| Callback | User bị suspend | Redirect `?error=oauth_failed` | `ACCOUNT_SUSPENDED` |
-| Callback | Google không trả `code` (user cancel) | Redirect `?error=oauth_failed` | — |
-| Callback | Lỗi mạng gọi Google | Redirect `?error=oauth_failed` | — |
+| Callback | The state value is unknown or belongs to another provider | Redirect back with a generic error | `OAUTH_STATE_INVALID` |
+| Callback | Google returns no token | Redirect back with a generic error | `OAUTH_CODE_INVALID` |
+| Callback | The email address is missing or unverified | Redirect back with a generic error | `OAUTH_CODE_INVALID` |
+| Callback | The account is suspended | Redirect back with a generic error | `ACCOUNT_SUSPENDED` |
+| Callback | Google returns no authorization code, meaning the user cancelled | Redirect back with a generic error | — |
+| Callback | The call to Google fails at the network level | Redirect back with a generic error | — |
+
+## Notes
+
+- The access token is carried in the address fragment, never as a query parameter, so it is not sent to the server and does not appear in server logs.
+- Linking Google to an account that is already signed in is a separate settings flow and is not part of this feature.
