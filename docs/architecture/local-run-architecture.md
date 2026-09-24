@@ -20,7 +20,7 @@ Lý do tách: dev thường không cần build lại 5 app image (chạy `mvn sp
 
 ## MongoDB không có trong compose
 
-`business-service` có biến `MONGODB_URI`/`MONGODB_DATABASE` nhưng không có service `mongo` nào trong `docker-compose.infra.yml`. Kết luận: Mongo dùng cloud (Atlas), không self-host local. `scripts/init-mongo.js` tồn tại nhưng chạy tay nhắm vào cluster Atlas, không phải qua `docker-entrypoint-initdb.d`.
+`business-service` có biến `MONGODB_URI`/`MONGODB_DATABASE` nhưng không có service `mongo` nào trong `docker-compose.infra.yml`. Kết luận: Mongo dùng cloud (Atlas), không self-host local. `docs/database/init-mongo.js` tồn tại nhưng chạy tay nhắm vào cluster Atlas, không phải qua `docker-entrypoint-initdb.d`.
 
 ## Dependency chain khi lên full stack
 
