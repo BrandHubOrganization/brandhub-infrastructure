@@ -23,10 +23,10 @@ Figure — Agencies page:
 - **Output:** The list of Agencies that match the current user, each with the full profile above; an empty list when the user owns or belongs to none.
 
 ### Business Rules
-- **BR-01:** The list contains the Agencies where the current user is the Owner, plus the Agencies where the user holds an Agency Member record (whatever the role).
-- **BR-02:** Agencies whose status is SOFT_DELETED are left out of the list.
-- **BR-03:** The result carries no pre-computed workspace count.
-- **BR-04:** Selecting an Agency leads to the Agency Dashboard (3.4.2). That screen has no data source of its own yet, so the Agency Profile (3.4.4) stands in until it is built.
+- **BR-29:** Multi-tenancy — the list is scoped to the current user: the Agencies where the user is the Owner, plus the Agencies where the user holds an Agency Member record (whatever the role). A user with no active membership or ownership sees nothing beyond that scope.
+- Agencies whose status is SOFT_DELETED are left out of the list.
+- The result carries no pre-computed workspace count.
+- Selecting an Agency leads to the Agency Dashboard (3.4.2). That screen has no data source of its own yet, so the Agency Profile (3.4.4) stands in until it is built.
 
 ### Validation
 - None — the operation returns a list for every signed-in user, including an empty one.

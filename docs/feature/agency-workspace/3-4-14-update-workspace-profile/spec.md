@@ -38,35 +38,35 @@ Figure — Update Workspace Profile Screen:
 
 ### Business Rules
 
-- **BR-01:** Only the MANAGER of that Workspace may update it; there is no OWNER role at Workspace level — OWNER exists only at Agency level.
-- **BR-02:** A caller who is not the Workspace MANAGER → 403 `FORBIDDEN`.
-- **BR-03:** The Workspace must exist → otherwise 404 `WORKSPACE_NOT_FOUND`.
-- **BR-04:** Fields not supplied in the request keep their current values; the stored settings are merged rather than replaced.
-- **BR-05:** A failure while reading the uploaded logo file → 400 `FILE_READ_ERROR`.
-- **BR-06:** The logo is uploaded through its own dedicated action, not through the profile settings update.
+- **BR-25:** Workspace settings and logo can only be updated by OWNER or MANAGER (enforced here as MANAGER, the only role granted on this Workspace's controller endpoint); all settings fields are optional (partial update).
+- **BR-35:** `@RequireRoleAspect` re-reads the caller's role from the database at request time — it never trusts the JWT claim — and runs on the controller before the service method, so the role check on `updateSettings` / `uploadLogo` precedes even the not-found lookup. SystemRole.ADMIN bypasses the check.
+- The Workspace must exist → otherwise 404 `WORKSPACE_NOT_FOUND`.
+- Fields not supplied in the request keep their current values; the stored settings are merged rather than replaced (BR-25).
+- A failure while reading the uploaded logo file → 400 `FILE_READ_ERROR`.
+- The logo is uploaded through its own dedicated action, not through the profile settings update.
 
 ### Validation
 
-- The caller must hold the MANAGER role in that Workspace; otherwise 403 `FORBIDDEN`.
+- The caller must hold the MANAGER role in that Workspace (BR-25, BR-35); otherwise 403 `FORBIDDEN`.
 - The Workspace must exist; otherwise 404 `WORKSPACE_NOT_FOUND`.
-- `industry` must be a valid WorkspaceIndustry value; `companySize` must be a valid CompanySize value.
-- An unreadable logo file → 400 `FILE_READ_ERROR`.
+- `industry` must be a valid WorkspaceIndustry value; `companySize` must be a valid CompanySize value. Empty required field → Display: MSG02. Exceeding max length → Display: MSG03.
+- An unreadable logo file → 400 `FILE_READ_ERROR`. (The codebase shows no explicit file-type/size check on this path — see report.)
 
 ## Functionalities
 
 ### Normal Flow
 
 1. MANAGER opens `/workspaces/:id/profile/edit` and edits the name, timezone, default platforms, industry, company size, website, phone, or location.
-2. System confirms the caller holds the MANAGER role in that Workspace; otherwise the request fails with 403 `FORBIDDEN`.
+2. System confirms the caller holds the MANAGER role in that Workspace (BR-25, BR-35), checked by `@RequireRoleAspect` before the service runs; otherwise the request fails with 403 `FORBIDDEN`.
 3. System loads the Workspace; if it does not exist the request fails with 404 `WORKSPACE_NOT_FOUND`.
-4. System applies the supplied fields and merges the new timezone / default platforms into the stored settings, keeping the previous values for fields left out.
-5. System returns the updated Workspace profile; the screen shows a success confirmation.
+4. System applies the supplied fields and merges the new timezone / default platforms into the stored settings, keeping the previous values for fields left out (BR-25).
+5. System returns the updated Workspace profile; the screen shows a success confirmation, toast MSG32. (The separate logo upload action, on success, shows toast MSG94.)
 
 ### Abnormal Cases
 
-- Caller is not the MANAGER of that Workspace → 403 `FORBIDDEN`.
-- Workspace does not exist → 404 `WORKSPACE_NOT_FOUND`.
-- Logo upload file cannot be read → 400 `FILE_READ_ERROR`; the user retries with another file.
+- 2.a1: Caller is not the MANAGER of that Workspace (BR-25, BR-35) → 403 `FORBIDDEN`, toast MSG39. 2.a2: The caller returns to the read-only profile view (3.4.13).
+- 3.a1: The Workspace does not exist → 404 `WORKSPACE_NOT_FOUND`, toast MSG38. 3.a2: The MANAGER returns to the Workspace list.
+- 3.b1: Logo upload file cannot be read → 400 `FILE_READ_ERROR`. 3.b2: The user retries with another file.
 - The timezone is changed while Tasks or Livestreams are already scheduled for the old timezone → the screen warns about the impact before saving; existing schedules are not moved automatically.
 
 ## Post-Conditions

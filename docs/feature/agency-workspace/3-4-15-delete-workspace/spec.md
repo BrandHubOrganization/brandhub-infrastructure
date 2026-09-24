@@ -38,17 +38,18 @@ Figure — Delete Workspace Dialog (proposed — not yet implemented):
 
 ### Business Rules
 
-- **BR-01:** Deletion is a soft delete — the Workspace status becomes SOFT_DELETED and the deletion timestamp is set; the record is not physically removed.
-- **BR-02:** Only the Agency OWNER may delete a Workspace — the Workspace MANAGER may not, unlike Update Workspace Profile which the MANAGER may perform.
-- **BR-03:** A caller who is not the Agency OWNER, including the Workspace MANAGER → 403 `FORBIDDEN`.
-- **BR-04:** Restoring later than 30 days after deletion → 410 `RESTORE_WINDOW_EXPIRED`.
-- **BR-05:** Every member and Client of the Workspace immediately loses access once it is deleted.
-- **BR-06:** All data inside the Workspace (Task, Campaign, Material and similar) becomes inactive rather than being deleted. *(Proposed — not yet implemented.)*
+- **BR-26:** Delete workspace is OWNER-only. Soft-delete vs hard-delete, and the interaction with an active paid subscription, are TBD (team decision) — invoices/payments are financial records that are likely not to be hard-deleted. *(Proposed — not yet implemented; no backing controller/service method exists in the codebase today.)*
+- A caller who is not the Agency OWNER, including the Workspace MANAGER → 403 `FORBIDDEN`.
+- Restoring later than 30 days after deletion → 410 `RESTORE_WINDOW_EXPIRED`.
+- Every member and Client of the Workspace immediately loses access once it is deleted.
+- All data inside the Workspace (Task, Campaign, Material and similar) becomes inactive rather than being deleted. *(Proposed — not yet implemented.)*
 
 ### Validation
 
 - The typed Workspace name must match the Workspace being deleted before the action is enabled.
-- The caller must be the Agency OWNER; otherwise 403 `FORBIDDEN`.
+- The caller must be the Agency OWNER (BR-26); otherwise 403 `FORBIDDEN`, toast MSG39.
+- The Workspace must exist; otherwise 404 `WORKSPACE_NOT_FOUND`, toast MSG38.
+- The caller must belong to the Workspace's Agency; otherwise toast MSG40.
 - Restore is allowed only within 30 days of the deletion timestamp; otherwise 410 `RESTORE_WINDOW_EXPIRED`.
 
 ## Functionalities
@@ -57,17 +58,19 @@ Figure — Delete Workspace Dialog (proposed — not yet implemented):
 
 1. Owner opens Workspace settings and chooses Delete.
 2. Dialog asks the owner to type the Workspace name to confirm.
-3. System confirms the caller is the Agency OWNER; otherwise the request fails with 403 `FORBIDDEN`.
+3. System confirms the caller is the Agency OWNER (BR-26); otherwise the request fails with 403 `FORBIDDEN`.
 4. System marks the Workspace as soft-deleted and records the deletion timestamp.
 5. Every member and Client loses access immediately; all data inside the Workspace becomes inactive.
-6. The Workspace disappears from active listings and becomes restorable for 30 days.
+6. The Workspace disappears from active listings and becomes restorable for 30 days; toast MSG93.
 
 ### Abnormal Cases
 
-- Caller is not the Agency OWNER, even when they manage the Workspace → 403 `FORBIDDEN`.
+- 3.a1: Caller is not the Agency OWNER, even when they manage the Workspace (BR-26) → 403 `FORBIDDEN`, toast MSG39. 3.a2: The caller returns to Workspace settings without deleting.
+- 3.b1: The Workspace does not exist (already deleted or invalid id) → 404 `WORKSPACE_NOT_FOUND`, toast MSG38. 3.b2: The caller returns to the Workspace list.
+- 3.c1: The caller does not belong to this Workspace's Agency → toast MSG40. 3.c2: The caller is returned to their own Workspace list.
 - Restoring after the 30-day window → 410 `RESTORE_WINDOW_EXPIRED`.
 - The Workspace holds Tasks in progress or awaiting Client review when deleted → all become inactive; a restore must bring back exactly their previous statuses rather than resetting them to backlog.
-- The feature has not been implemented yet → the delete action is unavailable until it ships.
+- The feature has not been implemented yet — no `deleteWorkspace` endpoint or service method exists in `WorkspaceController`/`WorkspaceServiceImpl` — the delete action is unavailable until it ships.
 
 ## Post-Conditions
 

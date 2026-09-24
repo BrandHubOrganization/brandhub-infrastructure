@@ -23,16 +23,15 @@ Figure — Google sign-in entry and return:
 - **Output:** on success the access token is carried in the return address and the refresh token is set as an HTTP-only cookie. When two-factor authentication is enabled a two-factor challenge token is carried instead and no cookie is set.
 
 ### Business Rules
-- **BR-01:** The state value is single-use, stored for 10 minutes and removed on first use. A missing, mismatched or expired state → 400 OAUTH_STATE_INVALID and the browser is returned to the sign-in screen with a generic error.
-- **BR-02:** A failed token exchange, or a Google profile without an email address or with an unverified email address → 400 OAUTH_CODE_INVALID and the browser is returned with a generic error.
-- **BR-03:** On first use of a Google identity, a local account is created with no password and the email address already verified. An existing account matching the Google email address is reused and the Google identity is linked to it, so no duplicate account is created.
-- **BR-04:** A suspended or deactivated account → 403 ACCOUNT_SUSPENDED and the browser is returned with a generic error.
-- **BR-05:** When two-factor authentication is enabled, Google sign-in does not bypass it: no access token and no refresh token are issued, and a two-factor challenge token is returned so the user completes Two-Factor Authentication (3.2.7). This applies to every sign-in method.
-- **BR-06:** The access token is carried in the fragment of the return address, never as a query parameter.
+- **BR-09:** The state value is single-use, stored for 10 minutes and removed on first use (CSRF protection). A missing, mismatched or expired state → 400 OAUTH_STATE_INVALID and the browser is returned to the sign-in screen with a generic error.
+- **BR-10:** Email is the linking anchor for OAuth — an existing account matching the Google email address is reused and the Google identity is linked to it, so no duplicate account is created; no match creates a new account. A failed token exchange, or a Google profile without an email address or with an unverified email address → 400 OAUTH_CODE_INVALID and the browser is returned with a generic error.
+- **BR-11:** One (provider, providerId) pair links to exactly one user; on first use of a Google identity, a local account is created with no password until `/set-password` and the email address already verified.
+- **BR-06:** A suspended or deactivated account → 403 ACCOUNT_SUSPENDED and the browser is returned with a generic error.
+- **BR-08:** When two-factor authentication is enabled, no access token and no refresh token are issued at this step; Google sign-in does not bypass it, and a two-factor challenge token is returned instead so the user completes Two-Factor Authentication (3.2.7). This applies to every sign-in method.
 
 ### Validation
-- The user cancels consent or Google returns an error → the return carries no authorization code and the browser is sent back with a generic error, without any further call to Google.
-- The Google profile has no email address, or the email address is not verified → the sign-in is rejected with a generic error.
+- The user cancels consent or Google returns an error → the return carries no authorization code and the browser is sent back with a generic error (Toast MSG12), without any further call to Google.
+- The Google profile has no email address, or the email address is not verified → the sign-in is rejected with a generic error (Toast MSG12).
 
 ## Functionalities
 ### Normal Flow
@@ -44,14 +43,14 @@ Figure — Google sign-in entry and return:
 6. The system links the Google identity to an existing account with the same email address, or creates a new verified account with no password.
 7. The system checks the account status and, with two-factor authentication disabled, records the sign-in and issues an access token and a refresh token.
 8. The system sends the browser back to the application with the access token and sets the refresh token cookie.
-9. The application reads the token, loads the profile and continues to the Dashboard / Agency list.
+9. The application reads the token, loads the profile and continues to the Dashboard / Agency list; toast MSG11.
 
 ### Abnormal Cases
-- The user cancels consent or Google returns an error → the browser is sent back with a generic error and no further call to Google is made.
-- The state value is missing, already used or expired, or belongs to another provider → the browser is sent back with a generic error.
-- The token exchange fails, or the Google profile has no email address or an unverified email address → the browser is sent back with a generic error.
-- The account is suspended or deactivated → the browser is sent back with a generic error.
-- Two-factor authentication is enabled → the browser is sent to the two-factor code screen (3.2.7) and no tokens are issued.
+- 4.a1: The user cancels consent or Google returns an error → the return carries no authorization code; the browser is sent back with a generic error, toast MSG12, and no further call to Google is made. 4.a2: The Guest retries "Sign in with Google" from /login.
+- 5.a1: The state value is missing, already used or expired, or belongs to another provider (BR-09) → 400 OAUTH_STATE_INVALID, browser sent back with toast MSG12. 5.a2: The Guest retries "Sign in with Google" from /login.
+- 5.b1: The token exchange fails, or the Google profile has no email address or an unverified email address (BR-10) → 400 OAUTH_CODE_INVALID, browser sent back with toast MSG12. 5.b2: The Guest retries "Sign in with Google" from /login, or signs in with email/password instead.
+- 7.a1: The account is suspended or deactivated (BR-06) → 403 ACCOUNT_SUSPENDED, browser sent back with toast MSG09. 7.a2: The Guest contacts support to resolve the account status.
+- 7.b1: Two-factor authentication is enabled on the account (BR-08) → no access token and no refresh token are issued; a two-factor challenge token is returned instead. 7.b2: The browser is sent to the two-factor code screen (3.2.7) for the Guest to complete sign-in.
 
 ## Post-Conditions
 - The Google identity is linked to a local account, created on first use with the email address already verified and with no password.

@@ -23,15 +23,13 @@ Figure — Change Password Screen (/settings/change-password):
 - **Output:** no data.
 
 ### Business Rules
-- **BR-01:** The current password must match the stored password hash; otherwise 400 WRONG_CURRENT_PASSWORD. This check runs first.
-- **BR-02:** The new password must differ from the current one; otherwise 400 SAME_AS_CURRENT_PASSWORD. This check runs only after the current password has been accepted.
-- **BR-03:** The order of checks is: verify the current password, then compare the new password with the current one, and only then apply the change.
-- **BR-04:** The change updates the last password change time, which makes every refresh token issued before that moment refused on its next use → 401 REFRESH_TOKEN_INVALID. The current access token keeps working, so the current session is not ended.
+- **BR-02:** Password policy: minimum 8 characters + at least 1 digit, hashed with BCrypt cost=12; the current password must match the stored password hash, checked first, otherwise 400 WRONG_CURRENT_PASSWORD. The new password must differ from the current one; otherwise 400 SAME_AS_CURRENT_PASSWORD, evaluated only after the current password has been accepted. The order of checks is: verify the current password, then compare the new password with the current one, and only then apply the change.
+- **BR-12:** The change updates the last password change time, so a refresh token `jti` issued before that moment is rejected on its next use → 401 REFRESH_TOKEN_INVALID (password change invalidates all outstanding refresh tokens). The current access token keeps working, so the current session is not ended.
 
 ### Validation
-- Empty current password or empty new password → error message.
-- New password does not meet the policy, or the confirmation does not match → error message.
-- New password fails the policy check on the server → 400 VALIDATION_ERROR.
+- current password empty or new password empty → Display: MSG02
+- new password does not meet the policy → Display: MSG05
+- confirmation does not match → Display: MSG06
 
 ## Functionalities
 ### Normal Flow
@@ -41,14 +39,14 @@ Figure — Change Password Screen (/settings/change-password):
 4. The system verifies the current password against the stored password hash.
 5. The system refuses the request when the new password is identical to the current one.
 6. The system replaces the password hash and updates the last password change time.
-7. The system records the password change event and returns success; the session stays active.
+7. The system records the password change event and returns success; the session stays active; toast MSG26.
 
 ### Abnormal Cases
-- Missing or invalid access token → 401 INVALID_CREDENTIALS.
-- The account referenced by the token no longer exists → 404 USER_NOT_FOUND.
-- Wrong current password → 400 WRONG_CURRENT_PASSWORD.
-- The new password is identical to the current one → 400 SAME_AS_CURRENT_PASSWORD; this is evaluated only after the current password has been accepted.
-- New password fails the policy check → 400 VALIDATION_ERROR.
+- 3.a1: Missing or invalid access token → 401 INVALID_CREDENTIALS, toast MSG22. 3.a2: The user signs in again.
+- 3.b1: The account referenced by the token no longer exists → 404 USER_NOT_FOUND, toast MSG38. 3.b2: The user signs in again with a valid account.
+- 4.a1: Wrong current password (BR-02) → 400 WRONG_CURRENT_PASSWORD, Display: MSG19. 4.a2: The user re-enters the current password.
+- 5.a1: The new password is identical to the current one (BR-02), evaluated only after the current password has been accepted → 400 SAME_AS_CURRENT_PASSWORD, Display: MSG06. 5.a2: The user enters a different new password.
+- 1.a1: New password fails the policy check (BR-02) → 400 VALIDATION_ERROR, Display: MSG05. 1.a2: The user corrects the password and resubmits.
 
 ## Post-Conditions
 - The password hash is replaced and the last password change time is updated.

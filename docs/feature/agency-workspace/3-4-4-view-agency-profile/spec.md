@@ -24,17 +24,17 @@ Figure — Agency Profile page:
 - **Output:** The profile of the Agency, restricted to branding and company information. No internal data such as Workspace or Member lists is returned.
 
 ### Business Rules
-- **BR-01:** Only the Owner of the Agency, or a user holding an Agency Member record in it, may view the profile. Any other signed-in user is refused with `400 NOT_AGENCY_MEMBER`.
-- **BR-02:** The Owner always has access, even when no Agency Member record exists for them; the Owner check stands on its own.
-- **BR-03:** Every member role may view the profile — role does not narrow access.
-- **BR-04:** The profile is not public. A user must be signed in and belong to the Agency; an outside party cannot preview an Agency profile.
-- **BR-05:** This screen differs from the Agency Dashboard (3.4.2): the profile carries branding and company information, while the dashboard carries management figures.
-- **BR-06:** The profile response holds no internal detail beyond branding and company information.
+- **BR-29 (analogous):** Multi-tenancy — only the Owner of the Agency, or a user holding an Agency Member record in it, may view the profile, mirroring the workspace-scoped access rule (BR-29). Any other signed-in user is refused with `400 NOT_AGENCY_MEMBER`.
+- The Owner always has access, even when no Agency Member record exists for them; the Owner check stands on its own.
+- Every member role may view the profile — role does not narrow access.
+- The profile is not public. A user must be signed in and belong to the Agency; an outside party cannot preview an Agency profile.
+- This screen differs from the Agency Dashboard (3.4.2): the profile carries branding and company information, while the dashboard carries management figures.
+- The profile response holds no internal detail beyond branding and company information.
 
 ### Validation
 - No signed-in session, or an invalid one → `401 UNAUTHORIZED`, refused before the Agency logic runs.
-- Agency does not exist → `404 AGENCY_NOT_FOUND`.
-- Caller is neither the Owner nor a Member of the Agency → `400 NOT_AGENCY_MEMBER`.
+- Agency does not exist → Display: MSG38
+- Caller is neither the Owner nor a Member of the Agency → Display: MSG39
 - Agency already soft-deleted → the record is still returned, so the Owner and Members can still view the profile. See 3.4.6 for the removal behaviour.
 
 ## Functionalities
@@ -47,10 +47,10 @@ Figure — Agency Profile page:
 6. The client renders the profile, including the years in business counted from the founded year.
 
 ### Abnormal Cases
-- No signed-in session, or an invalid one → `401 UNAUTHORIZED`.
-- Agency does not exist → `404 AGENCY_NOT_FOUND`.
-- Caller belongs to no part of the Agency → `400 NOT_AGENCY_MEMBER`, no profile data returned.
-- Agency already soft-deleted → the profile is still returned to the Owner and Members; removal does not revoke viewing at this point.
+- 2.a1: No signed-in session, or an invalid one → `401 UNAUTHORIZED`, toast MSG22. 2.a2: The user signs in again and retries.
+- 3.a1: Agency does not exist → `404 AGENCY_NOT_FOUND`, toast MSG38. 3.a2: The user returns to the Agency list.
+- 4.a1: Caller belongs to no part of the Agency → `400 NOT_AGENCY_MEMBER`, toast MSG39; no profile data returned. 4.a2: The user returns to the Agency list and opens an Agency they belong to.
+- 4.b1: Agency already soft-deleted → the profile is still returned to the Owner and Members; no error, no toast. 4.b2: Removal does not revoke viewing at this point; the user continues viewing normally.
 
 ## Post-Conditions
 - No Agency data is created, changed or removed.

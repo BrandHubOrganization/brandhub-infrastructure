@@ -38,19 +38,18 @@ Figure — Remove Member Dialog:
 
 ### Business Rules
 
-- **BR-01:** Only the MANAGER of the Workspace may remove a member; any other caller → 403 `FORBIDDEN`.
-- **BR-02:** Removal is a soft delete — the membership is marked inactive and the record is not physically removed.
-- **BR-03:** The member's Agency membership is never modified, so the removed member remains in the Agency and in their other Workspaces.
-- **BR-04:** The removed member loses access to this Workspace immediately.
-- **BR-05:** Last-MANAGER guard — removing a member whose role is MANAGER is blocked with 409 `LAST_OWNER_CANNOT_BE_REMOVED` when that member is the only active MANAGER of the Workspace. The same guard, with the same error code, is shared with FR 3.4.16 Leave Workspace and FR 3.4.20 Update Workspace Member Role.
-- **BR-06:** A member that does not exist, is not active, or belongs to another Workspace → 404 `NOT_FOUND`.
-- **BR-07:** The error code is named after the owner concept but is applied to the Workspace-level MANAGER context.
+- **BR-35:** `@RequireRoleAspect` re-reads the caller's role from the DB at request time; `SystemRole.ADMIN` bypasses the check. Only MANAGER may remove a member; any other caller → 403 `FORBIDDEN`. This role check runs before any service-level guard.
+- **BR-28:** Remove member — only OWNER/MANAGER; the last remaining active MANAGER cannot be removed/changed away from MANAGER; removal is a soft-delete (`isActive=false`), not a row deletion. The member's Agency membership is never modified, so the removed member remains in the Agency and in their other Workspaces.
+- **BR-30:** A removed member loses access immediately (no token revocation needed) because every scoped query re-checks membership.
+- **BR-28 (last-MANAGER guard, checked after the lookup):** Removing a member whose role is MANAGER is blocked with 409 `LAST_OWNER_CANNOT_BE_REMOVED` when that member is the only active MANAGER of the Workspace. The same guard, with the same error code, is shared with FR 3.4.16 Leave Workspace and FR 3.4.20 Update Workspace Member Role (BR-83).
+- **BR-29:** Multi-tenancy — the member lookup is scoped to the Workspace; a member that does not exist, is not active, or belongs to another Workspace → 404 `NOT_FOUND`.
+- The error code `LAST_OWNER_CANNOT_BE_REMOVED` is named after the owner concept but is applied to the Workspace-level MANAGER context.
 
 ### Validation
 
-- Caller must be the MANAGER of that Workspace; otherwise 403 `FORBIDDEN`.
-- The member must exist, be active, and belong to that Workspace; otherwise 404 `NOT_FOUND`.
-- Removing the only active MANAGER of the Workspace → 409 `LAST_OWNER_CANNOT_BE_REMOVED`.
+- Caller must be the MANAGER of that Workspace; otherwise 403 `FORBIDDEN` (BR-35). Toast MSG39.
+- The member must exist, be active, and belong to that Workspace (BR-29); otherwise 404 `NOT_FOUND`. Toast MSG38.
+- Removing the only active MANAGER of the Workspace (BR-28) → 409 `LAST_OWNER_CANNOT_BE_REMOVED`. Toast MSG37.
 
 ## Functionalities
 
@@ -58,17 +57,17 @@ Figure — Remove Member Dialog:
 
 1. MANAGER opens `/workspaces/:id/members` and chooses Remove for a member.
 2. MANAGER confirms in the dialog.
-3. System confirms the caller holds the MANAGER role in that Workspace; otherwise the request fails with 403 `FORBIDDEN`.
-4. System loads the member and checks that it exists, is active, and belongs to that Workspace; otherwise the request fails with 404 `NOT_FOUND`.
-5. System applies the last-MANAGER guard: members who are not MANAGER pass, and a MANAGER passes only when another active MANAGER exists in the Workspace.
-6. System marks the membership inactive; the member disappears from the active member list.
+3. System confirms the caller holds the MANAGER role in that Workspace (BR-35); otherwise the request fails with 403 `FORBIDDEN`.
+4. System loads the member and checks that it exists, is active, and belongs to that Workspace (BR-29); otherwise the request fails with 404 `NOT_FOUND`.
+5. System applies the last-MANAGER guard (BR-28): members who are not MANAGER pass, and a MANAGER passes only when another active MANAGER exists in the Workspace.
+6. System marks the membership inactive (BR-28, BR-30); the member disappears from the active member list; toast MSG36.
 7. The member's Agency membership is untouched — they remain in the Agency and in any other Workspace they take part in.
 
 ### Abnormal Cases
 
-- Caller is not the MANAGER of that Workspace → 403 `FORBIDDEN`.
-- Member does not exist, is not active, or belongs to another Workspace → 404 `NOT_FOUND`.
-- Removing the only active MANAGER of the Workspace → 409 `LAST_OWNER_CANNOT_BE_REMOVED`; another MANAGER must be assigned first.
+- 3.a1: Caller is not the MANAGER of that Workspace (BR-35) → 403 `FORBIDDEN`, toast MSG39. 3.a2: The screen blocks the action; the caller cannot remove members without the MANAGER role.
+- 4.a1: Member does not exist, is not active, or belongs to another Workspace (BR-29) → 404 `NOT_FOUND`, toast MSG38. 4.a2: The screen refreshes the member list, since the target row no longer applies.
+- 5.a1: Removing the only active MANAGER of the Workspace (BR-28) → 409 `LAST_OWNER_CANNOT_BE_REMOVED`, toast MSG37. 5.a2: The MANAGER assigns another member as MANAGER first, then retries the removal.
 - The removed member still has Tasks in progress in this Workspace → those Tasks are not automatically unassigned; this behaviour is not yet confirmed for the Workspace scope.
 
 ## Post-Conditions

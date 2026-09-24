@@ -22,15 +22,11 @@ Figure — Sign Out:
 - **Output:** no data; the refresh cookie is cleared.
 
 ### Business Rules
-- **BR-01:** A missing or malformed access token → 401 INVALID_CREDENTIALS.
-- **BR-02:** An expired or otherwise unusable access token is not an error: the sign-out still reports success.
-- **BR-03:** The current access token and the current refresh token are both invalidated; an unusable token is skipped without failing the request.
-- **BR-04:** The sign-out event is recorded only when the access token yields a user identity; otherwise nothing is recorded while success is still reported.
-- **BR-05:** A sign-out affects only the device it was performed on; refresh tokens held by other devices stay valid, unlike a password change which invalidates them all.
-- **BR-06:** The method used last, for example email or Google, is remembered by the screen itself and is never sent to the server; no cross-device synchronization is provided.
+- **BR-14:** Sign-out blacklists both access and refresh token `jti` values and clears the refresh cookie. A missing or malformed access token → 401 INVALID_CREDENTIALS. An expired or otherwise unusable access token is not an error: the sign-out still reports success; the current access token and the current refresh token are both invalidated, and an unusable token is skipped without failing the request. The sign-out event is recorded only when the access token yields a user identity; otherwise nothing is recorded while success is still reported.
+- **BR-05 (extension of the audit/session model):** A sign-out affects only the device it was performed on; refresh tokens held by other devices stay valid, unlike a password change which invalidates them all (contrast with BR-12). The method used last, for example email or Google, is remembered by the screen itself and is never sent to the server; no cross-device synchronization is provided.
 
 ### Validation
-- Missing or malformed access token → 401 INVALID_CREDENTIALS.
+- Missing or malformed access token → 401 INVALID_CREDENTIALS, toast MSG22.
 - Any unusable token during sign-out → reported as success.
 
 ## Functionalities
@@ -39,12 +35,12 @@ Figure — Sign Out:
 2. The system checks the access token and identifies the account.
 3. The system invalidates the access token and the refresh token, and clears the refresh cookie.
 4. The system records the sign-out event with the source address and the client description.
-5. The system returns success; the screen clears the stored access token, remembers the sign-in method used and returns to /login.
+5. The system returns success; the screen clears the stored access token, remembers the sign-in method used and returns to /login; toast MSG23.
 
 ### Abnormal Cases
-- Missing or malformed access token → 401 INVALID_CREDENTIALS.
-- Expired or tampered access token → the sign-out still reports success; the identity is unknown, so nothing is recorded and only the refresh token is invalidated.
-- Expired or unusable refresh token → the sign-out still reports success.
+- 2.a1: Missing or malformed access token (BR-14) → 401 INVALID_CREDENTIALS, toast MSG22. 2.a2: The screen still clears local state and returns to /login.
+- 3.a1: Expired or tampered access token (BR-14) → the sign-out still reports success, toast MSG23; the identity is unknown, so nothing is recorded and only the refresh token is invalidated. 3.a2: The screen clears local state and returns to /login as normal.
+- 3.b1: Expired or unusable refresh token (BR-14) → the sign-out still reports success, toast MSG23. 3.b2: The screen clears local state and returns to /login as normal.
 
 ## Post-Conditions
 - The access token and the refresh token are invalid and the refresh cookie is cleared in the browser.

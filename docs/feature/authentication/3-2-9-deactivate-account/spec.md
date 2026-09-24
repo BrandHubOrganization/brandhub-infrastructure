@@ -24,16 +24,13 @@ Figure — Deactivate Account (/profile, Danger Zone):
 - **Output:** no data.
 
 ### Business Rules
-- **BR-01:** A missing or invalid access token → 401 INVALID_CREDENTIALS. An account referenced by the token that no longer exists → 404 USER_NOT_FOUND.
-- **BR-02:** The flow is chosen from the account itself. An account with a password must confirm with the password and any submitted code is ignored; an account without a password must confirm with a one-time code and any submitted password is ignored.
-- **BR-03:** A wrong password → 400 WRONG_CURRENT_PASSWORD. A missing, expired, already used or wrong one-time code → 400 OTP_INVALID.
-- **BR-04:** The one-time code is six digits, valid for 10 minutes and single-use; requesting a code again replaces the previous one and restarts its lifetime. Requesting a code does not require the account to be without a password.
-- **BR-05:** After identity is confirmed, if the user owns at least one active agency the deactivation is refused with 409 AGENCY_OWNERSHIP_ACTIVE and the account status is left unchanged; ownership must be transferred first.
-- **BR-06:** Deactivation is a soft delete: the account is marked as deactivated, no account or related data is removed, and a later sign-in attempt is refused with 403 ACCOUNT_DEACTIVATED.
+- **BR-22:** Account deactivation sets status to DEACTIVATED and is reversible unless decided otherwise (TBD); a later sign-in attempt is refused with 403 ACCOUNT_DEACTIVATED. Deactivation is a soft delete: no account or related data is removed. A missing or invalid access token → 401 INVALID_CREDENTIALS. An account referenced by the token that no longer exists → 404 USER_NOT_FOUND. The flow is chosen from the account itself: an account with a password must confirm with the password and any submitted code is ignored; an account without a password must confirm with a one-time code (six digits, valid for 10 minutes, single-use; requesting a code again replaces the previous one and restarts its lifetime) and any submitted password is ignored. A wrong password → 400 WRONG_CURRENT_PASSWORD. A missing, expired, already used or wrong one-time code → 400 OTP_INVALID.
+- **BR-23 (agency ownership guard, analogous to the last-OWNER protection for workspaces):** After identity is confirmed, if the user owns at least one active agency the deactivation is refused with 409 AGENCY_OWNERSHIP_ACTIVE and the account status is left unchanged; ownership must be transferred first.
 
 ### Validation
-- Missing or malformed access token → 401 INVALID_CREDENTIALS.
-- Empty password, or an empty or malformed code → error message.
+- Missing or malformed access token → 401 INVALID_CREDENTIALS, toast MSG22.
+- password empty → Display: MSG02
+- code empty or malformed → Display: MSG02
 
 ## Functionalities
 ### Normal Flow
@@ -43,15 +40,15 @@ Figure — Deactivate Account (/profile, Danger Zone):
 4. The user supplies the password, or the code, and the system verifies it.
 5. The system checks that the user does not own any active agency.
 6. The system marks the account as deactivated.
-7. The system returns success and the screen clears the local session and returns to /login.
+7. The system returns success and the screen clears the local session and returns to /login; toast MSG91.
 
 ### Abnormal Cases
-- Missing or invalid access token → 401 INVALID_CREDENTIALS.
-- The account referenced by the token no longer exists → 404 USER_NOT_FOUND.
-- Wrong password → 400 WRONG_CURRENT_PASSWORD.
-- Code missing, expired, already used or wrong, including a code submitted before any code was requested → 400 OTP_INVALID.
-- The user still owns at least one active agency → 409 AGENCY_OWNERSHIP_ACTIVE and the account status is unchanged. In the code-based flow the code has already been consumed, so a new code must be requested before retrying.
-- A user with a password submits a code instead of the password → 400 WRONG_CURRENT_PASSWORD, because the password flow applies and the code is ignored.
+- 2.a1: Missing or invalid access token (BR-22) → 401 INVALID_CREDENTIALS, toast MSG22. 2.a2: The user signs in again.
+- 2.b1: The account referenced by the token no longer exists (BR-22) → 404 USER_NOT_FOUND, toast MSG38. 2.b2: The user signs in again with a valid account.
+- 4.a1: Wrong password (BR-22) → 400 WRONG_CURRENT_PASSWORD, Display: MSG19. 4.a2: The user re-enters the password.
+- 4.b1: Code missing, expired, already used or wrong, including a code submitted before any code was requested (BR-22) → 400 OTP_INVALID, Display: MSG20. 4.b2: The user requests a new code and re-enters it.
+- 4.c1: A user with a password submits a code instead of the password (BR-22) → 400 WRONG_CURRENT_PASSWORD, Display: MSG19, because the password flow applies and the code is ignored. 4.c2: The user supplies the password instead.
+- 5.a1: The user still owns at least one active agency (BR-23) → 409 AGENCY_OWNERSHIP_ACTIVE, toast MSG38, and the account status is unchanged. 5.a2: The user transfers agency ownership first; in the code-based flow the code has already been consumed, so a new code must be requested before retrying.
 
 ## Post-Conditions
 - The account is marked as deactivated and can no longer sign in.

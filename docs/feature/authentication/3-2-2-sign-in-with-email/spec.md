@@ -24,15 +24,16 @@ Figure — Sign-in Screen (/login):
 - **Output:** access token, token type, expiry in seconds, a flag stating whether two-factor verification is required, and a refresh token delivered as an HTTP-only cookie. When two-factor verification is required, a two-factor challenge token is returned instead of the access token and the refresh token.
 
 ### Business Rules
-- **BR-01:** When no account matches the identifier, or the password does not match, or the account has no password (created through Google only), the same answer is returned: 401 INVALID_CREDENTIALS. The answer never reveals whether the email address or the phone number exists.
-- **BR-02:** The email part of the identifier is matched case-insensitively; the phone part is normalized before lookup.
-- **BR-03:** An inactive account, or any status other than ACTIVE or DEACTIVATED → 403 ACCOUNT_SUSPENDED. A status of DEACTIVATED → 403 ACCOUNT_DEACTIVATED.
-- **BR-04:** When two-factor authentication is enabled no access token and no refresh token are issued at this step; a two-factor challenge token is returned instead and the refresh cookie is not set.
-- **BR-05:** A refresh is accepted only from the HTTP-only cookie, never from the request body. A missing cookie or an unusable token → 401 REFRESH_TOKEN_INVALID. A token invalidated by sign-out → 401 REFRESH_TOKEN_BLACKLISTED. A token issued before the most recent password change → 401 REFRESH_TOKEN_INVALID. A successful refresh rotates the refresh token.
+- **BR-05:** Anti-enumeration — when no account matches the identifier, or the password does not match, or the account has no password (created through Google only), the same answer is returned: 401 INVALID_CREDENTIALS. The answer never reveals whether the email address or the phone number exists.
+- **BR-06:** Suspended / inactive account → 403 ACCOUNT_SUSPENDED, checked before password comparison. A status of DEACTIVATED → 403 ACCOUNT_DEACTIVATED.
+- **BR-07:** Login accepts an identifier field auto-detected as email (contains "@") or phone (E.164); the email part is matched case-insensitively, the phone part is normalized before lookup.
+- **BR-08:** Access token is JWT RS256 with a 15-minute TTL; refresh token is an HttpOnly cookie only, 30-day TTL, never in the JSON body. When two-factor authentication is enabled no access token and no refresh token are issued at this step; a two-factor challenge token is returned instead and the refresh cookie is not set.
+- **BR-12:** Refresh token `jti` is checked against a blacklist; a token issued before the most recent password change is rejected. A refresh is accepted only from the HTTP-only cookie, never from the request body. A missing cookie or an unusable/stale token → 401 REFRESH_TOKEN_INVALID. A blacklisted token → 401 REFRESH_TOKEN_BLACKLISTED. A successful refresh rotates the refresh token.
 
 ### Validation
-- Empty identifier or empty password → error message.
-- The identifier is neither a valid email format nor a valid phone number → error message.
+- identifier empty → Display: MSG02
+- password empty → Display: MSG02
+- identifier neither a valid email format nor a valid phone number → Display: MSG04
 
 ## Functionalities
 ### Normal Flow
@@ -41,14 +42,14 @@ Figure — Sign-in Screen (/login):
 3. The system compares the submitted password with the stored password hash.
 4. With two-factor authentication disabled the system records the sign-in, resolves the active workspace and issues an access token and a refresh token.
 5. The system returns the tokens and sets the refresh token cookie.
-6. The screen stores the access token, loads the profile and navigates to the Dashboard / Agency list.
+6. The screen stores the access token, loads the profile and navigates to the Dashboard / Agency list; toast MSG11.
 
 ### Abnormal Cases
-- Unknown identifier, wrong password, or an account without a password → 401 INVALID_CREDENTIALS, without revealing which identifier exists.
-- Suspended account, or any status other than ACTIVE or DEACTIVATED → 403 ACCOUNT_SUSPENDED.
-- Deactivated account → 403 ACCOUNT_DEACTIVATED.
-- Two-factor authentication enabled → no tokens are issued and the screen continues on the two-factor code screen (3.2.7).
-- Refresh requested without the cookie, or with an unusable, blacklisted or stale token → 401 REFRESH_TOKEN_INVALID or 401 REFRESH_TOKEN_BLACKLISTED.
+- 2.a1: Unknown identifier, wrong password, or an account without a password (BR-05) → 401 INVALID_CREDENTIALS, toast MSG07; the identifier is never confirmed to exist. 2.a2: The Guest re-enters the credentials or uses "Forgot password" (3.2.4).
+- 2.b1: The account status is anything other than ACTIVE or DEACTIVATED (BR-06) → 403 ACCOUNT_SUSPENDED, toast MSG09. 2.b2: The Guest contacts support to resolve the account status.
+- 2.c1: The account status is DEACTIVATED (BR-06) → 403 ACCOUNT_DEACTIVATED, toast MSG09. 2.c2: The Guest reactivates the account (3.2.9) or contacts support.
+- 4.a1: Two-factor authentication is enabled on the account (BR-08) → no access token and no refresh token are issued; a two-factor challenge token is returned instead. 4.a2: The screen continues on the two-factor code screen (3.2.7) for the Guest to complete sign-in.
+- 5.a1: Refresh requested without the cookie, or with an unusable or stale token (BR-12) → 401 REFRESH_TOKEN_INVALID, toast MSG22. 5.a2: Refresh requested with a token invalidated by sign-out (BR-12) → 401 REFRESH_TOKEN_BLACKLISTED, toast MSG22; either way the screen redirects the Guest back to /login.
 
 ## Post-Conditions
 - The sign-in is recorded and the last sign-in time is updated.
