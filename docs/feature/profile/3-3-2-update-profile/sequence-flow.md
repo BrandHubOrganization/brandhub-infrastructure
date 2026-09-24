@@ -1,63 +1,64 @@
 # Sequence Flow — Update Profile
 
-> Bổ sung cho `spec.md` (FR 3.3.2). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
+> Supplements `spec.md` (FR 3.3.2). This file lists each step as actor → action → system, in enough detail to draw the sequence diagram directly — it does not restate business rules (see spec.md for those).
 >
-> Cập nhật: 2026-09-23. Khớp code thật tại thời điểm này (`UserController`, `UserServiceImpl`, `FileStorageService`).
+> Updated: 2026-09-23. Matches the current implementation.
 
 ## Actors
 
-- **User** — người dùng đang đăng nhập.
-- **FE** — brandhub-web-dashboard (React), trang `/settings/profile`.
-- **BE** — brandhub-business-service (Spring Boot).
-- **DB** — PostgreSQL (bảng `users`).
-- **S3** — file storage cho avatar (`FileStorageService`).
+- **User** — the signed-in user.
+- **Client** — the Profile screen at `/settings/profile` and the avatar upload dialog.
+- **System** — the application services.
+- **Database** — PostgreSQL (`users`).
+- **File Storage** — object storage holding avatar images.
 
 ---
 
-## Flow A — Cập nhật thông tin text (fullName, phone, timezone, notificationPreferences)
+## Flow A — Update the text fields (full name, phone, timezone, notification preferences)
 
-1. User → FE: sửa form trên `/settings/profile` (`fullName`, `phone`, tuỳ chọn `timezone`, `notificationPreferences`), bấm Save.
-2. FE → BE: `PUT /api/v1/users/me` `{fullName, phone?, timezone?, notificationPreferences?}`.
-   - Request DTO (`UpdateProfileRequest`) **không có field `email` hay `avatarUrl`** — về mặt cấu trúc không thể gửi 2 field này qua endpoint này (không phải BE âm thầm ignore, mà form/DTO không có chỗ để chứa).
-   - `fullName` trống/blank → validation `@NotBlank` chặn ngay ở tầng controller → `400 VALIDATION_ERROR`.
-3. BE (`UserController.updateProfile` → `UserServiceImpl.updateUserProfile`):
-   a. BE → DB: `findById(userId)` — không có → `404 USER_NOT_FOUND` (lý thuyết).
-   b. Set `user.fullName = fullName.trim()`.
-   c. Nếu `phone != null` → set `user.phone = phone.trim()`.
-   d. Parse `user.preferences` (JSON hiện tại) → merge thêm `timezone` (nếu gửi) và `notificationPreferences` (nếu gửi) → serialize lại JSON, lưu vào `user.preferences`.
-      - Lỗi serialize JSON (hiếm) → `400 INVALID_REQUEST`.
-4. BE → DB: `save(user)`.
-5. BE → FE: `200 { id, email, fullName, avatarUrl, phone, role, workspaceId, timezone, notificationPreferences, createdAt }` (cùng shape với GET /me).
-6. FE: toast thành công, cập nhật UI ngay từ response, không reload.
+1. User → Client: edits the form on `/settings/profile` (full name, phone number, optionally timezone and notification preferences) and clicks Save.
+2. Client → System: submits the update of the signed-in user's own profile.
+   - The update request carries **no email field and no avatar field** — they cannot be submitted through this action because there is no place to carry them, not because the system silently discards them.
+   - An empty or blank full name is rejected at the point of entry → `400 VALIDATION_ERROR`.
+3. System:
+   a. System → Database: loads the user record — not found → `404 USER_NOT_FOUND` (theoretical).
+   b. Writes the submitted full name (trimmed).
+   c. When a phone number is submitted, writes the phone number (trimmed).
+   d. Reads the stored preferences data, merges in the submitted timezone (when submitted) and notification preferences (when submitted), and writes the merged preferences back to the user record.
+      - Failure to serialize the preferences data (rare) → `400 INVALID_REQUEST`.
+4. System → Database: saves the user record.
+5. System → Client: returns the complete updated profile — id (`userId`), `email`, `fullName`, `avatarUrl`, `phone`, `role`, `workspaceId`, `timezone`, `notificationPreferences`, `createdAt` (same shape as the profile view).
+6. Client: shows a success confirmation and refreshes the display from the returned values, without a page reload.
 
-## Flow B — Upload avatar
+## Flow B — Upload an avatar
 
-Endpoint riêng, độc lập với Flow A (không nằm chung `PUT /me`).
+A separate action, independent of Flow A (never part of the profile update).
 
-1. User → FE: mở `AvatarUploadModal`, chọn file ảnh.
-2. FE → BE: `POST /api/v1/users/me/avatar` multipart `file`.
-3. BE (`UserController.uploadAvatar` → `UserServiceImpl.updateAvatar`):
-   a. `file` null/rỗng → `400 NO_FILE_PROVIDED`.
-   b. `contentType` không bắt đầu bằng `image/` → `400 INVALID_FILE_TYPE`.
-   c. `file.size > 5MB` → `400 FILE_TOO_LARGE`.
-   d. BE → DB: `findById(userId)` — không có → `404 USER_NOT_FOUND` (lý thuyết).
-   e. Đọc bytes file — lỗi IO → `400 UPLOAD_FAILED`.
-   f. BE → S3: `uploadAvatar(userId, bytes, contentType)` → nhận `newAvatarUrl`.
-   g. Nếu user đã có `avatarUrl` cũ → BE → S3: `deleteFile(oldAvatarUrl)` (dọn file cũ).
-   h. Set `user.avatarUrl = newAvatarUrl` → BE → DB: `save(user)`.
-4. BE → FE: `200 { avatarUrl: newAvatarUrl }`.
-5. FE: gắn `avatarUrl` mới vào state/preview, không còn dùng local preview URL tạm.
+1. User → Client: opens the avatar upload dialog and selects an image file.
+2. Client → System: submits the selected image file (multipart).
+3. System:
+   a. No file, or an empty file → `400 NO_FILE_PROVIDED`.
+   b. Content type does not start with `image/` → `400 INVALID_FILE_TYPE`.
+   c. File larger than 5 MB → `400 FILE_TOO_LARGE`.
+   d. System → Database: loads the user record — not found → `404 USER_NOT_FOUND` (theoretical).
+   e. Reading the file bytes fails → `400 UPLOAD_FAILED`.
+   f. System → File Storage: stores the image and receives the new avatar reference.
+   g. When the user already has an avatar, System → File Storage: deletes the previous avatar file (clean-up).
+   h. Writes the new avatar reference onto the user record → System → Database: saves the user record.
+4. System → Client: returns the new avatar reference.
+5. Client: shows the new avatar, replacing any temporary local preview.
 
 ---
 
-## Error paths tổng hợp
+## Error paths
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | HTTP | ErrorCode |
 |---|---|---|---|
-| Update (Flow A) | `fullName` trống | 400 | `VALIDATION_ERROR` |
-| Update (Flow A) | Lỗi serialize preferences JSON (hiếm) | 400 | `INVALID_REQUEST` |
-| Update (Flow A/B) | User không tồn tại (lý thuyết) | 404 | `USER_NOT_FOUND` |
-| Upload avatar (Flow B) | Không có file | 400 | `NO_FILE_PROVIDED` |
-| Upload avatar (Flow B) | File không phải ảnh | 400 | `INVALID_FILE_TYPE` |
-| Upload avatar (Flow B) | File > 5MB | 400 | `FILE_TOO_LARGE` |
-| Upload avatar (Flow B) | Lỗi đọc file (IO) | 400 | `UPLOAD_FAILED` |
+| Update (Flow A) | Full name empty or blank | 400 | `VALIDATION_ERROR` |
+| Update (Flow A) | Preferences data cannot be serialized (rare) | 400 | `INVALID_REQUEST` |
+| Update (Flow A/B) | The user record no longer exists (theoretical) | 404 | `USER_NOT_FOUND` |
+| Update (Flow A/B) | Missing, expired, or invalid token | 401 | `UNAUTHORIZED` |
+| Upload avatar (Flow B) | No file provided | 400 | `NO_FILE_PROVIDED` |
+| Upload avatar (Flow B) | File is not an image | 400 | `INVALID_FILE_TYPE` |
+| Upload avatar (Flow B) | File larger than 5 MB | 400 | `FILE_TOO_LARGE` |
+| Upload avatar (Flow B) | File cannot be read | 400 | `UPLOAD_FAILED` |

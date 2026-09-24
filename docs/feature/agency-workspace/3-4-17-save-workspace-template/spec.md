@@ -1,70 +1,83 @@
-# UC — Save Workspace Template
+# 3.4.17 Save Workspace Template
 
 | | |
 |---|---|
 | FR Code | 3.4.17 |
 | Feature | Save Workspace Template |
 | Domain | Agency & Workspace (FR 3.4) |
-| Role | Agency member đã đăng nhập (chưa có `@RequireRole` giới hạn cụ thể trong code) |
-| Version | 2.1 — Cập nhật 2026-09-23 — đồng bộ theo code thật |
-| Trạng thái tài liệu | Đã code |
+| Role | Signed-in Agency member (no specific role restriction is applied) |
+| Version | 2.2 — 2026-09-23 — rewritten to the standard FR format |
+| Document status | Implemented |
 
-## 1. Objective
+## Function Trigger
 
-Cho phép user lưu lại cấu hình 1 Workspace hiện có thành Template (resource độc lập `/api/v1/workspace-templates`) để tái sử dụng, xem, và xóa sau này.
+Begins when a signed-in Agency member saves the configuration of an existing Workspace as a template.
 
-## 2. User Story
+## Function Description
 
-Là một thành viên Agency,
-tôi muốn lưu cấu hình Workspace hiện tại thành template,
-để tạo Workspace mới tương tự nhanh hơn trong tương lai.
+- **Actors / Roles:** Any signed-in member of the Agency; no specific role restriction is applied.
+- **Purpose:** Lets a member store a Workspace configuration as a reusable template so similar Workspaces can be created faster later.
+- **Interface:** "Save as Template" action inside Workspace settings, plus a separate template list screen with a detail view and a delete action.
+- **Data Processing:** The system stores the template with the configuration snapshot captured from the Workspace, scoped automatically to the caller's Agency and creator identity.
 
-## 3. Acceptance Criteria
+## Screen Layout
 
-- Tạo `WorkspaceTemplate` gồm: `name` (bắt buộc), `sourceWorkspaceId` (optional, Workspace gốc), `configSnapshot` (bắt buộc, chuỗi JSON snapshot cấu hình).
-- `WorkspaceTemplate` KHÔNG nested dưới `/agencies/{id}` hay `/workspaces/{id}` — là resource riêng biệt `/api/v1/workspace-templates`, có 4 endpoint: tạo (POST), danh sách (GET), chi tiết (GET /{templateId}), xóa (DELETE /{templateId}).
-- `agencyId` và `createdBy` được set tự động theo `currentUser` (không truyền trong request body).
+Figure — Save Workspace Template Screen:
+- A "Save as Template" action in Workspace settings.
+- A form with the template name, an optional source Workspace, and the configuration snapshot.
+- A separate template list screen with a detail view and a delete action per template.
 
-## 4. UI / UX
+## Function Details
 
-- Nút trong Workspace Settings; danh sách Template hiển thị ở trang riêng cho template (không phải nested `/agencies/:id/workspace-templates`).
+### Data Specifications
 
-## 5. API Contract
+- **Input required:** name; configSnapshot (a JSON snapshot of the Workspace configuration).
+- **Input optional:** sourceWorkspaceId (the Workspace the template was captured from).
+- **System data:** The caller's authenticated identity; the Agency the caller belongs to; the creation timestamp.
+- **Output:** The stored template — id, agencyId, name, sourceWorkspaceId, configSnapshot, createdBy, createdAt. The template list returns the same shape per entry, and the detail view returns one entry.
 
-```
-POST /api/v1/workspace-templates
-{ "name": "string", "sourceWorkspaceId"?: "uuid", "configSnapshot": "string" }
-→ 200 { "success": true, "data": WorkspaceTemplateResponse }
+### Business Rules
 
-GET /api/v1/workspace-templates
-→ 200 { "success": true, "data": [WorkspaceTemplateResponse, ...] }
+- **BR-01:** The Agency and the creator of the template are taken automatically from the caller and never from the request payload.
+- **BR-02:** Templates are a standalone resource, not nested inside an Agency or a Workspace; the available actions are create, list, view detail, and delete.
+- **BR-03:** `name` or `configSnapshot` empty → 400 `VALIDATION_ERROR`.
+- **BR-04:** Requesting or deleting a template that does not exist → 404 `NOT_FOUND`.
+- **BR-05:** No specific role restriction is currently applied to these actions; whether access should be limited by Agency or role is still to be confirmed.
+- **BR-06:** A template is independent of its source Workspace — it remains available even after that Workspace is deleted.
 
-GET /api/v1/workspace-templates/{templateId}
-→ 200 { "success": true, "data": WorkspaceTemplateResponse }
+### Validation
 
-DELETE /api/v1/workspace-templates/{templateId}
-→ 200 { "success": true, "data": null }
-```
+- `name` must not be empty; otherwise 400 `VALIDATION_ERROR`.
+- `configSnapshot` must not be empty; otherwise 400 `VALIDATION_ERROR`.
+- The template must exist for detail and delete actions; otherwise 404 `NOT_FOUND`.
 
-`WorkspaceTemplateResponse` gồm: `id`, `agencyId`, `name`, `sourceWorkspaceId`, `configSnapshot`, `createdBy`, `createdAt`.
+## Functionalities
 
-## 6. Error Handling
+### Normal Flow
 
-- `name` hoặc `configSnapshot` trống → 400 `VALIDATION_ERROR`.
-- Không có `@RequireRole` cụ thể trên các endpoint này trong code hiện tại — cần double-check với BE liệu có giới hạn quyền theo Agency/role dự kiến hay chưa.
+1. Member opens Workspace settings and chooses "Save as Template".
+2. Member fills in the template name, an optional source Workspace, and the configuration snapshot.
+3. System validates that the name and snapshot are not empty.
+4. System attaches the caller's Agency and identity automatically.
+5. System stores the template and confirms it, adding it to the template list.
+6. Member can later list templates, open one in detail, or delete it.
 
-## 7. Edge Cases
+### Abnormal Cases
 
-- Workspace gốc (`sourceWorkspaceId`) bị xóa sau khi đã lưu Template → Template vẫn tồn tại độc lập (`configSnapshot` không phụ thuộc Workspace gốc còn sống hay không).
+- `name` empty → 400 `VALIDATION_ERROR`; the user supplies a name and resubmits.
+- `configSnapshot` empty → 400 `VALIDATION_ERROR`; the user captures the configuration and resubmits.
+- Detail or delete requested for a template that does not exist → 404 `NOT_FOUND`.
+- The source Workspace is deleted after the template was saved → the template still exists, because the stored snapshot does not depend on the source Workspace.
 
-## 8. Definition of Done
+## Post-Conditions
 
-- Lưu/xem/xóa Template thành công qua `/api/v1/workspace-templates`, dùng lại được khi tạo Workspace mới.
+- A template exists within the caller's Agency with the captured configuration snapshot.
+- The template remains available independently of the source Workspace.
 
 ## Out of Scope
 
-- Chia sẻ Template giữa các Agency khác nhau (chỉ trong phạm vi 1 Agency theo CSV).
+- Sharing templates across different Agencies (templates stay within one Agency).
 
-## Tham chiếu BA
+## References
 
 [01-organization-structure.md](../../../BA/01-organization-structure.md), [03-agency-workspace-management.md](../../../BA/03-agency-workspace-management.md)

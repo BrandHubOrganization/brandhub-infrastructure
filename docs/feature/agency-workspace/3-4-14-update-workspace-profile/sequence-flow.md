@@ -1,59 +1,55 @@
 # Sequence Flow — Update Workspace Profile
 
-> Bổ sung cho `spec.md` (FR 3.4.14). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
+> Companion to `spec.md` (FR 3.4.14). This file lists each step as actor → action → system, in enough detail to draw the sequence diagram directly. It does not restate business rules — see `spec.md` for those.
 >
-> Cập nhật: 2026-09-23. Khớp code thật (`WorkspaceController.updateSettings`/`uploadLogo`, `WorkspaceServiceImpl`).
+> Updated: 2026-09-23.
 
 ## Actors
 
-- **MANAGER** — thành viên role MANAGER của Workspace.
-- **FE** — brandhub-web-dashboard (React).
-- **BE** — brandhub-business-service (Spring Boot).
-- **DB** — PostgreSQL (`workspaces`).
-- **Storage** — file storage service (logo upload).
+- **Client** — the MANAGER of the Workspace.
+- **System** — the application service handling the request.
+- **Database** — the persistent store holding Workspace records.
+- **File storage** — the external store holding the uploaded Workspace logo.
 
 ---
 
-## Flow A — Cập nhật settings/thông tin Workspace
+## Flow A — Update settings and Workspace details
 
-1. MANAGER → FE: mở `/workspaces/:id/profile/edit`, sửa `name`/`timezone`/`defaultPlatforms`/`industry`/`companySize`/`website`/`phone`/`location`.
-2. FE → BE: `PATCH /api/v1/workspaces/{workspaceId}/settings` (kèm các field muốn đổi, field nào không gửi giữ nguyên).
-3. BE: `@RequireRole({MemberRole.MANAGER})` chặn trước khi vào controller — không phải MANAGER của workspace này → `403 FORBIDDEN`.
-4. BE (`WorkspaceServiceImpl.updateSettings`):
-   a. `findWorkspaceOrThrow(workspaceId)` — không tồn tại → `404 WORKSPACE_NOT_FOUND`.
-   b. Nếu `name` không blank → set `workspace.name`.
-   c. Parse `settings` JSON hiện tại, merge `timezone`/`defaultPlatforms` mới (field nào null trong request giữ giá trị cũ).
-   d. Ghi lại `settings` (serialize JSON).
-   e. Set `industry`/`companySize`/`website`/`phone`/`location` nếu request có truyền (không null).
-   f. `updatedAt = now()`.
-5. BE → DB: `UPDATE workspaces`.
-6. BE → FE: `200 { data: WorkspaceResponse }` (đã cập nhật).
-7. FE: hiển thị toast thành công, cập nhật UI.
+1. Client → System: open `/workspaces/:id/profile/edit` and edit the name, timezone, default platforms, industry, company size, website, phone, or location.
+2. System: check the caller's role in the Workspace before handling the request — a caller who is not the Workspace MANAGER is rejected with 403 `FORBIDDEN`.
+3. System → Database: look up the Workspace by its identifier; a missing Workspace is rejected with 404 `WORKSPACE_NOT_FOUND`.
+4. System: apply the supplied name when it is not blank.
+5. System: parse the stored settings and merge in the new timezone and default platforms, keeping the previous values for fields left out of the request.
+6. System: store the merged settings and apply the supplied industry, company size, website, phone, and location.
+7. System: record the update timestamp.
+8. System → Database: write the updated Workspace.
+9. System → Client: the updated Workspace profile.
+10. Client: show a success confirmation and refresh the profile.
 
-## Flow B — Cập nhật logo Workspace (endpoint riêng)
+## Flow B — Update the Workspace logo
 
-1. MANAGER → FE: chọn file ảnh logo, submit.
-2. FE → BE: `POST /api/v1/workspaces/{workspaceId}/logo` (multipart/form-data, field `file`).
-3. BE: `@RequireRole({MemberRole.MANAGER})` chặn — không phải MANAGER → `403 FORBIDDEN`.
-4. BE (`WorkspaceServiceImpl.updateLogo`):
-   a. `findWorkspaceOrThrow(workspaceId)` — không tồn tại → `404 WORKSPACE_NOT_FOUND`.
-   b. Đọc bytes file (`file.getBytes()`) — lỗi IO → bắt `IOException`, ném `BusinessException(ErrorCode.FILE_READ_ERROR)` → `400 FILE_READ_ERROR`.
-   c. → Storage: `fileStorageService.uploadWorkspaceLogo(workspaceId, bytes, contentType)` → trả về `url`.
-   d. Set `workspace.logoUrl = url`, `updatedAt = now()`.
-5. BE → DB: `UPDATE workspaces`.
-6. BE → FE: `200 { data: WorkspaceResponse }` (có `logoUrl` mới).
-7. FE: hiển thị logo mới.
+1. Client → System: choose a logo image file and submit it.
+2. System: check the caller's role — a caller who is not the Workspace MANAGER is rejected with 403 `FORBIDDEN`.
+3. System → Database: look up the Workspace by its identifier; a missing Workspace is rejected with 404 `WORKSPACE_NOT_FOUND`.
+4. System: read the uploaded file's bytes; a read failure is rejected with 400 `FILE_READ_ERROR`.
+5. System → File storage: upload the logo and receive its location.
+6. System: set the Workspace logo location and record the update timestamp.
+7. System → Database: write the updated Workspace.
+8. System → Client: the updated Workspace profile carrying the new logo location.
+9. Client: display the new logo.
 
 ---
 
-## Error paths tổng hợp
+## Error paths
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | Status | Error code |
 |---|---|---|---|
-| Update settings / Upload logo | Không phải MANAGER của Workspace này | 403 | `FORBIDDEN` (chặn qua `@RequireRole`) |
-| Update settings / Upload logo | Workspace không tồn tại | 404 | `WORKSPACE_NOT_FOUND` |
-| Upload logo | Lỗi đọc file (IOException) | 400 | `FILE_READ_ERROR` |
+| Update settings / Upload logo | Caller is not the MANAGER of that Workspace | 403 | `FORBIDDEN` |
+| Update settings / Upload logo | Workspace does not exist | 404 | `WORKSPACE_NOT_FOUND` |
+| Upload logo | The uploaded file cannot be read | 400 | `FILE_READ_ERROR` |
 
-## Ghi chú khác biệt so với spec.md gốc
+## Notes
 
-- Không có — spec.md và sequence-flow đã khớp code thật (`updateSettings`, `updateLogo`).
+- The role check is applied before the request reaches the update handling, so a non-MANAGER never triggers a Workspace lookup.
+- Fields omitted from the request keep their current values; the settings payload is merged rather than replaced.
+- The logo has its own dedicated action, separate from the settings update.

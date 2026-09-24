@@ -1,78 +1,64 @@
-# UC — View Agency Invitation Status
+# 3.4.8 View Agency Invitation Status
 
-| | |
-|---|---|
-| FR Code | 3.4.8 |
-| Feature | View Agency Invitation Status |
-| Domain | Agency & Workspace (FR 3.4) |
-| Role | OWNER/USER (invited) |
-| Version | 2.1 — Cập nhật 2026-09-23 — đồng bộ theo code thật |
-| Trạng thái tài liệu | Confirmed — đã code (`AgencyController.listInvitations`, `listMyPendingInvitations`, `cancelInvitation`) |
+## Function Trigger
+An Owner opens the pending-invitation tab of an Agency to review, cancel or follow up its invitations; or an invited person opens their own pending invitations to see what is still open and to accept or decline.
 
-## 1. Objective
+## Function Description
+- **Actors / Roles:** Agency Owner (invitations of their Agency) and invited person (their own invitations).
+- **Purpose:** Let both sides see where an invitation stands, so they know whether it is still open, has lapsed, has been accepted or has been withdrawn.
+- **Interface:** For the Owner, a pending-invitation tab in the Member list of the Agency (`/agencies/:agencyId/members`), listing every invitation with its status and a cancel action on the open ones. For the invited person, a "My invitations" section listing the invitations still valid, each with an accept and a decline action.
+- **Data Processing:** The system returns the invitations of an Agency for its Owner, deriving the lapsed ones at read time, and returns the still-valid invitations addressed to the signed-in email for an invited person. Cancelling an open invitation withdraws it, and declining an invitation does the same from the invited person's side.
 
-Cho cả người mời và người được mời xem trạng thái lời mời vào Agency, tự động hết hạn theo `expiryDays` đã đặt lúc mời (mặc định 30 ngày).
+## Screen Layout
+Figure — Invitation list:
+- Owner view: one row per invitation with the invited email, the pre-assigned Workspace and role if any, the expiry time, the derived status and a cancel action on the open ones.
+- Invited person view: one row per still-valid invitation with the Agency name, the expiry time, an accept action and a decline action.
+- Statuses shown as badges: PENDING, EXPIRED, ACCEPTED, REVOKED.
 
-## 2. User Story
+## Function Details
+### Data Specifications
+- **Input required:** For the Owner view, the Agency identifier (`agencyId`); for the invited-person view, the signed-in session. Cancelling needs the invitation identifier; declining needs the invitation token.
+- **Input optional:** None.
+- **System data:** The invitations of the Agency — id, agencyId, agencyName, invitedEmail, invitedBy, token, note, workspaceId, workspaceName, role (nullable), status (InvitationStatus: PENDING, ACCEPTED, EXPIRED, REVOKED), expiresAt, acceptedAt (nullable), createdAt (full field list at 3.4.7) — and the email of the signed-in user.
+- **Output:** For the Owner, every invitation of the Agency whatever its status, with lapsed ones shown as expired. For the invited person, only the invitations addressed to their email that are still open. Cancelling and declining return no data.
 
-Là một Owner hoặc User được mời,
-tôi muốn xem trạng thái lời mời vào Agency,
-để biết lời mời còn hiệu lực hay đã hết hạn/được xử lý.
+### Business Rules
+- **BR-01:** Only the Owner of the Agency may list or cancel its invitations. Anybody else is refused with `403 NOT_AGENCY_OWNER`.
+- **BR-02:** An invitation is valid for the period set when it was sent — 30 days by default, settable between 1 and 30 days (3.4.7).
+- **BR-03:** Expiry is derived when the list is read, not by a scheduled job: after the expiry time passes the stored record keeps its PENDING status, and the system reports it as EXPIRED without writing that back to storage. Two reads taken either side of the expiry time may therefore report different statuses for the same record.
+- **BR-04:** The Owner sees lapsed invitations reported as expired. The invited person does not: their list drops anything that is no longer PENDING or has passed its expiry time, so it holds valid invitations only.
+- **BR-05:** The Owner may cancel an invitation while it is still PENDING, which moves it to REVOKED. An invitation that has already been accepted, lapsed or withdrawn cannot be cancelled.
+- **BR-06:** The invited person may decline an invitation with its token, which also moves it to REVOKED — the status model has no separate value for a declined invitation.
+- **BR-07:** There is no renewal or resend of an existing invitation. Sending a new invitation is the way forward, and the old one can only be withdrawn.
 
-## 3. Acceptance Criteria
+### Validation
+- Caller is not the Agency Owner → `403 NOT_AGENCY_OWNER`.
+- The invitation does not exist, or does not belong to the Agency → `404 INVITATION_NOT_FOUND`.
+- Cancelling an invitation that is no longer PENDING → `400 INVALID_INVITATION`.
+- Accepting an invitation that is not PENDING or has passed its expiry time → `400 INVALID_INVITATION`, and no Agency membership is created.
 
-- Owner xem list toàn bộ invitation đang pending/expired/accepted/revoked của Agency mình (`GET /{agencyId}/invitations`).
-- User được mời xem invitation pending của chính họ qua `GET /invitations/my-pending` (lọc theo email, chỉ trả các invitation còn `PENDING` và chưa hết hạn).
-- **Hạn mặc định 30 ngày**, tùy chỉnh 1-30 ngày qua `expiryDays` lúc invite (FR 3.4.7) — không phải cố định 3 ngày.
-- **Cơ chế hết hạn là lazy-expire lúc query**, không phải scheduled job: bản ghi DB vẫn giữ `status=PENDING` sau khi qua `expiresAt`; khi `listInvitations` đọc ra, nếu `status=PENDING` và `expiresAt` đã qua thì derive trả về `status=EXPIRED` trong response (không ghi lại DB). `listMyPendingInvitations` lọc bỏ hẳn các invitation đã hết hạn (chỉ trả những cái còn hiệu lực).
-- Owner có thể **hủy invitation đang PENDING** qua `DELETE /{agencyId}/invitations/{invitationId}` (chỉ Owner, chỉ khi status còn PENDING) — chuyển `status=REVOKED`.
+## Functionalities
+### Normal Flow
+1. The Owner opens the pending-invitation tab of an Agency.
+2. The client requests the invitations of the Agency with the signed-in session.
+3. The system confirms the caller is the Owner of the Agency.
+4. The system reads every invitation of the Agency and reports the lapsed ones as EXPIRED at read time, without writing the change back.
+5. The client renders the list with the reported statuses.
+6. The invited person opens their own invitation list.
+7. The system returns the invitations addressed to the signed-in email that are still PENDING and unexpired.
+8. The client renders them with an accept and a decline action on each.
+9. When the Owner selects cancel on an open invitation, the system moves it to REVOKED and the client drops the row.
+10. When the invited person selects decline, the system moves the invitation to REVOKED and the client drops the row.
 
-## 4. UI / UX
+### Abnormal Cases
+- Caller is not the Agency Owner → `403 NOT_AGENCY_OWNER`, no list is returned.
+- Cancelling an invitation that does not exist or belongs to another Agency → `404 INVITATION_NOT_FOUND`.
+- Cancelling an invitation that has already been accepted, lapsed or withdrawn → `400 INVALID_INVITATION`.
+- The invitation lapses exactly as the invited person accepts it → the system re-checks the PENDING status and the expiry time at acceptance and refuses with `400 INVALID_INVITATION`, creating no Agency membership.
+- Because expiry is derived at read time, two reads taken either side of the expiry time may report different statuses for the same stored record — this is the intended behaviour.
 
-- Owner: tab 'Lời mời đang chờ' trong `/agencies/:agencyId/members`.
-- User được mời: mục 'Lời mời của tôi' trong notification/dashboard cá nhân.
-
-## 5. API Contract (khớp code thật)
-
-```
-GET /api/v1/agencies/{agencyId}/invitations
-→ 200 { "success": true, "data": [ AgencyInvitationResponse, ... ] }   // toàn bộ, kể cả EXPIRED/ACCEPTED/REVOKED
-
-GET /api/v1/agencies/invitations/my-pending
-→ 200 { "success": true, "data": [ AgencyInvitationResponse, ... ] }   // chỉ PENDING còn hiệu lực, theo email user hiện tại
-
-DELETE /api/v1/agencies/{agencyId}/invitations/{invitationId}
-→ 200 { "success": true, "data": null }   // hủy invitation — chỉ Owner, chỉ khi PENDING
-
-POST /api/v1/agencies/invitations/decline
-{ "token": "string" }
-→ 200 { "success": true, "data": null }   // user được mời từ chối — set status=REVOKED (V2 không có DECLINED riêng)
-```
-
-`AgencyInvitationResponse` — xem bảng field đầy đủ tại FR 3.4.7.
-
-Route thật không có `/users/me/invitations` — dùng `/agencies/invitations/my-pending` (nằm trong `AgencyController`).
-
-## 6. Error Handling
-
-- Owner chỉ xem/hủy invitation của Agency mình (`listInvitations`/`cancelInvitation` đều check `NOT_AGENCY_OWNER`).
-- Hủy invitation không tồn tại hoặc không thuộc agency → 404 `INVITATION_NOT_FOUND`.
-- Hủy invitation không còn PENDING (đã accepted/expired/revoked) → 400 `INVALID_INVITATION`.
-
-## 7. Edge Cases
-
-- Invitation hết hạn đúng lúc user bấm accept → `acceptInvitation` kiểm tra lại `status == PENDING && expiresAt` chưa qua tại thời điểm accept, nếu không thỏa → 400 `INVALID_INVITATION`, không tạo AgencyMember.
-- Vì lazy-expire, 2 lần gọi `listInvitations` cách nhau qua mốc `expiresAt` có thể trả `status` khác nhau cho cùng 1 bản ghi dù DB chưa đổi — đúng thiết kế (derive tại thời điểm đọc).
-
-## 8. Definition of Done
-
-- Trạng thái hiển thị đúng, tự derive EXPIRED chính xác theo `expiresAt` (mặc định 30 ngày, tùy chỉnh 1-30) khi query — test với clock giả lập.
-
-## Out of Scope
-
-- Gia hạn lời mời (resend) — có thể coi là tạo invitation mới, không sửa invitation cũ.
-- ~~Hủy invitation~~ — **đã có trong code** (`cancelInvitation`), không còn Out of Scope, xem mục 5.
-
-## Tham chiếu BA
-
-[01-organization-structure.md](../../../BA/01-organization-structure.md), [03-agency-workspace-management.md](../../../BA/03-agency-workspace-management.md)
+## Post-Conditions
+- The Owner sees every invitation of the Agency with its current status, lapsed ones included.
+- The invited person sees only the invitations that are still valid for their email.
+- After a cancel or a decline, the invitation carries the REVOKED status.
+- No Agency membership is created while an invitation is not accepted.

@@ -1,48 +1,49 @@
 # Sequence Flow — Create Agency
 
-> Bổ sung cho `spec.md` (FR 3.4.3). File này liệt kê từng bước actor → action → hệ thống, đủ chi tiết để vẽ sequence diagram trực tiếp — không diễn giải nghiệp vụ (xem spec.md cho phần đó).
+> Companion to `spec.md` (FR 3.4.3). This file lists each actor → action → system step in enough detail to draw the sequence diagram directly. Business explanation lives in `spec.md`.
 >
-> Cập nhật: 2026-09-23. Khớp code thật tại thời điểm này (`AgencyController.createAgency`/`uploadLogo`, `AgencyServiceImpl.createAgency`).
+> Updated 2026-09-23, matching the system as built today.
 
 ## Actors
 
-- **User** — chưa có Agency hoặc muốn tạo thêm.
-- **FE** — brandhub-web-dashboard (React).
-- **BE** — brandhub-business-service (Spring Boot).
-- **DB** — PostgreSQL (`agencies`, `agency_members`).
+- **User** — signed in; owns no Agency yet, or wants another one.
+- **Client** — the BrandHub web application.
+- **System** — the BrandHub service.
+- **Database** — PostgreSQL (`agencies`, `agency_members`).
 
 ---
 
-## Flow A — Tạo Agency (không kèm logo)
+## Flow A — Create an Agency (without a logo)
 
-1. User → FE: mở `/agencies/create` (hoặc modal), điền form `name` (bắt buộc) + field branding tuỳ chọn (`description`, `category`, `companySize`, `website`, `phone`, `location`, `brandColor`, `logoIcon`, `tagline`, `foundedYear`, `facebookUrl`, `linkedinUrl`, `instagramUrl`).
-2. FE → BE: `POST /api/v1/agencies` `{ AgencyRequest }`.
-3. BE (`AgencyServiceImpl.createAgency`):
-   a. Validate `@NotBlank name` — trống → `400 VALIDATION_ERROR`.
-   b. Validate `brandColor` ≤9 ký tự, `tagline` ≤140 ký tự (Bean Validation) — sai → `400 VALIDATION_ERROR`.
-   c. `INSERT agencies` (`ownerId = currentUser.id`, `status = ACTIVE`).
-   d. `INSERT agency_members` (`agencyId`, `userId = currentUser.id`, `role = OWNER`).
-4. BE → FE: `201 { data: AgencyResponse }` (kèm `id` vừa tạo).
-5. FE: redirect sang Agency Dashboard vừa tạo (`/agencies/:agencyId/dashboard` — theo FR 3.4.2, hiện chưa có route thật, tạm dùng trang chi tiết FR 3.4.4).
+1. User → Client: opens the Create Agency form and fills in the name, plus any optional branding values (description, category, company size, website, phone, location, brand colour, logo icon, tagline, founded year, Facebook, LinkedIn and Instagram links).
+2. Client → System: submits the form (`POST /api/v1/agencies`).
+3. System — create the Agency:
+   a. Validates the name as mandatory — empty → `400 VALIDATION_ERROR`.
+   b. Validates the brand colour at 9 characters and the tagline at 140 characters — over the limit → `400 VALIDATION_ERROR`.
+   c. Stores a new Agency with the current user as its Owner and the status ACTIVE.
+   d. Stores a member record for the Agency with the current user at the OWNER role.
+4. System → Client: the profile of the new Agency, including its identifier.
+5. Client: moves the user into the Agency just created. The Agency Dashboard (3.4.2) has no screen of its own yet, so the Agency Profile (3.4.4) is shown in the meantime.
 
-## Flow B — Upload logo sau khi đã có agencyId
+## Flow B — Upload a logo once the Agency exists
 
-1. Tiếp theo Flow A bước 5 (hoặc từ trang edit sau này).
-2. User → FE: chọn file ảnh logo.
-3. FE → BE: `POST /api/v1/agencies/{agencyId}/logo` (multipart/form-data, field `file`).
-4. BE (`AgencyController.uploadLogo`): lưu file, update `agency.logoUrl`.
-5. BE → FE: `200 { data: AgencyResponse }` (đã có `logoUrl` mới).
-6. FE: cập nhật preview logo.
+1. Continuation of Flow A step 5, or the edit screen later on.
+2. User → Client: picks the logo image file.
+3. Client → System: submits the file for the Agency (`POST /api/v1/agencies/{agencyId}/logo`, sent as multipart form data).
+4. System: stores the file and fills in the logo of the Agency.
+5. System → Client: the Agency profile carrying the new logo location.
+6. Client: refreshes the logo preview.
 
 ---
 
-## Error paths tổng hợp
+## Error paths
 
-| Bước | Điều kiện lỗi | HTTP | ErrorCode |
+| Step | Failure condition | HTTP | Error code |
 |---|---|---|---|
-| Create | `name` trống | 400 | `VALIDATION_ERROR` |
-| Create | Field vượt giới hạn (`brandColor` >9 ký tự, `tagline` >140 ký tự) | 400 | `VALIDATION_ERROR` |
+| Create | Name empty | 400 | `VALIDATION_ERROR` |
+| Create | Value over its limit (brand colour over 9 characters, tagline over 140 characters) | 400 | `VALIDATION_ERROR` |
+| Logo upload | The file cannot be read | 400 | `FILE_READ_ERROR` |
 
-## Ghi chú khác biệt so với spec.md gốc
+## Notes
 
-Không có drift — spec.md đã ghi rõ logo là endpoint multipart riêng (không qua field `logoUrl` của form chính), khớp đúng code (`uploadLogo` là action riêng biệt với `createAgency`).
+- No divergence from `spec.md`. The logo is uploaded separately from the main form, matching the built behaviour where the logo upload is a step of its own rather than part of the Agency creation.

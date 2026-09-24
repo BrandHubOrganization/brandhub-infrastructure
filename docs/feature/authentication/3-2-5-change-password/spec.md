@@ -1,72 +1,56 @@
-# UC — Change Password
+# 3.2.5 Change Password
 
-| | |
-|---|---|
-| FR Code | 3.2.5 |
-| Feature | Change Password |
-| Domain | Authentication (FR 3.2) |
-| Role | USER |
-| Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Confirmed — đã code |
+## Function Trigger
+Begins when a signed-in user opens /settings/change-password and submits the current password together with a new password.
 
-## 1. Objective
+## Function Description
+- **Actors / Roles:** USER who is already signed in.
+- **Purpose:** Let a signed-in user change the password after proving knowledge of the current one, without ending the current session.
+- **Interface:** Change Password form with Current Password, New Password and Confirm New Password inputs, plus a confirmation step before the change is applied.
+- **Data Processing:** The system identifies the caller from the access token, verifies the current password, refuses a new password identical to the current one, replaces the password hash, updates the last password change time and records the event.
 
-Cho phép user đã đăng nhập tự đổi mật khẩu, có bước xác nhận lại trước khi áp dụng.
+## Screen Layout
+Figure — Change Password Screen (/settings/change-password):
+- Center: Current Password input, New Password input, Confirm New Password input.
+- A confirmation step, either a dialog or a separate step, is required before the change is applied.
+- A success message is shown afterwards and the user stays signed in.
 
-## 2. User Story
+## Function Details
+### Data Specifications
+- **Input required:** currentPassword, newPassword.
+- **Input optional:** confirmNewPassword, validated on the client only.
+- **System data:** userId, passwordHash, lastPasswordChange, the recorded event.
+- **Output:** no data.
 
-Là một User đã đăng nhập,
-tôi muốn đổi mật khẩu hiện tại,
-để tăng bảo mật tài khoản của mình.
+### Business Rules
+- **BR-01:** The current password must match the stored password hash; otherwise 400 WRONG_CURRENT_PASSWORD. This check runs first.
+- **BR-02:** The new password must differ from the current one; otherwise 400 SAME_AS_CURRENT_PASSWORD. This check runs only after the current password has been accepted.
+- **BR-03:** The order of checks is: verify the current password, then compare the new password with the current one, and only then apply the change.
+- **BR-04:** The change updates the last password change time, which makes every refresh token issued before that moment refused on its next use → 401 REFRESH_TOKEN_INVALID. The current access token keeps working, so the current session is not ended.
 
-## 3. Acceptance Criteria
+### Validation
+- Empty current password or empty new password → error message.
+- New password does not meet the policy, or the confirmation does not match → error message.
+- New password fails the policy check on the server → 400 VALIDATION_ERROR.
 
-- Form nhập `currentPassword`, `newPassword`, `confirmNewPassword`.
-- **Bắt buộc có bước confirm lại** trước khi submit thật (ví dụ: modal xác nhận, hoặc field confirm khác với password mới).
-- Đổi thành công → toast confirm, không tự động logout (khác Reset Password — vì user đã chứng minh danh tính qua currentPassword).
+## Functionalities
+### Normal Flow
+1. The user opens /settings/change-password and enters the current password, the new password and the confirmation.
+2. The user confirms the change in the confirmation step.
+3. The system identifies the caller from the access token and loads the account.
+4. The system verifies the current password against the stored password hash.
+5. The system refuses the request when the new password is identical to the current one.
+6. The system replaces the password hash and updates the last password change time.
+7. The system records the password change event and returns success; the session stays active.
 
-## 4. UI / UX
+### Abnormal Cases
+- Missing or invalid access token → 401 INVALID_CREDENTIALS.
+- The account referenced by the token no longer exists → 404 USER_NOT_FOUND.
+- Wrong current password → 400 WRONG_CURRENT_PASSWORD.
+- The new password is identical to the current one → 400 SAME_AS_CURRENT_PASSWORD; this is evaluated only after the current password has been accepted.
+- New password fails the policy check → 400 VALIDATION_ERROR.
 
-- Trang `/settings/change-password`, theo pattern `PageWrapper` đã dùng ở code cũ.
-
-## 5. API Contract (đã code)
-
-```
-POST /api/v1/auth/change-password
-Header: Authorization: Bearer {accessToken}
-{ "currentPassword": "string", "newPassword": "string" }
-→ 200 { "success": true, "data": null }
-```
-
-- Thiếu/sai header `Authorization: Bearer <accessToken>` → 401 `INVALID_CREDENTIALS` (check tại controller, không vào service).
-
-## 6. Business Rules
-
-- **BR-1**: `currentPassword` phải khớp `passwordHash` hiện tại (bcrypt) — sai → 400 `WRONG_CURRENT_PASSWORD`. Check này chạy **trước**.
-- **BR-2**: `newPassword` không được trùng `currentPassword` (so bằng `passwordEncoder.matches`) → 400 `SAME_AS_CURRENT_PASSWORD`. Check này chạy **sau** BR-1, chỉ khi currentPassword đã đúng.
-- Thứ tự check: (1) verify currentPassword đúng → sai thì dừng ở `WRONG_CURRENT_PASSWORD`; (2) nếu đúng, so newPassword với currentPassword → trùng thì dừng ở `SAME_AS_CURRENT_PASSWORD`; (3) mới cho phép đổi.
-
-## 7. Error Handling
-
-- Thiếu/sai `Authorization: Bearer` → 401 `INVALID_CREDENTIALS`.
-- User không tồn tại (token hợp lệ nhưng data lỗi) → 404 `USER_NOT_FOUND`.
-- `currentPassword` sai → 400 `WRONG_CURRENT_PASSWORD` (đã code, thay cho `INVALID_CURRENT_PASSWORD`).
-- `newPassword` giống `currentPassword` → 400 `SAME_AS_CURRENT_PASSWORD` (đã code).
-- `newPassword` không đạt validation (@Valid) → 400 `VALIDATION_ERROR`.
-
-## 8. Edge Cases
-
-- User đổi mật khẩu ngay sau khi vừa Reset Password (token-based) → vẫn hợp lệ, không giới hạn tần suất trong phạm vi FR này.
-- **Side-effect quan trọng**: đổi mật khẩu thành công cập nhật `lastPasswordChange = now`. Mọi refresh token cũ (issued trước thời điểm này) sẽ bị coi là invalid ở lần refresh tiếp theo (`AuthServiceImpl.refresh()` so `claims.issuedAt < user.lastPasswordChange` → `REFRESH_TOKEN_INVALID`). Access token hiện tại (chưa hết hạn) vẫn dùng được bình thường — không tự động logout session hiện tại, nhưng các refresh token cũ (ví dụ từ thiết bị khác đang đăng nhập) sẽ mất hiệu lực khi thử refresh.
-
-## 9. Definition of Done
-
-- Đổi mật khẩu thành công, xác nhận đúng currentPassword trước khi cho đổi.
-
-## Out of Scope
-
-- Lịch sử mật khẩu cũ (chặn tái sử dụng password cũ) — không có trong CSV.
-
-## Tham chiếu BA
-
-[02-authentication-profile.md](../../../BA/02-authentication-profile.md)
+## Post-Conditions
+- The password hash is replaced and the last password change time is updated.
+- The password change event is recorded.
+- The current session stays active, while refresh tokens issued before the change are refused on their next use.
