@@ -25,14 +25,14 @@ Figure — Registration Screen (/register):
 
 ### Business Rules
 - **BR-01:** The email address is normalized to lower case and trimmed before it is stored and before the uniqueness check, so "User@gmail.com" and "user@gmail.com" are the same account. A duplicate returns 409 EMAIL_ALREADY_EXISTS.
-- **BR-02:** Password policy: at least 8 characters and at least one digit, hashed with BCrypt; the plain password is never stored, logged or returned.
-- **BR-03:** The account is created immediately at registration with emailVerifiedAt empty and only becomes verified once the correct one-time code is submitted (3.2.6). Verification does not sign the user in; the user signs in separately afterwards.
-- **BR-04:** The one-time code is six digits, valid for 10 minutes, delivered by email.
+- **BR-02:** Password policy: at least 8 characters and at least one digit, hashed with BCrypt cost=12; the plain password is never stored, logged or returned.
+- **BR-03:** The account is created immediately at registration with emailVerifiedAt empty and an OTP that is six digits, valid for 10 minutes and single-use, delivered by email; the account only becomes verified once the correct one-time code is submitted (3.2.6). Verification does not sign the user in; the user signs in separately afterwards.
 
 ### Validation
-- Empty required field → error message.
-- Invalid email format → 400 VALIDATION_ERROR.
-- Password does not meet the policy (fewer than 8 characters, or no digit) → 400 VALIDATION_ERROR.
+- email empty, fullName empty or password empty → Display: MSG02
+- email invalid format → Display: MSG04
+- password does not meet the policy (fewer than 8 characters, or no digit) → Display: MSG05
+- duplicate email → Display: MSG08
 
 ## Functionalities
 ### Normal Flow
@@ -41,12 +41,12 @@ Figure — Registration Screen (/register):
 3. The system normalizes the email address and checks that it is not already registered.
 4. The system hashes the password, creates the account with the default role and generates a six-digit one-time code valid for 10 minutes.
 5. The system sends the code to the registered email address.
-6. The system returns the new userId and the screen moves to OTP Verification (3.2.6).
+6. The system returns the new userId and the screen moves to OTP Verification (3.2.6); toast MSG10.
 
 ### Abnormal Cases
-- The email address is already registered, including a different letter case such as USER@gmail.com while user@gmail.com exists and is still unverified → 409 EMAIL_ALREADY_EXISTS. The existing account is not modified and no code is re-sent automatically; a new code must be requested explicitly (3.2.6).
-- The email address or the password fails validation → 400 VALIDATION_ERROR.
-- The one-time code expires before it is entered → the account is kept and a new code can be requested through the resend action, rate-limited to one request every 60 seconds (3.2.6).
+- 3.a1: The email address is already registered, including a different letter case such as USER@gmail.com while user@gmail.com exists and is still unverified (BR-01) → 409 EMAIL_ALREADY_EXISTS, toast MSG08. 3.a2: The existing account is not modified and no code is re-sent automatically; the Guest switches to Sign In or requests a new code explicitly (3.2.6).
+- 1.a1: The email address, full name or password fails validation (BR-02) → 400 VALIDATION_ERROR, Display: MSG02/MSG04/MSG05 under the offending field. 1.a2: The Guest corrects the field and resubmits.
+- 4.a1: The one-time code expires before it is entered (BR-03) → the account is kept. 4.a2: A new code can be requested through the resend action, rate-limited to one request every 60 seconds (3.2.6).
 
 ## Post-Conditions
 - An account record exists with the default role USER and emailVerifiedAt empty.

@@ -32,18 +32,18 @@ Figure — Client Profile Screen (`/client-profile`, edit mode, Agency context):
 
 ### Business Rules
 
-- **BR-01:** The action is an upsert — when no Client Profile exists for the (user, agency) pair, the system creates one instead of returning 404. A Client Profile is therefore created either when a Client invitation is accepted or on the first update for that Agency; both paths are valid.
-- **BR-02:** The update is a full overwrite, not a partial patch — every call must submit all fields that should be kept, because fields left out are written as empty.
-- **BR-03:** The update always applies to a single Agency; editing the Client Profile for Agency A does not affect the record held for Agency B.
-- **BR-04:** The update request carries no email field, so an email address cannot be submitted through this action. There is no dedicated error code for this case — it is structurally impossible rather than explicitly rejected.
-- **BR-05:** Because every workspace of the same Agency reads the same (user, agency) record, a successful update is reflected immediately in all workspaces of that Agency, with no manual synchronization.
-- **BR-06:** `displayName` is mandatory and must not be blank.
+- **Implementation note (no dedicated global BR):** The action is an upsert — when no Client Profile exists for the (user, agency) pair, the system creates one instead of returning 404. A Client Profile is therefore created either when a Client invitation is accepted or on the first update for that Agency; both paths are valid.
+- **Implementation note (no dedicated global BR):** The update is a full overwrite, not a partial patch — every call must submit all fields that should be kept, because fields left out are written as empty.
+- **BR-38:** Client access is scoped by `clientId` (agencyId) — the update always applies to a single Agency; editing the Client Profile for Agency A does not affect the record held for Agency B.
+- **BR-19:** Email and role are not mutable via the update-profile endpoint — they require separate flows. The update request carries no email field, so an email address cannot be submitted through this action. There is no dedicated error code for this case — it is structurally impossible rather than explicitly rejected.
+- **Implementation note (no dedicated global BR):** Because every workspace of the same Agency reads the same (user, agency) record, a successful update is reflected immediately in all workspaces of that Agency, with no manual synchronization.
+- **Implementation note (no dedicated global BR):** `displayName` is mandatory and must not be blank.
 
 ### Validation
 
-- `displayName` empty or blank → 400 `VALIDATION_ERROR`.
-- Missing Agency identifier → 400 `VALIDATION_ERROR`.
-- Missing, expired, or invalid access token → 401 `UNAUTHORIZED`.
+- `displayName` empty or blank → 400 `VALIDATION_ERROR`, Display: MSG02.
+- Missing Agency identifier → 400 `VALIDATION_ERROR`, Display: MSG02.
+- Missing, expired, or invalid access token → 401 `UNAUTHORIZED`, Display: MSG22.
 
 ## Functionalities
 
@@ -53,22 +53,28 @@ Figure — Client Profile Screen (`/client-profile`, edit mode, Agency context):
 2. The application submits the complete set of Client Profile fields that should be kept.
 3. The system resolves the caller's identity from the access token.
 4. The system looks up the Client Profile by the pair (user, agency).
-5. When the record exists it is updated; when it does not, the system creates it (BR-01).
-6. The system writes the submitted fields over the record (BR-02) and stamps the update time.
+5. When the record exists it is updated; when it does not, the system creates it (upsert).
+6. The system writes the submitted fields over the record (full overwrite) and stamps the update time.
 7. The system persists the record and returns the complete Client Profile field set.
-8. The application confirms success and refreshes the display immediately; because all workspaces of the Agency share this record, the new values appear everywhere in that Agency at once (BR-05).
+8. The application confirms success and refreshes the display immediately; because all workspaces of the Agency share this record, the new values appear everywhere in that Agency at once (BR-38); toast MSG26.
 
 ### Abnormal Cases
 
-- `displayName` empty or blank → 400 `VALIDATION_ERROR`.
-- Missing Agency identifier → 400 `VALIDATION_ERROR`.
-- Missing, expired, or invalid access token → 401 `UNAUTHORIZED`.
-- First update for an Agency that has no Client Profile yet → the record is created (upsert), not a 404.
-- The Client updates their display name while tasks are pending approval in several workspaces of the same Agency → the new name applies immediately everywhere in that Agency, without manual synchronization (BR-05).
-- An email address is submitted → it cannot be carried by the update request, so it is never applied (BR-04).
+- 1.a1: `displayName` submitted empty or blank → 400 `VALIDATION_ERROR`, Display: MSG02.
+  1.a2: The form stays open with the error shown; the user re-enters a display name and saves again.
+- 2.a1: No Agency identifier is supplied → 400 `VALIDATION_ERROR`, Display: MSG02.
+  2.a2: The interface shows a clear error; the user selects an Agency context and retries.
+- 5.a1: First update for an Agency that has no Client Profile yet → the record is created (upsert), not a 404.
+  5.a2: The application proceeds to save the submitted fields as a new record.
+- 8.a1: The Client updates their display name while tasks are pending approval in several workspaces of the same Agency (BR-38) → the update still succeeds.
+  8.a2: The new name applies immediately everywhere in that Agency, without manual synchronization.
+- 8.b1: An email address is submitted (BR-19) → it cannot be carried by the update request.
+  8.b2: The field is silently ignored; the record is saved without an email change.
+- N.a1: Missing, expired, or invalid access token at any step → 401 `UNAUTHORIZED`, toast MSG22.
+  N.a2: The user signs in again at /login (3.2.2).
 
 ## Post-Conditions
 
-- A Client Profile exists for the (user, agency) pair and holds exactly the submitted field values; fields left out are empty (BR-02).
+- A Client Profile exists for the (user, agency) pair and holds exactly the submitted field values; fields left out are empty (full overwrite, not a partial patch).
 - The updated values are visible in every workspace of the same Agency.
 - Records belonging to other Agencies are unchanged.

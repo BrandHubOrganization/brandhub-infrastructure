@@ -39,8 +39,7 @@ Figure — Workspace List Screen:
 
 ### Business Rules
 
-- **BR-01:** Only Workspaces where the current user has an active membership row are returned, regardless of role (MANAGER, CREATOR, CLIENT).
-- **BR-02:** The listing is scoped to the current user, not to an Agency — an Agency owner does not automatically see every Workspace.
+- **BR-29:** Multi-tenancy — every workspace-scoped resource carries workspaceId; a user with no active membership cannot read/write the workspace regardless of system role (except ADMIN). Applied here as: only Workspaces where the current user has an active membership row (MemberRole MANAGER, CREATOR, or CLIENT) are returned, and the listing is scoped to the current user, not to an Agency — an Agency owner does not automatically see every Workspace.
 - **BR-03:** The listing is read-only; there is no business error code for it. The only failure is a missing session, rejected with 401 through the shared authentication mechanism.
 
 ### Validation
@@ -60,8 +59,8 @@ Figure — Workspace List Screen:
 
 ### Abnormal Cases
 
-- User belongs to no Workspace → an empty list is returned and an empty state is displayed.
-- User is not signed in → 401 through the shared authentication mechanism.
+- 5.a1: User belongs to no Workspace (BR-29) → an empty list is returned, HTTP 200. 5.a2: The empty state is displayed on the screen.
+- 5.b1: User is not signed in → 401 through the shared authentication mechanism. 5.b2: The user is redirected to sign in.
 
 ## Post-Conditions
 

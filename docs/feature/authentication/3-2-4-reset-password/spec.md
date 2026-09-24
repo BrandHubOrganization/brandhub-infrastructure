@@ -23,16 +23,14 @@ Figure — Reset Password screens:
 - **Output:** no data; a generic success response in both cases.
 
 ### Business Rules
-- **BR-01:** An unknown email address produces the same response as a known one and sends nothing, so the response never reveals whether an account exists.
-- **BR-02:** The reset token is single-use and is invalidated the moment a newer reset token is issued for the same account, so only the most recent token is accepted even if an earlier one has not yet expired.
-- **BR-03:** A missing, expired or superseded token → 400 RESET_TOKEN_INVALID. A token that has already been used → 400 RESET_TOKEN_USED.
-- **BR-04:** The new password follows the password policy and is stored as a BCrypt hash; the last password change time is updated.
-- **BR-05:** After a successful reset, every refresh token issued before the latest password change is refused on its next use → 401 REFRESH_TOKEN_INVALID, so the user signs in again on every device.
+- **BR-13:** Forgot-password always returns 200 OK whether or not the email exists, so the response never reveals whether an account exists; reset token is 32-byte random hex stored only in Redis, TTL ≤ 1h, single-use (deleted atomically on use). The reset token is invalidated the moment a newer reset token is issued for the same account, so only the most recent token is accepted even if an earlier one has not yet expired. A missing, expired or superseded token → 400 RESET_TOKEN_INVALID. A token that has already been used → 400 RESET_TOKEN_USED.
+- **BR-02:** The new password follows the password policy (minimum 8 characters + at least 1 digit) and is stored as a BCrypt hash cost=12; the last password change time is updated.
+- **BR-12:** After a successful reset, every refresh token issued before the latest password change is rejected (jti checked against blacklist) on its next use → 401 REFRESH_TOKEN_INVALID, so the user signs in again on every device.
 
 ### Validation
-- Empty email address → error message.
-- New password does not meet the policy, or the confirmation does not match → error message.
-- New password fails the policy check on the server → 400 VALIDATION_ERROR.
+- email empty → Display: MSG02
+- new password does not meet the policy → Display: MSG05
+- confirmation does not match → Display: MSG06
 
 ## Functionalities
 ### Normal Flow
@@ -42,14 +40,13 @@ Figure — Reset Password screens:
 4. The system sends the reset link carrying the token to the email address.
 5. The user opens the link from the email and enters the new password and its confirmation.
 6. The system consumes the token, replaces the password hash and records the password change.
-7. The system returns success and the screen returns to /login.
+7. The system returns success and the screen returns to /login; toast MSG18.
 
 ### Abnormal Cases
-- Unknown email address → the same generic response, and no email is sent.
-- Missing, expired or superseded token → 400 RESET_TOKEN_INVALID.
-- Token already used, including two simultaneous reset requests → 400 RESET_TOKEN_USED.
-- The account referenced by the token no longer exists → 400 RESET_TOKEN_INVALID.
-- New password fails the policy check → 400 VALIDATION_ERROR.
+- 2.a1: Unknown email address (BR-13) → the same generic response, toast MSG15, and no email is sent. 2.a2: The user checks the inbox or requests again; the response never confirms whether the account exists.
+- 6.a1: Missing, expired or superseded token (BR-13) → 400 RESET_TOKEN_INVALID, toast MSG16. 6.a2: The user requests a new reset link from /forgot-password.
+- 6.b1: Token already used, including two simultaneous reset requests, or the account referenced by the token no longer exists (BR-13) → 400 RESET_TOKEN_USED, toast MSG17. 6.b2: The user requests a new reset link from /forgot-password.
+- 6.c1: New password fails the policy check (BR-02) → 400 VALIDATION_ERROR, Display: MSG05. 6.c2: The user corrects the password and resubmits.
 
 ## Post-Conditions
 - The password hash is replaced and the last password change time is updated.

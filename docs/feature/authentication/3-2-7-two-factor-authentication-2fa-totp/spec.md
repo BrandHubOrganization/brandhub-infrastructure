@@ -23,20 +23,14 @@ Figure — Two-Factor Authentication screens:
 - **Output:** the provisioning address used to render the QR code when enabling; on a successful verification at sign-in, an access token, a token type, an expiry and a refresh token cookie.
 
 ### Business Rules
-- **BR-01:** A user who already has two-factor authentication enabled cannot start the setup again → 400 TWO_FA_ALREADY_ENABLED.
-- **BR-02:** The generated secret is held only for 10 minutes and is not stored permanently until a correct code confirms it. A missing or expired pending secret → 400 TWO_FA_NOT_ENABLED.
-- **BR-03:** A wrong code when confirming or disabling → 400 TWO_FA_CODE_INVALID; a wrong code during confirmation leaves the pending secret in place so the user may retry within its lifetime.
-- **BR-04:** Disabling requires a correct code, and an account without two-factor authentication enabled → 400 TWO_FA_NOT_ENABLED. Disabling clears the stored secret.
-- **BR-05:** At sign-in, an unusable or wrongly typed challenge token, or a challenge token whose account no longer exists → 401 TWO_FA_TOKEN_INVALID. A suspended account → 403 ACCOUNT_SUSPENDED; a deactivated account → 403 ACCOUNT_DEACTIVATED.
-- **BR-06:** At sign-in, an account that no longer has two-factor authentication enabled, or has no stored secret → 400 TWO_FA_NOT_ENABLED. A wrong code → 400 TWO_FA_CODE_INVALID.
-- **BR-07:** A successful verification completes the sign-in exactly like a normal sign-in: the sign-in is recorded, the last sign-in time is updated and an access token plus a rotating refresh token are issued.
-- **BR-08:** Two-factor authentication applies to every sign-in method, including Google sign-in (3.2.3), and is never bypassed.
-- **BR-09:** No recovery codes are provided. A user who loses access to the authenticator app must ask an administrator to disable two-factor authentication.
+- **BR-15:** TOTP 2FA (RFC 6238): 6-digit code, 30s step, ±1-step clock tolerance; secret encrypted at rest, regenerated on disable/re-enable; pending-2FA token short-lived and single-use. A user who already has two-factor authentication enabled cannot start the setup again → 400 TWO_FA_ALREADY_ENABLED. The generated secret is held only for 10 minutes and is not stored permanently until a correct code confirms it; a missing or expired pending secret → 400 TWO_FA_NOT_ENABLED. A wrong code when confirming or disabling → 400 TWO_FA_CODE_INVALID; a wrong code during confirmation leaves the pending secret in place so the user may retry within its lifetime. Disabling requires a correct code, and an account without two-factor authentication enabled → 400 TWO_FA_NOT_ENABLED; disabling clears the stored secret. Recovery codes are **(TBD: mechanism)** — today no self-service recovery is provided; a user who loses access to the authenticator app must ask an administrator to disable two-factor authentication.
+- **BR-05:** At sign-in, an unusable or wrongly typed challenge token, or a challenge token whose account no longer exists → 401 TWO_FA_TOKEN_INVALID (anti-enumeration mirrors BR-05's generic sign-in failure handling). A suspended account → 403 ACCOUNT_SUSPENDED (BR-06); a deactivated account → 403 ACCOUNT_DEACTIVATED (BR-06). At sign-in, an account that no longer has two-factor authentication enabled, or has no stored secret → 400 TWO_FA_NOT_ENABLED. A wrong code → 400 TWO_FA_CODE_INVALID.
+- **BR-08:** A successful verification completes the sign-in exactly like a normal sign-in: the sign-in is recorded, the last sign-in time is updated and an access token plus a rotating refresh token are issued (BR-08's access/refresh token issuance rules apply). Two-factor authentication applies to every sign-in method, including Google sign-in (3.2.3), and is never bypassed.
 
 ### Validation
-- Empty code → error message.
-- Code that is not a six-digit number → error message.
-- The code does not match the current time window → 400 TWO_FA_CODE_INVALID.
+- code empty → Display: MSG02
+- code that is not a six-digit number → Display: MSG02
+- the code does not match the current time window → Display: MSG20
 
 ## Functionalities
 ### Normal Flow
@@ -44,19 +38,19 @@ Figure — Two-Factor Authentication screens:
 2. The system generates a secret, holds it pending for 10 minutes and returns the provisioning address, without any secret text.
 3. The screen renders the QR code and the user scans it with the authenticator app.
 4. The user enters the code shown by the app to confirm.
-5. The system verifies the code against the pending secret and, on success, stores the secret and enables two-factor authentication.
+5. The system verifies the code against the pending secret and, on success, stores the secret and enables two-factor authentication; toast MSG24.
 6. On a later sign-in through password or Google, the user receives a two-factor challenge instead of tokens.
-7. The user enters the code from the app; the system verifies it and completes the sign-in with an access token and a refresh token.
+7. The user enters the code from the app; the system verifies it and completes the sign-in with an access token and a refresh token; toast MSG11.
 
 ### Abnormal Cases
-- Setup started while two-factor authentication is already enabled → 400 TWO_FA_ALREADY_ENABLED.
-- Confirmation without a pending secret, or after its 10-minute lifetime → 400 TWO_FA_NOT_ENABLED.
-- Wrong code at confirmation, at disabling or at verification → 400 TWO_FA_CODE_INVALID.
-- Disabling an account that does not have two-factor authentication enabled → 400 TWO_FA_NOT_ENABLED.
-- Unusable challenge token, or an account that no longer exists → 401 TWO_FA_TOKEN_INVALID.
-- Suspended or deactivated account → 403 ACCOUNT_SUSPENDED or 403 ACCOUNT_DEACTIVATED.
-- Two-factor authentication disabled between the two sign-in steps → 400 TWO_FA_NOT_ENABLED.
-- The user loses the authenticator app → no self-service recovery; an administrator must disable two-factor authentication.
+- 1.a1: Setup started while two-factor authentication is already enabled (BR-15) → 400 TWO_FA_ALREADY_ENABLED, toast MSG12. 1.a2: The user disables two-factor authentication first (3.2.7 disable) before starting setup again.
+- 4.a1: Confirmation without a pending secret, or after its 10-minute lifetime (BR-15) → 400 TWO_FA_NOT_ENABLED, toast MSG12. 4.a2: The user restarts the setup to get a fresh QR code.
+- 4.b1: Wrong code at confirmation, at disabling or at verification (BR-15) → 400 TWO_FA_CODE_INVALID, Display: MSG20. 4.b2: The user re-enters the code from the authenticator app; a wrong code during confirmation leaves the pending secret in place for a retry within its lifetime.
+- 4.c1: Disabling an account that does not have two-factor authentication enabled (BR-15) → 400 TWO_FA_NOT_ENABLED, toast MSG12. 4.c2: No action needed; two-factor authentication is already off.
+- 6.a1: Unusable challenge token, or an account that no longer exists (BR-05) → 401 TWO_FA_TOKEN_INVALID, toast MSG22. 6.a2: The user signs in again from /login.
+- 6.b1: Suspended or deactivated account (BR-05) → 403 ACCOUNT_SUSPENDED or 403 ACCOUNT_DEACTIVATED, toast MSG09. 6.b2: The user contacts support to resolve the account status.
+- 6.c1: Two-factor authentication disabled between the two sign-in steps (BR-05) → 400 TWO_FA_NOT_ENABLED, toast MSG12. 6.c2: The sign-in already completed as a normal sign-in without a challenge; the user retries sign-in.
+- 7.a1: The user loses the authenticator app → no self-service recovery (BR-15, recovery mechanism TBD). 7.a2: An administrator must disable two-factor authentication on the user's behalf.
 
 ## Post-Conditions
 - On enabling, the secret is stored, the two-factor flag is set and the pending secret is cleared.

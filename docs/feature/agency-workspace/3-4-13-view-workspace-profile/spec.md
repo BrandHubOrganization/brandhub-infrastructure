@@ -39,16 +39,16 @@ Figure — Workspace Profile Screen:
 
 ### Business Rules
 
-- **BR-01:** The caller must be an active member of the very Workspace being viewed; this is verified explicitly for the requested Workspace rather than through a generic role check.
-- **BR-02:** A Workspace that does not exist → 404 `WORKSPACE_NOT_FOUND`.
-- **BR-03:** A caller who is not an active member of that Workspace → 403 `WORKSPACE_ACCESS_DENIED`.
-- **BR-04:** Failure to parse the stored settings falls back to empty settings (no timezone, no default platforms) without raising an error.
-- **BR-05:** There is a single Workspace-level timezone configuration — not one per Client or per Task.
+- **BR-29:** Multi-tenancy — every workspace-scoped resource carries workspaceId; a caller with no active membership in the Workspace cannot read it regardless of system role (except ADMIN, cross-workspace). The caller's active membership in the very Workspace being viewed is verified explicitly, not through a generic role check.
+- Workspace that does not exist → 404 `WORKSPACE_NOT_FOUND`.
+- Caller not an active member of that Workspace → 403 `WORKSPACE_ACCESS_DENIED`.
+- Failure to parse the stored settings falls back to empty settings (no timezone, no default platforms) without raising an error.
+- There is a single Workspace-level timezone configuration — not one per Client or per Task.
 
 ### Validation
 
 - The Workspace must exist; otherwise 404 `WORKSPACE_NOT_FOUND`.
-- The caller must hold an active membership in that Workspace; otherwise 403 `WORKSPACE_ACCESS_DENIED`.
+- The caller must hold an active membership in that Workspace (BR-29); otherwise 403 `WORKSPACE_ACCESS_DENIED`.
 - A malformed settings payload must degrade to empty settings rather than fail the request.
 
 ## Functionalities
@@ -57,15 +57,15 @@ Figure — Workspace Profile Screen:
 
 1. Member opens `/workspaces/:id/profile`.
 2. System loads the Workspace; if it does not exist, the request fails with 404 `WORKSPACE_NOT_FOUND`.
-3. System confirms the caller has an active membership in that Workspace; otherwise the request fails with 403 `WORKSPACE_ACCESS_DENIED`.
+3. System confirms the caller has an active membership in that Workspace (BR-29); otherwise the request fails with 403 `WORKSPACE_ACCESS_DENIED`.
 4. System maps the Workspace to its profile, parsing the stored settings into timezone and default platforms.
 5. Screen displays the Workspace profile, including the Workspace timezone.
 
 ### Abnormal Cases
 
-- Workspace does not exist → 404 `WORKSPACE_NOT_FOUND`.
-- Caller is not an active member of that Workspace → 403 `WORKSPACE_ACCESS_DENIED`.
-- Stored settings are malformed → the screen shows empty settings instead of failing.
+- 2.a1: The Workspace does not exist → 404 `WORKSPACE_NOT_FOUND`, toast MSG38. 2.a2: The member returns to the Workspace list and picks a valid Workspace.
+- 3.a1: The caller has no active membership in that Workspace (BR-29) → 403 `WORKSPACE_ACCESS_DENIED`, toast MSG40. 3.a2: The member returns to the Workspace list; only Workspaces they belong to are shown.
+- 4.a1: Stored settings are malformed → the screen shows empty settings instead of failing. 4.a2: No further action is needed; the member may ask a MANAGER to re-save the settings.
 - Workspace serves Clients across several locations → still a single Workspace-level timezone; per-Campaign timezones are outside the current scope.
 
 ## Post-Conditions

@@ -32,17 +32,15 @@ Figure — Profile Screen (`/settings/profile`):
 
 ### Business Rules
 
-- **BR-01:** The caller's identity is taken from the access token only; no user identifier is accepted as a parameter, so a user can never read another user's profile.
-- **BR-02:** `role` is read from the user's system role records; when no role record exists, `role` defaults to `USER`.
-- **BR-03:** `workspaceId` is taken from the token; when the token carries none, the system falls back to the user's first active workspace membership.
-- **BR-04:** `timezone` and `notificationPreferences` have no dedicated columns — both are stored inside the JSON `preferences` field of the user record.
-- **BR-05:** `avatarUrl` is empty when the user has never uploaded an avatar; the interface then shows a default initials avatar. This is not an error.
+- **BR-18:** `/users/me` resolves identity from the JWT principal only — no `userId` path/query parameter, so a user can never read another user's profile.
+- **Implementation note (no dedicated global BR):** `role` is read from the user's system role records; when no role record exists, `role` defaults to `USER`. `workspaceId` is taken from the token; when the token carries none, the system falls back to the user's first active workspace membership. `timezone` and `notificationPreferences` have no dedicated columns — both are stored inside the JSON `preferences` field of the user record.
+- **Implementation note (no dedicated global BR):** `avatarUrl` is empty when the user has never uploaded an avatar; the interface then shows a default initials avatar. This is not an error.
 
 ### Validation
 
 - No request body is accepted; validation is limited to authentication.
-- Missing, expired, or invalid access token → 401 `UNAUTHORIZED`.
-- The user record no longer exists (theoretical: a valid token held for a deleted user) → 404 `USER_NOT_FOUND`.
+- Missing, expired, or invalid access token → 401 `UNAUTHORIZED`, Display: MSG22.
+- The user record no longer exists (theoretical: a valid token held for a deleted user) → 404 `USER_NOT_FOUND`, Display: MSG38.
 
 ## Functionalities
 
@@ -51,17 +49,20 @@ Figure — Profile Screen (`/settings/profile`):
 1. The signed-in user opens `/settings/profile`.
 2. The application requests the signed-in user's own profile.
 3. The system resolves the caller's identity from the access token and loads the matching user record.
-4. The system resolves the system role, applying the default when no role record exists (BR-02).
-5. The system resolves the current workspace, falling back to the first active workspace membership when the token carries none (BR-03).
-6. The system derives `timezone` and `notificationPreferences` from the stored preferences data (BR-04).
+4. The system resolves the system role, applying the default when no role record exists.
+5. The system resolves the current workspace, falling back to the first active workspace membership when the token carries none.
+6. The system derives `timezone` and `notificationPreferences` from the stored preferences data.
 7. The system returns the complete profile field set.
-8. The application renders the read-only profile card, showing a default initials avatar when no avatar exists (BR-05).
+8. The application renders the read-only profile card, showing a default initials avatar when no avatar exists.
 
 ### Abnormal Cases
 
-- Missing, expired, or invalid access token → 401 `UNAUTHORIZED`.
-- User record no longer exists → 404 `USER_NOT_FOUND`.
-- No avatar set → `avatarUrl` is empty and the default initials avatar is shown; not an error.
+- 3.a1: Missing, expired, or invalid access token (CR-AUTH-01) → 401 `UNAUTHORIZED`, toast MSG22.
+  3.a2: The user signs in again at /login (3.2.2).
+- 3.b1: The user record no longer exists (BR-18) → 404 `USER_NOT_FOUND`, toast MSG38.
+  3.b2: The user is signed out and returned to /login.
+- 8.a1: No avatar has ever been set → `avatarUrl` is empty; not an error.
+  8.a2: The application shows a default initials avatar in place of the avatar image.
 
 ## Post-Conditions
 

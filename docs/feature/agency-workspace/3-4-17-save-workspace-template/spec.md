@@ -38,7 +38,7 @@ Figure — Save Workspace Template Screen:
 
 ### Business Rules
 
-- **BR-01:** The Agency and the creator of the template are taken automatically from the caller and never from the request payload.
+- **BR-29:** Multi-tenancy — the Agency and the creator of the template are taken automatically from the caller's session and never from the request payload; a template is scoped to the caller's Agency.
 - **BR-02:** Templates are a standalone resource, not nested inside an Agency or a Workspace; the available actions are create, list, view detail, and delete.
 - **BR-03:** `name` or `configSnapshot` empty → 400 `VALIDATION_ERROR`.
 - **BR-04:** Requesting or deleting a template that does not exist → 404 `NOT_FOUND`.
@@ -47,9 +47,9 @@ Figure — Save Workspace Template Screen:
 
 ### Validation
 
-- `name` must not be empty; otherwise 400 `VALIDATION_ERROR`.
-- `configSnapshot` must not be empty; otherwise 400 `VALIDATION_ERROR`.
-- The template must exist for detail and delete actions; otherwise 404 `NOT_FOUND`.
+- `name` must not be empty; otherwise 400 `VALIDATION_ERROR`, MSG02.
+- `configSnapshot` must not be empty; otherwise 400 `VALIDATION_ERROR`, MSG02.
+- The template must exist for detail and delete actions; otherwise 404 `NOT_FOUND`, toast MSG38.
 
 ## Functionalities
 
@@ -59,15 +59,15 @@ Figure — Save Workspace Template Screen:
 2. Member fills in the template name, an optional source Workspace, and the configuration snapshot.
 3. System validates that the name and snapshot are not empty.
 4. System attaches the caller's Agency and identity automatically.
-5. System stores the template and confirms it, adding it to the template list.
+5. System stores the template and confirms it, adding it to the template list; toast MSG32.
 6. Member can later list templates, open one in detail, or delete it.
 
 ### Abnormal Cases
 
-- `name` empty → 400 `VALIDATION_ERROR`; the user supplies a name and resubmits.
-- `configSnapshot` empty → 400 `VALIDATION_ERROR`; the user captures the configuration and resubmits.
-- Detail or delete requested for a template that does not exist → 404 `NOT_FOUND`.
-- The source Workspace is deleted after the template was saved → the template still exists, because the stored snapshot does not depend on the source Workspace.
+- 3.a1: `name` empty → 400 `VALIDATION_ERROR`, Display: MSG02. 3.a2: The user supplies a name and resubmits.
+- 3.b1: `configSnapshot` empty → 400 `VALIDATION_ERROR`, Display: MSG02. 3.b2: The user captures the configuration and resubmits.
+- 6.a1: Detail or delete requested for a template that does not exist (BR-04) → 404 `NOT_FOUND`, toast MSG38. 6.a2: The user returns to the template list, which no longer shows that entry.
+- 6.b1: The source Workspace is deleted after the template was saved (BR-06) → no error is raised. 6.b2: The template still exists and remains listable, because the stored snapshot does not depend on the source Workspace.
 
 ## Post-Conditions
 
