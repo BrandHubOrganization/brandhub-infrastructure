@@ -9,6 +9,6 @@
 | TC-05 | Token exchange body form-urlencoded | AC "fix bug flow không chạy" | Google trả access_token, không lỗi content-type | Chưa test |
 | TC-06 | State sai/đã dùng | Error (CSRF) | 302 redirect `?error=oauth_failed`, ErrorCode nội bộ `OAUTH_STATE_INVALID` | Chưa test |
 | TC-07 | Google code exchange fail | Error "OAUTH_CODE_INVALID" | 302 redirect `?error=oauth_failed`, ErrorCode nội bộ `OAUTH_CODE_INVALID` | Chưa test |
-| TC-08 | Callback user deactivated/suspended | Error "ACCOUNT_SUSPENDED" | 302 redirect `?error=oauth_failed`, ErrorCode nội bộ `ACCOUNT_SUSPENDED` | Chưa test |
+| TC-08 | Callback user deactivated/suspended | Error "ACCOUNT_SUSPENDED" | 302 redirect `{FRONTEND_URL}/oauth-callback?error=ACCOUNT_SUSPENDED` (distinct redirect, dedicated toast `auth.login.oauthAccountSuspended`), ErrorCode nội bộ `ACCOUNT_SUSPENDED` | Chưa test |
 | TC-09 | State replay (dùng lại state đã consume) | Edge "CSRF replay" | 302 redirect `?error=oauth_failed`, ErrorCode nội bộ `OAUTH_STATE_INVALID` | Chưa test |
 | TC-10 | User bật 2FA đăng nhập Google | AC "2FA bắt buộc qua OAuth" | 302 redirect `{FRONTEND_URL}/2fa-verify?twoFactorToken=...`, chưa cấp accessToken/refreshToken | Chưa test |
