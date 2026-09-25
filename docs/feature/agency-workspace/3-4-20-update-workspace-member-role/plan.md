@@ -29,7 +29,7 @@ Bảo vệ bởi `@RequireRole({MemberRole.MANAGER})`. Không lệch spec.md.
 
 1. `@RequireRole(MANAGER)` chặn (aspect, check membership theo `user.getWorkspaceId()`).
 2. Tìm member theo `memberId`, filter `workspaceId` khớp + `isActive=true` → không có → 404 `NOT_FOUND`.
-3. **Giảm quyền:** nếu `member.role == MANAGER` và `newRole != MANAGER` → gọi `assertNotLastManager` (đếm active MANAGER <=1 → 409 `LAST_OWNER_CANNOT_BE_REMOVED`).
+3. **Giảm quyền:** nếu `member.role == MANAGER` và `newRole != MANAGER` → gọi `assertNotLastManager` (đếm active MANAGER <=1 → 409 `LAST_MANAGER_CANNOT_BE_REMOVED`).
 4. **Thăng quyền:** nếu `newRole == MANAGER` và `member.role != MANAGER` → đếm active MANAGER; nếu >0 → 409 `MANAGER_ALREADY_ASSIGNED`.
 5. Set `member.role = newRole`, `updatedAt = now`, save.
 6. Trả `WorkspaceMemberResponse` (kèm fullName/email từ `User` nếu có `userId`).

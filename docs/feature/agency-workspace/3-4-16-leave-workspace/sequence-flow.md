@@ -19,7 +19,7 @@
 3. System → Database: read the caller's active membership row for the Workspace; a missing row is rejected with 403 `WORKSPACE_ACCESS_DENIED`.
 4. System: apply the last-MANAGER guard:
    - When the caller's role is not MANAGER, continue.
-   - When the caller's role is MANAGER, count the Workspace's active MANAGERs; a count of one or fewer is rejected with 409 `LAST_OWNER_CANNOT_BE_REMOVED`.
+   - When the caller's role is MANAGER, count the Workspace's active MANAGERs; a count of one or fewer is rejected with 409 `LAST_MANAGER_CANNOT_BE_REMOVED`.
 5. System: mark the caller's membership inactive and record the update timestamp.
 6. System → Database: write the deactivated membership.
 7. System → Client: confirmation that the membership has been deactivated.
@@ -32,7 +32,7 @@
 | Step | Failure condition | Status | Error code |
 |---|---|---|---|
 | Leave | Caller has no active membership in that Workspace | 403 | `WORKSPACE_ACCESS_DENIED` |
-| Leave | Caller is the only active MANAGER of the Workspace | 409 | `LAST_OWNER_CANNOT_BE_REMOVED` |
+| Leave | Caller is the only active MANAGER of the Workspace | 409 | `LAST_MANAGER_CANNOT_BE_REMOVED` |
 
 ## Notes
 

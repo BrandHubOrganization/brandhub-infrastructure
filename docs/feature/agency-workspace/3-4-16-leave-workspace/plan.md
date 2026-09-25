@@ -29,7 +29,7 @@ Không có request body — `userId` lấy từ `AuthenticatedUser` principal (J
 ## 4. Luồng xử lý
 
 1. `findByWorkspaceIdAndUserIdAndIsActiveTrue` — không tìm thấy → 403 `WORKSPACE_ACCESS_DENIED`.
-2. `assertNotLastManager(workspaceId, member)`: nếu `role != MANAGER` → pass; nếu `role == MANAGER` → đếm MANAGER active — `<= 1` → 409 `LAST_OWNER_CANNOT_BE_REMOVED`.
+2. `assertNotLastManager(workspaceId, member)`: nếu `role != MANAGER` → pass; nếu `role == MANAGER` → đếm MANAGER active — `<= 1` → 409 `LAST_MANAGER_CANNOT_BE_REMOVED`.
 3. Set `isActive = false`, `updatedAt = now()`, save.
 
 ## 5. Dependencies

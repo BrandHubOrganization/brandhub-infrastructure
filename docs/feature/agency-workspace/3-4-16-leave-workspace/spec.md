@@ -45,7 +45,7 @@ Figure — Leave Workspace Dialog:
 ### Validation
 
 - The caller must hold an active membership in that Workspace; otherwise 403 `WORKSPACE_ACCESS_DENIED`, toast MSG40.
-- The caller must not be the only active MANAGER of the Workspace (BR-28); otherwise 409 `LAST_OWNER_CANNOT_BE_REMOVED`, toast MSG37.
+- The caller must not be the only active MANAGER of the Workspace (BR-28); otherwise 409 `LAST_MANAGER_CANNOT_BE_REMOVED`, toast MSG37.
 
 ## Functionalities
 
@@ -61,7 +61,7 @@ Figure — Leave Workspace Dialog:
 ### Abnormal Cases
 
 - 3.a1: Caller has no active membership in that Workspace (BR-29) → 403 `WORKSPACE_ACCESS_DENIED`, toast MSG40. 3.a2: The caller returns to the Workspace list; the Workspace they tried to leave does not appear.
-- 4.a1: Caller is the only active MANAGER of the Workspace (BR-28) → 409 `LAST_OWNER_CANNOT_BE_REMOVED`, toast MSG37. 4.a2: Another MANAGER must be assigned first through FR 3.4.20 Update Workspace Member Role, then the caller retries leaving.
+- 4.a1: Caller is the only active MANAGER of the Workspace (BR-28) → 409 `LAST_MANAGER_CANNOT_BE_REMOVED`, toast MSG37. 4.a2: Another MANAGER must be assigned first through FR 3.4.20 Update Workspace Member Role, then the caller retries leaving.
 - 4.b1: A CREATOR or CLIENT leaves while other members remain (BR-28 does not apply to non-MANAGER roles) → the request always succeeds. 4.b2: The member is removed from the Workspace and returned to the Workspace list.
 - 3.b1: The action is invoked twice in a row → the second call finds no active membership and fails with 403 `WORKSPACE_ACCESS_DENIED`, toast MSG40. 3.b2: The caller is already out of the Workspace, so no further action is needed.
 

@@ -1,14 +1,14 @@
 # Plan — Delete Workspace (FR 3.4.15)
 
-> Liên kết: [spec.md](spec.md) — Trạng thái tài liệu: **Draft — chưa code**. Plan này ở dạng đề xuất/dự kiến, cần xác nhận khi thiết kế kỹ thuật thật.
+> Liên kết: [spec.md](spec.md) — Trạng thái tài liệu: **Implemented**. Plan này giữ nguyên nội dung phân tích kỹ thuật cũ (viết khi còn ở trạng thái Proposed); các mục dưới không rewrite lại toàn bộ, chỉ các dòng "chưa tồn tại/dự kiến" đã lỗi thời so với code thật — xem spec.md để biết method/route thật đã implement.
 
 ## 1. Phạm vi kỹ thuật (dự kiến)
 
 | Mục | Nội dung |
 |---|---|
 | Repo | `brandhub-business-service` |
-| File cần thêm | `WorkspaceServiceImpl.deleteWorkspace()`, `WorkspaceServiceImpl.restoreWorkspace()` (chưa tồn tại) |
-| File đã có, dự kiến tái sử dụng | `Workspace` entity (đã có sẵn field `status` kiểu `EntityStatus`, `deletedAt` — chưa được service/API nào dùng cho soft-delete), `WorkspaceController` |
+| File đã implement | `WorkspaceServiceImpl.deleteWorkspace()`, `WorkspaceServiceImpl.restoreWorkspace()` (đã tồn tại, đã code) |
+| File đã có, đã dùng | `Workspace` entity (`status` kiểu `EntityStatus`, `deletedAt` — đã được `deleteWorkspace`/`restoreWorkspace` ghi thật), `WorkspaceController` |
 
 ## 2. API Contract (đề xuất, chưa code)
 

@@ -2,7 +2,7 @@
 
 > Companion to `spec.md` (FR 3.4.14). This file lists each step as actor → action → system, in enough detail to draw the sequence diagram directly. It does not restate business rules — see `spec.md` for those.
 >
-> Updated: 2026-09-23.
+> Updated: 2026-09-25.
 
 ## Actors
 
@@ -15,7 +15,7 @@
 
 ## Flow A — Update settings and Workspace details
 
-1. Client → System: open `/workspaces/:id/profile/edit` and edit the name, timezone, default platforms, industry, company size, website, phone, or location.
+1. Client → System: on `/workspaces/:id/settings`, edit the name, timezone, default platforms, report frequency, industry, company size, website, phone, or location and submit.
 2. System: check the caller's role in the Workspace before handling the request — a caller who is not the Workspace MANAGER is rejected with 403 `FORBIDDEN`.
 3. System → Database: look up the Workspace by its identifier; a missing Workspace is rejected with 404 `WORKSPACE_NOT_FOUND`.
 4. System: apply the supplied name when it is not blank.
@@ -28,7 +28,7 @@
 
 ## Flow B — Update the Workspace logo
 
-1. Client → System: choose a logo image file and submit it.
+1. Client → System: choose a logo image file; the client rejects it up front if it is not image/jpeg, image/png, or image/webp, or if it exceeds 5 MB, before any request is sent.
 2. System: check the caller's role — a caller who is not the Workspace MANAGER is rejected with 403 `FORBIDDEN`.
 3. System → Database: look up the Workspace by its identifier; a missing Workspace is rejected with 404 `WORKSPACE_NOT_FOUND`.
 4. System: read the uploaded file's bytes; a read failure is rejected with 400 `FILE_READ_ERROR`.
