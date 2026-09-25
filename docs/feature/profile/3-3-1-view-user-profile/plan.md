@@ -16,12 +16,12 @@
 GET /api/v1/users/me
 Authorization: Bearer <access-token>
 → 200 ApiResponse<UserProfileResponse>
-   data = { userId, email, fullName, avatarUrl, phone, role, workspaceId, timezone, notificationPreferences, createdAt }
+   data = { userId, email, fullName, avatarUrl, phone, role, workspaceId, professionalTitle, bio, portfolioUrls, workingLanguage, timezone, notificationPreferences, createdAt }
 ```
 
 Khác so với spec.md (đề xuất `{ id, fullName, email, avatarUrl, phone, createdAt }`):
 
-- Thêm `role`, `workspaceId`, `timezone`, `notificationPreferences` — field đã có sẵn, trả về để FE hiển thị + echo lại cho luồng update.
+- Thêm `role`, `workspaceId`, `professionalTitle`, `bio`, `portfolioUrls`, `workingLanguage`, `timezone`, `notificationPreferences` — field đã có sẵn, trả về để FE hiển thị + echo lại cho luồng update.
 - `userId` thay vì `id` — thống nhất với `UserProfileResponse` hiện tại.
 
 ## 3. Data Model

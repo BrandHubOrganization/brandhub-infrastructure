@@ -2,21 +2,22 @@
 
 ## Function Trigger
 
-Begins when a signed-in user saves edits to their profile fields on `/settings/profile`, or selects a new avatar image in the avatar upload dialog.
+Begins when a signed-in user saves edits to their profile fields on `/profile`, or selects a new avatar image in the avatar upload dialog.
 
 ## Function Description
 
 - **Actors / Roles:** Any authenticated user (role `USER`); a user updates only their own profile.
-- **Purpose:** Let the user keep their personal information accurate — display name, phone number, timezone, notification preferences — and refresh their avatar.
-- **Interface:** The Profile screen at `/settings/profile` in edit mode: an editable full-name field, a phone field, a timezone selector, notification-preference toggles, and a Save button. Saving submits a full update of the signed-in user's own profile (PUT semantics). The avatar is not part of that form — it is changed through a separate image-upload action opened from the avatar upload dialog.
-- **Data Processing:** The system loads the user record, writes the submitted full name and phone number, merges the submitted timezone and notification preferences into the stored preferences data (only fields actually submitted are overwritten; fields left out keep their previous values), persists the record, and returns the updated profile. The avatar upload is handled independently: the file is validated, stored in file storage, the previous avatar file is removed when one exists, and the new avatar reference is saved.
+- **Purpose:** Let the user keep their personal information accurate — display name, phone number, professional title, bio, portfolio links, working language, timezone, notification preferences — and refresh their avatar.
+- **Interface:** The Profile screen at `/profile` in edit mode: an editable full-name field, a phone field, a job-title field, a working-language field, a bio textarea, a repeatable portfolio-URL list, a timezone selector, and a Save button. Saving submits a full update of the signed-in user's own profile (PUT semantics). The avatar is not part of that form — it is changed through a separate image-upload action opened from the avatar upload dialog. Cancel discards in-progress edits and restores every field (including the four fields listed above) to their last-saved values, not just full name and phone.
+- **Data Processing:** The system loads the user record, writes the submitted full name, phone number, professional title, bio, portfolio URLs and working language directly onto the user record, merges the submitted timezone and notification preferences into the stored preferences data (only fields actually submitted are overwritten; fields left out keep their previous values), persists the record, and returns the updated profile. The avatar upload is handled independently: the file is validated, stored in file storage, the previous avatar file is removed when one exists, and the new avatar reference is saved.
+- **Known gap (not yet implemented):** the spec's `notificationPreferences` field is wired end-to-end on the backend (merged into the stored preferences JSON, returned in the response) but the Profile screen has no notification-preference UI — there is nothing on `/profile` for the user to toggle. This is a real gap, not a stale spec claim about the backend; the backend behavior described above is accurate and code-verified.
 
 ## Screen Layout
 
-Figure — Profile Screen (`/settings/profile`, edit mode):
+Figure — Profile Screen (`/profile`, edit mode):
 
-- Center: the profile card in edit mode — full-name input (required), phone input, timezone selector, notification-preference toggles. Email address and avatar are displayed but are not editable from this form.
-- Buttons: Save (primary) — submits the update; Cancel — discards the changes.
+- Center: the profile card in edit mode — full-name input (required), phone input, job-title input, working-language input, bio textarea, a repeatable list of portfolio URL inputs (add/remove), and a timezone selector. Email address and avatar are displayed but are not editable from this form. Notification preferences have no UI yet (see Known gap above).
+- Buttons: Save (primary) — submits the update; Cancel — discards the changes and restores every editable field to its last-saved value.
 - Footer: none.
 
 Figure — Avatar Upload Dialog:
@@ -29,9 +30,9 @@ Figure — Avatar Upload Dialog:
 ### Data Specifications
 
 - **Input required:** `fullName`; and an image file for the avatar upload action.
-- **Input optional:** `phone`, `timezone`, `notificationPreferences`.
-- **System data:** `users` (`fullName`, `phone`, preferences JSON holding the timezone and notification preferences, `avatarUrl`).
-- **Output:** The complete updated profile field set — `userId`, `email`, `fullName`, `avatarUrl`, `phone`, `role`, `workspaceId`, `timezone`, `notificationPreferences`, `createdAt`; the avatar upload returns the new `avatarUrl`.
+- **Input optional:** `phone`, `professionalTitle`, `bio`, `portfolioUrls`, `workingLanguage`, `timezone`, `notificationPreferences`.
+- **System data:** `users` (`fullName`, `phone`, `professionalTitle`, `bio`, `portfolioUrls`, `workingLanguage`, preferences JSON holding the timezone and notification preferences, `avatarUrl`).
+- **Output:** The complete updated profile field set — `userId`, `email`, `fullName`, `avatarUrl`, `phone`, `role`, `workspaceId`, `professionalTitle`, `bio`, `portfolioUrls`, `workingLanguage`, `timezone`, `notificationPreferences`, `createdAt`; the avatar upload returns the new `avatarUrl`.
 
 ### Business Rules
 
@@ -54,7 +55,7 @@ Figure — Avatar Upload Dialog:
 
 ### Normal Flow
 
-1. The user edits the form on `/settings/profile` and clicks Save.
+1. The user edits the form on `/profile` and clicks Save.
 2. The application submits the changed profile fields.
 3. The system loads the user record and writes the submitted full name and phone number.
 4. The system merges the submitted timezone and notification preferences into the stored preferences data, overwriting only the fields submitted.
@@ -86,6 +87,6 @@ Figure — Avatar Upload Dialog:
 
 ## Post-Conditions
 
-- `fullName`, `phone`, `timezone`, and `notificationPreferences` hold the submitted values; fields left out of the request keep their previous values.
+- `fullName`, `phone`, `professionalTitle`, `bio`, `portfolioUrls`, `workingLanguage`, `timezone`, and `notificationPreferences` hold the submitted values; fields left out of the request keep their previous values.
 - The avatar reference reflects the most recent successful upload, or the default initials avatar when the avatar was removed.
 - The avatar is stored independently of the profile field update.
