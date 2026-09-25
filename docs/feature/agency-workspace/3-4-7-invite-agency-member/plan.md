@@ -1,6 +1,6 @@
 # Plan — Invite Agency Member (FR 3.4.7)
 
-> Liên kết: [spec.md](spec.md) — cho Owner mời người khác vào Agency qua email, hết hạn 3 ngày.
+> Liên kết: [spec.md](spec.md) — cho Owner mời người khác vào Agency qua email, hết hạn 1-30 ngày (mặc định 30).
 
 ## 1. Phạm vi kỹ thuật
 
@@ -15,9 +15,9 @@
 ```
 POST /api/v1/agencies/{agencyId}/invitations
 Authorization: Bearer <access-token>
-Body: { "email": "string" }
+Body: { "email": "string", "inviteeName"?, "note"?, "workspaceId"?, "role"? (MANAGER|CREATOR|CLIENT), "expiryDays"? (1-30, default 30) }
 → 200 ApiResponse<AgencyInvitationResponse>
-   data = { id, agencyId, agencyName, invitedEmail, invitedBy, token, status, expiresAt, acceptedAt, createdAt }
+   data = { id, agencyId, agencyName, invitedEmail, invitedBy, token, note, workspaceId, workspaceName, role, status, expiresAt, acceptedAt, createdAt }
 ```
 
 Khác so với spec.md (đề xuất `201` + `{invitationId, expiresAt}`):
@@ -29,7 +29,8 @@ Khác so với spec.md (đề xuất `201` + `{invitationId, expiresAt}`):
 ## 3. Data Model
 
 - Đọc `agencies` (owner-check), `users` (check đã là member), `agency_members`, `agency_invitations`.
-- Ghi `agency_invitations`: `token = UUID`, `status = PENDING`, `expiresAt = now + 3 days`.
+- Ghi `agency_invitations`: `token = UUID`, `status = PENDING`, `expiresAt = now + expiryDays` (1-30, mặc định 30, clamp nếu ngoài khoảng).
+- Đọc thêm `workspaces`, `workspace_members` khi request có `workspaceId`/`role` (validate workspace thuộc agency, check MANAGER chưa được gán).
 
 ## 4. Luồng xử lý
 
@@ -37,7 +38,10 @@ Khác so với spec.md (đề xuất `201` + `{invitationId, expiresAt}`):
 2. `email = request.email().trim().toLowerCase()`.
 3. Check đã là member → 409 `ALREADY_AGENCY_MEMBER`.
 4. Check đã có invitation PENDING còn hạn → 409 `INVITATION_ALREADY_PENDING`.
-5. Build + save invitation → `sendAgencyInvitationEmail`.
+5. Check tổng invitation PENDING còn hạn của agency ≥ 20 → 409 `TOO_MANY_PENDING_INVITATIONS`.
+6. Nếu có `workspaceId`: check workspace thuộc agency (400 `WORKSPACE_NOT_IN_AGENCY`); nếu `role == MANAGER`, check workspace chưa có manager active (409 `MANAGER_ALREADY_ASSIGNED`).
+7. Nếu `role == CLIENT` mà không có `workspaceId` → 400 `WORKSPACE_REQUIRED_FOR_CLIENT_INVITE`.
+8. Build + save invitation (`expiresAt = now + clamp(expiryDays, 1, 30)`) → `sendAgencyInvitationEmail`.
 
 ## 5. Dependencies
 

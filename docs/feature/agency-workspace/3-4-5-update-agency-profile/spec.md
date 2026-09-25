@@ -24,18 +24,18 @@ Figure — Edit Agency Profile page:
 - **Output:** The updated profile of the Agency. After a logo upload, the same profile with the new logo location and a refreshed update timestamp.
 
 ### Business Rules
-- **BR-01:** Only the Owner of the Agency may update it. Anybody else is refused with `403 NOT_AGENCY_OWNER`.
-- **BR-02:** The save replaces the whole profile rather than patching individual fields: a field that is not sent in the request is cleared. The client must therefore send back every current value, including the ones that did not change.
-- **BR-03:** Name is mandatory; an empty name is refused with `400 VALIDATION_ERROR`.
-- **BR-04:** The logo is uploaded as a file through the Agency logo upload, not through the logo URL field of the form.
-- **BR-05:** A logo file that cannot be read is refused with `400 FILE_READ_ERROR` rather than an internal failure; the stored profile stays untouched in that case.
+- **BR-25 (analogous):** Updating the Agency profile is Owner-only, mirroring the rule that workspace settings can only be updated by an authorized role (BR-25, adapted: Agency profile has a single Owner rather than OWNER/MANAGER). Anybody else is refused with `403 NOT_AGENCY_OWNER`.
+- The save replaces the whole profile rather than patching individual fields: a field that is not sent in the request is cleared. The client must therefore send back every current value, including the ones that did not change.
+- Name is mandatory; an empty name is refused with `400 VALIDATION_ERROR`.
+- The logo is uploaded as a file through the Agency logo upload, not through the logo URL field of the form.
+- A logo file that cannot be read is refused with `400 FILE_READ_ERROR` rather than an internal failure; the stored profile stays untouched in that case.
 
 ### Validation
-- Caller is not the Agency Owner → `403 NOT_AGENCY_OWNER`.
-- Name empty → `400 VALIDATION_ERROR`.
-- Agency does not exist → `404 AGENCY_NOT_FOUND`.
-- Logo upload by a caller who is not the Agency Owner → `403 NOT_AGENCY_OWNER`.
-- Logo file cannot be read → `400 FILE_READ_ERROR`.
+- Caller is not the Agency Owner → Display: MSG39
+- Name empty → Display: MSG02
+- Agency does not exist → Display: MSG38
+- Logo upload by a caller who is not the Agency Owner → Display: MSG39
+- Logo file cannot be read → Display: MSG29
 
 ## Functionalities
 ### Normal Flow
@@ -44,16 +44,16 @@ Figure — Edit Agency Profile page:
 3. The client submits the full profile.
 4. The system loads the Agency by its identifier and confirms the caller is its Owner.
 5. The system validates the submitted values against the rules above.
-6. The system replaces the stored profile with the submitted values and returns the updated profile.
-7. The Owner optionally picks a new logo file; the system stores the file, fills in the logo of the Agency, and returns the updated profile.
+6. The system replaces the stored profile with the submitted values and returns the updated profile; toast MSG26.
+7. The Owner optionally picks a new logo file; the system stores the file, fills in the logo of the Agency, and returns the updated profile; toast MSG94.
 8. The client shows a confirmation and refreshes the form and the logo preview.
 
 ### Abnormal Cases
-- Agency does not exist → `404 AGENCY_NOT_FOUND`.
-- Caller is not the Agency Owner → `403 NOT_AGENCY_OWNER`, nothing is changed.
-- Name left empty → `400 VALIDATION_ERROR`, nothing is changed.
-- Logo file cannot be read → `400 FILE_READ_ERROR`, the profile keeps its previous values.
-- A field that the form fails to send back is cleared, because the save replaces the whole profile.
+- 4.a1: Agency does not exist → `404 AGENCY_NOT_FOUND`, toast MSG38. 4.a2: The Owner returns to the Agency list.
+- 4.b1: Caller is not the Agency Owner → `403 NOT_AGENCY_OWNER`, toast MSG39; nothing is changed. 4.b2: The caller returns to the Agency list.
+- 5.a1: Name left empty → `400 VALIDATION_ERROR`, Display: MSG02; nothing is changed. 5.a2: The Owner fills in the name and resubmits.
+- 7.a1: Logo file cannot be read → `400 FILE_READ_ERROR`, toast MSG29; the profile keeps its previous values. 7.a2: The Owner selects a valid file and retries the upload.
+- 3.a1: A field that the form fails to send back is cleared, because the save replaces the whole profile — no error, this is expected behaviour. 3.a2: The Owner reviews the saved profile and re-submits any field found missing.
 
 ## Post-Conditions
 - The profile of the Agency carries the submitted values and a refreshed update timestamp.

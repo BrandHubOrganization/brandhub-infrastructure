@@ -56,3 +56,4 @@ POST /api/v1/auth/2fa/verify    { twoFactorToken:"...", code:"123456" }  (KHÔNG
 - **Mất app Authenticator** không có backup code (đã bỏ) → phải nhờ Admin (FR 3.10.5), chấp nhận trade-off đã chốt.
 - **Bỏ copy secret** → FE không cần secret, giảm surface. QR render từ `otpAuthUrl` (có thể dùng lib QR phía FE).
 - **Đổi tên field 2026-09-23:** `TwoFactorSetupResponse` đổi `qrCodeUrl` → `otpAuthUrl` để phản ánh đúng nội dung (đây là `otpauth://` URI, không phải URL ảnh QR). FE đọc `data.otpAuthUrl`.
+- **BR-86 lockout (2026-09-25):** thêm `checkTwoFactorAttempt` trong `AuthServiceImpl` — Redis key `2fa:attempt:{userId}` TTL 10 phút, max 5 lần sai (`OTP_MAX_ATTEMPTS`, tái dùng constant có sẵn) → 429 `TWO_FA_TOO_MANY_ATTEMPTS`. Áp dụng chung cho confirm/disable/verify.

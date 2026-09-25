@@ -23,14 +23,14 @@ Figure — Agency Dashboard:
 - **Output:** Proposed — a summary holding the Workspace count, the Member count and the Client count, together with a recent-activity list. Not yet implemented.
 
 ### Business Rules
-- **BR-01:** Only the Owner of the Agency may view its dashboard; anybody else is refused with `403 FORBIDDEN`.
-- **BR-02:** The Agency must exist and must not be soft-deleted; otherwise `404 AGENCY_NOT_FOUND`.
-- **BR-03:** The Member count covers every Agency Member record of the Agency, whatever the role.
-- **BR-04:** Proposed — not yet implemented: the Workspace and Client counts, and the recent-activity list, still have to be defined.
+- **BR-29 (approximated):** Multi-tenancy — only the Owner of the Agency may view its dashboard; anybody else is refused with `403 FORBIDDEN`, mirroring the workspace-scoped access rule since no Agency-dashboard-specific BR exists yet. *(No exact BR-xx covers a not-yet-implemented dashboard; closest fit noted.)*
+- The Agency must exist and must not be soft-deleted; otherwise `404 AGENCY_NOT_FOUND`.
+- The Member count covers every Agency Member record of the Agency, whatever the role.
+- Proposed — not yet implemented: the Workspace and Client counts, and the recent-activity list, still have to be defined.
 
 ### Validation
-- Caller is not the Agency Owner → `403 FORBIDDEN`.
-- Agency does not exist or is soft-deleted → `404 AGENCY_NOT_FOUND`.
+- Caller is not the Agency Owner → Display: MSG39
+- Agency does not exist or is soft-deleted → Display: MSG38
 
 ## Functionalities
 ### Normal Flow
@@ -41,9 +41,9 @@ Figure — Agency Dashboard:
 5. The system returns the summary and the client renders it.
 
 ### Abnormal Cases
-- Caller is not the Agency Owner → `403 FORBIDDEN`, no data returned.
-- Agency does not exist or is soft-deleted → `404 AGENCY_NOT_FOUND`.
-- Agency just created, with no Workspace yet → every count is returned as zero, which is not an error.
+- 3.a1: Caller is not the Agency Owner → `403 FORBIDDEN`, toast MSG39. 3.a2: The caller returns to the Agency list and opens an Agency they own.
+- 3.b1: Agency does not exist or is soft-deleted → `404 AGENCY_NOT_FOUND`, toast MSG38. 3.b2: The caller returns to the Agency list.
+- 4.a1: Agency just created, with no Workspace yet → every count is returned as zero, which is not an error; no toast shown. 4.a2: The Owner proceeds to create a Workspace to start populating the dashboard.
 
 ## Post-Conditions
 - No Agency data is created, changed or removed. *(Proposed — not yet implemented.)*

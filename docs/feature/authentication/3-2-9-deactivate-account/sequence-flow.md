@@ -1,86 +1,88 @@
 # Sequence Flow — Deactivate Account
 
-> Companion to `spec.md` (3.2.9). Lists each actor → action → system step in enough detail to draw the sequence diagram directly; the business description lives in `spec.md`. There are two flows, chosen from whether the account has a password.
+> Companion to `spec.md` (3.2.9). Lists each actor -> action -> system step in enough detail to draw the sequence diagram directly (see `sequence-flow.drawio`). Actors match the real classes: `AuthController`, `AuthServiceImpl`, `UserRepository`, `AgencyRepository`, `JwtUtil`, Redis, `MailService`.
 
 ## Actors
 
-- **User** — wants to disable their own account.
-- **Client** — the application the user interacts with, showing the Danger Zone on the profile screen.
-- **System** — the application server.
-- **Database** — persistent store holding accounts and agencies.
-- **Token store** — short-lived state holding the confirmation code.
-- **Mail** — outbound email used to deliver the confirmation code.
+- **User** — the signed-in account holder, acting through the `/profile` Danger Zone UI.
+- **AuthController** — `POST /api/v1/auth/deactivate` and `POST /api/v1/auth/deactivate/send-otp`; resolves the caller via `requireUserId(authHeader)`, reads the raw access token from the `Authorization` header and the refresh token from the `refreshToken` cookie.
+- **AuthServiceImpl** — `deactivate(userId, password, otpCode, accessToken, refreshToken)` and `sendDeactivateOtp(userId)`.
+- **UserRepository** — loads the `User` row (`passwordHash`, `status`).
+- **AgencyRepository** — `findByOwnerId(userId)`, used for the ownership guard (BR-23, pre-existing/unchanged).
+- **JwtUtil** — `blacklistToken(token)`, used to revoke the access token and refresh token (BR-22, new this session).
+- **Redis** — `StringRedisTemplate`, key `otp:deactivate:{userId}`, TTL 10 minutes.
+- **MailService** — `sendOtpEmail(email, otp)`.
 
 ---
 
 ## Flow A — Account with a password
 
-1. User → Client: on the profile screen, scrolls to the Danger Zone, activates "Deactivate" and enters the password in the confirmation dialog.
-2. Client → System: submits the password carrying the access token.
-3. System:
-   a. Resolves the caller from the access token; a missing or malformed token → 401 INVALID_CREDENTIALS.
-   b. Loads the account; missing → 404 USER_NOT_FOUND.
-   c. The account has a password, so this is the password flow: the submitted password is compared with the stored password hash; a mismatch → 400 WRONG_CURRENT_PASSWORD.
-   d. Checks the agencies owned by the account and keeps only the active ones; none are active.
-   e. Marks the account as deactivated without removing anything.
-4. System → Client: 200 with no data.
-5. Client: clears the local session and returns to /login.
-6. User tries to sign in again → the sign-in status check finds the account deactivated and answers 403 ACCOUNT_DEACTIVATED (3.2.2).
+1. User -> AuthController: `POST /deactivate { password }` with `Authorization: Bearer <accessToken>` and (if present) `refreshToken` cookie.
+2. AuthController: `requireUserId(authHeader)` — missing/malformed header -> 401 `INVALID_CREDENTIALS`.
+3. AuthController: extracts `accessToken` from the `Authorization` header (strip `Bearer `) and `refreshToken` from the cookie.
+4. AuthController -> AuthServiceImpl: `deactivate(userId, password, null, accessToken, refreshToken)`.
+5. AuthServiceImpl -> UserRepository: `findById(userId)` — not found -> 404 `USER_NOT_FOUND`.
+6. AuthServiceImpl: `user.getPasswordHash() != null`, so the password branch applies — `passwordEncoder.matches(password, passwordHash)`; mismatch -> 400 `WRONG_CURRENT_PASSWORD`.
+7. AuthServiceImpl -> AgencyRepository: `findByOwnerId(userId)`, filters `status == ACTIVE` (BR-23 guard — pre-existing, unchanged, runs before the status update). None found.
+8. AuthServiceImpl -> UserRepository: `user.setStatus(DEACTIVATED)`, `save(user)`.
+9. AuthServiceImpl -> JwtUtil: `blacklistToken(accessToken)` (skipped if blank; `JwtException` caught and ignored — BR-22, new this session).
+10. AuthServiceImpl -> JwtUtil: `blacklistToken(refreshToken)` (skipped if blank; `JwtException` caught and ignored — BR-22, new this session).
+11. AuthServiceImpl --> AuthController --> User: 200, `ApiResponse<Void>` (no payload).
+12. Client clears the local session, redirects to `/login`, toast MSG91.
+13. (Later) If the user tries to sign in or refresh with the now-blacklisted tokens, they are rejected immediately by the blacklist check, not only by `checkStatus()`'s `status == DEACTIVATED` -> 403 `ACCOUNT_DEACTIVATED` path. Session cut-off is now immediate (BR-22 closed).
 
-### Flow A' — Blocked because an active agency is owned
+### Flow A' — Blocked: caller owns an active Agency
 
-Same as steps 1–3c, diverging at 3d:
+Same as steps 1–6, diverging at step 7. This guard is unchanged from before this session and still runs strictly before the status update / token blacklist, so a blocked caller's tokens are left untouched.
 
-3d'. The account owns at least one active agency → 409 AGENCY_OWNERSHIP_ACTIVE and the account status is left unchanged.
-4'. System → Client: 409 with the error code AGENCY_OWNERSHIP_ACTIVE.
-5'. Client: shows the error and asks the user to transfer ownership of the agency before deactivating.
+7'. AuthServiceImpl -> AgencyRepository: `findByOwnerId(userId)` returns an Agency with `status == ACTIVE` -> throw `AGENCY_OWNERSHIP_ACTIVE` (409). `user.status` is left unchanged; no blacklist calls happen.
+8'. AuthServiceImpl --> AuthController --> User: 409, error code `AGENCY_OWNERSHIP_ACTIVE`.
 
 ---
 
-## Flow B — Account without a password
+## Flow B — Account with no password (OAuth-only)
 
-### B.1 — Sending the confirmation code
+### B.1 — Requesting the OTP
 
-1. User → Client: on the profile screen, activates "Deactivate"; the client detects that the account has no password and shows the "Send confirmation code" step.
-2. User → Client: activates "Send code".
-3. Client → System: requests the code carrying the access token and no other data.
-4. System:
-   a. Resolves the caller from the access token; a missing or malformed token → 401 INVALID_CREDENTIALS.
-   b. Loads the account; missing → 404 USER_NOT_FOUND.
-   c. Generates a random six-digit code.
-   d. Stores the code against the account with a 10-minute lifetime.
-   e. Sends the code by email.
-5. System → Client: 200 with no data.
-6. Client: reports that the code has been sent and shows the code input in place of the password input.
-7. User: reads the code from the email.
+1. User -> AuthController: `POST /deactivate/send-otp` with `Authorization: Bearer <token>`, no body.
+2. AuthController: `requireUserId(authHeader)` — missing/malformed -> 401 `INVALID_CREDENTIALS`.
+3. AuthController -> AuthServiceImpl: `sendDeactivateOtp(userId)`.
+4. AuthServiceImpl -> UserRepository: `findById(userId)` — not found -> 404 `USER_NOT_FOUND`.
+5. AuthServiceImpl: generates a 6-digit OTP (`SecureRandom`).
+6. AuthServiceImpl -> Redis: `SET otp:deactivate:{userId} <otp> EX 600` (10 min TTL). No cooldown/rate-limit check is applied here — unlike `resendOtp` (60s cooldown, `otp:resend:{email}`) or `linkPhone` (60s cooldown, `phone:otp:resend:{userId}`) — unchanged BA conflict.
+7. AuthServiceImpl -> MailService: `sendOtpEmail(user.getEmail(), otp)`.
+8. AuthServiceImpl --> AuthController --> User: 200, no payload.
+9. User reads the code from email.
 
-### B.2 — Confirming deactivation with the code
+### B.2 — Confirming deactivation with the OTP
 
-8. User → Client: enters the code and confirms.
-9. Client → System: submits the code carrying the access token.
-10. System:
-    a. Resolves the caller from the access token; a missing or malformed token → 401 INVALID_CREDENTIALS.
-    b. Loads the account; missing → 404 USER_NOT_FOUND.
-    c. The account has no password, so this is the code flow: the stored code for the account is read.
-    d. No stored code, an empty submitted code, or a mismatch → 400 OTP_INVALID.
-    e. The code matches → the stored code is consumed so it cannot be reused.
-    f. Checks the agencies owned by the account and keeps only the active ones; none are active.
-    g. Marks the account as deactivated.
-11. System → Client: 200 with no data.
-12. Client: clears the local session and returns to /login.
-13. User tries to sign in again → the sign-in status check finds the account deactivated and answers 403 ACCOUNT_DEACTIVATED.
+10. User -> AuthController: `POST /deactivate { otpCode }` with `Authorization: Bearer <accessToken>` and (if present) `refreshToken` cookie.
+11. AuthController: `requireUserId(authHeader)` — missing/malformed -> 401 `INVALID_CREDENTIALS`.
+12. AuthController: extracts `accessToken` and `refreshToken` as in Flow A.
+13. AuthController -> AuthServiceImpl: `deactivate(userId, null, otpCode, accessToken, refreshToken)`.
+14. AuthServiceImpl -> UserRepository: `findById(userId)` — not found -> 404 `USER_NOT_FOUND`.
+15. AuthServiceImpl: `user.getPasswordHash() == null`, so the OTP branch applies.
+16. AuthServiceImpl -> Redis: `GET otp:deactivate:{userId}`.
+17. AuthServiceImpl: key is null, or `otpCode` is null, or the values don't match -> 400 `OTP_INVALID`.
+18. AuthServiceImpl -> Redis: match -> `DEL otp:deactivate:{userId}` (single-use).
+19. AuthServiceImpl -> AgencyRepository: `findByOwnerId(userId)`, filters `status == ACTIVE` (BR-23 guard, pre-existing). None found.
+20. AuthServiceImpl -> UserRepository: `user.setStatus(DEACTIVATED)`, `save(user)`.
+21. AuthServiceImpl -> JwtUtil: `blacklistToken(accessToken)`, then `blacklistToken(refreshToken)` — same BR-22 best-effort cleanup as Flow A steps 9–10.
+22. AuthServiceImpl --> AuthController --> User: 200, no payload.
+23. Client clears the local session, redirects to `/login`, toast MSG91.
+24. (Later) sign-in/refresh with the blacklisted tokens is rejected immediately — same as Flow A step 13.
 
-### Flow B' — Blocked because an active agency is owned
+### Flow B' — Blocked: caller owns an active Agency (OTP already consumed)
 
-Same as steps 8–10e, diverging at 10f:
+Same as steps 10–18, diverging at step 19.
 
-10f'. The account owns at least one active agency → 409 AGENCY_OWNERSHIP_ACTIVE and the account status is left unchanged. Note that the code was already consumed at step 10e, so a new code must be requested before retrying after the ownership has been transferred.
-11'. System → Client: 409 with the error code AGENCY_OWNERSHIP_ACTIVE.
+19'. AuthServiceImpl -> AgencyRepository: an ACTIVE agency is found -> throw `AGENCY_OWNERSHIP_ACTIVE` (409). `user.status` is left unchanged; no blacklist calls happen. Note the OTP key was already deleted at step 18, so the user must call `send-otp` again before retrying after transferring ownership.
+20'. AuthServiceImpl --> AuthController --> User: 409, error code `AGENCY_OWNERSHIP_ACTIVE`.
 
-### Flow B'' — Code wrong, missing, expired, or never requested
+### Flow B'' — OTP invalid, missing, or expired
 
-10d'. No stored code, either because none was requested or because the 10-minute lifetime has elapsed, or the submitted code is empty or does not match → 400 OTP_INVALID.
-11''. System → Client: 400 with the error code OTP_INVALID.
+17'. Redis key absent (never requested or TTL elapsed), `otpCode` null, or mismatch -> 400 `OTP_INVALID`.
+18''. AuthServiceImpl --> AuthController --> User: 400, error code `OTP_INVALID`.
 
 ---
 
@@ -88,14 +90,15 @@ Same as steps 8–10e, diverging at 10f:
 
 | Step | Failure condition | HTTP | Error code |
 |---|---|---|---|
-| Send code, Deactivate | Missing or malformed access token | 401 | `INVALID_CREDENTIALS` |
-| Send code, Deactivate | The account does not exist, even with a valid token | 404 | `USER_NOT_FOUND` |
-| Deactivate, password flow | Wrong password | 400 | `WRONG_CURRENT_PASSWORD` |
-| Deactivate, code flow | The code is wrong, missing, expired, or was never requested | 400 | `OTP_INVALID` |
-| Deactivate, both flows | The account owns at least one active agency | 409 | `AGENCY_OWNERSHIP_ACTIVE` |
+| send-otp, deactivate | Missing/malformed Bearer token | 401 | `INVALID_CREDENTIALS` |
+| send-otp, deactivate | `UserRepository.findById` returns empty | 404 | `USER_NOT_FOUND` |
+| deactivate, password branch | `passwordEncoder.matches` fails | 400 | `WRONG_CURRENT_PASSWORD` |
+| deactivate, OTP branch | Redis key missing/expired, `otpCode` null, or mismatch | 400 | `OTP_INVALID` |
+| deactivate, either branch | `agencyRepository.findByOwnerId` finds an ACTIVE agency (BR-23, pre-existing) | 409 | `AGENCY_OWNERSHIP_ACTIVE` |
 
 ## Notes
 
-- The flow is chosen by the account, not by the request: an account with a password is only confirmed by the password, and an account without one only by a code. The other field is ignored when it is supplied.
-- Deactivation is a soft delete: the account is marked as deactivated and all related data is kept, so the user cannot sign in while the data remains available.
-- Ownership of an active agency blocks deactivation in both flows, and the code is consumed before that check, so a fresh code is needed after transferring ownership.
+- The Agency-ownership guard (`AGENCY_OWNERSHIP_ACTIVE`) is unchanged this session and still runs strictly before the status update and before the token blacklist calls — a blocked caller keeps their existing session.
+- BR-22 is now fully implemented: after `user.setStatus(DEACTIVATED)`/`save`, `deactivate()` calls `jwtUtil.blacklistToken()` on both the caller's access token (from the `Authorization` header, threaded through by `AuthController`) and refresh token (from the `refreshToken` cookie, also threaded through by `AuthController`), each guarded by a best-effort try/catch on `JwtException` for a malformed/absent token. Session cut-off is therefore immediate, not just on next refresh attempt.
+- The branch (password vs. OTP) is selected purely by `user.getPasswordHash() == null`, never by which field the client populates in `DeactivateRequest`; the unused field is ignored.
+- `sendDeactivateOtp` still has no resend cooldown, unlike `resendOtp` and `linkPhone` (flagged in spec.md, unchanged this session).

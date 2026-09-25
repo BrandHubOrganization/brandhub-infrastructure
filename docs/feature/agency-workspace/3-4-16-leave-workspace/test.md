@@ -7,7 +7,7 @@
 | TC-01 | CREATOR active gọi `DELETE /{workspaceId}/leave` | AC3 | 200; `WorkspaceMember.isActive = false`, `AgencyMember` không đổi | Happy path | Pass |
 | TC-02 | CLIENT active gọi leave, workspace còn nhiều member khác | AC3, Edge (mục 7) | 200; leave thành công | Happy path | Pass |
 | TC-03 | User không phải active member của workspace gọi leave | AC4 | 403 `WORKSPACE_ACCESS_DENIED` | Error case | Pass |
-| TC-04 | MANAGER duy nhất của workspace gọi leave | AC5 | 409 `LAST_OWNER_CANNOT_BE_REMOVED` | Error case | Pass |
+| TC-04 | MANAGER duy nhất của workspace gọi leave | AC5 | 409 `LAST_MANAGER_CANNOT_BE_REMOVED` | Error case | Pass |
 | TC-05 | MANAGER (có >=2 MANAGER active) gọi leave | AC5, Edge (mục 7) | 200; leave thành công vì không phải MANAGER cuối | Edge case | Pass |
 | TC-06 | Gọi leave 2 lần liên tiếp (đã leave rồi gọi lại) | Edge (mục 7) | Lần 2: 403 `WORKSPACE_ACCESS_DENIED` | Edge case | Pass |
 

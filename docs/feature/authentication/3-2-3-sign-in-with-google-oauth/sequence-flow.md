@@ -1,73 +1,82 @@
 # Sequence Flow — Sign In With Google OAuth
 
-> Companion to `spec.md` (3.2.3). Lists each actor → action → system step in enough detail to draw the sequence diagram directly; the business description lives in `spec.md`. The flow is server-driven: the browser navigates straight to the application, which performs the handshake with Google.
+> Companion to `spec.md` (3.2.3). Lists each actor → action → system step in enough detail to draw the sequence diagram directly. The flow is server-driven: the browser navigates straight to the application server, which performs the handshake with Google.
 
-## Actors
+## Actors / Lifelines
 
-- **Guest** — signs in with an existing Google account.
-- **Browser / Client** — the application, which resumes control once the browser returns.
-- **System** — the application server.
-- **Google** — the Google authorization and profile service.
-- **Database** — persistent store holding accounts, their linked external identities and their role assignments.
-- **Token store** — short-lived state used to protect the handshake against replay.
+- **User/Browser** — the Guest's browser; also runs the SPA (`OAuthCallbackPage` / `useOAuthCallback`) once control returns.
+- **Google** — Google's OAuth authorization endpoint and userinfo endpoint.
+- **GoogleOAuthController** — `«Boundary»`, exposes `GET /api/v1/auth/oauth/google` and `GET /api/v1/auth/oauth/google/callback` (alias `/login/oauth2/code/google`).
+- **GoogleOAuthService** — `«Control»`, extends the shared `OAuthService` base class; implements `buildProviderUrl()` and `fetchProfile()` for Google, inherits `buildAuthorizationUrl()` and `handleCallback()`.
+- **UserRepository** — `«Entity»`, looks up/creates the `User` row by email.
+- **UserOAuthProviderRepository** — `«Entity»`, looks up/creates the `(provider, providerId)` link row.
 
 ---
 
 ## Flow A — Successful Google sign-in, first-time user
 
-1. Guest → Client: on /login, activates "Sign in with Google", which sends the browser straight to the application and leaves the single-page application.
-2. Client → System: requests the Google authorization entry point.
-3. System: generates a random single-use state value, stores it with a 10-minute lifetime and records that it belongs to a sign-in attempt rather than an account link.
-4. System → Browser: redirects to the Google consent screen with the client identifier, the return address, the requested scopes and the state value.
-5. Guest → Google: authenticates and grants consent.
-6. Google → System: returns the browser to the callback address with an authorization code and the state value.
-7. System:
-   a. Consumes the state value: a missing or unknown value → 400 OAUTH_STATE_INVALID; a value recorded for another provider → the same error.
-   b. Exchanges the authorization code with Google for a Google access token; a missing token → 400 OAUTH_CODE_INVALID.
-   c. Reads the Google profile; a missing email address, or an unverified one, → 400 OAUTH_CODE_INVALID.
-   d. Looks up the linked external identity: not found, so it looks the account up by email address. With no matching account it creates one with the email address already verified and no password, assigns the default role, and then links the external identity to it.
-   e. Checks the account status: inactive → 403 ACCOUNT_SUSPENDED.
-   f. With two-factor authentication disabled, records the sign-in time and event, resolves the active workspace and issues an access token together with a refresh token.
-8. System → Database: applies the account, role, identity-link and sign-in writes inside one transaction.
-9. System → Browser: sets the refresh token as an HTTP-only cookie and redirects to the return address of the application carrying the access token in the address fragment.
-10. Client: reads the access token from the address fragment, loads the profile, records the session and continues to the Dashboard / Agency list, honouring any pending destination.
+1. User/Browser → GoogleOAuthController: `GET /api/v1/auth/oauth/google` (activates "Sign in with Google" on `/login`).
+2. GoogleOAuthController → GoogleOAuthService: `buildAuthorizationUrl()`.
+3. GoogleOAuthService: generates a random 24-byte hex `state`, stores `oauth:state:{state} = "GOOGLE|"` in Redis with a 10-minute TTL, and builds the Google consent URL (`buildProviderUrl(state)`) with `client_id`, `redirect_uri`, `scope=openid email profile`, `state`.
+4. GoogleOAuthController → User/Browser: `302 Found`, `Location: accounts.google.com/o/oauth2/v2/auth?...`.
+5. User/Browser → Google: authenticates and grants consent.
+6. Google → GoogleOAuthController: `302` to `/api/v1/auth/oauth/google/callback?code=...&state=...`.
+7. GoogleOAuthController: `GoogleOAuthCallbackRequest.hasAuthorizationCode()` is true → calls `GoogleOAuthService.handleCallback(code, state)` (inherited from `OAuthService`).
+8. GoogleOAuthService (in `OAuthService.handleCallback`):
+   a. `redis.getAndDelete("oauth:state:" + state)` — missing/unknown, or provider mismatch → throws `BusinessException(OAUTH_STATE_INVALID)`.
+   b. `fetchProfile(code)` — POSTs form-urlencoded to `oauth2.googleapis.com/token` (missing `access_token` → `OAUTH_CODE_INVALID`), then GETs `googleapis.com/oauth2/v2/userinfo`; missing `id`/`email` or `verified_email != true` → `OAUTH_CODE_INVALID`.
+   c. → UserOAuthProviderRepository: `findByProviderAndProviderId(GOOGLE, providerId)` — not found (first-time user).
+   d. → UserRepository: `findByEmail(email.toLowerCase().trim())` — not found → creates a new `User` (`emailVerifiedAt = now`, no `passwordHash`) and a default `UserSystemRole(USER)`.
+   e. → UserOAuthProviderRepository: `save(UserOAuthProvider{userId, GOOGLE, providerId})`, linking the identity.
+   f. Checks `user.isActive() && status == ACTIVE` — passes.
+   g. `user.isTwoFactorEnabled()` is false → sets `lastLoginAt`, saves the user, writes an `AuditLog(LOGIN)`, resolves the active workspace, and issues an access token + refresh token via `JwtUtil`.
+9. GoogleOAuthService → GoogleOAuthController: returns `CallbackResult(loginResult, isLinkMode=false, null, twoFactorToken=null)`. All writes in steps 8c-8g run inside the single `@Transactional handleCallback()` call.
+10. GoogleOAuthController → User/Browser: adds `Set-Cookie: refreshToken=...; HttpOnly; Secure; Path=/api/v1/auth; SameSite=Strict`, then `302 Found` to `{frontendUrl}/oauth-callback#token={accessToken}`.
+11. User/Browser (`useOAuthCallback`): reads `token` from the fragment, clears the URL, calls `GET /api/v1/auth/me`, stores the user/token, toast MSG11, navigates to the pending redirect or `/dashboard`.
 
 ## Flow B — Existing email/password account signing in with Google for the first time
 
-Same as Flow A steps 1–7c, diverging at 7d:
+Same as Flow A steps 1–8b, diverging at 8c-8d:
 
-7d'. The external identity is not linked yet, and the account lookup by email address finds an account created earlier through Sign Up, so that account is reused and the external identity is linked to it. No duplicate account is created.
-7e–10. Continue as Flow A: the existing account signs in, and no data is merged because there was only one account from the start.
+8c'. UserOAuthProviderRepository finds no link for `(GOOGLE, providerId)` yet.
+8d'. UserRepository.`findByEmail()` finds an existing account created earlier via Sign Up (password-based) — that `User` row is reused; `linkOrCreateUser()` does not create a new row.
+8e-11. Continue as Flow A: `UserOAuthProviderRepository.save()` links Google to the existing account, and the rest of the flow (status check, token issuance, redirect, frontend resolution) proceeds unchanged. No duplicate account is created — the same email now has two ways to sign in.
 
 ## Flow C — Account with two-factor authentication enabled
 
-Same as Flow A or Flow B up to step 7d, diverging from 7e:
+Same as Flow A/B up to step 8e (identity resolved and linked), diverging at 8f-8g:
 
-7e. The account status check passes.
-7f'. Two-factor authentication is enabled, so a two-factor challenge token is issued and the sign-in time, the event record and the access token are all left untouched.
-9'. System → Browser: redirects to the two-factor code screen (3.2.7) carrying the challenge token as a query parameter, and sets no refresh cookie.
-10'. Client: reads the challenge token from the address and continues in Two-Factor Authentication (3.2.7). A correct code returns the real access token and sets the refresh cookie, after which the client resumes Flow A step 10.
+8f. Account status check passes.
+8g'. `user.isTwoFactorEnabled()` is true → `jwtUtil.generateTwoFactorToken(userId)` is generated; `lastLoginAt`, the `AuditLog` entry and the access/refresh tokens are **not** touched.
+9'. GoogleOAuthService → GoogleOAuthController: returns `CallbackResult(loginResult=null, isLinkMode=false, null, twoFactorToken)`.
+10'. GoogleOAuthController → User/Browser: `302 Found` to `{frontendUrl}/2fa-verify?twoFactorToken=...`; no `Set-Cookie`.
+11'. User/Browser: reads `twoFactorToken` from the query string and continues in Two-Factor Authentication (3.2.7). A correct code there issues the real access token and refresh cookie, after which the client resumes Flow A step 11.
 
 ## Sub-flow — Error or consent cancelled
 
-- Google reports an error, or the user cancels on the consent screen, so the callback carries no authorization code → the browser is sent back to the sign-in area with a generic error and no further call to Google is made.
-- Any other handled failure while processing the callback, other than the account-linking errors, produces the same generic error.
-- A network failure while calling Google is logged without the request or response content, since it may carry credentials, and the browser is sent back with a generic error.
+- Google reports `error` on the callback, or the callback is missing `code`/`state` → `hasAuthorizationCode()` is false → `GoogleOAuthController.callback()` returns `loginFailure()` directly, without calling `GoogleOAuthService` at all.
+- Any `BusinessException` from `handleCallback()` is caught in `GoogleOAuthController.callback()` and routed to `businessFailure(exception)`, which branches on the error code:
+  - `OAUTH_EMAIL_MISMATCH` / `OAUTH_ALREADY_LINKED` (link-mode only, see Out of Scope in `spec.md`) → `302` to `{frontendUrl}/settings?error=<code>`.
+  - `ACCOUNT_SUSPENDED` → `302` to `{frontendUrl}/oauth-callback?error=ACCOUNT_SUSPENDED` (distinct from the generic failure redirect). `useOAuthCallback().resolveCallback()` checks for this exact value before its generic `query.has("error")` check and throws `Error(ACCOUNT_SUSPENDED)`, which `reportCallbackError()` maps to i18n key `auth.login.oauthAccountSuspended` (a dedicated toast, not MSG12).
+  - Everything else (`OAUTH_STATE_INVALID`, `OAUTH_CODE_INVALID`, etc.) → falls through to the same generic `loginFailure()` redirect (`?error=oauth_failed`), which the frontend renders as toast MSG12 (`auth.login.oauthFailed`).
+- A `RestClientException` while calling Google (token exchange or userinfo) is caught, logged with only `exception.getClass().getSimpleName()` (never the request/response body, which can carry OAuth credentials), and produces the same generic `loginFailure()` redirect — provider errors are not distinguished at the redirect level, by design (security).
 
 ---
 
 ## Error paths summary (for "alt"/"opt" fragments)
 
-| Step | Failure condition | Behaviour | Error code |
+| Step | Failure condition | Behaviour | ErrorCode / HTTP |
 |---|---|---|---|
-| Callback | The state value is unknown or belongs to another provider | Redirect back with a generic error | `OAUTH_STATE_INVALID` |
-| Callback | Google returns no token | Redirect back with a generic error | `OAUTH_CODE_INVALID` |
-| Callback | The email address is missing or unverified | Redirect back with a generic error | `OAUTH_CODE_INVALID` |
-| Callback | The account is suspended | Redirect back with a generic error | `ACCOUNT_SUSPENDED` |
-| Callback | Google returns no authorization code, meaning the user cancelled | Redirect back with a generic error | — |
-| Callback | The call to Google fails at the network level | Redirect back with a generic error | — |
+| Callback | `state` unknown, expired, or recorded for another provider | Generic redirect, toast MSG12 | `OAUTH_STATE_INVALID` (400) |
+| Callback | Google token exchange returns no `access_token` | Generic redirect, toast MSG12 | `OAUTH_CODE_INVALID` (400) |
+| Callback | Google profile missing `id`/`email`, or `verified_email != true` | Generic redirect, toast MSG12 | `OAUTH_CODE_INVALID` (400) |
+| Callback | Account `isActive=false` or `status != ACTIVE` | Distinct redirect `?error=ACCOUNT_SUSPENDED`, dedicated toast (`auth.login.oauthAccountSuspended`) — not MSG12 | `ACCOUNT_SUSPENDED` (403) |
+| Callback | Callback carries no `code`/`state`, or `error` param present (user cancelled) | Generic redirect, toast MSG12 | — (no ErrorCode; short-circuited before `handleCallback`) |
+| Callback | `RestClientException` calling Google | Generic redirect, toast MSG12 | — (logged server-side only) |
+| Callback (link-mode, out of scope) | Linking email mismatches the signed-in user | Redirect to `/settings?error=OAUTH_EMAIL_MISMATCH` | `OAUTH_EMAIL_MISMATCH` (409) |
+| Callback (link-mode, out of scope) | `(provider, providerId)` already linked to a different user | Redirect to `/settings?error=OAUTH_ALREADY_LINKED` | `OAUTH_ALREADY_LINKED` (409) |
 
 ## Notes
 
-- The access token is carried in the address fragment, never as a query parameter, so it is not sent to the server and does not appear in server logs.
-- Linking Google to an account that is already signed in is a separate settings flow and is not part of this feature.
+- The access token is carried in the address fragment (`#token=`), never as a query parameter, so it is not sent to the server and does not appear in server access logs.
+- Link-mode (`GET /api/v1/auth/oauth/google/link?token=...`, a signed-in user attaching Google to their current account) shares `GoogleOAuthController`/`GoogleOAuthService` but is a separate settings flow and is not part of this feature — see `spec.md` Out of Scope.

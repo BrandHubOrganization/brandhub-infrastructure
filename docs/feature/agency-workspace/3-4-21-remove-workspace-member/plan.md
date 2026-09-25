@@ -28,7 +28,7 @@ Bảo vệ bởi `@RequireRole({MemberRole.MANAGER})`. Không lệch spec.md.
 
 1. `@RequireRole(MANAGER)` chặn.
 2. Tìm member theo `memberId`, filter `workspaceId` khớp + `isActive=true` → không có → 404 `NOT_FOUND`.
-3. `assertNotLastManager` — nếu member role MANAGER và count active MANAGER <=1 → 409 `LAST_OWNER_CANNOT_BE_REMOVED`.
+3. `assertNotLastManager` — nếu member role MANAGER và count active MANAGER <=1 → 409 `LAST_MANAGER_CANNOT_BE_REMOVED`.
 4. `member.setActive(false)`, `updatedAt = now`, save.
 
 ## 5. Dependencies

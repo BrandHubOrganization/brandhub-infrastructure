@@ -23,17 +23,17 @@ Figure — Remove Agency dialog:
 - **Output:** The removal leaves no profile to show. The restore returns the Agency profile with the status ACTIVE.
 
 ### Business Rules
-- **BR-01:** Only the Owner of the Agency may remove or restore it. Anybody else is refused with `403 NOT_AGENCY_OWNER`.
-- **BR-02:** Removal is soft: the Agency is marked SOFT_DELETED and stamped with the removal time. Nothing is erased, and the Agency can be restored afterwards.
-- **BR-03:** Removal cascades to the Workspaces of the Agency: each of them is marked SOFT_DELETED and stamped with the same removal time as the Agency.
-- **BR-04:** Restore is allowed only on an Agency that is currently SOFT_DELETED; otherwise `400 AGENCY_NOT_DELETED`.
-- **BR-05:** Restore is allowed only within 30 days of the removal timestamp; beyond that window, `410 RESTORE_WINDOW_EXPIRED`.
-- **BR-06:** Restore marks the Agency ACTIVE with its removal timestamp cleared, and does the same for the Workspaces whose removal timestamp matches the removal batch exactly. A Workspace that had already been removed on its own beforehand keeps its removed state and is not brought back.
-- **BR-07:** When the 30-day window passes without a restore, the Agency may eventually be erased for good by a periodic clean-up. That clean-up is designed separately and is not part of this feature today.
+- **BR-26 (analogous):** Delete Agency is Owner-only, mirroring the rule that delete Workspace is `OWNER`-only (BR-26). Anybody else is refused with `403 NOT_AGENCY_OWNER`.
+- Removal is soft: the Agency is marked SOFT_DELETED and stamped with the removal time. Nothing is erased, and the Agency can be restored afterwards.
+- Removal cascades to the Workspaces of the Agency: each of them is marked SOFT_DELETED and stamped with the same removal time as the Agency.
+- Restore is allowed only on an Agency that is currently SOFT_DELETED; otherwise `400 AGENCY_NOT_DELETED`.
+- Restore is allowed only within 30 days of the removal timestamp; beyond that window, `410 RESTORE_WINDOW_EXPIRED`.
+- Restore marks the Agency ACTIVE with its removal timestamp cleared, and does the same for the Workspaces whose removal timestamp matches the removal batch exactly. A Workspace that had already been removed on its own beforehand keeps its removed state and is not brought back.
+- When the 30-day window passes without a restore, the Agency may eventually be erased for good by a periodic clean-up. That clean-up is designed separately and is not part of this feature today.
 
 ### Validation
-- Caller is not the Agency Owner → `403 NOT_AGENCY_OWNER`.
-- Agency does not exist → `404 AGENCY_NOT_FOUND`.
+- Caller is not the Agency Owner → Display: MSG39
+- Agency does not exist → Display: MSG38
 - Restore called on an Agency that was never removed → `400 AGENCY_NOT_DELETED`.
 - Restore attempted more than 30 days after the removal → `410 RESTORE_WINDOW_EXPIRED`.
 
@@ -44,19 +44,19 @@ Figure — Remove Agency dialog:
 3. The Owner confirms.
 4. The system loads the Agency and confirms the caller is its Owner.
 5. The system marks the Agency SOFT_DELETED with the current time.
-6. The system marks every Workspace belonging to the Agency SOFT_DELETED with the same removal time.
+6. The system marks every Workspace belonging to the Agency SOFT_DELETED with the same removal time; toast MSG93.
 7. The client shows a confirmation and takes the user back to the Agency list.
 8. Within 30 days, the Owner selects Restore on that Agency.
 9. The system loads the Agency and confirms the caller is its Owner, that the Agency is SOFT_DELETED, and that the removal happened less than 30 days ago.
 10. The system marks the Agency ACTIVE with the removal timestamp cleared, and does the same for the Workspaces removed in that same batch.
 
 ### Abnormal Cases
-- Agency does not exist → `404 AGENCY_NOT_FOUND`.
-- Caller is not the Agency Owner → `403 NOT_AGENCY_OWNER`, nothing changes.
-- Restore called on an Agency that was never removed → `400 AGENCY_NOT_DELETED`.
-- Restore attempted after the 30-day window → `410 RESTORE_WINDOW_EXPIRED`.
-- The Owner removed the Agency by mistake and restores it within 30 days → the Workspaces removed in that same batch become ACTIVE again.
-- A Workspace had already been removed on its own beforehand (3.4.15) → it is not brought back when the Agency is restored, because its removal timestamp differs from the removal batch.
+- 4.a1: Agency does not exist → `404 AGENCY_NOT_FOUND`, toast MSG38. 4.a2: The Owner returns to the Agency list.
+- 4.b1: Caller is not the Agency Owner → `403 NOT_AGENCY_OWNER`, toast MSG39; nothing changes. 4.b2: The caller returns to the Agency list.
+- 9.a1: Restore called on an Agency that was never removed → `400 AGENCY_NOT_DELETED`, toast MSG38 (closest fit — no dedicated MSG code for this case). 9.a2: The Owner reloads the Agency list, which shows it as already active.
+- 9.b1: Restore attempted after the 30-day window → `410 RESTORE_WINDOW_EXPIRED`, toast MSG38 (closest fit — no dedicated MSG code for this case). 9.b2: The Owner accepts the Agency stays removed, or creates a new one.
+- 10.a1: The Owner removed the Agency by mistake and restores it within 30 days → the Workspaces removed in that same batch become ACTIVE again; no error. 10.a2: The Owner continues working in the restored Agency and its Workspaces.
+- 10.b1: A Workspace had already been removed on its own beforehand (3.4.15) → it is not brought back when the Agency is restored, because its removal timestamp differs from the removal batch; no error. 10.b2: The Owner restores that Workspace separately if still within its own window.
 
 ## Post-Conditions
 - After removal: the Agency and its Workspaces carry the SOFT_DELETED status and the same removal timestamp. Nothing is erased.

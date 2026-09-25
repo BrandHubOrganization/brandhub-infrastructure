@@ -35,26 +35,29 @@ Figure — Add Workspace Member Screen:
 - **Input required:** The Workspace identifier; the caller's authenticated identity. For an invitation: email and role. For an assignment: at least one entry of `{userId, role}`.
 - **Input optional:** note (invitation only).
 - **System data:** The caller's role in the Workspace; the count of active MANAGERs in the Workspace; whether the email already has an active membership or a pending invitation; the Agency membership of each assigned user.
-- **Output:** For an invitation, an acknowledgement with no content returned. For an assignment, the members added — id, workspaceId, userId, fullName, email, clientProfileId, role, joinedAt, isActive — together with `skippedUserIds`, the identifiers skipped because those users were already active members.
+- **Output:** For an invitation, an acknowledgement with no content returned. For an assignment, the members added — id, workspaceId, userId, fullName, email, clientProfileId, role, joinedAt, isActive — together with `skippedUserIds`, the identifiers skipped because those users were already active members. `role` is one of MANAGER, CREATOR, CLIENT.
 
 ### Business Rules
 
-- **BR-01:** Only the MANAGER of the Workspace may add members; any other caller → 403 `FORBIDDEN`.
+- **BR-27:** Invite path — only OWNER/MANAGER may invite; an already-active member cannot be re-invited (→ 409 `ALREADY_IN_WORKSPACE`, guard checked first); a second invite is blocked while a pending unexpired invitation exists for the same email (→ 409 `INVITATION_ALREADY_PENDING`, guard checked second); the invitation token is a random UUID with an expiry window.
+- **BR-35:** `@RequireRoleAspect` re-reads the caller's role from the DB at request time; `SystemRole.ADMIN` bypasses the check. The role check (MANAGER required) runs before any service-level guard.
 - **BR-02:** The invitation path does not create a membership immediately — it records a pending invitation that the invitee must accept before becoming a member.
-- **BR-03:** An invitation for an email that already has an active membership in the Workspace → 409 `ALREADY_IN_WORKSPACE`.
-- **BR-04:** An invitation for an email that already has a pending, unexpired invitation in the Workspace → 409 `INVITATION_ALREADY_PENDING`.
-- **BR-05:** Requesting the MANAGER role while the Workspace already has an active MANAGER → 409 `MANAGER_ALREADY_ASSIGNED`, on both the invitation and the assignment path; a Workspace has exactly one active MANAGER at any time.
+- **BR-05 (duplicate-MANAGER guard, checked third):** Requesting the MANAGER role while the Workspace already has an active MANAGER → 409 `MANAGER_ALREADY_ASSIGNED`, on both the invitation and the assignment path; a Workspace has exactly one active MANAGER at any time.
 - **BR-06:** The assignment path creates active memberships immediately and needs no acceptance step.
 - **BR-07:** An assignment entry whose user already has an active membership in the Workspace is skipped without error and its identifier is reported in `skippedUserIds`; the remaining entries in the batch are still processed.
 - **BR-08:** An assignment entry whose user is not a member of the Agency → 403 `NOT_AGENCY_MEMBER`.
 - **BR-09:** An assignment entry whose user record does not exist → `USER_NOT_FOUND`.
-- **BR-10:** Invited or assigned roles must be one of MANAGER, CREATOR, CLIENT.
+- **BR-31:** Code `MemberRole` enum has three workspace roles — MANAGER, CREATOR, CLIENT; there is no Workspace-level OWNER (OWNER exists only at Agency level, `AgencyMemberRole`). ⚠ BA conflict (needs team decision): `Section5_Requirement_Appendix.md` BR-31 still lists "OWNER, MANAGER, CREATOR, CLIENT" as the four workspace roles — that wording is stale against the current code, which moved OWNER to the Agency level and left `MemberRole` with only MANAGER/CREATOR/CLIENT (see `MemberRole.java` comment: "OWNER đã chuyển lên cấp Agency"). Invited or assigned roles must be one of MANAGER, CREATOR, CLIENT.
+- **BR-32:** Role assignment happens at invite time; the role is stored on the invitation and carried to the member row on acceptance.
 - **BR-11:** Roles are independent per Workspace — the same user may hold a different role in another Workspace of the same Agency.
 
 ### Validation
 
-- Caller must be the MANAGER of that Workspace; otherwise 403 `FORBIDDEN`.
-- Invitation: `email` must be present and well formed; `role` must be present; otherwise 400 `VALIDATION_ERROR`.
+- Caller must be the MANAGER of that Workspace; otherwise 403 `FORBIDDEN` (BR-35). Display: MSG39.
+- email empty → Display: MSG02.
+- role empty → Display: MSG02.
+- Invitation: `email` must be a well-formed email address; otherwise Display: MSG04.
+- Invitation: `role` must be one of MANAGER, CREATOR, CLIENT (BR-31, BR-82); otherwise Display: MSG95.
 - Assignment: the member list must contain at least one entry; otherwise 400 `VALIDATION_ERROR`.
 - Assignment: every `userId` must belong to an Agency member; otherwise 403 `NOT_AGENCY_MEMBER`.
 
@@ -64,23 +67,23 @@ Figure — Add Workspace Member Screen:
 
 1. MANAGER opens the members screen and chooses "Add Member".
 2. On the invite path, the MANAGER enters an email, a role, and an optional note; on the assign path, the MANAGER picks one or more existing Agency members and a role for each.
-3. System confirms the caller holds the MANAGER role in the Workspace; otherwise the request fails with 403 `FORBIDDEN`.
-4. Invite path: system normalises the email, checks for an existing active membership and for a pending invitation, and applies the single-MANAGER rule when the role is MANAGER.
-5. Invite path: system records a pending invitation with an expiry and sends the invitation email; the invitation is confirmed to the MANAGER.
+3. System confirms the caller holds the MANAGER role in the Workspace (BR-35); otherwise the request fails with 403 `FORBIDDEN`.
+4. Invite path: system normalises the email, checks for an existing active membership and for a pending invitation, and applies the single-MANAGER rule when the role is MANAGER (BR-27, BR-05).
+5. Invite path: system records a pending invitation with an expiry and sends the invitation email (BR-27, BR-02); toast MSG33.
 6. Assign path: system validates each entry against Agency membership, skips users who are already active members, applies the single-MANAGER rule, and creates active memberships immediately.
 7. Assign path: system returns the members added together with the identifiers of the users skipped.
 8. Screen refreshes the member list with the members added and can show a notice for the skipped users.
 
 ### Abnormal Cases
 
-- Caller is not the MANAGER of the Workspace → 403 `FORBIDDEN`.
-- Invitation for an email that is already an active member → 409 `ALREADY_IN_WORKSPACE`.
-- Invitation for an email that already has a pending invitation → 409 `INVITATION_ALREADY_PENDING`.
-- MANAGER role requested while the Workspace already has an active MANAGER → 409 `MANAGER_ALREADY_ASSIGNED`.
+- 3.a1: Caller is not the MANAGER of the Workspace (BR-35) → 403 `FORBIDDEN`, toast MSG39. 3.a2: The screen blocks the action; the caller cannot add members without the MANAGER role.
+- 4.a1: Invitation for an email that already has an active membership (BR-27) → 409 `ALREADY_IN_WORKSPACE`, toast MSG34. 4.a2: The MANAGER checks the existing member list instead of re-inviting.
+- 4.b1: Invitation for an email that already has a pending, unexpired invitation (BR-27) → 409 `INVITATION_ALREADY_PENDING`, toast MSG35. 4.b2: The MANAGER waits for the pending invitation to be accepted or to expire before retrying.
+- 4.c1: MANAGER role requested while the Workspace already has an active MANAGER (BR-05) → 409 `MANAGER_ALREADY_ASSIGNED`, Display: MSG95 (generic role-rejection message; no dedicated MSG code exists for this conflict — see report). 4.c2: The MANAGER picks CREATOR or CLIENT instead, or hands over the MANAGER role first.
 - Assignment entry whose user is outside the Agency → 403 `NOT_AGENCY_MEMBER`.
 - Assignment entry whose user does not exist → `USER_NOT_FOUND`.
 - Assignment where some users are already active members → those identifiers appear in `skippedUserIds`, no entry for them appears in the added list, no error is raised, and the rest of the batch is processed.
-- Invitation, email missing or malformed, or role missing → 400 `VALIDATION_ERROR`.
+- Invitation, email missing → Display: MSG02. Role missing → Display: MSG02. Email malformed → Display: MSG04.
 - Assignment with an empty member list → 400 `VALIDATION_ERROR`.
 - Invitation of a person who has an account in the system but has never joined this Agency → the invitation is still sent, because the invite path does not require Agency membership.
 - Assignment of a user who holds a different role in another Workspace of the same Agency → valid, since roles are independent per Workspace.
