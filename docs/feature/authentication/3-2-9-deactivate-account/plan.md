@@ -12,12 +12,13 @@ Spec để mở: "User OAuth-only (không có password) muốn deactivate thì s
 
 - `DeactivateRequest(password, otpCode)` — cả 2 field optional, không validation annotation.
 - `POST /api/v1/auth/deactivate/send-otp` (Bearer, không body) — sinh OTP 6 số, lưu Redis `otp:deactivate:{userId}` TTL 10 phút, gửi email qua `mailService.sendOtpEmail`.
-- `POST /api/v1/auth/deactivate { password?, otpCode? }` (Bearer):
+- `POST /api/v1/auth/deactivate { password?, otpCode? }` (Bearer + `refreshToken` cookie):
   - `user.passwordHash != null` → verify `password` (bcrypt) → sai → 400 `WRONG_CURRENT_PASSWORD`.
   - `user.passwordHash == null` → verify `otpCode` với Redis key → sai/thiếu/hết hạn → 400 `OTP_INVALID` → đúng thì xóa key.
 - `agencyRepository.findByOwnerId(userId)` → có Agency `EntityStatus.ACTIVE`? → 409 `AGENCY_OWNERSHIP_ACTIVE`.
 - Không có → `setStatus(UserStatus.DEACTIVATED)` (soft delete), KHÔNG xóa cứng.
-- Sau deactivate, login → `checkStatus` → 403 `ACCOUNT_DEACTIVATED`.
+- **MỚI**: Sau khi save status, blacklist accessToken + refreshToken (nếu có) qua `jwtUtil.blacklistToken()` — best-effort, bắt `JwtException` bỏ qua nếu token thiếu/hỏng. Cắt session ngay lập tức, không đợi refresh lần sau.
+- Sau deactivate, login/refresh → `checkStatus` → 403 `ACCOUNT_DEACTIVATED` (backup, đã có blacklist nên không còn là cơ chế cắt session duy nhất).
 
 ## Luồng
 
@@ -25,14 +26,14 @@ Spec để mở: "User OAuth-only (không có password) muốn deactivate thì s
 1. Auth → userId.
 2. Verify password → sai → 400.
 3. Check Agency active (owner) → có → 409.
-4. `status=DEACTIVATED` → 200.
+4. `status=DEACTIVATED` → blacklist accessToken + refreshToken → 200.
 
 **Flow B (OAuth-only):**
 1. Auth → userId → gọi `send-otp` → sinh OTP, lưu Redis, gửi email → 200.
 2. Client gọi `deactivate { otpCode }` → auth → userId.
 3. Verify OTP với Redis → sai/thiếu/hết hạn → 400 → đúng thì xóa key.
 4. Check Agency active (owner) → có → 409.
-5. `status=DEACTIVATED` → 200.
+5. `status=DEACTIVATED` → blacklist accessToken + refreshToken → 200.
 
 ## Data Model
 

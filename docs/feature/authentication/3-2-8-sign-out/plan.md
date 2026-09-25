@@ -8,6 +8,7 @@ Chốt: **FE local storage** (xác nhận với Trung). Không cần thay đổi
 
 ## Kỹ thuật
 
+- **[MỚI 2026-09-25]** FE (`authService.ts`) giờ đã có `logout()` gọi endpoint này — trước đây `Navbar.handleLogout` chỉ `clearAuth()` local, không gọi API. Giờ gọi fire-and-forget (`.catch(() => {})`), không chờ response, vẫn `clearAuth()` + redirect ngay.
 - `POST /api/v1/auth/logout` (Bearer + refresh cookie) → blacklist access token (Redis `jwt:blacklist:{jti}`) + revoke refresh token → clear cookie → ghi audit log → 200.
 - **Idempotent**: token đã hết hạn/không hợp lệ → vẫn 200 (không báo lỗi).
 - Chỉ revoke refresh token của thiết bị hiện tại (không ảnh hưởng thiết bị khác).

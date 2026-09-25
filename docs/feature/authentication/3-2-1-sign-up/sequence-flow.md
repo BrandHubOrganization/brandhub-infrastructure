@@ -1,36 +1,61 @@
-# Sequence Flow — Sign Up (Email)
+# Sequence Flow — Sign Up (Email + OTP Verification)
 
 > Companion to `spec.md` (3.2.1). Lists each actor → action → system step in enough detail to draw the sequence diagram directly; the business description lives in `spec.md`.
 
 ## Actors
 
-- **Guest** — unauthenticated visitor creating a new account.
-- **Client** — the application the user interacts with.
-- **System** — the application server.
-- **Database** — persistent store holding accounts and their role assignments.
-- **Mail** — outbound email used to deliver the verification code.
+- **User/Browser** — unauthenticated Guest and the SPA (RegisterPage / VerifyOtpPage).
+- **AuthController** — `POST /api/v1/auth/register`, `/verify-otp`, `/resend-otp`.
+- **AuthServiceImpl** — `register()`, `verifyOtp()`, `resendOtp()`, `generateOtp()`.
+- **UserRepository** — persistence for the `User` entity (email unique constraint).
+- **MailService** — `sendOtpEmail(email, otp)`.
+- **Redis** — attempt counter (`otp:attempt:<email>`, TTL 10 min) and resend cooldown (`otp:resend:<email>`, TTL 60s).
 
 ---
 
-## Flow A — Successful registration
+## Flow A — Register
 
-1. Guest → Client: opens /register and fills in the email address, password, confirm password and full name.
-2. Client → System: submits the registration with the email address, password and full name.
-3. System:
-   a. Normalizes the email address to lower case and trims it.
-   b. Generates a six-digit one-time code valid for 10 minutes.
-   c. Creates the account with the hashed password and the pending code; a duplicate email address violates the uniqueness constraint and is translated into 409 EMAIL_ALREADY_EXISTS.
-   d. Assigns the default role USER.
-4. System → Mail (synchronous, inside the same transaction): sends the code to the registered email address.
-5. System → Client: 201, returning the identifier of the new account.
-6. Client: renders the OTP Verification screen (3.2.6) and carries the email address forward.
-7. Continues in OTP Verification (3.2.6): a correct code marks the email address as verified. The registration does not sign the user in; the user signs in separately afterwards.
+1. User/Browser → AuthController: `POST /register` `{email, password, fullName}`.
+2. AuthController → AuthServiceImpl: `register(request)`.
+3. AuthServiceImpl: generates OTP (`generateOtp()`, 6-digit numeric 100000–999999) and `otpExpiry = now + 10min`.
+4. AuthServiceImpl → UserRepository: `saveAndFlush(User{email=lower+trim, passwordHash=BCrypt(password), fullName=trim, otpCode, otpExpiry})`.
+   - alt: duplicate email → `DataIntegrityViolationException` → AuthServiceImpl throws `BusinessException(EMAIL_ALREADY_EXISTS)` → AuthController → User/Browser: 409.
+5. AuthServiceImpl → UserSystemRoleRepository: `save(UserSystemRole{userId, systemRole=USER})`.
+6. AuthServiceImpl → MailService: `sendOtpEmail(email, otp)` (synchronous, same transaction).
+7. AuthServiceImpl → AuthController: `RegisterResponse{userId}`.
+8. AuthController → User/Browser: 201 CREATED, `RegisterResponse{userId}`.
+9. User/Browser: toasts MSG10, navigates to OTP Verification screen with `email` in the query string.
 
-## Flow B — Registration repeated with a different letter case while the earlier address is still unverified
+## Flow B — Verify OTP
 
-1–2. Same as Flow A.
-3. System: normalizes the email address, the duplicate violates the uniqueness constraint and is translated into 409 EMAIL_ALREADY_EXISTS.
-   - No branch re-sends a code to the existing account; only the duplicate error is returned. A new code must be requested through the resend action (3.2.6).
+1. User/Browser → AuthController: `POST /verify-otp` `{email, otpCode}`.
+2. AuthController → AuthServiceImpl: `verifyOtp(email, otpCode)`.
+3. AuthServiceImpl → UserRepository: `findByEmail(normalizedEmail)`.
+   - alt: not found → throws `BusinessException(USER_NOT_FOUND)` → 404.
+4. alt: `user.emailVerifiedAt != null` → return immediately (idempotent, 200 no-op).
+5. alt: `otpExpiry == null` or `otpCode == null` or `now.isAfter(otpExpiry)` → throws `BusinessException(OTP_INVALID)` → 400.
+6. alt: `otpCode` mismatch:
+   a. AuthServiceImpl → Redis: `INCR otp:attempt:<email>` (sets TTL 10 min on first increment).
+   b. If attempts >= 5: clears `user.otpCode`/`otpExpiry`, saves, `DEL otp:attempt:<email>`, throws `BusinessException(OTP_TOO_MANY_ATTEMPTS)` → 400.
+   c. Else: throws `BusinessException(OTP_INVALID)` → 400.
+7. Else (match): AuthServiceImpl → Redis: `DEL otp:attempt:<email>`; clears `otpCode`/`otpExpiry`; sets `emailVerifiedAt = now`; UserRepository.save(user).
+8. AuthController → User/Browser: 200, `ApiResponse<Void>`.
+9. User/Browser: toasts success, navigates to `/login`. No token is issued by this flow.
+
+## Flow C — Resend OTP
+
+1. User/Browser → AuthController: `POST /resend-otp` `{email}`.
+2. AuthController → AuthServiceImpl: `resendOtp(email)`.
+3. AuthServiceImpl → Redis: `GET otp:resend:<email>`.
+   - alt: key present → throws `BusinessException(RATE_LIMIT_EXCEEDED)` → 429.
+4. AuthServiceImpl → UserRepository: `findByEmail(normalizedEmail)`.
+   - alt: not found → throws `BusinessException(USER_NOT_FOUND)` → 404.
+5. alt: `user.emailVerifiedAt != null` → return immediately (idempotent, 200 no-op, no email sent).
+6. AuthServiceImpl: generates a new OTP + `otpExpiry = now + 10min`; UserRepository.save(user).
+7. AuthServiceImpl → Redis: `SETEX otp:resend:<email> 60 "1"`; `DEL otp:attempt:<email>`.
+8. AuthServiceImpl → MailService: `sendOtpEmail(email, newOtp)`.
+9. AuthController → User/Browser: 200, `ApiResponse<Void>`.
+10. User/Browser: toasts MSG21, starts a 60-second cooldown on the Resend link.
 
 ---
 
@@ -38,12 +63,17 @@
 
 | Step | Failure condition | HTTP | Error code |
 |---|---|---|---|
-| Register | The email address already exists, including a different letter case | 409 | `EMAIL_ALREADY_EXISTS` |
-| Register | The email address or the password fails validation | 400 | `VALIDATION_ERROR` |
-| Verify OTP (3.2.6) | The code is wrong or expired | 400 | `OTP_INVALID` |
-| Verify OTP (3.2.6) | Five wrong codes in a row | 400 | `OTP_TOO_MANY_ATTEMPTS` |
+| Register | Duplicate email (case-insensitive) | 409 | `EMAIL_ALREADY_EXISTS` |
+| Register | email/password/fullName fails validation | 400 | `VALIDATION_ERROR` |
+| Verify OTP | Email has no account | 404 | `USER_NOT_FOUND` |
+| Verify OTP | Code null/expired or now after expiry | 400 | `OTP_INVALID` |
+| Verify OTP | Code mismatch (attempts < 5) | 400 | `OTP_INVALID` |
+| Verify OTP | Code mismatch on 5th attempt | 400 | `OTP_TOO_MANY_ATTEMPTS` |
+| Resend OTP | Called within 60s of previous resend | 429 | `RATE_LIMIT_EXCEEDED` |
+| Resend OTP | Email has no account | 404 | `USER_NOT_FOUND` |
 
 ## Notes
 
-- The verification email is sent synchronously inside the registration transaction rather than in the background, so a mail failure rolls the registration back.
-- The account exists from registration onwards, before the email address is verified.
+- The verification email is sent synchronously inside the `register`/`resendOtp` transaction, so a mail failure rolls back the OTP generation.
+- `verifyOtp` and `resendOtp` are both idempotent no-ops (200, no side effect) once `emailVerifiedAt` is set.
+- No JWT/session is issued anywhere in this FR; sign-in happens afterwards via the separate Login FR.

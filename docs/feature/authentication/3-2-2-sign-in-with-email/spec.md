@@ -1,5 +1,15 @@
 # 3.2.2 Sign In With Email
 
+| | |
+|---|---|
+| FR Code | 3.2.2 |
+| Feature | Sign In with Email/Phone + Password |
+| Domain | Authentication (FR 3.2) |
+| Role | GUEST holding an existing account |
+| Routes | `POST /api/v1/auth/login`, `POST /api/v1/auth/refresh` |
+| Related FRs | 3.2.3 Google Sign-In, 3.2.4 Reset Password, 3.2.7 Two-Factor Verify, 3.2.8 Logout (separate FR, not covered here) |
+| Document status | Implemented |
+
 ## Function Trigger
 Begins when a Guest with an existing account visits /login and submits an identifier, either an email address or a phone number, together with a password.
 
@@ -10,11 +20,15 @@ Begins when a Guest with an existing account visits /login and submits an identi
 - **Data Processing:** The system resolves the identifier, checks the account status, compares the password against the stored hash, records the sign-in, resolves the active workspace and issues an access token together with a rotating refresh token; when two-factor authentication is enabled it issues a challenge token instead of the tokens.
 
 ## Screen Layout
-Figure — Sign-in Screen (/login):
-- Center: identifier input (email address or phone number), password input.
-- Links: "Forgot password" leading to Reset Password (3.2.4), and the Google sign-in entry point (3.2.3).
-- On success the screen stores the access token, loads the profile and navigates to the Dashboard / Agency list.
-- When two-factor authentication is enabled the screen moves to the two-factor code screen (3.2.7) instead.
+Figure — Sign-in Screen (`LoginPage.tsx`, route `/login`):
+- Split layout: brand panel on the left (`AuthBrandPanel`), form on the right, with a mobile header shown on small screens.
+- A "Sign in / Sign up" tab pair above the form; "Sign up" navigates to `/register`.
+- Identifier input labelled "Email" with placeholder `hello@company.com / 0912 345 678` (single field, accepts either email or phone), and a password input (`PasswordInput`, masked with reveal toggle) with a "Forgot password" link next to its label leading to `/forgot-password` (Reset Password, 3.2.4).
+- Submit button "Sign in" (loading state while the request is in flight).
+- Divider "Or continue with", then a Google sign-in icon button linking to the OAuth entry point (3.2.3) via `oauthUrl("google")`.
+- Terms of Service / Privacy Policy notice below the form; a `DevQuickLogin` helper is shown (dev/test builds only).
+- On success: the client stores the access token, calls `GET /api/v1/users/me` to load the real profile, then navigates to the page the user was redirected from (or the Dashboard / Agency list) and shows toast MSG11.
+- When two-factor authentication is required: the client stores the `twoFactorToken` in `sessionStorage` and navigates to `/2fa-verify` (3.2.7) without storing any access token.
 
 ## Function Details
 ### Data Specifications
@@ -55,3 +69,11 @@ Figure — Sign-in Screen (/login):
 - The sign-in is recorded and the last sign-in time is updated.
 - An access token and a refresh token cookie are issued when two-factor authentication is disabled.
 - A two-factor challenge token, and no tokens, is issued when two-factor authentication is enabled.
+
+## Out of Scope
+- Verifying the two-factor code and completing sign-in after the challenge — see FR 3.2.7 Two-Factor Verify.
+- Ending a session / clearing the refresh cookie — see FR 3.2.8 Logout.
+- Google OAuth sign-in — see FR 3.2.3.
+
+## References
+[AuthController.java](../../../../../brandhub-business-service/src/main/java/com/brandhub/business/controller/AuthController.java), [AuthServiceImpl.java](../../../../../brandhub-business-service/src/main/java/com/brandhub/business/service/impl/AuthServiceImpl.java), Section5_Requirement_Appendix.md (BR-05, BR-06, BR-07, BR-08, BR-12; MSG02, MSG04, MSG07, MSG09, MSG11, MSG22)

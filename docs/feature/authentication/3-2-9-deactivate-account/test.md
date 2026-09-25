@@ -11,6 +11,7 @@
 | TC-05 | Dữ liệu liên quan còn trong DB | AC "giữ dữ liệu" | User/Agency/Workspace record vẫn tồn tại | Chưa test |
 | TC-06 | Agency chỉ còn SOFT_DELETED/INACTIVE | Edge "không còn agency active" | 200, cho deactivate | Chưa test |
 | TC-07 | Deactivate lại user đã deactivated | Edge "idempotent" | 400 `WRONG_CURRENT_PASSWORD` (re-match password) | Chưa test |
+| TC-07b | **MỚI**: Deactivate thành công → accessToken + refreshToken bị blacklist | AC "blacklist token" (BR-22) | Cả 2 token gọi lại API/refresh đều bị từ chối ngay lập tức (không cần đợi expire/refresh lần sau) | Chưa test |
 
 ## Flow B — User OAuth-only (OTP) — MỚI
 
