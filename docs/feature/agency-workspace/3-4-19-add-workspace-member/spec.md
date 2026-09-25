@@ -35,7 +35,7 @@ Figure — Add Workspace Member Screen:
 - **Input required:** The Workspace identifier; the caller's authenticated identity. For an invitation: email and role. For an assignment: at least one entry of `{userId, role}`.
 - **Input optional:** note (invitation only).
 - **System data:** The caller's role in the Workspace; the count of active MANAGERs in the Workspace; whether the email already has an active membership or a pending invitation; the Agency membership of each assigned user.
-- **Output:** For an invitation, an acknowledgement with no content returned. For an assignment, the members added — id, workspaceId, userId, fullName, email, clientProfileId, role, joinedAt, isActive — together with `skippedUserIds`, the identifiers skipped because those users were already active members.
+- **Output:** For an invitation, an acknowledgement with no content returned. For an assignment, the members added — id, workspaceId, userId, fullName, email, clientProfileId, role, joinedAt, isActive — together with `skippedUserIds`, the identifiers skipped because those users were already active members. `role` is one of MANAGER, CREATOR, CLIENT.
 
 ### Business Rules
 
@@ -47,7 +47,7 @@ Figure — Add Workspace Member Screen:
 - **BR-07:** An assignment entry whose user already has an active membership in the Workspace is skipped without error and its identifier is reported in `skippedUserIds`; the remaining entries in the batch are still processed.
 - **BR-08:** An assignment entry whose user is not a member of the Agency → 403 `NOT_AGENCY_MEMBER`.
 - **BR-09:** An assignment entry whose user record does not exist → `USER_NOT_FOUND`.
-- **BR-31:** Four workspace roles exist: OWNER, MANAGER, CREATOR, CLIENT (code: `MemberRole` enum). Invited or assigned roles must be one of these.
+- **BR-31:** Code `MemberRole` enum has three workspace roles — MANAGER, CREATOR, CLIENT; there is no Workspace-level OWNER (OWNER exists only at Agency level, `AgencyMemberRole`). ⚠ BA conflict (needs team decision): `Section5_Requirement_Appendix.md` BR-31 still lists "OWNER, MANAGER, CREATOR, CLIENT" as the four workspace roles — that wording is stale against the current code, which moved OWNER to the Agency level and left `MemberRole` with only MANAGER/CREATOR/CLIENT (see `MemberRole.java` comment: "OWNER đã chuyển lên cấp Agency"). Invited or assigned roles must be one of MANAGER, CREATOR, CLIENT.
 - **BR-32:** Role assignment happens at invite time; the role is stored on the invitation and carried to the member row on acceptance.
 - **BR-11:** Roles are independent per Workspace — the same user may hold a different role in another Workspace of the same Agency.
 

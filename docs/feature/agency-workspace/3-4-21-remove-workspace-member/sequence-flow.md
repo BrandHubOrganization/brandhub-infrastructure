@@ -19,7 +19,7 @@
 3. System → Database: look up the member; a member that does not exist, is not active, or belongs to another Workspace is rejected with 404 `NOT_FOUND`.
 4. System: apply the last-MANAGER guard:
    - When the member's role is not MANAGER, continue.
-   - When the member's role is MANAGER, count the Workspace's active MANAGERs; a count of one or fewer is rejected with 409 `LAST_OWNER_CANNOT_BE_REMOVED`.
+   - When the member's role is MANAGER, count the Workspace's active MANAGERs; a count of one or fewer is rejected with 409 `LAST_MANAGER_CANNOT_BE_REMOVED`.
 5. System: mark the membership inactive and record the update timestamp.
 6. System → Database: write the deactivated membership.
 7. System → Client: confirmation that the membership has been deactivated.
@@ -33,10 +33,10 @@
 |---|---|---|---|
 | Remove | Caller is not the MANAGER of the Workspace | 403 | `FORBIDDEN` |
 | Remove | Member does not exist, is not active, or belongs to another Workspace | 404 | `NOT_FOUND` |
-| Remove | Member is the only active MANAGER of the Workspace | 409 | `LAST_OWNER_CANNOT_BE_REMOVED` |
+| Remove | Member is the only active MANAGER of the Workspace | 409 | `LAST_MANAGER_CANNOT_BE_REMOVED` |
 
 ## Notes
 
-- The last-MANAGER guard is shared with FR 3.4.16 Leave Workspace and FR 3.4.20 Update Workspace Member Role, and the error code is named after the owner concept while being applied to the Workspace-level MANAGER context.
+- The last-MANAGER guard (`assertNotLastManager` in `WorkspaceServiceImpl`) is shared with FR 3.4.16 Leave Workspace (`leaveWorkspace`) and FR 3.4.20 Update Workspace Member Role (`updateMemberRole`). `ErrorCode.java` also defines an unused `LAST_OWNER_CANNOT_BE_REMOVED` (409) that no code path throws.
 - Removal is a soft delete; the membership row is retained with an inactive flag.
 - The member's Agency membership is never touched.

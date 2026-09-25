@@ -5,13 +5,15 @@
 | FR Code | 3.4.12 |
 | Feature | Create Workspace |
 | Domain | Agency & Workspace (FR 3.4) |
-| Role | Agency member (any) — creates a Workspace inside their own Agency |
-| Version | 2.2 — 2026-09-23 — rewritten to the standard FR format |
+| Role | Agency Owner only — creates a Workspace inside their own Agency |
+| Version | 2.3 — 2026-09-24 — fixed BA conflict: only the Agency Owner may create a Workspace |
 | Document status | Implemented |
 
 ## Function Trigger
 
-Begins when an Agency member submits the Create Workspace form with a Workspace name and the target Agency.
+Begins when the Agency Owner submits the Create Workspace form with a Workspace name and the target Agency.
+
+**Fixed 2026-09-24:** an earlier version of this spec/code allowed any active Agency member to create a Workspace (the `NOT_AGENCY_OWNER` guard only checked membership, not role — a real gap against BA, which restricts this to the Agency Owner). Now corrected in `WorkspaceServiceImpl.createWorkspace` to require `AgencyMemberRole.OWNER`.
 
 ## Function Description
 
@@ -45,7 +47,7 @@ Figure — Create Workspace Screen:
 - The Workspace row and the creator's membership row are created in a single transaction; the `assignMembers` entries are applied immediately afterwards.
 - `name` empty or `agencyId` missing → 400 `VALIDATION_ERROR`.
 - More than one MANAGER entry in `assignMembers` besides the creator → 409 `MANAGER_ALREADY_ASSIGNED`.
-- **BR-29:** Multi-tenancy — the caller must be an active member of the target Agency (its parent scope) — otherwise 403 `NOT_AGENCY_OWNER`. This is the first guard clause in `createWorkspace`, checked before the Workspace row is built.
+- **BR-29:** Multi-tenancy — the caller must be an active member of the target Agency (its parent scope). On top of that, the caller must specifically hold the OWNER role in that Agency — otherwise 403 `NOT_AGENCY_OWNER`. Both checks are the first guard clause in `createWorkspace`, checked before the Workspace row is built.
 - An `assignMembers` entry whose user is not a member of that Agency → 403 `NOT_AGENCY_MEMBER`.
 - An `assignMembers` entry whose user record does not exist → `USER_NOT_FOUND`.
 - An `assignMembers` entry whose user already has an active membership in the new Workspace is skipped without error (idempotent).
@@ -73,7 +75,7 @@ Figure — Create Workspace Screen:
 
 - 1.a1: `name` empty → Display: MSG02. 1.a2: The user corrects the field and resubmits.
 - 1.b1: `agencyId` missing → 400 `VALIDATION_ERROR`. 1.b2: The user selects an Agency and resubmits.
-- 2.a1: Caller is not an active member of the target Agency (BR-29) → 403 `NOT_AGENCY_OWNER`, toast MSG39. 2.a2: The user is returned to the Agency list; the Workspace is not created.
+- 2.a1: Caller is not an active member of the target Agency, or is a member but not its OWNER (BR-29) → 403 `NOT_AGENCY_OWNER`, toast MSG39. 2.a2: The user is returned to the Agency list; the Workspace is not created.
 - 5.a1: An `assignMembers` entry references a user outside the Agency → 403 `NOT_AGENCY_MEMBER`, toast MSG39. 5.a2: The user removes or corrects that entry and resubmits.
 - 5.b1: An `assignMembers` entry references a user that does not exist → `USER_NOT_FOUND`, toast MSG38. 5.b2: The user removes or corrects that entry and resubmits.
 - 5.c1: Two entries request MANAGER besides the creator (BR-05) → 409 `MANAGER_ALREADY_ASSIGNED`, toast MSG39. 5.c2: The user reduces the assignment to a single MANAGER and resubmits.

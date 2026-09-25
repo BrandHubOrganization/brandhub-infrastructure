@@ -5,7 +5,7 @@
 ## Backend — `brandhub-business-service`
 
 - [x] Implement `WorkspaceServiceImpl.updateMemberRole(UUID workspaceId, UUID memberId, MemberRole newRole)` — tìm member, filter workspaceId + isActive, set role, save
-- [x] Guard giảm quyền: `member.role == MANAGER && newRole != MANAGER` → `assertNotLastManager` → 409 `LAST_OWNER_CANNOT_BE_REMOVED`
+- [x] Guard giảm quyền: `member.role == MANAGER && newRole != MANAGER` → `assertNotLastManager` → 409 `LAST_MANAGER_CANNOT_BE_REMOVED`
 - [x] Guard thăng quyền: `newRole == MANAGER && member.role != MANAGER` → đếm active MANAGER >0 → 409 `MANAGER_ALREADY_ASSIGNED`
 - [x] `@RequireRole({MemberRole.MANAGER})` trên endpoint
 - [x] 404 `NOT_FOUND` khi memberId không tồn tại/không active/không thuộc workspace

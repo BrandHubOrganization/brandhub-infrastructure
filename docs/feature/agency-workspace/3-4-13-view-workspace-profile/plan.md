@@ -28,9 +28,10 @@ Không lệch spec.md.
 
 ## 4. Luồng xử lý
 
-1. `findWorkspaceOrThrow(workspaceId)` → 404 `WORKSPACE_NOT_FOUND`.
-2. `assertMember(workspaceId, currentUser.id)` — check thủ công trong service, không dùng `@RequireRole` (aspect không resolve đúng workspace theo path variable) → 403 `WORKSPACE_ACCESS_DENIED`.
-3. `toResponse(workspace)` — parse `settings`, fallback an toàn nếu JSON lỗi.
+1. `@RequireRole({MANAGER, CREATOR, CLIENT})` ở tầng controller — chặn caller không có bất kỳ role nào trong 3 role trên → 403 `FORBIDDEN`.
+2. `findWorkspaceOrThrow(workspaceId)` → 404 `WORKSPACE_NOT_FOUND`.
+3. `assertMember(workspaceId, currentUser.id)` — check thủ công trong service (bổ sung, vì `@RequireRole` chỉ check role tồn tại, không resolve đúng theo `{workspaceId}` path variable) → 403 `WORKSPACE_ACCESS_DENIED`.
+4. `toResponse(workspace)` — parse `settings`, fallback an toàn nếu JSON lỗi.
 
 ## 5. Dependencies
 
@@ -41,6 +42,6 @@ Không lệch spec.md.
 
 ## 6. Rủi ro kỹ thuật
 
-- **Check quyền thủ công thay vì `@RequireRole`:** vì aspect không resolve đúng workspace theo path variable ở route này — nếu sau này có refactor aspect để support path-based resolve, cần đồng bộ lại cách check ở đây tránh duplicate logic.
+- **Double-check quyền (`@RequireRole` + `assertMember` thủ công):** `@RequireRole` chỉ xác nhận caller có role đó ở đâu đó, không resolve đúng theo `{workspaceId}` path variable, nên service vẫn cần tự check membership đúng workspace này — nếu sau này aspect được refactor để support path-based resolve, cần đồng bộ lại tránh duplicate logic.
 - **Parse `settings` JSON fallback im lặng khi lỗi** (không throw, trả `null`/`null`) — có thể che giấu dữ liệu `settings` bị corrupt; chấp nhận vì ưu tiên không làm sập trang profile chỉ vì 1 field phụ.
 - **`mediaPackageTemplate`/danh sách Client active** không có trong response thật dù có thể được kỳ vọng bởi UI — ghi nhận Out of Scope tạm thời theo spec.md, cần BA xác nhận nếu vẫn cần.
