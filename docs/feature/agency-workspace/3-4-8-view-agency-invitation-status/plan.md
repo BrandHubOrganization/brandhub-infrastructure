@@ -1,6 +1,6 @@
 # Plan — View Agency Invitation Status (FR 3.4.8)
 
-> Liên kết: [spec.md](spec.md) — cho Owner xem invitation của Agency, User xem invitation của chính mình; hết hạn 3 ngày.
+> Liên kết: [spec.md](spec.md) — cho Owner xem invitation của Agency, User xem invitation của chính mình; hết hạn 1-30 ngày (mặc định 30, do 3.4.7 set khi tạo invitation).
 
 ## 1. Phạm vi kỹ thuật
 
