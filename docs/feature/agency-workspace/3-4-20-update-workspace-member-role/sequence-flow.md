@@ -29,7 +29,7 @@
 2. System: the caller holds the MANAGER role, so the role check passes.
 3. System → Database: look up the member — it exists and is active.
 4. System: the current role is MANAGER and the new role is not MANAGER, so the last-MANAGER guard runs — it counts the Workspace's active MANAGERs and blocks the change when the count is one or fewer.
-5. System → Client: the change is rejected with 409 `LAST_OWNER_CANNOT_BE_REMOVED`; no update is applied.
+5. System → Client: the change is rejected with 409 `LAST_MANAGER_CANNOT_BE_REMOVED`; no update is applied.
 6. Client: show the error and ask the MANAGER to hand the role over to someone else first.
 
 ## Flow C — Promote to MANAGER while another MANAGER exists (blocked)
@@ -48,7 +48,7 @@
 |---|---|---|---|
 | Update role | Caller is not the MANAGER of the Workspace | 403 | `FORBIDDEN` |
 | Update role | Member does not exist, is not active, or belongs to another Workspace | 404 | `NOT_FOUND` |
-| Update role | Member is the only MANAGER and the new role is not MANAGER | 409 | `LAST_OWNER_CANNOT_BE_REMOVED` |
+| Update role | Member is the only MANAGER and the new role is not MANAGER | 409 | `LAST_MANAGER_CANNOT_BE_REMOVED` |
 | Update role | New role is MANAGER while the Workspace already has another active MANAGER | 409 | `MANAGER_ALREADY_ASSIGNED` |
 
 ## Notes

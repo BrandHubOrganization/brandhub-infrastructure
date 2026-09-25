@@ -1,67 +1,92 @@
-# Sequence Flow — Reset Password
+# Sequence Flow — Reset Password (3.2.4)
 
-> Companion to `spec.md` (3.2.4). Lists each actor → action → system step in enough detail to draw the sequence diagram directly; the business description lives in `spec.md`.
+> Companion to `spec.md`. Actors are the real classes/methods in
+> `brandhub-business-service`: `AuthController`, `AuthServiceImpl`,
+> `UserRepository`, Redis (`StringRedisTemplate`), `MailService`,
+> `AuditLogRepository`. Covers both endpoints and their error branches,
+> including an expired/superseded token and an already-used token.
 
 ## Actors
 
-- **User** — has forgotten the password and cannot sign in.
-- **Client** — the application the user interacts with.
-- **System** — the application server.
-- **Database** — persistent store holding accounts.
-- **Token store** — short-lived state holding the reset token and the most recent token issued per account.
-- **Mail** — outbound email used to deliver the reset link.
+- **User / Browser** — `ForgotPasswordPage.tsx` / `ResetPasswordPage.tsx`.
+- **AuthController** — `forgotPassword()`, `resetPassword()` REST handlers.
+- **AuthServiceImpl** — `forgotPassword(email)`, `resetPassword(token, newPassword)`.
+- **UserRepository** — `findByEmail`, `findById`, `save`.
+- **Redis** — `pwd:reset:{token}` → userId; `pwd:reset:user:{userId}` → current token (reverse-index).
+- **MailService** — `sendPasswordResetEmail(email, token)`.
+- **AuditLogRepository** — `save(AuditLog)` on successful reset.
 
 ---
 
-## Flow A — Forgot password → link received → reset successful
+## Flow A — Forgot password (email exists)
 
-1. User → Client: opens /forgot-password and enters the email address.
-2. Client → System: submits the password reset request.
-3. System:
-   a. Looks the account up by the normalized email address; when nothing matches it returns immediately and treats the request as successful, so the answer never reveals whether the account exists.
-   b. When an account matches, reads the most recent reset token issued for it, if any.
-   c. When an earlier token exists, invalidates it immediately.
-   d. Generates a new single-use token with a limited lifetime.
-   e. Stores the token against the account, and stores the token as the most recent one for that account, both with the same lifetime.
-   f. Sends the email carrying the reset link with the token.
-4. System → Client: 200 with no data, always, whether or not the email address exists.
-5. Client: shows a generic message stating that a link will arrive if the address exists.
-6. User → Client: opens the link from the email and lands on the reset screen with the token.
-7. User: enters the new password and the confirmation, which the screen validates before submission.
-8. Client → System: submits the reset with the token and the new password.
-9. System:
-   a. Reads the token: unknown or expired → 400 RESET_TOKEN_INVALID.
-   b. Consumes the token atomically; when the token was already consumed by a concurrent request → 400 RESET_TOKEN_USED.
-   c. Loads the account referenced by the token: missing → 400 RESET_TOKEN_INVALID.
-   d. Clears the record of the most recent token for the account.
-   e. Replaces the password hash and updates the last password change time.
-   f. Records the password change event.
-10. System → Client: 200 with no data.
-11. Client: shows a success message and returns to /login.
-    - Consequence: every refresh token issued before the last password change time is refused on its next use, because a refresh compares the issue time of the token with the last password change time of the account, giving 401 REFRESH_TOKEN_INVALID.
+1. User/Browser → AuthController: `POST /api/v1/auth/forgot-password { email }`.
+2. AuthController → AuthServiceImpl: `forgotPassword(email)`.
+3. AuthServiceImpl → UserRepository: `findByEmail(normalizedEmail)` → found.
+4. AuthServiceImpl → Redis: `GET pwd:reset:user:{userId}` → returns `oldToken` if one exists.
+5. AuthServiceImpl → Redis: `DEL pwd:reset:{oldToken}` (only if `oldToken != null`).
+6. AuthServiceImpl: generates a new 32-byte `SecureRandom` hex token.
+7. AuthServiceImpl → Redis: `SET pwd:reset:{token} = userId` and `SET pwd:reset:user:{userId} = token`, both TTL = `appProperties.passwordResetTtlSeconds` (≤ 1h).
+8. AuthServiceImpl → MailService: `sendPasswordResetEmail(email, token)`.
+9. AuthServiceImpl → AuthController → User/Browser: 200, `ApiResponse<Void>` (no body). Toast MSG15.
 
-## Flow B — Repeated forgot-password requests supersede the earlier token
+## Flow B — Forgot password (email does not exist) — anti-enumeration
 
-1. User → Client → System: submits the request a first time. The system issues a first token, stores it against the account and records it as the most recent token for that account, both with the same lifetime, and returns 200.
-2. User → Client → System: submits the request a second time for the same address before the first token is used.
-   a. The system reads the most recent token for the account, finds the first token and invalidates it immediately.
-   b. The system issues a second token and records it as the most recent one, replacing the first, and returns 200.
-3. User presents the first token, which has been invalidated → the token is unknown → 400 RESET_TOKEN_INVALID, even though its original lifetime has not elapsed.
-4. User presents the second token → it is valid → the reset proceeds as Flow A step 9 and returns 200.
+1. User/Browser → AuthController → AuthServiceImpl: `forgotPassword(email)`.
+2. AuthServiceImpl → UserRepository: `findByEmail` → empty.
+3. AuthServiceImpl returns immediately — no token generated, no email sent.
+4. AuthController → User/Browser: 200, identical response to Flow A. Toast MSG15 (same wording; the UI cannot tell the two cases apart).
+
+## Flow C — Reset password, valid token
+
+1. User/Browser → AuthController: `POST /api/v1/auth/reset-password { token, newPassword }`.
+2. AuthController → AuthServiceImpl: `resetPassword(token, newPassword)`.
+3. AuthServiceImpl → Redis: `GET pwd:reset:{token}` → returns `userId`.
+4. AuthServiceImpl → Redis: `DEL pwd:reset:{token}` (atomic delete-and-check) → deletion succeeded (token was present).
+5. AuthServiceImpl → UserRepository: `findById(userId)` → found.
+6. AuthServiceImpl → Redis: `DEL pwd:reset:user:{userId}` (clear reverse-index).
+7. AuthServiceImpl: hashes `newPassword` (BCrypt), sets `lastPasswordChange = now`.
+8. AuthServiceImpl → UserRepository: `save(user)`.
+9. AuthServiceImpl → AuditLogRepository: `save(AuditLog{action=PASSWORD_RESET, userId, resourceType=USER})`.
+10. AuthServiceImpl → AuthController → User/Browser: 200, no body. Toast MSG18; redirect to `/login`.
+11. Side effect (next `/refresh` call with a pre-reset refresh token): `AuthServiceImpl.refresh()` compares the token's `issuedAt` against `user.lastPasswordChange`; issuedAt is earlier → 401 `REFRESH_TOKEN_INVALID`. Not part of this call, but a direct consequence of step 7.
+
+## Flow D — Reset password, token invalid/expired/superseded
+
+1. User/Browser → AuthController → AuthServiceImpl: `resetPassword(token, newPassword)`.
+2. AuthServiceImpl → Redis: `GET pwd:reset:{token}` → `null` (never existed, TTL expired, or superseded by a newer forgot-password request per Flow A step 5).
+3. AuthServiceImpl throws `BusinessException(RESET_TOKEN_INVALID)`.
+4. AuthController → User/Browser: 400 `RESET_TOKEN_INVALID`. Toast MSG16.
+
+## Flow E — Reset password, token already used (race)
+
+1. Two requests present the same valid `token` concurrently (or one retried after success).
+2. Request 1: AuthServiceImpl → Redis: `GET pwd:reset:{token}` → returns `userId`; `DEL pwd:reset:{token}` → succeeds; proceeds through Flow C.
+3. Request 2: AuthServiceImpl → Redis: `GET pwd:reset:{token}` → still returns the cached `userId` momentarily, but `DEL pwd:reset:{token}` → reports `false` (key already gone).
+4. AuthServiceImpl throws `BusinessException(RESET_TOKEN_USED)`.
+5. AuthController → User/Browser: 400 `RESET_TOKEN_USED`. Toast MSG17.
+
+## Flow F — Reset password, user record no longer exists
+
+1. AuthServiceImpl → Redis: `GET pwd:reset:{token}` → returns `userId`; `DEL` succeeds.
+2. AuthServiceImpl → UserRepository: `findById(userId)` → empty (account deleted after the token was issued).
+3. AuthServiceImpl throws `BusinessException(RESET_TOKEN_INVALID)`.
+4. AuthController → User/Browser: 400 `RESET_TOKEN_INVALID`. Toast MSG16.
 
 ---
 
-## Error paths summary (for "alt"/"opt" fragments)
+## Error paths summary
 
 | Step | Failure condition | HTTP | Error code |
 |---|---|---|---|
-| Forgot password | The email address does not exist | 200 | — (silent, no error) |
-| Reset password | The token is unknown, expired, or superseded by a newer request | 400 | `RESET_TOKEN_INVALID` |
-| Reset password | The token was just consumed, including two simultaneous requests | 400 | `RESET_TOKEN_USED` |
-| Reset password | The account referenced by the token no longer exists | 400 | `RESET_TOKEN_INVALID` |
-| Reset password | The new password does not meet the policy | 400 | `VALIDATION_ERROR` |
+| forgot-password | Email does not match any account | 200 | — (silent, BR-13) |
+| reset-password | Token missing, expired, or superseded | 400 | `RESET_TOKEN_INVALID` |
+| reset-password | Token already consumed (race) | 400 | `RESET_TOKEN_USED` |
+| reset-password | Token valid but user record gone | 400 | `RESET_TOKEN_INVALID` |
+| reset-password | `newPassword` fails bean validation | 400 | `VALIDATION_ERROR` |
 
 ## Notes
 
-- Only the most recent reset token per account is accepted, so a newer request immediately disables an earlier link.
-- The request step is deliberately silent: the same answer is returned for known and unknown addresses, which prevents discovering whether an account exists.
+- Only the most recently issued token per account is valid — Flow A step 5 invalidates any earlier link the instant a new one is requested.
+- The forgot-password response is deliberately identical for existing and non-existing emails (Flow A vs Flow B), preventing account enumeration (BR-13).
+- BR-12 (forced re-login on every device) is enforced in `refresh()`, not in `resetPassword` — see Flow C step 11.

@@ -5,7 +5,7 @@
 ## Backend — `brandhub-business-service`
 
 - [x] Implement `WorkspaceServiceImpl.removeMember(UUID workspaceId, UUID memberId)` — tìm member, filter workspaceId + isActive, soft-delete (`isActive=false`)
-- [x] Guard last-MANAGER: `member.role == MANAGER` → `assertNotLastManager` → 409 `LAST_OWNER_CANNOT_BE_REMOVED`
+- [x] Guard last-MANAGER: `member.role == MANAGER` → `assertNotLastManager` → 409 `LAST_MANAGER_CANNOT_BE_REMOVED`
 - [x] `@RequireRole({MemberRole.MANAGER})` trên endpoint
 - [x] 404 `NOT_FOUND` khi memberId không tồn tại/không active/không thuộc workspace
 - [x] Không đụng `agency_members` (member vẫn còn trong Agency)

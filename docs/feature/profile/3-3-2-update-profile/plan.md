@@ -15,16 +15,16 @@
 ```
 PUT /api/v1/users/me
 Authorization: Bearer <access-token>
-Body: { fullName, phone?, timezone?, notificationPreferences? }
+Body: { fullName, phone?, professionalTitle?, bio?, portfolioUrls?, workingLanguage?, timezone?, notificationPreferences? }
 → 200 ApiResponse<UserProfileResponse>
-   data = { userId, email, fullName, avatarUrl, phone, role, workspaceId, timezone, notificationPreferences, createdAt }
+   data = { userId, email, fullName, avatarUrl, phone, role, workspaceId, professionalTitle, bio, portfolioUrls, workingLanguage, timezone, notificationPreferences, createdAt }
 ```
 
 Khác so với spec.md (đề xuất `PATCH` + block email):
 
 - Dùng `PUT` + upsert semantic (merge field không gửi) — giữ nguyên method hiện có, ít churn.
 - Không có field email trong body → **bỏ** `EMAIL_UPDATE_NOT_ALLOWED`.
-- `phone`, `timezone`, `notificationPreferences` optional — hỗ trợ partial update + xử lý "chưa từng set" (null).
+- `phone`, `professionalTitle`, `bio`, `portfolioUrls`, `workingLanguage`, `timezone`, `notificationPreferences` optional — hỗ trợ partial update + xử lý "chưa từng set" (null). `timezone`/`notificationPreferences` merge vào `preferences` jsonb; các field còn lại là cột riêng, set trực tiếp khi non-null.
 
 ## 3. Data Model
 

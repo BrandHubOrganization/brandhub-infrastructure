@@ -1,6 +1,6 @@
 # Plan — Save Workspace Template (FR 3.4.17)
 
-> Liên kết: [spec.md](spec.md) — cho user lưu cấu hình Workspace thành Template, resource độc lập `/api/v1/workspace-templates`. Không có thay đổi code trong lần đồng bộ này (spec.md/sequence-flow.md chỉ cập nhật để khớp code thật đã tồn tại).
+> Liên kết: [spec.md](spec.md) — cho user lưu cấu hình Workspace thành Template, resource độc lập `/api/v1/workspace-templates`. Không có thay đổi code trong lần đồng bộ này. ⚠ BA conflict: `WorkspaceTemplateServiceImpl` hiện tại mọi method (`saveTemplate`/`listTemplates`/`getTemplate`/`deleteTemplate`) đều `throw new UnsupportedOperationException("Not implemented yet")` — Controller/DTO/FE đã wired đúng contract dưới đây nhưng backend chưa thực sự chạy được. Mục 2-4 dưới đây mô tả **contract dự kiến/đã thiết kế**, không phải hành vi runtime thật hiện tại.
 
 ## 1. Phạm vi kỹ thuật
 

@@ -38,16 +38,15 @@ Figure — Workspace Members Screen:
 
 ### Business Rules
 
-- **BR-01:** The Workspace must exist → otherwise 404 `WORKSPACE_NOT_FOUND`, checked before the member list is read.
-- **BR-02:** The caller must be an active member of the very Workspace being viewed; this is verified explicitly for the requested Workspace rather than through a generic role check.
-- **BR-03:** A caller who is not an active member of that Workspace → 403 `WORKSPACE_ACCESS_DENIED`.
-- **BR-04:** The role list at Workspace level is MANAGER, CREATOR, CLIENT; OWNER is not a Workspace role.
-- **BR-05:** A member attached through a client profile rather than a user account is shown with the client profile's display name as the full name and an empty email.
+- **BR-29:** Multi-tenancy — the Workspace must exist and carries its own workspaceId scope, checked before the member list is read; otherwise 404 `WORKSPACE_NOT_FOUND`. A caller with no active membership in that Workspace cannot read it regardless of system role (except ADMIN).
+- **BR-30:** The caller must be an active member of the very Workspace being viewed, verified explicitly for the requested Workspace; a caller who is not an active member → 403 `WORKSPACE_ACCESS_DENIED`. This is the same re-check that immediately cuts off access once a member is removed or leaves.
+- **BR-31:** The role list at Workspace level is MANAGER, CREATOR, CLIENT; OWNER is not a Workspace role (OWNER exists only at Agency level).
+- **BR-35:** Role/permission checks re-read the caller's role from the DB at request time via `@RequireRoleAspect`; `SystemRole.ADMIN` bypasses the membership check.
 
 ### Validation
 
-- The Workspace must exist; otherwise 404 `WORKSPACE_NOT_FOUND`.
-- The caller must hold an active membership in that Workspace; otherwise 403 `WORKSPACE_ACCESS_DENIED`.
+- The Workspace must exist; otherwise 404 `WORKSPACE_NOT_FOUND`, toast MSG38.
+- The caller must hold an active membership in that Workspace; otherwise 403 `WORKSPACE_ACCESS_DENIED`, toast MSG40.
 
 ## Functionalities
 
@@ -61,9 +60,9 @@ Figure — Workspace Members Screen:
 
 ### Abnormal Cases
 
-- Workspace does not exist → 404 `WORKSPACE_NOT_FOUND`.
-- Caller is not an active member of that Workspace → 403 `WORKSPACE_ACCESS_DENIED`.
-- A member has no linked user account but is attached through a client profile → the client profile's display name is shown and the email is empty.
+- 2.a1: Workspace does not exist (BR-29) → 404 `WORKSPACE_NOT_FOUND`, toast MSG38. 2.a2: The member returns to the Workspace list.
+- 3.a1: Caller is not an active member of that Workspace (BR-30) → 403 `WORKSPACE_ACCESS_DENIED`, toast MSG40. 3.a2: The member returns to the Workspace list; the Workspace they tried to view does not appear.
+- 4.a1: A member has no linked user account but is attached through a client profile → the client profile's display name is shown and the email is empty. 4.a2: The row renders normally with the remaining columns unaffected.
 
 ## Post-Conditions
 

@@ -1,47 +1,70 @@
 # Plan — View Workspace Dashboard (FR 3.4.11)
 
-> Liên kết: [spec.md](spec.md) — Trạng thái tài liệu: **Draft — chưa code**. Plan này ở dạng đề xuất/dự kiến, cần xác nhận khi thiết kế kỹ thuật thật.
+> Linked: [spec.md](spec.md) — Document status: **Implemented**. This plan describes the real, shipped implementation.
 
-## 1. Phạm vi kỹ thuật (dự kiến)
+## 1. Technical Scope
 
-| Mục | Nội dung |
+| Item | Content |
 |---|---|
-| Repo | `brandhub-business-service` |
-| File cần thêm | `WorkspaceServiceImpl.getDashboard()` (chưa tồn tại) |
-| File đã có, dự kiến tái sử dụng | `WorkspaceController`, `WorkspaceRepository`, `WorkspaceMemberRepository` — chưa có repository tổng hợp Task/Client/Campaign theo workspace |
+| Repo | `brandhub-business-service` (backend), `brandhub-web-dashboard` (frontend) |
+| Backend files | `WorkspaceServiceImpl.getDashboard()`, `WorkspaceController.getDashboard()`, `WorkspaceDashboardResponse` (new record) |
+| Reused files | `WorkspaceMemberRepository`, `WorkspaceMediaPackageRepository`, `MediaCampaignRepository`, `AiCreditLedgerRepository`, `findWorkspaceOrThrow`, `assertMember`, `toResponse` |
+| Frontend files | `src/pages/workspace/dashboard.tsx`, `src/services/workspaceService.ts` (`getDashboard`), `src/types/workspace.ts` (`WorkspaceDashboard`) |
 
-## 2. API Contract (đề xuất, chưa code)
+## 2. API Contract (final)
 
 ```
-GET /api/v1/workspaces/{id}/dashboard
-→ 200 { "success": true, "data": { "taskStats": {...}, "activeClientCount", "activeCampaignCount" } }
+GET /api/v1/workspaces/{workspaceId}/dashboard
+Authorization: Bearer <access-token>
+Roles: MANAGER, CREATOR, CLIENT (@RequireRole, active membership required)
+
+→ 200 ApiResponse<WorkspaceDashboardResponse>
+{
+  "success": true,
+  "data": {
+    "workspace": { ...WorkspaceResponse... },
+    "totalActiveMembers": number,
+    "membersByRole": { "MANAGER": number, "CREATOR": number, "CLIENT": number },
+    "totalCampaigns": number,
+    "campaignsByStatus": { "<CampaignStatus>": number, ... },
+    "packageNegotiationStatus": string | null,
+    "agencyId": uuid,
+    "aiCreditMonth": "YYYY-MM",
+    "agencyAiCreditsUsedThisMonth": number
+  }
+}
 ```
 
-Khác biệt tiềm năng so với spec.md khi thật sự cài đặt: cần xác nhận field `id` có khớp path param thật `{workspaceId}` như các endpoint Workspace khác hay không (pattern hiện tại trong `WorkspaceController` dùng `{workspaceId}`).
+Matches `WorkspaceDashboardResponse` record exactly (`com.brandhub.business.dto.response.WorkspaceDashboardResponse`). No request body; `workspaceId` is a path variable, consistent with other Workspace endpoints.
 
-## 3. Data Model (dự kiến)
+## 3. Data Model
 
-- Cần thống kê Task theo trạng thái (backlog/in progress/completed) theo `workspaceId` — hiện **chưa có** repository method tổng hợp (Task domain nằm ở service khác, cần xác nhận đã có bảng/entity `Task` liên kết `workspaceId` hay chưa).
-- `activeClientCount`: đếm `WorkspaceMember` có `clientProfileId != null AND isActive = true` theo workspace — có thể tái dùng pattern từ `listMembers`.
-- `activeCampaignCount`: cần xác nhận entity Campaign đã có field `workspaceId` + trạng thái active hay chưa.
-- Không migration nào được đề xuất ở giai đoạn plan — phụ thuộc vào việc entity Task/Campaign đã có field liên kết Workspace hay chưa (cần thiết kế kỹ thuật xác nhận trước khi code).
+No new entity or migration. The dashboard aggregates existing tables read-only:
 
-## 4. Luồng xử lý (dự kiến)
+- `WorkspaceMember` — active rows for the Workspace (`findByWorkspaceIdAndIsActiveTrue`), grouped by `role` for `totalActiveMembers` / `membersByRole`.
+- `WorkspaceMediaPackage` — the Workspace's package, if any (`findByWorkspaceId`); source of `packageNegotiationStatus` (`null` when absent).
+- `MediaCampaign` — rows under the Workspace's package (`findByWorkspaceMediaPackageId`), grouped by `status` for `totalCampaigns` / `campaignsByStatus`. Empty list when there is no package.
+- `AiCreditLedger` — the parent Agency's row for the current calendar month (`findByAgencyIdAndMonth(agencyId, YearMonth.now().toString())`); Agency-scoped, not per-Workspace (no `workspaceId` column exists on this table).
 
-1. `findWorkspaceOrThrow(id)` → 404 nếu không tồn tại.
-2. `assertMember(id, currentUser.id)` — theo pattern `getWorkspace`/`listMembers` (check thủ công, không dùng `@RequireRole` vì aspect không resolve đúng workspace theo path) → 403 nếu không phải active member.
-3. Query tổng hợp Task/Client/Campaign theo `workspaceId` (cần thiết kế thêm).
-4. Trả về payload dashboard.
+## 4. Processing Flow
+
+1. `findWorkspaceOrThrow(workspaceId)` → 404 `WORKSPACE_NOT_FOUND` if missing.
+2. `assertMember(workspaceId, currentUser.getId())` → 403 `WORKSPACE_ACCESS_DENIED` if the caller has no active membership row (BR-29). The `@RequireRole` annotation on the controller adds a second layer, rejecting with 403 `FORBIDDEN` if the caller has no membership row at all (same dual-layer pattern as `getWorkspace`, FR 3.4.13).
+3. Load active members, compute `membersByRole` via `Collectors.groupingBy(role, counting())`.
+4. Load the Workspace's `WorkspaceMediaPackage` (nullable); load its campaigns if present, else empty list. Compute `campaignsByStatus`.
+5. Compute `currentMonth` (`YearMonth.now().toString()`) and look up the Agency's `AiCreditLedger` for that month; default `creditsUsed` to 0 if no ledger row exists yet.
+6. Assemble and return `WorkspaceDashboardResponse`, embedding the full `WorkspaceResponse` (via `toResponse`) for the Workspace's own profile fields.
 
 ## 5. Dependencies
 
-| Chiều | Mô tả |
+| Direction | Description |
 |---|---|
-| Chặn bởi | Cần xác nhận entity Task/Campaign đã liên kết `workspaceId` chưa (ngoài phạm vi Workspace domain) |
-| Bị chặn | Không |
+| Blocked by | None — all referenced repositories and entities already exist. |
+| Blocks | None. |
 
-## 6. Rủi ro kỹ thuật
+## 6. Technical Notes
 
-- **Chưa có endpoint, chưa có repository tổng hợp** — đây là điểm rủi ro lớn nhất, cần thiết kế kỹ thuật riêng trước khi ước lượng effort thật.
-- **Phạm vi số liệu phụ thuộc domain khác** (Task, Campaign) chưa được xác nhận đã sẵn sàng liên kết `workspaceId` — cần BE lead xác nhận trước khi bắt đầu implement.
-- Tương tự FR 3.4.2 (Agency Dashboard, cũng Draft) — có thể cân nhắc thiết kế chung 1 pattern dashboard cho cả 2 cấp Agency/Workspace nếu timeline cho phép.
+- No Task/Material entity exists in this codebase; an earlier draft of this spec assumed one — removed, not implemented (see spec.md "Known scope note").
+- AI credit usage is Agency-wide (`AiCreditLedger` has no `workspaceId` column); the response and UI label it explicitly as Agency-scoped rather than implying it belongs to this Workspace alone.
+- The dashboard is fully read-only (BR-03); no writes occur in `getDashboard`.
+- An empty Workspace (no package, no campaigns) is handled without error: `packageNegotiationStatus` is `null`, `totalCampaigns` is `0`, breakdown maps are empty (BR-04).

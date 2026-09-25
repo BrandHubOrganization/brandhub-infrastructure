@@ -6,6 +6,7 @@
 
 - [x] `UserStatus` thêm `DEACTIVATED`.
 - [x] `POST /deactivate { password?, otpCode? }` — verify password (Flow A) hoặc OTP (Flow B), soft-delete.
+- [x] **MỚI**: `deactivate()` thêm 2 param `accessToken`, `refreshToken` — sau khi save status, blacklist cả 2 qua `jwtUtil.blacklistToken()` (best-effort, bắt `JwtException`). Controller đọc access token từ header `Authorization`, refresh token từ cookie `refreshToken`.
 - [x] `POST /deactivate/send-otp` — sinh OTP 6 số, lưu Redis TTL 10 phút, gửi email.
 - [x] Chặn nếu Owner Agency active → 409 `AGENCY_OWNERSHIP_ACTIVE` (cả 2 flow).
 - [x] `AgencyRepository.findByOwnerId(UUID)`.

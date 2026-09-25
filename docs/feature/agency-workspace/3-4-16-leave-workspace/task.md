@@ -6,7 +6,7 @@
 
 - [x] Implement `WorkspaceServiceImpl.leaveWorkspace(UUID, AuthenticatedUser)` — tìm active membership của chính currentUser
 - [x] Implement/tái sử dụng `assertNotLastManager(workspaceId, member)` — guard MANAGER active duy nhất
-- [x] 403 `WORKSPACE_ACCESS_DENIED`, 409 `LAST_OWNER_CANNOT_BE_REMOVED`
+- [x] 403 `WORKSPACE_ACCESS_DENIED`, 409 `LAST_MANAGER_CANNOT_BE_REMOVED`
 - [x] `DELETE /api/v1/workspaces/{workspaceId}/leave` đã có ở `WorkspaceController`, không gắn `@RequireRole`
 - [x] Soft-delete `WorkspaceMember.isActive = false`, không đụng `AgencyMember`
 

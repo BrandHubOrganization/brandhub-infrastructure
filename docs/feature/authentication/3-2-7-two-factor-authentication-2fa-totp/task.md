@@ -4,7 +4,8 @@
 
 - [x] `util/TotpUtil.java` — RFC 6238 (HMAC-SHA1, 6 chữ số, 30s) + Base32 encode/decode, stdlib.
 - [x] `model/User.java` — thêm `twoFactorEnabled` + `totpSecret`.
-- [x] `exception/ErrorCode.java` — thêm `TWO_FA_NOT_ENABLED`, `TWO_FA_ALREADY_ENABLED`, `TWO_FA_CODE_INVALID`, `TWO_FA_TOKEN_INVALID`.
+- [x] `exception/ErrorCode.java` — thêm `TWO_FA_NOT_ENABLED`, `TWO_FA_ALREADY_ENABLED`, `TWO_FA_CODE_INVALID`, `TWO_FA_TOKEN_INVALID`, `TWO_FA_TOO_MANY_ATTEMPTS` (429).
+- [x] **[2026-09-25] BR-86 lockout:** `AuthServiceImpl.checkTwoFactorAttempt(userId, codeValid)` — Redis `2fa:attempt:{userId}`, TTL 10 phút, max 5 lần sai (`OTP_MAX_ATTEMPTS`) → `TWO_FA_TOO_MANY_ATTEMPTS`; gọi từ confirm/disable/verify.
 - [x] `util/JwtUtil.java` — `generateTwoFactorToken` (TTL 5 phút, claim `type=2fa`).
 - [x] `service/AuthService.java` — khai báo `setupTwoFactor/confirmTwoFactor/disableTwoFactor/verifyTwoFactor`.
 - [x] `service/impl/AuthServiceImpl.java` — implement 4 method (Redis `2fa:setup:{userId}` cho pending secret).

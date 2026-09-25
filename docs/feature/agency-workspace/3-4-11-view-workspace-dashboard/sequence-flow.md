@@ -1,40 +1,49 @@
 # Sequence Flow — View Workspace Dashboard
 
-> FR 3.4.11 — **proposed, not yet implemented: there is no real sequence to describe.**
+> FR 3.4.11 — **Implemented.** Companion to `spec.md`; lists each step as actor → action → system, in enough detail to draw the sequence diagram directly.
 >
-> Updated: 2026-09-23.
+> Updated: 2026-09-25.
 
-## Implementation status
+## Actors
 
-- No dashboard route exists for a Workspace, and no aggregation of Task counts, active Clients, or active Campaigns has been built for a Workspace dashboard.
-- There is therefore no implemented sequence to document. Every step below is an anticipated flow taken from `spec.md`, not yet confirmed technically and not yet built.
-
-## Actors (anticipated)
-
-- **Client** — a Workspace member (MANAGER, CREATOR, CLIENT).
-- **System** — the application service; no dashboard handling exists yet.
-- **Database** — the persistent store holding Task, Campaign, and membership records; the aggregation queries are not yet defined.
-
----
-
-## Anticipated flow (PROPOSED — not yet implemented)
-
-1. Client → System: open the dashboard of a Workspace.
-2. System (anticipated): confirm the caller holds an active membership in that Workspace — otherwise reject with 403 `FORBIDDEN`.
-3. System (anticipated) → Database: aggregate Task counts by status (backlog / in progress / completed), the number of active Clients, and the number of active Campaigns.
-4. Database → System (anticipated): the aggregated counts.
-5. System → Client (anticipated): the task counts by status, the active Client count, and the active Campaign count.
-6. Client: render the dashboard; a newly created Workspace with no data shows all counters as 0.
+- **Client** — a Workspace member (MANAGER, CREATOR, or CLIENT), via the FE dashboard page.
+- **WorkspaceController** — `GET /api/v1/workspaces/{workspaceId}/dashboard`, `@RequireRole({MANAGER, CREATOR, CLIENT})`.
+- **WorkspaceServiceImpl** — `getDashboard(workspaceId, currentUser)`.
+- **WorkspaceMemberRepository** — active membership rows.
+- **WorkspaceMediaPackageRepository** — the Workspace's media package, if any.
+- **MediaCampaignRepository** — campaigns under that package.
+- **AiCreditLedgerRepository** — the parent Agency's AI credit ledger for the current month.
 
 ---
 
-## Error paths (anticipated — not yet implemented)
+## Normal Flow
+
+1. Client → WorkspaceController: `GET /api/v1/workspaces/{workspaceId}/dashboard`.
+2. WorkspaceController: `@RequireRole({MANAGER, CREATOR, CLIENT})` — rejects with 403 `FORBIDDEN` if the caller has no membership row with a qualifying role.
+3. WorkspaceController → WorkspaceServiceImpl: `getDashboard(workspaceId, currentUser)`.
+4. WorkspaceServiceImpl: `findWorkspaceOrThrow(workspaceId)` — 404 `WORKSPACE_NOT_FOUND` if the Workspace does not exist.
+5. WorkspaceServiceImpl: `assertMember(workspaceId, currentUser.getId())` — 403 `WORKSPACE_ACCESS_DENIED` if the caller has no *active* membership row (BR-29).
+6. WorkspaceServiceImpl → WorkspaceMemberRepository: `findByWorkspaceIdAndIsActiveTrue(workspaceId)` → active members; grouped by role into `membersByRole`.
+7. WorkspaceServiceImpl → WorkspaceMediaPackageRepository: `findByWorkspaceId(workspaceId)` → the Workspace's package, or empty.
+8. WorkspaceServiceImpl → MediaCampaignRepository: `findByWorkspaceMediaPackageId(packageId)` if a package exists, else an empty list; grouped by `CampaignStatus` into `campaignsByStatus`.
+9. WorkspaceServiceImpl → AiCreditLedgerRepository: `findByAgencyIdAndMonth(workspace.getAgencyId(), currentMonth)` → the Agency's ledger row for the current month, or `0` if absent.
+10. WorkspaceServiceImpl: assembles `WorkspaceDashboardResponse` (embedding `toResponse(workspace)`, active member count/breakdown, campaign count/breakdown, `packageNegotiationStatus`, `agencyId`, `aiCreditMonth`, `agencyAiCreditsUsedThisMonth`).
+11. WorkspaceServiceImpl → WorkspaceController → Client: 200 with the dashboard payload.
+12. Client: renders the stat cards and breakdown lists; an empty Workspace shows zeros/empty lists without error (BR-04).
+
+---
+
+## Error Paths
 
 | Step | Failure condition | Status | Error code |
 |---|---|---|---|
-| Dashboard | Caller has no access to the Workspace | 403 | `FORBIDDEN` (proposed) |
+| 2 | Caller has no membership row with a qualifying role | 403 | `FORBIDDEN` |
+| 4 | `workspaceId` does not exist | 404 | `WORKSPACE_NOT_FOUND` |
+| 5 | Caller has a membership row but it is not active (or none at all reaching this check) | 403 | `WORKSPACE_ACCESS_DENIED` |
 
 ## Notes
 
-- `spec.md` already marks this FR as proposed and not yet implemented; this file confirms that no dashboard route or aggregation exists, so no new drift has been introduced.
-- The response shape for the counters is proposed only — it has not been agreed technically.
+- Steps 6–9 run as four independent reads against existing repositories — no new query or migration was needed.
+- `packageNegotiationStatus` is `null` when the Workspace has no `WorkspaceMediaPackage` yet; `totalCampaigns` is `0` and `campaignsByStatus` is empty in that case (BR-04).
+- `agencyAiCreditsUsedThisMonth` reflects Agency-wide usage, not this Workspace alone — `AiCreditLedger` has no `workspaceId` column.
+- The dashboard performs no writes (BR-03).
