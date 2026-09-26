@@ -12,3 +12,12 @@
 - [ ] Test: email đã dùng bởi account password → merge, không account trùng.
 
 > Note: 2FA không áp dụng OAuth (known limitation).
+
+## Completion tasks
+- [x] Configure backend credentials from local JSON.
+- [x] Test and implement callback success, cancellation and invalid state.
+- [x] Configure callback alias through gateway and security.
+- [ ] Update vi/en translations and preserve light/dark styling.
+- [x] Verify profile loading and clearing stale authentication.
+- [x] Verify Git tracking and remote history; publish ignore rule.
+- [ ] Verify live redirect; human Google consent remains required.

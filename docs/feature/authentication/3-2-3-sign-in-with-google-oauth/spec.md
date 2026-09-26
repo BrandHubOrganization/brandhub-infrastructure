@@ -57,3 +57,6 @@ GET /api/v1/auth/oauth/google/callback?code=...
 ## Tham chiếu BA
 
 [02-authentication-profile.md](../../../BA/02-authentication-profile.md)
+
+## Completion contract (2026-09-19)
+Use the configured Google callback URI, including /login/oauth2/code/google. Successful callbacks set an HttpOnly refresh cookie and redirect to the frontend with the access token in the URL fragment. Cancellation, invalid state/code and suspended accounts return a localized frontend error. Only verified Google emails may be linked. Secrets remain in ignored backend environment files. Existing light/dark UI is retained; new error text uses matching vi/en keys.
