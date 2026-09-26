@@ -1,0 +1,21 @@
+-- 2026-09-25 — Add DEACTIVATED to user_status enum (FR 3.2.9 Deactivate Account)
+--
+-- AuthServiceImpl.deactivate() sets UserStatus.DEACTIVATED on the users row,
+-- but the user_status Postgres enum only had ACTIVE/SUSPENDED/DELETED —
+-- any real deactivate call would fail at the DB layer with an invalid enum
+-- value error. Adding the missing value.
+--
+-- Run this against an existing database that already has the user_status
+-- type (created before this date). A brand-new database created from
+-- init-postgres-v2.sql already includes DEACTIVATED — do not re-run this
+-- file against a freshly initialized DB.
+--
+-- Apply:
+--   psql "$DATABASE_URL" ^
+--     < brandhub-infrastructure\docs\database\migrations\2026-09-25-add-deactivated-to-user-status-enum.sql
+--
+-- Note: ALTER TYPE ... ADD VALUE cannot run inside a transaction block in
+-- older Postgres versions and cannot be wrapped in the same DO $$ EXCEPTION
+-- pattern as CREATE TYPE — run this statement standalone.
+
+ALTER TYPE user_status ADD VALUE IF NOT EXISTS 'DEACTIVATED';
