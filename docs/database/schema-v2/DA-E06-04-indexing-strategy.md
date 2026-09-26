@@ -260,7 +260,7 @@ Tất cả indexes PostgreSQL đã được khai báo trong:
 `brandhub-infrastructure/scripts/init-postgres.sql`
 
 MongoDB indexes cần khai báo trong:  
-`brandhub-infrastructure/scripts/init-mongo.js`
+`brandhub-infrastructure/docs/database/init-mongo.js`
 
 ```js
 // Ví dụ — posts collection
@@ -273,4 +273,4 @@ db.posts.createIndex({ workspaceId: 1, createdBy: 1, createdAt: -1 });
 db.notifications.createIndex({ createdAt: 1 }, { expireAfterSeconds: 2592000 });
 ```
 
-Xem full init script tại [init-mongo.js](../../scripts/init-mongo.js).
+Xem full init script tại [init-mongo.js](../init-mongo.js).

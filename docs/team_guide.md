@@ -66,6 +66,29 @@ Mẫu đặt tại `brandhub-infrastructure/docs/feature/definition/`. Mỗi fea
 - Thư mục feature đặt theo **kebab-case tiếng Anh** (ví dụ `multi-method-login`).
 - Quy tắc viết và ranh giới giữa 4 file xem tại `brandhub-infrastructure/docs/rule/feature-workflow.md`.
 
+**Quy định bắt buộc — kể cả khi SỬA code đã có (không chỉ code mới):**
+
+Mọi thay đổi vào logic nghiệp vụ (business rule, luồng xử lý, validation, error code) đều
+phải đi tuần tự đúng chuỗi tài liệu, không được nhảy thẳng vào code:
+
+1. **`spec.md`** — trước tiên đối chiếu với BA (`brandhub-infrastructure/docs/ba/`). Đây là
+   tài liệu **quan trọng dùng chung toàn team** — nếu code/thực tế đang làm khác với những gì
+   `spec.md` (và BA gốc) mô tả, **không được tự ý sửa spec cho khớp code một mình**. Phải báo
+   lên kênh chung của team để cả team chốt lại đâu là đúng (BA sai cần cập nhật, hay code đang
+   làm sai cần sửa lại) — vì đây là nguồn tham chiếu chung, một người tự sửa lệch sẽ làm sai
+   luôn cả những phần khác đang dựa vào nó.
+2. **`plan.md`** — chỉ viết plan sau khi `spec.md` đã chốt đúng. Không viết plan dựa trên spec
+   còn đang tranh cãi.
+3. **`task.md`** — phân rã từ `plan.md` đã chốt, không tự thêm việc ngoài plan.
+4. **`test.md`** — viết test case dựa trên `spec.md` + `task.md`, phủ đủ happy/unhappy case,
+   trước khi hoặc song song với code — không viết test sau khi code xong để "test cho khớp code".
+5. **Code** — implement đúng theo 4 file trên. Nếu trong lúc code phát hiện spec/plan sai →
+   dừng lại, quay về bước 1, không tự sửa code lệch tài liệu rồi để tài liệu cũ nằm im.
+
+Áp dụng cho **cả 34 FR hiện có lẫn feature mới** — sửa một FR đang chạy production cũng phải
+đi lại đúng chuỗi này, không được sửa thẳng code production rồi cập nhật tài liệu sau (hoặc
+quên cập nhật).
+
 ### Bước 5 — Viết code theo đúng tài liệu (tách BE / FE)
 
 Code đúng theo tài liệu đã viết ở Bước 3–4, không tự suy diễn nghiệp vụ ngoài spec. Test bắt
@@ -154,6 +177,9 @@ Cập nhật cột **`Hiện trạng`** trong file
 | Mẫu spec FR (Report 3) | `FormReportDA/report_drafts/DA-763_R3_S3.2.1_FR_Register_Email.md` |
 | FR danh sách (Excel) | `brandhub-infrastructure/docs/Các FR của hệ thống - Feature_Function Requirement.csv` |
 | Report 1–4 | `FormReportDA/reports/BrandHub_Report{1..4}_*.docx` |
+| BR/MSG chuẩn (dùng để cite trong spec) | `FormReportDA/report_drafts/Section5_Requirement_Appendix.md` |
+| Migration DB (người đã có DB) | `brandhub-infrastructure/docs/database/migrations/` |
+| Init DB (người tạo DB từ đầu) | `brandhub-infrastructure/docs/database/init-postgres-v2.sql` |
 
 ---
 
@@ -170,3 +196,32 @@ Pull develop (infra + business)
   → B7: In Review → Done + chụp FE chèn Report 3
   → B8: cập nhật cột "Hiện trạng" trên Excel
 ```
+
+---
+
+## 6. Quy định migrate database
+
+Schema PostgreSQL có **2 điểm vào** khác nhau, phục vụ 2 nhóm người khác nhau — phải cập nhật
+**cả hai** mỗi khi đổi schema, không được chỉ làm một:
+
+| Điểm vào | Dùng cho ai | File |
+|----------|-------------|------|
+| **File migration riêng** | Người **đã có DB chạy sẵn** — chỉ cần chạy đúng migration mới, không phải tạo lại DB từ đầu. | `brandhub-infrastructure/docs/database/migrations/<YYYY-MM-DD>-<mô-tả>.sql` |
+| **`init-postgres-v2.sql`** | Người **tạo DB từ đầu** (máy mới, CI, môi trường test) — file init phải luôn phản ánh đúng schema mới nhất, chạy 1 lần là ra DB đủ tất cả thay đổi tới thời điểm hiện tại. | `brandhub-infrastructure/docs/database/init-postgres-v2.sql` |
+
+**Quy trình bắt buộc khi đổi schema (thêm/sửa/xoá cột, bảng, index, constraint):**
+
+1. Viết file migration mới trong `docs/database/migrations/`, đặt tên theo ngày +
+   mô tả ngắn (xem các file hiện có làm mẫu), nội dung là SQL thuần chạy được trực tiếp
+   (`ALTER TABLE ... ADD COLUMN IF NOT EXISTS ...`, `CREATE INDEX IF NOT EXISTS ...` — dùng
+   `IF NOT EXISTS`/`IF EXISTS` để chạy lại không lỗi).
+2. Áp **đúng thay đổi đó** vào `init-postgres-v2.sql` — không viết lại toàn bộ file, chỉ sửa
+   đúng phần liên quan (thêm cột vào đúng `CREATE TABLE`, thêm index vào đúng chỗ) sao cho ai
+   chạy `init-postgres-v2.sql` từ đầu sẽ ra kết quả **giống hệt** người chạy đủ migration.
+3. Ghi migration đó vào task Jira / commit message để người khác biết cần pull + chạy.
+4. Không xoá/sửa lại migration cũ đã merge — nếu sai, viết migration mới để sửa tiếp, tránh
+   vỡ lịch sử của người đã chạy migration cũ trên DB thật.
+
+**Đối chiếu nhanh trước khi mở PR:** file migration mới cộng dồn vào `init-postgres-v2.sql`
+đang có phải cho ra đúng schema hiện tại — nếu không chắc, có thể diff schema DB tạo bằng
+`init-postgres-v2.sql` với schema DB đã chạy đủ migration để xác nhận khớp nhau.

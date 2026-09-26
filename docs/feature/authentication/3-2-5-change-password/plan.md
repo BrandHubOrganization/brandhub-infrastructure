@@ -5,20 +5,21 @@
 ## Kỹ thuật
 
 - `POST /api/v1/auth/change-password` (Bearer token) `{ currentPassword, newPassword }`.
-- `AuthServiceImpl.changePassword()`: resolve userId từ access token → verify `currentPassword` (bcrypt) → sai → 400 `INVALID_CURRENT_PASSWORD` → hash `newPassword` → lưu.
-- **Không** tự logout (khác Reset Password — user đã chứng minh danh tính).
+- `AuthServiceImpl.changePassword()`: resolve userId từ access token → verify `currentPassword` (bcrypt) → sai → 400 `WRONG_CURRENT_PASSWORD` → nếu `newPassword` trùng `currentPassword` (bcrypt matches) → 400 `SAME_AS_CURRENT_PASSWORD` → hash `newPassword` → lưu + set `lastPasswordChange=now` + audit log `PASSWORD_RESET`.
+- **Không** tự logout session hiện tại (access token vẫn dùng được) — khác Reset Password. Nhưng `lastPasswordChange` cập nhật làm refresh token cũ (issued trước đó) bị invalid ở lần refresh tiếp theo.
 - Spec đề xuất `PATCH`; code dùng `POST` (đồng bộ pattern controller hiện tại).
 
 ## Luồng
 
-1. Auth (Bearer) → userId.
-2. Verify currentPassword → sai → 400.
-3. Set newPassword → 200.
+1. Auth (Bearer) → userId. Thiếu/sai header → 401.
+2. Verify currentPassword → sai → 400 `WRONG_CURRENT_PASSWORD`.
+3. So newPassword với currentPassword → trùng → 400 `SAME_AS_CURRENT_PASSWORD`.
+4. Set newPassword, lastPasswordChange=now, audit log → 200.
 
 ## Data Model
 
-- `users.passwordHash`.
+- `users.passwordHash`, `users.lastPasswordChange`.
 
 ## Rủi ro
 
-- `newPassword == currentPassword` → spec nêu `SAME_AS_CURRENT_PASSWORD`; verify khi implement (nếu chưa có, thêm guard).
+- Đã fix: `newPassword == currentPassword` → `SAME_AS_CURRENT_PASSWORD` (400), check sau khi verify currentPassword đúng. Không còn là gap.

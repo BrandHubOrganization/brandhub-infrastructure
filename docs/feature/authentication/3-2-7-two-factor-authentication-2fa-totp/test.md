@@ -2,7 +2,7 @@
 
 | ID | Mô tả | AC | Kết quả mong đợi | Loại | Trạng thái |
 |---|---|---|---|---|---|
-| TC-01 | Setup khi chưa bật 2FA | AC "hiển thị QR" | 200, `qrCodeUrl` dạng `otpauth://totp/...`, KHÔNG có `secretKey` | Happy | Chưa test |
+| TC-01 | Setup khi chưa bật 2FA | AC "hiển thị QR" | 200, `otpAuthUrl` dạng `otpauth://totp/...`, KHÔNG có `secretKey`/`qrCodeUrl` | Happy | Chưa test |
 | TC-02 | Setup khi đã bật | AC "confirm → bật" | 400 `TWO_FA_ALREADY_ENABLED` | Error | Chưa test |
 | TC-03 | Confirm code đúng (sinh từ secret pending) | AC "nhập OTP confirm" | 200, `twoFactorEnabled=true` trong DB | Happy | Chưa test |
 | TC-04 | Confirm code sai | Error "mã confirm sai" | 400 `TWO_FA_CODE_INVALID`, 2FA vẫn tắt | Error | Chưa test |
@@ -19,3 +19,6 @@
 | TC-15 | Verify khi user tắt 2FA giữa chừng | — | 400 `TWO_FA_NOT_ENABLED` | Edge | Chưa test |
 | TC-16 | Verify user suspended/deactivated | — | 403 `ACCOUNT_SUSPENDED` / `ACCOUNT_DEACTIVATED` | Error | Chưa test |
 | TC-17 | Confirm khi pending secret hết hạn (>10 phút) | — | 400 `TWO_FA_NOT_ENABLED` | Edge | Chưa test |
+| TC-18 | BR-86: 5 lần confirm code sai liên tiếp trong 10 phút | Error "quá nhiều lần sai" | Lần 1-4: 400 `TWO_FA_CODE_INVALID`; lần 5: 429 `TWO_FA_TOO_MANY_ATTEMPTS`, counter reset | Error | Chưa test |
+| TC-19 | BR-86: verify (login-2FA) sai 5 lần trong 10 phút | Error "quá nhiều lần sai" | Lần 5: 429 `TWO_FA_TOO_MANY_ATTEMPTS` | Error | Chưa test |
+| TC-20 | BR-86: code đúng sau vài lần sai (chưa tới 5) | — | 200, counter Redis `2fa:attempt:{userId}` bị xóa | Happy | Chưa test |
