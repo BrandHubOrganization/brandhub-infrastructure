@@ -401,10 +401,9 @@ entity "tasks" as tasks <<MongoDB, NEW V2>> {
   * _id : ObjectId <<PK>>
   --
   * workspaceId : string
-  * sourceType : task_source_type
-  sourceRefId : string
+  campaignId : string <<nullable for Content Request Task>>
   * type : task_type
-  * title : string
+  * name : string
   description : string
   assigneeId : string
   qcAssigneeId : string
@@ -417,7 +416,7 @@ entity "tasks" as tasks <<MongoDB, NEW V2>> {
 }
 note right of tasks
   THAY posts V1 — generic 3 loại: post/livestream/survey
-  sourceType: campaign | content_request | manual
+  campaignId NULL khi Task sinh từ Content Request
 end note
 
 entity "task_approvals" as task_approvals <<MongoDB, NEW V2>> {

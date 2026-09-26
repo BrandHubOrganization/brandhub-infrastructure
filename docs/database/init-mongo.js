@@ -137,6 +137,36 @@ db.createCollection('content_requests', {
   validationAction: 'warn',
 });
 
+// tasks (V2) — one generic collection for post, livestream, and survey work.
+// A task created from a Content Request has campaignId = null.
+db.createCollection('tasks', {
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: [
+        'workspaceId', 'type', 'name', 'status', 'requiresClientApproval',
+        'typeMetadata', 'createdAt', 'updatedAt',
+      ],
+      properties: {
+        workspaceId:            { bsonType: 'string' },
+        campaignId:             { bsonType: ['string', 'null'] },
+        type:                   { enum: ['POST', 'LIVESTREAM', 'SURVEY'] },
+        name:                   { bsonType: 'string' },
+        dueDate:                { bsonType: 'date' },
+        status:                 { enum: ['BACKLOG', 'DETAIL_IDENTIFIED', 'ASSIGNED', 'IN_PROGRESS', 'QC_REVIEW', 'MANAGER_REVIEW', 'CLIENT_REVIEW', 'COMPLETED'] },
+        assigneeId:             { bsonType: ['string', 'null'] },
+        qcAssigneeId:           { bsonType: ['string', 'null'] },
+        requiresClientApproval: { bsonType: 'bool' },
+        description:            { bsonType: ['string', 'null'] },
+        typeMetadata:           { bsonType: 'object' },
+        createdAt:              { bsonType: 'date' },
+        updatedAt:              { bsonType: 'date' },
+      },
+    },
+  },
+  validationAction: 'error',
+});
+
 // knowledge_documents (ai-service)
 db.createCollection('knowledge_documents', {
   validator: {
@@ -270,6 +300,12 @@ db.content_requests.createIndex({ workspace_id: 1, status: 1 }, { name: 'idx_con
 db.content_requests.createIndex({ workspace_id: 1, client_id: 1 }, { name: 'idx_content_requests_ws_client_id' });
 db.content_requests.createIndex({ workspace_id: 1, assigned_to: 1 }, { name: 'idx_content_requests_ws_assigned_to' });
 
+// tasks (V2) — every access is scoped by workspaceId.
+db.tasks.createIndex({ workspaceId: 1, status: 1 }, { name: 'idx_tasks_workspace_status' });
+db.tasks.createIndex({ workspaceId: 1, assigneeId: 1 }, { name: 'idx_tasks_workspace_assignee' });
+db.tasks.createIndex({ workspaceId: 1, type: 1 }, { name: 'idx_tasks_workspace_type' });
+db.tasks.createIndex({ workspaceId: 1, campaignId: 1 }, { name: 'idx_tasks_workspace_campaign' });
+
 // knowledge_documents
 db.knowledge_documents.createIndex({ workspace_id: 1 }, { name: 'idx_knowledge_docs_workspace_id' });
 db.knowledge_documents.createIndex({ workspace_id: 1, client_id: 1 }, { name: 'idx_knowledge_docs_ws_client_id' });
@@ -293,4 +329,4 @@ db.ai_usage_logs.createIndex({ created_at: -1 }, { name: 'idx_ai_usage_created_a
 // report_jobs
 db.report_jobs.createIndex({ workspace_id: 1, status: 1 }, { name: 'idx_report_jobs_ws_status' });
 
-print('✅ BrandHub MongoDB initialized: 12 collections, all indexes created.');
+print('✅ BrandHub MongoDB initialized: 13 collections, all indexes created.');
