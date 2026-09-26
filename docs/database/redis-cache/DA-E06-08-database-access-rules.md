@@ -96,7 +96,7 @@ Workspace B (Agency Sunrise) — client_profile_id=X CÓ THỂ xuất hiện l�
 
 | Collection | Field liên kết Client | Ghi chú |
 |---|---|---|
-| `tasks` | — (không trực tiếp) | Task không có field Client trực tiếp — CLIENT chỉ thấy Task ở bước `CLIENT_REVIEW` mà `sourceRefId` (Campaign) thuộc `workspace_media_package` mà họ tham gia đàm phán, HOẶC Task sinh từ `content_requests.createdByClientProfileId` của chính họ |
+| `tasks` | — (không trực tiếp) | Task không có field Client trực tiếp — CLIENT chỉ thấy Task ở bước `CLIENT_REVIEW` mà `campaignId` thuộc `workspace_media_package` họ tham gia đàm phán, HOẶC Task sinh từ Content Request của chính họ |
 | `content_requests` | `createdByClientProfileId` | CLIENT chỉ thấy Content Request do chính mình tạo |
 | `posts` | — (không trực tiếp) | Filter qua `task.workspaceId`, CLIENT chỉ xem Post publish trong Workspace mình tham gia — không cần filter theo profile vì Post là kết quả công khai của Campaign |
 | `notifications` | `userId` | Filter `userId = ctx.userId()` — Client phải có `linked_user_id` set (đã tự đăng ký) mới nhận notification |
