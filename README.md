@@ -2,6 +2,8 @@
 
 Docker Compose stack, database initialization scripts, Dockerfiles, and environment templates for BrandHub.
 
+The monitoring worker is maintained in the separate `brandhub-monitoring` repository. Run its Compose configuration from that repository; it can share an existing Linux host and `brandhub-network` with the application stack. Monitoring SQL migrations and system-health specifications remain in this repository.
+
 ## Overview
 
 All infrastructure-as-code for running the full BrandHub platform locally or in a self-hosted environment.

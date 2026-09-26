@@ -25,3 +25,6 @@ Flow cũ KHÔNG chạy vì `GoogleOAuthService.fetchProfile()` gửi token-excha
 
 - State reuse/replay → state dùng 1 lần, xóa sau khi verify.
 - Email trùng account password → merge (không tạo account riêng).
+
+## Completion implementation
+Add configurable Google redirect URI, public gateway/security callback alias, safe error redirects, atomic state consumption and verified email validation. Frontend consumes and clears the fragment, loads the profile, and clears stale authentication on failure. Update auth locale files in vi/en. Test HTTP callback behavior, provider URL and frontend success/error flows. Verify remote history without rewriting unrelated commits.
