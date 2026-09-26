@@ -37,7 +37,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- ============================================================
 
 DO $$ BEGIN
-    CREATE TYPE user_status AS ENUM ('ACTIVE', 'SUSPENDED', 'DELETED');
+    CREATE TYPE user_status AS ENUM ('ACTIVE', 'SUSPENDED', 'DELETED', 'DEACTIVATED');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
