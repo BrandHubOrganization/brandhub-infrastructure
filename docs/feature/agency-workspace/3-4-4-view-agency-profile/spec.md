@@ -1,56 +1,57 @@
-# UC — View Agency Profile
+# 3.4.4 View Agency Profile
 
-| | |
-|---|---|
-| FR Code | 3.4.4 |
-| Feature | View Agency Profile |
-| Domain | Agency & Workspace (FR 3.4) |
-| Role | OWNER |
-| Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+## Function Trigger
+A signed-in user opens the profile of an Agency they belong to — either as its Owner or as one of its Members. The profile is also shown straight after selecting an Agency from the Agency list (3.4.1).
 
-## 1. Objective
+## Function Description
+- **Actors / Roles:** Agency Owner or Agency Member (any member role).
+- **Purpose:** Show the branding and company information of an Agency to the people who work in it, so they know which company they represent.
+- **Interface:** Agency Profile page (`/agencies/:agencyId/profile`) — the branding section of the Agency with name, logo, description, category, company size, contact details, brand colour, logo icon, tagline, founded year and the social links. There is no separate profile data source; the page reads the same Agency profile used elsewhere.
+- **Data Processing:** The system loads the Agency by its identifier and then checks the caller: the caller must be the Owner of that Agency or hold an Agency Member record in it. When the caller is neither, the request is refused. The system then returns the branding and company information of the Agency.
 
-Hiển thị Profile công khai của Agency — thông tin để Client hiểu về Agency trước khi hợp tác.
+## Screen Layout
+Figure — Agency Profile page:
+- Header with name, logo, tagline and brand colour.
+- Company information: description, category, company size, website, phone, location, founded year (rendered as years in business, counted from the current year).
+- Social links: Facebook, LinkedIn, Instagram.
+- No Workspace list and no Member list are shown here — this screen carries company information only.
 
-## 2. User Story
+## Function Details
+### Data Specifications
+- **Input required:** The Agency identifier (`agencyId`) and a signed-in session.
+- **Input optional:** None.
+- **System data:** Agency profile — name, logoUrl, description, category (AgencyCategory), companySize (CompanySize), website, phone, location, brandColor, logoIcon, tagline, foundedYear, facebookUrl, linkedinUrl, instagramUrl, plus id, ownerId, status (EntityStatus: ACTIVE / SOFT_DELETED), createdAt and updatedAt (full field list at 3.4.1). The Agency Member records of the caller are used for the access check.
+- **Output:** The profile of the Agency, restricted to branding and company information. No internal data such as Workspace or Member lists is returned.
 
-Là một Owner (hoặc Client được chia sẻ),
-tôi muốn xem Profile công khai của Agency,
-để hiểu rõ thông tin công ty đại diện.
+### Business Rules
+- **BR-29 (analogous):** Multi-tenancy — only the Owner of the Agency, or a user holding an Agency Member record in it, may view the profile, mirroring the workspace-scoped access rule (BR-29). Any other signed-in user is refused with `400 NOT_AGENCY_MEMBER`.
+- The Owner always has access, even when no Agency Member record exists for them; the Owner check stands on its own.
+- Every member role may view the profile — role does not narrow access.
+- The profile is not public. A user must be signed in and belong to the Agency; an outside party cannot preview an Agency profile.
+- This screen differs from the Agency Dashboard (3.4.2): the profile carries branding and company information, while the dashboard carries management figures.
+- The profile response holds no internal detail beyond branding and company information.
 
-## 3. Acceptance Criteria
+### Validation
+- No signed-in session, or an invalid one → `401 UNAUTHORIZED`, refused before the Agency logic runs.
+- Agency does not exist → Display: MSG38
+- Caller is neither the Owner nor a Member of the Agency → Display: MSG39
+- Agency already soft-deleted → the record is still returned, so the Owner and Members can still view the profile. See 3.4.6 for the removal behaviour.
 
-- Hiển thị: `name`, `logo`, `description`, số năm hoạt động, các case study/portfolio (nếu có mở rộng sau).
-- Trang này khác Agency Dashboard (FR 3.4.2) — Dashboard là nội bộ (số liệu quản lý), Profile là công khai/giới thiệu.
+## Functionalities
+### Normal Flow
+1. The user opens the profile of an Agency.
+2. The client requests the Agency profile with the signed-in session.
+3. The system confirms the session, then loads the Agency by its identifier.
+4. The system confirms that the caller is the Owner of the Agency or holds an Agency Member record in it.
+5. The system returns the branding and company information of the Agency.
+6. The client renders the profile, including the years in business counted from the founded year.
 
-## 4. UI / UX
+### Abnormal Cases
+- 2.a1: No signed-in session, or an invalid one → `401 UNAUTHORIZED`, toast MSG22. 2.a2: The user signs in again and retries.
+- 3.a1: Agency does not exist → `404 AGENCY_NOT_FOUND`, toast MSG38. 3.a2: The user returns to the Agency list.
+- 4.a1: Caller belongs to no part of the Agency → `400 NOT_AGENCY_MEMBER`, toast MSG39; no profile data returned. 4.a2: The user returns to the Agency list and opens an Agency they belong to.
+- 4.b1: Agency already soft-deleted → the profile is still returned to the Owner and Members; no error, no toast. 4.b2: Removal does not revoke viewing at this point; the user continues viewing normally.
 
-- Trang `/agencies/:id/profile` — có thể public (không cần login) nếu dùng làm trang giới thiệu cho Client tương lai xem trước khi ký hợp đồng.
-
-## 5. API Contract (đề xuất, cần xác nhận khi thiết kế kỹ thuật)
-
-```
-GET /api/v1/agencies/{id}/profile
-→ 200 { "success": true, "data": { "id", "name", "logoUrl", "description" } }
-```
-
-## 6. Error Handling
-
-- Agency không tồn tại → 404 `AGENCY_NOT_FOUND`.
-
-## 7. Edge Cases
-
-- Nếu cho phép public view (không login) → cần đảm bảo không lộ thông tin nội bộ (danh sách Workspace, Member) qua endpoint này.
-
-## 8. Definition of Done
-
-- Profile hiển thị đúng thông tin công khai, không lộ thông tin nội bộ.
-
-## Out of Scope
-
-- Portfolio/case study đầy đủ (mở rộng sau, CSV chỉ yêu cầu thông tin cơ bản).
-
-## Tham chiếu BA
-
-[01-organization-structure.md](../../../BA/01-organization-structure.md), [03-agency-workspace-management.md](../../../BA/03-agency-workspace-management.md)
+## Post-Conditions
+- No Agency data is created, changed or removed.
+- The profile shows correct company information and exposes no internal information.

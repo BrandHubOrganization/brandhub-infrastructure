@@ -4,7 +4,7 @@
 
 ```powershell
 docker run --rm -it `
-  --mount "type=bind,source=D:\capstone\brandhub\brandhub-infrastructure\scripts,target=/scripts,readonly" `
+  --mount "type=bind,source=D:\capstone\brandhub\brandhub-infrastructure\docs\database,target=/scripts,readonly" `
   mongo:7 mongosh `
   "mongodb+srv://brandhub.dupoa3v.mongodb.net/?appName=brandhub" `
   --username brandhub-mongo `

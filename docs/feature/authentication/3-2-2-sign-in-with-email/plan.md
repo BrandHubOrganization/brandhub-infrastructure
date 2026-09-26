@@ -13,15 +13,15 @@ Spec đề xuất login trả `{accessToken, refreshToken, require2FA}` **cùng 
 
 ## Kỹ thuật
 
-- `AuthServiceImpl.login()`: chuẩn hóa email → `checkStatus(user)` (DEACTIVATED → 403 `ACCOUNT_DEACTIVATED`, SUSPENDED → `INVALID_CREDENTIALS`) → verify password → 2FA bật? → trả `LoginResponse.twoFactorChallenge(twoFactorToken)` : `completeLogin(user, role)`.
+- `AuthServiceImpl.login()`: `resolveByIdentifier(identifier)` → `checkStatus(user)` (DEACTIVATED → 403 `ACCOUNT_DEACTIVATED`, không active/status khác → 403 `ACCOUNT_SUSPENDED`) → verify password → 2FA bật? → trả `LoginResponse.twoFactorChallenge(twoFactorToken)` : `completeLogin(user, role)`.
 - `JwtUtil.generateTwoFactorToken(userId)` — JWT ngắn hạn 5 phút, claim `type=2fa`.
 - `completeLogin()` — phát access + refresh, blacklist cũ, audit log.
 
 ## Luồng
 
-1. Validate + chuẩn hóa email → check tồn tại.
-2. Verify password (bcrypt) → sai → 401 `INVALID_CREDENTIALS` (không tiết lộ).
-3. `checkStatus` → DEACTIVATED → 403; SUSPENDED/other → 401.
+1. Validate `identifier` (email/phone) + chuẩn hóa → check tồn tại → không thấy → 401 `INVALID_CREDENTIALS`.
+2. `checkStatus` → DEACTIVATED → 403 `ACCOUNT_DEACTIVATED`; không active/status khác → 403 `ACCOUNT_SUSPENDED`.
+3. Verify password (bcrypt), hoặc `passwordHash=null` (OAuth-only) → sai → 401 `INVALID_CREDENTIALS` (không tiết lộ).
 4. `twoFactorEnabled` → challenge : completeLogin.
 
 ## Rủi ro
