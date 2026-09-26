@@ -434,16 +434,22 @@ CREATE TABLE IF NOT EXISTS media_packages (
     id                 UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
     name               VARCHAR(255) NOT NULL,
     is_template        BOOLEAN      NOT NULL DEFAULT FALSE,
+    agency_id          UUID         REFERENCES agencies(id) ON DELETE RESTRICT,
     package_type       package_type NOT NULL,
     duration_weeks     INT,
     budget_amount      DECIMAL(14,2),
     scope_description  TEXT,
     created_by         UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     created_at         TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-    updated_at         TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    updated_at         TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    CONSTRAINT chk_media_packages_template_agency_scope CHECK (
+        (is_template AND agency_id IS NULL)
+        OR (NOT is_template AND agency_id IS NOT NULL)
+    )
 );
 
 CREATE INDEX IF NOT EXISTS idx_media_packages_is_template ON media_packages(is_template);
+CREATE INDEX IF NOT EXISTS idx_media_packages_agency_id ON media_packages(agency_id);
 
 DROP TRIGGER IF EXISTS trg_media_packages_updated_at ON media_packages;
 CREATE TRIGGER trg_media_packages_updated_at
