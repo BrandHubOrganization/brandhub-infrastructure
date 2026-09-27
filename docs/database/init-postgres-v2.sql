@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS users (
     professional_title VARCHAR(255),
     bio            TEXT,
     portfolio_urls JSONB        NOT NULL DEFAULT '[]',
-    working_language VARCHAR(10),
+    working_language VARCHAR(50),
     status         user_status  NOT NULL DEFAULT 'ACTIVE',
     is_active      BOOLEAN      NOT NULL DEFAULT TRUE,
     last_banned_at TIMESTAMPTZ,
