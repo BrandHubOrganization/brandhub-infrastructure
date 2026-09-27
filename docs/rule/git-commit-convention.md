@@ -8,18 +8,30 @@
 ## 1. Cấu trúc Commit Message
 
 ```
-<type>(DA-<id>): <mô tả ngắn>
+<type>(DA-<id>): <short description>
 
 [body - tuỳ chọn]
 ```
 
+> 🔴 **BẮT BUỘC: Commit message phải viết bằng TIẾNG ANH.**
+>
+> Toàn bộ `type`, mô tả (subject) và body đều dùng tiếng Anh — kể cả khi
+> trao đổi, comment code hay tài liệu nội bộ đang dùng tiếng Việt.
+> Lý do: commit là dữ liệu dùng chung của repo, hiển thị trên GitHub/Jira
+> cho mọi thành viên và mọi công cụ (CI, changelog generator, `git log`
+> search). Trộn nhiều ngôn ngữ làm log khó tra cứu và không generate
+> changelog tự động được.
+>
+> Sai: `feat(DA-47): sửa lỗi responsive màn hình mobile`
+> Đúng: `feat(DA-47): fix responsive layout on mobile screens`
+
 ### Ví dụ hợp lệ
 
 ```
-feat(DA-47): hoàn thiện schema bảng Users và Brands
-fix(DA-58): sửa lỗi responsive trên màn hình mobile
-docs(DA-2): cập nhật README hướng dẫn cài đặt môi trường
-refactor(DA-87): tách API route auth thành module riêng
+feat(DA-47): complete Users and Brands table schema
+fix(DA-58): fix responsive layout on mobile screens
+docs(DA-2): update README with environment setup guide
+refactor(DA-87): extract auth API routes into a separate module
 ```
 
 ### Ví dụ KHÔNG hợp lệ (Jira sẽ không nhận diện được)
@@ -29,6 +41,7 @@ update code
 fix bug
 DA47 done          ← thiếu dấu gạch ngang: phải là DA-47
 feat: add login    ← thiếu mã task
+feat(DA-47): sửa lỗi responsive   ← không phải tiếng Anh
 ```
 
 ---
@@ -76,8 +89,10 @@ chore/DA-90-cicd-pipeline-setup
 
 ```
 [DA-87] Implement API Design & Swagger Spec
-[DA-58] UI/UX Wireframe — màn hình Dashboard và Profile
+[DA-58] UI/UX Wireframe — Dashboard and Profile screens
 ```
+
+> Tiêu đề PR cũng viết bằng tiếng Anh, cùng lý do với commit message (mục 1).
 
 ---
 
@@ -139,15 +154,15 @@ Commit thường xuyên, mỗi commit là một đơn vị công việc có ngh�
 ```bash
 # Sau khi tạo xong file schema
 git add src/models/user.model.ts
-git commit -m "feat(DA-47): tạo schema bảng Users với các trường cơ bản"
+git commit -m "feat(DA-47): create Users table schema with base fields"
 
 # Sau khi thêm validation
 git add src/models/user.model.ts
-git commit -m "feat(DA-47): thêm validation email và password cho schema Users"
+git commit -m "feat(DA-47): add email and password validation for Users schema"
 
 # Sau khi viết unit test
 git add src/models/__tests__/user.model.test.ts
-git commit -m "test(DA-47): viết unit test cho User schema"
+git commit -m "test(DA-47): add unit tests for User schema"
 ```
 
 > **Không** dồn tất cả vào 1 commit lớn cuối ngày — khó review, khó rollback.
@@ -171,7 +186,7 @@ Sau bước này, Jira đã nhận diện được branch và gán vào task `DA
 ### Bước 6 — Tạo Pull Request và tự merge
 
 1. Vào GitHub → **Compare & pull request**
-2. Đặt tiêu đề PR theo chuẩn: `feat(DA-47): mô tả ngắn gọn`
+2. Đặt tiêu đề PR theo chuẩn: `feat(DA-47): short description`
 3. Điền mô tả theo template:
 
 ```
@@ -195,7 +210,7 @@ Jira: DA-47
 - [ ] Tính năng hoạt động đúng yêu cầu kỹ thuật
 - [ ] Đã xóa hoặc cập nhật dòng TODO tương ứng trong file `README.md` (nếu có)
 - [ ] Đã viết Unit Test / Integration Test (nếu có logic nghiệp vụ)
-- [ ] Pull Request đặt tên theo chuẩn: `feat(DA-47): mô tả ngắn gọn (#số_PR)`
+- [ ] Pull Request đặt tên theo chuẩn: `feat(DA-47): short description (#PR_number)`
 - [ ] Không có `console.log` thừa
 - [ ] Code không có lỗi lint/build
 - [ ] Không có conflict chưa giải quyết
@@ -210,7 +225,7 @@ Jira: DA-47
 6. GitHub sẽ tạo 1 commit duy nhất — **chỉnh tiêu đề squash commit** theo chuẩn:
 
 ```
-feat(DA-47): mô tả ngắn gọn (#số_PR)
+feat(DA-47): short description (#PR_number)
 ```
 
 > Dùng **Squash and merge** để giữ history `develop` gọn — tránh hàng chục commit nhỏ lẫn lộn.
@@ -249,6 +264,7 @@ Jira: kéo task → In Review → chờ duyệt → Done
 - Một commit có thể gán nhiều task: `feat(DA-47)(DA-58): ...` — Jira nhận cả hai.
 - Commit không có mã task vẫn hợp lệ cho Git, nhưng **không sync được vào Jira**.
 - Merge commit tự động (`Merge pull request #xx`) không cần mã task.
+- **Ngôn ngữ commit/PR là tiếng Anh** — xem mục 1. Áp dụng cho cả squash commit title khi merge (mục 6, bước 6).
 
 ---
 
@@ -263,3 +279,4 @@ Jira: kéo task → In Review → chờ duyệt → Done
 | **Không force push** | Không dùng `git push --force` lên branch đã có PR open |
 | **Squash commit phải có mã DA** | Khi confirm squash merge, đảm bảo tiêu đề chứa `DA-xx` |
 | **Không commit file nhạy cảm** | `.env`, `*.key`, `credentials.*` — thêm vào `.gitignore` trước khi commit |
+| **Commit message bằng tiếng Anh** | Subject + body + PR title dùng tiếng Anh, không dùng tiếng Việt (xem mục 1) |
