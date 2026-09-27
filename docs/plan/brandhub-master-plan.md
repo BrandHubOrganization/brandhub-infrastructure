@@ -748,6 +748,27 @@
 | [DA-AI11-05](#da-ai11-05-record-ai-feature-demo-video-showcase-all-7-ai-features-working-end-to-end)              | Record AI feature demo video (showcase all 7 AI features working in practice)                                         | All (Team)        | 🔴 Critical |
 | [DA-AI11-06](#da-ai11-06-present-ai-results-to-mentor-live-demo-qa-collect-feedback-for-final-report)             | Present AI results to mentor (live demo + Q&A, collect feedback)                                                      | All (Team)        | 🔴 Critical |
 
+### EPIC AI-12 — AI Livestream Script Generation (FR 3.7.11)
+
+| Task ID | Description | Assignee | Priority |
+| :--- | :--- | :--- | :--- |
+| [DA-AI12-01](#da-ai12-01--prompt-engineering--timeline-mathematics-post-processor-for-livestream-script) | Prompt Engineering & Timeline Mathematics Post-processor for Livestream Script | Ân (AI) | 🔴 Critical |
+| [DA-AI12-02](#da-ai12-02--pydantic-schemas--fastapi-endpoints-for-livestream-script-generation--regeneration) | Pydantic Schemas & FastAPI Endpoints for Livestream Script Generation & Regeneration | Lộc (AI Sub-lead) | 🔴 Critical |
+| [DA-AI12-03](#da-ai12-03--business-service-livestream-script-orchestration--task-content-version-integration) | Business Service Livestream Script Orchestration & Task Content Version Integration (FR 3.6.23) | Trung (Leader) | 🔴 Critical |
+| [DA-AI12-04](#da-ai12-04--livestream-script-studio--interactive-timeline-segment-editor-ui) | Livestream Script Studio & Interactive Timeline Segment Editor UI | Phước (Publisher) | 🟡 High |
+| [DA-AI12-05](#da-ai12-05--anti-hallucination-evaluation--empirical-benchmark-for-livestream-script) | Anti-Hallucination Evaluation & Empirical Benchmark for Livestream Script (Product & Deal Integrity) | Tuấn (AI) | 🟡 High |
+
+### EPIC AI-13 — AI Collaborator & Media Partner Recommendation (FR 3.7.12)
+
+| Task ID | Description | Assignee | Priority |
+| :--- | :--- | :--- | :--- |
+| [DA-AI13-01](#da-ai13-01--system-collaborator-catalog-schema--vietnam-media-seed-dataset) | System Collaborator Catalog Schema & Vietnam Media Seed Dataset (Tier 1-3, Benchmarks) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI13-02](#da-ai13-02--hybrid-budget-gated-collaborator-ranking-algorithm--no-match-diagnostic-engine) | Hybrid Budget-Gated Collaborator Ranking Algorithm & No-Match Diagnostic Engine | Ân (AI) | 🔴 Critical |
+| [DA-AI13-03](#da-ai13-03--pydantic-schemas--fastapi-collaborator-recommendation-endpoints) | Pydantic Schemas & FastAPI Collaborator Recommendation Endpoints (POST /ai/collaborator/recommend) | Lộc (AI Sub-lead) | 🔴 Critical |
+| [DA-AI13-04](#da-ai13-04--business-service-collaborator-orchestration--dual-branch-linking) | Business Service Collaborator Orchestration & Dual-Branch Linking (Agency vs Campaign) | Lộc (AI Sub-lead) | 🔴 Critical |
+| [DA-AI13-05](#da-ai13-05--campaign-collaborator-recommendation-screen--tiered-partner-cards-ui) | Campaign Collaborator Recommendation Screen & Tiered Partner Cards UI | Phước (Publisher) | 🟡 High |
+| [DA-AI13-06](#da-ai13-06--collaborator-recommendation-quality-evaluation--no-match-benchmarking) | Collaborator Recommendation Quality Evaluation & No-Match Scenario Benchmarking | Tuấn (AI) | 🟡 High |
+
 ---
 
 ## PHASE 5 — Content Workflow & Publishing
@@ -9248,6 +9269,278 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 - [ ] Presentation deck includes: architecture diagram, benchmark results summary, cost analysis table, sample outputs gallery
 
 **Dependencies:** Blocks: None. Blocked by: DA-AI11-05.
+
+---
+
+### DA-AI12-01 — Prompt Engineering & Timeline Mathematics Post-processor for Livestream Script
+
+**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng hệ thống prompt Jinja2 chuyên biệt cho LLM (Llama 3.3 70B / Claude 3.5 Sonnet / Gemini 1.5 Pro) và bộ lọc toán học hậu xử lý (Timeline Mathematics Post-processor) để sinh kịch bản livestream có cấu trúc 4 giai đoạn chuẩn (Intro/Hook → Product Pitch & Deal → Minigame/Q&A → Closing/Recap) theo định dạng JSON Schema nghiêm ngặt.
+
+**Acceptance Criteria:**
+
+- [ ] Xây dựng prompt template tiếp nhận form đầu vào: `topic`, `goal`, `targetAudience`, `durationMinutes` (15, 30, 45, 60), `platform`, `products` (danh sách SKU, giá gốc, giá deal), `offers`, `tone` và `hostStyleNotes`.
+- [ ] Ép buộc system prompt chống ảo giác: Chỉ sử dụng thông tin sản phẩm và ưu đãi được cung cấp trong prompt; tuyệt đối không tự bịa đặt chương trình khuyến mãi, voucher hoặc giá bán.
+- [ ] Bộ hậu xử lý toán học `TimelineValidator`:
+  - Đảm bảo `segments[0].startSecond == 0`.
+  - Đảm bảo các phân đoạn liên tục tuyệt đối: `segments[i].startSecond == segments[i-1].endSecond`.
+  - Đảm bảo tổng thời lượng các phân đoạn khớp chính xác 100% với `durationMinutes * 60`.
+  - Tự động chuẩn hóa chuỗi hiển thị thời gian `timeDisplay` dạng `MM:SS - MM:SS`.
+- [ ] Hỗ trợ sinh đầy đủ 4 trường nội dung trong mỗi phân đoạn: `sectionTitle`, `hostScript` (lời thoại MC), `visualCues` (hướng dẫn góc máy/thao tác giơ sản phẩm), `interactionCue` (kêu gọi thả tim/comment cú pháp).
+
+**Technical Notes:**
+
+- Location: `brandhub-ai-service/app/services/prompt/livestream_prompt_builder.py` và `app/services/validators/timeline_validator.py`.
+- Form schema đồng bộ với Mục 2.8 của `docs/plan/ai-features-spec-alignment-plan.md`.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-11-generate-livestream-script/spec.md`
+
+**Dependencies:** Blocks: [DA-AI12-02]. Blocked by: [DA-AI04-01].
+
+---
+
+### DA-AI12-02 — Pydantic Schemas & FastAPI Endpoints for Livestream Script Generation & Regeneration
+
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Phát triển các REST API endpoints trong `brandhub-ai-service` phục vụ sinh mới kịch bản livestream và tạo lại kịch bản dựa trên phản hồi góp ý của Creator (Regenerate with Feedback).
+
+**Acceptance Criteria:**
+
+- [ ] Khai báo Pydantic schemas: `GenerateLivestreamScriptRequest`, `RegenerateLivestreamScriptRequest`, `LivestreamScriptResponseDto`.
+- [ ] Endpoint `POST /api/v1/ai/content/livestream-script/generate` tiếp nhận request, gọi pipeline prompt, kiểm tra timeline và trả về kịch bản hoàn chỉnh kèm metadata `totalDurationMinutes`, `segments[]`.
+- [ ] Endpoint `POST /api/v1/ai/content/livestream-script/regenerate` nhận kịch bản trước đó kèm `userFeedback` (ví dụ: "tăng thời lượng minigame", "nói nhiều hơn về chất kem"), bảo toàn brand grounding và sinh phiên bản tinh chỉnh.
+- [ ] Tích hợp cơ chế Fallback Circuit Breaker: nếu Groq Llama 3.3 gặp lỗi hoặc quá tải (429/503), tự động failover sang Claude API / Gemini API.
+
+**Technical Notes:**
+
+- Location: `brandhub-ai-service/app/api/v1/endpoints/livestream.py`.
+- Response latency mục tiêu: P95 < 12s cho kịch bản 30-60 phút.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-11-generate-livestream-script/spec.md`
+
+**Dependencies:** Blocks: [DA-AI12-03]. Blocked by: [DA-AI12-01].
+
+---
+
+### DA-AI12-03 — Business Service Livestream Script Orchestration & Task Content Version Integration
+
+**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
+
+**Goal:** Hiện thực hóa luồng điều phối nghiệp vụ tại `brandhub-business-service`: quản lý hạn ngạch tín dụng AI Credit (10 credits/lần), ủy quyền truy cập Workspace/Task, và cơ chế "Apply to Task" lưu kết quả vào Task dưới dạng `ContentVersion` mới (FR 3.6.23) mà không ghi đè ngầm dữ liệu đang có.
+
+**Acceptance Criteria:**
+
+- [ ] Endpoint `POST /api/v1/workspaces/{workspaceId}/ai/livestream-scripts/generate`:
+  - Kiểm tra quyền thành viên Workspace (role `CREATOR`, `MANAGER`, `OWNER`).
+  - Reserve nguyên tử 10 AI credits từ `AiCreditLedger` (theo Agency của user).
+  - Gọi internal endpoint của `brandhub-ai-service`.
+  - Nếu sinh thành công: Settle 10 credits. Nếu lỗi/timeout: Release quota hoàn toàn.
+- [ ] Endpoint `POST /api/v1/workspaces/{workspaceId}/ai/livestream-scripts/{scriptId}/apply-to-task`:
+  - Tiếp nhận `taskId` và chiến lược ghi đè `overwriteStrategy` (`NEW_VERSION` hoặc `OVERWRITE_CURRENT`).
+  - Mặc định lưu thành một bản ghi `ContentVersion` mới thuộc Task tương ứng (liên kết trực tiếp với FR 3.6.23 Write Livestream Script), bảo toàn lịch sử biên tập cũ.
+
+**Technical Notes:**
+
+- Location: `brandhub-business-service/src/main/java/com/brandhub/service/ai/LivestreamScriptService.java` và `TaskController.java`.
+- Áp dụng nguyên tắc idempotency: Retry cùng mã request ID không bị trừ phí credit lần 2.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-11-generate-livestream-script/spec.md`, `docs/feature/content-task-workflow/3-6-23-write-livestream-script/spec.md`
+
+**Dependencies:** Blocks: [DA-AI12-04]. Blocked by: [DA-AI12-02, DA-E17-07, DA-E51-01].
+
+---
+
+### DA-AI12-04 — Livestream Script Studio & Interactive Timeline Segment Editor UI
+
+**Assignee:** Phước (Publisher) | **Priority:** 🟡 High
+
+**Goal:** Xây dựng giao diện Studio sinh kịch bản Livestream trực quan trên Web Dashboard, tích hợp form cấu hình thông minh và bảng điều khiển Timeline Segment cho phép xem trước, nghe đọc thử kịch bản, chỉnh sửa nhanh và áp dụng vào Task.
+
+**Acceptance Criteria:**
+
+- [ ] Form nhập liệu Livestream: Input Topic có nút "Load from Task Idea (FR 3.6.22)", chip chọn mục tiêu (Sales, Brand Awareness, Launch...), radio chọn thời lượng (15, 30, 45, 60m), danh sách repeater SKU sản phẩm và ô nhập ưu đãi.
+- [ ] Trình hiển thị Timeline Segment tương tác: Phân chia 4 thẻ màu rõ ràng (Intro tím, Deal xanh lá, Minigame cam, Closing xanh dương). Mỗi thẻ hiển thị badge thời gian, lời thoại MC, hướng dẫn trực quan (visual cues) và tương tác khán giả.
+- [ ] Thanh hành động dưới chân trang: Nút "Regenerate with Feedback" mở Drawer nhập yêu cầu tinh chỉnh, nút "Download (.TXT/.PDF)", và nút nổi bật "Apply to Task Script (FR 3.6.23)" kích hoạt modal xác nhận version.
+
+**Technical Notes:**
+
+- Location: `brandhub-web/src/pages/ai/livestream/LivestreamScriptPage.tsx` và `components/ai/timeline/TimelineSegmentCard.tsx`.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-11-generate-livestream-script/spec.md`
+
+**Dependencies:** Blocks: [DA-AI12-05]. Blocked by: [DA-AI12-03].
+
+---
+
+### DA-AI12-05 — Anti-Hallucination Evaluation & Empirical Benchmark for Livestream Script
+
+**Assignee:** Tuấn (AI) | **Priority:** 🟡 High
+
+**Goal:** Kiểm thử đánh giá chống ảo giác trên 20 kịch bản livestream mẫu, đối chiếu tính toàn vẹn của danh sách SKU, mức giá ưu đãi và tính toán thời lượng timeline.
+
+**Acceptance Criteria:**
+
+- [ ] Thực thi bộ test tự động với 20 bộ dữ liệu sản phẩm phức tạp (giá khuyến mãi, điều kiện áp dụng voucher).
+- [ ] Đạt 100% tỷ lệ không bịa đặt sản phẩm, giá bán hoặc chương trình ưu đãi ngoài dữ liệu đầu vào.
+- [ ] Kiểm chứng độ lệch thời lượng: Tổng thời gian các segment khớp 100% với `durationMinutes` yêu cầu (độ lệch 0 giây).
+- [ ] Lập báo cáo Benchmark đánh giá độ trễ sinh kịch bản và chất lượng văn phong theo 7 tone giọng khác nhau.
+
+**Technical Notes:**
+
+- Location: `brandhub-ai-service/tests/benchmarks/test_livestream_anti_hallucination.py`.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-11-generate-livestream-script/spec.md`
+
+**Dependencies:** Blocks: None. Blocked by: [DA-AI12-04].
+
+---
+
+### DA-AI13-01 — System Collaborator Catalog Schema & Vietnam Media Seed Dataset
+
+**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Thiết kế cấu trúc dữ liệu cho danh mục đối tác hệ thống (`system_collaborator_catalog`), chuẩn bị tập dữ liệu hạt giống (seed data) gồm các đơn vị truyền thông uy tín tại Việt Nam (VnExpress, Dân Trí, Kênh 14, Tinh Tế, mạng banner Admicro, OOH), và xây dựng schema định giá tham chiếu theo Tier.
+
+**Acceptance Criteria:**
+
+- [ ] Xây dựng schema lưu trữ đối tác: `catalogCollaboratorId`, `name`, `mediaType` (ONLINE_NEWSPAPER, TECH_PORTAL, BANNER_NETWORK, TV_RADIO, OOH), `targetAudienceTags`, `supportedIndustries`, `reachMetrics`, `benchmarkCostMinVnd`, `benchmarkCostMaxVnd`, `tier` (TIER_1, TIER_2, TIER_3).
+- [ ] Seed dữ liệu chuẩn tối thiểu 20 đối tác truyền thông phổ biến tại Việt Nam kèm bảng giá tham khảo thực tế.
+- [ ] Quy định phân tầng Tier chuẩn hóa: Tier 1 (National/Top Reach), Tier 2 (Targeted/Category Leader), Tier 3 (Niche/Cost-Effective).
+
+**Technical Notes:**
+
+- Location: `brandhub-ai-service/app/data/system_collaborator_catalog.json`.
+- Multi-tenant isolation rule: Tuyệt đối không truy vấn chéo dữ liệu danh bạ nội bộ của Agency khác.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`
+
+**Dependencies:** Blocks: [DA-AI13-02]. Blocked by: [DA-AI02-01].
+
+---
+
+### DA-AI13-02 — Hybrid Budget-Gated Collaborator Ranking Algorithm & No-Match Diagnostic Engine
+
+**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng thuật toán lọc ngân sách và xếp hạng lai (Hybrid Ranking: ngành hàng, đối tượng mục tiêu, điểm phù hợp matchScore 0–100%) kết hợp cơ chế chẩn đoán nguyên nhân No-Match (Zero-Hallucination).
+
+**Acceptance Criteria:**
+
+- [ ] Thuật toán lọc và xếp hạng:
+  - Khớp ngành hàng (`industry`) và đối tượng mục tiêu (`targetAudience`).
+  - Rào chắn ngân sách: Loại trừ các đối tác có chi phí tối thiểu vượt quá ngân sách tối đa (`benchmarkCostMinVnd > maxBudgetVnd`).
+  - Tính điểm độ phù hợp `matchScore` (0–100%) và tự động tổng hợp lý do gợi ý khách quan (`rationale`).
+- [ ] Xử lý kịch bản Không có kết quả phù hợp (No-Match Defense):
+  - Khi ngân sách quá thấp (< min chi phí catalog) hoặc ngành hàng không có đối tác: trả về danh sách rỗng `recommendations: []` kèm mã nguyên nhân `noMatchReason` (`BUDGET_BELOW_MINIMUM`, `UNSUPPORTED_INDUSTRY`, `NO_MATCHING_CRITERIA`) và lời khuyên hướng dẫn `suggestedAdvice`.
+  - Tuyệt đối không để LLM tự bịa đặt tòa soạn, kênh truyền thông ảo hoặc giá giả mạo nhằm lấp đầy danh sách.
+
+**Technical Notes:**
+
+- Location: `brandhub-ai-service/app/services/recommendation/collaborator_engine.py`.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`
+
+**Dependencies:** Blocks: [DA-AI13-03]. Blocked by: [DA-AI13-01].
+
+---
+
+### DA-AI13-03 — Pydantic Schemas & FastAPI Collaborator Recommendation Endpoints
+
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Khai báo Pydantic schemas và xây dựng endpoint `POST /api/v1/ai/collaborators/recommend` trên FastAPI để phục vụ gợi ý đối tác theo ngân sách và tiêu chí chiến dịch.
+
+**Acceptance Criteria:**
+
+- [ ] Định nghĩa Pydantic schema: `RecommendCollaboratorRequest`, `CollaboratorRecommendationResponseDto`.
+- [ ] Endpoint `POST /api/v1/ai/collaborators/recommend` validate chặt chẽ: `minBudgetVnd >= 0`, `maxBudgetVnd >= minBudgetVnd`, danh sách ngành hàng hợp lệ.
+- [ ] Trả về danh sách đối tác được gom nhóm theo phân tầng Tier 1 / Tier 2 / Tier 3 kèm `matchScore`, `estimatedReach`, `rationale` và `benchmarkPackages`.
+- [ ] Đảm bảo response time < 500ms cho các truy vấn xếp hạng từ Catalog.
+
+**Technical Notes:**
+
+- Location: `brandhub-ai-service/app/api/v1/endpoints/collaborator.py`.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`
+
+**Dependencies:** Blocks: [DA-AI13-04]. Blocked by: [DA-AI13-02].
+
+---
+
+### DA-AI13-04 — Business Service Collaborator Orchestration, Dual-Branch Linking & Strict Advisory Policy
+
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Triển khai nghiệp vụ trung gian trên `brandhub-business-service`: quản lý trừ phí 5 AI credits, điều phối gọi AI Service, thực thi quy tắc tư vấn cố vấn thuần túy (Advisory Only) và hỗ trợ 2 nhánh lưu tách biệt: Lưu danh bạ Agency (`ThirdPartyCollaborator`) và Ghép nối Chiến dịch (`CampaignCollaborator`).
+
+**Acceptance Criteria:**
+
+- [ ] Endpoint `POST /api/v1/workspaces/{workspaceId}/campaigns/{campaignId}/ai/recommend-collaborators`:
+  - Xác thực quyền sở hữu Campaign và Workspace của user.
+  - Khấu trừ an toàn 5 AI credits qua `AiCreditLedger` (chỉ settle khi API thành công).
+- [ ] Quy tắc Trạng thái Hợp tác nghiêm ngặt (Strict Advisory Policy):
+  - Gợi ý AI chỉ mang tính tham khảo; hệ thống tuyệt đối không tự động chuyển trạng thái đối tác sang `CONTACTED` hoặc gửi email tự động khi bấm gợi ý.
+- [ ] Hỗ trợ 2 nhánh lưu dữ liệu độc lập:
+  - **Nhánh A (Agency Directory):** Lưu đối tác vào bảng `ThirdPartyCollaborator` (DA-E50-08) của Agency để tái sử dụng lâu dài.
+  - **Nhánh B (Campaign Linking):** Gắn đối tác vào bảng liên kết `CampaignCollaborator` (DA-E50-09) của chiến dịch với trạng thái khởi tạo bắt buộc là `PROPOSED` (hoặc `CONSIDERING`).
+
+**Technical Notes:**
+
+- Location: `brandhub-business-service/src/main/java/com/brandhub/service/ai/CollaboratorRecommendationService.java` và `CampaignCollaboratorController.java`.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`, `docs/ba/07-publishing-social-collaborator.md`, `docs/ba/12-state-machines.md` mục 6
+
+**Dependencies:** Blocks: [DA-AI13-05]. Blocked by: [DA-AI13-03, DA-E50-08, DA-E50-09, DA-E17-07].
+
+---
+
+### DA-AI13-05 — Campaign Collaborator Recommendation Screen & Tiered Partner Cards UI
+
+**Assignee:** Phước (Publisher) | **Priority:** 🟡 High
+
+**Goal:** Xây dựng màn hình tìm kiếm và gợi ý đối tác truyền thông bên thứ 3 trong Module Quản lý Chiến dịch (Campaign Planning), hiển thị các thẻ đối tác phân cấp theo Tier, chỉ số người xem/lượng truy cập và menu hành động lưu 2 nhánh.
+
+**Acceptance Criteria:**
+
+- [ ] Giao diện form tìm kiếm: Bộ lọc ngành hàng, thanh trượt khoảng ngân sách (Min – Max VND), chọn kênh truyền thông mong muốn (Báo mạng, Banner, TV/Radio, OOH).
+- [ ] Hiển thị kết quả dạng lưới nhóm theo phân tầng Tier 1 / Tier 2 / Tier 3; mỗi thẻ hiển thị logo, chỉ số traffic đã kiểm chứng, điểm match (%), lý do gợi ý và gói booking đề xuất.
+- [ ] Menu thao tác trên mỗi thẻ:
+  - Nút "Thêm vào chiến dịch" mở Modal nhập hạn mức phân bổ và chuyển sang `CampaignCollaborator` trạng thái `PROPOSED`.
+  - Nút "Lưu vào danh bạ Agency" lưu sang `ThirdPartyCollaborator`.
+- [ ] Trạng thái Empty/No-Match thân thiện: Khi ngân sách không đủ hoặc không có đối tác, hiển thị hộp thoại chẩn đoán lý do và gợi ý điều chỉnh bộ lọc thay vì màn hình trống.
+
+**Technical Notes:**
+
+- Location: `brandhub-web/src/pages/campaigns/CollaboratorRecommendationPage.tsx` và `components/collaborator/CollaboratorTierCard.tsx`.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`
+
+**Dependencies:** Blocks: [DA-AI13-06]. Blocked by: [DA-AI13-04].
+
+---
+
+### DA-AI13-06 — Collaborator Recommendation Quality Evaluation & No-Match Scenario Benchmarking
+
+**Assignee:** Tuấn (AI) | **Priority:** 🟡 High
+
+**Goal:** Kiểm thử chất lượng xếp hạng trên 10 kịch bản chiến dịch với các mức ngân sách khác nhau (thấp, trung bình, cao); xác nhận cơ chế Zero-Hallucination hoạt động hoàn hảo khi dữ liệu đầu vào không thỏa mãn.
+
+**Acceptance Criteria:**
+
+- [ ] Chạy bộ kiểm thử tự động trên 10 kịch bản chiến dịch đa dạng ngành hàng (Tech, F&B, Thời trang, Bất động sản).
+- [ ] Kiểm chứng rào chắn ngân sách: 100% đối tác được gợi ý có `minCost <= maxBudget`.
+- [ ] Kiểm thử kịch bản biên No-Match: Khi ngân sách dưới 5.000.000 VND (thấp hơn sàn catalog), hệ thống trả về chính xác lý do `BUDGET_BELOW_MINIMUM` mà không sinh đối tác ảo.
+- [ ] Lập báo cáo đối chuẩn độ chính xác và độ hài lòng của thuật toán ranking.
+
+**Technical Notes:**
+
+- Location: `brandhub-ai-service/tests/benchmarks/test_collaborator_recommendation.py`.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`
+
+**Dependencies:** Blocks: None. Blocked by: [DA-AI13-05].
 
 ---
 
