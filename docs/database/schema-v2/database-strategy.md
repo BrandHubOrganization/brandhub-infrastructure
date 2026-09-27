@@ -149,7 +149,7 @@ workspace_members.client_profile_id → client_profiles.id (nullable, chỉ set 
 
 **Lý do:** cả 3 loại Task dùng chung 100% Approval Sequence — tách 3 collection sẽ trùng lặp toàn bộ logic transition.
 
-**`task_approvals` tách collection riêng, KHÔNG inline** — lý do trực tiếp từ rule nghiệp vụ: khi Task reject quay về `ASSIGNED`, approval ở step TRƯỚC step bị reject phải **giữ nguyên** (`docs/ba/13_Confirmations_Round2_2026-09-15.md` mục 4). Tách collection cho phép query "approval còn hiệu lực của Task X" độc lập, không phải rebuild mảng inline mỗi lần reject.
+**`task_approvals` tách collection riêng, KHÔNG inline** — lý do trực tiếp từ rule nghiệp vụ: khi Task reject quay về `ASSIGNED`, approval ở step TRƯỚC step bị reject phải **giữ nguyên** (`docs/ba/13_Confirmations_Round2_2026-09-15.md` mục 4). Collection là append-only; `tasks.approvalRound` tăng mỗi lần resubmit, và mỗi approval lưu round tương ứng. Vì vậy query approval hiện hành chỉ đọc action mới nhất theo step trong round hiện tại, không cần xoá hay ghi đè lịch sử.
 
 ### 4.5 MongoDB — Collections (đổi tên/mở rộng từ V1)
 
