@@ -4,3 +4,4 @@ include:
   - ../shared/databases.yml
   - ../shared/cache-broker.yml
   - ../shared/pgadmin.yml
+  - ../shared/monitoring.yml
