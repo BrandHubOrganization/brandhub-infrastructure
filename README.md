@@ -2,7 +2,7 @@
 
 Docker Compose stack, database initialization scripts, Dockerfiles, and environment templates for BrandHub.
 
-The monitoring worker is maintained in the separate `brandhub-monitoring` repository. Run its Compose configuration from that repository; it can share an existing Linux host and `brandhub-network` with the application stack. Monitoring SQL migrations and system-health specifications remain in this repository.
+The monitoring worker is maintained in the sibling `brandhub-monitoring` repository. Both `dev` and `dev-ai` start it through `shared/monitoring.yml` (`dev-ai` inherits `dev`). Before startup, provision the collector and create `config.json` and `secrets.json` in that repository following its README. Local configuration uses `http://host.docker.internal:8081` for Business running on the host; start Business separately. These development stacks enable local HTTP and run the collector without host filesystem mounts; omit `serverId` in the local config. Missing config files fail startup instead of being created as directories. Stop the standalone Monitoring Compose service before starting this stack to avoid duplicate collectors. Use only one owner: infrastructure scripts, or the standalone Repo Runner Monitoring tab. Monitoring SQL migrations and system-health specifications remain in this repository.
 
 ## Overview
 
