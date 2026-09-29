@@ -2,6 +2,5 @@ name: brandhub
 
 include:
   - ../shared/databases.yml
-  - ../shared/seed.yml
   - ../shared/cache-broker.yml
   - ../shared/pgadmin.yml
