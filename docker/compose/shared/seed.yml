@@ -1,0 +1,37 @@
+# Dev-only, one-shot job. Requires databases.yml in the same Compose project.
+services:
+  seed-postgres:
+    build:
+      context: ../../../../brandhub-business-service
+      dockerfile: Dockerfile
+    command: ["--seed-only", "--spring.profiles.active=seed-postgres"]
+    restart: "no"
+    environment:
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USERNAME: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - brandhub-network
+
+  seed-mongo:
+    build:
+      context: ../../../../brandhub-business-service
+      dockerfile: Dockerfile
+    command: ["--seed-only", "--spring.profiles.active=seed-mongo"]
+    restart: "no"
+    environment:
+      # PostgreSQL is read only by this job, to reuse workspace and user IDs.
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USERNAME: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      # Comment out both lines to disable Mongo seeding.
+      MONGODB_URI: ${MONGODB_URI:-}
+      MONGODB_DATABASE: ${MONGODB_DATABASE:-brandhub}
+    depends_on:
+      seed-postgres:
+        condition: service_completed_successfully
+    networks:
+      - brandhub-network
