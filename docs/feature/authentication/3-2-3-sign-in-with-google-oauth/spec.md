@@ -74,5 +74,14 @@ Figure — Google sign-in entry and return:
 - An access token and a refresh-token cookie are issued, or a two-factor challenge token when two-factor authentication is enabled.
 
 ## Out of Scope
+
+- OAuth provider khác ngoài Google (Facebook, GitHub... không thuộc CSV V2 hiện tại).
 - Link-mode (`GET /api/v1/auth/oauth/google/link?token=...`, a signed-in user attaching Google to their current account) and its `OAUTH_EMAIL_MISMATCH` / `OAUTH_ALREADY_LINKED` conflict redirects to `/settings`.
 - `POST /api/v1/auth/unlink/oauth` (body: `UnlinkOAuthRequest{provider}`) — removing a linked OAuth provider from an account, guarded elsewhere by `OAUTH_ONLY_ACCOUNT` / `LAST_LOGIN_METHOD` in `AuthController`/`AuthServiceImpl`.
+
+## Tham chiếu BA
+
+[02-authentication-profile.md](../../../BA/02-authentication-profile.md)
+
+## Completion contract (2026-09-19)
+Use the configured Google callback URI, including /login/oauth2/code/google. Successful callbacks set an HttpOnly refresh cookie and redirect to the frontend with the access token in the URL fragment. Cancellation, invalid state/code and suspended accounts return a localized frontend error. Only verified Google emails may be linked. Secrets remain in ignored backend environment files. Existing light/dark UI is retained; new error text uses matching vi/en keys.
