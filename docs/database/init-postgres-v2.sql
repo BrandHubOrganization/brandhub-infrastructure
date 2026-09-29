@@ -796,4 +796,12 @@ COMMENT ON COLUMN monitoring_health_results.collector_id IS 'Result provenance; 
 COMMENT ON COLUMN monitoring_health_results.check_id IS 'Idempotency key scoped to target. Same current checkId is a no-op; do not update received_at.';
 COMMENT ON COLUMN monitoring_health_results.received_at IS 'Backend-assigned; never trust client timestamp. Application enforces ordering and past-age window atomically.';
 
+CREATE TABLE monitoring_enrollments (
+    token_hash CHAR(64) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL CHECK (btrim(name) <> ''),
+    environment VARCHAR(50) NOT NULL CHECK (btrim(environment) <> ''),
+    expires_at TIMESTAMPTZ NOT NULL
+);
+CREATE INDEX idx_monitoring_enrollments_expiry ON monitoring_enrollments(expires_at);
+
 COMMIT;
