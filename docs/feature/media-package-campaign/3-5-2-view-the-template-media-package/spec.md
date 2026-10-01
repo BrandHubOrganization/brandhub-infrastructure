@@ -1,59 +1,22 @@
-# UC — View the Template Media Package
+# FR 3.5.2 - View Media Package
 
-| | |
+| Field | Value |
 |---|---|
-| FR Code | 3.5.2 |
-| Feature | View the Template Media Package |
-| Domain | Media Package & Contract (FR 3.5) |
-| Role | OWNER/MANAGER/CLIENT |
-| Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Status | Ready for technical review |
+| Roles | Owner/Manager; Client (already added at workspace creation) |
+| Delivery task | DA-E50-03 |
 
-## 1. Objective
+## Outcome
 
-Cho Client xem các Package mẫu (chiến lược dài/ngắn) để hiểu quy mô triển khai, nhân sự, thời gian book Agency.
+An authorised workspace member can read the package selected for that workspace, including negotiation state and effective terms.
 
-## 2. User Story
+## Acceptance criteria
 
-Là một Client,
-tôi muốn xem các gói Media Package mẫu,
-để hiểu Agency sẽ triển khai truyền thông cho tôi như thế nào.
+- `GET /api/v1/workspaces/{workspaceId}/media-package` returns selected package, package type, scope description, current terms, and negotiation status.
+- Support duration, budget, and full-delegation package types.
+- A non-member receives `403`; no selection returns a documented no-selection response.
 
-## 3. Acceptance Criteria
+## Constraints
 
-- Hiển thị chi tiết Package đã chọn cho Workspace này: loại (theo thời gian / theo ngân sách / phó mặc toàn bộ), nội dung mô tả phạm vi công việc.
-- 3 kiểu Package:
-  - **Theo thời gian**: "Trong X tuần sẽ làm những gì".
-  - **Theo ngân sách**: "Với số tiền Y sẽ làm được những gì".
-  - **Phó mặc toàn bộ**: Agency tự quyết cách làm, miễn đạt KPI thỏa thuận.
-
-## 4. UI / UX
-
-- Trang `/workspaces/:id/media-package` — Client xem sau khi được Manager invite vào Workspace.
-
-## 5. API Contract (đề xuất, cần xác nhận khi thiết kế kỹ thuật)
-
-```
-GET /api/v1/workspaces/{id}/media-package
-→ 200 { "success": true, "data": { "id", "type", "scopeDescription", "negotiationStatus" } }
-```
-
-## 6. Error Handling
-
-- Client chưa được invite vào Workspace này → 403 `FORBIDDEN`.
-
-## 7. Edge Cases
-
-- Package thuộc loại 'phó mặc toàn bộ' → UI cần làm rõ KPI cam kết cụ thể là gì (field riêng, không chỉ mô tả chung).
-
-## 8. Definition of Done
-
-- Hiển thị đúng loại Package và nội dung mô tả cho Client.
-
-## Out of Scope
-
-- Không có.
-
-## Tham chiếu BA
-
-[04-media-package-campaign.md](../../../BA/04-media-package-campaign.md)
+- Read through `workspace_media_packages` and its one `package_id`.
+- Full-delegation KPI commitments need explicit data fields before presentation as structured values; until then they remain in approved terms.
