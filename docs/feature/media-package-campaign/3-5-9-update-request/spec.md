@@ -1,58 +1,18 @@
-# UC — Update Request
+# FR 3.5.9 - Update Content Request
 
-| | |
+| Field | Value |
 |---|---|
-| FR Code | 3.5.9 |
-| Feature | Update Request |
-| Domain | Media Package & Contract (FR 3.5) |
-| Role | CLIENT |
-| Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Status | Depends on FR 3.5.7 |
+| Roles | Requesting Client |
+| Delivery task | DA-E50-10 |
 
-## 1. Objective
+## Outcome
 
-Client điều chỉnh nội dung Content Request, chỉ được làm khi đang ở trạng thái PENDING.
+The requesting Client may update title or description only while the request is `PENDING`.
 
-## 2. User Story
+## Acceptance criteria
 
-Là một Client,
-tôi muốn sửa lại nội dung Content Request tôi đã gửi,
-khi nó vẫn đang chờ Manager xem xét.
-
-## 3. Acceptance Criteria
-
-- Form sửa `title`, `description`.
-- **Chỉ cho sửa khi `status = pending`** — nếu Manager đã chuyển sang `in_progress` hoặc xử lý xong, Client không sửa được nữa.
-
-## 4. UI / UX
-
-- Nút Edit chỉ hiện khi status=pending trong `/workspaces/:id/content-requests`.
-
-## 5. API Contract (đề xuất, cần xác nhận khi thiết kế kỹ thuật)
-
-```
-PATCH /api/v1/workspaces/{id}/content-requests/{requestId}
-{ "title"?, "description"? }
-→ 200 { "success": true, "data": { ...updated request... } }
-```
-
-## 6. Error Handling
-
-- Sửa khi status khác pending → 409 `REQUEST_NOT_EDITABLE`.
-- Không phải người tạo request → 403 `FORBIDDEN`.
-
-## 7. Edge Cases
-
-- Manager đổi status sang `in_progress` đúng lúc Client đang gõ sửa → request cuối cùng bị 409 khi submit, FE cần hiển thị rõ lý do (không phải lỗi hệ thống).
-
-## 8. Definition of Done
-
-- Update thành công khi pending, chặn đúng khi không còn pending.
-
-## Out of Scope
-
-- Không có.
-
-## Tham chiếu BA
-
-[04-media-package-campaign.md](../../../BA/04-media-package-campaign.md), [12-state-machines.md](../../../BA/12-state-machines.md)
+- `PATCH /api/v1/workspaces/{workspaceId}/content-requests/{requestId}` accepts title and/or description.
+- Non-owner clients receive `403`.
+- A request outside `PENDING` receives `409 REQUEST_NOT_EDITABLE`.
+- Concurrent manager status change is handled by rechecking status atomically at write time.
