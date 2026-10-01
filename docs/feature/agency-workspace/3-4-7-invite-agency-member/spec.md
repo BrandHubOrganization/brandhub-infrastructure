@@ -1,7 +1,9 @@
 # 3.4.7 Invite Agency Member
 
+> V2 (2026-10-02): added the inline auto-suggest lookup and the CLIENT-profile-selection step on accept — see the new subsections below. Inviting a CLIENT now also happens from the dedicated Workspace Client screen (`/workspaces/:id/clients`, FR 3.3.3) using the same underlying `WorkspaceService.inviteMember` / `AgencyInvitation` mechanism described here; this spec covers both entry points since the role-CLIENT rules (BR-27, mandatory Workspace, accept flow) are identical either way.
+
 ## Function Trigger
-The Owner of an Agency opens the Member list of that Agency (`/agencies/:agencyId/members`) and submits the Invite Member form.
+The Owner/Manager of an Agency opens the Member list of that Agency (`/agencies/:agencyId/members`) or a workspace's Client list (`/workspaces/:id/clients`) and submits the Invite form.
 
 ## Function Description
 - **Actors / Roles:** Agency Owner (sender) and the invited person (who may not have an account yet).
@@ -14,6 +16,13 @@ Figure — Invite Member form:
 - Email (required), invitee name, note, Workspace selector, role selector and expiry period (1–30 days, 30 by default).
 - When the role CLIENT is selected, a Workspace must also be selected before the form can be submitted.
 - On success a confirmation appears and the new PENDING invitation shows in the invitation table.
+
+Figure — Invite Client dialog (`/workspaces/:id/clients`, "Add client"):
+- Email input only (no role/Workspace selector — both are implicit: role is always CLIENT, Workspace is the current one), optional note.
+- As the Owner/Manager types a valid email, two independent inline hints may appear, debounced:
+  1. A generic "this user already has an account" hint (existing user-lookup, shared with the regular Invite Member form).
+  2. A CLIENT-specific hint from `GET /api/v1/agencies/{agencyId}/invite-lookup?email=` — shown only when the email is already an active CLIENT in another workspace of the **same** Agency. It names that workspace and explains that sending the invite will reuse the existing Client Profile link rather than create a separate one. No hint is shown if the email is a CLIENT only in a *different* Agency (cross-Agency data is never surfaced here).
+- Submitting still goes through the same `WorkspaceService.inviteMember` / `AgencyInvitation` mechanism as the regular Invite Member form — the hint is informational only, not a shortcut that skips the invite step.
 
 ## Function Details
 ### Data Specifications
@@ -30,10 +39,14 @@ Figure — Invite Member form:
 - A Workspace sent with the invitation must belong to the same Agency; otherwise `400 WORKSPACE_NOT_IN_AGENCY`.
 - With the role MANAGER, the chosen Workspace must not already have an active manager, since a Workspace holds one manager only; otherwise `409 MANAGER_ALREADY_ASSIGNED`.
 - With the role CLIENT, a Workspace is mandatory from the moment of invitation; otherwise `400 WORKSPACE_REQUIRED_FOR_CLIENT_INVITE`. A Client does not become an Agency Member and needs a Workspace so that a Client Profile and a Workspace membership can be assigned on acceptance.
+- **(V2) Internal member cannot be invited as CLIENT:** the "already a Member of the Agency" check (BR-27 above, `409 ALREADY_AGENCY_MEMBER`) applies uniformly to every role, including CLIENT — a person already on the Agency's internal roster (OWNER/MANAGER/MEMBER) cannot also be invited as that Agency's own client. No separate error code exists for this case; it is the same `ALREADY_AGENCY_MEMBER` check.
+- **(V2) Auto-suggest hint, not a hard rule:** `GET /api/v1/agencies/{agencyId}/invite-lookup?email=` is read-only and advisory — it never blocks or auto-fills the submit. It returns `{ userExists, isAlreadyClientInAgency, existingWorkspaces[] }`, computed by resolving the email to a User, finding every `ClientProfile` they own, and checking whether any is linked (`workspace_members.client_profile_id`) to an active CLIENT membership in a workspace whose `agencyId` matches the current Agency. Workspaces of other Agencies are never included.
+- **(V2) Client Profile selection on accept:** when accepting a CLIENT invitation, the invited person must choose — from `GET /api/v1/client-profile/mine` — one of the Client Profiles they already own, or submit a `newClientProfile` payload to create one inline. If they own none and submit neither, the accept is rejected with `400 CLIENT_PROFILE_REQUIRED_FOR_ACCEPT`. A profile chosen this way is not required to be new or Agency-specific — reusing a profile already linked to a workspace of a different Agency is allowed (Client Profiles are never Agency-scoped, FR 3.3.3 V2).
 - The expiry period is settable between 1 and 30 days and defaults to 30 days; a value outside that range is brought back inside it (BR-27, "invitation token is a random UUID with an expiry window").
   - **⚠ BA conflict (needs team decision):** `docs/ba/03-agency-workspace-management.md` states a fixed 3-day expiry with no configurability. The current code (`AgencyServiceImpl.INVITATION_EXPIRY_DAYS`) implements 30 days, adjustable 1–30. This spec documents the code's actual behavior; the 3-day BA figure and the 30-day code figure disagree and have not been reconciled — do not change either side without a team decision on which number is authoritative.
 - The invitation reaches the invited person by email only. No in-app notification is produced, because the system has no shared notification module yet.
 - On acceptance, an invited person with no role or a role other than CLIENT becomes an Agency Member at the MEMBER role — the Agency level knows only OWNER and MEMBER. When the invitation carried a Workspace and a role of MANAGER or CREATOR, the matching Workspace membership is created automatically at the same time.
+- On acceptance, an invited person with role CLIENT never becomes an Agency Member — they instead select or create a Client Profile (see the V2 bullet above) and are added directly to the pre-assigned Workspace as a CLIENT member linking that profile.
 - There is no automatic acceptance when somebody registers with the invited email address. The invited person must open the link, or accept with the token, themselves.
 
 ### Validation
@@ -71,8 +84,11 @@ Figure — Invite Member form:
 - 5.c1: Role CLIENT without a Workspace → `400 WORKSPACE_REQUIRED_FOR_CLIENT_INVITE`, Display: MSG02 (closest fit). 5.c2: The Owner selects a Workspace before submitting.
 - 9.a1: The invited email has no account in the system yet → the invitation is still sent; no error. 9.a2: The person must register, sign in and accept the invitation themselves.
 - 10.a1: The invitation expires before it is accepted → `400 INVALID_INVITATION` on acceptance, toast MSG38 (closest fit — no dedicated MSG code for an expired invitation); no Agency membership is created. 10.a2: The invited person asks the Owner to send a new invitation.
+- 10.b1 (V2, CLIENT only): The invited person owns no Client Profile and submits neither `clientProfileId` nor `newClientProfile` → `400 CLIENT_PROFILE_REQUIRED_FOR_ACCEPT`, no Workspace membership is created. 10.b2: The accept screen requires them to pick an existing profile or fill the inline create-profile form before retrying.
+- 10.c1 (V2, CLIENT only): `clientProfileId` is submitted but belongs to a different user → `403 CLIENT_PROFILE_NOT_OWNED`. 10.c2: The accept screen re-lists only the profiles the signed-in user actually owns.
 
 ## Post-Conditions
 - A PENDING invitation exists for the Agency, carrying its token, its expiry time and any pre-assigned Workspace and role, and the invitation email has been sent.
 - After acceptance: an Agency Member record at the MEMBER role exists for the invited person, and the invitation is ACCEPTED with its acceptance time; when the invitation carried a Workspace with the role MANAGER or CREATOR, the matching Workspace membership also exists.
+- After acceptance of a CLIENT invitation: no Agency Member record is created; a CLIENT `workspace_members` row exists in the pre-assigned Workspace, linking the Client Profile the invited person selected or created — the same profile they can keep reusing across any other Workspace/Agency.
 - No in-app notification is produced at any point.
