@@ -177,7 +177,7 @@ workspace_members.client_profile_id → client_profiles.id (nullable, chỉ set 
 ```
 media_campaigns.id (PostgreSQL)
     ↕ application-level join
-tasks.sourceRefId (MongoDB, khi sourceType = 'campaign')
+tasks.campaignId (MongoDB, nullable khi Task sinh từ Content Request)
 ```
 
 ### 5.1 Soft refs mới trong V2
@@ -185,7 +185,7 @@ tasks.sourceRefId (MongoDB, khi sourceType = 'campaign')
 | MongoDB field | Trỏ tới | Lưu ý |
 |---|---|---|
 | `tasks.workspaceId` | `workspaces.id` (PG) | Soft ref |
-| `tasks.sourceRefId` | `media_campaigns.id` hoặc `content_requests._id` (tuỳ `sourceType`) | Soft ref, polymorphic ở tầng MongoDB — chấp nhận (không cần FK constraint) |
+| `tasks.campaignId` | `media_campaigns.id` | Soft ref; `null` khi Task sinh từ Content Request hoặc không thuộc Campaign |
 | `tasks.assigneeId`, `tasks.qcAssigneeId` | `users.id` (PG) | Soft ref |
 | `task_approvals.taskId` | `tasks._id` | Cùng DB — dùng ref chuẩn Mongo |
 | `content_requests.createdByClientProfileId` | `client_profiles.id` (PG) | Soft ref |
