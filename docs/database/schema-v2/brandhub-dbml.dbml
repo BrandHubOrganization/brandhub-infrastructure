@@ -93,12 +93,6 @@
     SURVEY
   }
 
-  Enum task_source_type {
-    CAMPAIGN
-    CONTENT_REQUEST
-    MANUAL
-  }
-
   Enum task_status {
     BACKLOG
     DETAIL_IDENTIFIED
@@ -613,10 +607,9 @@
   Table tasks [note: 'MongoDB — NEW V2, thay posts — generic 3 loại (docs/database/database-strategy.md mục 4.4)'] {
     _id                     ObjectId          [pk]
     workspaceId             string            [not null, note: 'Soft ref → workspaces.id (PG)']
-    sourceType              task_source_type  [not null]
-    sourceRefId             string            [note: 'Soft ref → media_campaigns.id hoặc content_requests._id, tuỳ sourceType']
+    campaignId              string            [note: 'Soft ref → media_campaigns.id (PG); NULL when generated from Content Request']
     type                    task_type         [not null]
-    title                   string            [not null]
+    name                    string            [not null]
     description             string
     assigneeId              string            [note: 'Soft ref → users.id (PG)']
     qcAssigneeId            string            [note: 'Soft ref → users.id (PG) — tùy chọn']
