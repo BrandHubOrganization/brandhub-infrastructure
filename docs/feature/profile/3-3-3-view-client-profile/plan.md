@@ -1,39 +1,43 @@
 # Plan — View Client Profile (FR 3.3.3)
 
-> Liên kết: [spec.md](spec.md) — hiển thị hồ sơ Client của User đang đăng nhập.
+> Liên kết: [spec.md](spec.md) — hiển thị danh sách Client Profile của User đang đăng nhập, và danh sách Client đang cộng tác trong 1 workspace.
+>
+> V2 (2026-10-02): **[SỬA]** ClientProfile không còn ràng buộc `agency_id` — thuộc sở hữu User, độc lập Agency, dùng được ở nhiều workspace/agency. Xem [§6](#6-lịch-sử-thay-đổi) cho lý do.
 
 ## 1. Phạm vi kỹ thuật
 
 | Mục | Nội dung |
 |---|---|
 | Repo | `brandhub-business-service`, `brandhub-web-dashboard` |
-| File implement | `ClientProfileServiceImpl.getMyProfile()` |
-| File đã có | `ClientProfileController` (`GET /api/v1/client-profile/me`), `ClientProfileResponse` |
+| File implement | `ClientProfileServiceImpl.listMine()` |
+| File liên quan | `ClientProfileController` (`GET /api/v1/client-profile/mine`), `ClientProfileResponse`, `WorkspaceController` (`GET /api/v1/workspaces/{id}/members` — dùng chung cho Workspace Client list, filter role CLIENT ở FE) |
 
 ## 2. API Contract (final)
 
 ```
-GET /api/v1/client-profile/me
+GET /api/v1/client-profile/mine
 Authorization: Bearer <access-token>
-→ 200 ApiResponse<ClientProfileResponse>
-   data = { id, userId, displayName, company, phone, note, logoUrl, website, industry, location, description, socialLinks, createdAt, updatedAt }
-→ 404 CLIENT_PROFILE_NOT_FOUND (chưa có hồ sơ)
+→ 200 ApiResponse<ClientProfileResponse[]>
+   data = [{ id, userId, displayName, company, phone, note, logoUrl, website, industry,
+             location, description, socialLinks, contactName, contactEmail, companySize,
+             instagramUrl, taxCode, address, tagline, foundedYear, budgetRange,
+             createdAt, updatedAt }, ...]
+
+GET /api/v1/workspaces/{workspaceId}/members
+→ 200 ApiResponse<WorkspaceMemberResponse[]>
+   (FE lọc role === "CLIENT" cho trang /workspaces/:id/clients)
 ```
 
-Khác so với spec.md (đề xuất thêm `email`):
-
-- **Bỏ `email`** — align theo BA confirmed (glossary 11-data-entities): ClientProfile = `{ id, userId, displayName, company, phone, note, createdAt, updatedAt }`. Email lấy từ `User` (authStore), không lưu trên ClientProfile.
+Không còn `email` trên `ClientProfileResponse` — email lấy từ `User` (authStore) của chính người sở hữu profile.
 
 ## 3. Data Model
 
-`client_profile` sau align BA — **[SỬA XONG 2026-09-21]** đã thêm `agency_id`, khớp đúng BA đa-profile-theo-Agency:
+`client_profiles` — **[SỬA 2026-10-02]** bỏ hẳn `agency_id` (migration `2026-10-02-drop-client-profile-agency-id.sql`). ClientProfile chỉ còn gắn với `user_id`, không ràng buộc Agency:
 
 | Field | Type | Note |
 |---|---|---|
 | id | UUID | PK |
-| user_id | UUID | FK `users` |
-| agency_id | UUID | **MỚI** — FK `agencies`. `ClientProfileRepository.findByUserIdAndAgencyId(userId, agencyId)` thay cho `findByUserId` cũ (số ít). Cho phép 1 user có nhiều `ClientProfile` độc lập theo từng Agency, đúng BA §3.3.3.
-| GET/PUT `/client-profile/me?agencyId=...` | — | `agencyId` bắt buộc, truyền qua query param — breaking API so với bản cũ (không còn suy luận ngầm 1 profile/user). FE (`pages/client-profile/index.tsx`) lấy `agencyId` từ URL query, hiện lỗi rõ (`clientProfile.missingAgencyId`) nếu thiếu thay vì gọi API mù. |
+| user_id | UUID | FK `users` — chủ sở hữu duy nhất |
 | display_name | varchar | not null |
 | company | varchar | null |
 | phone | varchar | null |
@@ -44,16 +48,29 @@ Khác so với spec.md (đề xuất thêm `email`):
 | location | varchar | null — địa điểm |
 | description | text | null — mô tả công ty |
 | social_links | jsonb | null — `{ "linkedin", "facebook" }` |
+| contact_name / contact_email / company_size / instagram_url / tax_code / address / tagline / founded_year / budget_range | — | field thương hiệu bổ sung (2026-09-27) |
 | created_at / updated_at | timestamptz | |
+
+Quan hệ với workspace: `workspace_members.client_profile_id` (FK, nullable) — 1 ClientProfile có thể là target của nhiều `workspace_members` row ở nhiều workspace/agency khác nhau cùng lúc. `ClientProfileRepository.findByUserId(userId)` trả toàn bộ profile của 1 user, không filter theo agency.
 
 ## 4. Luồng xử lý
 
-1. `findByUserIdAndAgencyId(currentUser.getId(), agencyId)` → `CLIENT_PROFILE_NOT_FOUND` nếu không có.
-2. Map → `ClientProfileResponse`.
+**My Brand Profiles:**
+1. `findByUserId(currentUser.getId())` → trả list (rỗng nếu chưa tạo profile nào).
+2. Map từng record → `ClientProfileResponse`.
+
+**Workspace Client list:**
+1. `WorkspaceService.listMembers(workspaceId)` → trả toàn bộ `WorkspaceMember` active.
+2. FE lọc `role === "CLIENT"`, hiển thị `fullName` (resolve từ ClientProfile liên kết qua `clientProfileId`).
 
 ## 5. Dependencies
 
 | Chiều | Mô tả |
 |---|---|
 | Chặn bởi | `ClientProfile` entity, `ClientProfileRepository` |
-| Bị chặn | `Update Client Profile` (3.3.4) |
+| Bị chặn | `Update Client Profile` (3.3.4), `Invite Agency Member` (3.4.7) khi role CLIENT |
+
+## 6. Lịch sử thay đổi
+
+- **2026-09-21** (đã revert): từng thêm `agency_id` vào `client_profiles`, model 1-profile/agency. Sai nghiệp vụ thật — Nike/Adidas không có tài khoản riêng, chỉ có người đại diện (1 User) sở hữu nhiều ClientProfile (mỗi brand 1 cái), dùng xuyên suốt nhiều Agency.
+- **2026-10-02:** xoá `agency_id`, chuyển hẳn sang mô hình User-owned, N-per-user. Đồng thời tách trang Thành viên (`/workspaces/:id/members`, chỉ nội bộ) và trang Client (`/workspaces/:id/clients`, CLIENT collaborator) thành 2 route độc lập — trước đó gộp chung 1 trang với tab switcher.
