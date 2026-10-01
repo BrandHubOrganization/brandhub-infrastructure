@@ -145,7 +145,7 @@ db.createCollection('tasks', {
       bsonType: 'object',
       required: [
         'workspaceId', 'type', 'name', 'status', 'requiresClientApproval',
-        'typeMetadata', 'createdAt', 'updatedAt',
+        'approvalRound', 'typeMetadata', 'createdAt', 'updatedAt',
       ],
       properties: {
         workspaceId:            { bsonType: 'string' },
@@ -158,9 +158,31 @@ db.createCollection('tasks', {
         qcAssigneeId:           { bsonType: ['string', 'null'] },
         requiresClientApproval: { bsonType: 'bool' },
         description:            { bsonType: ['string', 'null'] },
+        approvalRound:          { bsonType: 'int', minimum: 0 },
         typeMetadata:           { bsonType: 'object' },
         createdAt:              { bsonType: 'date' },
         updatedAt:              { bsonType: 'date' },
+      },
+    },
+  },
+  validationAction: 'error',
+});
+
+// task_approvals (V2) — append-only approval events. A reject never
+// overwrites earlier approvals; approvalRound identifies the submit cycle.
+db.createCollection('task_approvals', {
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: ['taskId', 'approvalRound', 'step', 'action', 'actorId', 'createdAt'],
+      properties: {
+        taskId:        { bsonType: 'string' },
+        approvalRound: { bsonType: 'int', minimum: 1 },
+        step:          { enum: ['QC', 'MANAGER', 'CLIENT'] },
+        action:        { enum: ['APPROVE', 'REJECT'] },
+        actorId:       { bsonType: 'string' },
+        comment:       { bsonType: ['string', 'null'] },
+        createdAt:     { bsonType: 'date' },
       },
     },
   },
@@ -306,6 +328,12 @@ db.tasks.createIndex({ workspaceId: 1, assigneeId: 1 }, { name: 'idx_tasks_works
 db.tasks.createIndex({ workspaceId: 1, type: 1 }, { name: 'idx_tasks_workspace_type' });
 db.tasks.createIndex({ workspaceId: 1, campaignId: 1 }, { name: 'idx_tasks_workspace_campaign' });
 
+// task_approvals (V2) — supports latest action per step in the active round.
+db.task_approvals.createIndex(
+  { taskId: 1, approvalRound: 1, step: 1, createdAt: 1 },
+  { name: 'idx_task_approvals_task_round_step_created' }
+);
+
 // knowledge_documents
 db.knowledge_documents.createIndex({ workspace_id: 1 }, { name: 'idx_knowledge_docs_workspace_id' });
 db.knowledge_documents.createIndex({ workspace_id: 1, client_id: 1 }, { name: 'idx_knowledge_docs_ws_client_id' });
@@ -329,4 +357,4 @@ db.ai_usage_logs.createIndex({ created_at: -1 }, { name: 'idx_ai_usage_created_a
 // report_jobs
 db.report_jobs.createIndex({ workspace_id: 1, status: 1 }, { name: 'idx_report_jobs_ws_status' });
 
-print('✅ BrandHub MongoDB initialized: 13 collections, all indexes created.');
+print('✅ BrandHub MongoDB initialized: 14 collections, all indexes created.');
