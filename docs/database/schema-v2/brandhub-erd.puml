@@ -409,6 +409,7 @@ entity "tasks" as tasks <<MongoDB, NEW V2>> {
   qcAssigneeId : string
   * requiresClientApproval : boolean
   * status : task_status
+  * approvalRound : int <<0 khi chưa submit; tăng mỗi lần resubmit>>
   typeMetadata : object
   dueDate : date
   * createdAt : date
@@ -423,6 +424,7 @@ entity "task_approvals" as task_approvals <<MongoDB, NEW V2>> {
   * _id : ObjectId <<PK>>
   --
   * taskId : string
+  * approvalRound : int
   * step : task_approval_step
   * action : task_approval_action
   * actorId : string
@@ -430,7 +432,8 @@ entity "task_approvals" as task_approvals <<MongoDB, NEW V2>> {
   * createdAt : date
 }
 note right of task_approvals
-  Tách khỏi tasks — GIỮ approval cũ khi step sau reject
+  Append-only — GIỮ approval cũ khi step sau reject
+  Query approval round hiện hành theo tasks.approvalRound
 end note
 
 entity "posts" as posts <<MongoDB, CHANGED MEANING V2>> {

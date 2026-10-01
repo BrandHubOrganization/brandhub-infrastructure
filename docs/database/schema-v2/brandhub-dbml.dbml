@@ -105,14 +105,12 @@
   }
 
   Enum task_approval_step {
-    CREATOR
     QC
     MANAGER
     CLIENT
   }
 
   Enum task_approval_action {
-    SUBMIT
     APPROVE
     REJECT
   }
@@ -615,6 +613,7 @@
     qcAssigneeId            string            [note: 'Soft ref → users.id (PG) — tùy chọn']
     requiresClientApproval  boolean           [not null, default: false]
     status                  task_status       [not null, default: 'BACKLOG']
+    approvalRound           int               [not null, default: 0, note: 'Tăng khi Creator resubmit sau reject; approval records dùng cùng round']
     currentContentVersionId string            [note: 'Soft ref → content_versions._id — bản nội dung MỚI NHẤT của Task loại post, tránh phải suy luận qua query content_versions mỗi lần đọc']
     typeMetadata            object            [note: 'field riêng theo type: platformTargets[] (post), livestreamSessionId (livestream, soft ref → livestream_sessions._id), surveyFormId (survey, soft ref → survey_forms._id)']
     dueDate                 date
@@ -625,19 +624,21 @@
       (workspaceId, status)
       (workspaceId, assigneeId)
       (workspaceId, type)
+      (workspaceId, campaignId)
     }
   }
 
-  Table task_approvals [note: 'MongoDB — NEW V2 — tách khỏi tasks, GIỮ approval cũ khi step sau reject (docs/ba/13 mục 4)'] {
-    _id       ObjectId              [pk]
-    taskId    string                [not null, note: 'ref → tasks._id, cùng DB']
-    step      task_approval_step    [not null]
-    action    task_approval_action  [not null]
-    actorId   string                [not null, note: 'Soft ref → users.id (PG)']
-    comment   string
-    createdAt date                  [not null]
+  Table task_approvals [note: 'MongoDB — NEW V2 — append-only; không update/delete approval cũ'] {
+    _id           ObjectId              [pk]
+    taskId        string                [not null, note: 'ref → tasks._id, cùng DB']
+    approvalRound int                   [not null, note: 'Đối chiếu với tasks.approvalRound; phân biệt reject → resubmit cycle']
+    step          task_approval_step    [not null]
+    action        task_approval_action  [not null]
+    actorId       string                [not null, note: 'Soft ref → users.id (PG)']
+    comment       string
+    createdAt     date                  [not null]
 
-    indexes { (taskId, step, createdAt) }
+    indexes { (taskId, approvalRound, step, createdAt) }
   }
 
   Table posts [note: 'MongoDB — ĐỔI NGHĨA V2 — chỉ bài ĐÃ PUBLISH thành công (kết quả Task type=post hoàn thành)'] {
