@@ -1,10 +1,258 @@
-<mxfile host="app.diagrams.net">
-  <diagram name="seq" id="seq1">
-    <mxGraphModel dx="900" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="915" math="0" shadow="0">
-      <root>
-        <mxCell id="0"/>
-        <mxCell id="1" parent="0"/>
-<mxCell id="c236" value="«Actor»&lt;br&gt;User" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="0" y="40" width="150" height="42" as="geometry"/></mxCell><mxCell id="c237" style="endArrow=none;dashed=1;html=1;strokeColor=#999999;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="75" y="82" as="sourcePoint"/><mxPoint x="75" y="835" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c238" value="«Boundary»&lt;br&gt;ClientProfilePage (UI)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="190" y="40" width="150" height="42" as="geometry"/></mxCell><mxCell id="c239" style="endArrow=none;dashed=1;html=1;strokeColor=#999999;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="265" y="82" as="sourcePoint"/><mxPoint x="265" y="835" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c240" value="«Boundary»&lt;br&gt;ClientProfileController" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="380" y="40" width="150" height="42" as="geometry"/></mxCell><mxCell id="c241" style="endArrow=none;dashed=1;html=1;strokeColor=#999999;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="455" y="82" as="sourcePoint"/><mxPoint x="455" y="835" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c242" value="«Control»&lt;br&gt;ClientProfileServiceImpl" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="570" y="40" width="150" height="42" as="geometry"/></mxCell><mxCell id="c243" style="endArrow=none;dashed=1;html=1;strokeColor=#999999;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="645" y="82" as="sourcePoint"/><mxPoint x="645" y="835" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c244" value="«Entity»&lt;br&gt;ClientProfileRepository" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="760" y="40" width="150" height="42" as="geometry"/></mxCell><mxCell id="c245" style="endArrow=none;dashed=1;html=1;strokeColor=#999999;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="835" y="82" as="sourcePoint"/><mxPoint x="835" y="835" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c246" value="«Entity»&lt;br&gt;ClientProfile" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="950" y="40" width="150" height="42" as="geometry"/></mxCell><mxCell id="c247" style="endArrow=none;dashed=1;html=1;strokeColor=#999999;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1025" y="82" as="sourcePoint"/><mxPoint x="1025" y="835" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c248" value="«Entity»&lt;br&gt;ClientProfileResponse" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1140" y="40" width="150" height="42" as="geometry"/></mxCell><mxCell id="c249" style="endArrow=none;dashed=1;html=1;strokeColor=#999999;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1215" y="82" as="sourcePoint"/><mxPoint x="1215" y="835" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c201" value="edits Client Profile form, clicks Save" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="75" y="100" as="sourcePoint"/><mxPoint x="265" y="100" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c202" value="PUT /api/v1/client-profile/me?agencyId=... (displayName, company?, phone?, note?, logoUrl?, website?, industry?, location?, description?, socialLinks?, contactName?, contactEmail?, companySize?, instagramUrl?, taxCode?, address?, tagline?, foundedYear?, budgetRange?)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="265" y="130" as="sourcePoint"/><mxPoint x="455" y="130" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c203" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="450" y="160" width="10" height="10" as="geometry"/></mxCell><mxCell id="c204" value="upsertMyProfile(currentUser, agencyId, request)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="455" y="170" as="sourcePoint"/><mxPoint x="645" y="170" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c205" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="640" y="190" width="10" height="10" as="geometry"/></mxCell><mxCell id="c206" value="findByUserIdAndAgencyId(currentUser.getId(), agencyId)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="645" y="200" as="sourcePoint"/><mxPoint x="835" y="200" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c207" value="Optional&lt;ClientProfile&gt;" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="835" y="210" as="sourcePoint"/><mxPoint x="645" y="210" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c208" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="640" y="240" width="10" height="10" as="geometry"/></mxCell><mxCell id="c209" value="findFirstByUserIdOrderByUpdatedAtDesc(userId)  [no record for (user, agency) -&gt; newProfileFromPriorAgency]" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="645" y="250" as="sourcePoint"/><mxPoint x="835" y="250" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c210" value="Optional&lt;ClientProfile&gt; (most recent profile of this user, any agency)" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="835" y="260" as="sourcePoint"/><mxPoint x="645" y="260" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c211" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="570" y="290" width="950" height="130" as="geometry"/></mxCell><mxCell id="c212" value="opt" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=10;align=left;spacingLeft=4;" vertex="1" parent="1"><mxGeometry x="570" y="290" width="60" height="20" as="geometry"/></mxCell><mxCell id="c213" value="[a prior profile exists]" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fontStyle=2;fillColor=#f5f5f5;strokeColor=none;" vertex="1" parent="1"><mxGeometry x="636" y="290" width="400" height="20" as="geometry"/></mxCell><mxCell id="c214" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="640" y="320" width="10" height="10" as="geometry"/></mxCell><mxCell id="c215" value="copy displayName/company/phone/note/logoUrl/website/industry/location/description/socialLinks/contactName/contactEmail/companySize/instagramUrl/taxCode/address/tagline/foundedYear/budgetRange from prior profile (DA-970: reuse data across agencies, user can still edit before save)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=left;verticalAlign=top;rounded=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="650" y="330" as="sourcePoint"/><mxPoint x="650" y="350" as="targetPoint"/><Array as="points"><mxPoint x="680" y="330"/><mxPoint x="680" y="350"/></Array></mxGeometry></mxCell><mxCell id="c216" value="new ClientProfile(userId, agencyId, [+ copied fields if any])" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="645" y="460" as="sourcePoint"/><mxPoint x="1025" y="460" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c217" value="ClientProfile" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1025" y="480" as="sourcePoint"/><mxPoint x="645" y="480" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c218" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="570" y="510" as="sourcePoint"/><mxPoint x="1510" y="510" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c219" value="[record for (user, agency) already exists]" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fontStyle=2;fillColor=#ffffff;strokeColor=none;" vertex="1" parent="1"><mxGeometry x="576" y="501" width="300" height="18" as="geometry"/></mxCell><mxCell id="c220" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="640" y="540" width="10" height="10" as="geometry"/></mxCell><mxCell id="c221" value="map row -&gt; ClientProfile" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="645" y="550" as="sourcePoint"/><mxPoint x="1025" y="550" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c222" value="ClientProfile" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1025" y="560" as="sourcePoint"/><mxPoint x="645" y="560" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c223" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="570" y="240" width="950" height="350" as="geometry"/></mxCell><mxCell id="c224" value="alt" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=10;align=left;spacingLeft=4;" vertex="1" parent="1"><mxGeometry x="570" y="240" width="60" height="20" as="geometry"/></mxCell><mxCell id="c225" value="[no record for (user, agency)]" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fontStyle=2;fillColor=#f5f5f5;strokeColor=none;" vertex="1" parent="1"><mxGeometry x="636" y="240" width="400" height="20" as="geometry"/></mxCell><mxCell id="c226" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="640" y="240" width="10" height="270" as="geometry"/></mxCell><mxCell id="c227" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="640" y="540" width="10" height="50" as="geometry"/></mxCell><mxCell id="c228" value="applyRequest: overwrite displayName(trim)/company/phone/note/logoUrl/website/industry/location/description/socialLinks(JSON)/contactName/contactEmail/companySize/instagramUrl/taxCode/address/tagline/foundedYear/budgetRange with request values; updatedAt=now()" style="html=1;endArrow=block;dashed=0;fontSize=11;align=left;verticalAlign=top;rounded=1;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="650" y="620" as="sourcePoint"/><mxPoint x="650" y="640" as="targetPoint"/><Array as="points"><mxPoint x="680" y="620"/><mxPoint x="680" y="640"/></Array></mxGeometry></mxCell><mxCell id="c229" value="save(profile)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="645" y="670" as="sourcePoint"/><mxPoint x="835" y="670" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c230" value="ClientProfile" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="835" y="690" as="sourcePoint"/><mxPoint x="645" y="690" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c231" value="toResponse(profile)" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="645" y="720" as="sourcePoint"/><mxPoint x="1215" y="720" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c232" value="ClientProfileResponse" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1215" y="740" as="sourcePoint"/><mxPoint x="645" y="740" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c233" value="ClientProfileResponse" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="645" y="770" as="sourcePoint"/><mxPoint x="455" y="770" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c234" value="200 OK ClientProfileResponse" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="455" y="790" as="sourcePoint"/><mxPoint x="265" y="790" as="targetPoint"/></mxGeometry></mxCell><mxCell id="c235" value="show success, refresh display" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="265" y="805" as="sourcePoint"/><mxPoint x="75" y="805" as="targetPoint"/></mxGeometry></mxCell>      </root>
-    </mxGraphModel>
-  </diagram>
+<mxfile host="65bd71144e">
+    <diagram name="seq" id="seq1">
+        <mxGraphModel dx="855" dy="480" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="960" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="c223" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;verticalAlign=top;" value="" vertex="1">
+                    <mxGeometry height="380" width="1000" x="520" y="260" as="geometry"/>
+                </mxCell>
+                <mxCell id="c236" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="«Actor»&lt;br&gt;User" vertex="1">
+                    <mxGeometry height="42" width="150" y="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="c237" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#999999;">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="75" y="82" as="sourcePoint"/>
+                        <mxPoint x="75" y="880" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c238" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="«Boundary»&lt;br&gt;ClientProfilePage (UI)" vertex="1">
+                    <mxGeometry height="42" width="150" x="190" y="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="c239" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#999999;">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="265" y="82" as="sourcePoint"/>
+                        <mxPoint x="265" y="880" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c240" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="«Boundary»&lt;br&gt;ClientProfileController" vertex="1">
+                    <mxGeometry height="42" width="150" x="380" y="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="c241" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#999999;">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="455" y="82" as="sourcePoint"/>
+                        <mxPoint x="455" y="880" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c242" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="«Control»&lt;br&gt;ClientProfileServiceImpl" vertex="1">
+                    <mxGeometry height="42" width="150" x="570" y="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="c243" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#999999;">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="645" y="82" as="sourcePoint"/>
+                        <mxPoint x="645" y="880" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c244" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="«Entity»&lt;br&gt;ClientProfileRepository" vertex="1">
+                    <mxGeometry height="42" width="150" x="760" y="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="c245" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#999999;">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="835" y="82" as="sourcePoint"/>
+                        <mxPoint x="835" y="880" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c246" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="«Entity»&lt;br&gt;ClientProfile" vertex="1">
+                    <mxGeometry height="42" width="150" x="950" y="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="c247" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#999999;">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1025" y="82" as="sourcePoint"/>
+                        <mxPoint x="1025" y="880" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c248" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;«Entity»&lt;/span&gt;&lt;br style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgba(121, 121, 121, 0.4) rgb(30, 30, 30);&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;ClientProfileResponse&lt;/span&gt;" vertex="1">
+                    <mxGeometry height="42" width="150" x="1140" y="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="c249" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#999999;">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1215" y="82" as="sourcePoint"/>
+                        <mxPoint x="1215" y="880" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c201" edge="1" parent="1" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="edits Client Profile form, clicks Save">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="75" y="100" as="sourcePoint"/>
+                        <mxPoint x="265" y="100" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c202" edge="1" parent="1" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="PUT /api/v1/client-profile/me?agencyId=... (displayName, profile fields)">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="265" y="130" as="sourcePoint"/>
+                        <mxPoint x="455" y="130" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c203" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1">
+                    <mxGeometry height="10" width="10" x="450" y="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="c204" edge="1" parent="1" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="upsertMyProfile(currentUser, agencyId, request)">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="455" y="170" as="sourcePoint"/>
+                        <mxPoint x="645" y="170" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c205" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1">
+                    <mxGeometry height="10" width="10" x="640" y="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="c206" edge="1" parent="1" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="findByUserIdAndAgencyId(currentUser.getId(), agencyId)">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="645" y="200" as="sourcePoint"/>
+                        <mxPoint x="835" y="200" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c207" edge="1" parent="1" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="Optional&lt;ClientProfile&gt;">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="835" y="210" as="sourcePoint"/>
+                        <mxPoint x="645" y="210" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c208" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1">
+                    <mxGeometry height="10" width="10" x="640" y="300" as="geometry"/>
+                </mxCell>
+                <mxCell id="c209" edge="1" parent="1" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="findFirstByUserIdOrderByUpdatedAtDesc(userId)  [no record for (user, agency) -&gt; newProfileFromPriorAgency]">
+                    <mxGeometry relative="1" x="-0.0015" as="geometry">
+                        <mxPoint as="offset"/>
+                        <mxPoint x="645" y="310" as="sourcePoint"/>
+                        <mxPoint x="835" y="310" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c210" edge="1" parent="1" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="Optional&lt;ClientProfile&gt; (most recent profile of this user, any agency)">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="835" y="345" as="sourcePoint"/>
+                        <mxPoint x="645" y="345" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c211" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;verticalAlign=top;" value="" vertex="1">
+                    <mxGeometry height="130" width="950" x="570" y="375" as="geometry"/>
+                </mxCell>
+                <mxCell id="c212" parent="1" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=10;align=left;spacingLeft=4;" value="opt" vertex="1">
+                    <mxGeometry height="20" width="60" x="570" y="375" as="geometry"/>
+                </mxCell>
+                <mxCell id="c213" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fontStyle=2;fillColor=#f5f5f5;strokeColor=none;" value="[a prior profile exists]" vertex="1">
+                    <mxGeometry height="20" width="400" x="636" y="375" as="geometry"/>
+                </mxCell>
+                <mxCell id="c214" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1">
+                    <mxGeometry height="10" width="10" x="640" y="405" as="geometry"/>
+                </mxCell>
+                <mxCell id="c215" edge="1" parent="1" style="html=1;endArrow=block;dashed=0;fontSize=11;align=left;verticalAlign=top;rounded=1;" value="copy profile fields from prior profile (DA-970: reuse data across agencies, user can still edit before save)">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                        <Array as="points">
+                            <mxPoint x="680" y="415"/>
+                            <mxPoint x="680" y="435"/>
+                        </Array>
+                        <mxPoint x="650" y="415" as="sourcePoint"/>
+                        <mxPoint x="650" y="435" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c216" edge="1" parent="1" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="new ClientProfile(userId, agencyId, [+ copied fields if any])">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="645" y="480" as="sourcePoint"/>
+                        <mxPoint x="1025" y="480" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c217" edge="1" parent="1" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="ClientProfile">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1025" y="498" as="sourcePoint"/>
+                        <mxPoint x="645" y="498" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c218" edge="1" parent="1" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="570" y="525" as="sourcePoint"/>
+                        <mxPoint x="1510" y="525" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c219" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fontStyle=2;fillColor=#ffffff;strokeColor=none;" value="[record for (user, agency) already exists]" vertex="1">
+                    <mxGeometry height="18" width="300" x="530" y="530" as="geometry"/>
+                </mxCell>
+                <mxCell id="c220" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1">
+                    <mxGeometry height="10" width="10" x="640" y="555" as="geometry"/>
+                </mxCell>
+                <mxCell id="c221" edge="1" parent="1" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="map row -&gt; ClientProfile">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="645" y="565" as="sourcePoint"/>
+                        <mxPoint x="1025" y="565" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c222" edge="1" parent="1" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="ClientProfile">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1025" y="583" as="sourcePoint"/>
+                        <mxPoint x="645" y="583" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="yDoPT5rBvbQFbBwz39eg-1" connectable="0" parent="c222" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Text" vertex="1">
+                    <mxGeometry relative="1" x="-0.0484" y="-1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c224" parent="1" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=10;align=left;spacingLeft=4;" value="alt" vertex="1">
+                    <mxGeometry height="20" width="60" x="570" y="260" as="geometry"/>
+                </mxCell>
+                <mxCell id="c225" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fontStyle=2;fillColor=#f5f5f5;strokeColor=none;" value="[no record for (user, agency)]" vertex="1">
+                    <mxGeometry height="20" width="400" x="640" y="260" as="geometry"/>
+                </mxCell>
+                <mxCell id="c226" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1">
+                    <mxGeometry height="290" width="10" x="640" y="300" as="geometry"/>
+                </mxCell>
+                <mxCell id="c227" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1">
+                    <mxGeometry height="50" width="10" x="640" y="555" as="geometry"/>
+                </mxCell>
+                <mxCell id="c228" edge="1" parent="1" style="html=1;endArrow=block;dashed=0;fontSize=11;align=left;verticalAlign=top;rounded=1;" value="applyRequest: overwrite profile fields with request values; updatedAt=now()">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="680" y="655"/>
+                            <mxPoint x="680" y="675"/>
+                        </Array>
+                        <mxPoint x="650" y="655" as="sourcePoint"/>
+                        <mxPoint x="650" y="675" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c229" edge="1" parent="1" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="save(profile)">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="645" y="705" as="sourcePoint"/>
+                        <mxPoint x="835" y="705" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c230" edge="1" parent="1" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="ClientProfile">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="835" y="723" as="sourcePoint"/>
+                        <mxPoint x="645" y="723" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c231" edge="1" parent="1" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="toResponse(profile)">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                        <mxPoint x="645" y="753" as="sourcePoint"/>
+                        <mxPoint x="1215" y="753" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c232" edge="1" parent="1" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="ClientProfileResponse">
+                    <mxGeometry relative="1" x="-0.001" as="geometry">
+                        <mxPoint as="offset"/>
+                        <mxPoint x="1215" y="773" as="sourcePoint"/>
+                        <mxPoint x="645" y="773" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c233" edge="1" parent="1" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="ClientProfileResponse">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="645" y="803" as="sourcePoint"/>
+                        <mxPoint x="455" y="803" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c234" edge="1" parent="1" style="html=1;endArrow=open;dashed=1;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="200 OK ClientProfileResponse">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="455" y="828" as="sourcePoint"/>
+                        <mxPoint x="265" y="828" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c235" edge="1" parent="1" style="html=1;endArrow=block;dashed=0;fontSize=11;align=center;verticalAlign=bottom;labelBackgroundColor=#ffffff;" value="show success, refresh display">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="265" y="848" as="sourcePoint"/>
+                        <mxPoint x="75" y="848" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
 </mxfile>
