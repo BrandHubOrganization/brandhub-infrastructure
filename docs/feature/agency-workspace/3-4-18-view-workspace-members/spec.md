@@ -6,26 +6,32 @@
 | Feature | View Workspace Members |
 | Domain | Agency & Workspace (FR 3.4) |
 | Role | MANAGER / CREATOR / CLIENT |
-| Version | 2.3 — 2026-09-23 — rewritten to the standard FR format |
+| Version | 3.0 — 2026-10-02 — split into two independent screens, see V2 note |
 | Document status | Implemented |
+
+> V2 (2026-10-02): the single `/workspaces/:id/members` screen previously listed MANAGER/CREATOR/CLIENT together with a tab switcher. It is now two fully independent routes sharing the same backend list (`GET /api/v1/workspaces/{id}/members`, unchanged — still returns every role): `/workspaces/:id/members` (internal staff — MANAGER/CREATOR only, filtered client-side) and `/workspaces/:id/clients` (CLIENT collaborators only, with its own "Add client" entry point — see FR 3.4.7 V2). This spec is written for the internal Members screen; CLIENT-specific behavior (the Client list, invite lookup) lives in FR 3.4.7.
 
 ## Function Trigger
 
-Begins when a Workspace member opens the members screen of a Workspace.
+Begins when a Workspace member opens the Members screen (internal staff) or the Clients screen (CLIENT collaborators) of a Workspace.
 
 ## Function Description
 
-- **Actors / Roles:** Workspace members with role MANAGER, CREATOR, or CLIENT.
-- **Purpose:** Shows who takes part in the Workspace and the role each member holds.
-- **Interface:** Workspace members screen at `/workspaces/:id/members`, listing members with their roles.
-- **Data Processing:** The system loads the Workspace, confirms the caller is an active member of that same Workspace, then lists every member of the Workspace together with the display name and email of each member's user or client profile.
+- **Actors / Roles:** Workspace members with role MANAGER or CREATOR see the Members screen; Owner/Manager also see the separate Clients screen to manage CLIENT collaborators.
+- **Purpose:** Shows who takes part in the Workspace and the role each member holds — internal staff and collaborating clients are kept in two separate lists so each audience sees only what's relevant to them.
+- **Interface:** Members screen at `/workspaces/:id/members`, listing MANAGER/CREATOR members with their roles. A separate Clients screen at `/workspaces/:id/clients` lists active CLIENT members (see FR 3.3.3/3.4.7 for its full behavior).
+- **Data Processing:** The system loads the Workspace, confirms the caller is an active member of that same Workspace, then lists every active member of the Workspace together with the display name and email of each member's user or client profile. Both screens call the same `GET /api/v1/workspaces/{id}/members` endpoint and filter by role client-side (`role !== "CLIENT"` for Members, `role === "CLIENT"` for Clients) — the backend does not distinguish the two screens.
 
 ## Screen Layout
 
-Figure — Workspace Members Screen:
-- A table of members with name, email, role, and the date each member joined.
-- Role badges for MANAGER, CREATOR, and CLIENT.
+Figure — Workspace Members Screen (`/workspaces/:id/members`):
+- A table of MANAGER/CREATOR members with name, email, role, and the date each member joined.
+- Role badges for MANAGER and CREATOR only — CLIENT rows are filtered out here.
 - Active members only; members who have left or were removed do not appear.
+
+Figure — Workspace Clients Screen (`/workspaces/:id/clients`, see FR 3.3.3/3.4.7):
+- A table of active CLIENT members — display name (from the linked Client Profile) and join date.
+- "Add client" action (Owner/Manager only) opens the Gmail-based invite dialog with the auto-suggest hint described in FR 3.4.7 V2.
 
 ## Function Details
 
@@ -40,7 +46,7 @@ Figure — Workspace Members Screen:
 
 - **BR-29:** Multi-tenancy — the Workspace must exist and carries its own workspaceId scope, checked before the member list is read; otherwise 404 `WORKSPACE_NOT_FOUND`. A caller with no active membership in that Workspace cannot read it regardless of system role (except ADMIN).
 - **BR-30:** The caller must be an active member of the very Workspace being viewed, verified explicitly for the requested Workspace; a caller who is not an active member → 403 `WORKSPACE_ACCESS_DENIED`. This is the same re-check that immediately cuts off access once a member is removed or leaves.
-- **BR-31:** The role list at Workspace level is MANAGER, CREATOR, CLIENT; OWNER is not a Workspace role (OWNER exists only at Agency level).
+- **BR-31:** The role list at Workspace level is MANAGER, CREATOR, CLIENT; OWNER is not a Workspace role (OWNER exists only at Agency level). The backend list endpoint always returns all three roles together — the Members/Clients screen split (V2) is a presentation-layer filter, not a backend distinction.
 - **BR-35:** Role/permission checks re-read the caller's role from the DB at request time via `@RequireRoleAspect`; `SystemRole.ADMIN` bypasses the membership check.
 
 ### Validation

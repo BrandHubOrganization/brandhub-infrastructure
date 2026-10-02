@@ -2,42 +2,55 @@
 
 > Supplements `spec.md` (FR 3.3.4). This file lists each step as actor → action → system, in enough detail to draw the sequence diagram directly — it does not restate business rules (see spec.md for those).
 >
-> Updated: 2026-09-23. Matches the current implementation.
+> Updated: 2026-10-02. ClientProfile reworked — owned by the User, independent of any Agency.
 
 ## Actors
 
-- **User** — a user acting as a Client in a workspace of an Agency.
-- **Client** — the edit form on the Client Profile screen (FR 3.3.3).
+- **User** — any signed-in user, creating or editing a Client Profile they own.
+- **Client** — the create/edit form on "My Brand Profiles" (FR 3.3.3).
 - **System** — the application services.
-- **Database** — PostgreSQL (`client_profiles`).
+- **Database** — PostgreSQL (`client_profiles`, `workspace_members`).
 
-## Reminder — keyed by the pair (user, agency)
+## Reminder — owned by the User, never scoped to an Agency
 
-As in FR 3.3.3, every update applies to one specific Agency: editing the Client Profile for Agency A does **not** affect the record held for Agency B (when the user is also a Client there). "Synchronized across all workspaces" holds only within the workspaces of the **same Agency**, because they all read the one (user, agency) record.
+Unlike the reverted 2026-09-21 model, there is no "(user, agency) pair" — a single profile row can be linked to workspaces of any number of Agencies. Editing it changes that one row; the change is visible wherever it is linked.
 
 ---
 
-## Flow A — Update an existing Client Profile
+## Flow A — Create a new Client Profile
 
-1. User → Client: edits the form — display name, company, phone number, note, and the other fields when the interface offers them (logo, website, industry, location, description, social links) — and clicks Save. The Client knows the Agency currently in context from the page.
-2. Client → System: submits the update for the signed-in user's Client Profile in the current Agency.
-   - An empty or blank display name is rejected at the point of entry → `400 VALIDATION_ERROR`.
-   - The update request carries **no email field** — an email address cannot be submitted through this action because there is no place to carry it, not because the system rejects it with a dedicated error code.
-   - The Agency identifier is mandatory → missing → `400 VALIDATION_ERROR`.
+1. User → Client: fills the form — display name (required), company, phone, note, logo, website, industry, location, description, social links, brand fields — and clicks Save.
+2. Client → System: `POST /api/v1/client-profile` with the full field set.
+   - An empty or blank display name is rejected → `400 VALIDATION_ERROR`.
+   - The request carries no email field — the owner's own email cannot be submitted through this action.
 3. System:
-   a. System → Database: looks up the Client Profile by the pair (user, agency) — a record exists → it is used for the update (continues at step b).
-   b. Writes the complete field set: display name (trimmed), company, phone number, note, logo, website, industry, location, description, social links, and stamps the update time.
+   a. Resolves the caller's identity from the access token.
+   b. Builds a new `ClientProfile` with `userId = caller`, no Agency reference of any kind.
+4. System → Database: inserts the record.
+5. System → Client: returns the complete Client Profile.
+6. Client: shows a success confirmation and adds the new card to the list.
+
+## Flow B — Update an existing Client Profile
+
+1. User → Client: edits an existing card's form and clicks Save.
+2. Client → System: `PUT /api/v1/client-profile/{profileId}` with the full field set.
+3. System:
+   a. System → Database: `findById(profileId)` — no record → `404 CLIENT_PROFILE_NOT_FOUND`.
+   b. Checks `profile.userId == caller.id` — mismatch → `403 CLIENT_PROFILE_NOT_OWNED`.
+   c. Writes the complete field set over the record (full overwrite) and stamps the update time.
 4. System → Database: saves the record.
-5. System → Client: returns the complete Client Profile — `id`, `userId`, `agencyId`, `displayName`, `company`, `phone`, `note`, `logoUrl`, `website`, `industry`, `location`, `description`, `socialLinks`, `createdAt`, `updatedAt`.
-6. Client: shows a success confirmation and refreshes the display immediately. Because every workspace of the same Agency reads this one record, the change is visible at once everywhere that Agency is used, with no manual synchronization.
+5. System → Client: returns the complete Client Profile.
+6. Client: shows a success confirmation and refreshes the list. Because the profile is never Agency-scoped, the new values are visible wherever it is linked (every workspace of every Agency) immediately — no manual synchronization, no "per-Agency copy" to keep in sync.
 
-## Flow B — Update when the Agency has no Client Profile yet (upsert creates the record)
+## Flow C — Delete a Client Profile
 
-Same action as Flow A, differing only at step 3a:
-
-- 3a'. System → Database: looks up the Client Profile by the pair (user, agency) — **no record** → the system creates a new Client Profile for that (user, agency) pair (not yet stored), then writes the fields as in Flow A step b and saves — an insert rather than an update.
-
-- This is the genuine upsert behaviour of the action. A Client Profile is created either when a Client invitation is accepted **or** on the first update for that Agency; the update path creates the record when it is missing and does not return `404`.
+1. User → Client: clicks Delete on a card.
+2. Client → System: `DELETE /api/v1/client-profile/{profileId}`.
+3. System:
+   a. Checks ownership as in Flow B step b.
+   b. System → Database: `workspaceMemberRepository.findByClientProfileIdInAndIsActiveTrue([profileId])` — not empty → `409 CLIENT_PROFILE_IN_USE`.
+4. System → Database: deletes the record.
+5. System → Client: confirms deletion; the card is removed from the list.
 
 ---
 
@@ -45,11 +58,13 @@ Same action as Flow A, differing only at step 3a:
 
 | Step | Failure condition | HTTP | ErrorCode |
 |---|---|---|---|
-| Update (Flow A/B) | Display name empty or blank | 400 | `VALIDATION_ERROR` |
-| Update (Flow A/B) | Agency identifier not supplied | 400 | `VALIDATION_ERROR` |
-| Update (Flow A/B) | Missing, expired, or invalid token | 401 | `UNAUTHORIZED` |
+| Create/Update (Flow A/B) | Display name empty or blank | 400 | `VALIDATION_ERROR` |
+| Update/Delete (Flow B/C) | Profile not found | 404 | `CLIENT_PROFILE_NOT_FOUND` |
+| Update/Delete (Flow B/C) | Profile belongs to a different user | 403 | `CLIENT_PROFILE_NOT_OWNED` |
+| Delete (Flow C) | Profile linked to an active workspace membership | 409 | `CLIENT_PROFILE_IN_USE` |
+| Any | Missing, expired, or invalid token | 401 | `UNAUTHORIZED` |
 
 ## Notes
 
-- The upsert behaviour (Flow B) is intentional and has been confirmed as the behaviour to keep, rather than splitting record creation into a separate flow. `spec.md` states the same: a Client Profile is created either when a Client invitation is accepted or on the first update for that Agency.
-- There is no dedicated error code to block the email field — the update request simply has no place to carry an email address, so it can never be sent. This is stated in `spec.md` under Validation and Business Rules.
+- There is no upsert anymore — create (`POST`) and update (`PUT /{profileId}`) are distinct requests. The 2026-09-21 upsert-by-`(userId, agencyId)` behaviour was reverted on 2026-10-02 along with the `agency_id` column.
+- There is no dedicated error code to block the owner's own email field — the request simply has no place to carry it, so it can never be sent.
