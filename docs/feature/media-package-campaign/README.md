@@ -16,8 +16,10 @@ This folder is the technical working baseline for FR 3.5.1--3.5.10. It is intend
 
 - An Admin template has `is_template = true` and `agency_id IS NULL`; every Agency may view this global catalogue.
 - Until the separate Admin implementation is delivered, global templates are supplied by seed data. Admin template authoring is not part of this feature slice.
-- An Agency-custom package has `is_template = false` and a required `agency_id`. A Client discusses the need with the Manager; the Manager creates the custom package for the Agency. Custom packages use the same single-table model and do not require a polymorphic reference.
-- Workspace creation already adds the Client. The Client selects a global template, or selects a custom package after discussion with the Manager. `workspace_media_packages` records the selected, negotiable package. It is replaceable before negotiation starts and fixed to the same package once negotiation begins.
+- An Agency package has `is_template = false` and a required `agency_id`. Only the Agency Owner manages this catalogue. A package can be authored independently or cloned from a global template; `source_template_id` records optional provenance without coupling later edits.
+- The Owner controls Agency-wide Workspace visibility with `is_available_to_workspaces`. Hiding a package removes it from future selection but does not invalidate a package already selected by a Workspace.
+- Workspace creation already adds the Client. The Client selects only an available package from that Workspace's Agency; global Admin templates are reference material for the Owner and cannot be selected directly. `workspace_media_packages` records the selected, negotiable package. It is replaceable before negotiation starts and fixed to the same package once negotiation begins.
+- When no package has been selected, the Workspace dashboard shows the missing-package state and gives the Client a selection action; Agency roles receive an informational state.
 - Selection snapshots package terms into `workspace_media_packages.final_terms`; later edits to a global template must not retroactively change a Workspace's selected terms.
 - A change to terms creates a new terms version. Both approval records for the prior version are invalid and Agency and Client must approve the new version again.
 - A Client can cancel a pending content request using terminal status `CANCELLED`, rather than hard deletion, so its audit history remains available.
@@ -29,7 +31,7 @@ This folder is the technical working baseline for FR 3.5.1--3.5.10. It is intend
 
 ## Current delivery order
 
-1. E50-01: package template/custom persistence and APIs.
+1. E50-01: global template and Agency catalogue persistence/APIs.
 2. E50-02 and E50-03: workspace package selection/read model.
 3. E50-04 and E50-05: negotiation history and two-party approval.
 4. E50-06 and E50-07: campaign work items, approval, and idempotent deploy.
