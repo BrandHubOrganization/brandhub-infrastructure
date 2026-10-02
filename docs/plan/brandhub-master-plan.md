@@ -1128,7 +1128,7 @@
 | Task ID (tạm) | Description | Complexity | Spec Reference |
 |---|---|---|---|
 | DA-E50-01 | Entity `MediaPackage` (1 bảng, cột `is_template` phân biệt Template/Custom) | M | `docs/ba/04-media-package-campaign.md`, `docs/feature/media-package-campaign/3-5-1-create-media-package/spec.md` |
-| DA-E50-02 | Client chọn Media Package cho Workspace; Owner/Manager tạo custom package sau trao đổi | M | `docs/feature/media-package-campaign/3-5-1-create-media-package/spec.md` |
+| DA-E50-02 | Client chọn Media Package đang khả dụng trong catalogue của Agency; Owner quản lý catalogue | M | `docs/feature/media-package-campaign/3-5-1-create-media-package/spec.md` |
 | DA-E50-03 | Entity/read model `WorkspaceMediaPackage` (một `package_id` áp dụng cho Workspace cụ thể) | M | `docs/feature/media-package-campaign/3-5-2-view-the-template-media-package/spec.md` |
 | DA-E50-04 | Implement đàm phán Package — negotiation loop, ACID 2-bên-approve (`final_terms`, `approved_by_agency_at`, `approved_by_client_at`) | C | `docs/feature/media-package-campaign/3-5-3-request-media-package/spec.md`, `docs/ba/12-state-machines.md` mục 2 "Media Package (đàm phán)" |
 | DA-E50-05 | Implement approve reset rule: terms mới phải reset cả hai approval về NULL cùng transaction | C | `docs/feature/media-package-campaign/3-5-4-approve-media-package/spec.md`, `docs/ba/12-state-machines.md` mục 2 |
@@ -9464,13 +9464,14 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc | **Priority:** 🟡 High
 
-**Goal:** Model both Admin-created template packages and Owner/Manager-created custom packages in a single `MediaPackage` table, distinguished by `is_template`, per the V2 DB design decision (avoids a polymorphic template/custom split).
+**Goal:** Model both Admin-created global templates and Owner-created Agency packages in a single `MediaPackage` table, distinguished by `is_template`, per the V2 DB design decision (avoids a polymorphic template/custom split).
 
 **Acceptance Criteria:**
 
 - [ ] `MediaPackage` table: `id`, `name`, `type`, `durationWeeks`, `budgetAmount`, `is_template` (boolean), `agencyId` (nullable — NULL for Admin templates, set for Agency-custom)
 - [ ] `GET /api/v1/media-package-templates` returns all `is_template=true` records
-- [ ] `POST /api/v1/agencies/{id}/media-package-custom` creates a `is_template=false` record scoped to the Agency
+- [ ] `POST /api/v1/agencies/{id}/media-package-custom` creates an `is_template=false` record scoped to the Agency; only the Agency Owner may create it, optionally using a global template as `sourceTemplateId`
+- [ ] Owner can hide/show Agency packages for future Workspace selection through `is_available_to_workspaces`
 
 **Technical Notes:** BA spec originally proposed 2 separate tables (`MediaPackageTemplate`/`MediaPackageCustom`) — the V2 DB decision consolidated this into 1 table with `is_template`; follow `docs/database/schema-v2/database-strategy.md`, not the older 2-table sketch in the FR spec. Global Admin templates are initially supplied through seed data; their Admin authoring API/UI belongs to the separate Admin implementation stream.
 
@@ -9484,12 +9485,13 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc | **Priority:** 🟡 High
 
-**Goal:** Let the Client, who is already added when the Owner creates the Workspace, choose an Admin template or select an Agency-custom package prepared by the Owner/Manager after discussion.
+**Goal:** Let the Client, who is already added when the Owner creates the Workspace, choose an available package from that Workspace's Agency catalogue. Global Admin templates are used by the Owner to prepare Agency packages and are not directly selectable.
 
 **Acceptance Criteria:**
 
 - [ ] `POST /api/v1/workspaces/{id}/media-package` accepts `{packageId}`, returns 201 with `workspaceMediaPackageId`
-- [ ] Client can select any global Admin template; Owner/Manager can create an Agency-custom package for Client consideration using DA-E50-01
+- [ ] Client can select only `is_template=false`, available packages belonging to the Workspace's Agency
+- [ ] If no package is selected, the Workspace dashboard displays a prominent non-blocking prompt; Client can navigate directly to package selection
 - [ ] If no package selected within X days of Workspace creation, a reminder notification is sent to the Client (does not block Workspace access)
 - [ ] Package can be freely changed BEFORE the Client starts negotiating (DA-E50-04); once negotiation has started, switching to a different package entirely is blocked — only continued negotiation on the current package is allowed
 

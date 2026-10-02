@@ -455,6 +455,8 @@ CREATE TABLE IF NOT EXISTS media_packages (
     name               VARCHAR(255) NOT NULL,
     is_template        BOOLEAN      NOT NULL DEFAULT FALSE,
     agency_id          UUID         REFERENCES agencies(id) ON DELETE RESTRICT,
+    source_template_id UUID         REFERENCES media_packages(id) ON DELETE SET NULL,
+    is_available_to_workspaces BOOLEAN NOT NULL DEFAULT TRUE,
     package_type       package_type NOT NULL,
     duration_weeks     INT,
     budget_amount      DECIMAL(14,2),
@@ -465,11 +467,17 @@ CREATE TABLE IF NOT EXISTS media_packages (
     CONSTRAINT chk_media_packages_template_agency_scope CHECK (
         (is_template AND agency_id IS NULL)
         OR (NOT is_template AND agency_id IS NOT NULL)
+    ),
+    CONSTRAINT chk_media_packages_template_source CHECK (
+        source_template_id IS NULL OR NOT is_template
     )
 );
 
 CREATE INDEX IF NOT EXISTS idx_media_packages_is_template ON media_packages(is_template);
 CREATE INDEX IF NOT EXISTS idx_media_packages_agency_id ON media_packages(agency_id);
+CREATE INDEX IF NOT EXISTS idx_media_packages_agency_available
+    ON media_packages(agency_id, is_available_to_workspaces)
+    WHERE NOT is_template;
 
 DROP TRIGGER IF EXISTS trg_media_packages_updated_at ON media_packages;
 CREATE TRIGGER trg_media_packages_updated_at
@@ -482,10 +490,12 @@ CREATE TABLE IF NOT EXISTS workspace_media_packages (
     package_id             UUID                       NOT NULL REFERENCES media_packages(id) ON DELETE RESTRICT,
     negotiation_status     package_negotiation_status NOT NULL DEFAULT 'DRAFT',
     final_terms            JSONB                      NOT NULL DEFAULT '{}',
+    terms_version          INT                        NOT NULL DEFAULT 1,
     approved_by_agency_at  TIMESTAMPTZ,
     approved_by_client_at  TIMESTAMPTZ,
     created_at             TIMESTAMPTZ                NOT NULL DEFAULT NOW(),
-    updated_at             TIMESTAMPTZ                NOT NULL DEFAULT NOW()
+    updated_at             TIMESTAMPTZ                NOT NULL DEFAULT NOW(),
+    CONSTRAINT chk_workspace_media_packages_terms_version_positive CHECK (terms_version > 0)
 );
 
 DROP TRIGGER IF EXISTS trg_workspace_media_packages_updated_at ON workspace_media_packages;
