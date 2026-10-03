@@ -1,62 +1,23 @@
-# UC — Request Media Package
+# FR 3.5.3 - Request Media Package Changes
 
-| | |
+| Field | Value |
 |---|---|
-| FR Code | 3.5.3 |
-| Feature | Request Media Package |
-| Domain | Media Package & Contract (FR 3.5) |
-| Role | OWNER/MANAGER/CLIENT |
-| Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Status | Ready for technical review |
+| Roles | Client; Owner/Manager |
+| Delivery task | DA-E50-04 |
 
-## 1. Objective
+## Outcome
 
-Cho phép Client thảo luận lại với Agency về Package mẫu — đưa ra yêu cầu về giá, thời gian, hình thức; Agency phản hồi chấp nhận/từ chối/counter-offer, lặp lại đến khi 2 bên chốt.
+Client and Agency negotiate the selected workspace package through a durable, ordered history of requested terms and counter-offers.
 
-## 2. User Story
+## Acceptance criteria
 
-Là một Client,
-tôi muốn đề xuất thay đổi cho Media Package,
-để gói truyền thông phù hợp hơn với nhu cầu và ngân sách của tôi.
+- Client submits `requestedTerms` and optional note through `request-change`.
+- Owner/Manager submits a counter-offer or response.
+- Status moves between `CLIENT_REQUESTED_CHANGE` and `AGENCY_COUNTERED` until both parties approve.
+- The package itself cannot be replaced after negotiation begins; only its workspace terms may change.
+- The API exposes a negotiation history for the UI thread.
 
-## 3. Acceptance Criteria
+## Persistence design
 
-- Client gửi yêu cầu thay đổi: giá, thời gian, sự kiện, hình thức...
-- Owner/Manager phản hồi: chấp nhận, từ chối, hoặc counter-offer (đề xuất khác).
-- Quá trình lặp lại nhiều vòng (`negotiationStatus` chuyển qua lại `CLIENT_REQUESTED_CHANGE ↔ AGENCY_COUNTERED`, xem [12-state-machines.md](../../../BA/12-state-machines.md) mục 2) — cho đến khi cả 2 bên chốt được gói cuối cùng.
-
-## 4. UI / UX
-
-- Trang `/workspaces/:id/media-package/negotiate` — dạng thread trao đổi (giống comment thread) + form đề xuất field cụ thể.
-
-## 5. API Contract (đề xuất, cần xác nhận khi thiết kế kỹ thuật)
-
-```
-POST /api/v1/workspaces/{id}/media-package/request-change
-{ "requestedTerms": { "price"?, "duration"?, "format"? }, "note"? }
-→ 201 { "success": true, "data": { "id", "negotiationStatus" } }
-
-POST /api/v1/workspaces/{id}/media-package/counter-offer
-{ "counterTerms": {...}, "note"? }
-→ 201 { "success": true, "data": { "id", "negotiationStatus" } }
-```
-
-## 6. Error Handling
-
-- Package đã ở trạng thái `APPROVED` → 409 `PACKAGE_ALREADY_APPROVED`, không cho request thay đổi nữa (phải làm việc trên Media Campaign, FR 3.5.5, thay vì sửa Package đã chốt).
-
-## 7. Edge Cases
-
-- Negotiate qua lại quá nhiều vòng không hồi kết → không có giới hạn số vòng trong CSV, để tự nhiên theo thực tế thương lượng.
-
-## 8. Definition of Done
-
-- Luồng negotiate hoạt động đúng nhiều vòng, lưu lại lịch sử trao đổi.
-
-## Out of Scope
-
-- Giới hạn số vòng negotiate tối đa (không có trong CSV).
-
-## Tham chiếu BA
-
-[04-media-package-campaign.md](../../../BA/04-media-package-campaign.md), [12-state-machines.md](../../../BA/12-state-machines.md)
+`workspace_media_packages` holds current `final_terms` and `terms_version`. E50-04 adds append-only `package_negotiation_events` with the workspace package ID, terms version, actor, action (`REQUEST_CHANGE` or `COUNTER_OFFER`), terms snapshot, optional note, and timestamp. Every terms-changing event increments the version and invalidates both approvals atomically.
