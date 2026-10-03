@@ -28,7 +28,7 @@ Figure - Invitation list:
 
 - **Business Rules**
     - **BR-27**: Only the Owner of the Agency may list or cancel its invitations, per the same Invite rule adapted to the Agency's single-Owner model. Anybody else is refused with 403 NOT_AGENCY_OWNER.
-    - An invitation is valid for the period set when it was sent - 30 days by default, settable between 1 and 30 days.
+    - **BR-27**: An invitation is valid for the period set when it was sent - 30 days by default, settable between 1 and 30 days.
     - The same BA/code conflict noted in 3.4.7 applies here: the BA document states a fixed 3-day expiry, the code implements 1-30 days, default 30. Not yet reconciled.
     - Expiry is derived when the list is read, not by a scheduled job: after the expiry time passes the stored record keeps its PENDING status, and the system reports it as EXPIRED without writing that back to storage. Two reads taken either side of the expiry time may report different statuses for the same record.
     - The Owner sees lapsed invitations reported as expired. The invited person does not: their list drops anything that is no longer PENDING or has passed its expiry time.

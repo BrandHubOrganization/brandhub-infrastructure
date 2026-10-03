@@ -28,13 +28,13 @@ Figure - Invite Member form:
 
 - **Business Rules**
     - **BR-27**: Invite is Owner-only; an already-active member cannot be re-invited; a second invite is blocked while a pending, unexpired invitation exists for the same email; invitation token is a random UUID with an expiry window. Anybody other than the Owner is refused with 403 NOT_AGENCY_OWNER.
-    - The invited email must not already be a Member of the Agency; otherwise 409 ALREADY_AGENCY_MEMBER.
-    - The invited email must not already hold a PENDING invitation for this Agency; otherwise 409 INVITATION_ALREADY_PENDING.
+    - **BR-27**: The invited email must not already be a Member of the Agency; otherwise 409 ALREADY_AGENCY_MEMBER.
+    - **BR-27**: The invited email must not already hold a PENDING invitation for this Agency; otherwise 409 INVITATION_ALREADY_PENDING.
     - An Agency may hold at most 20 unexpired PENDING invitations; beyond that, 409 TOO_MANY_PENDING_INVITATIONS.
     - A Workspace sent with the invitation must belong to the same Agency; otherwise 400 WORKSPACE_NOT_IN_AGENCY.
     - With role MANAGER, the chosen Workspace must not already have an active manager, since a Workspace holds one manager only; otherwise 409 MANAGER_ALREADY_ASSIGNED.
     - With role CLIENT, a Workspace is mandatory from the moment of invitation; otherwise 400 WORKSPACE_REQUIRED_FOR_CLIENT_INVITE. A Client does not become an Agency Member and needs a Workspace so a Client Profile and a Workspace membership can be assigned on acceptance.
-    - The expiry period is settable between 1 and 30 days and defaults to 30 days; a value outside that range is clamped back inside it.
+    - **BR-27**: The expiry period is settable between 1 and 30 days and defaults to 30 days; a value outside that range is clamped back inside it.
     - The BA document states a fixed 3-day expiry with no configurability; the code implements 1-30 days, default 30. This spec follows the code's current behaviour - the two figures are not reconciled.
     - The invitation reaches the invited person by email only; no in-app notification is produced.
     - On acceptance, an invited person with no role or a role other than CLIENT becomes an Agency Member at the MEMBER role - the Agency level knows only OWNER and MEMBER. When the invitation carried a Workspace and a role of MANAGER or CREATOR, the matching Workspace membership is created at the same time.
