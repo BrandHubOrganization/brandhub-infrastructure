@@ -1,82 +1,70 @@
 # 3.3.3 View Client Profile
 
+> V2 (2026-10-02): ClientProfile reworked — owned by the User, independent of any Agency. See [plan.md](plan.md) §6 for the migration rationale.
+
 ## Function Trigger
 
-Begins when a user acting as a Client opens the Client Profile screen in the context of a specific Agency, or when an Agency member opens the Agency's Client list while adding a Client to a workspace.
+Begins when a user opens their own list of Client Profiles ("My Brand Profiles"), or when an Agency Manager/Owner opens a workspace's Client list to manage collaborating clients.
 
 ## Function Description
 
-- **Actors / Roles:** A user acting as a Client in a workspace of an Agency; Agency members (Owner/Manager) when viewing the Agency's Client list.
-- **Purpose:** Show the Client Profile held for one specific Agency, independently of the user's own User Profile (3.3.1), so the Client can confirm what that Agency sees and so details can be reused within the same Agency without re-entering them.
-- **Interface:** The Client Profile screen at `/client-profile`, scoped to the Agency currently in context (the Agency is taken from the page context / URL). The screen shows the Client Profile as a read-only card. A separate Client list view, also in an Agency context, shows every Client Profile held by that Agency and is used as a picker when adding a Client to a workspace. In both cases the Agency identifier must be supplied by the caller; no Agency is assumed.
-- **Data Processing:** The system resolves the caller's identity from the access token only, looks up the Client Profile by the pair (user, agency), and returns the complete field set. For the list view, the system returns every Client Profile belonging to the given Agency.
+- **Actors / Roles:** Any signed-in user, viewing the Client Profiles they personally own; Agency members (Owner/Manager) when viewing a workspace's Client list (`/workspaces/{id}/clients`).
+- **Purpose:** Let a user manage the Client Profiles they own — one person may represent several brands (e.g. Nike, Adidas) and hold one profile per brand, none of which belong to any Agency. A profile is reused across every workspace/Agency the user collaborates with, instead of re-entering brand details per Agency.
+- **Interface:** The personal screen at `/client-profiles` lists every Client Profile the signed-in user owns — no Agency context required. A separate Workspace Client list, at `/workspaces/{id}/clients`, shows every `WorkspaceMember` with role CLIENT currently linked to that workspace (via `client_profile_id`), used by Agency Managers to manage who is collaborating and to invite new clients.
+- **Data Processing:** The system resolves the caller's identity from the access token and returns every Client Profile where `userId` matches the caller. For the workspace list, the system returns the workspace's active CLIENT members joined with their linked Client Profile for display.
 
 ## Screen Layout
 
-Figure — Client Profile Screen (`/client-profile`, Agency context):
+Figure — My Brand Profiles (`/client-profiles`):
 
-- Header: page title "Client Profile" and the Agency currently in context.
-- Center: read-only card — display name, company, phone number, note, logo, website, industry, location, description, social links, and the created and last-updated dates.
-- Buttons: Edit — routes to Update Client Profile (3.3.4).
-- Footer: none.
-- When no Agency is in context, the screen shows a clear error instead of requesting data.
+- Center: list of every Client Profile the signed-in user owns — display name, company, contact details, logo.
+- Buttons: Create new profile, Edit, Delete (blocked if the profile is linked to an active workspace membership).
 
-Figure — Client List (Agency context):
+Figure — Workspace Client List (`/workspaces/{id}/clients`):
 
-- Center: list of the Agency's Client Profiles — display name, company, and contact details.
-- Used when adding a Client to a workspace, so an existing Client Profile can be reused.
+- Center: list of active CLIENT members of this workspace — display name (from the linked Client Profile), joined date, status.
+- Buttons: "Add client" (Owner/Manager only) — opens an invite-by-email dialog (see FR 3.4.7 for the invite flow and the auto-suggest behavior).
 
 ## Function Details
 
 ### Data Specifications
 
-- **Input required:** The Agency identifier, for both the Client Profile view and the Agency Client list.
+- **Input required:** None beyond the caller's identity (My Brand Profiles); the workspace identifier, for the Workspace Client list.
 - **Input optional:** None.
-- **System data:** `client_profiles`, keyed by the pair (userId, agencyId) — `id`, `userId`, `agencyId`, `displayName`, `company`, `phone`, `note`, `logoUrl`, `website`, `industry`, `location`, `description`, `socialLinks`, `createdAt`, `updatedAt`.
-- **Output:** The complete Client Profile field set for one Agency, or the list of Client Profiles held by an Agency.
+- **System data:** `client_profiles` — `id`, `userId`, `displayName`, `company`, `phone`, `note`, `logoUrl`, `website`, `industry`, `location`, `description`, `socialLinks`, `contactName`, `contactEmail`, `companySize`, `instagramUrl`, `taxCode`, `address`, `tagline`, `foundedYear`, `budgetRange`, `createdAt`, `updatedAt`. `workspace_members` — the link between a Client Profile and a workspace is `client_profile_id` on `workspace_members`, not any field on `client_profiles` itself.
+- **Output:** Every Client Profile owned by the caller, or the list of active CLIENT members for one workspace.
 
 ### Business Rules
 
-- **BR-41:** A client account is a member of type `CLIENT`; clients have a read-only + approve/reject scope, never workspace admin. A Client Profile is keyed by the pair (user, agency) and is never global — one user may hold several independent Client Profiles, one per Agency.
-- **Implementation note (no dedicated global BR):** Reuse of a Client Profile applies only within the same Agency. When the user is already a Client in one workspace of Agency A and is later invited into another workspace of the same Agency A, the existing (user, Agency A) record is reused and no new record is created. An invitation from Agency B uses a separate (user, Agency B) record, independent of the Agency A record.
-- **Implementation note (no dedicated global BR):** A Client Profile is created either when a Client invitation is accepted, or on the first update for that Agency (upsert — see 3.3.4). Viewing never creates a record.
-- **Implementation note (no dedicated global BR):** The Agency identifier is mandatory; no default Agency is assumed.
-- **BR-38:** Client access is scoped by `clientId` (agencyId) — a client can only see/approve its own content. A Client Profile is independent of the user's own User Profile — one user may hold both at the same time, for example owning their own Agency while being a Client of another Agency.
-- **Implementation note (no dedicated global BR):** A user who is a Client of Agency A and of Agency B holds two independent records. No data is shared between them: the display name, company, and other fields may differ per Agency.
+- **BR-41 (reworked):** A Client Profile belongs to exactly one User (`userId`) and is never scoped to an Agency. One user may hold several independent Client Profiles — one per brand/customer they represent (e.g. a marketing lead holding separate "Nike" and "Adidas" profiles) — completely unrelated to how many Agencies or workspaces they collaborate with.
+- **Implementation note (no dedicated global BR):** The same Client Profile can be linked (via `workspace_members.client_profile_id`) to any number of workspaces across any number of Agencies simultaneously. Linking a profile to a second workspace of a different Agency does not create a new profile and does not affect the profile's data as seen from the first workspace.
+- **Implementation note (no dedicated global BR):** A Client Profile is created either explicitly by its owner (on `/client-profiles`, see FR 3.3.4) or inline during a CLIENT invitation accept flow (see FR 3.4.7) — never implicitly, and never keyed by an Agency.
+- **BR-38:** Client access is scoped by workspace membership — a client can only see/approve content in workspaces where their Client Profile is actively linked. A Client Profile is independent of the user's own User Profile (3.3.1) — one user may hold both at the same time, for example owning their own Agency while also being a CLIENT collaborator (via a Client Profile) in another Agency's workspace.
 
 ### Validation
 
-- Missing Agency identifier → 400 `VALIDATION_ERROR`, Display: MSG02.
-- No Client Profile exists for the (user, agency) pair (BR-41) → 404 `CLIENT_PROFILE_NOT_FOUND`, Display: MSG38.
 - Missing, expired, or invalid access token → 401 `UNAUTHORIZED`, Display: MSG22.
+- Workspace Client list: missing or invalid workspace identifier → 404 `WORKSPACE_NOT_FOUND`.
 
 ## Functionalities
 
 ### Normal Flow
 
-1. The user opens the Client Profile screen in the context of a specific Agency.
-2. The application determines the Agency identifier from the current context.
-3. The application requests the signed-in user's Client Profile for that Agency.
-4. The system resolves the caller's identity from the access token.
-5. The system looks up the Client Profile by the pair (user, agency) (BR-41).
-6. The system returns the complete Client Profile field set.
-7. The application renders the Client Profile for the Agency currently in context.
-8. Alternatively, an Agency member opens the Agency's Client list; the system returns every Client Profile held by that Agency, and the application displays them for selection when adding a Client to a workspace.
+1. The user opens "My Brand Profiles" (`/client-profiles`).
+2. The system resolves the caller's identity from the access token.
+3. The system returns every Client Profile where `userId` matches the caller.
+4. The application renders the list — one card per brand the user represents.
+5. Alternatively, an Agency Manager/Owner opens a workspace's Client list; the system returns that workspace's active CLIENT members (each resolved through `workspace_members.client_profile_id`), and the application displays them with an "Add client" action.
 
 ### Abnormal Cases
 
-- 2.a1: No Agency identifier is supplied → 400 `VALIDATION_ERROR`, Display: MSG02.
-  2.a2: The interface shows a clear error instead of requesting data; the user selects an Agency context and retries.
-- 5.a1: No Client Profile exists for the (user, agency) pair (BR-41) → 404 `CLIENT_PROFILE_NOT_FOUND`, toast MSG38. Viewing never creates one.
-  5.a2: The user is offered Update Client Profile (3.3.4) to create the record, or returns to the Client list.
 - N.a1: Missing, expired, or invalid access token at any step → 401 `UNAUTHORIZED`, toast MSG22.
-  N.a2: The user signs in again at /login (3.2.2).
-- 7.a1: The user owns Agency A while also being a Client of Agency B (BR-38) → both profiles exist independently.
-  7.a2: The interface makes clear which context is being viewed (own User Profile versus Client Profile).
-- 7.b1: The user is a Client of both Agency A and Agency B (BR-41) → two independent records exist.
-  7.b2: The application displays each record only within its own Agency context, never mixed.
+  N.a2: The user signs in again at `/login` (3.2.2).
+- 5.a1: Invalid or missing workspace identifier → 404 `WORKSPACE_NOT_FOUND`.
+  5.a2: The application returns to the workspace list.
 
 ## Post-Conditions
 
-- The Client Profile for the requested Agency is displayed with the values currently stored for that pair.
+- Every Client Profile owned by the caller is displayed with the values currently stored for it, independent of any Agency context.
+- The Workspace Client list reflects the workspace's current active CLIENT members only.
 - No data is changed; the operation is read-only.

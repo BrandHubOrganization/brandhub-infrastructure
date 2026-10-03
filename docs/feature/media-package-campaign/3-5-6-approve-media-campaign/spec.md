@@ -1,61 +1,22 @@
-# UC — Approve Media Campaign
+# FR 3.5.6 - Approve and Deploy Media Campaign
 
-| | |
+| Field | Value |
 |---|---|
-| FR Code | 3.5.6 |
-| Feature | Approve Media Campaign |
-| Domain | Media Package & Contract (FR 3.5) |
-| Role | OWNER/MANAGER/CLIENT |
-| Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Status | Depends on FR 3.5.5 and E51-01 |
+| Roles | Client; Owner/Manager |
+| Delivery task | DA-E50-07 |
 
-## 1. Objective
+## Outcome
 
-Cả 2 bên đồng ý Media Campaign → nhấn triển khai, toàn bộ công việc trong Campaign tự động đẩy vào Workspace thành backlog Task.
+Both parties approve a campaign, then deployment creates one generic Mongo task per planned campaign work item in `backlog` and sets the campaign to `IN_PROGRESS`.
 
-## 2. User Story
+## Acceptance criteria
 
-Là một Owner/Manager hoặc Client,
-tôi muốn xác nhận đồng ý với Media Campaign,
-để chính thức triển khai và sinh ra công việc cụ thể.
+- Approval needs Agency and Client timestamps for the same campaign content version; any edit invalidates both prior approvals.
+- Deploy rejects a campaign that is not fully approved.
+- Generated tasks contain `workspaceId`, `campaignId`, type, name, due date, and `status=backlog`; they initially have no assignee.
+- Retrying/deploying twice cannot duplicate a task for one campaign work item.
 
-## 3. Acceptance Criteria
+## Constraint
 
-- Cần cả 2 phía approve (giống cơ chế Package, FR 3.5.4).
-- Khi `APPROVED` → **tự động sinh N Task vào backlog** của Workspace (mỗi đầu việc trong Campaign = 1 Task, xem [05-content-task-workflow.md](../../../BA/05-content-task-workflow.md)).
-- Task sinh ra ở mức độ thô: chỉ có tên + deadline, CHƯA có người thực hiện hay yêu cầu chi tiết — cần Identify Task Detail (FR 3.6.1) sau đó.
-- Campaign chuyển trạng thái `IN_PROGRESS` ngay sau khi sinh Task.
-
-## 4. UI / UX
-
-- Nút 'Triển khai' xuất hiện khi cả 2 phía đã approve.
-
-## 5. API Contract (đề xuất, cần xác nhận khi thiết kế kỹ thuật)
-
-```
-POST /api/v1/workspaces/{id}/campaigns/{campaignId}/approve
-→ 200 { "success": true, "data": { "status", "approvedByAgencyAt", "approvedByClientAt" } }
-
-POST /api/v1/workspaces/{id}/campaigns/{campaignId}/deploy
-→ 200 { "success": true, "data": { "tasksCreated": number, "taskIds": [...] } }
-```
-
-## 6. Error Handling
-
-- Deploy khi chưa đủ 2 phía approve → 409 `CAMPAIGN_NOT_APPROVED`.
-
-## 7. Edge Cases
-
-- Deploy 2 lần liên tiếp do double-click → cần idempotency (chặn tạo trùng Task nếu đã deploy trước đó).
-
-## 8. Definition of Done
-
-- Approve + Deploy hoạt động đúng, Task sinh ra đúng số lượng và nội dung thô từ Campaign.
-
-## Out of Scope
-
-- Không có.
-
-## Tham chiếu BA
-
-[04-media-package-campaign.md](../../../BA/04-media-package-campaign.md), [12-state-machines.md](../../../BA/12-state-machines.md)
+PostgreSQL and MongoDB have no shared transaction. Deploy needs stable work-item ID plus Mongo unique/upsert key on `{campaignId, campaignWorkItemId}`, not only a `deployed_at` timestamp.
