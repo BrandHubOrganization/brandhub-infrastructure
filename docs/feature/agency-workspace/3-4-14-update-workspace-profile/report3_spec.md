@@ -31,7 +31,7 @@ Figure - Workspace Settings Screen, edit section:
     - **BR-25**: Workspace settings and logo can only be updated by MANAGER; all settings fields are optional (partial update).
     - **BR-35**: The role check re-reads the caller's role from the database at request time and runs before the not-found lookup. SystemRole.ADMIN bypasses the check.
     - The Workspace must exist -> otherwise 404 WORKSPACE_NOT_FOUND.
-    - Fields not supplied in the request keep their current values; the stored settings are merged rather than replaced.
+    - **BR-25**: Fields not supplied in the request keep their current values; the stored settings are merged rather than replaced.
     - A failure while reading the uploaded logo file -> 400 FILE_READ_ERROR.
     - The logo is uploaded through its own dedicated action, not through the profile settings update.
 

@@ -54,3 +54,9 @@ Khác so với spec.md (đề xuất `201` + `{invitationId, expiresAt}`):
 
 - **Email chưa có User account (spec mục 7):** vẫn gửi được invite (invite gắn `invitedEmail`, không cần User tồn tại). Khi user đăng ký đúng email đó, `acceptInvitation` check `invitedEmail == user.email`. Đúng ý spec.
 - **Trùng email pending:** chặn bằng `INVITATION_ALREADY_PENDING` (tránh spam 2 lời mời cùng email).
+
+## 7. V2 (2026-10-02) — Invite CLIENT từ trang riêng + auto-suggest
+
+- Trang `/workspaces/:id/clients` (mới, tách khỏi `/workspaces/:id/members`) gọi cùng cơ chế `WorkspaceService.inviteMember(workspaceId, {email, role: "CLIENT", note})` → `WorkspaceInvitation` (khác bảng `AgencyInvitation` ở §2 nhưng cùng accept flow qua `AgencyServiceImpl.acceptInvitation` nhánh fallback WorkspaceInvitation).
+- **API mới**: `GET /api/v1/agencies/{agencyId}/invite-lookup?email=` → `AgencyServiceImpl.inviteLookup`. Trả `{userExists, isAlreadyClientInAgency, existingWorkspaces[]}` — query `clientProfileRepository.findByUserId` rồi `workspaceMemberRepository.findByClientProfileIdInAndIsActiveTrue` lọc theo `workspace.agencyId == agencyId`. Chỉ advisory, FE hiển thị gợi ý inline, không tự động thêm.
+- Accept CLIENT: `AgencyServiceImpl.resolveClientProfileForAccept` — chọn `clientProfileId` có sẵn (check `CLIENT_PROFILE_NOT_OWNED` nếu không phải của mình) hoặc `newClientProfile` tạo mới; bắt buộc 1 trong 2, nếu không → `CLIENT_PROFILE_REQUIRED_FOR_ACCEPT`.

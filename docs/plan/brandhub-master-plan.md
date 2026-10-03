@@ -1128,10 +1128,10 @@
 | Task ID (tạm) | Description | Complexity | Spec Reference |
 |---|---|---|---|
 | DA-E50-01 | Entity `MediaPackage` (1 bảng, cột `is_template` phân biệt Template/Custom) | M | `docs/ba/04-media-package-campaign.md`, `docs/feature/media-package-campaign/3-5-1-create-media-package/spec.md` |
-| DA-E50-02 | Implement CRUD Media Package (Admin tạo template, Owner/Manager tạo custom) | M | `docs/feature/media-package-campaign/3-5-1-create-media-package/spec.md`, `docs/feature/media-package-campaign/3-5-2-view-the-template-media-package/spec.md` |
-| DA-E50-03 | Entity `WorkspaceMediaPackage` (package áp dụng cho Workspace cụ thể) | M | `docs/feature/media-package-campaign/3-5-3-request-media-package/spec.md` |
+| DA-E50-02 | Client chọn Media Package đang khả dụng trong catalogue của Agency; Owner quản lý catalogue | M | `docs/feature/media-package-campaign/3-5-1-create-media-package/spec.md` |
+| DA-E50-03 | Entity/read model `WorkspaceMediaPackage` (một `package_id` áp dụng cho Workspace cụ thể) | M | `docs/feature/media-package-campaign/3-5-2-view-the-template-media-package/spec.md` |
 | DA-E50-04 | Implement đàm phán Package — negotiation loop, ACID 2-bên-approve (`final_terms`, `approved_by_agency_at`, `approved_by_client_at`) | C | `docs/feature/media-package-campaign/3-5-3-request-media-package/spec.md`, `docs/ba/12-state-machines.md` mục 2 "Media Package (đàm phán)" |
-| DA-E50-05 | Implement approve reset rule: khi 1 bên sửa `final_terms`, transaction phải reset approve bên kia về NULL cùng transaction | C | `docs/feature/media-package-campaign/3-5-4-approve-media-package/spec.md`, `docs/ba/12-state-machines.md` mục 2 |
+| DA-E50-05 | Implement approve reset rule: terms mới phải reset cả hai approval về NULL cùng transaction | C | `docs/feature/media-package-campaign/3-5-4-approve-media-package/spec.md`, `docs/ba/12-state-machines.md` mục 2 |
 | DA-E50-06 | Entity `MediaCampaign` (sinh từ Package đã approve, immutable sau approve) | M | `docs/feature/media-package-campaign/3-5-5-create-media-campaign/spec.md`, `docs/ba/12-state-machines.md` mục 3 "Media Campaign" |
 | DA-E50-07 | Implement approve Campaign → auto-generate Task backlog | C | `docs/feature/media-package-campaign/3-5-6-approve-media-campaign/spec.md` |
 | DA-E50-08 | Entity `ThirdPartyCollaborator` (danh bạ đối tác báo/banner/TV cấp Agency) | S | `docs/ba/07-publishing-social-collaborator.md`, `docs/ba/12-state-machines.md` mục 6 "Third-party Collaborator" |
@@ -9464,15 +9464,16 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc | **Priority:** 🟡 High
 
-**Goal:** Model both Admin-created template packages and Owner/Manager-created custom packages in a single `MediaPackage` table, distinguished by `is_template`, per the V2 DB design decision (avoids a polymorphic template/custom split).
+**Goal:** Model both Admin-created global templates and Owner-created Agency packages in a single `MediaPackage` table, distinguished by `is_template`, per the V2 DB design decision (avoids a polymorphic template/custom split).
 
 **Acceptance Criteria:**
 
 - [ ] `MediaPackage` table: `id`, `name`, `type`, `durationWeeks`, `budgetAmount`, `is_template` (boolean), `agencyId` (nullable — NULL for Admin templates, set for Agency-custom)
 - [ ] `GET /api/v1/media-package-templates` returns all `is_template=true` records
-- [ ] `POST /api/v1/agencies/{id}/media-package-custom` creates a `is_template=false` record scoped to the Agency
+- [ ] `POST /api/v1/agencies/{id}/media-package-custom` creates an `is_template=false` record scoped to the Agency; only the Agency Owner may create it, optionally using a global template as `sourceTemplateId`
+- [ ] Owner can hide/show Agency packages for future Workspace selection through `is_available_to_workspaces`
 
-**Technical Notes:** BA spec originally proposed 2 separate tables (`MediaPackageTemplate`/`MediaPackageCustom`) — the V2 DB decision consolidated this into 1 table with `is_template`; follow `docs/database/schema-v2/database-strategy.md`, not the older 2-table sketch in the FR spec.
+**Technical Notes:** BA spec originally proposed 2 separate tables (`MediaPackageTemplate`/`MediaPackageCustom`) — the V2 DB decision consolidated this into 1 table with `is_template`; follow `docs/database/schema-v2/database-strategy.md`, not the older 2-table sketch in the FR spec. Global Admin templates are initially supplied through seed data; their Admin authoring API/UI belongs to the separate Admin implementation stream.
 
 **Spec Reference:** `docs/feature/media-package-campaign/3-5-1-create-media-package/spec.md`, `docs/database/schema-v2/database-strategy.md`, `docs/ba/04-media-package-campaign.md`
 
@@ -9484,12 +9485,14 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc | **Priority:** 🟡 High
 
-**Goal:** Let Owner/Manager pick a template or create a custom package immediately after Workspace creation, before inviting a Client — per the confirmed business sequencing.
+**Goal:** Let the Client, who is already added when the Owner creates the Workspace, choose an available package from that Workspace's Agency catalogue. Global Admin templates are used by the Owner to prepare Agency packages and are not directly selectable.
 
 **Acceptance Criteria:**
 
-- [ ] `POST /api/v1/workspaces/{id}/media-package` accepts `{packageRefId, packageRefType: template|custom}`, returns 201 with `workspaceMediaPackageId`
-- [ ] If no package selected within X days of Workspace creation, a reminder notification is sent (does not block Workspace access)
+- [ ] `POST /api/v1/workspaces/{id}/media-package` accepts `{packageId}`, returns 201 with `workspaceMediaPackageId`
+- [ ] Client can select only `is_template=false`, available packages belonging to the Workspace's Agency
+- [ ] If no package is selected, the Workspace dashboard displays a prominent non-blocking prompt; Client can navigate directly to package selection
+- [ ] If no package selected within X days of Workspace creation, a reminder notification is sent to the Client (does not block Workspace access)
 - [ ] Package can be freely changed BEFORE the Client starts negotiating (DA-E50-04); once negotiation has started, switching to a different package entirely is blocked — only continued negotiation on the current package is allowed
 
 **Spec Reference:** `docs/feature/media-package-campaign/3-5-1-create-media-package/spec.md`, `docs/ba/04-media-package-campaign.md` mục 1
@@ -9506,7 +9509,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Acceptance Criteria:**
 
-- [ ] `WorkspaceMediaPackage` table: `id`, `workspaceId`, `packageRefId`, `packageRefType`, `negotiationStatus`, `finalTerms` (jsonb), `approvedByAgencyAt`, `approvedByClientAt`
+- [ ] `WorkspaceMediaPackage` table: `id`, `workspaceId`, `packageId`, `negotiationStatus`, `finalTerms` (jsonb snapshot), `termsVersion`, `approvedByAgencyAt`, `approvedByClientAt`
 
 **Spec Reference:** `docs/ba/11-data-entities-glossary.md`, `docs/ba/12-state-machines.md` mục 2
 
@@ -9540,17 +9543,17 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc | **Priority:** 🔴 Critical
 
-**Goal:** Require BOTH Agency and Client to independently approve a package before it becomes `APPROVED`, and enforce that editing `finalTerms` after one party has approved resets that approval — this is the core ACID-sensitive rule flagged across all three audit passes.
+**Goal:** Require BOTH Agency and Client to independently approve a package before it becomes `APPROVED`. Every terms edit creates a new version and invalidates both prior approvals — the core ACID-sensitive rule flagged across all three audit passes.
 
 **Acceptance Criteria:**
 
 - [ ] `POST /api/v1/workspaces/{id}/media-package/approve` sets `approvedByAgencyAt` OR `approvedByClientAt` depending on caller's side; package only reaches `APPROVED` when BOTH are non-null
 - [ ] One party approving does not auto-approve the other side
-- [ ] If either party edits `finalTerms` (via a new negotiation round) AFTER approving, that same party's approval timestamp is reset to NULL in the SAME transaction as the terms edit — never leave a stale approval standing against changed terms
+- [ ] If either party edits `finalTerms` (via a new negotiation round), increment `termsVersion` and reset BOTH approval timestamps to NULL in the SAME transaction — never leave a stale approval standing against changed terms
 - [ ] A party can voluntarily un-approve their own approval to reopen negotiation before the other side has approved
 - [ ] Approving in an invalid state (e.g. no proposal exists yet) returns 409 `INVALID_STATE_FOR_APPROVAL`
 
-**Technical Notes:** This must be one atomic DB transaction (edit terms + reset opposing approval) — a partial failure here (terms changed but stale approval left standing) is exactly the risk flagged in `docs/plan/document-plan.md` R2 §1.3 as a top project risk ("reject-giữ-approval-cũ tính sai trong code").
+**Technical Notes:** This must be one atomic DB transaction (edit terms + increment version + reset both approvals) — a partial failure here (terms changed but stale approval left standing) is exactly the risk flagged in `docs/plan/document-plan.md` R2 §1.3 as a top project risk ("reject-giữ-approval-cũ tính sai trong code").
 
 **Spec Reference:** `docs/feature/media-package-campaign/3-5-4-approve-media-package/spec.md`, `docs/ba/12-state-machines.md` mục 2
 
@@ -9566,7 +9569,8 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Acceptance Criteria:**
 
-- [ ] `POST /api/v1/workspaces/{id}/campaigns` accepts `{name, strategyDetail, brandGuideline?, timeline?}`, only allowed when the Workspace's `MediaPackage.negotiationStatus = APPROVED`
+- [ ] `POST /api/v1/workspaces/{id}/campaigns` accepts `{name, strategyDetail, brandGuideline?, timeline?, workItems}`, only allowed when the Workspace's `MediaPackage.negotiationStatus = APPROVED`; entity includes `contentVersion` for approval validity
+- [ ] `workItems` are stored as JSONB; each requires stable `id`, `name`, `type` (`POST|LIVESTREAM|SURVEY`), and `dueDate`
 - [ ] Initial Campaign status: `DRAFT`
 - [ ] Attempting to create a Campaign against a non-approved package returns 409 `PACKAGE_NOT_APPROVED`
 - [ ] A Workspace can have multiple Campaigns over time (no 1-Campaign-per-Workspace limit)
@@ -9585,9 +9589,9 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Acceptance Criteria:**
 
-- [ ] `POST /api/v1/workspaces/{id}/campaigns/{campaignId}/approve` requires both sides, same semantics as DA-E50-05
+- [ ] `POST /api/v1/workspaces/{id}/campaigns/{campaignId}/approve` requires both sides for the same campaign content version; an edit invalidates both prior approvals
 - [ ] `POST /api/v1/workspaces/{id}/campaigns/{campaignId}/deploy` (available only once both approved) creates N Tasks in the backlog, one per Campaign work item
-- [ ] Generated Tasks are minimal: name + deadline only — no assignee or detailed requirements yet (those come from Identify Task Detail, DA-E51-04-equivalent FR 3.6.1)
+- [ ] Generated Tasks are minimal: name + deadline only — no assignee or detailed requirements yet (those come from Identify Task Detail, DA-E51-04-equivalent FR 3.6.1); each carries its stable `campaignWorkItemId` for idempotency
 - [ ] Campaign transitions to `IN_PROGRESS` immediately after deploy
 - [ ] Calling deploy twice (double-click) does not create duplicate Tasks — idempotency required
 
@@ -9641,9 +9645,9 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Acceptance Criteria:**
 
-- [ ] `POST /api/v1/workspaces/{id}/content-requests` accepts `{title, description}` — CLIENT role only; Owner/Manager can view but not self-create (per BA confirmation 2026-09-14)
+- [ ] `POST /api/v1/workspaces/{id}/content-requests` accepts `{title, description, type, dueDate}` — CLIENT role only; Owner/Manager can view but not self-create (per BA confirmation 2026-09-14)
 - [ ] Initial status `pending`
-- [ ] FSM: `pending → in_progress → accepted/denied`; `denied` is terminal (cannot transition further)
+- [ ] FSM: `PENDING → IN_PROGRESS → ACCEPTED/DENIED`; `DENIED` and `CANCELLED` are terminal (cannot transition further)
 - [ ] `PUT` update allowed only while `status=pending` (DA-E50 track-status/update, FR 3.5.8/3.5.9)
 - [ ] `DELETE` (cancel) allowed only while `status=pending`; after Manager changes status, Client can no longer cancel — returns 409 `REQUEST_NOT_CANCELLABLE`
 - [ ] Cancel is a soft-delete (`status=cancelled`), consistent with the soft-delete convention used elsewhere in V2
@@ -9663,7 +9667,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Acceptance Criteria:**
 
-- [ ] `tasks` collection: `id`, `workspaceId`, `campaignId` (nullable — some Tasks come from Content Request, not Campaign), `type` (post/livestream/survey), `name`, `dueDate`, `status` (backlog/detail_identified/assigned/...), `assigneeId`, `qcAssigneeId`, `requiresClientApproval`, `description`, type-specific sub-fields
+- [ ] `tasks` collection: `id`, `workspaceId`, `campaignId` (nullable — some Tasks come from Content Request, not Campaign), `campaignWorkItemId` (nullable), `sourceType`/`sourceRefId` (nullable), `type` (post/livestream/survey), `name`, `dueDate`, `status` (backlog/detail_identified/assigned/...), `assigneeId`, `qcAssigneeId`, `requiresClientApproval`, `description`, type-specific sub-fields
 - [ ] Task starts in `backlog` status when auto-generated from Campaign deploy (DA-E50-07) or Content Request acceptance
 
 **Spec Reference:** `docs/ba/05-content-task-workflow.md`, `docs/ba/11-data-entities-glossary.md`

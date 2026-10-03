@@ -29,7 +29,7 @@ Figure - Member list:
 - **Business Rules**
     - **BR-28**: Remove member is Owner-only; the last remaining OWNER cannot be removed. Anybody other than the Owner is refused with 403 NOT_AGENCY_OWNER.
     - The identifier used is the member record of the Agency, not the person's user identifier. A record that does not exist, or belongs to another Agency, is refused with 404 NOT_FOUND.
-    - The Owner's own member record can never be removed, whatever the caller attempts. The attempt is refused with 409 CANNOT_REMOVE_OWNER. There is no ownership transfer, so the Owner cannot hand the Agency over before stepping away.
+    - **BR-28**: The Owner's own member record can never be removed, whatever the caller attempts. The attempt is refused with 409 CANNOT_REMOVE_OWNER. There is no ownership transfer, so the Owner cannot hand the Agency over before stepping away.
     - Removing a member ends their access to every Workspace of the Agency at once, including Workspaces where they held a manager or member role, because access everywhere rests on the member record that has just been removed.
     - The resources the removed member created - tasks, materials, content and the like - are not removed and do not change owner. They stay with the Workspace and the Agency as shared property.
     - When the person is invited back into the Agency later, they can edit and continue using the resources they created before, because that work never stopped belonging to the Agency.
