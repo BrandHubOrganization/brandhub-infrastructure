@@ -26,3 +26,12 @@ Giới hạn còn lại:
 - Chỉ kênh EMAIL; in-app/FCM ngoài phạm vi giai đoạn (BR-57).
 - Dev dùng SMTP Gmail thật: domain `demo.brandhub.dev` bị chặn (`admin.mail.suppressed-domain`) và ghi `SUPPRESSED_DEMO_DOMAIN`, nên smoke chưa gửi email thật tới hộp thư nào.
 - Worker chạy mỗi 10 giây, outbox giao tối đa 100 email/phút (`admin.account.email-batch`); giới hạn gửi/ngày của Gmail chưa được xử lý.
+
+## In-app (bổ sung 2026-10-04)
+
+- [x] Mỗi người nhận lúc gửi có đúng một dòng hộp thư (`uq_user_notification`), cùng snapshot với email.
+- [x] `/api/v1/notifications/me` chỉ trả và chỉ cho đánh dấu dòng của chính người gọi (người khác → 404).
+- [x] Chuông của tài khoản client hiển thị thông báo hệ thống thật cùng thông báo workspace mẫu; bấm vào đánh dấu đã đọc; link ngoài mở tab mới.
+- [x] Dev allowlist: người nhận ngoài `ADMIN_MAIL_ALLOWED_RECIPIENTS` → `DEV_RECIPIENT_BLOCKED`, không gọi SMTP.
+- Bằng chứng: `AdminFinanceDatabaseTest` 5/5 (gồm hộp thư và allowlist), `tests/e2e/notifications/system-inbox.spec.ts` pass; smoke thật: Admin gửi "Tất cả người dùng" (1.115 người), tài khoản Dev Client thấy thông báo trong chuông; 5 địa chỉ domain thật bị chặn, 0 email ra SMTP.
+- Migration `2026-10-04-user-notifications.sql`: DB test 2 lần, backup `.tmp/brandhub-before-user-notifications-20261004.dump`, DB dev 2 lần.

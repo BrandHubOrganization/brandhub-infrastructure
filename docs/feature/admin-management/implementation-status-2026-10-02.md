@@ -74,3 +74,9 @@ Chưa commit/push. Giữ nguyên các thay đổi auth/dev-login/AI có sẵn tr
 - Dev Business dùng Mongo local (`MONGODB_URI` trong `.env`, không commit), không ghi vào Atlas chung. Test dùng DB riêng `brandhub_moderation_test`.
 - Hai init SQL (`docs/database/` và `scripts/`) đã gộp migration strikes 2026-10-01, notifications/reports và moderation 2026-10-04; dựng DB trắng từ mỗi file thành công.
 - Chi tiết: [3.10.4 test](3-10-4-content-moderation-queue/test.md).
+
+## Thông báo trong app — cập nhật 2026-10-04
+
+- Theo quyết định mới của người dùng, FR 3.10.1 gửi cả email và in-app. Chi tiết: [quyết định](confirmed-decisions-2026-10-01.md), [test](3-10-1-push-notification/test.md).
+- Sự cố đã xử lý: broadcast thử "test thử thôi" tới Tất cả người dùng có 5 địa chỉ seed mang domain thật; đã hoãn rồi đánh dấu `DEV_RECIPIENT_BLOCKED` trước khi SMTP gửi. Không có email nào tới người ngoài.
+- Sidebar Admin dùng logo BrandHub thật (`BrandHubLogo`).
