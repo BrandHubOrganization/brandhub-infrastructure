@@ -661,3 +661,185 @@ ON CONFLICT (name) DO UPDATE SET
     is_active = EXCLUDED.is_active;
 
 COMMIT;
+
+-- =====================================================================
+-- Admin Management (FR 3.10.x) — folded in from docs/database/migrations after
+-- verification (test DB twice, dev DB twice). Keep in sync with those files.
+-- =====================================================================
+
+-- ---- 2026-10-01-admin-account-strikes.sql ----
+-- Run with psql autocommit before deploying the new Business Service.
+-- Additive: never reinterpret legacy SUSPENDED or self-DEACTIVATED accounts.
+ALTER TYPE user_status ADD VALUE IF NOT EXISTS 'FLAGGED';
+ALTER TYPE user_status ADD VALUE IF NOT EXISTS 'PENDING_VERIFICATION';
+
+BEGIN;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS clean_period_ends_at TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS reactivate_at TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS tokens_revoked_before TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS row_version BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS session_version BIGINT NOT NULL DEFAULT 0;
+CREATE INDEX IF NOT EXISTS idx_users_clean_period ON users(clean_period_ends_at)
+    WHERE clean_period_ends_at IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_users_reactivate ON users(reactivate_at) WHERE reactivate_at IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS user_strikes (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id),
+    level VARCHAR(10) NOT NULL CHECK (level IN ('YELLOW','ORANGE','RED')),
+    category VARCHAR(100) NOT NULL,
+    reason VARCHAR(2000) NOT NULL,
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    converted_to_id UUID REFERENCES user_strikes(id) DEFERRABLE INITIALLY DEFERRED,
+    removed_by UUID REFERENCES users(id),
+    removed_at TIMESTAMPTZ,
+    removal_reason VARCHAR(2000),
+    CHECK (expires_at > created_at),
+    CHECK ((removed_at IS NULL) = (removed_by IS NULL)),
+    CHECK (converted_to_id IS NULL OR level = 'YELLOW')
+);
+CREATE INDEX IF NOT EXISTS idx_user_strikes_history ON user_strikes(user_id,created_at DESC,id DESC);
+CREATE INDEX IF NOT EXISTS idx_user_strikes_live ON user_strikes(user_id,expires_at) WHERE removed_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS sanction_reviews (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id),
+    status VARCHAR(20) NOT NULL CHECK (status IN ('PENDING','CONFIRMED','CLOSED')),
+    created_at TIMESTAMPTZ NOT NULL,
+    resolved_at TIMESTAMPTZ,
+    resolved_by UUID REFERENCES users(id),
+    reason VARCHAR(2000)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sanction_one_pending ON sanction_reviews(user_id) WHERE status='PENDING';
+CREATE TABLE IF NOT EXISTS admin_account_operations (
+    user_id UUID NOT NULL REFERENCES users(id),
+    operation_id UUID NOT NULL,
+    payload_hash VARCHAR(64) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id,operation_id)
+);
+CREATE TABLE IF NOT EXISTS admin_email_outbox (
+    id UUID PRIMARY KEY,
+    event_key VARCHAR(150) NOT NULL UNIQUE,
+    recipient VARCHAR(255) NOT NULL,
+    subject VARCHAR(255) NOT NULL,
+    body TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    sent_at TIMESTAMPTZ,
+    next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    attempts INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_admin_email_due ON admin_email_outbox(next_attempt_at) WHERE sent_at IS NULL;
+COMMIT;
+
+-- Rollback deployment: restore previous application; leave added tables/columns intact.
+-- Do not drop strike/audit data or remove enum values. Export history before any future destructive migration.
+
+-- ---- 2026-10-04-admin-notifications-reports.sql ----
+-- FR 3.10.1 (email broadcast) + FR 3.10.12 (PDF export) + BR-16 audit actions.
+-- Run with psql autocommit before deploying the new Business Service:
+--   docker exec -i brandhub-postgres psql -U postgres -d brandhub -v ON_ERROR_STOP=1 < 2026-10-04-admin-notifications-reports.sql
+-- Additive and idempotent: safe to run twice. Depends on 2026-10-01-admin-account-strikes.sql (admin_email_outbox).
+
+-- Enum values must be committed before any statement uses them.
+ALTER TYPE audit_action ADD VALUE IF NOT EXISTS 'VIEW';
+ALTER TYPE audit_action ADD VALUE IF NOT EXISTS 'EXPORT';
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS admin_notifications (
+    id UUID PRIMARY KEY,
+    title VARCHAR(200) NOT NULL CHECK (char_length(btrim(title)) BETWEEN 5 AND 200),
+    content VARCHAR(5000) NOT NULL CHECK (char_length(btrim(content)) BETWEEN 10 AND 5000),
+    type VARCHAR(20) NOT NULL CHECK (type IN ('SYSTEM','MAINTENANCE','UPDATE','PROMOTION')),
+    target_type VARCHAR(10) NOT NULL CHECK (target_type IN ('ALL','BY_PLAN','BY_ROLE')),
+    target_values TEXT[] NOT NULL DEFAULT '{}',
+    action_url VARCHAR(500),
+    status VARCHAR(12) NOT NULL CHECK (status IN ('DRAFT','SCHEDULED','SENDING','SENT','FAILED','CANCELLED')),
+    scheduled_at TIMESTAMPTZ,
+    sent_at TIMESTAMPTZ,
+    recipient_count INTEGER,
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    row_version BIGINT NOT NULL DEFAULT 0,
+    CHECK (status <> 'SCHEDULED' OR scheduled_at IS NOT NULL),
+    CHECK (target_type = 'ALL' OR cardinality(target_values) > 0)
+);
+CREATE INDEX IF NOT EXISTS idx_admin_notifications_due
+    ON admin_notifications(scheduled_at) WHERE status = 'SCHEDULED';
+CREATE INDEX IF NOT EXISTS idx_admin_notifications_history
+    ON admin_notifications(created_at DESC, id DESC);
+
+-- One outbox row per recipient = delivery record; event_key keeps (notification, user) unique.
+ALTER TABLE admin_email_outbox
+    ADD COLUMN IF NOT EXISTS notification_id UUID REFERENCES admin_notifications(id),
+    ADD COLUMN IF NOT EXISTS failed_at TIMESTAMPTZ,
+    ADD COLUMN IF NOT EXISTS last_error VARCHAR(255);
+CREATE INDEX IF NOT EXISTS idx_admin_email_outbox_notification
+    ON admin_email_outbox(notification_id) WHERE notification_id IS NOT NULL;
+
+-- Generated PDFs are private: bytes live here for 24h, metadata stays as the export audit.
+CREATE TABLE IF NOT EXISTS admin_report_exports (
+    id UUID PRIMARY KEY,
+    report_type VARCHAR(20) NOT NULL CHECK (report_type IN ('REVENUE','USER','PLATFORM')),
+    period_start DATE NOT NULL,
+    period_end DATE NOT NULL,
+    timezone VARCHAR(40) NOT NULL,
+    as_of TIMESTAMPTZ NOT NULL,
+    row_count INTEGER NOT NULL,
+    file_name VARCHAR(120) NOT NULL,
+    file_size INTEGER NOT NULL,
+    content BYTEA,
+    token_hash CHAR(64) NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CHECK (period_end >= period_start),
+    CHECK (expires_at > created_at)
+);
+CREATE INDEX IF NOT EXISTS idx_admin_report_exports_expiry
+    ON admin_report_exports(expires_at) WHERE content IS NOT NULL;
+
+COMMIT;
+
+-- ---- 2026-10-04-content-moderation.sql ----
+-- FR 3.10.4 Content Moderation Queue — PostgreSQL side (decisions, strike link, audit trail).
+-- The immutable content snapshot of each reviewed version lives in Mongo `post_versions`
+-- (see 2026-10-04-create-post-versions-collection.js); this table stores its SHA-256 hash.
+-- Run with psql before deploying the new Business Service. Additive and idempotent.
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS content_moderation_reviews (
+    id UUID PRIMARY KEY,
+    post_id VARCHAR(64) NOT NULL,
+    content_version BIGINT NOT NULL CHECK (content_version > 0),
+    content_hash CHAR(64) NOT NULL,
+    workspace_id UUID,
+    author_id UUID NOT NULL REFERENCES users(id),
+    source VARCHAR(20) NOT NULL CHECK (source IN ('FLAGGED_AUTHOR','COMPLIANCE','COPYRIGHT')),
+    reason VARCHAR(2000) NOT NULL,
+    status VARCHAR(10) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING','APPROVED','BLOCKED')),
+    decision_note VARCHAR(2000),
+    strike_level VARCHAR(10) CHECK (strike_level IN ('YELLOW','ORANGE','RED')),
+    strike_category VARCHAR(100),
+    reviewed_by UUID REFERENCES users(id),
+    reviewed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    row_version BIGINT NOT NULL DEFAULT 0,
+    -- BR-64: one decision per immutable post version; a repeated flag reuses the pending row.
+    CONSTRAINT uq_moderation_post_version UNIQUE (post_id, content_version),
+    CHECK ((status = 'PENDING') = (reviewed_at IS NULL AND reviewed_by IS NULL)),
+    CHECK (status <> 'APPROVED' OR char_length(btrim(decision_note)) >= 10),
+    CHECK (status <> 'BLOCKED' OR (strike_level IS NOT NULL AND decision_note IS NOT NULL))
+);
+CREATE INDEX IF NOT EXISTS idx_moderation_queue ON content_moderation_reviews(status, created_at, id);
+CREATE INDEX IF NOT EXISTS idx_moderation_author ON content_moderation_reviews(author_id);
+
+COMMENT ON TABLE content_moderation_reviews IS
+    'FR 3.10.4. BLOCK records the strike through the admin account journal with operation id = review id, so retries never add a second strike.';
+
+COMMIT;

@@ -66,3 +66,11 @@ Chưa commit/push. Giữ nguyên các thay đổi auth/dev-login/AI có sẵn tr
 - Dữ liệu demo: profile `seed-admin-demo` (`AdminDemoSeeder`), xem README seed.
 - Chi tiết kiểm chứng và giới hạn: test.md của [3.10.1](3-10-1-push-notification/test.md), [3.10.11](3-10-11-view-revenue-dasboard/test.md), [3.10.12](3-10-12-export-report-file-pdf/test.md).
 - Chưa làm: FR 3.10.4 Kiểm duyệt (thiếu nguồn vi phạm FR 3.6.33/34 và nối publisher), FR 3.10.7/8. Hai init SQL chưa gộp migration strikes 2026-10-01 và migration 2026-10-04.
+
+## Kiểm duyệt nội dung — cập nhật 2026-10-04
+
+- FR 3.10.4: PostgreSQL `content_moderation_reviews` (quyết định, thẻ phạt, audit) + Mongo `post_versions` (snapshot bất biến) + `posts.content_version`.
+- Hook gửi duyệt trong `PostServiceImpl` (code của Lộc, người dùng đã đồng ý); API nội bộ cho Tuấn/Phước; màn `/admin?view=moderation`.
+- Dev Business dùng Mongo local (`MONGODB_URI` trong `.env`, không commit), không ghi vào Atlas chung. Test dùng DB riêng `brandhub_moderation_test`.
+- Hai init SQL (`docs/database/` và `scripts/`) đã gộp migration strikes 2026-10-01, notifications/reports và moderation 2026-10-04; dựng DB trắng từ mỗi file thành công.
+- Chi tiết: [3.10.4 test](3-10-4-content-moderation-queue/test.md).
