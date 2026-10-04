@@ -47,3 +47,9 @@ Các chi tiết dưới đây là cách cụ thể hóa yêu cầu, không phả
 - [BA Admin Management](../../BA/09-admin-management.md) được sửa cùng các quyết định mới, giữ nguyên dòng Monitoring.
 - `data_fr_310_group_a.py`, `data_fr_310_group_b.py` và bản `_vi.py` được cập nhật để lần build sau không khôi phục nghiệp vụ cũ.
 - `F:/LEARN/DA/task.md` cập nhật checklist; bản sao trước sửa ở `.tmp/fr310-before-20261001` trong workspace.
+
+## Thay đổi phạm vi ngày 2026-10-04 (người dùng xác nhận)
+
+- FR 3.10.1 thêm kênh **in-app** ngay trong đợt này: mỗi người nhận broadcast có một dòng `user_notifications`, ghi cùng transaction với email outbox; chuông thông báo của mọi tài khoản đọc thông báo hệ thống thật. Thay cho câu "Chỉ EMAIL trong đợt này" ở BR-57; FCM vẫn để giai đoạn sau. Cần cập nhật Word FR 3.10.1 tương ứng.
+- Thông báo nghiệp vụ workspace (duyệt bài, đăng bài, nhắc tên) vẫn là dữ liệu mẫu, thuộc FR của chủ sở hữu tương ứng.
+- Môi trường dev có SMTP thật: `ADMIN_MAIL_ALLOWED_RECIPIENTS` giới hạn người nhận; ngoài danh sách ghi `DEV_RECIPIENT_BLOCKED`, không gửi. Production để trống.
