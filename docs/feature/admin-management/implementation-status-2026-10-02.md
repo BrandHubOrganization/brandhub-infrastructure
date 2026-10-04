@@ -80,3 +80,10 @@ Chưa commit/push. Giữ nguyên các thay đổi auth/dev-login/AI có sẵn tr
 - Theo quyết định mới của người dùng, FR 3.10.1 gửi cả email và in-app. Chi tiết: [quyết định](confirmed-decisions-2026-10-01.md), [test](3-10-1-push-notification/test.md).
 - Sự cố đã xử lý: broadcast thử "test thử thôi" tới Tất cả người dùng có 5 địa chỉ seed mang domain thật; đã hoãn rồi đánh dấu `DEV_RECIPIENT_BLOCKED` trước khi SMTP gửi. Không có email nào tới người ngoài.
 - Sidebar Admin dùng logo BrandHub thật (`BrandHubLogo`).
+
+## Tạo và sửa người dùng — cập nhật 2026-10-04
+
+- FR 3.10.7: `POST /api/v1/admin/users` tạo tài khoản `PENDING_VERIFICATION`, email kích hoạt bắt buộc (link 1 lần, 72h), trang `/activate-account` để người dùng tự đặt mật khẩu.
+- FR 3.10.8: `GET/PATCH /api/v1/admin/users/{id}`; email bất biến, bảo vệ vai trò, đổi gói áp dụng kỳ sau và vẫn cần thanh toán.
+- Migration `2026-10-05-admin-user-provisioning.sql`: chạy 2 lần DB test, backup, 2 lần DB dev; đã gộp vào 2 init SQL, dựng DB trắng từ mỗi file thành công.
+- Chi tiết: [3.10.7 test](3-10-7-create-user/test.md), [3.10.8 test](3-10-8-update-user/test.md).
