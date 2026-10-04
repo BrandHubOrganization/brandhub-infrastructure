@@ -6,6 +6,7 @@ Các kỳ vọng chi tiết: Acceptance Criteria/Edge Cases trong [spec](spec.md
 - [x] password policy (≥8 ký tự, có số và ký tự đặc biệt; server `WEAK_PASSWORD`, UI khóa nút)
 - [x] mandatory email (luôn xếp email kích hoạt vào outbox, không có tùy chọn bỏ qua)
 - [x] PENDING_VERIFICATION, 0 thẻ phạt, gói yêu cầu không cấp quyền trả phí
+- [x] email gồm mật khẩu tạm (admin bấm Tạo ngẫu nhiên/tự nhập, hoặc hệ thống tự sinh) + link đổi mật khẩu; trang kích hoạt bắt nhập đúng mật khẩu tạm (`WRONG_CURRENT_PASSWORD`), mật khẩu mới phải khác mật khẩu tạm; gửi lại sinh mật khẩu tạm mới
 - [x] activation replay/expiry (dùng 1 lần; gửi lại thu hồi link cũ; hết hạn 72h)
 - [x] chưa kích hoạt không vào app (`AuthServiceImpl.checkStatus` → `EMAIL_NOT_VERIFIED`; kiểm bằng smoke)
 - [x] VI/EN và light/dark
