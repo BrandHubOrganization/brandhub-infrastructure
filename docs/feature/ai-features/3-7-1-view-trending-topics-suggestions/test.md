@@ -20,3 +20,11 @@
 - [x] Business trả `topicStats` (`AiTrendControllerTest`).
 - [x] Creator trong workspace thấy menu "Xu hướng".
 - [x] Dữ liệu thật: `brandhub-ai-service/scripts/dev_seed_trends_from_local.py ../crawler-social/output 3000` chạy T0→T7 trên 3.000 bài crawl thật → 28 trend, 5 lĩnh vực (Thể thao 13, Thời sự 7, Công nghệ 4, Giải trí 3, Tài chính 1); kiểm tra bằng ảnh chụp đăng nhập Creator thật.
+
+## Bổ sung 2026-10-05 — popup bài viết khi hover
+
+- [x] T7 trả `post_items` (port từ bản demo `trend-pipeline`): tối đa 10 bài/trend, nhiều like trước, nội dung cắt 300 ký tự.
+- [x] Hover (hoặc focus bàn phím) vào thẻ trend → popup danh sách bài: tác giả, giờ đăng, nội dung, like/bình luận/chia sẻ, link "Mở bài".
+- [x] Business lọc trend trùng từ khóa (cache ngày giữ mỗi lần crawl một bản) — `AiTrendControllerTest`.
+- [x] Sửa adapter Facebook: `timestamp` dạng chuỗi ISO của crawler-social trước đây bị đọc thành "bây giờ" → mọi bài coi là đăng hôm nay, T4 gắn mọi trend "Mới". Sau sửa: 14 trend với trạng thái đang lên/đang giảm theo ngày đăng thật (`test_facebook_adapter_dates.py`).
+- [x] E2E hover popup; ảnh chụp đăng nhập Creator thật.
