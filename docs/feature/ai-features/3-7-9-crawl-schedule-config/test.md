@@ -25,3 +25,9 @@
 - [x] E2E: nhật ký hiển thị trang/bài/lỗi/credit, nút dev bắt đầu crawl; Creator thấy menu "Xu hướng" trong workspace.
 - [x] Smoke thật (key ScrapeCreators của người dùng): 2 page trong `crawler-social/data/current_batch.json` → `vietnamoi.vn` 2 bài, `diadiemanuong.vn` bị ScrapeCreators báo "Profile is private"; nhấn lần 2 khi đang chạy → `CRAWL_ALREADY_RUNNING`. Tốn khoảng 3 credit.
 - Giới hạn: nguồn có sẵn `tiktok-trending` trả 0 bài (parser cũ không khớp định dạng ScrapeCreators) — chưa sửa vì không thuộc phạm vi và mỗi lần thử tốn credit.
+
+## Bổ sung 2026-10-05 — card tiến độ
+
+- [x] Card bên phải form: tổng bài đã cào + số bài từng page, cập nhật mỗi 3 giây khi đang crawl (page chưa tới lượt có vòng quay), hết crawl thì hiện lần gần nhất.
+- [x] AI service ghi tiến độ sau mỗi page (`update_run`, chỉ ghi khi run còn chạy).
+- [x] Trạng thái crawler liệt kê nguồn `facebook-pages` khi có key ScrapeCreators.
