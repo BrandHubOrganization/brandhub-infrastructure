@@ -59,3 +59,15 @@ PATCH /api/v1/admin/ai/crawl-config
 ## Tham chiếu BA
 
 [06-ai-features.md](../../../BA/06-ai-features.md)
+
+## Bổ sung khi thiết kế kỹ thuật (2026-10-05)
+
+- Crawler được cấu hình: `CrawlScheduler` trong AI service (nguồn ScrapeCreators TikTok, Apify Facebook groups).
+- `schedule` = `intervalMinutes` (15–10080) **hoặc** `cron` 5 trường theo giờ Việt Nam; chọn loại này thì xoá loại kia.
+- `sourcePages`: tối đa 50 URL https (Apify `startUrls`); `postsPerRun`: 10–1000 (Apify `maxItems` + cắt batch mỗi nguồn).
+- Lưu ở Redis key `trend:crawl-config` của AI service (AI service không có SQL); Business chỉ kiểm quyền, validate, audit `UPDATE AI_CRAWL_CONFIG` (before/after).
+- Đổi lịch → `reschedule_job` cho lần chạy kế tiếp; trang/số bài đọc lại ở đầu mỗi tick → job đang chạy không bị dừng.
+- Người dùng không phải ADMIN → 403 `FORBIDDEN` (JSON trả trực tiếp, không qua `/error`).
+- UI thực tế: `/admin?view=crawl` (tab "Cấu hình crawl" trong Admin).
+- **i18n:** `admin.navigation.crawl`, `admin.crawl.*` song song `vi/admin.json` và `en/admin.json`.
+- **Light/Dark:** token theme và class `dark:` sẵn có.
