@@ -16,3 +16,12 @@
 - Playwright `tests/e2e/admin/crawl-config.spec.ts` 2/2.
 - Smoke live (dev): GET 200, USER 403, cron sai 400 `INVALID_SCHEDULE`, PATCH cron + page + 150 bài → 200, trang trend nhận `crawl` mới, audit 2 dòng; đã khôi phục cấu hình cũ.
 - Giới hạn: crawler local đang tắt (`TREND_CRAWLER_ENABLED=false`, chưa có API key scraper) nên chưa chạy tick thật; tick được kiểm bằng unit test.
+
+## Bổ sung 2026-10-05 — nhật ký crawl
+
+- [x] Chia đều `postsPerRun` cho các page, dừng khi hết cursor; page lỗi/private ghi lỗi, page khác vẫn chạy (`test_crawl_config.py`, không gọi mạng thật).
+- [x] Chỉ một lần crawl tại một thời điểm; nhật ký giữ kết quả (fakeredis).
+- [x] Business `AdminCrawlConfigServiceTest` 5/5 (chạy ngay, audit, 409 khi đang chạy, map nhật ký).
+- [x] E2E: nhật ký hiển thị trang/bài/lỗi/credit, nút dev bắt đầu crawl; Creator thấy menu "Xu hướng" trong workspace.
+- [x] Smoke thật (key ScrapeCreators của người dùng): 2 page trong `crawler-social/data/current_batch.json` → `vietnamoi.vn` 2 bài, `diadiemanuong.vn` bị ScrapeCreators báo "Profile is private"; nhấn lần 2 khi đang chạy → `CRAWL_ALREADY_RUNNING`. Tốn khoảng 3 credit.
+- Giới hạn: nguồn có sẵn `tiktok-trending` trả 0 bài (parser cũ không khớp định dạng ScrapeCreators) — chưa sửa vì không thuộc phạm vi và mỗi lần thử tốn credit.

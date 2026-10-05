@@ -71,3 +71,11 @@ PATCH /api/v1/admin/ai/crawl-config
 - UI thực tế: `/admin?view=crawl` (tab "Cấu hình crawl" trong Admin).
 - **i18n:** `admin.navigation.crawl`, `admin.crawl.*` song song `vi/admin.json` và `en/admin.json`.
 - **Light/Dark:** token theme và class `dark:` sẵn có.
+
+## Bổ sung 2026-10-05 — nhật ký crawl và nút chạy thử (yêu cầu người dùng)
+
+- Page nguồn được cào qua ScrapeCreators (`/v1/facebook/profile/posts`, `/v1/facebook/group/posts`; 3 bài/lần gọi, 1 credit/lần) khi có `SCRAPE_CREATORS_API_KEY`; không có key thì giao cho Apify như cũ.
+- Mỗi lần crawl ghi nhật ký: trang đã vào, số bài, số lần gọi, lỗi từng trang (kể cả page private), lỗi pipeline, credit còn lại. Giữ 20 lần gần nhất (`trend:crawl-runs`).
+- Nút "Chạy crawl ngay (dev)" chỉ hiện ở môi trường dev; chạy nền, chỉ một lần crawl tại một thời điểm (`CRAWL_ALREADY_RUNNING` 409).
+- API: `GET/POST /api/v1/admin/ai/crawl-runs` (ADMIN), audit `CREATE AI_CRAWL_RUN`.
+- i18n: `admin.crawl.log.*` song song vi/en.
