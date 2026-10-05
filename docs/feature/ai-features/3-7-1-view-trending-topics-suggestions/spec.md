@@ -54,3 +54,13 @@ GET /api/v1/ai/trending-topics
 ## Tham chiếu BA
 
 [06-ai-features.md](../../../BA/06-ai-features.md)
+
+## Bổ sung khi thiết kế kỹ thuật (2026-10-05)
+
+- API thực tế: `GET /api/v1/ai/trending-topics?period=6h|24h|7d&topic=&limit=1..100` →
+  `{ items: [{ id, rank, keyword, score, virality, dailyCounts, topic, status, mood, emotion, brandRisk, crossTopic, keywords, sources, samplePosts }], topics: [..], crawl: { intervalMinutes, cron, pageCount, sources, nextRunAt } | null }`.
+  Dữ liệu từ Redis ZSET do pipeline AI-05 (T0→T7) ghi; cache rỗng → `items: []` (empty state, không lỗi).
+- Filter lĩnh vực = `topic` (T3) có trong dữ liệu; nguồn crawl hiển thị từ cấu hình FR 3.7.9 (`crawl`), vì T7 không điền `source_distribution`.
+- Route thực tế: `/ai-studio/trends` (AI Studio cấp agency, quyền MANAGER/CREATOR theo `routes/access.ts`).
+- **i18n:** namespace `aiStudio.trends.*` (period, topicFilter, allTopics, refresh, empty, emptyHint, score, virality, risk.*, mood.*, status.*, superTrend, dailyPosts, copyKeyword, copied, copyError, crawl.*) — thêm song song `vi/aiStudio.json` và `en/aiStudio.json`.
+- **Light/Dark:** chỉ dùng token theme (`bg-card`, `text-muted-foreground`, `bg-brand-orange`) và màu trạng thái có biến thể `dark:`.
