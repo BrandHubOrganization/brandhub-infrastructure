@@ -28,3 +28,9 @@
 - [x] Business lọc trend trùng từ khóa (cache ngày giữ mỗi lần crawl một bản) — `AiTrendControllerTest`.
 - [x] Sửa adapter Facebook: `timestamp` dạng chuỗi ISO của crawler-social trước đây bị đọc thành "bây giờ" → mọi bài coi là đăng hôm nay, T4 gắn mọi trend "Mới". Sau sửa: 14 trend với trạng thái đang lên/đang giảm theo ngày đăng thật (`test_facebook_adapter_dates.py`).
 - [x] E2E hover popup; ảnh chụp đăng nhập Creator thật.
+
+## Bổ sung 2026-10-05 — chi tiết trend khi bấm thẻ (giống bản demo trend-pipeline)
+
+- [x] Bấm thẻ (hoặc Enter/Space) mở hộp chi tiết: đường phát triển số bài theo ngày (T4 `momentum.days/counts`, tooltip có thay đổi so với hôm trước, bảng ẩn cho trình đọc màn hình), cảm xúc tác giả (`emotion_dist`), độ lan tỏa/dư luận/rủi ro, hashtag, 10 bài.
+- [x] Nút "Sao chép từ khóa" không mở hộp chi tiết.
+- [x] Business trả `growth` + `emotionDist` (`AiTrendControllerTest`); e2e bấm thẻ; ảnh chụp dữ liệu thật ("đinh hồng vinh" 12/9→18/9).
