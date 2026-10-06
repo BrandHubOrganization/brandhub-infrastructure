@@ -8,31 +8,43 @@ skinparam BoxPadding 10
 skinparam ParticipantPadding 10
 
 ' === Participants ===
-actor "User / Agency member" as user_agency_member
-boundary "ClientProfileListPage / WorkspaceClientsPage (UI)" as clientprofilelistpage_workspaceclientspage_ui
-boundary "ClientProfileController / WorkspaceController" as clientprofilecontroller_workspacecontroller
-control "ClientProfileServiceImpl / WorkspaceServiceImpl" as clientprofileserviceimpl_workspaceserviceimpl
-entity "ClientProfileRepository / WorkspaceMemberRepository" as clientprofilerepository_workspacememberrepository
-entity "client_profiles / workspace_members" as client_profiles_workspace_members
+actor "User" as user
+actor "Agency Member" as agency_member
+boundary "ClientProfileListPage (UI)" as clientprofilelistpage_ui
+boundary "WorkspaceClientsPage (UI)" as workspaceclientspage_ui
+boundary "ClientProfileController" as clientprofilecontroller
+boundary "WorkspaceController" as workspacecontroller
+control "ClientProfileServiceImpl" as clientprofileserviceimpl
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "ClientProfileRepository" as clientprofilerepository
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "client_profiles" as client_profiles
+entity "workspace_members" as workspace_members
 
-' === Flow ===
-user_agency_member -> clientprofilelistpage_workspaceclientspage_ui: opens /client-profiles
-clientprofilelistpage_workspaceclientspage_ui -> clientprofilecontroller_workspacecontroller: GET /api/v1/client-profile/mine
-clientprofilecontroller_workspacecontroller -> clientprofileserviceimpl_workspaceserviceimpl: listMine(currentUser)
-clientprofileserviceimpl_workspaceserviceimpl -> clientprofilerepository_workspacememberrepository: findByUserId(currentUser.getId())
-clientprofilerepository_workspacememberrepository -> client_profiles_workspace_members: query by user_id
-client_profiles_workspace_members --> clientprofilerepository_workspacememberrepository: List<row> (0..N — a user may own several profiles, e.g. Nike, Adidas)
-clientprofileserviceimpl_workspaceserviceimpl -> clientprofilecontroller_workspacecontroller: map rows -> List<ClientProfileResponse>
-clientprofilecontroller_workspacecontroller --> clientprofilelistpage_workspaceclientspage_ui: 200 OK List<ClientProfileResponse>
-clientprofilelistpage_workspaceclientspage_ui -> user_agency_member: renders one card per brand
-user_agency_member -> clientprofilelistpage_workspaceclientspage_ui: opens /workspaces/:id/clients
-clientprofilelistpage_workspaceclientspage_ui -> clientprofilecontroller_workspacecontroller: GET /api/v1/workspaces/{id}/members
-clientprofilecontroller_workspacecontroller -> clientprofileserviceimpl_workspaceserviceimpl: listMembers(workspaceId)
-clientprofileserviceimpl_workspaceserviceimpl -> clientprofilerepository_workspacememberrepository: check workspace exists + caller is active member
-clientprofilerepository_workspacememberrepository --> clientprofileserviceimpl_workspaceserviceimpl: active workspace_members rows (joined to client_profiles for CLIENT rows)
-clientprofileserviceimpl_workspaceserviceimpl --> clientprofilecontroller_workspacecontroller: List<WorkspaceMemberResponse> (all roles)
-clientprofilecontroller_workspacecontroller --> clientprofilelistpage_workspaceclientspage_ui: 200 OK List<WorkspaceMemberResponse>
-clientprofilelistpage_workspaceclientspage_ui -> user_agency_member: FE filters role === \"CLIENT\", displays with \"Add client\" action
-note over user_agency_member, client_profiles_workspace_members: Note: the backend list endpoint always returns every role (MANAGER/CREATOR/CLIENT) — the Members (/workspaces/:id/members) vs Clients (/workspaces/:id/clients) screen split is a client-side filter, not a separate backend query.
+' === Flow 1 ===
+note over user, workspace_members : == LUỒNG 1: USER XEM DANH SÁCH CLIENT PROFILE CỦA MÌNH ==\nUser xem tất cả thương hiệu do tài khoản của mình sở hữu (/client-profiles)
+
+user -> clientprofilelistpage_ui: opens /client-profiles
+clientprofilelistpage_ui -> clientprofilecontroller: GET /api/v1/client-profile/mine
+clientprofilecontroller -> clientprofileserviceimpl: listMine(currentUser)
+clientprofileserviceimpl -> clientprofilerepository: findByUserId(currentUser.getId())
+clientprofilerepository -> client_profiles: query by user_id
+client_profiles --> clientprofilerepository: List<row> (0..N — a user may own several profiles)
+clientprofileserviceimpl -> clientprofilecontroller: map rows -> List<ClientProfileResponse>
+clientprofilecontroller --> clientprofilelistpage_ui: 200 OK List<ClientProfileResponse>
+clientprofilelistpage_ui -> user: renders one card per brand
+
+' === Flow 2 ===
+note over agency_member, workspace_members : == LUỒNG 2: AGENCY MEMBER XEM DANH SÁCH CLIENT TRONG WORKSPACE ==\nAgency Member xem danh sách khách hàng trong Workspace (/workspaces/:id/clients)
+
+agency_member -> workspaceclientspage_ui: opens /workspaces/:id/clients
+workspaceclientspage_ui -> workspacecontroller: GET /api/v1/workspaces/{id}/members
+workspacecontroller -> workspaceserviceimpl: listMembers(workspaceId)
+workspaceserviceimpl -> workspacememberrepository: check workspace exists + caller is active member
+workspacememberrepository --> workspaceserviceimpl: active workspace_members rows (joined to client_profiles for CLIENT rows)
+workspaceserviceimpl --> workspacecontroller: List<WorkspaceMemberResponse> (all roles)
+workspacecontroller --> workspaceclientspage_ui: 200 OK List<WorkspaceMemberResponse>
+workspaceclientspage_ui -> agency_member: FE filters role === \"CLIENT\", displays with \"Add client\" action
+note over user, workspace_members : Lưu ý: backend list endpoint trả về mọi vai trò (MANAGER/CREATOR/CLIENT) — việc tách Members (/members) và Clients (/clients) được lọc tại client-side.
 
 @enduml

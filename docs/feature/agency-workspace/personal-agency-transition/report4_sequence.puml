@@ -1,0 +1,69 @@
+@startuml 3.4.3.B - Create Agency (Personal and Business Mode)
+title Sequence Diagram — 3.4.3.B - Create Agency (Personal and Business Mode)
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants (BCE Pattern) ===
+actor "User" as user
+boundary "CreateAgencyPage (UI)" as createagencypage_ui
+boundary "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "Agency" as agency
+entity "AgencyMemberRepository" as agencymemberrepository
+entity "WorkspaceRepository" as workspacerepository
+entity "Workspace" as workspace
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "AgencyResponse" as agencyresponse
+
+' === Flow ===
+user -> createagencypage_ui: selects Type ("PERSONAL" or "BUSINESS"), fills form, submits
+createagencypage_ui -> agencycontroller: POST /api/v1/agencies (@Valid AgencyRequest: name, type, branding...)
+
+opt name blank -> Spring MethodArgumentNotValidException
+  agencycontroller -> user: GlobalExceptionHandler -> 400 VALIDATION_ERROR
+end
+
+agencycontroller -> agencyserviceimpl: createAgency(currentUser, request)
+
+' Save Agency Entity
+agencyserviceimpl -> agency: Agency.builder().name(...).type(request.type()).ownerId(currentUser.getId()).build()
+agency --> agencyserviceimpl: agency (transient)
+agencyserviceimpl -> agencyrepository: agencyRepository.save(agency)
+agencyrepository --> agencyserviceimpl: agency (saved with id)
+
+' Save Agency Member (Owner)
+agencyserviceimpl -> agencymemberrepository: AgencyMember.builder().agencyId(agency.getId()).userId(currentUser.getId()).role(OWNER).build() -> save
+agencymemberrepository --> agencyserviceimpl: AgencyMember (OWNER)
+
+' Branching: PERSONAL vs BUSINESS
+alt request.type() == AgencyType.PERSONAL
+  note over agencyserviceimpl: Auto-provision Personal Workspace
+  agencyserviceimpl -> workspace: Workspace.builder().agencyId(agency.getId()).name(agency.getName()).createdBy(currentUser.getId()).build()
+  workspace --> agencyserviceimpl: workspace (transient)
+  agencyserviceimpl -> workspacerepository: workspaceRepository.save(workspace)
+  workspacerepository --> agencyserviceimpl: personalWorkspace (saved with id)
+
+  agencyserviceimpl -> workspacememberrepository: WorkspaceMember.builder().workspaceId(personalWorkspace.getId()).userId(currentUser.getId()).role(MANAGER).build() -> save
+  workspacememberrepository --> agencyserviceimpl: WorkspaceMember (MANAGER)
+  agencyserviceimpl -> agencyresponse: toResponse(agency, OWNER, personalWorkspace.getId())
+else request.type() == AgencyType.BUSINESS
+  agencyserviceimpl -> agencyresponse: toResponse(agency, OWNER, null)
+end
+
+agencyresponse --> agencyserviceimpl: AgencyResponse
+agencyserviceimpl -> agencycontroller: AgencyResponse
+agencycontroller --> createagencypage_ui: 201 Created - ApiResponse<AgencyResponse>
+
+alt response.data.type == "PERSONAL"
+  note over createagencypage_ui: Sets active agency and workspace in Store
+  createagencypage_ui -> user: Navigates directly to /workspaces/{defaultWorkspaceId}/dashboard
+else response.data.type == "BUSINESS"
+  createagencypage_ui -> user: Navigates to /agency/{agencyId}
+end
+
+@enduml
