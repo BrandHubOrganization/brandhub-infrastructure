@@ -3,7 +3,9 @@
 -- Purpose: Agency -> Workspace -> Media Package -> Media Campaign -> Task model.
 -- Replaces init-postgres.sql (V1). See docs/database/migration/migration-plan-v1-to-v2.md.
 --
--- Idempotent: safe to run again on an empty or existing V2 database.
+-- Fresh database bootstrap; existing databases must use docs/database/migrations/.
+-- CREATE IF NOT EXISTS does not upgrade existing table definitions.
+-- Synchronized with PostgreSQL migrations through 2026-10-02.
 -- Scope: PostgreSQL-owned entities only. MongoDB collections are not mirrored here.
 --
 -- Decisions confirmed 2026-09-16 (docs/database/migration/migration-plan-v1-to-v2.md §0):
@@ -18,13 +20,14 @@
 --   - ai_credit_ledgers: split into ai_credit_ledgers (Agency-wide monthly usage, no user)
 --     + ai_credit_creator_limits (per-Creator cap set by Owner, config only, not usage tracking).
 --
--- PostgreSQL tables (27):
+-- PostgreSQL tables (31):
 --   Monitoring:   monitoring_servers, monitoring_collectors,
---                 monitoring_health_targets, monitoring_health_results
+--                 monitoring_health_targets, monitoring_health_results, monitoring_enrollments
 --   Identity:     users, user_oauth_providers, user_refresh_tokens, user_system_roles
 --   Organization: agencies, agency_members, agency_invitations, workspaces,
 --                 workspace_members, workspace_invitations, workspace_templates, client_profiles
 --   Commerce:     media_packages, workspace_media_packages, media_campaigns
+--   Content:      tasks, task_content_operations, task_content_snapshots
 --   Collaborator: third_party_collaborators, campaign_collaborators
 --   Billing:      subscription_plans, user_subscriptions, transactions,
 --                 ai_credit_ledgers, ai_credit_creator_limits, audit_logs
@@ -103,6 +106,11 @@ END $$;
 
 DO $$ BEGIN
     CREATE TYPE campaign_status AS ENUM ('DRAFT', 'APPROVED', 'IN_PROGRESS', 'COMPLETED');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE task_type AS ENUM ('POST');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -250,6 +258,7 @@ CREATE TABLE IF NOT EXISTS agencies (
     name           VARCHAR(255)     NOT NULL,
     owner_id       UUID             NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     logo_url       VARCHAR,
+    banner_url     VARCHAR,
     description    TEXT,
     category       agency_category,
     company_size   company_size,
@@ -311,11 +320,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_agency_inv_unique_pending
 CREATE TABLE IF NOT EXISTS client_profiles (
     id              UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id         UUID         REFERENCES users(id) ON DELETE SET NULL,
-    agency_id       UUID         REFERENCES agencies(id) ON DELETE CASCADE,
     display_name    VARCHAR(255) NOT NULL,
     company         VARCHAR(255),
     industry        VARCHAR(100),
     logo_url        VARCHAR(500),
+    banner_url      VARCHAR(500),
     phone           VARCHAR(50),
     website         VARCHAR(255),
     location        VARCHAR(255),
@@ -336,7 +345,6 @@ CREATE TABLE IF NOT EXISTS client_profiles (
 );
 
 CREATE INDEX IF NOT EXISTS idx_client_profiles_user_id ON client_profiles(user_id);
-CREATE INDEX IF NOT EXISTS idx_client_profiles_agency_id ON client_profiles(agency_id);
 
 DROP TRIGGER IF EXISTS trg_client_profiles_updated_at ON client_profiles;
 CREATE TRIGGER trg_client_profiles_updated_at
@@ -360,6 +368,7 @@ CREATE TABLE IF NOT EXISTS workspaces (
     brand_color     VARCHAR(9),
     logo_icon       VARCHAR(50),
     logo_url        VARCHAR(255),
+    banner_url      VARCHAR,
     tagline         VARCHAR(140),
     founded_year    INTEGER,
     facebook_url    VARCHAR(255),
@@ -436,7 +445,7 @@ CREATE INDEX IF NOT EXISTS idx_workspace_inv_workspace_id ON workspace_invitatio
 
 CREATE TABLE IF NOT EXISTS workspace_templates (
     id                   UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-    agency_id            UUID         NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
+    agency_id            UUID         REFERENCES agencies(id) ON DELETE CASCADE,
     name                 VARCHAR(255) NOT NULL,
     source_workspace_id  UUID         REFERENCES workspaces(id) ON DELETE SET NULL,
     config_snapshot      JSONB        NOT NULL,
@@ -454,8 +463,8 @@ CREATE TABLE IF NOT EXISTS media_packages (
     id                 UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
     name               VARCHAR(255) NOT NULL,
     is_template        BOOLEAN      NOT NULL DEFAULT FALSE,
-    agency_id          UUID         REFERENCES agencies(id) ON DELETE RESTRICT,
-    source_template_id UUID         REFERENCES media_packages(id) ON DELETE SET NULL,
+    agency_id          UUID         CONSTRAINT fk_media_packages_agency REFERENCES agencies(id) ON DELETE RESTRICT,
+    source_template_id UUID         CONSTRAINT fk_media_packages_source_template REFERENCES media_packages(id) ON DELETE SET NULL,
     is_available_to_workspaces BOOLEAN NOT NULL DEFAULT TRUE,
     package_type       package_type NOT NULL,
     duration_weeks     INT,
@@ -529,6 +538,47 @@ DROP TRIGGER IF EXISTS trg_media_campaigns_updated_at ON media_campaigns;
 CREATE TRIGGER trg_media_campaigns_updated_at
 BEFORE UPDATE ON media_campaigns
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ============================================================
+-- Content writing (2026-10-01 PostgreSQL migrations)
+-- Minimal task anchor for the canvas editor, not a replacement for the
+-- generic MongoDB tasks/task_approvals collections defined separately.
+-- Create tasks before content tables because both reference tasks(id).
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID NOT NULL REFERENCES workspaces(id),
+    type task_type NOT NULL DEFAULT 'POST',
+    title VARCHAR(255) NOT NULL,
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_tasks_workspace_id ON tasks(workspace_id);
+
+CREATE TABLE IF NOT EXISTS task_content_operations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    task_id UUID NOT NULL REFERENCES tasks(id),
+    sequence_number BIGINT NOT NULL,
+    yjs_update TEXT NOT NULL,
+    edited_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (task_id, sequence_number)
+);
+
+CREATE INDEX IF NOT EXISTS idx_task_content_operations_task_id ON task_content_operations(task_id);
+
+CREATE TABLE IF NOT EXISTS task_content_snapshots (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    task_id UUID NOT NULL REFERENCES tasks(id),
+    sequence_number BIGINT NOT NULL,
+    yjs_state TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_task_content_snapshots_task_id ON task_content_snapshots(task_id, sequence_number DESC);
 
 -- ============================================================
 -- Collaborator group (V2, new)
@@ -698,7 +748,7 @@ ON CONFLICT (name) DO UPDATE SET
 
 -- ============================================================
 -- System Health Monitoring (FR 3.10.3)
--- Mirrors scripts/migrations/2026-09-24-monitoring.sql for fresh databases.
+-- Mirrors docs/database/migrations/2026-09-24-monitoring.sql for fresh databases.
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS monitoring_servers (
@@ -812,13 +862,14 @@ COMMENT ON COLUMN monitoring_health_results.collector_id IS 'Result provenance; 
 COMMENT ON COLUMN monitoring_health_results.check_id IS 'Idempotency key scoped to target. Same current checkId is a no-op; do not update received_at.';
 COMMENT ON COLUMN monitoring_health_results.received_at IS 'Backend-assigned; never trust client timestamp. Application enforces ordering and past-age window atomically.';
 
-CREATE TABLE monitoring_enrollments (
+CREATE TABLE IF NOT EXISTS monitoring_enrollments (
     token_hash CHAR(64) PRIMARY KEY,
     name VARCHAR(255) NOT NULL CHECK (btrim(name) <> ''),
     environment VARCHAR(50) NOT NULL CHECK (btrim(environment) <> ''),
     expires_at TIMESTAMPTZ NOT NULL
 );
-CREATE INDEX idx_monitoring_enrollments_expiry ON monitoring_enrollments(expires_at);
+CREATE INDEX IF NOT EXISTS idx_monitoring_enrollments_expiry ON monitoring_enrollments(expires_at);
+COMMENT ON TABLE monitoring_enrollments IS 'Single-use admin-issued host enrollment; only token digests are stored. Claimed atomically.';
 
 COMMIT;
 
