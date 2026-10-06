@@ -1,0 +1,39 @@
+@startuml 3.4.3 - Create Agency
+title Sequence Diagram — 3.4.3 - Create Agency
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "CreateAgencyPage (UI)" as createagencypage_ui
+boundary "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "Agency" as agency
+entity "AgencyMemberRepository" as agencymemberrepository
+entity "AgencyResponse" as agencyresponse
+
+' === Flow ===
+user -> createagencypage_ui: fills in Agency form (logoUrl optional string), submits
+createagencypage_ui -> agencycontroller: POST /api/v1/agencies (@Valid AgencyRequest: name @NotBlank)
+opt name blank -> Spring MethodArgumentNotValidException, Controller never entered
+  agencycontroller -> user: GlobalExceptionHandler -> 400 VALIDATION_ERROR (field errors)
+end
+agencycontroller -> agencyserviceimpl: createAgency(currentUser, request)
+agencyserviceimpl -> agency: Agency.builder() name/logoUrl/description/.../ownerId(currentUser.getId()).build()
+agency --> agencyserviceimpl: agency (transient, no id)
+agencyserviceimpl -> agencyrepository: agencyRepository.save(agency)
+agencyrepository --> agencyserviceimpl: agency (with generated id)
+agencyserviceimpl -> agencymemberrepository: AgencyMember.builder().agencyId(agency.getId()).userId(currentUser.getId()).role(OWNER).build() -> save
+agencymemberrepository --> agencyserviceimpl: AgencyMember (OWNER)
+agencyserviceimpl -> agencyresponse: toResponse(agency, AgencyMemberRole.OWNER)
+agencyresponse --> agencyserviceimpl: AgencyResponse
+agencyserviceimpl -> agencycontroller: AgencyResponse
+agencycontroller --> createagencypage_ui: 201 Created - ApiResponse<AgencyResponse>
+createagencypage_ui -> user: shows Agency Profile (created)
+
+@enduml

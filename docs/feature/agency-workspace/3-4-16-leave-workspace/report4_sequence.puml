@@ -1,0 +1,43 @@
+@startuml 3.4.16 - Leave Workspace
+title Sequence Diagram — 3.4.16 - Leave Workspace
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Member (MANAGER/CREATOR/CLIENT)" as member_manager_creator_client
+boundary "WorkspaceSettingsPage (UI)" as workspacesettingspage_ui
+boundary "WorkspaceController" as workspacecontroller
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "WorkspaceMember" as workspacemember
+
+' === Flow ===
+member_manager_creator_client -> workspacesettingspage_ui: chooses \"Leave Workspace\", confirms in dialog
+workspacesettingspage_ui -> workspacecontroller: POST /workspaces/{workspaceId}/leave
+workspacecontroller -> workspaceserviceimpl: leaveWorkspace(workspaceId, currentUser) - caller identity from session principal only
+workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndUserIdAndIsActiveTrue(workspaceId, currentUser.id)
+workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
+opt no active membership row
+  workspaceserviceimpl -> member_manager_creator_client: throw 403 WORKSPACE_ACCESS_DENIED
+end
+workspaceserviceimpl -> workspacemember: map row -> WorkspaceMember
+workspacemember --> workspaceserviceimpl: WorkspaceMember
+alt last-MANAGER guard
+  workspaceserviceimpl -> workspacememberrepository: assertNotLastManager: countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId, MANAGER)  [member.role == MANAGER]
+  workspacememberrepository --> workspaceserviceimpl: long count
+  workspaceserviceimpl -> member_manager_creator_client: throw 409 LAST_MANAGER_CANNOT_BE_REMOVED  [count <= 1]
+else member.role != MANAGER, or count > 1
+  workspaceserviceimpl -> workspacemember: member.setActive(false); setUpdatedAt(now)
+  workspacemember --> workspaceserviceimpl: WorkspaceMember
+  workspaceserviceimpl -> workspacememberrepository: save(member)
+  workspacememberrepository --> workspaceserviceimpl: WorkspaceMember
+  workspaceserviceimpl -> workspacecontroller: void
+  workspacecontroller --> workspacesettingspage_ui: 200 OK - membership deactivated
+  workspacesettingspage_ui -> member_manager_creator_client: returns to Workspace list (Agency membership + other Workspaces untouched)
+end
+
+@enduml

@@ -1,0 +1,46 @@
+@startuml 3.4.13 - View Workspace Profile
+title Sequence Diagram — 3.4.13 - View Workspace Profile
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Member (MANAGER/CREATOR/CLIENT)" as member_manager_creator_client
+boundary "WorkspaceSettingsPage (UI)" as workspacesettingspage_ui
+boundary "WorkspaceController" as workspacecontroller
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "WorkspaceRepository" as workspacerepository
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "Workspace" as workspace
+entity "WorkspaceResponse" as workspaceresponse
+
+' === Flow ===
+member_manager_creator_client -> workspacesettingspage_ui: opens /workspaces/:id/settings
+workspacesettingspage_ui -> workspacecontroller: GET /api/v1/workspaces/{workspaceId}
+opt caller holds none of MANAGER/CREATOR/CLIENT anywhere
+  workspacecontroller -> member_manager_creator_client: throw 403 FORBIDDEN  @RequireRole (RequireRoleAspect, fresh DB read)
+end
+workspacecontroller -> workspaceserviceimpl: getWorkspace(workspaceId, currentUser)
+workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
+workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+opt not found
+  workspaceserviceimpl -> member_manager_creator_client: throw 404 WORKSPACE_NOT_FOUND
+end
+workspaceserviceimpl -> workspacememberrepository: assertMember: findByWorkspaceIdAndUserIdAndIsActiveTrue(workspaceId, userId)
+workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
+opt no active membership row for this Workspace
+  workspaceserviceimpl -> member_manager_creator_client: throw 403 WORKSPACE_ACCESS_DENIED
+end
+workspaceserviceimpl -> workspace: map row -> Workspace
+workspace --> workspaceserviceimpl: Workspace
+workspaceserviceimpl -> workspaceserviceimpl: parse stored settings JSON -> timezone/defaultPlatforms/reportFrequency (malformed -> empty settings, no error)
+workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
+workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+workspaceserviceimpl -> workspacecontroller: WorkspaceResponse
+workspacecontroller --> workspacesettingspage_ui: 200 OK - full Workspace profile
+workspacesettingspage_ui -> member_manager_creator_client: renders Workspace profile incl. timezone
+
+@enduml

@@ -2,7 +2,7 @@
 
 > Background research for [spec.md](spec.md) / [plan.md](plan.md) (V3 — canvas-rendering + real-time OT). Not a spec, not an implementation plan — this is a synthesis of the technical knowledge behind the design decisions already locked in.
 >
-> 2026-10-01.
+> 2026-10-01, updated 2026-10-05 after implementation (see §5).
 
 ## 1. Why a Separate Research Doc Was Needed
 
@@ -59,13 +59,24 @@ FR 3.6.10 was originally understood as "a Google-Docs-style rich-text editor" �
 | Fake CSS cursor | **Kept as-is** | A forced consequence of not using DOM text — there is no native cursor on a canvas |
 | Viewport-based virtualization | **Kept as-is** | Standard pattern, low cost, clear benefit (long documents stay light) |
 | Shadow/off-screen DOM for accessibility | **Kept as-is** | Mandatory for accessibility — no other option when using canvas |
-| Operational Transformation (sync) | **Kept in principle**, but **considering CRDT (Yjs) instead of hand-written OT** | Hand-written OT at production quality is very hard (well-known edge cases that are notoriously hard to debug — see [plan.md §6](plan.md#6-technical-risks)). Yjs uses CRDT — a different algorithm, but the same goal (convergence with no data loss, no locking) — lower risk since it's already battle-tested in production (Figma, Notion use similar mechanisms) |
+| Operational Transformation (sync) | **Kept in principle**, **implemented as CRDT (Yjs `Y.Text`)**, not hand-written OT | Hand-written OT at production quality is very hard (well-known edge cases that are notoriously hard to debug — see [plan.md §6](plan.md#6-technical-risks)). Yjs uses CRDT — a different algorithm, but the same goal (convergence with no data loss, no locking) — lower risk since it's already battle-tested in production (Figma, Notion use similar mechanisms). This was a proposal as of 2026-10-01; confirmed as the actual implementation by 2026-10-05 — `Y.Text`'s native `insert(index, text, attributes)`/`format(index, length, attributes)`/`toDelta()` turned out to double as the rich-text attribute engine too, so no separate formatting data structure was needed |
 | Long Polling (Browser Channel `bind`) | **Changed to WebSocket** | The reason Google uses Long Polling is historical (2006, before WebSocket existed) — not a technical advantage worth preserving. WebSocket is the modern standard, Spring Boot already supports it (`spring-boot-starter-websocket`), with lower latency and simpler code |
 | In-RAM "runs" state | **Equivalent**: `TaskContentOperation` (operation log) + `TaskContentSnapshot` | Different name, same principle: operation log + periodic snapshot, never saving full text on every save |
 | IndexedDB offline queue | **Kept as-is** | Same need: the client must keep working while offline, syncing back on reconnect |
 | Internal codename "kix", Closure Compiler | **Not relevant** | Google's internal build/implementation details, no bearing on the design |
 
-## 4. Limitations of This Research
+## 4. Implementation Notes (added 2026-10-05, after the editor was actually built)
+
+The canvas editor (`CanvasTextEditor.tsx` + `richText.ts` + `FormattingToolbar.tsx` in `brandhub-web-dashboard/src/pages/content-writing/components/`) is live, not just designed. A few decisions made during implementation extend beyond what §3's table anticipated:
+
+- **Rich-text formatting lives entirely in `Y.Text` attributes** — bold/italic/underline/strikethrough/color/highlight/font/size/link/align/listType are all per-character (or paragraph-scoped, for align/listType) attributes passed to `insert()`/`format()`. No separate formatting data structure was needed beyond what `Y.Text` already provides.
+- **List model**: bullet/numbered lists are a paragraph-scoped attribute (`listType: "bullet" | "number"`), the same mechanism as paragraph alignment — not a separate block-type/outline structure. The bullet/number marker is a render-time-only overlay (drawn by `CanvasTextEditor`'s paint step); it is never a stored character. Numbering for "number" lists is computed at render time by counting consecutive preceding paragraphs sharing `listType: "number"` — no index is persisted, so inserting or deleting list items never requires a renumbering pass or risks desyncing a stored number from reality.
+- **A real invariant had to be preserved carefully**: the editor maintains two parallel line-wrap computations — a plain-text one (`wrapLines`, used for caret position/selection highlight/canvas height) and a rich-text one (`wrapRuns`, used only for painting styled text). Both MUST break lines at identical character offsets, or the caret and the painted glyphs desync. This ruled out narrowing the available width for list-indented paragraphs inside `wrapRuns` (which would have made its line breaks diverge from `wrapLines`') — the list indent is instead applied as a paint-time x-offset only, accepting a slightly-longer effective last line for list items as the trade-off.
+- **Paste-with-format**: clipboard HTML is parsed with the browser's native `DOMParser` (no new dependency) into the same run/attribute model used internally. Scope was deliberately narrowed to bold/italic/underline/link/listType — font, color, and size from the clipboard source are dropped so pasted content always matches this editor's own design rather than carrying over arbitrary external styling.
+- **Layout constants were tuned toward Google Docs' real defaults but not matched exactly**: font is Arial 11pt (rendered at 15px, rounded for crisp canvas glyphs) with 1.15 line-height, matching Docs precisely. Page margin is Docs' real 2.54cm (~96px @96dpi) vertically, but a smaller 32px horizontally — the canvas here is a responsive-width panel, not a fixed-width printable page, so a full 96px side margin would consume too much space on narrow screens. This is a deliberate, documented trade-off, not an oversight.
+- Undo/redo uses Yjs's own `UndoManager` scoped to the editor's `Y.Text`, with `captureTimeout: 500` — local edits within 500ms of each other coalesce into one undo step (including every run of a single multi-styled paste, since they're all inserted inside one `yDoc.transact()` call).
+
+## 5. Limitations of This Research
 
 - The observations about `kix`, the hidden DOM structure, and the offscreen iframe are **external observations** (via DevTools, community technical write-ups, and public discussion from Google engineers) — not official architecture documentation from Google. Google has not published Docs' full source code or technical spec.
 - Google's actual `transform()` algorithm (handling rich-text formatting, not just plain-text insert/delete) has not been published in detail — the OT design for rich text in `plan.md` will need to be designed independently; it cannot be copied from an original source.

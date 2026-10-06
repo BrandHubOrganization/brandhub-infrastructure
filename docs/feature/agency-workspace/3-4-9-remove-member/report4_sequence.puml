@@ -1,0 +1,45 @@
+@startuml 3.4.9 - Remove Member
+title Sequence Diagram — 3.4.9 - Remove Member
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Owner" as owner
+boundary "AgencyMembersPage (UI)" as agencymemberspage_ui
+boundary "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "AgencyMemberRepository" as agencymemberrepository
+entity "AgencyMember" as agencymember
+
+' === Flow ===
+owner -> agencymemberspage_ui: opens Member list, selects Remove on a member row, confirms
+agencymemberspage_ui -> agencycontroller: DELETE /api/v1/agencies/{agencyId}/members/{memberId}
+agencycontroller -> agencyserviceimpl: removeMember(agencyId, memberId, currentUser)
+agencyserviceimpl -> agencyrepository: findAgencyOrThrow(agencyId)
+agencyrepository --> agencyserviceimpl: Agency
+opt !agency.ownerId.equals(currentUser.id)
+  agencyserviceimpl -> owner: throw 403 NOT_AGENCY_OWNER
+end
+agencyserviceimpl -> agencymemberrepository: findById(memberId).filter(agencyId match)
+agencymemberrepository --> agencyserviceimpl: Optional<AgencyMember>
+opt not found or wrong agency
+  agencyserviceimpl -> owner: throw 404 NOT_FOUND
+end
+agencyserviceimpl -> agencymember: map row -> AgencyMember
+agencymember --> agencyserviceimpl: AgencyMember
+alt member.role == OWNER
+  agencyserviceimpl -> owner: throw 409 CANNOT_REMOVE_OWNER  [member.role == OWNER]
+else member.role != OWNER
+  agencyserviceimpl -> agencymemberrepository: delete(member)
+  agencymemberrepository --> agencyserviceimpl: void
+  agencyserviceimpl -> agencycontroller: void
+  agencycontroller --> agencymemberspage_ui: 200 OK (no data)
+  agencymemberspage_ui -> owner: drops row, shows confirmation - access to Agency+Workspaces revoked immediately
+end
+
+@enduml

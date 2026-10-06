@@ -1,0 +1,76 @@
+@startuml 3.4.5 - Update Agency Profile
+title Sequence Diagram — 3.4.5 - Update Agency Profile
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Owner" as owner
+boundary "AgencyProfilePage (UI, edit mode)" as agencyprofilepage_ui_edit_mode
+boundary "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "Agency" as agency
+entity "AgencyResponse" as agencyresponse
+participant "FileStorageService" as filestorageservice
+
+' === Flow ===
+owner -> agencyprofilepage_ui_edit_mode: edits Agency profile fields and/or picks new logo, submits
+agencyprofilepage_ui_edit_mode -> agencycontroller: PUT /api/v1/agencies/{agencyId} (full profile: name @NotBlank, and/or logo file)  (1 route tuong trung)
+opt name blank - @NotBlank @Valid on AgencyRequest
+  agencycontroller -> owner: throw 400 VALIDATION_ERROR
+end
+alt update profile fields
+  agencycontroller -> agencyserviceimpl: (re nhanh ALT)
+  agencyserviceimpl -> agencyrepository: findById(agencyId)
+  agencyrepository --> agencyserviceimpl: Optional<Agency>
+  opt agency not found
+    agencyserviceimpl -> owner: throw 404 AGENCY_NOT_FOUND
+  end
+  agencyserviceimpl -> agency: map row -> Agency
+  agency --> agencyserviceimpl: Agency
+  opt agency.ownerId != currentUser.id
+    agencyserviceimpl -> owner: throw 403 NOT_AGENCY_OWNER
+  end
+  agencyserviceimpl -> agencyserviceimpl: replace every field with submitted values (unset fields cleared); updatedAt = now()
+  agencyserviceimpl -> agencyrepository: save(agency)
+  agencyrepository --> agencyserviceimpl: Agency
+  agencyserviceimpl -> agencyresponse: toResponse(agency, OWNER)
+  agencyresponse --> agencyserviceimpl: AgencyResponse
+  agencyserviceimpl -> agencycontroller: AgencyResponse
+  agencycontroller --> agencyprofilepage_ui_edit_mode: 200 OK - AgencyResponse
+  agencyprofilepage_ui_edit_mode -> owner: shows confirmation, refreshes form
+else Change logo - updateLogo
+  agencyserviceimpl -> agencyrepository: findById(agencyId)
+  agencyrepository --> agencyserviceimpl: Optional<Agency>
+  opt agency not found
+    agencyserviceimpl -> owner: throw 404 AGENCY_NOT_FOUND
+  end
+  agencyserviceimpl -> agency: map row -> Agency
+  agency --> agencyserviceimpl: Agency
+  opt agency.ownerId != currentUser.id
+    agencyserviceimpl -> owner: throw 403 NOT_AGENCY_OWNER
+  end
+  alt file read fails - IOException
+    agencyserviceimpl -> filestorageservice: uploadAgencyLogo(agencyId, bytes, contentType)
+    filestorageservice -> agencyserviceimpl: throws IOException
+    agencyserviceimpl -> owner: throw 400 FILE_READ_ERROR
+  else file read succeeds
+    agencyserviceimpl -> filestorageservice: uploadAgencyLogo(agencyId, bytes, contentType)
+    filestorageservice --> agencyserviceimpl: logo URL
+    agencyserviceimpl -> agency: agency.setLogoUrl(url); setUpdatedAt(now)
+    agency --> agencyserviceimpl: Agency
+    agencyserviceimpl -> agencyrepository: save(agency)
+    agencyrepository --> agencyserviceimpl: Agency
+    agencyserviceimpl -> agencyresponse: toResponse(agency, OWNER)
+    agencyresponse --> agencyserviceimpl: AgencyResponse
+    agencyserviceimpl -> agencycontroller: AgencyResponse
+    agencycontroller --> agencyprofilepage_ui_edit_mode: 200 OK - AgencyResponse
+    agencyprofilepage_ui_edit_mode -> owner: shows confirmation, refreshes logo preview
+  end
+end
+
+@enduml

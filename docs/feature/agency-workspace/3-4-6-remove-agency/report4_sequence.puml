@@ -1,0 +1,48 @@
+@startuml 3.4.6 - Remove Agency
+title Sequence Diagram — 3.4.6 - Remove Agency
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Owner" as owner
+boundary "AgencySettingsPage (UI)" as agencysettingspage_ui
+boundary "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "Agency" as agency
+entity "WorkspaceRepository" as workspacerepository
+entity "AgencyResponse" as agencyresponse
+
+' === Flow ===
+owner -> agencysettingspage_ui: selects Remove on Agency settings, confirms
+agencysettingspage_ui -> agencycontroller: DELETE /api/v1/agencies/{agencyId}
+alt agency not found
+  agencycontroller -> agencyserviceimpl: removeAgency(agencyId, currentUser)
+  agencyserviceimpl -> agencyrepository: findById(agencyId)
+  agencyrepository --> agencyserviceimpl: Optional.empty()
+  agencyserviceimpl --> agencycontroller: throw AGENCY_NOT_FOUND (404)
+else agency found
+  agencyserviceimpl -> agencyrepository: findById(agencyId)
+  agencyrepository --> agencyserviceimpl: Optional<Agency row>
+  agencyserviceimpl -> agency: map row -> Agency
+  agency --> agencyserviceimpl: Agency
+  opt caller is not the Owner
+    agencyserviceimpl --> agencycontroller: throw NOT_AGENCY_OWNER (403)
+    agencyserviceimpl -> agencyserviceimpl: agency.setStatus(SOFT_DELETED); agency.setDeletedAt(now)
+  end
+  agencyserviceimpl -> agencyrepository: save(agency)
+  agencyrepository --> agencyserviceimpl: Agency
+  agencyserviceimpl -> workspacerepository: findByAgencyId(agencyId)
+  workspacerepository --> agencyserviceimpl: List<Workspace>
+  agencyserviceimpl -> agencyserviceimpl: for each workspace: setStatus(SOFT_DELETED), setDeletedAt(same now)
+  agencyserviceimpl -> workspacerepository: save(workspace) - for each
+  agencyserviceimpl --> agencycontroller: void (no content)
+end
+agencycontroller --> agencysettingspage_ui: 200/204 - result
+agencysettingspage_ui -> owner: shows confirmation, updates screen
+
+@enduml

@@ -1,0 +1,40 @@
+@startuml 3.4.1 - List Agency
+title Sequence Diagram — 3.4.1 - List Agency
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "AgenciesPage (UI)" as agenciespage_ui
+boundary "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "AgencyMemberRepository" as agencymemberrepository
+entity "Agency" as agency
+entity "AgencyResponse" as agencyresponse
+
+' === Flow ===
+user -> agenciespage_ui: signs in, opens Agencies page
+agenciespage_ui -> agencycontroller: GET /api/v1/agencies
+agencycontroller -> agencyserviceimpl: listMyAgencies(currentUser)
+agencyserviceimpl -> agencyrepository: findByOwnerIdAndStatusNot(userId, SOFT_DELETED)
+agencyrepository --> agencyserviceimpl: owned agency ids
+agencyserviceimpl -> agencymemberrepository: findByUserId(userId)
+agencymemberrepository --> agencyserviceimpl: member agency ids + roles
+agencyserviceimpl -> agencyserviceimpl: merge + dedupe ids
+agencyserviceimpl -> agencyrepository: findAllById(ids)
+agencyrepository --> agencyserviceimpl: List<Agency row>
+agencyserviceimpl -> agency: map rows -> List<Agency>
+agency --> agencyserviceimpl: List<Agency>
+agencyserviceimpl -> agencyserviceimpl: filter SOFT_DELETED
+agencyserviceimpl -> agencyresponse: map toResponse(agency, myRole) for each
+agencyresponse --> agencyserviceimpl: List<AgencyResponse>
+agencyserviceimpl --> agencycontroller: List<AgencyResponse>
+agencycontroller --> agenciespage_ui: 200 OK - list (possibly empty)
+agenciespage_ui -> user: renders one card per Agency (or empty state)
+
+@enduml

@@ -1,0 +1,56 @@
+@startuml 3.4.20 - Update Workspace Member Role
+title Sequence Diagram — 3.4.20 - Update Workspace Member Role
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Workspace MANAGER" as workspace_manager
+boundary "WorkspaceMembersPage (UI)" as workspacememberspage_ui
+boundary "WorkspaceController" as workspacecontroller
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "WorkspaceMember" as workspacemember
+entity "UserRepository" as userrepository
+entity "WorkspaceMemberResponse" as workspacememberresponse
+
+' === Flow ===
+workspace_manager -> workspacememberspage_ui: chooses a new role for a member in the role selector
+workspacememberspage_ui -> workspacecontroller: PATCH /workspaces/{id}/members/{memberId}/role
+opt caller is not the Workspace MANAGER
+  workspacecontroller -> workspace_manager: throw 403 FORBIDDEN
+end
+workspacecontroller -> workspaceserviceimpl: updateMemberRole(workspaceId, memberId, newRole)
+workspaceserviceimpl -> workspacememberrepository: findById(memberId).filter(workspaceId match && isActive)
+workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
+opt not found, inactive, or wrong Workspace
+  workspaceserviceimpl -> workspace_manager: throw 404 NOT_FOUND
+end
+workspaceserviceimpl -> workspacemember: map row -> WorkspaceMember
+workspacemember --> workspaceserviceimpl: WorkspaceMember
+alt last-MANAGER guard
+  workspaceserviceimpl -> workspacememberrepository: assertNotLastManager: countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId, MANAGER)  [member.role==MANAGER && newRole!=MANAGER]
+  workspacememberrepository --> workspaceserviceimpl: long count
+  workspaceserviceimpl -> workspace_manager: throw 409 LAST_MANAGER_CANNOT_BE_REMOVED  [count <= 1]
+else member.role != MANAGER, or newRole == MANAGER already
+  workspaceserviceimpl -> workspacememberrepository: countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId, MANAGER)  [newRole==MANAGER && member.role!=MANAGER]
+  workspacememberrepository --> workspaceserviceimpl: long count
+  workspaceserviceimpl -> workspace_manager: throw 409 MANAGER_ALREADY_ASSIGNED  [count > 0]
+else no MANAGER conflict - apply role change
+  workspaceserviceimpl -> workspacemember: member.setRole(newRole); setUpdatedAt(now)
+  workspacemember --> workspaceserviceimpl: WorkspaceMember
+  workspaceserviceimpl -> workspacememberrepository: save(member)
+  workspacememberrepository --> workspaceserviceimpl: WorkspaceMember
+  workspaceserviceimpl -> userrepository: findById(member.userId)
+  userrepository --> workspaceserviceimpl: Optional<User>
+  workspaceserviceimpl -> workspacememberresponse: new WorkspaceMemberResponse(id, workspaceId, userId, fullName, email, clientProfileId, role, joinedAt, isActive)
+  workspacememberresponse --> workspaceserviceimpl: WorkspaceMemberResponse
+  workspaceserviceimpl -> workspacecontroller: WorkspaceMemberResponse
+  workspacecontroller --> workspacememberspage_ui: 200 OK - updated member entry with new role
+  workspacememberspage_ui -> workspace_manager: refreshes role shown for that member
+end
+
+@enduml

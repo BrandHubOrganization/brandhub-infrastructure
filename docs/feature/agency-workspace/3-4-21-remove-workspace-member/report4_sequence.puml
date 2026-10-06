@@ -1,0 +1,46 @@
+@startuml 3.4.21 - Remove Workspace Member
+title Sequence Diagram — 3.4.21 - Remove Workspace Member
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Workspace MANAGER" as workspace_manager
+boundary "WorkspaceMembersPage (UI)" as workspacememberspage_ui
+boundary "WorkspaceController" as workspacecontroller
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "WorkspaceMember" as workspacemember
+
+' === Flow ===
+workspace_manager -> workspacememberspage_ui: chooses Remove for a member, confirms in dialog
+workspacememberspage_ui -> workspacecontroller: DELETE /workspaces/{workspaceId}/members/{memberId}
+opt caller is not the Workspace MANAGER
+  workspacecontroller -> workspace_manager: throw 403 FORBIDDEN
+end
+workspacecontroller -> workspaceserviceimpl: removeMember(workspaceId, memberId)
+workspaceserviceimpl -> workspacememberrepository: findById(memberId).filter(workspaceId match && isActive)
+workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
+opt not found, inactive, or wrong Workspace
+  workspaceserviceimpl -> workspace_manager: throw 404 NOT_FOUND
+end
+workspaceserviceimpl -> workspacemember: map row -> WorkspaceMember
+workspacemember --> workspaceserviceimpl: WorkspaceMember
+alt last-MANAGER guard
+  workspaceserviceimpl -> workspacememberrepository: assertNotLastManager: countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId, MANAGER)  [member.role == MANAGER]
+  workspacememberrepository --> workspaceserviceimpl: long count
+  workspaceserviceimpl -> workspace_manager: throw 409 LAST_MANAGER_CANNOT_BE_REMOVED  [count <= 1]
+else member.role != MANAGER, or count > 1
+  workspaceserviceimpl -> workspacemember: member.setActive(false); setUpdatedAt(now)
+  workspacemember --> workspaceserviceimpl: WorkspaceMember
+  workspaceserviceimpl -> workspacememberrepository: save(member)
+  workspacememberrepository --> workspaceserviceimpl: WorkspaceMember
+  workspaceserviceimpl -> workspacecontroller: void
+  workspacecontroller --> workspacememberspage_ui: 200 OK (no data)
+  workspacememberspage_ui -> workspace_manager: refreshes member table - member disappears (Agency membership + other Workspaces untouched)
+end
+
+@enduml

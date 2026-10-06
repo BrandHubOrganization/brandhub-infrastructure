@@ -1,0 +1,54 @@
+@startuml 3.4.18 - View Workspace Members
+title Sequence Diagram — 3.4.18 - View Workspace Members
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Member (MANAGER/CREATOR/CLIENT)" as member_manager_creator_client
+boundary "WorkspaceMembersPage (UI)" as workspacememberspage_ui
+boundary "WorkspaceController" as workspacecontroller
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "WorkspaceRepository" as workspacerepository
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "ClientProfileRepository" as clientprofilerepository
+entity "UserRepository" as userrepository
+entity "WorkspaceMemberResponse" as workspacememberresponse
+
+' === Flow ===
+member_manager_creator_client -> workspacememberspage_ui: opens /workspaces/:id/members
+workspacememberspage_ui -> workspacecontroller: GET /workspaces/{workspaceId}/members
+workspacecontroller -> workspaceserviceimpl: listMembers(workspaceId, currentUser)
+workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
+workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+opt Workspace not found
+  workspaceserviceimpl -> member_manager_creator_client: throw 404 WORKSPACE_NOT_FOUND
+end
+workspaceserviceimpl -> workspacememberrepository: assertMember: findByWorkspaceIdAndUserIdAndIsActiveTrue(workspaceId, userId)
+workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
+opt no direct membership row for this userId
+  workspaceserviceimpl -> clientprofilerepository: findByUserId(userId) - resolve caller's own ClientProfile ids
+  clientprofilerepository --> workspaceserviceimpl: List<ClientProfile>
+  workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndIsActiveTrue(workspaceId)
+  workspaceserviceimpl -> workspaceserviceimpl: isMember = any member has role==CLIENT && myProfileIds.contains(member.clientProfileId)
+  workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+end
+opt caller has no active membership, direct or via CLIENT profile
+  workspaceserviceimpl -> member_manager_creator_client: throw 403 WORKSPACE_ACCESS_DENIED
+end
+workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndIsActiveTrue(workspaceId)
+workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+workspaceserviceimpl -> userrepository: findAllById(userIds)
+userrepository --> workspaceserviceimpl: Map<UUID, User>
+workspaceserviceimpl -> clientprofilerepository: findAllById(clientProfileIds)
+clientprofilerepository --> workspaceserviceimpl: Map<UUID, ClientProfile>
+workspaceserviceimpl -> workspacememberresponse: new WorkspaceMemberResponse(id, workspaceId, userId, fullName/email from user or clientProfile.displayName, clientProfileId, role, joinedAt, isActive) - per member
+workspacememberresponse --> workspaceserviceimpl: WorkspaceMemberResponse
+workspaceserviceimpl -> workspacecontroller: List<WorkspaceMemberResponse>
+workspacecontroller --> workspacememberspage_ui: 200 OK - member list
+workspacememberspage_ui -> member_manager_creator_client: renders member table with each member's role
+
+@enduml

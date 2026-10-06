@@ -1,0 +1,74 @@
+@startuml 3.4.17 - Save Workspace Template
+title Sequence Diagram — 3.4.17 - Save Workspace Template
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Agency member (owner)" as agency_member_owner
+boundary "WorkspaceDetail / TemplatesPage (UI)" as workspacedetail_templatespage_ui
+boundary "WorkspaceTemplateController" as workspacetemplatecontroller
+control "WorkspaceTemplateServiceImpl" as workspacetemplateserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "WorkspaceTemplateRepository" as workspacetemplaterepository
+entity "WorkspaceTemplate" as workspacetemplate
+entity "WorkspaceTemplateResponse" as workspacetemplateresponse
+
+' === Flow ===
+agency_member_owner -> workspacedetail_templatespage_ui: \"Save as Template\" modal submits name  /  opens templates list  /  clicks delete icon on a row
+workspacedetail_templatespage_ui -> workspacetemplatecontroller: POST /workspace-templates  OR  GET /workspace-templates  OR  DELETE /workspace-templates/{templateId}  (1 route tuong trung)
+opt Save: name or configSnapshot empty
+  workspacetemplatecontroller -> agency_member_owner: throw 400 VALIDATION_ERROR  @NotBlank
+end
+alt Save template
+  workspacetemplatecontroller -> workspacetemplateserviceimpl: (re nhanh ALT)
+  workspacetemplateserviceimpl -> agencyrepository: resolveOwnedAgencyId: findByOwnerIdAndStatusNot(userId, SOFT_DELETED)
+  agencyrepository --> workspacetemplateserviceimpl: Optional<Agency> (.findFirst())
+  opt no owned Agency
+    workspacetemplateserviceimpl -> agency_member_owner: throw 404 AGENCY_NOT_FOUND
+  end
+  workspacetemplateserviceimpl -> workspacetemplate: new WorkspaceTemplate(agencyId, name, sourceWorkspaceId, configSnapshot, createdBy=currentUser) - never from request payload
+  workspacetemplate --> workspacetemplateserviceimpl: WorkspaceTemplate
+  workspacetemplateserviceimpl -> workspacetemplaterepository: save(template)
+  workspacetemplaterepository --> workspacetemplateserviceimpl: WorkspaceTemplate
+  workspacetemplateserviceimpl -> workspacetemplateresponse: toResponse(template)
+  workspacetemplateresponse --> workspacetemplateserviceimpl: WorkspaceTemplateResponse
+  workspacetemplateserviceimpl -> workspacetemplatecontroller: WorkspaceTemplateResponse
+  workspacetemplatecontroller --> workspacedetail_templatespage_ui: 200 OK - stored template
+  workspacedetail_templatespage_ui -> agency_member_owner: success toast, modal closes
+else List templates - GET /workspace-templates
+  workspacetemplateserviceimpl -> agencyrepository: resolveOwnedAgencyId(currentUser)
+  agencyrepository --> workspacetemplateserviceimpl: Optional<Agency>
+  opt no owned Agency
+    workspacetemplateserviceimpl -> agency_member_owner: throw 404 AGENCY_NOT_FOUND
+  end
+  workspacetemplateserviceimpl -> workspacetemplaterepository: findByAgencyId(agencyId)
+  workspacetemplaterepository --> workspacetemplateserviceimpl: List<WorkspaceTemplate>
+  workspacetemplateserviceimpl -> workspacetemplateresponse: toResponse(template) - per item
+  workspacetemplateresponse --> workspacetemplateserviceimpl: WorkspaceTemplateResponse
+  workspacetemplateserviceimpl -> workspacetemplatecontroller: List<WorkspaceTemplateResponse>
+  workspacetemplatecontroller --> workspacedetail_templatespage_ui: 200 OK - Agency-scoped templates
+  workspacedetail_templatespage_ui -> agency_member_owner: renders list (clicking a name inline-expands configSnapshot already in this response, no separate detail call)
+else Delete template - DELETE /workspace-templates/{templateId}
+  workspacetemplateserviceimpl -> workspacetemplaterepository: findById(templateId)
+  workspacetemplaterepository --> workspacetemplateserviceimpl: Optional<WorkspaceTemplate>
+  opt not found
+    workspacetemplateserviceimpl -> agency_member_owner: throw 404 NOT_FOUND
+  end
+  workspacetemplateserviceimpl -> agencyrepository: resolveOwnedAgencyId(currentUser)
+  agencyrepository --> workspacetemplateserviceimpl: Optional<Agency>
+  opt template.agencyId != resolved agencyId
+    workspacetemplateserviceimpl -> agency_member_owner: throw 403 FORBIDDEN
+  end
+  workspacetemplateserviceimpl -> workspacetemplaterepository: delete(template)
+  workspacetemplaterepository --> workspacetemplateserviceimpl: void
+  workspacetemplateserviceimpl -> workspacetemplatecontroller: void
+  workspacetemplatecontroller --> workspacedetail_templatespage_ui: 200 OK (no data)
+  workspacedetail_templatespage_ui -> agency_member_owner: removes row from list, success toast
+end
+note over agency_member_owner, workspacetemplateresponse: Note: GET /workspace-templates/{templateId} (getTemplate) exists at API level but is not called by current FE - not drawn here, same Agency-scope check pattern as delete.
+
+@enduml

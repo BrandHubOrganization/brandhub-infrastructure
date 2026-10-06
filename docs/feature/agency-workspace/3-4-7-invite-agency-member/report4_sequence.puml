@@ -1,0 +1,137 @@
+@startuml 3.4.7 - Invite Agency Member
+title Sequence Diagram — 3.4.7 - Invite Agency Member
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Owner / Invitee" as owner_invitee
+boundary "MembersPage / InvitationPage (UI)" as memberspage_invitationpage_ui
+boundary "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "AgencyInvitationRepository" as agencyinvitationrepository
+entity "AgencyInvitation" as agencyinvitation
+entity "AgencyMemberRepository" as agencymemberrepository
+entity "WorkspaceRepository" as workspacerepository
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "ClientProfileRepository" as clientprofilerepository
+entity "AgencyInvitationResponse / AgencyMemberResponse" as agencyinvitationresponse_agencymemberresponse
+participant "MailService" as mailservice
+
+' === Flow ===
+owner_invitee -> memberspage_invitationpage_ui: Owner fills invite form (email, role, workspaceId?, expiryDays?, note?)  OR  Invitee submits accept (token, clientProfileId? / newClientProfile?)
+memberspage_invitationpage_ui -> agencycontroller: POST /agencies/{agencyId}/invitations  OR  POST /agencies/invitations/accept  (1 route tuong trung)
+alt Invite by email
+  agencycontroller -> agencyserviceimpl: (re nhanh ALT)
+  agencyserviceimpl -> agencyrepository: findAgencyOrThrow(agencyId)
+  agencyrepository --> agencyserviceimpl: Agency
+  opt agency.ownerId != currentUser.id
+    agencyserviceimpl -> owner_invitee: throw 403 NOT_AGENCY_OWNER
+  end
+  agencyserviceimpl -> agencyserviceimpl: normalise email
+  agencyserviceimpl -> agencymemberrepository: findByAgencyIdAndUserId via findByEmail(email) - already Agency member?
+  agencymemberrepository --> agencyserviceimpl: Optional<AgencyMember>
+  opt already an Agency member
+    agencyserviceimpl -> owner_invitee: throw 409 ALREADY_AGENCY_MEMBER
+  end
+  agencyserviceimpl -> agencyinvitationrepository: findByAgencyIdAndInvitedEmailAndStatusAndExpiresAtAfter(agencyId, email, PENDING, now)
+  agencyinvitationrepository --> agencyserviceimpl: Optional<AgencyInvitation>
+  opt pending unexpired invitation already exists
+    agencyserviceimpl -> owner_invitee: throw 409 INVITATION_ALREADY_PENDING
+  end
+  agencyserviceimpl -> agencyinvitationrepository: countByAgencyIdAndStatusAndExpiresAtAfter(agencyId, PENDING, now)
+  agencyinvitationrepository --> agencyserviceimpl: long count
+  opt count >= MAX_PENDING_INVITATIONS
+    agencyserviceimpl -> owner_invitee: throw 429/400 TOO_MANY_PENDING_INVITATIONS
+  end
+  opt request.workspaceId provided
+    agencyserviceimpl -> workspacerepository: findById(workspaceId) - not found -> throw WORKSPACE_NOT_FOUND
+    agencyserviceimpl -> agencyserviceimpl: workspace.agencyId != agencyId -> throw WORKSPACE_NOT_IN_AGENCY; role==MANAGER -> assertNoManagerYet(workspaceId)
+    workspacerepository --> agencyserviceimpl: Optional<Workspace>
+  end
+  opt role == CLIENT and workspaceId is null
+    agencyserviceimpl -> owner_invitee: throw 400 WORKSPACE_REQUIRED_FOR_CLIENT_INVITE
+  end
+  agencyserviceimpl -> agencyserviceimpl: expiryDays = clamp(request.expiryDays, 1, 30), default 30
+  agencyserviceimpl -> agencyinvitation: new AgencyInvitation(agencyId, email, invitedBy, token, note, workspaceId, role, PENDING, expiresAt)
+  agencyinvitation --> agencyserviceimpl: AgencyInvitation
+  agencyserviceimpl -> agencyinvitationrepository: save(invitation)
+  agencyinvitationrepository --> agencyserviceimpl: AgencyInvitation
+  agencyserviceimpl -> mailservice: sendAgencyInvitationEmail(email, inviteeName, agency, token, note)
+  mailservice --> agencyserviceimpl: sent
+  agencyserviceimpl -> agencyinvitationresponse_agencymemberresponse: toInvitationResponse(invitation, agency.name, targetWorkspace.name?)
+  agencyinvitationresponse_agencymemberresponse --> agencyserviceimpl: AgencyInvitationResponse
+  agencyserviceimpl -> agencycontroller: AgencyInvitationResponse
+  agencycontroller --> memberspage_invitationpage_ui: 200 OK - invitation sent
+  memberspage_invitationpage_ui -> owner_invitee: shows confirmation
+else Accept invitation - POST /agencies/invitations/accept
+  agencyserviceimpl -> agencyinvitationrepository: findByToken(request.token)
+  agencyinvitationrepository --> agencyserviceimpl: Optional<AgencyInvitation>
+  opt not found
+    agencyserviceimpl -> owner_invitee: throw 400 INVALID_INVITATION
+  end
+  opt not PENDING, or past expiresAt
+    agencyserviceimpl -> owner_invitee: throw 400 INVALID_INVITATION
+  end
+  agencyserviceimpl -> agencyinvitationresponse_agencymemberresponse: userRepository.findById(currentUser.id) - not found -> throw USER_NOT_FOUND
+  opt invitedEmail != signed-in user's email
+    agencyserviceimpl -> owner_invitee: throw 400 INVALID_INVITATION
+  end
+  alt invitation.role == CLIENT
+    opt invitation.workspaceId is null
+      agencyserviceimpl -> owner_invitee: throw 400 WORKSPACE_REQUIRED_FOR_CLIENT_INVITE
+    end
+    agencyserviceimpl -> workspacememberrepository: findByWorkspaceIdAndUserIdAndIsActiveTrue(workspaceId, userId) - already in workspace?
+    workspacememberrepository --> agencyserviceimpl: Optional<WorkspaceMember>
+    opt not already in workspace
+      alt clientProfileId provided
+        agencyserviceimpl -> clientprofilerepository: findById(clientProfileId)  [clientProfileId provided]
+      else newClientProfile provided
+        clientprofilerepository --> agencyserviceimpl: Optional<ClientProfile> - not found -> throw CLIENT_PROFILE_NOT_FOUND; owner mismatch -> throw CLIENT_PROFILE_NOT_OWNED
+        agencyserviceimpl -> clientprofilerepository: save(new ClientProfile: userId, agencyId, displayName, company, phone, note, logoUrl, website, industry, location, description)
+        clientprofilerepository --> agencyserviceimpl: ClientProfile
+      else neither provided
+        agencyserviceimpl -> owner_invitee: throw 400 CLIENT_PROFILE_REQUIRED_FOR_ACCEPT
+      end
+      agencyserviceimpl -> workspacememberrepository: save(WorkspaceMember: workspaceId, userId, clientProfileId, role=CLIENT, addedBy, isActive=true)
+      workspacememberrepository --> agencyserviceimpl: WorkspaceMember
+    end
+    agencyserviceimpl -> agencyinvitation: invitation.status=ACCEPTED; acceptedAt=now()
+    agencyinvitation --> agencyserviceimpl: AgencyInvitation
+    agencyserviceimpl -> agencyinvitationrepository: save(invitation)
+    agencyinvitationrepository --> agencyserviceimpl: AgencyInvitation
+    agencyserviceimpl -> agencyinvitationresponse_agencymemberresponse: new AgencyMemberResponse(null, agencyId, userId, fullName, email, avatarUrl, null, now) - no AgencyMember row created for CLIENT
+    agencyinvitationresponse_agencymemberresponse --> agencyserviceimpl: AgencyMemberResponse
+    agencyserviceimpl -> agencycontroller: AgencyMemberResponse (return early)
+    agencycontroller --> memberspage_invitationpage_ui: 200 OK - accepted as CLIENT
+    memberspage_invitationpage_ui -> owner_invitee: shows accepted, navigates to workspace
+  else invitation.role != CLIENT
+    agencyserviceimpl -> agencymemberrepository: findByAgencyIdAndUserId(agencyId, userId) - already Agency member?
+    agencymemberrepository --> agencyserviceimpl: Optional<AgencyMember>
+    opt already Agency member
+      agencyserviceimpl -> owner_invitee: throw 409 ALREADY_AGENCY_MEMBER
+    end
+    agencyserviceimpl -> agencymemberrepository: save(AgencyMember: agencyId, userId, role=MEMBER)
+    agencymemberrepository --> agencyserviceimpl: AgencyMember
+    agencyserviceimpl -> agencyinvitation: invitation.status=ACCEPTED; acceptedAt=now()
+    agencyinvitation --> agencyserviceimpl: AgencyInvitation
+    agencyserviceimpl -> agencyinvitationrepository: save(invitation)
+    agencyinvitationrepository --> agencyserviceimpl: AgencyInvitation
+    opt invitation.workspaceId != null and role != null, not already active in workspace
+      agencyserviceimpl -> workspacememberrepository: save(WorkspaceMember: workspaceId, userId, role, addedBy, isActive=true) - MANAGER role -> assertNoManagerYet first
+      workspacememberrepository --> agencyserviceimpl: WorkspaceMember
+    end
+    agencyserviceimpl -> agencyinvitationresponse_agencymemberresponse: new AgencyMemberResponse(member.id, agencyId, userId, fullName, email, avatarUrl, role, joinedAt)
+    agencyinvitationresponse_agencymemberresponse --> agencyserviceimpl: AgencyMemberResponse
+    agencyserviceimpl -> agencycontroller: AgencyMemberResponse
+    agencycontroller --> memberspage_invitationpage_ui: 200 OK - accepted as Agency member
+    memberspage_invitationpage_ui -> owner_invitee: shows accepted, navigates to Agency
+  end
+end
+note over owner_invitee, mailservice: Note: Flow E (Invitee has no account yet -> register/verify/login/2FA/Google OAuth before returning to accept) is fully covered by the 3.2 authentication diagrams; not repeated here to avoid duplicating that flow.
+
+@enduml
