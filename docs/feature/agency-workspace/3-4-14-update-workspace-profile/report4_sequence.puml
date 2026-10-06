@@ -17,50 +17,59 @@ entity "Workspace" as workspace
 entity "WorkspaceResponse" as workspaceresponse
 participant "FileStorageService" as filestorageservice
 
-' === Flow ===
-workspace_manager -> workspacesettingspage_ui: edits settings fields and submits  OR  chooses a logo file (client rejects non image/jpeg|png|webp or >5MB up front)
-workspacesettingspage_ui -> workspacecontroller: PUT /workspaces/{id}/settings  OR  POST /workspaces/{id}/logo  (1 route tuong trung)
+' === Flow 1 ===
+note over workspace_manager, filestorageservice : == LUỒNG 1: CẬP NHẬT THÔNG TIN VÀ CẤU HÌNH WORKSPACE ==\nWorkspace Manager chỉnh sửa thông tin chung và cấu hình cài đặt của Workspace
+
+workspace_manager -> workspacesettingspage_ui: edits settings fields (name, timezone, platforms) and submits
+workspacesettingspage_ui -> workspacecontroller: PUT /api/v1/workspaces/{id}/settings
 opt caller is not the Workspace MANAGER
-  workspacecontroller -> workspace_manager: throw 403 FORBIDDEN  @RequireRole({MANAGER}) - checked before Workspace lookup
+  workspacecontroller -> workspace_manager: throw 403 FORBIDDEN (@RequireRole({MANAGER}))
 end
-alt update settings
-  workspacecontroller -> workspaceserviceimpl: (re nhanh ALT)
-  workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
-  workspacerepository --> workspaceserviceimpl: Optional<Workspace>
-  opt not found
-    workspaceserviceimpl -> workspace_manager: throw 404 WORKSPACE_NOT_FOUND
-  end
-  workspaceserviceimpl -> workspace: map row -> Workspace
+workspacecontroller -> workspaceserviceimpl: updateSettings(currentUser, workspaceId, request)
+workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
+workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+opt not found
+  workspaceserviceimpl -> workspace_manager: throw 404 WORKSPACE_NOT_FOUND
+end
+workspaceserviceimpl -> workspace: map row -> Workspace
+workspace --> workspaceserviceimpl: Workspace
+workspaceserviceimpl -> workspaceserviceimpl: apply name; parse+merge settings; apply metadata fields
+workspaceserviceimpl -> workspacerepository: save(workspace)
+workspacerepository --> workspaceserviceimpl: Workspace
+workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
+workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+workspaceserviceimpl -> workspacecontroller: WorkspaceResponse
+workspacecontroller --> workspacesettingspage_ui: 200 OK WorkspaceResponse
+workspacesettingspage_ui -> workspace_manager: shows success confirmation, refreshes profile
+
+' === Flow 2 ===
+note over workspace_manager, filestorageservice : == LUỒNG 2: TẢI LÊN LOGO WORKSPACE ==\nWorkspace Manager tải lên ảnh logo mới cho Workspace
+
+workspace_manager -> workspacesettingspage_ui: chooses a logo file and clicks Upload
+workspacesettingspage_ui -> workspacecontroller: POST /api/v1/workspaces/{id}/logo (multipart file)
+opt caller is not the Workspace MANAGER
+  workspacecontroller -> workspace_manager: throw 403 FORBIDDEN (@RequireRole({MANAGER}))
+end
+workspacecontroller -> workspaceserviceimpl: uploadLogo(currentUser, workspaceId, file)
+workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
+workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+opt not found
+  workspaceserviceimpl -> workspace_manager: throw 404 WORKSPACE_NOT_FOUND
+end
+alt file read fails
+  workspaceserviceimpl -> workspace_manager: throw 400 FILE_READ_ERROR (IOException)
+else file read OK
+  workspaceserviceimpl -> filestorageservice: uploadWorkspaceLogo(workspaceId, bytes, contentType)
+  filestorageservice --> workspaceserviceimpl: logo URL
+  workspaceserviceimpl -> workspace: workspace.setLogoUrl(url); setUpdatedAt(now)
   workspace --> workspaceserviceimpl: Workspace
-  workspaceserviceimpl -> workspaceserviceimpl: apply name if not blank; parse+merge settings (timezone/defaultPlatforms, keep old if omitted); apply industry/companySize/website/phone/location if present
   workspaceserviceimpl -> workspacerepository: save(workspace)
   workspacerepository --> workspaceserviceimpl: Workspace
   workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
   workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
   workspaceserviceimpl -> workspacecontroller: WorkspaceResponse
-  workspacecontroller --> workspacesettingspage_ui: 200 OK - updated Workspace profile
-  workspacesettingspage_ui -> workspace_manager: shows success confirmation, refreshes profile
-else Upload logo - POST /workspaces/{id}/logo
-  workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
-  workspacerepository --> workspaceserviceimpl: Optional<Workspace>
-  opt not found
-    workspaceserviceimpl -> workspace_manager: throw 404 WORKSPACE_NOT_FOUND
-  end
-  alt file read fails
-    workspaceserviceimpl -> workspace_manager: throw 400 FILE_READ_ERROR  [file.getBytes() throws IOException]
-  else file read OK
-    workspaceserviceimpl -> filestorageservice: uploadWorkspaceLogo(workspaceId, bytes, contentType)
-    filestorageservice --> workspaceserviceimpl: logo URL
-    workspaceserviceimpl -> workspace: workspace.setLogoUrl(url); setUpdatedAt(now)
-    workspace --> workspaceserviceimpl: Workspace
-    workspaceserviceimpl -> workspacerepository: save(workspace)
-    workspacerepository --> workspaceserviceimpl: Workspace
-    workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
-    workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
-    workspaceserviceimpl -> workspacecontroller: WorkspaceResponse
-    workspacecontroller --> workspacesettingspage_ui: 200 OK - updated profile w/ new logo URL
-    workspacesettingspage_ui -> workspace_manager: displays new logo
-  end
+  workspacecontroller --> workspacesettingspage_ui: 200 OK WorkspaceResponse
+  workspacesettingspage_ui -> workspace_manager: displays updated workspace logo preview
 end
 
 @enduml

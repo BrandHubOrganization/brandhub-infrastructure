@@ -20,66 +20,70 @@ entity "UserRepository" as userrepository
 entity "AssignMembersResponse" as assignmembersresponse
 participant "MailService" as mailservice
 
-' === Flow ===
-workspace_manager -> workspacememberspage_ui: \"Add Member\" - fills Invite-by-email tab (email, role, note)  OR  picks members in Assign-from-Agency tab
-workspacememberspage_ui -> workspacecontroller: POST /workspaces/{id}/invite  OR  POST /workspaces/{id}/members/assign  (1 route tuong trung)
-opt
+' === Flow 1 ===
+note over workspace_manager, mailservice : == LUỒNG 1: MỜI THÀNH VIÊN MỚI QUA EMAIL (INVITE BY EMAIL) ==\nManager gửi lời mời tham gia Workspace qua email kèm token xác thực
+
+workspace_manager -> workspacememberspage_ui: fills Invite-by-email form (email, role, note) and clicks Send
+workspacememberspage_ui -> workspacecontroller: POST /api/v1/workspaces/{id}/invite (InviteWorkspaceMemberRequest)
+opt caller not MANAGER
   workspacecontroller -> workspace_manager: throw 403 FORBIDDEN
 end
-opt
+opt validation fails
   workspacecontroller -> workspace_manager: throw 400 VALIDATION_ERROR
 end
-alt Invite by email
-  workspacecontroller -> workspaceserviceimpl: (re nhanh ALT)
-  workspaceserviceimpl -> workspaceserviceimpl: normalise email
-  workspaceserviceimpl -> userrepository: findByEmail(email)
-  userrepository --> workspaceserviceimpl: Optional<User>
-  workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndUserIdAndIsActiveTrue(workspaceId, userId) - if email already active member
-  workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
-  opt email already active member
-    workspaceserviceimpl -> workspace_manager: throw 409 ALREADY_IN_WORKSPACE
-  end
-  workspaceserviceimpl -> workspaceinvitationrepository: findByWorkspaceIdAndInvitedEmailAndStatusAndExpiresAtAfter(workspaceId, email, PENDING, now)
-  workspaceinvitationrepository --> workspaceserviceimpl: Optional<WorkspaceInvitation>
-  opt pending unexpired invitation already exists
-    workspaceserviceimpl -> workspace_manager: throw 409 INVITATION_ALREADY_PENDING
-  end
-  opt role == MANAGER
-    workspaceserviceimpl -> workspacememberrepository: countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId, MANAGER)
-    workspacememberrepository --> workspaceserviceimpl: long count - >0 -> throw 409 MANAGER_ALREADY_ASSIGNED
-    workspaceserviceimpl -> workspaceinvitationrepository: save(WorkspaceInvitation: PENDING, random token, expiresAt)
-    workspaceinvitationrepository --> workspaceserviceimpl: WorkspaceInvitation
-    workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
-  end
-  workspacerepository --> workspaceserviceimpl: Workspace
-  workspaceserviceimpl -> mailservice: sendWorkspaceInvitationEmail(email, workspace.name, token, note)
-  mailservice --> workspaceserviceimpl: sent
-  workspaceserviceimpl -> workspacecontroller: void
-  workspacecontroller --> workspacememberspage_ui: 200 OK - invitation sent (no details returned)
-else Assign from Agency - POST /workspaces/{id}/members/assign
-  workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
-  workspacerepository --> workspaceserviceimpl: Workspace
-  opt
-    workspaceserviceimpl -> workspace_manager: throw 400 VALIDATION_ERROR
-  end
-  loop per assignment entry
-    workspaceserviceimpl -> agencymemberrepository: findByAgencyIdAndUserId(agencyId, entry.userId)
-    agencymemberrepository --> workspaceserviceimpl: Optional<AgencyMember> - not found -> throw 403 NOT_AGENCY_MEMBER
-    workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndUserIdAndIsActiveTrue - existing? skip entry, continue
-    workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
-    workspaceserviceimpl -> workspacememberrepository: if role=MANAGER: countByWorkspaceIdAndRoleAndIsActiveTrue - >0 -> throw 409 MANAGER_ALREADY_ASSIGNED
-    workspacememberrepository --> workspaceserviceimpl: long count
-    workspaceserviceimpl -> userrepository: findById(entry.userId) - not found -> throw USER_NOT_FOUND
-    userrepository --> workspaceserviceimpl: Optional<User>
-    workspaceserviceimpl -> workspacememberrepository: save(active WorkspaceMember) -> add to \"added\" list
-    workspacememberrepository --> workspaceserviceimpl: WorkspaceMember
-    workspaceserviceimpl -> assignmembersresponse: new AssignMembersResponse(added, skipped)
-    assignmembersresponse --> workspaceserviceimpl: AssignMembersResponse
-    workspaceserviceimpl -> workspacecontroller: AssignMembersResponse
-    workspacecontroller --> workspacememberspage_ui: 200 OK - added + skipped
-  end
-  workspacememberspage_ui -> workspace_manager: refreshes member table, shows notice for skipped users
+workspacecontroller -> workspaceserviceimpl: inviteMemberByEmail(currentUser, workspaceId, request)
+workspaceserviceimpl -> workspaceserviceimpl: normalise email
+workspaceserviceimpl -> userrepository: findByEmail(email)
+userrepository --> workspaceserviceimpl: Optional<User>
+workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndUserIdAndIsActiveTrue(workspaceId, userId)
+workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
+opt email already active member
+  workspaceserviceimpl -> workspace_manager: throw 409 ALREADY_IN_WORKSPACE
 end
-note over workspace_manager, mailservice: Note: Sub-flow "Accept the invitation" (invitee follows email link, POST /workspaces/invitations/accept) is a separate real flow triggered outside this UI action - same accept/decline pattern as FR 3.4.7/3.4.8, not repeated here.
+workspaceserviceimpl -> workspaceinvitationrepository: findByWorkspaceIdAndInvitedEmailAndStatusAndExpiresAtAfter(workspaceId, email, PENDING, now)
+workspaceinvitationrepository --> workspaceserviceimpl: Optional<WorkspaceInvitation>
+opt pending unexpired invitation already exists
+  workspaceserviceimpl -> workspace_manager: throw 409 INVITATION_ALREADY_PENDING
+end
+opt role == MANAGER
+  workspaceserviceimpl -> workspacememberrepository: countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId, MANAGER)
+  workspacememberrepository --> workspaceserviceimpl: long count - >0 -> throw 409 MANAGER_ALREADY_ASSIGNED
+end
+workspaceserviceimpl -> workspaceinvitationrepository: save(WorkspaceInvitation: PENDING, random token, expiresAt)
+workspaceinvitationrepository --> workspaceserviceimpl: WorkspaceInvitation
+workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
+workspacerepository --> workspaceserviceimpl: Workspace
+workspaceserviceimpl -> mailservice: sendWorkspaceInvitationEmail(email, workspace.name, token, note)
+mailservice --> workspaceserviceimpl: sent
+workspaceserviceimpl -> workspacecontroller: void
+workspacecontroller --> workspacememberspage_ui: 200 OK (invitation sent)
+workspacememberspage_ui -> workspace_manager: shows invitation sent confirmation toast
+
+' === Flow 2 ===
+note over workspace_manager, mailservice : == LUỒNG 2: GÁN TRỰC TIẾP THÀNH VIÊN TỪ AGENCY (ASSIGN FROM AGENCY) ==\nManager chọn các thành viên sẵn có trong Agency và gán trực tiếp vào Workspace
+
+workspace_manager -> workspacememberspage_ui: selects Agency members from list, assigns roles, clicks Assign
+workspacememberspage_ui -> workspacecontroller: POST /api/v1/workspaces/{id}/members/assign (AssignMembersRequest)
+opt caller not MANAGER
+  workspacecontroller -> workspace_manager: throw 403 FORBIDDEN
+end
+workspacecontroller -> workspaceserviceimpl: assignMembersFromAgency(currentUser, workspaceId, request)
+workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
+workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+opt not found
+  workspaceserviceimpl -> workspace_manager: throw 404 WORKSPACE_NOT_FOUND
+end
+workspaceserviceimpl -> agencymemberrepository: findByAgencyIdAndUserIdIn(workspace.agencyId, userIds)
+agencymemberrepository --> workspaceserviceimpl: List<AgencyMember>
+opt some userIds not in agency
+  workspaceserviceimpl -> workspace_manager: throw 400 MEMBER_NOT_IN_AGENCY
+end
+workspaceserviceimpl -> workspacememberrepository: saveAll(new WorkspaceMember entities)
+workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+workspaceserviceimpl -> assignmembersresponse: new AssignMembersResponse(assignedCount, members)
+assignmembersresponse --> workspaceserviceimpl: AssignMembersResponse
+workspaceserviceimpl -> workspacecontroller: AssignMembersResponse
+workspacecontroller --> workspacememberspage_ui: 200 OK AssignMembersResponse
+workspacememberspage_ui -> workspace_manager: refreshes workspace member roster with newly assigned members
 
 @enduml
