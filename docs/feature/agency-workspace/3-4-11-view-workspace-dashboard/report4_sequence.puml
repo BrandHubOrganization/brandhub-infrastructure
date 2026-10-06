@@ -1,0 +1,56 @@
+@startuml 3.4.11 - View Workspace Dashboard
+title Sequence Diagram — 3.4.11 - View Workspace Dashboard
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Member (MANAGER/CREATOR/CLIENT)" as member_manager_creator_client
+boundary "WorkspaceDashboardPage (UI)" as workspacedashboardpage_ui
+boundary "WorkspaceController" as workspacecontroller
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "WorkspaceRepository" as workspacerepository
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "WorkspaceMediaPackageRepository" as workspacemediapackagerepository
+entity "MediaCampaignRepository" as mediacampaignrepository
+entity "AiCreditLedgerRepository" as aicreditledgerrepository
+entity "WorkspaceDashboardResponse" as workspacedashboardresponse
+
+' === Flow ===
+member_manager_creator_client -> workspacedashboardpage_ui: opens Workspace dashboard
+workspacedashboardpage_ui -> workspacecontroller: GET /api/v1/workspaces/{workspaceId}/dashboard
+opt caller has no membership row with qualifying role
+  workspacecontroller -> member_manager_creator_client: throw 403 FORBIDDEN  @RequireRole({MANAGER,CREATOR,CLIENT})
+end
+workspacecontroller -> workspaceserviceimpl: getDashboard(workspaceId, currentUser)
+workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
+workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+opt not found
+  workspaceserviceimpl -> member_manager_creator_client: throw 404 WORKSPACE_NOT_FOUND
+end
+workspaceserviceimpl -> workspaceserviceimpl: assertMember(workspaceId, userId) - active WorkspaceMember row, or CLIENT via own ClientProfile
+opt caller has no active membership row
+  workspaceserviceimpl -> member_manager_creator_client: throw 403 WORKSPACE_ACCESS_DENIED
+end
+workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndIsActiveTrue(workspaceId)
+workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+workspaceserviceimpl -> workspaceserviceimpl: group by role -> membersByRole
+workspaceserviceimpl -> workspacemediapackagerepository: findByWorkspaceId(workspaceId)
+workspacemediapackagerepository --> workspaceserviceimpl: Optional<WorkspaceMediaPackage>
+opt mediaPackage present
+  workspaceserviceimpl -> mediacampaignrepository: findByWorkspaceMediaPackageId(packageId)
+  mediacampaignrepository --> workspaceserviceimpl: List<MediaCampaign>
+  workspaceserviceimpl -> workspaceserviceimpl: group by CampaignStatus -> campaignsByStatus (empty if no package)
+  workspaceserviceimpl -> aicreditledgerrepository: findByAgencyIdAndMonth(workspace.agencyId, currentMonth)
+end
+aicreditledgerrepository --> workspaceserviceimpl: Optional<AiCreditLedger> (0 if absent)
+workspaceserviceimpl -> workspacedashboardresponse: new WorkspaceDashboardResponse(toResponse(workspace), memberCount, membersByRole, campaignCount, campaignsByStatus, packageNegotiationStatus, agencyId, currentMonth, creditsUsed)
+workspacedashboardresponse --> workspaceserviceimpl: WorkspaceDashboardResponse
+workspaceserviceimpl -> workspacecontroller: WorkspaceDashboardResponse
+workspacecontroller --> workspacedashboardpage_ui: 200 OK - dashboard payload
+workspacedashboardpage_ui -> member_manager_creator_client: renders stat cards + breakdowns (empty Workspace -> zeros, no error)
+
+@enduml

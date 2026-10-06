@@ -1,0 +1,100 @@
+@startuml 3.4.8 - View Agency Invitation Status
+title Sequence Diagram — 3.4.8 - View Agency Invitation Status
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Owner / Invitee" as owner_invitee
+boundary "AgencyInvitationsPage (UI)" as agencyinvitationspage_ui
+boundary "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyInvitationRepository" as agencyinvitationrepository
+entity "AgencyInvitation" as agencyinvitation
+entity "AgencyRepository" as agencyrepository
+entity "WorkspaceRepository" as workspacerepository
+entity "UserRepository" as userrepository
+entity "AgencyInvitationResponse" as agencyinvitationresponse
+
+' === Flow ===
+owner_invitee -> agencyinvitationspage_ui: opens pending-invitation tab / selects Cancel on a row
+agencyinvitationspage_ui -> agencycontroller: GET /agencies/{agencyId}/invitations  OR  DELETE /agencies/{agencyId}/invitations/{invitationId}  (1 route tuong trung)
+alt list invitations
+  agencycontroller -> agencyserviceimpl: (re nhanh ALT)
+  agencyserviceimpl -> agencyrepository: findAgencyOrThrow(agencyId)
+  agencyrepository --> agencyserviceimpl: Agency
+  opt agency.ownerId != currentUser.id
+    agencyserviceimpl -> owner_invitee: throw 403 NOT_AGENCY_OWNER
+  end
+  agencyserviceimpl -> agencyinvitationrepository: findByAgencyId(agencyId)
+  agencyinvitationrepository --> agencyserviceimpl: List<AgencyInvitation>
+  agencyserviceimpl -> workspacerepository: findAllById(workspaceIds)
+  workspacerepository --> agencyserviceimpl: Map<UUID, Workspace>
+  agencyserviceimpl -> agencyserviceimpl: effectiveStatus(inv) - lazy-derive EXPIRED if PENDING & past expiresAt (not persisted)
+  agencyserviceimpl -> agencyinvitation: map each -> effective AgencyInvitation
+  agencyinvitation --> agencyserviceimpl: AgencyInvitation (effective)
+  agencyserviceimpl -> agencyinvitationresponse: toInvitationResponse(effective, agencyName, workspaceName)
+  agencyinvitationresponse --> agencyserviceimpl: AgencyInvitationResponse
+  agencyserviceimpl -> agencycontroller: List<AgencyInvitationResponse>
+  agencycontroller --> agencyinvitationspage_ui: 200 OK - invitations w/ status PENDING/EXPIRED/ACCEPTED/REVOKED
+  agencyinvitationspage_ui -> owner_invitee: renders list with reported statuses
+else Cancel invitation - DELETE /agencies/{agencyId}/invitations/{invitationId}
+  agencyserviceimpl -> agencyrepository: findAgencyOrThrow(agencyId)
+  agencyrepository --> agencyserviceimpl: Agency
+  opt !agency.ownerId.equals(currentUser.id)
+    agencyserviceimpl -> owner_invitee: throw 403 NOT_AGENCY_OWNER
+  end
+  agencyserviceimpl -> agencyinvitationrepository: findById(invitationId).filter(agencyId match)
+  agencyinvitationrepository --> agencyserviceimpl: Optional<AgencyInvitation>
+  opt not found or wrong agency
+    agencyserviceimpl -> owner_invitee: throw 404 INVITATION_NOT_FOUND
+  end
+  opt invitation.status != PENDING
+    agencyserviceimpl -> owner_invitee: throw 400 INVALID_INVITATION
+  end
+  agencyserviceimpl -> agencyinvitation: invitation.setStatus(REVOKED)
+  agencyserviceimpl -> agencyinvitationrepository: save(invitation)
+  agencyinvitationrepository --> agencyserviceimpl: AgencyInvitation
+  agencyserviceimpl -> agencycontroller: void
+  agencycontroller --> agencyinvitationspage_ui: 200 OK (no data)
+  agencyinvitationspage_ui -> owner_invitee: drops row from list / marks withdrawn
+end
+owner_invitee -> agencyinvitationspage_ui: opens \"my invitations\" section / selects Decline on an item
+agencyinvitationspage_ui -> agencycontroller: GET /agencies/invitations/my-pending  OR  POST /agencies/invitations/decline  (1 route tuong trung)
+alt list my pending invitations
+  agencycontroller -> agencyserviceimpl: (re nhanh ALT)
+  agencyserviceimpl -> userrepository: findById(currentUser.id)
+  userrepository --> agencyserviceimpl: Optional<User>
+  opt user not found
+    agencyserviceimpl -> owner_invitee: throw USER_NOT_FOUND
+  end
+  agencyserviceimpl -> agencyinvitationrepository: findByInvitedEmailAndStatus(user.email, PENDING)
+  agencyinvitationrepository --> agencyserviceimpl: List<AgencyInvitation>
+  agencyserviceimpl -> agencyserviceimpl: filter expiresAt.isAfter(now) - only genuinely-open ones
+  agencyserviceimpl -> agencyrepository: findAllById(agencyIds)
+  agencyrepository --> agencyserviceimpl: Map<UUID, Agency>
+  agencyserviceimpl -> workspacerepository: findAllById(workspaceIds)
+  workspacerepository --> agencyserviceimpl: Map<UUID, Workspace>
+  agencyserviceimpl -> agencyinvitationresponse: toInvitationResponse(inv, agencyName, workspaceName) - per item
+  agencyinvitationresponse --> agencyserviceimpl: AgencyInvitationResponse
+  agencyserviceimpl -> agencycontroller: List<AgencyInvitationResponse>
+  agencycontroller --> agencyinvitationspage_ui: 200 OK - still-valid invitations
+  agencyinvitationspage_ui -> owner_invitee: renders each w/ accept (3.4.7) and decline actions
+else Decline invitation - POST /agencies/invitations/decline
+  agencyserviceimpl -> agencyinvitationrepository: findByToken(request.token)
+  agencyinvitationrepository --> agencyserviceimpl: Optional<AgencyInvitation>
+  opt not found, or status != PENDING, or expired
+    agencyserviceimpl -> owner_invitee: throw 400 INVALID_INVITATION
+  end
+  agencyserviceimpl -> agencyinvitation: invitation.setStatus(REVOKED) - no separate DECLINED value, shares withdrawn state
+  agencyserviceimpl -> agencyinvitationrepository: save(invitation)
+  agencyinvitationrepository --> agencyserviceimpl: AgencyInvitation
+  agencyserviceimpl -> agencycontroller: void
+  agencycontroller --> agencyinvitationspage_ui: 200 OK (no data)
+  agencyinvitationspage_ui -> owner_invitee: drops item from list
+end
+
+@enduml

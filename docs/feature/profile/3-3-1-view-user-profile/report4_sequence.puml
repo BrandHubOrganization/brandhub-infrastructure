@@ -1,0 +1,56 @@
+@startuml 3.3.1 - View User Profile
+title Sequence Diagram — 3.3.1 - View User Profile
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "ProfilePage (UI)" as profilepage_ui
+boundary "UserController" as usercontroller
+control "UserServiceImpl" as userserviceimpl
+entity "UserRepository" as userrepository
+entity "UserSystemRoleRepository" as usersystemrolerepository
+entity "UserSystemRole" as usersystemrole
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "UserProfileResponse" as userprofileresponse
+
+' === Flow ===
+user -> profilepage_ui: opens /profile
+profilepage_ui -> usercontroller: GET /api/v1/users/me
+usercontroller -> userserviceimpl: getUserProfile(currentUser)
+userserviceimpl -> userrepository: findById(currentUser.getId())
+userrepository --> userserviceimpl: Optional<User>
+opt user record not found
+  userserviceimpl -> user: throw 404 USER_NOT_FOUND
+end
+userserviceimpl -> userserviceimpl: user = JPA-managed User entity from findById (no manual row-mapping step)
+opt no role record exists
+  userserviceimpl -> usersystemrolerepository: findByUserId(user.getId())
+  userserviceimpl -> userserviceimpl: role = SystemRole.USER (default)
+  usersystemrolerepository --> userserviceimpl: Optional.empty()
+end
+opt role record exists
+  userserviceimpl -> usersystemrolerepository: findByUserId(user.getId())
+  usersystemrolerepository --> userserviceimpl: Optional<UserSystemRole>
+  userserviceimpl -> usersystemrole: map row -> UserSystemRole
+  userserviceimpl -> userserviceimpl: role = usr.getSystemRole().name()
+  usersystemrole --> userserviceimpl: UserSystemRole
+end
+opt currentUser.getWorkspaceId() is null
+  userserviceimpl -> workspacememberrepository: findFirstByUserIdAndIsActiveTrue(user.getId())
+  userserviceimpl -> userserviceimpl: workspaceId = member.getWorkspaceId()
+  workspacememberrepository --> userserviceimpl: Optional<WorkspaceMember>
+end
+userserviceimpl -> userserviceimpl: parsePreferences(user) -> timezone, notificationPreferences
+userserviceimpl -> userserviceimpl: parsePortfolioUrls/parseSkills(user) -> lists (empty on parse error)
+userserviceimpl -> userprofileresponse: new UserProfileResponse(user, role, workspaceId, ...)
+userprofileresponse --> userserviceimpl: UserProfileResponse
+userserviceimpl -> usercontroller: UserProfileResponse
+usercontroller --> profilepage_ui: 200 OK UserProfileResponse
+profilepage_ui -> user: render profile fields
+
+@enduml

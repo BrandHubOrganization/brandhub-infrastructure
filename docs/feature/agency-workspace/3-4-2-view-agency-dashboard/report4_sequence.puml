@@ -1,0 +1,35 @@
+@startuml 3.4.2 - View Agency Dashboard
+title Sequence Diagram — 3.4.2 - View Agency Dashboard
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+control "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "AgencyMemberRepository" as agencymemberrepository
+
+' === Flow ===
+user -> agencycontroller: GET\n/api/v1/agencies/{agencyId}/dashboard\n(proposed)
+agencycontroller -> agencyserviceimpl: getDashboard(agencyId, currentUser)\n(proposed)
+agencyserviceimpl -> agencyrepository: findAgencyOrThrow(agencyId)
+agencyrepository --> agencyserviceimpl: agency or 404 AGENCY_NOT_FOUND
+agencyserviceimpl -> agencyrepository: findByAgencyIdAndUserId(agencyId, currentUser.getId())
+agencyrepository --> agencyserviceimpl: Optional<AgencyMember>
+alt caller is the Agency Owner or an AgencyMember
+  agencyserviceimpl -> agencymemberrepository: findByAgencyId(agencyId) (proposed count)
+  agencymemberrepository --> agencyserviceimpl: member count
+  agencyserviceimpl -> agencyserviceimpl: workspace/client counts + recent activity - data source undesigned
+  agencyserviceimpl --> agencycontroller: dashboard summary (proposed)
+  agencycontroller --> user: 200 OK - summary (proposed)
+else else - caller is neither the Agency Owner nor a member -> NOT_AGENCY_MEMBER
+  agencyserviceimpl --> agencycontroller: 403 FORBIDDEN
+  agencycontroller --> user: 403 FORBIDDEN
+end
+
+@enduml

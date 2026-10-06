@@ -1,0 +1,66 @@
+@startuml 3.4.14 - Update Workspace Profile
+title Sequence Diagram — 3.4.14 - Update Workspace Profile
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Workspace MANAGER" as workspace_manager
+boundary "WorkspaceSettingsPage (UI)" as workspacesettingspage_ui
+boundary "WorkspaceController" as workspacecontroller
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "WorkspaceRepository" as workspacerepository
+entity "Workspace" as workspace
+entity "WorkspaceResponse" as workspaceresponse
+participant "FileStorageService" as filestorageservice
+
+' === Flow ===
+workspace_manager -> workspacesettingspage_ui: edits settings fields and submits  OR  chooses a logo file (client rejects non image/jpeg|png|webp or >5MB up front)
+workspacesettingspage_ui -> workspacecontroller: PUT /workspaces/{id}/settings  OR  POST /workspaces/{id}/logo  (1 route tuong trung)
+opt caller is not the Workspace MANAGER
+  workspacecontroller -> workspace_manager: throw 403 FORBIDDEN  @RequireRole({MANAGER}) - checked before Workspace lookup
+end
+alt update settings
+  workspacecontroller -> workspaceserviceimpl: (re nhanh ALT)
+  workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
+  workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+  opt not found
+    workspaceserviceimpl -> workspace_manager: throw 404 WORKSPACE_NOT_FOUND
+  end
+  workspaceserviceimpl -> workspace: map row -> Workspace
+  workspace --> workspaceserviceimpl: Workspace
+  workspaceserviceimpl -> workspaceserviceimpl: apply name if not blank; parse+merge settings (timezone/defaultPlatforms, keep old if omitted); apply industry/companySize/website/phone/location if present
+  workspaceserviceimpl -> workspacerepository: save(workspace)
+  workspacerepository --> workspaceserviceimpl: Workspace
+  workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
+  workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+  workspaceserviceimpl -> workspacecontroller: WorkspaceResponse
+  workspacecontroller --> workspacesettingspage_ui: 200 OK - updated Workspace profile
+  workspacesettingspage_ui -> workspace_manager: shows success confirmation, refreshes profile
+else Upload logo - POST /workspaces/{id}/logo
+  workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
+  workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+  opt not found
+    workspaceserviceimpl -> workspace_manager: throw 404 WORKSPACE_NOT_FOUND
+  end
+  alt file read fails
+    workspaceserviceimpl -> workspace_manager: throw 400 FILE_READ_ERROR  [file.getBytes() throws IOException]
+  else file read OK
+    workspaceserviceimpl -> filestorageservice: uploadWorkspaceLogo(workspaceId, bytes, contentType)
+    filestorageservice --> workspaceserviceimpl: logo URL
+    workspaceserviceimpl -> workspace: workspace.setLogoUrl(url); setUpdatedAt(now)
+    workspace --> workspaceserviceimpl: Workspace
+    workspaceserviceimpl -> workspacerepository: save(workspace)
+    workspacerepository --> workspaceserviceimpl: Workspace
+    workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
+    workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+    workspaceserviceimpl -> workspacecontroller: WorkspaceResponse
+    workspacecontroller --> workspacesettingspage_ui: 200 OK - updated profile w/ new logo URL
+    workspacesettingspage_ui -> workspace_manager: displays new logo
+  end
+end
+
+@enduml

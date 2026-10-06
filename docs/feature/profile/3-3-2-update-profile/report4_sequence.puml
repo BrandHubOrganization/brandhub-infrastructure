@@ -1,0 +1,96 @@
+@startuml 3.3.2 - Update Profile
+title Sequence Diagram — 3.3.2 - Update Profile
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "ProfilePage (UI)" as profilepage_ui
+boundary "UserController" as usercontroller
+control "UserServiceImpl" as userserviceimpl
+entity "UserRepository" as userrepository
+entity "User" as user_1
+entity "UserSystemRoleRepository" as usersystemrolerepository
+entity "UserSystemRole" as usersystemrole
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "UserProfileResponse" as userprofileresponse
+participant "FileStorageService" as filestorageservice
+
+' === Flow ===
+user -> profilepage_ui: edits profile form / selects avatar file, clicks Save
+profilepage_ui -> usercontroller: PUT /api/v1/users/me (profile fields and/or avatar file)
+alt update profile fields
+  usercontroller -> userserviceimpl: updateUserProfile(currentUser, request)
+  alt user record not found
+    userserviceimpl -> userrepository: findById(currentUser.getId())
+    userrepository --> userserviceimpl: Optional.empty()
+    userserviceimpl --> usercontroller: throw USER_NOT_FOUND (404)
+  else user record found
+    userserviceimpl -> userrepository: findById(currentUser.getId())
+    userrepository --> userserviceimpl: Optional<User row>
+    userserviceimpl -> user_1: map row -> User
+    user_1 --> userserviceimpl: map row -> User
+    userserviceimpl -> userserviceimpl: set fullName (trim); set phone/professionalTitle/bio/workingLanguage when non-null
+    userserviceimpl -> userserviceimpl: objectMapper.writeValueAsString(portfolioUrls) -> throws INVALID_REQUEST (400) on failure
+    opt portfolioUrls submitted
+      userserviceimpl -> userserviceimpl: parsePreferences(user); merge timezone/notificationPreferences when submitted
+      userserviceimpl -> userserviceimpl: objectMapper.writeValueAsString(preferences) -> throws INVALID_REQUEST (400) on failure
+      userserviceimpl -> userrepository: save(user)
+    end
+    userrepository --> userserviceimpl: User
+    userserviceimpl -> usersystemrolerepository: findByUserId(user.getId())
+    usersystemrolerepository --> userserviceimpl: Optional<UserSystemRole row>
+    userserviceimpl -> usersystemrole: map row -> UserSystemRole
+    usersystemrole --> userserviceimpl: UserSystemRole
+    opt currentUser.getWorkspaceId() is null
+      userserviceimpl -> workspacememberrepository: findFirstByUserIdAndIsActiveTrue(user.getId())
+      workspacememberrepository --> userserviceimpl: Optional<WorkspaceMember>
+    end
+    userserviceimpl -> userprofileresponse: new UserProfileResponse(user, role, workspaceId, ...)
+    userprofileresponse --> userserviceimpl: UserProfileResponse
+    userserviceimpl --> usercontroller: UserProfileResponse
+  end
+else upload avatar
+  usercontroller -> userserviceimpl: updateAvatar(currentUser, file)
+  alt file missing or empty
+    userserviceimpl -> userserviceimpl: validateImage(file) -> throws NO_FILE_PROVIDED (400)
+    userserviceimpl --> usercontroller: throw NO_FILE_PROVIDED (400)
+  else content type is not image/*
+    userserviceimpl -> userserviceimpl: validateImage(file) -> throws INVALID_FILE_TYPE (400)
+    userserviceimpl --> usercontroller: throw INVALID_FILE_TYPE (400)
+  else file larger than 5MB
+    userserviceimpl -> userserviceimpl: validateImage(file) -> throws FILE_TOO_LARGE (400)
+    userserviceimpl --> usercontroller: throw FILE_TOO_LARGE (400)
+  else file valid
+    userserviceimpl -> userrepository: findById(currentUser.getId())
+    userrepository --> userserviceimpl: Optional<User row>
+    userserviceimpl -> user_1: map row -> User
+    user_1 --> userserviceimpl: User
+    userserviceimpl -> userserviceimpl: file.getBytes() -> throws UPLOAD_FAILED (400) on IOException
+    filestorageservice --> userserviceimpl: newAvatarUrl
+    opt previous avatar exists
+      userserviceimpl -> filestorageservice: deleteFile(oldAvatarUrl)
+      userserviceimpl -> userrepository: save(user with new avatarUrl)
+    end
+    userrepository --> userserviceimpl: User
+    userserviceimpl -> usersystemrolerepository: findByUserId(user.getId())
+    usersystemrolerepository --> userserviceimpl: Optional<UserSystemRole row>
+    userserviceimpl -> usersystemrole: map row -> UserSystemRole
+    usersystemrole --> userserviceimpl: UserSystemRole
+    opt currentUser.getWorkspaceId() is null
+      userserviceimpl -> workspacememberrepository: findFirstByUserIdAndIsActiveTrue(user.getId())
+      workspacememberrepository --> userserviceimpl: Optional<WorkspaceMember>
+    end
+    userserviceimpl -> userprofileresponse: new UserProfileResponse(user, role, workspaceId, ...)
+    userprofileresponse --> userserviceimpl: UserProfileResponse
+    userserviceimpl --> usercontroller: newAvatarUrl
+  end
+  usercontroller --> profilepage_ui: 200 OK UserProfileResponse (updated profile and/or new avatarUrl)
+end
+profilepage_ui -> user: show success, refresh display
+
+@enduml

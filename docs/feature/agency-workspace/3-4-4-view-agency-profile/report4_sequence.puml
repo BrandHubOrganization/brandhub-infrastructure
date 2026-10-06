@@ -1,0 +1,53 @@
+@startuml 3.4.4 - View Agency Profile
+title Sequence Diagram — 3.4.4 - View Agency Profile
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Viewer (Owner/Member/Client)" as viewer_owner_member_client
+boundary "AgencyProfilePage (UI)" as agencyprofilepage_ui
+boundary "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "Agency" as agency
+entity "AgencyMemberRepository" as agencymemberrepository
+entity "ClientProfileRepository" as clientprofilerepository
+entity "AgencyResponse" as agencyresponse
+
+' === Flow ===
+viewer_owner_member_client -> agencyprofilepage_ui: opens Agency profile
+agencyprofilepage_ui -> agencycontroller: GET /api/v1/agencies/{agencyId}
+agencycontroller -> agencyserviceimpl: getAgency(agencyId, currentUser)
+alt agency not found
+  agencyserviceimpl -> agencyrepository: findById(agencyId)
+  agencyrepository --> agencyserviceimpl: Optional.empty()
+  agencyserviceimpl --> agencycontroller: throw AGENCY_NOT_FOUND (404)
+  agencycontroller --> agencyprofilepage_ui: 404 AGENCY_NOT_FOUND
+else agency found
+  agencyserviceimpl -> agencyrepository: findById(agencyId)
+  agencyrepository --> agencyserviceimpl: Optional<Agency row>
+  agencyserviceimpl -> agency: map row -> Agency
+  agency --> agencyserviceimpl: Agency
+  agencyserviceimpl -> agencyserviceimpl: isOwner = agency.getOwnerId().equals(currentUser.getId())
+  agencyserviceimpl -> agencymemberrepository: findByAgencyIdAndUserId(agencyId, currentUser.getId())
+  agencymemberrepository --> agencyserviceimpl: Optional<AgencyMember>
+  opt membership empty and not Owner
+    agencyserviceimpl -> clientprofilerepository: findByUserId(currentUser.getId())
+    clientprofilerepository --> agencyserviceimpl: List<ClientProfile>
+    agencyserviceimpl -> agencyserviceimpl: isClientOfAgency = any cp.getAgencyId() == agencyId
+  end
+  opt not Owner, not Member, not Client of this Agency
+    agencyserviceimpl --> agencycontroller: throw NOT_AGENCY_MEMBER (400)
+  end
+  agencyserviceimpl -> agencyresponse: toResponse(agency, myRole)
+  agencyresponse --> agencyserviceimpl: AgencyResponse
+  agencyserviceimpl --> agencycontroller: AgencyResponse
+  agencycontroller --> agencyprofilepage_ui: 200 OK AgencyResponse
+end
+agencyprofilepage_ui -> viewer_owner_member_client: renders Agency profile
+
+@enduml

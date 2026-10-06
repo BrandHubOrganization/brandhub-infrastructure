@@ -1,0 +1,77 @@
+@startuml 3.4.15 - Delete Workspace
+title Sequence Diagram — 3.4.15 - Delete Workspace
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Agency Owner" as agency_owner
+boundary "WorkspaceDetailPage danger zone (UI)" as workspacedetailpage_danger_zone_ui
+boundary "WorkspaceController" as workspacecontroller
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "WorkspaceRepository" as workspacerepository
+entity "AgencyRepository" as agencyrepository
+entity "Workspace" as workspace
+entity "WorkspaceResponse" as workspaceresponse
+
+' === Flow ===
+agency_owner -> workspacedetailpage_danger_zone_ui: types Workspace name to confirm in danger-zone dialog (delete)  --  no FE trigger exists for restore today
+workspacedetailpage_danger_zone_ui -> workspacecontroller: DELETE /workspaces/{workspaceId}  OR  POST /workspaces/{workspaceId}/restore  (1 route tuong trung)
+alt delete Workspace
+  workspacecontroller -> workspaceserviceimpl: (re nhanh ALT)
+  workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
+  workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+  opt Workspace not found
+    workspaceserviceimpl -> agency_owner: throw 404 WORKSPACE_NOT_FOUND
+  end
+  workspaceserviceimpl -> workspace: map row -> Workspace
+  workspace --> workspaceserviceimpl: Workspace
+  workspaceserviceimpl -> agencyrepository: findById(workspace.agencyId)
+  agencyrepository --> workspaceserviceimpl: Optional<Agency>
+  opt Agency not found
+    workspaceserviceimpl -> agency_owner: throw 404 WORKSPACE_NOT_FOUND
+  end
+  opt agency.ownerId != currentUser.id
+    workspaceserviceimpl -> agency_owner: throw 403 FORBIDDEN
+  end
+  workspaceserviceimpl -> workspace: workspace.status=SOFT_DELETED; deletedAt=now(); updatedAt=now()
+  workspace --> workspaceserviceimpl: Workspace
+  workspaceserviceimpl -> workspacerepository: save(workspace)
+  workspacerepository --> workspaceserviceimpl: Workspace
+  workspaceserviceimpl -> workspacecontroller: void
+  workspacecontroller --> workspacedetailpage_danger_zone_ui: 200 OK (no data)
+  workspacedetailpage_danger_zone_ui -> agency_owner: success toast, navigate to /workspace
+else Restore Workspace - POST /workspaces/{workspaceId}/restore, backend-only, no FE trigger
+  workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
+  workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+  opt Workspace not found
+    workspaceserviceimpl -> agency_owner: throw 404 WORKSPACE_NOT_FOUND
+  end
+  workspaceserviceimpl -> agencyrepository: findById(workspace.agencyId)
+  agencyrepository --> workspaceserviceimpl: Optional<Agency>
+  opt Agency not found
+    workspaceserviceimpl -> agency_owner: throw 404 WORKSPACE_NOT_FOUND
+  end
+  opt agency.ownerId != currentUser.id
+    workspaceserviceimpl -> agency_owner: throw 403 FORBIDDEN
+  end
+  opt status != SOFT_DELETED
+    workspaceserviceimpl -> agency_owner: throw 400 WORKSPACE_NOT_DELETED
+  end
+  opt deletedAt null or now().isAfter(deletedAt+30d)
+    workspaceserviceimpl -> agency_owner: throw 410 RESTORE_WINDOW_EXPIRED
+  end
+  workspaceserviceimpl -> workspace: workspace.status=ACTIVE; deletedAt=null; updatedAt=now()
+  workspace --> workspaceserviceimpl: Workspace
+  workspaceserviceimpl -> workspacerepository: save(workspace)
+  workspacerepository --> workspaceserviceimpl: Workspace
+  workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
+  workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+  workspaceserviceimpl -> workspacecontroller: WorkspaceResponse
+  workspacecontroller --> workspacedetailpage_danger_zone_ui: 200 OK - restored WorkspaceResponse
+end
+
+@enduml

@@ -1,0 +1,56 @@
+@startuml 3.4.12 - Create Workspace
+title Sequence Diagram — 3.4.12 - Create Workspace
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Agency member" as agency_member
+boundary "CreateWorkspacePage (UI)" as createworkspacepage_ui
+boundary "WorkspaceController" as workspacecontroller
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "AgencyMemberRepository" as agencymemberrepository
+entity "WorkspaceRepository" as workspacerepository
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "UserRepository" as userrepository
+entity "Workspace" as workspace
+entity "WorkspaceResponse" as workspaceresponse
+
+' === Flow ===
+agency_member -> createworkspacepage_ui: fills Create Workspace form (name, agencyId, optional fields, optional assignMembers)
+createworkspacepage_ui -> workspacecontroller: POST /api/v1/workspaces
+workspacecontroller -> workspaceserviceimpl: createWorkspace(currentUser, request)
+workspaceserviceimpl -> agencymemberrepository: findByAgencyIdAndUserId(agencyId, currentUser.id)
+agencymemberrepository --> workspaceserviceimpl: Optional<AgencyMember>
+opt not found, or role != OWNER
+  workspaceserviceimpl -> agency_member: throw 403 NOT_AGENCY_OWNER
+end
+workspaceserviceimpl -> workspace: new Workspace(agencyId, name, createdBy, settings={}, ...)
+workspace --> workspaceserviceimpl: Workspace
+workspaceserviceimpl -> workspacerepository: save(workspace)
+workspacerepository --> workspaceserviceimpl: Workspace
+workspaceserviceimpl -> workspaceserviceimpl: anotherManagerChosen = assignMembers has entry role=MANAGER & userId != creator
+workspaceserviceimpl -> workspacememberrepository: save(creator WorkspaceMember: role = anotherManagerChosen ? CREATOR : MANAGER)
+workspacememberrepository --> workspaceserviceimpl: WorkspaceMember
+opt assignMembers present and not empty
+  workspaceserviceimpl -> agencymemberrepository: per entry: findByAgencyIdAndUserId(agencyId, entry.userId)
+  agencymemberrepository --> workspaceserviceimpl: Optional<AgencyMember> - not found -> throw 403 NOT_AGENCY_MEMBER
+  workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndUserIdAndIsActiveTrue - existing? skip entry
+  workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
+  workspaceserviceimpl -> workspacememberrepository: if role=MANAGER: countByWorkspaceIdAndRoleAndIsActiveTrue - >0 -> throw 409 MANAGER_ALREADY_ASSIGNED
+  workspacememberrepository --> workspaceserviceimpl: long count
+  workspaceserviceimpl -> userrepository: findById(entry.userId) - not found -> throw USER_NOT_FOUND
+  userrepository --> workspaceserviceimpl: Optional<User>
+  workspaceserviceimpl -> workspacememberrepository: save(entry WorkspaceMember)
+  workspacememberrepository --> workspaceserviceimpl: WorkspaceMember
+end
+workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
+workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+workspaceserviceimpl -> workspacecontroller: WorkspaceResponse
+workspacecontroller --> createworkspacepage_ui: 200 OK - created Workspace summary
+createworkspacepage_ui -> agency_member: navigates into new Workspace (MANAGER = creator, or designated user if MANAGER transferred)
+
+@enduml

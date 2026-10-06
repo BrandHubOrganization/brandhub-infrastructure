@@ -1,0 +1,64 @@
+@startuml 3.4.10 - List Workspace
+title Sequence Diagram — 3.4.10 - List Workspace
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User (any role)" as user_any_role
+boundary "WorkspacePage (UI)" as workspacepage_ui
+boundary "WorkspaceController" as workspacecontroller
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "WorkspaceRepository" as workspacerepository
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "ClientProfileRepository" as clientprofilerepository
+entity "Workspace" as workspace
+entity "WorkspaceResponse" as workspaceresponse
+
+' === Flow ===
+user_any_role -> workspacepage_ui: opens Workspace list screen / \"Workspaces I manage\" screen
+workspacepage_ui -> workspacecontroller: GET /workspaces  OR  GET /workspaces/my-managed  (1 route tuong trung)
+alt list my Workspaces
+  workspacecontroller -> workspaceserviceimpl: (re nhanh ALT)
+  workspaceserviceimpl -> agencyrepository: findByOwnerIdAndStatusNot(userId, SOFT_DELETED)
+  agencyrepository --> workspaceserviceimpl: List<Agency>
+  workspaceserviceimpl -> workspacerepository: findByAgencyId(agencyId) - per owned agency
+  workspacerepository --> workspaceserviceimpl: List<Workspace> -> ownerWorkspaceIds
+  workspaceserviceimpl -> workspacememberrepository: findByUserIdAndIsActiveTrue(userId)
+  workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember> -> memberRoleByWorkspaceId
+  workspaceserviceimpl -> clientprofilerepository: findByUserId(userId) - resolve caller's ClientProfile ids
+  clientprofilerepository --> workspaceserviceimpl: List<ClientProfile>
+  opt caller has ClientProfile ids
+    workspaceserviceimpl -> workspacememberrepository: findByClientProfileIdInAndIsActiveTrue(clientProfileIds)
+    workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember> - merge CLIENT rows
+    workspaceserviceimpl -> workspaceserviceimpl: merge ownerWorkspaceIds + memberRoleByWorkspaceId.keySet() -> workspaceIds (LinkedHashSet)
+    workspaceserviceimpl -> workspacerepository: findAllById(workspaceIds) - NO status filter (known gap, SOFT_DELETED Workspace can appear)
+  end
+  workspacerepository --> workspaceserviceimpl: List<Workspace>
+  workspaceserviceimpl -> workspace: map row -> Workspace
+  workspace --> workspaceserviceimpl: Workspace
+  workspaceserviceimpl -> workspaceresponse: toResponse(ws, role, clientProfileId) - OWNER role wins if ownerWorkspaceIds contains id
+  workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+  workspaceserviceimpl -> workspacecontroller: List<WorkspaceResponse>
+  workspacecontroller --> workspacepage_ui: 200 OK - all Workspaces user belongs to (or owns via Agency)
+  workspacepage_ui -> user_any_role: renders Workspace list (empty state if none)
+else List Workspaces I manage - GET /workspaces/my-managed
+  workspaceserviceimpl -> workspacememberrepository: findByUserIdAndIsActiveTrue(userId)
+  workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+  workspaceserviceimpl -> workspaceserviceimpl: filter role == MANAGER
+  workspaceserviceimpl -> workspacerepository: findAllById(managedWorkspaceIds)
+  workspacerepository --> workspaceserviceimpl: Map<UUID, Workspace>
+  workspaceserviceimpl -> workspacememberrepository: countByWorkspaceIdAndIsActiveTrue(workspaceId) - per managed workspace
+  workspacememberrepository --> workspaceserviceimpl: long memberCount
+  workspaceserviceimpl -> workspaceresponse: new ManagedWorkspaceResponse(id, name, role, memberCount)
+  workspaceresponse --> workspaceserviceimpl: ManagedWorkspaceResponse
+  workspaceserviceimpl -> workspacecontroller: List<ManagedWorkspaceResponse>
+  workspacecontroller --> workspacepage_ui: 200 OK - Workspaces where role == MANAGER
+  workspacepage_ui -> user_any_role: renders managed Workspace list
+end
+
+@enduml

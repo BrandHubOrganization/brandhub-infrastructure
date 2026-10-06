@@ -1,0 +1,43 @@
+@startuml 3.3.4 - Update Client Profile
+title Sequence Diagram — 3.3.4 - Update Client Profile
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "ClientProfileListPage (UI, create/edit form)" as clientprofilelistpage_ui_create_edit_form
+boundary "ClientProfileController" as clientprofilecontroller
+control "ClientProfileServiceImpl" as clientprofileserviceimpl
+entity "ClientProfileRepository / WorkspaceMemberRepository" as clientprofilerepository_workspacememberrepository
+entity "client_profiles" as client_profiles
+
+' === Flow ===
+user -> clientprofilelistpage_ui_create_edit_form: fills form, clicks Save
+clientprofilelistpage_ui_create_edit_form -> clientprofilecontroller: POST /api/v1/client-profile (displayName, profile + brand fields)
+clientprofilecontroller -> clientprofileserviceimpl: createProfile(currentUser, request)
+clientprofileserviceimpl -> clientprofileserviceimpl: builder().userId(currentUser.getId())...build()
+clientprofileserviceimpl -> clientprofilerepository_workspacememberrepository: save(profile)
+clientprofilerepository_workspacememberrepository -> client_profiles: INSERT INTO client_profiles
+clientprofilecontroller --> clientprofilelistpage_ui_create_edit_form: 200 OK ClientProfileResponse
+clientprofilelistpage_ui_create_edit_form -> user: shows confirmation, adds card to list
+user -> clientprofilelistpage_ui_create_edit_form: edits existing card, clicks Save
+clientprofilelistpage_ui_create_edit_form -> clientprofilecontroller: PUT /api/v1/client-profile/{profileId}
+clientprofilecontroller -> clientprofileserviceimpl: updateById(currentUser, profileId, request)
+clientprofileserviceimpl -> clientprofilerepository_workspacememberrepository: findById(profileId); check userId == caller
+clientprofilerepository_workspacememberrepository --> clientprofileserviceimpl: row, or empty -> 403 CLIENT_PROFILE_NOT_OWNED if userId mismatch
+clientprofileserviceimpl -> clientprofilerepository_workspacememberrepository: overwrite fields, stamp updatedAt, save
+clientprofilecontroller --> clientprofilelistpage_ui_create_edit_form: 200 OK ClientProfileResponse
+clientprofilelistpage_ui_create_edit_form -> user: shows confirmation; new values visible wherever profile is linked (any workspace, any Agency) at once
+user -> clientprofilelistpage_ui_create_edit_form: clicks Delete on a card
+clientprofilelistpage_ui_create_edit_form -> clientprofilecontroller: DELETE /api/v1/client-profile/{profileId}
+clientprofilecontroller -> clientprofileserviceimpl: deleteById(currentUser, profileId)
+clientprofileserviceimpl -> clientprofilerepository_workspacememberrepository: check ownership; findByClientProfileIdInAndIsActiveTrue([profileId])
+clientprofilerepository_workspacememberrepository --> clientprofileserviceimpl: [] (not in use) or [active row] -> 409 CLIENT_PROFILE_IN_USE
+clientprofileserviceimpl -> clientprofilerepository_workspacememberrepository: delete(profile) if not in use
+clientprofilecontroller --> clientprofilelistpage_ui_create_edit_form: 200 OK / 409 CLIENT_PROFILE_IN_USE
+
+@enduml
