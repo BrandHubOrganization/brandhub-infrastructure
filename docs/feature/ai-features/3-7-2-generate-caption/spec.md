@@ -57,3 +57,14 @@ POST /api/v1/ai/generate-caption
 ## Tham chiếu BA
 
 [06-ai-features.md](../../../BA/06-ai-features.md)
+
+## Bổ sung khi thiết kế kỹ thuật (2026-10-08)
+
+- API thực tế: `POST /api/v1/workspaces/{workspaceId}/ai/captions` (MANAGER/CREATOR, `@RequireRole` cần workspaceId trên path)
+  `{ topic (10–1000), tone, platform, length, language }` → `{ captions: [{ type, title, caption, hashtags, characterCount, recommendedMaxChars }], creditsUsed, creditsRemaining }`.
+  `GET /api/v1/workspaces/{workspaceId}/ai/credits` → số credit còn dùng được.
+- 3 phương án cố định từ AI service: HOOK_DRIVEN, STORYTELLING, DIRECT_CTA; bối cảnh thương hiệu lấy từ tên/ngành/mô tả workspace.
+- **Giá credit chưa chốt** (người dùng xác nhận 2026-10-08) → cấu hình: `ai.credits.caption.base` (mặc định 1) + `ai.credits.caption.per-1000-chars` (mặc định 0, tính trên prompt + output). Cả hai = 0 → miễn phí.
+- Credit theo BR 3.9.x: credit tháng của agency = gói của Owner (không có gói → Basic); hạn mức Creator do Owner đặt là **cứng**. Chỉ trừ khi AI trả kết quả; AI lỗi → 502 `AI_SERVICE_UNAVAILABLE`, không trừ. Hết credit → 402 `INSUFFICIENT_AI_CREDIT` trước khi gọi AI.
+- UI: nút "AI tạo caption" trong Content Writing View; mỗi phương án có "Chèn" (tại con trỏ) và "Thay toàn bộ" (qua Yjs để người cùng soạn thấy một thay đổi).
+- **i18n:** `editor.aiCaption.*` song song vi/en. **Light/Dark:** token theme sẵn có.
