@@ -72,3 +72,15 @@
 - [x] **TASK-QA-01**: Chạy toàn bộ Unit Tests BE (7/7 tests passed: `ImageWatermarkProcessorTest`, `MaterialServiceImplTest`).
 - [x] **TASK-QA-02**: Chạy kiểm tra TypeScript (`tsc --noEmit`), ESLint và Build bundle Vite thành công (0 errors).
 - [x] **TASK-DOC-02**: Cập nhật trạng thái `DA-984` thành `Done` trong `jira_status.json`.
+
+---
+
+## 4. Phase 1 (Sprint 11) — Advanced Watermark Suite Progress
+
+- [x] **DA-ADV-01**: Xây dựng `LumaDetector.java` (Rec. 601 formula $Y = 0.299R + 0.587G + 0.114B$) & 5/5 Unit Tests passed (Commit `0e85f96`).
+- [x] **DA-ADV-02**: Tích hợp Real-time Canvas Luma Analyzer, Smart Contrast suggestion badge và Drop Shadow rendering trên FE (Commit `2b98d59`).
+- [x] **DA-ADV-03**: Xây dựng `WatermarkPresetDocument`, Service, Repository & REST API CRUD (`/watermark-presets`) & 4/4 Unit Tests passed (Commit `35d5f27`).
+- [x] **DA-ADV-04**: Xây dựng `WatermarkPresetSelector.tsx`, lưu mẫu cấu hình theo Client, tự động nạp cấu hình mặc định, Vite build thành công (Commit `adfde14`).
+- [ ] **DA-ADV-05**: Xây dựng Text Watermark Engine (TrueType Fonts & Dynamic Tokens `{clientName}`, `{year}`, `{creatorName}`, `{date}`).
+- [ ] **DA-ADV-06**: Xây dựng Text Studio Controls Tab trên FE.
+
