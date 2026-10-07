@@ -53,3 +53,11 @@ GET /api/v1/ai/video-style-templates
 ## Tham chiếu BA
 
 [06-ai-features.md](../../../BA/06-ai-features.md)
+
+## Bổ sung khi thiết kế kỹ thuật (2026-10-08)
+
+- Danh mục cố định trong AI service (`app/services/video_styles.py`, chốt 2026-10-04): 8 style (giới thiệu sản phẩm, vlog đời thường, kể chuyện điện ảnh, review UGC, món ăn cận cảnh, lookbook thời trang, giải thích công nghệ, sự kiện sôi động). Mỗi style có tên/mô tả VI-EN, chỉ dẫn góc máy-ánh sáng-nhịp cho Veo, khung hình gợi ý, màu nhận diện.
+- API: `GET /api/v1/workspaces/{id}/ai/video-styles` (MANAGER/CREATOR) → AI `GET /api/v1/ai/video/styles`.
+- `previewUrl` để trống cho tới khi có clip/ảnh xem trước; gallery hiện ô màu + khung hình. Gắn clip: điền `preview_url` trong catalog.
+- Chọn style tự đổi khung hình theo gợi ý; chọn lại để bỏ style.
+- **i18n:** `aiStudio.video.*` vi/en. **Light/Dark:** token theme; màu style chỉ là swatch nền có chữ trắng trên nền tối.
