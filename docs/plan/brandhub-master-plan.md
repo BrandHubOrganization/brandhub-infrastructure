@@ -10033,11 +10033,11 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Phước | **Priority:** 🟢 Medium
 
-**Goal:** Auto-generate a Google Meet link for the livestream session so Creator/Manager don't need to create one manually.
+**Goal:** Generate a Google Meet link for workshop/meeting support related to a Task. Workshop support is limited to a Meet link and survey; it is not livestream broadcasting or an event-management module. Ownership remains Phước (E51).
 
 **Acceptance Criteria:**
 
-- [ ] `POST /api/v1/workspaces/{id}/tasks/{taskId}/livestream/meeting-link` generates/returns a meeting link, persisted on the Task
+- [ ] `POST /api/v1/workspaces/{id}/tasks/{taskId}/meeting-link` generates/returns a meeting link, persisted on the Task (neutral endpoint; not livestream-specific)
 - [ ] Calling it again on the same Task returns the existing link rather than generating a duplicate
 
 **Spec Reference:** `docs/feature/content-task-workflow/3-6-27-generate-meeting-link/spec.md`
