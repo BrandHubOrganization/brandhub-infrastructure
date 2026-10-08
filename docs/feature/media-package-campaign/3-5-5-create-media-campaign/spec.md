@@ -8,6 +8,13 @@
 
 ## Outcome
 
+> Current implementation slice: [offering models](../offering-models/spec.md).
+> Draft creation uses the existing `/api/v1/media-campaigns` controller, with
+> workspaceMediaPackageId in the body and server-side workspace authorization.
+> This slice records frozen package terms and deliverable allocations. The workItems,
+> contentVersion and approval/deployment criteria below remain the subsequent E50-06/07 scope;
+> this change does not claim full FR 3.5.5/3.5.6 completion.
+
 Owner/Manager creates a `DRAFT` campaign from an approved workspace package. The campaign is an execution plan, not a contract.
 
 ## Acceptance criteria
