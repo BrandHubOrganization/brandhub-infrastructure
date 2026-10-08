@@ -470,6 +470,9 @@ CREATE TABLE IF NOT EXISTS media_packages (
     duration_weeks     INT,
     budget_amount      DECIMAL(14,2),
     scope_description  TEXT,
+    offering_model     VARCHAR(30) CONSTRAINT chk_media_packages_offering_model
+        CHECK (offering_model IN ('CAMPAIGN', 'RETAINER', 'DELIVERABLE_BUNDLE')),
+    offering_details   JSONB,
     created_by         UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     created_at         TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at         TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
@@ -499,12 +502,15 @@ CREATE TABLE IF NOT EXISTS workspace_media_packages (
     package_id             UUID                       NOT NULL REFERENCES media_packages(id) ON DELETE RESTRICT,
     negotiation_status     package_negotiation_status NOT NULL DEFAULT 'DRAFT',
     final_terms            JSONB                      NOT NULL DEFAULT '{}',
+    previous_terms         JSONB,
     terms_version          INT                        NOT NULL DEFAULT 1,
+    client_proposal_count  INT                        NOT NULL DEFAULT 0,
     approved_by_agency_at  TIMESTAMPTZ,
     approved_by_client_at  TIMESTAMPTZ,
     created_at             TIMESTAMPTZ                NOT NULL DEFAULT NOW(),
     updated_at             TIMESTAMPTZ                NOT NULL DEFAULT NOW(),
-    CONSTRAINT chk_workspace_media_packages_terms_version_positive CHECK (terms_version > 0)
+    CONSTRAINT chk_workspace_media_packages_terms_version_positive CHECK (terms_version > 0),
+    CONSTRAINT chk_workspace_media_packages_client_proposal_count CHECK (client_proposal_count >= 0)
 );
 
 DROP TRIGGER IF EXISTS trg_workspace_media_packages_updated_at ON workspace_media_packages;
@@ -523,6 +529,10 @@ CREATE TABLE IF NOT EXISTS media_campaigns (
     workspace_media_package_id UUID             NOT NULL REFERENCES workspace_media_packages(id) ON DELETE RESTRICT,
     name                        VARCHAR(255)    NOT NULL,
     strategy_detail             TEXT,
+    package_terms_snapshot      JSONB,
+    package_terms_version       INT,
+    allocation_period           VARCHAR(7),
+    allocations                 JSONB NOT NULL DEFAULT '[]',
     brand_guideline             TEXT,
     timeline                    JSONB           NOT NULL DEFAULT '{}',
     status                      campaign_status NOT NULL DEFAULT 'DRAFT',
@@ -1065,7 +1075,7 @@ BEGIN;
 CREATE TABLE IF NOT EXISTS user_notifications (
     id UUID PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    notification_id UUID NOT NULL REFERENCES admin_notifications(id),
+    notification_id UUID REFERENCES admin_notifications(id),
     type VARCHAR(20) NOT NULL,
     title VARCHAR(200) NOT NULL,
     content VARCHAR(5000) NOT NULL,
