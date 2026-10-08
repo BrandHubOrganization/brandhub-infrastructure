@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| Status | Ready for technical review |
+| Status | One-agreement/one-Campaign BA confirmed; dependent lifecycle/service decisions pending |
 | Roles | Owner/Manager |
-| Delivery task | DA-E50-06 |
+| Delivery task | DA-E50-06 / DA-947 |
 
 ## Outcome
 
@@ -22,7 +22,14 @@ Owner/Manager creates a `DRAFT` campaign from an approved workspace package. The
 - `POST /api/v1/workspaces/{workspaceId}/campaigns` rejects an unapproved package with `PACKAGE_NOT_APPROVED`.
 - A campaign stores name, strategy detail, brand guideline, timeline, status, `contentVersion`, approvals, and JSONB `workItems`.
 - Each work item has stable `id`, `name`, `type` (`POST|LIVESTREAM|SURVEY`), and `dueDate`, so deployment creates one task exactly once.
-- A workspace may have multiple campaigns over time.
+- A workspace may have multiple campaigns over time, each for a different approved
+  WorkspaceMediaPackage (cooperation round). A specific agreement has at most one
+  Campaign, even while it is DRAFT. The catalogue MediaPackage can be reused in a new round.
+- The next round can be negotiated while the current Campaign runs; permission to
+  deploy both Campaigns concurrently has not been decided.
+- RETAINER months and bundle phases belong inside one Campaign rather than creating
+  several Campaigns from one agreement. Period boundaries and non-Task services are
+  open decisions in [the delivery plan](../campaign-delivery-plan.md).
 
 ## Constraint
 
@@ -30,4 +37,4 @@ Task IDs are not a substitute for planned work items: tasks exist only after dep
 
 ## Approval-version rule
 
-The campaign starts at content version 1. Editing campaign content or work items before final approval increments the version and invalidates both prior approvals; a deployed campaign is immutable.
+The campaign starts at content version 1. Editing campaign content or work items before final approval increments the version and invalidates both prior approvals; content is immutable once both parties approve.

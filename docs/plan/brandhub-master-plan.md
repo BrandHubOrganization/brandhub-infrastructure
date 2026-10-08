@@ -9565,7 +9565,13 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Lộc | **Priority:** 🟡 High
 
-**Goal:** Let Owner/Manager create a detailed execution Campaign from an approved Package — a strategy/timeline document, explicitly NOT a contract, becoming immutable once approved.
+**Goal:** Let Owner/Manager create one detailed execution Campaign for each approved Workspace Package agreement — a strategy/timeline document, explicitly NOT a contract, becoming immutable once approved.
+
+**BA update (2026-10-08):** one approved agreement maps to one Campaign. A Workspace
+can retain multiple cooperation rounds and negotiate the next while the current
+Campaign runs. The multiple-draft allocation prototype needs adaptation. See
+`docs/feature/media-package-campaign/campaign-delivery-plan.md`; round lifecycle
+needs a Jira follow-up, and concurrent Campaign deployment remains undecided.
 
 **Acceptance Criteria:**
 
@@ -9573,7 +9579,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 - [ ] `workItems` are stored as JSONB; each requires stable `id`, `name`, `type` (`POST|LIVESTREAM|SURVEY`), and `dueDate`
 - [ ] Initial Campaign status: `DRAFT`
 - [ ] Attempting to create a Campaign against a non-approved package returns 409 `PACKAGE_NOT_APPROVED`
-- [ ] A Workspace can have multiple Campaigns over time (no 1-Campaign-per-Workspace limit)
+- [ ] A Workspace can have multiple Campaigns over time, each linked to a different approved WorkspaceMediaPackage; enforce at most one Campaign per agreement, including drafts
 
 **Spec Reference:** `docs/feature/media-package-campaign/3-5-5-create-media-campaign/spec.md`, `docs/ba/12-state-machines.md` mục 3
 

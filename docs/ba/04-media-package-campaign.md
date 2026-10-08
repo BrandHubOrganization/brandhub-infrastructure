@@ -10,6 +10,12 @@
 > về chọn gói trước khi mời Client và hai bảng riêng là lịch sử, không còn dùng để triển khai.
 > Workshop chỉ hỗ trợ tạo link Meet và survey; Event chỉ bàn giao kế hoạch sự kiện.
 
+> **Chốt BA tiếp theo — 2026-10-08:** mỗi bản Package đã approved trong Workspace
+> tương ứng một Campaign do Manager tạo. Workspace giữ nhiều đợt hợp tác theo thời gian;
+> được đàm phán đợt tiếp theo khi Campaign hiện tại còn chạy. Chưa chốt triển khai hai
+> Campaign đồng thời. Xem [lộ trình Campaign](../feature/media-package-campaign/campaign-delivery-plan.md)
+> để phân biệt quy tắc đã xác nhận với câu hỏi và dependency còn mở.
+
 ## 1. Thứ tự chuẩn: Workspace → Package → Campaign → Task
 
 **[CONFIRMED 2026-09-14]** — đây là điểm quan trọng nhất của file này, đảo ngược cách đọc thẳng câu chữ CSV gốc.
