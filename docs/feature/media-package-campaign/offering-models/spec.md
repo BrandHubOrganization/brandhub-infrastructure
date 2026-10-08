@@ -1,5 +1,11 @@
 # Media package offering models
 
+> Checkpoint of the implemented Package/demo slice. The Campaign allocation rules
+> below describe the earlier prototype. The user's 2026-10-08 decision supersedes
+> multiple Campaigns per agreement: one approved WorkspaceMediaPackage leads to one
+> Campaign, with periods/phases inside it. See [next delivery](../campaign-delivery-plan.md).
+> Package catalogue, snapshot, proposal and approval rules remain applicable per agreement.
+
 ## Objective and actors
 
 Extend FR 3.5.1–3.5.5 with structured package deliverables and draft Campaign allocation.
