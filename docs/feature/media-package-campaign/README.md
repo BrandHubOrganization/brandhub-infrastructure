@@ -2,6 +2,16 @@
 
 ## Purpose
 
+**Next delivery, confirmed 2026-10-08:** one approved Workspace agreement maps to
+one Campaign; a Workspace can retain multiple cooperation rounds and negotiate
+the next while the current Campaign runs. See [Campaign delivery plan](campaign-delivery-plan.md)
+for rollout, Jira mapping, migration risks and open decisions. This is a target
+model, not a claim that the existing draft allocation prototype implements it.
+
+October 2026 structured offering extension: see [offering-models/spec.md](offering-models/spec.md)
+and its plan/task/test. This slice adds packaging, deliverables, immutable negotiation snapshots
+and draft Campaign allocation only; E50-08/09 and detailed E51 service implementations remain separate.
+
 This folder is the technical working baseline for FR 3.5.1--3.5.10. It is intended to make the first implementation slice unambiguous; it is not a replacement for BA documents.
 
 ## Source of truth and conflicts
