@@ -1161,10 +1161,10 @@
 | DA-E51-06f | Download Material (FR 3.6.16) | Tuấn | S | `docs/feature/content-task-workflow/3-6-16-download-material/spec.md` |
 | DA-E51-06g | Entity/Endpoint `brand_collections` (Client-supplied reference assets) | Tuấn | M | `docs/ba/05-content-task-workflow.md` |
 | DA-E51-07 | Apply Hashtag to Task (FR 3.6.17) | Tuấn | S | `docs/feature/content-task-workflow/3-6-17-apply-hastag/spec.md` |
-| DA-E51-07b | Collection `hashtag_collections` + View Collection (FR 3.6.18) | Tuấn | S | `docs/feature/content-task-workflow/3-6-18-view-hastag-collection/spec.md` |
-| DA-E51-07c | Add Hashtag to Collection (FR 3.6.19) | Tuấn | S | `docs/feature/content-task-workflow/3-6-19-add-hastag-collection/spec.md` |
+| DA-E51-07b | Workspace hashtag collection `workspace_hashtags` + View (FR 3.6.18) | Tuấn | S | `docs/feature/view-hashtag-collection/spec.md` |
+| DA-E51-07c | Add Hashtag to Collection (FR 3.6.19) | Tuấn | S | `docs/feature/add-hashtag-collection/spec.md` |
 | DA-E51-07d | Update Hashtag in Collection (FR 3.6.20) | Tuấn | S | `docs/feature/content-task-workflow/3-6-20-update-hastag-collection/spec.md` |
-| DA-E51-07e | Remove Hashtag from Collection (FR 3.6.21) | Tuấn | S | `docs/feature/content-task-workflow/3-6-21-remove-hastag-collection/spec.md` |
+| DA-E51-07e | Remove Hashtag from Collection (FR 3.6.21) | Tuấn | S | `docs/feature/remove-hashtag-collection/spec.md` |
 | DA-E51-08 | Write Livestream Idea (FR 3.6.22) | Phước | S | `docs/feature/content-task-workflow/3-6-22-write-livestream-idea/spec.md` |
 | DA-E51-08b | Write Livestream Script (FR 3.6.23) | Phước | S | `docs/feature/content-task-workflow/3-6-23-write-livestream-script/spec.md` |
 | DA-E51-08c | Track Livestream Status (FR 3.6.24) | Phước | M | `docs/feature/content-task-workflow/3-6-24-track-livestream-status/spec.md`, `docs/ba/12-state-machines.md` mục 5 |
@@ -9911,20 +9911,20 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 ---
 
-### DA-E51-07b — Collection `hashtag_collections` + View Collection (FR 3.6.18)
+### DA-E51-07b — Workspace Hashtag Collection + View Collection (FR 3.6.18)
 
 **Assignee:** Tuấn | **Priority:** 🟢 Medium
 
-**Goal:** Provide the Workspace-scoped Hashtag Collection store and its read endpoint — Creator can browse existing tags, AI can later recommend from this pool.
+**Goal:** Provide the workspace-scoped hashtag store and paged read endpoint for active tags.
 
 **Acceptance Criteria:**
 
-- [ ] `hashtag_collections` collection: `id`, `workspaceId`, `tag`, `usageCount`
-- [ ] `GET /api/v1/workspaces/{id}/hashtag-collection` lists all tags with usage count
+- [x] `workspace_hashtags` table stores purpose, ownership, required campaign scope and soft-delete audit fields.
+- [x] `GET /api/v1/workspaces/{workspaceId}/hashtags` returns filtered, paged active entries with version for safe removal.
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-18-view-hastag-collection/spec.md`
+**Spec Reference:** `docs/feature/view-hashtag-collection/spec.md`
 
-**Dependencies:** Blocks: [DA-E51-07, DA-E51-07c, DA-E51-07d, DA-E51-07e]. Blocked by: [DA-E15-01].
+**Dependencies:** Blocks: [DA-E51-07, DA-E51-07c, DA-E51-07d, DA-E51-07e].
 
 ---
 
@@ -9932,14 +9932,14 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Tuấn | **Priority:** 🟢 Medium
 
-**Goal:** Let Creator/Client explicitly add a new hashtag into the Collection with a classification of its purpose (per BA note: Client-added tags are event-specific and mandatory).
+**Goal:** Let authorized Creator, Client or Manager members add a reusable workspace hashtag; Client event-specific tags are required and scoped to a campaign in that workspace.
 
 **Acceptance Criteria:**
 
-- [ ] `POST /api/v1/workspaces/{id}/hashtag-collection` accepts `{tag, purpose?}`, returns 201
-- [ ] Duplicate tag within the same Workspace returns 409 `HASHTAG_ALREADY_EXISTS`
+- [x] `POST /api/v1/workspaces/{workspaceId}/hashtags` accepts tag, purpose and scoped required-tag fields; returns 201.
+- [x] Workspace duplicate tag returns 409 `HASHTAG_ALREADY_EXISTS`.
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-19-add-hastag-collection/spec.md`
+**Spec Reference:** `docs/feature/add-hashtag-collection/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-07b].
 
@@ -9949,11 +9949,11 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Tuấn | **Priority:** 🟢 Medium
 
-**Goal:** Let Creator/Manager correct a hashtag's text or purpose classification without losing its accumulated `usageCount`.
+**Goal:** Follow the FR 3.6.20 draft for editing active hashtag metadata while preserving existing post snapshots; finalize proposed permissions and scope/version details before implementation.
 
 **Acceptance Criteria:**
 
-- [ ] `PATCH /api/v1/workspaces/{id}/hashtag-collection/{id}` accepts `{tag?, purpose?}`, preserves `usageCount`
+- [ ] `PATCH /api/v1/workspaces/{workspaceId}/hashtags/{hashtagId}` accepts allowed metadata fields; scope and version rules remain design gates.
 - [ ] Renaming to a tag that already exists returns 409 `HASHTAG_ALREADY_EXISTS`
 
 **Spec Reference:** `docs/feature/content-task-workflow/3-6-20-update-hastag-collection/spec.md`
@@ -9966,14 +9966,14 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Assignee:** Tuấn | **Priority:** 🟢 Medium
 
-**Goal:** Let Creator/Manager remove an obsolete hashtag from the Collection without breaking Tasks that already used it (soft-delete).
+**Goal:** Let authorized members remove an obsolete hashtag without changing posts that already used it (soft-delete).
 
 **Acceptance Criteria:**
 
-- [ ] `DELETE /api/v1/workspaces/{id}/hashtag-collection/{id}` soft-deletes — removed tag no longer appears when browsing/adding, but Tasks that already applied it keep the reference
-- [ ] Deleting a non-existent hashtag returns 404
+- [x] `DELETE /api/v1/workspaces/{workspaceId}/hashtags/{hashtagId}` soft-deletes and leaves existing post snapshots unchanged.
+- [x] A stale version requires review of the current entry before reconfirmation; repeated removal is rejected.
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-21-remove-hastag-collection/spec.md`
+**Spec Reference:** `docs/feature/remove-hashtag-collection/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-07b].
 
