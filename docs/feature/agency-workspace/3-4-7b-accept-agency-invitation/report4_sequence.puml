@@ -1,0 +1,66 @@
+@startuml 3.4.7b - Accept Agency Invitation
+title Sequence Diagram — 3.4.7b - Accept Agency Invitation
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Invitee" as invitee
+boundary "InvitationPage (UI)" as invitationpage_ui
+boundary "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyInvitationRepository" as agencyinvitationrepository
+entity "AgencyInvitation" as agencyinvitation
+entity "UserRepository" as userrepository
+entity "AgencyMemberRepository" as agencymemberrepository
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "ClientProfileRepository" as clientprofilerepository
+entity "AgencyMemberResponse" as agencymemberresponse
+
+' === Flow: Invitee Accepts Invitation ===
+invitee -> invitationpage_ui: opens invitation link and clicks Accept
+invitationpage_ui -> agencycontroller: POST /api/v1/agencies/invitations/accept
+agencycontroller -> agencyserviceimpl: acceptInvitation(request, currentUser)
+agencyserviceimpl -> agencyinvitationrepository: findByToken(request.token)
+agencyinvitationrepository --> agencyserviceimpl: Optional<AgencyInvitation>
+opt !validToken || expired || status != PENDING
+  agencyserviceimpl --> agencycontroller: throw 400 INVALID_INVITATION
+  agencycontroller --> invitationpage_ui: 400 Error response
+  invitationpage_ui --> invitee: shows 400 toast
+end
+agencyserviceimpl -> userrepository: findById(currentUser.id)
+userrepository --> agencyserviceimpl: Optional<User>
+opt email != currentUser.email
+  agencyserviceimpl --> agencycontroller: throw 400 INVALID_INVITATION
+  agencycontroller --> invitationpage_ui: 400 Error response
+  invitationpage_ui --> invitee: shows 400 toast
+end
+alt role == CLIENT
+  opt clientProfile != null
+    agencyserviceimpl -> clientprofilerepository: save(clientProfile)
+    clientprofilerepository --> agencyserviceimpl: ClientProfile
+  end
+  agencyserviceimpl -> workspacememberrepository: save(clientWorkspaceMember)
+  workspacememberrepository --> agencyserviceimpl: WorkspaceMember
+else role != CLIENT
+  agencyserviceimpl -> agencymemberrepository: save(agencyMember)
+  agencymemberrepository --> agencyserviceimpl: AgencyMember
+  opt workspaceId != null
+    agencyserviceimpl -> workspacememberrepository: save(workspaceMember)
+    workspacememberrepository --> agencyserviceimpl: WorkspaceMember
+  end
+end
+agencyserviceimpl -> agencyinvitation: setStatus(ACCEPTED)
+agencyinvitation --> agencyserviceimpl: AgencyInvitation
+agencyserviceimpl -> agencyinvitationrepository: save(invitation)
+agencyinvitationrepository --> agencyserviceimpl: AgencyInvitation
+agencyserviceimpl -> agencymemberresponse: toMemberResponse(member)
+agencymemberresponse --> agencyserviceimpl: AgencyMemberResponse
+agencyserviceimpl --> agencycontroller: AgencyMemberResponse
+agencycontroller --> invitationpage_ui: 200 OK AgencyMemberResponse
+invitationpage_ui --> invitee: displays success toast
+
+@enduml

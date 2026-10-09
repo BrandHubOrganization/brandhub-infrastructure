@@ -24,20 +24,24 @@ workspacememberspage_ui -> workspacecontroller: GET /workspaces/{workspaceId}/me
 workspacecontroller -> workspaceserviceimpl: listMembers(workspaceId, currentUser)
 workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
 workspacerepository --> workspaceserviceimpl: Optional<Workspace>
-opt Workspace not found
-  workspaceserviceimpl -> member_manager_creator_client: throw 404 WORKSPACE_NOT_FOUND
+opt !workspace.present
+  workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+  workspacecontroller --> workspacememberspage_ui: 404 Error response
+  workspacememberspage_ui --> member_manager_creator_client: shows 404 toast
 end
-workspaceserviceimpl -> workspacememberrepository: assertMember: findByWorkspaceIdAndUserIdAndIsActiveTrue(workspaceId, userId)
+workspaceserviceimpl -> workspacememberrepository: assertActiveMember(workspaceId, userId)
 workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
-opt no direct membership row for this userId
-  workspaceserviceimpl -> clientprofilerepository: findByUserId(userId) - resolve caller's own ClientProfile ids
+opt !isDirectMember
+  workspaceserviceimpl -> clientprofilerepository: findByUserId(userId)
   clientprofilerepository --> workspaceserviceimpl: List<ClientProfile>
   workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndIsActiveTrue(workspaceId)
-  workspaceserviceimpl -> workspaceserviceimpl: isMember = any member has role==CLIENT && myProfileIds.contains(member.clientProfileId)
+  workspaceserviceimpl -> workspaceserviceimpl: checkClientRole(member)
   workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
 end
-opt caller has no active membership, direct or via CLIENT profile
-  workspaceserviceimpl -> member_manager_creator_client: throw 403 WORKSPACE_ACCESS_DENIED
+opt !activeMember
+  workspaceserviceimpl --> workspacecontroller: throw 403 WORKSPACE_ACCESS_DENIED
+  workspacecontroller --> workspacememberspage_ui: 403 Forbidden error response
+  workspacememberspage_ui --> member_manager_creator_client: shows 403 toast
 end
 workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndIsActiveTrue(workspaceId)
 workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
@@ -45,10 +49,10 @@ workspaceserviceimpl -> userrepository: findAllById(userIds)
 userrepository --> workspaceserviceimpl: Map<UUID, User>
 workspaceserviceimpl -> clientprofilerepository: findAllById(clientProfileIds)
 clientprofilerepository --> workspaceserviceimpl: Map<UUID, ClientProfile>
-workspaceserviceimpl -> workspacememberresponse: new WorkspaceMemberResponse(id, workspaceId, userId, fullName/email from user or clientProfile.displayName, clientProfileId, role, joinedAt, isActive) - per member
+workspaceserviceimpl -> workspacememberresponse: new WorkspaceMemberResponse(...)
 workspacememberresponse --> workspaceserviceimpl: WorkspaceMemberResponse
-workspaceserviceimpl -> workspacecontroller: List<WorkspaceMemberResponse>
-workspacecontroller --> workspacememberspage_ui: 200 OK - member list
-workspacememberspage_ui -> member_manager_creator_client: renders member table with each member's role
+workspaceserviceimpl --> workspacecontroller: List<WorkspaceMemberResponse>
+workspacecontroller --> workspacememberspage_ui: 200 OK List<WorkspaceMemberResponse>
+workspacememberspage_ui --> member_manager_creator_client: renders members
 
 @enduml

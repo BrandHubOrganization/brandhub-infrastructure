@@ -14,42 +14,39 @@ boundary "ClientProfileController" as clientprofilecontroller
 control "ClientProfileServiceImpl" as clientprofileserviceimpl
 entity "ClientProfileRepository" as clientprofilerepository
 entity "WorkspaceMemberRepository" as workspacememberrepository
-entity "client_profiles" as client_profiles
 
-' === Flow 1 ===
-note over user, client_profiles : == LUỒNG 1: TẠO MỚI CLIENT PROFILE ==\nUser điền thông tin và tạo hồ sơ khách hàng/thương hiệu mới
-
-user -> clientprofilelistpage_ui: fills form, clicks Save
-clientprofilelistpage_ui -> clientprofilecontroller: POST /api/v1/client-profile (displayName, profile + brand fields)
-clientprofilecontroller -> clientprofileserviceimpl: createProfile(currentUser, request)
-clientprofileserviceimpl -> clientprofileserviceimpl: builder().userId(currentUser.getId())...build()
-clientprofileserviceimpl -> clientprofilerepository: save(profile)
-clientprofilerepository -> client_profiles: INSERT INTO client_profiles
-clientprofilecontroller --> clientprofilelistpage_ui: 200 OK ClientProfileResponse
-clientprofilelistpage_ui -> user: shows confirmation, adds card to list
-
-' === Flow 2 ===
-note over user, client_profiles : == LUỒNG 2: CẬP NHẬT CLIENT PROFILE ==\nUser chỉnh sửa thông tin hồ sơ khách hàng đã tồn tại
-
-user -> clientprofilelistpage_ui: edits existing card, clicks Save
-clientprofilelistpage_ui -> clientprofilecontroller: PUT /api/v1/client-profile/{profileId}
-clientprofilecontroller -> clientprofileserviceimpl: updateById(currentUser, profileId, request)
-clientprofileserviceimpl -> clientprofilerepository: findById(profileId); check userId == caller
-clientprofilerepository --> clientprofileserviceimpl: row, or empty -> 403 CLIENT_PROFILE_NOT_OWNED if userId mismatch
-clientprofileserviceimpl -> clientprofilerepository: overwrite fields, stamp updatedAt, save
-clientprofilecontroller --> clientprofilelistpage_ui: 200 OK ClientProfileResponse
-clientprofilelistpage_ui -> user: shows confirmation; new values visible wherever profile is linked
-
-' === Flow 3 ===
-note over user, client_profiles : == LUỒNG 3: XÓA CLIENT PROFILE ==\nUser xóa hồ sơ khách hàng khi không còn liên kết hoạt động trong Workspace
-
-user -> clientprofilelistpage_ui: clicks Delete on a card
-clientprofilelistpage_ui -> clientprofilecontroller: DELETE /api/v1/client-profile/{profileId}
-clientprofilecontroller -> clientprofileserviceimpl: deleteById(currentUser, profileId)
-clientprofileserviceimpl -> workspacememberrepository: check ownership; findByClientProfileIdInAndIsActiveTrue([profileId])
-workspacememberrepository --> clientprofileserviceimpl: [] (not in use) or [active row] -> 409 CLIENT_PROFILE_IN_USE
-clientprofileserviceimpl -> clientprofilerepository: delete(profile) if not in use
-clientprofilecontroller --> clientprofilelistpage_ui: 200 OK / 409 CLIENT_PROFILE_IN_USE
-clientprofilelistpage_ui -> user: updates client profile list display
+alt creates profile
+  user -> clientprofilelistpage_ui: submits form
+  clientprofilelistpage_ui -> clientprofilecontroller: POST /api/v1/client-profile
+  clientprofilecontroller -> clientprofileserviceimpl: createProfile(currentUser, request)
+  clientprofileserviceimpl -> clientprofileserviceimpl: new ClientProfile(...)
+  clientprofileserviceimpl -> clientprofilerepository: save(profile)
+  clientprofilerepository --> clientprofileserviceimpl: saved ClientProfile
+  clientprofileserviceimpl --> clientprofilecontroller: 200 OK ClientProfileResponse
+  clientprofilecontroller --> clientprofilelistpage_ui: 200 OK ClientProfileResponse
+  clientprofilelistpage_ui --> user: shows 200 toast
+else updates profile
+  user -> clientprofilelistpage_ui: submits form
+  clientprofilelistpage_ui -> clientprofilecontroller: PUT /api/v1/client-profile/{profileId}
+  clientprofilecontroller -> clientprofileserviceimpl: updateById(currentUser, profileId, request)
+  clientprofileserviceimpl -> clientprofilerepository: findById(profileId)
+  clientprofilerepository --> clientprofileserviceimpl: Optional<ClientProfile>
+  clientprofileserviceimpl -> clientprofilerepository: save(updatedProfile)
+  clientprofilerepository --> clientprofileserviceimpl: updated ClientProfile
+  clientprofileserviceimpl --> clientprofilecontroller: 200 OK ClientProfileResponse
+  clientprofilecontroller --> clientprofilelistpage_ui: 200 OK ClientProfileResponse
+  clientprofilelistpage_ui --> user: shows 200 toast
+else deletes profile
+  user -> clientprofilelistpage_ui: confirms delete
+  clientprofilelistpage_ui -> clientprofilecontroller: DELETE /api/v1/client-profile/{profileId}
+  clientprofilecontroller -> clientprofileserviceimpl: deleteById(currentUser, profileId)
+  clientprofileserviceimpl -> workspacememberrepository: checkProfileInUse(profileId)
+  workspacememberrepository --> clientprofileserviceimpl: List<WorkspaceMember>
+  clientprofileserviceimpl -> clientprofilerepository: delete(profile)
+  clientprofilerepository --> clientprofileserviceimpl: deleted
+  clientprofileserviceimpl --> clientprofilecontroller: 200 OK
+  clientprofilecontroller --> clientprofilelistpage_ui: 200 OK
+  clientprofilelistpage_ui --> user: shows 200 toast
+end
 
 @enduml

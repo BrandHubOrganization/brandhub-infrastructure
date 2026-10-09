@@ -19,52 +19,48 @@ entity "ClientProfileRepository" as clientprofilerepository
 entity "Workspace" as workspace
 entity "WorkspaceResponse" as workspaceresponse
 
-' === Flow 1 ===
-note over user_any_role, workspaceresponse : == LUỒNG 1: XEM TẤT CẢ WORKSPACE NGƯỜI DÙNG THAM GIA HOẶC SỞ HỮU ==\nNgười dùng xem danh sách Workspaces thuộc về mình hoặc được sở hữu thông qua Agency
-
-user_any_role -> workspacepage_ui: opens Workspace list screen
-workspacepage_ui -> workspacecontroller: GET /api/v1/workspaces
-workspacecontroller -> workspaceserviceimpl: listWorkspaces(currentUser)
-workspaceserviceimpl -> agencyrepository: findByOwnerIdAndStatusNot(userId, SOFT_DELETED)
-agencyrepository --> workspaceserviceimpl: List<Agency>
-workspaceserviceimpl -> workspacerepository: findByAgencyId(agencyId) - per owned agency
-workspacerepository --> workspaceserviceimpl: List<Workspace> -> ownerWorkspaceIds
-workspaceserviceimpl -> workspacememberrepository: findByUserIdAndIsActiveTrue(userId)
-workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember> -> memberRoleByWorkspaceId
-workspaceserviceimpl -> clientprofilerepository: findByUserId(userId) - resolve caller's ClientProfile ids
-clientprofilerepository --> workspaceserviceimpl: List<ClientProfile>
-opt caller has ClientProfile ids
-  workspaceserviceimpl -> workspacememberrepository: findByClientProfileIdInAndIsActiveTrue(clientProfileIds)
-  workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember> - merge CLIENT rows
-  workspaceserviceimpl -> workspaceserviceimpl: merge ownerWorkspaceIds + memberRoleByWorkspaceId.keySet() -> workspaceIds (LinkedHashSet)
-  workspaceserviceimpl -> workspacerepository: findAllById(workspaceIds) - NO status filter
+alt views all workspaces
+  user_any_role -> workspacepage_ui: opens workspace list
+  workspacepage_ui -> workspacecontroller: GET /api/v1/workspaces
+  workspacecontroller -> workspaceserviceimpl: listWorkspaces(currentUser)
+  workspaceserviceimpl -> agencyrepository: findByOwnerIdAndStatusNot(userId, SOFT_DELETED)
+  agencyrepository --> workspaceserviceimpl: List<Agency>
+  workspaceserviceimpl -> workspacerepository: findByAgencyId(agencyId)
+  workspacerepository --> workspaceserviceimpl: List<Workspace>
+  workspaceserviceimpl -> workspacememberrepository: findByUserIdAndIsActiveTrue(userId)
+  workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+  workspaceserviceimpl -> clientprofilerepository: findByUserId(userId)
+  clientprofilerepository --> workspaceserviceimpl: List<ClientProfile>
+  opt !clientProfileIds.isEmpty()
+    workspaceserviceimpl -> workspacememberrepository: findByClientProfileIds(clientProfileIds)
+    workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+    workspaceserviceimpl -> workspaceserviceimpl: mergeWorkspaceIds(...)
+    workspaceserviceimpl -> workspacerepository: findAllById(workspaceIds)
+  end
+  workspacerepository --> workspaceserviceimpl: List<Workspace>
+  workspaceserviceimpl -> workspace: getSettings()
+  workspace --> workspaceserviceimpl: settings
+  workspaceserviceimpl -> workspaceresponse: toResponse(ws, role)
+  workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+  workspaceserviceimpl --> workspacecontroller: List<WorkspaceResponse>
+  workspacecontroller --> workspacepage_ui: 200 OK List<WorkspaceResponse>
+  workspacepage_ui --> user_any_role: renders workspace list
+else views managed workspaces
+  user_any_role -> workspacepage_ui: selects managed workspaces tab
+  workspacepage_ui -> workspacecontroller: GET /api/v1/workspaces/my-managed
+  workspacecontroller -> workspaceserviceimpl: listMyManagedWorkspaces(currentUser)
+  workspaceserviceimpl -> workspacememberrepository: findByUserIdAndIsActiveTrue(userId)
+  workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+  workspaceserviceimpl -> workspaceserviceimpl: filterManagerRole()
+  workspaceserviceimpl -> workspacerepository: findAllById(managedWorkspaceIds)
+  workspacerepository --> workspaceserviceimpl: Map<UUID, Workspace>
+  workspaceserviceimpl -> workspacememberrepository: countByWorkspaceId(workspaceId)
+  workspacememberrepository --> workspaceserviceimpl: long memberCount
+  workspaceserviceimpl -> workspaceresponse: new ManagedWorkspaceResponse(...)
+  workspaceresponse --> workspaceserviceimpl: ManagedWorkspaceResponse
+  workspaceserviceimpl --> workspacecontroller: List<ManagedWorkspaceResponse>
+  workspacecontroller --> workspacepage_ui: 200 OK List<ManagedWorkspaceResponse>
+  workspacepage_ui --> user_any_role: renders managed workspaces
 end
-workspacerepository --> workspaceserviceimpl: List<Workspace>
-workspaceserviceimpl -> workspace: map row -> Workspace
-workspace --> workspaceserviceimpl: Workspace
-workspaceserviceimpl -> workspaceresponse: toResponse(ws, role, clientProfileId) - OWNER role wins if ownerWorkspaceIds contains id
-workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
-workspaceserviceimpl -> workspacecontroller: List<WorkspaceResponse>
-workspacecontroller --> workspacepage_ui: 200 OK List<WorkspaceResponse>
-workspacepage_ui -> user_any_role: renders Workspace list (empty state if none)
-
-' === Flow 2 ===
-note over user_any_role, workspaceresponse : == LUỒNG 2: XEM DANH SÁCH WORKSPACE DO NGƯỜI DÙNG QUẢN LÝ (WORKSPACES I MANAGE) ==\nNgười dùng lọc và xem danh sách các Workspace mà mình đóng vai trò MANAGER
-
-user_any_role -> workspacepage_ui: opens \"Workspaces I Manage\" tab
-workspacepage_ui -> workspacecontroller: GET /api/v1/workspaces/my-managed
-workspacecontroller -> workspaceserviceimpl: listMyManagedWorkspaces(currentUser)
-workspaceserviceimpl -> workspacememberrepository: findByUserIdAndIsActiveTrue(userId)
-workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
-workspaceserviceimpl -> workspaceserviceimpl: filter role == MANAGER
-workspaceserviceimpl -> workspacerepository: findAllById(managedWorkspaceIds)
-workspacerepository --> workspaceserviceimpl: Map<UUID, Workspace>
-workspaceserviceimpl -> workspacememberrepository: countByWorkspaceIdAndIsActiveTrue(workspaceId) - per managed workspace
-workspacememberrepository --> workspaceserviceimpl: long memberCount
-workspaceserviceimpl -> workspaceresponse: new ManagedWorkspaceResponse(id, name, role, memberCount)
-workspaceresponse --> workspaceserviceimpl: ManagedWorkspaceResponse
-workspaceserviceimpl -> workspacecontroller: List<ManagedWorkspaceResponse>
-workspacecontroller --> workspacepage_ui: 200 OK List<ManagedWorkspaceResponse>
-workspacepage_ui -> user_any_role: renders managed Workspaces with member count badge
 
 @enduml

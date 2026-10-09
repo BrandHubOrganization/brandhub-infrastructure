@@ -9,7 +9,6 @@ skinparam ParticipantPadding 10
 
 ' === Participants ===
 actor "User" as user
-actor "Agency Member" as agency_member
 boundary "ClientProfileListPage (UI)" as clientprofilelistpage_ui
 boundary "WorkspaceClientsPage (UI)" as workspaceclientspage_ui
 boundary "ClientProfileController" as clientprofilecontroller
@@ -18,33 +17,28 @@ control "ClientProfileServiceImpl" as clientprofileserviceimpl
 control "WorkspaceServiceImpl" as workspaceserviceimpl
 entity "ClientProfileRepository" as clientprofilerepository
 entity "WorkspaceMemberRepository" as workspacememberrepository
-entity "client_profiles" as client_profiles
-entity "workspace_members" as workspace_members
 
-' === Flow 1 ===
-note over user, workspace_members : == LUỒNG 1: USER XEM DANH SÁCH CLIENT PROFILE CỦA MÌNH ==\nUser xem tất cả thương hiệu do tài khoản của mình sở hữu (/client-profiles)
-
+' === Flow ===
 user -> clientprofilelistpage_ui: opens /client-profiles
-clientprofilelistpage_ui -> clientprofilecontroller: GET /api/v1/client-profile/mine
-clientprofilecontroller -> clientprofileserviceimpl: listMine(currentUser)
-clientprofileserviceimpl -> clientprofilerepository: findByUserId(currentUser.getId())
-clientprofilerepository -> client_profiles: query by user_id
-client_profiles --> clientprofilerepository: List<row> (0..N — a user may own several profiles)
-clientprofileserviceimpl -> clientprofilecontroller: map rows -> List<ClientProfileResponse>
-clientprofilecontroller --> clientprofilelistpage_ui: 200 OK List<ClientProfileResponse>
-clientprofilelistpage_ui -> user: renders one card per brand
+clientprofilelistpage_ui -> clientprofilelistpage_ui: checkRoleAndContext()
 
-' === Flow 2 ===
-note over agency_member, workspace_members : == LUỒNG 2: AGENCY MEMBER XEM DANH SÁCH CLIENT TRONG WORKSPACE ==\nAgency Member xem danh sách khách hàng trong Workspace (/workspaces/:id/clients)
-
-agency_member -> workspaceclientspage_ui: opens /workspaces/:id/clients
-workspaceclientspage_ui -> workspacecontroller: GET /api/v1/workspaces/{id}/members
-workspacecontroller -> workspaceserviceimpl: listMembers(workspaceId)
-workspaceserviceimpl -> workspacememberrepository: check workspace exists + caller is active member
-workspacememberrepository --> workspaceserviceimpl: active workspace_members rows (joined to client_profiles for CLIENT rows)
-workspaceserviceimpl --> workspacecontroller: List<WorkspaceMemberResponse> (all roles)
-workspacecontroller --> workspaceclientspage_ui: 200 OK List<WorkspaceMemberResponse>
-workspaceclientspage_ui -> agency_member: FE filters role === \"CLIENT\", displays with \"Add client\" action
-note over user, workspace_members : Lưu ý: backend list endpoint trả về mọi vai trò (MANAGER/CREATOR/CLIENT) — việc tách Members (/members) và Clients (/clients) được lọc tại client-side.
+alt role == BRAND_OWNER
+  clientprofilelistpage_ui -> clientprofilecontroller: GET /api/v1/client-profile/mine
+  clientprofilecontroller -> clientprofileserviceimpl: listMine(currentUser)
+  clientprofileserviceimpl -> clientprofilerepository: findByUserId(currentUser.getId())
+  clientprofilerepository --> clientprofileserviceimpl: List<ClientProfile>
+  clientprofileserviceimpl --> clientprofilecontroller: List<ClientProfileResponse>
+  clientprofilecontroller --> clientprofilelistpage_ui: 200 OK List<ClientProfileResponse>
+  clientprofilelistpage_ui --> user: renders brand profiles
+else role == AGENCY_MEMBER
+  clientprofilelistpage_ui -> workspaceclientspage_ui: navigates to /workspaces/:id/clients
+  workspaceclientspage_ui -> workspacecontroller: GET /api/v1/workspaces/{id}/members
+  workspacecontroller -> workspaceserviceimpl: listMembers(workspaceId)
+  workspaceserviceimpl -> workspacememberrepository: assertActiveMember(workspaceId, userId)
+  workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+  workspaceserviceimpl --> workspacecontroller: List<WorkspaceMemberResponse>
+  workspacecontroller --> workspaceclientspage_ui: 200 OK List<WorkspaceMemberResponse>
+  workspaceclientspage_ui --> user: renders client members
+end
 
 @enduml

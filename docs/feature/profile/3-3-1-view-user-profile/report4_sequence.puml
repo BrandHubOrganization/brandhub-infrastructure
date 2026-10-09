@@ -24,33 +24,34 @@ profilepage_ui -> usercontroller: GET /api/v1/users/me
 usercontroller -> userserviceimpl: getUserProfile(currentUser)
 userserviceimpl -> userrepository: findById(currentUser.getId())
 userrepository --> userserviceimpl: Optional<User>
-opt user record not found
-  userserviceimpl -> user: throw 404 USER_NOT_FOUND
+opt !user.present
+  userserviceimpl --> usercontroller: throw 404 USER_NOT_FOUND
+  usercontroller --> profilepage_ui: 404 Not Found
+  profilepage_ui --> user: shows 404 toast
 end
-userserviceimpl -> userserviceimpl: user = JPA-managed User entity from findById (no manual row-mapping step)
-opt no role record exists
+userserviceimpl -> userserviceimpl: user = userOpt.get()
+opt !role.present
   userserviceimpl -> usersystemrolerepository: findByUserId(user.getId())
-  userserviceimpl -> userserviceimpl: role = SystemRole.USER (default)
   usersystemrolerepository --> userserviceimpl: Optional.empty()
+  userserviceimpl -> userserviceimpl: role = USER
 end
-opt role record exists
+opt role.present
   userserviceimpl -> usersystemrolerepository: findByUserId(user.getId())
   usersystemrolerepository --> userserviceimpl: Optional<UserSystemRole>
-  userserviceimpl -> usersystemrole: map row -> UserSystemRole
-  userserviceimpl -> userserviceimpl: role = usr.getSystemRole().name()
-  usersystemrole --> userserviceimpl: UserSystemRole
+  userserviceimpl -> usersystemrole: getRole()
+  usersystemrole --> userserviceimpl: role
 end
-opt currentUser.getWorkspaceId() is null
+opt workspaceId == null
   userserviceimpl -> workspacememberrepository: findFirstByUserIdAndIsActiveTrue(user.getId())
-  userserviceimpl -> userserviceimpl: workspaceId = member.getWorkspaceId()
   workspacememberrepository --> userserviceimpl: Optional<WorkspaceMember>
+  userserviceimpl -> userserviceimpl: workspaceId = member.getWorkspaceId()
 end
-userserviceimpl -> userserviceimpl: parsePreferences(user) -> timezone, notificationPreferences
-userserviceimpl -> userserviceimpl: parsePortfolioUrls/parseSkills(user) -> lists (empty on parse error)
-userserviceimpl -> userprofileresponse: new UserProfileResponse(user, role, workspaceId, ...)
+userserviceimpl -> userserviceimpl: parsePreferences(user)
+userserviceimpl -> userserviceimpl: parseSkillsAndUrls(user)
+userserviceimpl -> userprofileresponse: new UserProfileResponse(...)
 userprofileresponse --> userserviceimpl: UserProfileResponse
-userserviceimpl -> usercontroller: UserProfileResponse
+userserviceimpl --> usercontroller: UserProfileResponse
 usercontroller --> profilepage_ui: 200 OK UserProfileResponse
-profilepage_ui -> user: render profile fields
+profilepage_ui --> user: renders profile
 
 @enduml

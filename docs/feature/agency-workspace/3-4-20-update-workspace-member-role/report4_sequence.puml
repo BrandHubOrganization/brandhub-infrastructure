@@ -18,39 +18,46 @@ entity "UserRepository" as userrepository
 entity "WorkspaceMemberResponse" as workspacememberresponse
 
 ' === Flow ===
-workspace_manager -> workspacememberspage_ui: chooses a new role for a member in the role selector
+workspace_manager -> workspacememberspage_ui: selects role
 workspacememberspage_ui -> workspacecontroller: PATCH /workspaces/{id}/members/{memberId}/role
-opt caller is not the Workspace MANAGER
-  workspacecontroller -> workspace_manager: throw 403 FORBIDDEN
+opt caller != MANAGER
+  workspacecontroller --> workspacememberspage_ui: 403 Forbidden
+  workspacememberspage_ui --> workspace_manager: shows 403 toast
 end
 workspacecontroller -> workspaceserviceimpl: updateMemberRole(workspaceId, memberId, newRole)
-workspaceserviceimpl -> workspacememberrepository: findById(memberId).filter(workspaceId match && isActive)
+workspaceserviceimpl -> workspacememberrepository: findById(memberId)
 workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
-opt not found, inactive, or wrong Workspace
-  workspaceserviceimpl -> workspace_manager: throw 404 NOT_FOUND
+opt !member.present || !active
+  workspaceserviceimpl --> workspacecontroller: throw 404 NOT_FOUND
+  workspacecontroller --> workspacememberspage_ui: 404 Not Found
+  workspacememberspage_ui --> workspace_manager: shows 404 toast
 end
-workspaceserviceimpl -> workspacemember: map row -> WorkspaceMember
+workspaceserviceimpl -> workspacemember: validateWorkspace(workspaceId)
 workspacemember --> workspaceserviceimpl: WorkspaceMember
-alt last-MANAGER guard
-  workspaceserviceimpl -> workspacememberrepository: assertNotLastManager: countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId, MANAGER)  [member.role==MANAGER && newRole!=MANAGER]
+alt count(MANAGER) <= 1
+  workspaceserviceimpl -> workspacememberrepository: countByWorkspaceIdAndRole(workspaceId, MANAGER)
   workspacememberrepository --> workspaceserviceimpl: long count
-  workspaceserviceimpl -> workspace_manager: throw 409 LAST_MANAGER_CANNOT_BE_REMOVED  [count <= 1]
-else member.role != MANAGER, or newRole == MANAGER already
-  workspaceserviceimpl -> workspacememberrepository: countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId, MANAGER)  [newRole==MANAGER && member.role!=MANAGER]
+  workspaceserviceimpl --> workspacecontroller: throw 409 LAST_MANAGER_CANNOT_BE_REMOVED
+  workspacecontroller --> workspacememberspage_ui: 409 Conflict
+  workspacememberspage_ui --> workspace_manager: shows 409 toast
+else count(MANAGER) > 0
+  workspaceserviceimpl -> workspacememberrepository: countByWorkspaceIdAndRole(workspaceId, MANAGER)
   workspacememberrepository --> workspaceserviceimpl: long count
-  workspaceserviceimpl -> workspace_manager: throw 409 MANAGER_ALREADY_ASSIGNED  [count > 0]
-else no MANAGER conflict - apply role change
-  workspaceserviceimpl -> workspacemember: member.setRole(newRole); setUpdatedAt(now)
+  workspaceserviceimpl --> workspacecontroller: throw 409 MANAGER_ALREADY_ASSIGNED
+  workspacecontroller --> workspacememberspage_ui: 409 Conflict
+  workspacememberspage_ui --> workspace_manager: shows 409 toast
+else ok
+  workspaceserviceimpl -> workspacemember: updateRole(newRole)
   workspacemember --> workspaceserviceimpl: WorkspaceMember
   workspaceserviceimpl -> workspacememberrepository: save(member)
   workspacememberrepository --> workspaceserviceimpl: WorkspaceMember
   workspaceserviceimpl -> userrepository: findById(member.userId)
   userrepository --> workspaceserviceimpl: Optional<User>
-  workspaceserviceimpl -> workspacememberresponse: new WorkspaceMemberResponse(id, workspaceId, userId, fullName, email, clientProfileId, role, joinedAt, isActive)
+  workspaceserviceimpl -> workspacememberresponse: new WorkspaceMemberResponse(...)
   workspacememberresponse --> workspaceserviceimpl: WorkspaceMemberResponse
-  workspaceserviceimpl -> workspacecontroller: WorkspaceMemberResponse
-  workspacecontroller --> workspacememberspage_ui: 200 OK - updated member entry with new role
-  workspacememberspage_ui -> workspace_manager: refreshes role shown for that member
+  workspaceserviceimpl --> workspacecontroller: WorkspaceMemberResponse
+  workspacecontroller --> workspacememberspage_ui: 200 OK WorkspaceMemberResponse
+  workspacememberspage_ui --> workspace_manager: shows 200 toast
 end
 
 @enduml

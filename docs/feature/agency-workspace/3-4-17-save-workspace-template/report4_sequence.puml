@@ -1,5 +1,5 @@
-@startuml 3.4.17 - Save Workspace Template
-title Sequence Diagram — 3.4.17 - Save Workspace Template
+@startuml 3.4.17a - Save Workspace Template
+title Sequence Diagram — 3.4.17a - Save Workspace Template
 
 autonumber
 skinparam shadowing false
@@ -10,7 +10,6 @@ skinparam ParticipantPadding 10
 ' === Participants ===
 actor "Agency member (owner)" as agency_member_owner
 boundary "WorkspaceDetailPage (UI)" as workspacedetailpage_ui
-boundary "TemplatesPage (UI)" as templatespage_ui
 boundary "WorkspaceTemplateController" as workspacetemplatecontroller
 control "WorkspaceTemplateServiceImpl" as workspacetemplateserviceimpl
 entity "AgencyRepository" as agencyrepository
@@ -18,72 +17,29 @@ entity "WorkspaceTemplateRepository" as workspacetemplaterepository
 entity "WorkspaceTemplate" as workspacetemplate
 entity "WorkspaceTemplateResponse" as workspacetemplateresponse
 
-' === Flow 1 ===
-note over agency_member_owner, workspacetemplateresponse : == LUỒNG 1: LƯU CẤU HÌNH WORKSPACE THÀNH TEMPLATE ==\nOwner lưu thiết lập của Workspace hiện tại thành bản mẫu dùng lại
-
-agency_member_owner -> workspacedetailpage_ui: fills \"Save as Template\" modal (name, snapshot) and submits
-opt Save: name or configSnapshot empty
-  workspacedetailpage_ui -> agency_member_owner: displays validation error (@NotBlank)
-end
+' === Flow: Save Workspace Template ===
+agency_member_owner -> workspacedetailpage_ui: submits form
 workspacedetailpage_ui -> workspacetemplatecontroller: POST /api/v1/workspace-templates
-opt validation fails on server
-  workspacetemplatecontroller -> agency_member_owner: throw 400 VALIDATION_ERROR
+opt !valid(form)
+  workspacetemplatecontroller --> workspacedetailpage_ui: 400 Validation Error response
+  workspacedetailpage_ui --> agency_member_owner: shows 400 toast
 end
 workspacetemplatecontroller -> workspacetemplateserviceimpl: saveTemplate(currentUser, request)
-workspacetemplateserviceimpl -> agencyrepository: resolveOwnedAgencyId: findByOwnerIdAndStatusNot(userId, SOFT_DELETED)
-agencyrepository --> workspacetemplateserviceimpl: Optional<Agency> (.findFirst())
-opt no owned Agency
-  workspacetemplateserviceimpl -> agency_member_owner: throw 404 AGENCY_NOT_FOUND
+workspacetemplateserviceimpl -> agencyrepository: findByOwnerIdAndStatusNot(userId, SOFT_DELETED)
+agencyrepository --> workspacetemplateserviceimpl: Optional<Agency>
+opt !agency.present
+  workspacetemplateserviceimpl --> workspacetemplatecontroller: throw 404 AGENCY_NOT_FOUND
+  workspacetemplatecontroller --> workspacedetailpage_ui: 404 Error response
+  workspacedetailpage_ui --> agency_member_owner: shows 404 toast
 end
-workspacetemplateserviceimpl -> workspacetemplate: new WorkspaceTemplate(agencyId, name, sourceWorkspaceId, configSnapshot, createdBy=currentUser)
+workspacetemplateserviceimpl -> workspacetemplate: new WorkspaceTemplate(...)
 workspacetemplate --> workspacetemplateserviceimpl: WorkspaceTemplate
 workspacetemplateserviceimpl -> workspacetemplaterepository: save(template)
 workspacetemplaterepository --> workspacetemplateserviceimpl: WorkspaceTemplate
 workspacetemplateserviceimpl -> workspacetemplateresponse: toResponse(template)
 workspacetemplateresponse --> workspacetemplateserviceimpl: WorkspaceTemplateResponse
-workspacetemplateserviceimpl -> workspacetemplatecontroller: WorkspaceTemplateResponse
+workspacetemplateserviceimpl --> workspacetemplatecontroller: WorkspaceTemplateResponse
 workspacetemplatecontroller --> workspacedetailpage_ui: 200 OK WorkspaceTemplateResponse
-workspacedetailpage_ui -> agency_member_owner: success toast, modal closes
-
-' === Flow 2 ===
-note over agency_member_owner, workspacetemplateresponse : == LUỒNG 2: XEM DANH SÁCH WORKSPACE TEMPLATES ==\nOwner truy cập trang quản lý Templates để xem các mẫu đã lưu của Agency
-
-agency_member_owner -> templatespage_ui: opens Workspace Templates management page
-templatespage_ui -> workspacetemplatecontroller: GET /api/v1/workspace-templates
-workspacetemplatecontroller -> workspacetemplateserviceimpl: listTemplates(currentUser)
-workspacetemplateserviceimpl -> agencyrepository: resolveOwnedAgencyId(currentUser)
-agencyrepository --> workspacetemplateserviceimpl: Optional<Agency>
-opt no owned Agency
-  workspacetemplateserviceimpl -> agency_member_owner: throw 404 AGENCY_NOT_FOUND
-end
-workspacetemplateserviceimpl -> workspacetemplaterepository: findByAgencyId(agencyId)
-workspacetemplaterepository --> workspacetemplateserviceimpl: List<WorkspaceTemplate>
-workspacetemplateserviceimpl -> workspacetemplateresponse: toResponse(template) - per item
-workspacetemplateresponse --> workspacetemplateserviceimpl: WorkspaceTemplateResponse
-workspacetemplateserviceimpl -> workspacetemplatecontroller: List<WorkspaceTemplateResponse>
-workspacetemplatecontroller --> templatespage_ui: 200 OK List<WorkspaceTemplateResponse>
-templatespage_ui -> agency_member_owner: renders list with configSnapshot preview and actions
-
-' === Flow 3 ===
-note over agency_member_owner, workspacetemplateresponse : == LUỒNG 3: XÓA WORKSPACE TEMPLATE ==\nOwner xóa một bản mẫu template không còn sử dụng
-
-agency_member_owner -> templatespage_ui: clicks Delete icon on a template item and confirms
-templatespage_ui -> workspacetemplatecontroller: DELETE /api/v1/workspace-templates/{templateId}
-workspacetemplatecontroller -> workspacetemplateserviceimpl: deleteTemplate(currentUser, templateId)
-workspacetemplateserviceimpl -> workspacetemplaterepository: findById(templateId)
-workspacetemplaterepository --> workspacetemplateserviceimpl: Optional<WorkspaceTemplate>
-opt not found
-  workspacetemplateserviceimpl -> agency_member_owner: throw 404 NOT_FOUND
-end
-workspacetemplateserviceimpl -> agencyrepository: resolveOwnedAgencyId(currentUser)
-agencyrepository --> workspacetemplateserviceimpl: Optional<Agency>
-opt template.agencyId != ownedAgency.id
-  workspacetemplateserviceimpl -> agency_member_owner: throw 403 FORBIDDEN
-end
-workspacetemplateserviceimpl -> workspacetemplaterepository: delete(template)
-workspacetemplaterepository --> workspacetemplateserviceimpl: void
-workspacetemplateserviceimpl -> workspacetemplatecontroller: void
-workspacetemplatecontroller --> templatespage_ui: 200 OK (no content)
-templatespage_ui -> agency_member_owner: removes template from list with confirmation toast
+workspacedetailpage_ui --> agency_member_owner: shows 201 toast
 
 @enduml

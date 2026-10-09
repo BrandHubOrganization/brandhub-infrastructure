@@ -17,62 +17,72 @@ entity "AgencyRepository" as agencyrepository
 entity "Workspace" as workspace
 entity "WorkspaceResponse" as workspaceresponse
 
-' === Flow 1 ===
-note over agency_owner, workspaceresponse : == LUỒNG 1: XÓA MỀM WORKSPACE (SOFT DELETE WORKSPACE) ==\nAgency Owner xác nhận xóa mềm Workspace trong khu vực Danger Zone
-
-agency_owner -> workspacedetailpage_danger_zone_ui: enters Workspace name to confirm in danger-zone dialog
-workspacedetailpage_danger_zone_ui -> workspacecontroller: DELETE /api/v1/workspaces/{workspaceId}
-workspacecontroller -> workspaceserviceimpl: deleteWorkspace(currentUser, workspaceId)
-workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
-workspacerepository --> workspaceserviceimpl: Optional<Workspace>
-opt Workspace not found
-  workspaceserviceimpl -> agency_owner: throw 404 WORKSPACE_NOT_FOUND
+alt deletes workspace
+  agency_owner -> workspacedetailpage_danger_zone_ui: confirms delete
+  workspacedetailpage_danger_zone_ui -> workspacecontroller: DELETE /api/v1/workspaces/{workspaceId}
+  workspacecontroller -> workspaceserviceimpl: deleteWorkspace(currentUser, workspaceId)
+  workspaceserviceimpl -> workspacerepository: findById(workspaceId)
+  workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+  opt !workspace.present
+    workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+    workspacecontroller --> workspacedetailpage_danger_zone_ui: 404 Not Found
+    workspacedetailpage_danger_zone_ui --> agency_owner: shows 404 toast
+  end
+  workspaceserviceimpl -> workspace: getAgencyId()
+  workspace --> workspaceserviceimpl: agencyId
+  workspaceserviceimpl -> agencyrepository: findById(agencyId)
+  agencyrepository --> workspaceserviceimpl: Optional<Agency>
+  opt !agency.present
+    workspaceserviceimpl --> workspacecontroller: throw 404 AGENCY_NOT_FOUND
+    workspacecontroller --> workspacedetailpage_danger_zone_ui: 404 Not Found
+    workspacedetailpage_danger_zone_ui --> agency_owner: shows 404 toast
+  end
+  opt caller not Owner
+    workspaceserviceimpl --> workspacecontroller: throw 403 FORBIDDEN
+    workspacecontroller --> workspacedetailpage_danger_zone_ui: 403 Forbidden
+    workspacedetailpage_danger_zone_ui --> agency_owner: shows 403 toast
+  end
+  workspaceserviceimpl -> workspace: setStatus(SOFT_DELETED)
+  workspace --> workspaceserviceimpl: Workspace
+  workspaceserviceimpl -> workspacerepository: save(workspace)
+  workspacerepository --> workspaceserviceimpl: Workspace
+  workspaceserviceimpl --> workspacecontroller: 200 OK
+  workspacecontroller --> workspacedetailpage_danger_zone_ui: 200 OK
+  workspacedetailpage_danger_zone_ui --> agency_owner: shows 200 toast
+else restores workspace
+  agency_owner -> workspacedetailpage_danger_zone_ui: clicks Restore Workspace
+  workspacedetailpage_danger_zone_ui -> workspacecontroller: POST /api/v1/workspaces/{workspaceId}/restore
+  workspacecontroller -> workspaceserviceimpl: restoreWorkspace(currentUser, workspaceId)
+  workspaceserviceimpl -> workspacerepository: findById(workspaceId)
+  workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+  opt !workspace.present
+    workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+    workspacecontroller --> workspacedetailpage_danger_zone_ui: 404 Not Found
+    workspacedetailpage_danger_zone_ui --> agency_owner: shows 404 toast
+  end
+  workspaceserviceimpl -> workspace: getAgencyId()
+  workspace --> workspaceserviceimpl: agencyId
+  workspaceserviceimpl -> agencyrepository: findById(agencyId)
+  agencyrepository --> workspaceserviceimpl: Optional<Agency>
+  opt !agency.present
+    workspaceserviceimpl --> workspacecontroller: throw 404 AGENCY_NOT_FOUND
+    workspacecontroller --> workspacedetailpage_danger_zone_ui: 404 Not Found
+    workspacedetailpage_danger_zone_ui --> agency_owner: shows 404 toast
+  end
+  opt caller not Owner
+    workspaceserviceimpl --> workspacecontroller: throw 403 FORBIDDEN
+    workspacecontroller --> workspacedetailpage_danger_zone_ui: 403 Forbidden
+    workspacedetailpage_danger_zone_ui --> agency_owner: shows 403 toast
+  end
+  workspaceserviceimpl -> workspace: setStatus(ACTIVE)
+  workspace --> workspaceserviceimpl: Workspace
+  workspaceserviceimpl -> workspacerepository: save(workspace)
+  workspacerepository --> workspaceserviceimpl: Workspace
+  workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
+  workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+  workspaceserviceimpl --> workspacecontroller: WorkspaceResponse
+  workspacecontroller --> workspacedetailpage_danger_zone_ui: 200 OK WorkspaceResponse
+  workspacedetailpage_danger_zone_ui --> agency_owner: shows 200 toast
 end
-workspaceserviceimpl -> workspace: map row -> Workspace
-workspace --> workspaceserviceimpl: Workspace
-workspaceserviceimpl -> agencyrepository: findById(workspace.agencyId)
-agencyrepository --> workspaceserviceimpl: Optional<Agency>
-opt Agency not found
-  workspaceserviceimpl -> agency_owner: throw 404 WORKSPACE_NOT_FOUND
-end
-opt agency.ownerId != currentUser.id
-  workspaceserviceimpl -> agency_owner: throw 403 FORBIDDEN
-end
-workspaceserviceimpl -> workspace: workspace.status=SOFT_DELETED; deletedAt=now(); updatedAt=now()
-workspace --> workspaceserviceimpl: Workspace
-workspaceserviceimpl -> workspacerepository: save(workspace)
-workspacerepository --> workspaceserviceimpl: Workspace
-workspaceserviceimpl -> workspacecontroller: void
-workspacecontroller --> workspacedetailpage_danger_zone_ui: 200 OK (no data)
-workspacedetailpage_danger_zone_ui -> agency_owner: success toast, redirects to /workspaces
-
-' === Flow 2 ===
-note over agency_owner, workspaceresponse : == LUỒNG 2: KHÔI PHỤC WORKSPACE ĐÃ XÓA MỀM (RESTORE WORKSPACE) ==\nAgency Owner khôi phục lại trạng thái hoạt động cho Workspace
-
-agency_owner -> workspacedetailpage_danger_zone_ui: clicks Restore Workspace button
-workspacedetailpage_danger_zone_ui -> workspacecontroller: POST /api/v1/workspaces/{workspaceId}/restore
-workspacecontroller -> workspaceserviceimpl: restoreWorkspace(currentUser, workspaceId)
-workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
-workspacerepository --> workspaceserviceimpl: Optional<Workspace>
-opt Workspace not found
-  workspaceserviceimpl -> agency_owner: throw 404 WORKSPACE_NOT_FOUND
-end
-workspaceserviceimpl -> agencyrepository: findById(workspace.agencyId)
-agencyrepository --> workspaceserviceimpl: Optional<Agency>
-opt Agency not found
-  workspaceserviceimpl -> agency_owner: throw 404 WORKSPACE_NOT_FOUND
-end
-opt agency.ownerId != currentUser.id
-  workspaceserviceimpl -> agency_owner: throw 403 FORBIDDEN
-end
-workspaceserviceimpl -> workspace: workspace.status=ACTIVE; deletedAt=null; updatedAt=now()
-workspace --> workspaceserviceimpl: Workspace
-workspaceserviceimpl -> workspacerepository: save(workspace)
-workspacerepository --> workspaceserviceimpl: Workspace
-workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
-workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
-workspaceserviceimpl -> workspacecontroller: WorkspaceResponse
-workspacecontroller --> workspacedetailpage_danger_zone_ui: 200 OK WorkspaceResponse
-workspacedetailpage_danger_zone_ui -> agency_owner: success toast, workspace restored to active list
 
 @enduml

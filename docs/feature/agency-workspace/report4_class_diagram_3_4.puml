@@ -1,0 +1,945 @@
+@startuml 3.4 - Agency and Workspace Management Class Diagram
+title Class Diagram — Module 3.4: Agency & Workspace Management (BrandHub)
+
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam classFontStyle bold
+skinparam linetype ortho
+skinparam nodesep 45
+skinparam ranksep 55
+
+skinparam class {
+    BackgroundColor<<controller>> #E3F2FD
+    BorderColor<<controller>> #1565C0
+    BackgroundColor<<service>> #E8F5E9
+    BorderColor<<service>> #2E7D32
+    BackgroundColor<<repository>> #FFF3E0
+    BorderColor<<repository>> #E65100
+    BackgroundColor<<entity>> #F3E5F5
+    BorderColor<<entity>> #7B1FA2
+    BackgroundColor<<dto>> #ECEFF1
+    BorderColor<<dto>> #455A64
+    BackgroundColor<<enum>> #FFFDE7
+    BorderColor<<enum>> #F57F17
+}
+
+' ==========================================================
+' CONTROLLER LAYER
+' ==========================================================
+package "com.brandhub.business.controller" {
+    class AgencyController <<controller>> {
+        - agencyService: AgencyService
+        + listMyAgencies(currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<List<AgencyResponse>>
+        + createAgency(currentUser: AuthenticatedUser, request: AgencyRequest, webRequest: WebRequest): ApiResponse<AgencyResponse>
+        + getAgency(agencyId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<AgencyResponse>
+        + updateAgency(agencyId: UUID, currentUser: AuthenticatedUser, request: AgencyRequest, webRequest: WebRequest): ApiResponse<AgencyResponse>
+        + uploadLogo(agencyId: UUID, currentUser: AuthenticatedUser, file: MultipartFile, webRequest: WebRequest): ApiResponse<AgencyResponse>
+        + uploadBanner(agencyId: UUID, currentUser: AuthenticatedUser, file: MultipartFile, webRequest: WebRequest): ApiResponse<AgencyResponse>
+        + removeAgency(agencyId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<Void>
+        + restoreAgency(agencyId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<AgencyResponse>
+        + listMembers(agencyId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<List<AgencyMemberResponse>>
+        + getStats(agencyId: UUID, from: String, to: String, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<AgencyStatsResponse>
+        + getMemberActivity(agencyId: UUID, userId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<List<AuditLogResponse>>
+        + getMemberProfile(agencyId: UUID, userId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<AgencyMemberProfileResponse>
+        + inviteLookup(agencyId: UUID, currentUser: AuthenticatedUser, email: String, webRequest: WebRequest): ApiResponse<InviteLookupResponse>
+        + inviteMember(agencyId: UUID, currentUser: AuthenticatedUser, request: InviteAgencyMemberRequest, webRequest: WebRequest): ApiResponse<AgencyInvitationResponse>
+        + listInvitations(agencyId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<List<AgencyInvitationResponse>>
+        + cancelInvitation(agencyId: UUID, invitationId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<Void>
+        + removeMember(agencyId: UUID, memberId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<Void>
+        + previewInvitation(currentUser: AuthenticatedUser, token: String, webRequest: WebRequest): ApiResponse<InvitationPreviewResponse>
+        + acceptInvitation(currentUser: AuthenticatedUser, request: AcceptInvitationRequest, webRequest: WebRequest): ApiResponse<AgencyMemberResponse>
+        + listMyPendingInvitations(currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<List<AgencyInvitationResponse>>
+        + declineInvitation(request: DeclineInvitationRequest, webRequest: WebRequest): ApiResponse<Void>
+    }
+
+    class WorkspaceController <<controller>> {
+        - workspaceService: WorkspaceService
+        + listMyWorkspaces(currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<List<WorkspaceResponse>>
+        + createWorkspace(currentUser: AuthenticatedUser, request: CreateWorkspaceRequest, webRequest: WebRequest): ApiResponse<WorkspaceResponse>
+        + listManagedWorkspaces(currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<List<ManagedWorkspaceResponse>>
+        + getWorkspace(workspaceId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<WorkspaceResponse>
+        + getDashboard(workspaceId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<WorkspaceDashboardResponse>
+        + updateSettings(workspaceId: UUID, request: UpdateWorkspaceSettingsRequest, webRequest: WebRequest): ApiResponse<WorkspaceResponse>
+        + uploadLogo(workspaceId: UUID, currentUser: AuthenticatedUser, file: MultipartFile, webRequest: WebRequest): ApiResponse<WorkspaceResponse>
+        + uploadBanner(workspaceId: UUID, currentUser: AuthenticatedUser, file: MultipartFile, webRequest: WebRequest): ApiResponse<WorkspaceResponse>
+        + listMembers(workspaceId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<List<WorkspaceMemberResponse>>
+        + inviteMember(workspaceId: UUID, currentUser: AuthenticatedUser, request: InviteMemberRequest, webRequest: WebRequest): ApiResponse<Void>
+        + assignMembers(workspaceId: UUID, currentUser: AuthenticatedUser, request: AssignWorkspaceMembersRequest, webRequest: WebRequest): ApiResponse<AssignMembersResponse>
+        + addClient(workspaceId: UUID, currentUser: AuthenticatedUser, request: AddWorkspaceClientRequest, webRequest: WebRequest): ApiResponse<WorkspaceMemberResponse>
+        + switchMyClientProfile(workspaceId: UUID, currentUser: AuthenticatedUser, request: AddWorkspaceClientRequest, webRequest: WebRequest): ApiResponse<WorkspaceMemberResponse>
+        + acceptInvitation(currentUser: AuthenticatedUser, request: AcceptInvitationRequest, webRequest: WebRequest): ApiResponse<WorkspaceMemberResponse>
+        + listMyPendingInvitations(currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<List<InvitationResponse>>
+        + declineInvitation(request: DeclineInvitationRequest, webRequest: WebRequest): ApiResponse<Void>
+        + removeMember(workspaceId: UUID, memberId: UUID, webRequest: WebRequest): ApiResponse<Void>
+        + leaveWorkspace(workspaceId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<Void>
+        + updateMemberRole(workspaceId: UUID, memberId: UUID, request: UpdateMemberRoleRequest, webRequest: WebRequest): ApiResponse<WorkspaceMemberResponse>
+        + deleteWorkspace(workspaceId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<Void>
+        + restoreWorkspace(workspaceId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<WorkspaceResponse>
+    }
+
+    class WorkspaceTemplateController <<controller>> {
+        - workspaceTemplateService: WorkspaceTemplateService
+        + saveTemplate(currentUser: AuthenticatedUser, request: SaveWorkspaceTemplateRequest, webRequest: WebRequest): ApiResponse<WorkspaceTemplateResponse>
+        + listTemplates(currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<List<WorkspaceTemplateResponse>>
+        + getTemplate(templateId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<WorkspaceTemplateResponse>
+        + deleteTemplate(templateId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<Void>
+        + saveGlobalTemplate(currentUser: AuthenticatedUser, request: SaveWorkspaceTemplateRequest, webRequest: WebRequest): ApiResponse<WorkspaceTemplateResponse>
+        + applyToWorkspace(templateId: UUID, workspaceId: UUID, currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<WorkspaceResponse>
+    }
+}
+
+' ==========================================================
+' SERVICE LAYER
+' ==========================================================
+package "com.brandhub.business.service" {
+    interface AgencyService <<service>> {
+        + listMyAgencies(currentUser: AuthenticatedUser): List<AgencyResponse>
+        + createAgency(currentUser: AuthenticatedUser, request: AgencyRequest): AgencyResponse
+        + getAgency(agencyId: UUID, currentUser: AuthenticatedUser): AgencyResponse
+        + updateAgency(agencyId: UUID, currentUser: AuthenticatedUser, request: AgencyRequest): AgencyResponse
+        + updateLogo(agencyId: UUID, currentUser: AuthenticatedUser, file: MultipartFile): AgencyResponse
+        + updateBanner(agencyId: UUID, currentUser: AuthenticatedUser, file: MultipartFile): AgencyResponse
+        + removeAgency(agencyId: UUID, currentUser: AuthenticatedUser): void
+        + restoreAgency(agencyId: UUID, currentUser: AuthenticatedUser): AgencyResponse
+        + listMembers(agencyId: UUID, currentUser: AuthenticatedUser): List<AgencyMemberResponse>
+        + getStats(agencyId: UUID, currentUser: AuthenticatedUser, from: String, to: String): AgencyStatsResponse
+        + getMemberActivity(agencyId: UUID, targetUserId: UUID, currentUser: AuthenticatedUser): List<AuditLogResponse>
+        + getMemberProfile(agencyId: UUID, targetUserId: UUID, currentUser: AuthenticatedUser): AgencyMemberProfileResponse
+        + inviteMember(agencyId: UUID, currentUser: AuthenticatedUser, request: InviteAgencyMemberRequest): AgencyInvitationResponse
+        + inviteLookup(agencyId: UUID, currentUser: AuthenticatedUser, email: String): InviteLookupResponse
+        + listInvitations(agencyId: UUID, currentUser: AuthenticatedUser): List<AgencyInvitationResponse>
+        + cancelInvitation(agencyId: UUID, invitationId: UUID, currentUser: AuthenticatedUser): void
+        + removeMember(agencyId: UUID, memberId: UUID, currentUser: AuthenticatedUser): void
+        + acceptInvitation(currentUser: AuthenticatedUser, request: AcceptInvitationRequest): AgencyMemberResponse
+        + previewInvitation(currentUser: AuthenticatedUser, token: String): InvitationPreviewResponse
+        + listMyPendingInvitations(currentUser: AuthenticatedUser): List<AgencyInvitationResponse>
+        + declineInvitation(request: DeclineInvitationRequest): void
+    }
+
+    class AgencyServiceImpl <<service>> {
+        - agencyRepository: AgencyRepository
+        - agencyMemberRepository: AgencyMemberRepository
+        - agencyInvitationRepository: AgencyInvitationRepository
+        - workspaceInvitationRepository: WorkspaceInvitationRepository
+        - userRepository: UserRepository
+        - mailService: MailService
+        - fileStorageService: FileStorageService
+        - workspaceRepository: WorkspaceRepository
+        - workspaceMemberRepository: WorkspaceMemberRepository
+        - clientProfileRepository: ClientProfileRepository
+        - postMongoRepository: PostMongoRepository
+        - auditLogRepository: AuditLogRepository
+        - objectMapper: ObjectMapper
+        + listMyAgencies(currentUser: AuthenticatedUser): List<AgencyResponse>
+        + createAgency(currentUser: AuthenticatedUser, request: AgencyRequest): AgencyResponse
+        + getAgency(agencyId: UUID, currentUser: AuthenticatedUser): AgencyResponse
+        + updateAgency(agencyId: UUID, currentUser: AuthenticatedUser, request: AgencyRequest): AgencyResponse
+        + updateLogo(agencyId: UUID, currentUser: AuthenticatedUser, file: MultipartFile): AgencyResponse
+        + updateBanner(agencyId: UUID, currentUser: AuthenticatedUser, file: MultipartFile): AgencyResponse
+        + removeAgency(agencyId: UUID, currentUser: AuthenticatedUser): void
+        + restoreAgency(agencyId: UUID, currentUser: AuthenticatedUser): AgencyResponse
+        + listMembers(agencyId: UUID, currentUser: AuthenticatedUser): List<AgencyMemberResponse>
+        + getStats(agencyId: UUID, currentUser: AuthenticatedUser, from: String, to: String): AgencyStatsResponse
+        + getMemberActivity(agencyId: UUID, targetUserId: UUID, currentUser: AuthenticatedUser): List<AuditLogResponse>
+        + getMemberProfile(agencyId: UUID, targetUserId: UUID, currentUser: AuthenticatedUser): AgencyMemberProfileResponse
+        + inviteMember(agencyId: UUID, currentUser: AuthenticatedUser, request: InviteAgencyMemberRequest): AgencyInvitationResponse
+        + inviteLookup(agencyId: UUID, currentUser: AuthenticatedUser, email: String): InviteLookupResponse
+        + listInvitations(agencyId: UUID, currentUser: AuthenticatedUser): List<AgencyInvitationResponse>
+        + cancelInvitation(agencyId: UUID, invitationId: UUID, currentUser: AuthenticatedUser): void
+        + removeMember(agencyId: UUID, memberId: UUID, currentUser: AuthenticatedUser): void
+        + acceptInvitation(currentUser: AuthenticatedUser, request: AcceptInvitationRequest): AgencyMemberResponse
+        + previewInvitation(currentUser: AuthenticatedUser, token: String): InvitationPreviewResponse
+        + listMyPendingInvitations(currentUser: AuthenticatedUser): List<AgencyInvitationResponse>
+        + declineInvitation(request: DeclineInvitationRequest): void
+        - toAgencyResponse(agency: Agency, myRole: AgencyMemberRole): AgencyResponse
+        - toMemberResponse(member: AgencyMember, user: User): AgencyMemberResponse
+        - assertAgencyOwner(agencyId: UUID, userId: UUID): Agency
+        - assertAgencyAdminOrOwner(agencyId: UUID, userId: UUID): AgencyMember
+    }
+
+    interface WorkspaceService <<service>> {
+        + listMyWorkspaces(currentUser: AuthenticatedUser): List<WorkspaceResponse>
+        + listManagedWorkspaces(currentUser: AuthenticatedUser): List<ManagedWorkspaceResponse>
+        + createWorkspace(currentUser: AuthenticatedUser, request: CreateWorkspaceRequest): WorkspaceResponse
+        + getWorkspace(workspaceId: UUID, currentUser: AuthenticatedUser): WorkspaceResponse
+        + updateSettings(workspaceId: UUID, request: UpdateWorkspaceSettingsRequest): WorkspaceResponse
+        + updateLogo(workspaceId: UUID, currentUser: AuthenticatedUser, file: MultipartFile): WorkspaceResponse
+        + updateBanner(workspaceId: UUID, currentUser: AuthenticatedUser, file: MultipartFile): WorkspaceResponse
+        + listMembers(workspaceId: UUID, currentUser: AuthenticatedUser): List<WorkspaceMemberResponse>
+        + inviteMember(workspaceId: UUID, currentUser: AuthenticatedUser, request: InviteMemberRequest): void
+        + assignMembers(workspaceId: UUID, currentUser: AuthenticatedUser, request: AssignWorkspaceMembersRequest): AssignMembersResponse
+        + addClient(workspaceId: UUID, currentUser: AuthenticatedUser, request: AddWorkspaceClientRequest): WorkspaceMemberResponse
+        + switchMyClientProfile(workspaceId: UUID, currentUser: AuthenticatedUser, request: AddWorkspaceClientRequest): WorkspaceMemberResponse
+        + removeMember(workspaceId: UUID, memberId: UUID): void
+        + leaveWorkspace(workspaceId: UUID, currentUser: AuthenticatedUser): void
+        + updateMemberRole(workspaceId: UUID, memberId: UUID, newRole: MemberRole): WorkspaceMemberResponse
+        + acceptInvitation(currentUser: AuthenticatedUser, request: AcceptInvitationRequest): WorkspaceMemberResponse
+        + listMyPendingInvitations(currentUser: AuthenticatedUser): List<InvitationResponse>
+        + declineInvitation(request: DeclineInvitationRequest): void
+        + deleteWorkspace(workspaceId: UUID, currentUser: AuthenticatedUser): void
+        + restoreWorkspace(workspaceId: UUID, currentUser: AuthenticatedUser): WorkspaceResponse
+        + getDashboard(workspaceId: UUID, currentUser: AuthenticatedUser): WorkspaceDashboardResponse
+    }
+
+    class WorkspaceServiceImpl <<service>> {
+        - workspaceRepository: WorkspaceRepository
+        - workspaceMemberRepository: WorkspaceMemberRepository
+        - workspaceInvitationRepository: WorkspaceInvitationRepository
+        - userRepository: UserRepository
+        - mailService: MailService
+        - objectMapper: ObjectMapper
+        - agencyMemberRepository: AgencyMemberRepository
+        - fileStorageService: FileStorageService
+        - clientProfileRepository: ClientProfileRepository
+        - agencyRepository: AgencyRepository
+        - workspaceMediaPackageRepository: WorkspaceMediaPackageRepository
+        - mediaCampaignRepository: MediaCampaignRepository
+        - aiCreditLedgerRepository: AiCreditLedgerRepository
+        + listMyWorkspaces(currentUser: AuthenticatedUser): List<WorkspaceResponse>
+        + listManagedWorkspaces(currentUser: AuthenticatedUser): List<ManagedWorkspaceResponse>
+        + createWorkspace(currentUser: AuthenticatedUser, request: CreateWorkspaceRequest): WorkspaceResponse
+        + getWorkspace(workspaceId: UUID, currentUser: AuthenticatedUser): WorkspaceResponse
+        + updateSettings(workspaceId: UUID, request: UpdateWorkspaceSettingsRequest): WorkspaceResponse
+        + updateLogo(workspaceId: UUID, currentUser: AuthenticatedUser, file: MultipartFile): WorkspaceResponse
+        + updateBanner(workspaceId: UUID, currentUser: AuthenticatedUser, file: MultipartFile): WorkspaceResponse
+        + listMembers(workspaceId: UUID, currentUser: AuthenticatedUser): List<WorkspaceMemberResponse>
+        + inviteMember(workspaceId: UUID, currentUser: AuthenticatedUser, request: InviteMemberRequest): void
+        + assignMembers(workspaceId: UUID, currentUser: AuthenticatedUser, request: AssignWorkspaceMembersRequest): AssignMembersResponse
+        + addClient(workspaceId: UUID, currentUser: AuthenticatedUser, request: AddWorkspaceClientRequest): WorkspaceMemberResponse
+        + switchMyClientProfile(workspaceId: UUID, currentUser: AuthenticatedUser, request: AddWorkspaceClientRequest): WorkspaceMemberResponse
+        + removeMember(workspaceId: UUID, memberId: UUID): void
+        + leaveWorkspace(workspaceId: UUID, currentUser: AuthenticatedUser): void
+        + updateMemberRole(workspaceId: UUID, memberId: UUID, newRole: MemberRole): WorkspaceMemberResponse
+        + acceptInvitation(currentUser: AuthenticatedUser, request: AcceptInvitationRequest): WorkspaceMemberResponse
+        + listMyPendingInvitations(currentUser: AuthenticatedUser): List<InvitationResponse>
+        + declineInvitation(request: DeclineInvitationRequest): void
+        + deleteWorkspace(workspaceId: UUID, currentUser: AuthenticatedUser): void
+        + restoreWorkspace(workspaceId: UUID, currentUser: AuthenticatedUser): WorkspaceResponse
+        + getDashboard(workspaceId: UUID, currentUser: AuthenticatedUser): WorkspaceDashboardResponse
+        - toWorkspaceResponse(workspace: Workspace, myRole: String, clientProfileId: UUID): WorkspaceResponse
+        - toMemberResponse(member: WorkspaceMember, user: User): WorkspaceMemberResponse
+        - parseSettings(rawJson: String): WorkspaceSettings
+        - serializeSettings(settings: WorkspaceSettings): String
+    }
+
+    interface WorkspaceTemplateService <<service>> {
+        + saveTemplate(currentUser: AuthenticatedUser, request: SaveWorkspaceTemplateRequest): WorkspaceTemplateResponse
+        + listTemplates(currentUser: AuthenticatedUser): List<WorkspaceTemplateResponse>
+        + getTemplate(templateId: UUID, currentUser: AuthenticatedUser): WorkspaceTemplateResponse
+        + deleteTemplate(templateId: UUID, currentUser: AuthenticatedUser): void
+        + applyTemplate(templateId: UUID, workspaceId: UUID, currentUser: AuthenticatedUser): WorkspaceResponse
+        + listAllTemplates(currentUser: AuthenticatedUser): List<WorkspaceTemplateResponse>
+        + saveGlobalTemplate(currentUser: AuthenticatedUser, request: SaveWorkspaceTemplateRequest): WorkspaceTemplateResponse
+    }
+
+    class WorkspaceTemplateServiceImpl <<service>> {
+        - workspaceTemplateRepository: WorkspaceTemplateRepository
+        - agencyRepository: AgencyRepository
+        - workspaceRepository: WorkspaceRepository
+        - userSystemRoleRepository: UserSystemRoleRepository
+        - objectMapper: ObjectMapper
+        + saveTemplate(currentUser: AuthenticatedUser, request: SaveWorkspaceTemplateRequest): WorkspaceTemplateResponse
+        + listTemplates(currentUser: AuthenticatedUser): List<WorkspaceTemplateResponse>
+        + getTemplate(templateId: UUID, currentUser: AuthenticatedUser): WorkspaceTemplateResponse
+        + deleteTemplate(templateId: UUID, currentUser: AuthenticatedUser): void
+        + applyTemplate(templateId: UUID, workspaceId: UUID, currentUser: AuthenticatedUser): WorkspaceResponse
+        + listAllTemplates(currentUser: AuthenticatedUser): List<WorkspaceTemplateResponse>
+        + saveGlobalTemplate(currentUser: AuthenticatedUser, request: SaveWorkspaceTemplateRequest): WorkspaceTemplateResponse
+        - resolveOwnedAgencyId(currentUser: AuthenticatedUser): UUID
+        - toTemplateResponse(template: WorkspaceTemplate): WorkspaceTemplateResponse
+    }
+
+    class WorkspaceAccessService <<service>> {
+        - workspaceMemberRepository: WorkspaceMemberRepository
+        - clientProfileRepository: ClientProfileRepository
+        - userRepository: UserRepository
+        + requireActiveMember(workspaceId: UUID, userId: UUID): WorkspaceChatMember
+        + isActiveMember(workspaceId: UUID, userId: UUID): boolean
+        - findActiveMember(workspaceId: UUID, userId: UUID): Optional<WorkspaceMember>
+    }
+}
+
+' ==========================================================
+' REPOSITORY LAYER
+' ==========================================================
+package "com.brandhub.business.repository" {
+    interface AgencyRepository <<repository>> {
+        + findById(id: UUID): Optional<Agency>
+        + save(agency: Agency): Agency
+        + findByOwnerId(ownerId: UUID): List<Agency>
+        + findByOwnerIdAndStatusNot(ownerId: UUID, status: EntityStatus): List<Agency>
+    }
+
+    interface AgencyMemberRepository <<repository>> {
+        + findByAgencyId(agencyId: UUID): List<AgencyMember>
+        + findByAgencyIdAndUserId(agencyId: UUID, userId: UUID): Optional<AgencyMember>
+        + findByUserId(userId: UUID): List<AgencyMember>
+        + save(member: AgencyMember): AgencyMember
+        + delete(member: AgencyMember): void
+    }
+
+    interface AgencyInvitationRepository <<repository>> {
+        + findByAgencyId(agencyId: UUID): List<AgencyInvitation>
+        + findByToken(token: String): Optional<AgencyInvitation>
+        + findByAgencyIdAndInvitedEmailAndStatusAndExpiresAtAfter(agencyId: UUID, email: String, status: InvitationStatus, now: OffsetDateTime): Optional<AgencyInvitation>
+        + findByInvitedEmailAndStatus(email: String, status: InvitationStatus): List<AgencyInvitation>
+        + countByAgencyIdAndStatusAndExpiresAtAfter(agencyId: UUID, status: InvitationStatus, now: OffsetDateTime): long
+    }
+
+    interface WorkspaceRepository <<repository>> {
+        + findById(id: UUID): Optional<Workspace>
+        + findByIdForUpdate(id: UUID): Optional<Workspace>
+        + findByAgencyId(agencyId: UUID): List<Workspace>
+        + save(workspace: Workspace): Workspace
+    }
+
+    interface WorkspaceMemberRepository <<repository>> {
+        + findByWorkspaceIdAndUserIdAndIsActiveTrue(workspaceId: UUID, userId: UUID): Optional<WorkspaceMember>
+        + findByWorkspaceIdAndClientProfileIdAndIsActiveTrue(workspaceId: UUID, clientProfileId: UUID): Optional<WorkspaceMember>
+        + findByWorkspaceIdAndIsActiveTrue(workspaceId: UUID): List<WorkspaceMember>
+        + findByUserIdAndIsActiveTrue(userId: UUID): List<WorkspaceMember>
+        + findByClientProfileIdInAndIsActiveTrue(clientProfileIds: List<UUID>): List<WorkspaceMember>
+        + countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId: UUID, role: MemberRole): long
+        + countByWorkspaceIdAndIsActiveTrue(workspaceId: UUID): long
+    }
+
+    interface WorkspaceInvitationRepository <<repository>> {
+        + findByWorkspaceIdAndInvitedEmailAndStatus(workspaceId: UUID, email: String, status: InvitationStatus): Optional<WorkspaceInvitation>
+        + findByWorkspaceIdAndInvitedEmailAndStatusAndExpiresAtAfter(workspaceId: UUID, email: String, status: InvitationStatus, now: OffsetDateTime): Optional<WorkspaceInvitation>
+        + findByInvitedEmailAndStatus(email: String, status: InvitationStatus): List<WorkspaceInvitation>
+        + findByToken(token: String): Optional<WorkspaceInvitation>
+    }
+
+    interface WorkspaceTemplateRepository <<repository>> {
+        + findByAgencyId(agencyId: UUID): List<WorkspaceTemplate>
+        + findByAgencyIdOrAgencyIdIsNull(agencyId: UUID): List<WorkspaceTemplate>
+        + save(template: WorkspaceTemplate): WorkspaceTemplate
+        + delete(template: WorkspaceTemplate): void
+    }
+
+    interface WorkspaceMediaPackageRepository <<repository>> {
+        + findByWorkspaceId(workspaceId: UUID): Optional<WorkspaceMediaPackage>
+        + findByWorkspaceIdForUpdate(workspaceId: UUID): Optional<WorkspaceMediaPackage>
+    }
+}
+
+' ==========================================================
+' DOMAIN MODEL / ENTITY LAYER
+' ==========================================================
+package "com.brandhub.business.model" {
+    class Agency <<entity>> {
+        - id: UUID
+        - name: String
+        - ownerId: UUID
+        - logoUrl: String
+        - bannerUrl: String
+        - description: String
+        - category: AgencyCategory
+        - companySize: CompanySize
+        - website: String
+        - phone: String
+        - location: String
+        - brandColor: String
+        - logoIcon: String
+        - tagline: String
+        - foundedYear: Integer
+        - facebookUrl: String
+        - linkedinUrl: String
+        - instagramUrl: String
+        - status: EntityStatus
+        - deletedAt: OffsetDateTime
+        - createdAt: OffsetDateTime
+        - updatedAt: OffsetDateTime
+    }
+
+    class AgencyMember <<entity>> {
+        - id: UUID
+        - agencyId: UUID
+        - userId: UUID
+        - role: AgencyMemberRole
+        - joinedAt: OffsetDateTime
+    }
+
+    class AgencyInvitation <<entity>> {
+        - id: UUID
+        - agencyId: UUID
+        - invitedEmail: String
+        - invitedBy: UUID
+        - token: String
+        - note: String
+        - workspaceId: UUID
+        - role: MemberRole
+        - status: InvitationStatus
+        - expiresAt: OffsetDateTime
+        - acceptedAt: OffsetDateTime
+        - createdAt: OffsetDateTime
+    }
+
+    class Workspace <<entity>> {
+        - id: UUID
+        - agencyId: UUID
+        - name: String
+        - createdBy: UUID
+        - workspaceMediaPackageId: UUID
+        - timezoneConfig: String
+        - settings: String [jsonb]
+        - industry: WorkspaceIndustry
+        - companySize: CompanySize
+        - website: String
+        - phone: String
+        - location: String
+        - description: String
+        - brandColor: String
+        - logoIcon: String
+        - logoUrl: String
+        - bannerUrl: String
+        - tagline: String
+        - foundedYear: Integer
+        - facebookUrl: String
+        - linkedinUrl: String
+        - instagramUrl: String
+        - status: EntityStatus
+        - deletedAt: OffsetDateTime
+        - createdAt: OffsetDateTime
+        - updatedAt: OffsetDateTime
+    }
+
+    class WorkspaceMember <<entity>> {
+        - id: UUID
+        - workspaceId: UUID
+        - userId: UUID
+        - clientProfileId: UUID
+        - role: MemberRole
+        - addedBy: UUID
+        - joinedAt: OffsetDateTime
+        - isActive: boolean
+        - createdAt: OffsetDateTime
+        - updatedAt: OffsetDateTime
+    }
+
+    class WorkspaceInvitation <<entity>> {
+        - id: UUID
+        - workspaceId: UUID
+        - invitedEmail: String
+        - invitedBy: UUID
+        - token: String
+        - role: MemberRole
+        - status: InvitationStatus
+        - expiresAt: OffsetDateTime
+        - acceptedAt: OffsetDateTime
+        - createdAt: OffsetDateTime
+    }
+
+    class WorkspaceTemplate <<entity>> {
+        - id: UUID
+        - agencyId: UUID
+        - name: String
+        - sourceWorkspaceId: UUID
+        - configSnapshot: String [jsonb]
+        - createdBy: UUID
+        - createdAt: OffsetDateTime
+    }
+
+    class WorkspaceMediaPackage <<entity>> {
+        - id: UUID
+        - workspaceId: UUID
+        - packageId: UUID
+        - negotiationStatus: PackageNegotiationStatus
+        - finalTerms: String [jsonb]
+        - termsVersion: int
+        - approvedByAgencyAt: OffsetDateTime
+        - approvedByClientAt: OffsetDateTime
+        - createdAt: OffsetDateTime
+        - updatedAt: OffsetDateTime
+    }
+}
+
+' ==========================================================
+' ENUMS
+' ==========================================================
+package "com.brandhub.business.model.enums" {
+    enum AgencyCategory <<enum>> {
+        MARKETING
+        FNB
+        FASHION
+        BEAUTY
+        TECHNOLOGY
+        REAL_ESTATE
+        EDUCATION
+        HEALTHCARE
+        RETAIL
+        FINANCE
+        ENTERTAINMENT
+        OTHER
+    }
+
+    enum AgencyMemberRole <<enum>> {
+        OWNER
+        MEMBER
+    }
+
+    enum WorkspaceIndustry <<enum>> {
+        FNB
+        FASHION
+        BEAUTY
+        TECHNOLOGY
+        REAL_ESTATE
+        EDUCATION
+        HEALTHCARE
+        SERVICES
+        RETAIL
+        OTHER
+    }
+
+    enum MemberRole <<enum>> {
+        OWNER
+        MANAGER
+        CREATOR
+        CLIENT
+    }
+
+    enum InvitationStatus <<enum>> {
+        PENDING
+        ACCEPTED
+        EXPIRED
+        REVOKED
+    }
+
+    enum EntityStatus <<enum>> {
+        ACTIVE
+        INACTIVE
+        SOFT_DELETED
+        PENDING
+    }
+
+    enum CompanySize <<enum>> {
+        SMALL
+        MEDIUM
+        LARGE
+        ENTERPRISE
+    }
+
+    enum PackageNegotiationStatus <<enum>> {
+        DRAFT
+        SUBMITTED
+        APPROVED
+        REJECTED
+    }
+}
+
+' ==========================================================
+' DTO LAYER (REQUESTS & RESPONSES)
+' ==========================================================
+package "com.brandhub.business.dto" {
+    package "request" {
+        class AgencyRequest <<dto>> {
+            + name: String
+            + logoUrl: String
+            + bannerUrl: String
+            + description: String
+            + category: AgencyCategory
+            + companySize: CompanySize
+            + website: String
+            + phone: String
+            + location: String
+            + brandColor: String
+            + logoIcon: String
+            + tagline: String
+            + foundedYear: Integer
+            + facebookUrl: String
+            + linkedinUrl: String
+            + instagramUrl: String
+        }
+
+        class CreateWorkspaceRequest <<dto>> {
+            + name: String
+            + agencyId: UUID
+            + industry: WorkspaceIndustry
+            + companySize: CompanySize
+            + website: String
+            + phone: String
+            + location: String
+            + description: String
+            + brandColor: String
+            + logoIcon: String
+            + tagline: String
+            + foundedYear: Integer
+            + facebookUrl: String
+            + linkedinUrl: String
+            + instagramUrl: String
+            + assignMembers: List<AssignEntry>
+            + industryFields: Map<String, Object>
+        }
+
+        class AssignWorkspaceMembersRequest <<dto>> {
+            + members: List<AssignEntry>
+        }
+
+        class InviteAgencyMemberRequest <<dto>> {
+            + email: String
+            + inviteeName: String
+            + note: String
+            + workspaceId: UUID
+            + role: MemberRole
+            + expiryDays: Integer
+        }
+
+        class InviteMemberRequest <<dto>> {
+            + email: String
+            + role: MemberRole
+            + note: String
+        }
+
+        class UpdateWorkspaceSettingsRequest <<dto>> {
+            + name: String
+            + timezone: String
+            + defaultPlatforms: List<String>
+            + industry: WorkspaceIndustry
+            + companySize: CompanySize
+            + website: String
+            + phone: String
+            + location: String
+        }
+
+        class AddWorkspaceClientRequest <<dto>> {
+            + clientProfileId: UUID
+        }
+
+        class UpdateMemberRoleRequest <<dto>> {
+            + role: MemberRole
+        }
+
+        class AcceptInvitationRequest <<dto>> {
+            + token: String
+            + clientProfileId: UUID
+            + newClientProfile: ClientProfileRequest
+        }
+
+        class DeclineInvitationRequest <<dto>> {
+            + token: String
+        }
+
+        class SaveWorkspaceTemplateRequest <<dto>> {
+            + name: String
+            + sourceWorkspaceId: UUID
+            + config: WorkspaceTemplateConfig
+        }
+
+        class WorkspaceTemplateConfig <<dto>> {
+            + industry: WorkspaceIndustry
+            + companySize: CompanySize
+            + website: String
+            + phone: String
+            + location: String
+            + description: String
+            + brandColor: String
+            + logoIcon: String
+            + tagline: String
+            + foundedYear: Integer
+            + facebookUrl: String
+            + linkedinUrl: String
+            + instagramUrl: String
+            + timezone: String
+            + defaultPlatforms: List<String>
+            + reportFrequency: String
+            + industryFields: Map<String, Object>
+        }
+    }
+
+    package "response" {
+        class AgencyResponse <<dto>> {
+            + id: UUID
+            + name: String
+            + ownerId: UUID
+            + logoUrl: String
+            + bannerUrl: String
+            + description: String
+            + category: AgencyCategory
+            + companySize: CompanySize
+            + website: String
+            + phone: String
+            + location: String
+            + brandColor: String
+            + logoIcon: String
+            + tagline: String
+            + foundedYear: Integer
+            + facebookUrl: String
+            + linkedinUrl: String
+            + instagramUrl: String
+            + status: EntityStatus
+            + createdAt: OffsetDateTime
+            + updatedAt: OffsetDateTime
+            + myRole: AgencyMemberRole
+        }
+
+        class AgencyMemberResponse <<dto>> {
+            + id: UUID
+            + agencyId: UUID
+            + userId: UUID
+            + fullName: String
+            + email: String
+            + avatarUrl: String
+            + role: AgencyMemberRole
+            + joinedAt: OffsetDateTime
+        }
+
+        class AgencyInvitationResponse <<dto>> {
+            + id: UUID
+            + agencyId: UUID
+            + agencyName: String
+            + invitedEmail: String
+            + invitedBy: UUID
+            + token: String
+            + note: String
+            + workspaceId: UUID
+            + workspaceName: String
+            + role: MemberRole
+            + status: InvitationStatus
+            + expiresAt: OffsetDateTime
+            + acceptedAt: OffsetDateTime
+            + createdAt: OffsetDateTime
+        }
+
+        class AgencyStatsResponse <<dto>> {
+            + memberCount: long
+            + workspaceCount: long
+            + membersByRole: Map<String, Long>
+            + workspacesByIndustry: Map<String, Long>
+            + contentByStatus: Map<String, Long>
+            + memberGrowthByMonth: List<MonthCount>
+            + postsPublishedByMonth: List<MonthCount>
+        }
+
+        class AgencyMemberProfileResponse <<dto>> {
+            + userId: UUID
+            + fullName: String
+            + email: String
+            + avatarUrl: String
+            + phone: String
+            + professionalTitle: String
+            + workspaces: List<WorkspaceMembership>
+        }
+
+        class InviteLookupResponse <<dto>> {
+            + userExists: boolean
+            + isAlreadyClientInAgency: boolean
+            + existingWorkspaces: List<WorkspaceOption>
+        }
+
+        class InvitationPreviewResponse <<dto>> {
+            + invitation: AgencyInvitationResponse
+            + myClientProfiles: List<ClientProfileResponse>
+        }
+
+        class WorkspaceResponse <<dto>> {
+            + id: UUID
+            + name: String
+            + agencyId: UUID
+            + settings: WorkspaceSettings
+            + industry: WorkspaceIndustry
+            + companySize: CompanySize
+            + website: String
+            + phone: String
+            + location: String
+            + description: String
+            + brandColor: String
+            + logoIcon: String
+            + logoUrl: String
+            + bannerUrl: String
+            + tagline: String
+            + foundedYear: Integer
+            + facebookUrl: String
+            + linkedinUrl: String
+            + instagramUrl: String
+            + createdAt: OffsetDateTime
+            + myRole: String
+            + clientProfileId: UUID
+        }
+
+        class WorkspaceSettings <<dto>> {
+            + timezone: String
+            + defaultPlatforms: List<String>
+            + industryFields: Map<String, Object>
+        }
+
+        class WorkspaceMemberResponse <<dto>> {
+            + id: UUID
+            + workspaceId: UUID
+            + userId: UUID
+            + fullName: String
+            + email: String
+            + clientProfileId: UUID
+            + role: MemberRole
+            + joinedAt: OffsetDateTime
+            + isActive: boolean
+        }
+
+        class WorkspaceTemplateResponse <<dto>> {
+            + id: UUID
+            + agencyId: UUID
+            + name: String
+            + sourceWorkspaceId: UUID
+            + config: WorkspaceTemplateConfig
+            + createdBy: UUID
+            + createdAt: OffsetDateTime
+        }
+
+        class WorkspaceDashboardResponse <<dto>> {
+            + workspace: WorkspaceResponse
+            + totalActiveMembers: int
+            + membersByRole: Map<String, Long>
+            + totalCampaigns: int
+            + campaignsByStatus: Map<String, Long>
+            + packageNegotiationStatus: String
+            + agencyId: UUID
+            + aiCreditMonth: String
+            + agencyAiCreditsUsedThisMonth: Integer
+        }
+
+        class ManagedWorkspaceResponse <<dto>> {
+            + id: UUID
+            + name: String
+            + role: MemberRole
+            + memberCount: long
+        }
+
+        class AssignMembersResponse <<dto>> {
+            + added: List<WorkspaceMemberResponse>
+            + skippedUserIds: List<UUID>
+        }
+
+        class InvitationResponse <<dto>> {
+            + id: UUID
+            + workspaceId: UUID
+            + workspaceName: String
+            + invitedByName: String
+            + role: MemberRole
+            + expiresAt: OffsetDateTime
+            + token: String
+        }
+
+        class WorkspaceMediaPackageResponse <<dto>> {
+            + workspaceMediaPackageId: UUID
+            + workspaceId: UUID
+            + negotiationStatus: PackageNegotiationStatus
+            + finalTerms: JsonNode
+            + termsVersion: int
+            + approvedByAgencyAt: OffsetDateTime
+            + approvedByClientAt: OffsetDateTime
+            + createdAt: OffsetDateTime
+            + updatedAt: OffsetDateTime
+        }
+    }
+}
+
+' ==========================================================
+' RELATIONSHIPS & DEPENDENCIES
+' ==========================================================
+
+' Controller -> Service (Dependency)
+AgencyController ..> AgencyService : delegates
+WorkspaceController ..> WorkspaceService : delegates
+WorkspaceTemplateController ..> WorkspaceTemplateService : delegates
+
+' Service Implementations (Realization)
+AgencyServiceImpl ..|> AgencyService : implements
+WorkspaceServiceImpl ..|> WorkspaceService : implements
+WorkspaceTemplateServiceImpl ..|> WorkspaceTemplateService : implements
+
+' Service -> Repository (Dependency)
+AgencyServiceImpl ..> AgencyRepository : uses
+AgencyServiceImpl ..> AgencyMemberRepository : uses
+AgencyServiceImpl ..> AgencyInvitationRepository : uses
+AgencyServiceImpl ..> WorkspaceRepository : uses
+AgencyServiceImpl ..> WorkspaceInvitationRepository : uses
+AgencyServiceImpl ..> WorkspaceMemberRepository : uses
+AgencyServiceImpl ..> UserRepository : uses
+AgencyServiceImpl ..> ClientProfileRepository : uses
+
+WorkspaceServiceImpl ..> WorkspaceRepository : uses
+WorkspaceServiceImpl ..> WorkspaceMemberRepository : uses
+WorkspaceServiceImpl ..> WorkspaceInvitationRepository : uses
+WorkspaceServiceImpl ..> WorkspaceMediaPackageRepository : uses
+WorkspaceServiceImpl ..> AgencyRepository : uses
+WorkspaceServiceImpl ..> AgencyMemberRepository : uses
+WorkspaceServiceImpl ..> UserRepository : uses
+WorkspaceServiceImpl ..> ClientProfileRepository : uses
+
+WorkspaceTemplateServiceImpl ..> WorkspaceTemplateRepository : uses
+WorkspaceTemplateServiceImpl ..> AgencyRepository : uses
+WorkspaceTemplateServiceImpl ..> WorkspaceRepository : uses
+WorkspaceTemplateServiceImpl ..> UserSystemRoleRepository : uses
+
+WorkspaceAccessService ..> WorkspaceMemberRepository : uses
+WorkspaceAccessService ..> ClientProfileRepository : uses
+WorkspaceAccessService ..> UserRepository : uses
+
+' Repository -> Entity (Dependency)
+AgencyRepository ..> Agency : manages
+AgencyMemberRepository ..> AgencyMember : manages
+AgencyInvitationRepository ..> AgencyInvitation : manages
+WorkspaceRepository ..> Workspace : manages
+WorkspaceMemberRepository ..> WorkspaceMember : manages
+WorkspaceInvitationRepository ..> WorkspaceInvitation : manages
+WorkspaceTemplateRepository ..> WorkspaceTemplate : manages
+WorkspaceMediaPackageRepository ..> WorkspaceMediaPackage : manages
+
+' Entity Associations & Compositions
+Agency "1" *-- "0..*" AgencyMember : has members
+Agency "1" *-- "0..*" AgencyInvitation : issues invitations
+Agency "1" *-- "0..*" Workspace : organizes workspaces
+Agency "1" o-- "0..*" WorkspaceTemplate : owns templates
+
+Workspace "1" *-- "0..*" WorkspaceMember : has members
+Workspace "1" *-- "0..*" WorkspaceInvitation : issues invitations
+Workspace "1" *-- "0..1" WorkspaceMediaPackage : packages
+
+Agency --> AgencyCategory : category
+Agency --> CompanySize : companySize
+Agency --> EntityStatus : status
+AgencyMember --> AgencyMemberRole : role
+AgencyInvitation --> InvitationStatus : status
+AgencyInvitation --> MemberRole : role
+
+Workspace --> WorkspaceIndustry : industry
+Workspace --> CompanySize : companySize
+Workspace --> EntityStatus : status
+WorkspaceMember --> MemberRole : role
+WorkspaceInvitation --> InvitationStatus : status
+WorkspaceInvitation --> MemberRole : role
+WorkspaceMediaPackage --> PackageNegotiationStatus : negotiationStatus
+
+' DTO Usage (Dependency)
+AgencyController ..> AgencyRequest : consumes
+AgencyController ..> InviteAgencyMemberRequest : consumes
+AgencyController ..> AcceptInvitationRequest : consumes
+AgencyController ..> DeclineInvitationRequest : consumes
+AgencyController ..> AgencyResponse : returns
+AgencyController ..> AgencyMemberResponse : returns
+AgencyController ..> AgencyInvitationResponse : returns
+AgencyController ..> AgencyStatsResponse : returns
+AgencyController ..> AgencyMemberProfileResponse : returns
+AgencyController ..> InviteLookupResponse : returns
+AgencyController ..> InvitationPreviewResponse : returns
+
+WorkspaceController ..> CreateWorkspaceRequest : consumes
+WorkspaceController ..> UpdateWorkspaceSettingsRequest : consumes
+WorkspaceController ..> InviteMemberRequest : consumes
+WorkspaceController ..> AssignWorkspaceMembersRequest : consumes
+WorkspaceController ..> AddWorkspaceClientRequest : consumes
+WorkspaceController ..> UpdateMemberRoleRequest : consumes
+WorkspaceController ..> AcceptInvitationRequest : consumes
+WorkspaceController ..> DeclineInvitationRequest : consumes
+WorkspaceController ..> WorkspaceResponse : returns
+WorkspaceController ..> WorkspaceMemberResponse : returns
+WorkspaceController ..> ManagedWorkspaceResponse : returns
+WorkspaceController ..> WorkspaceDashboardResponse : returns
+WorkspaceController ..> AssignMembersResponse : returns
+WorkspaceController ..> InvitationResponse : returns
+
+WorkspaceTemplateController ..> SaveWorkspaceTemplateRequest : consumes
+WorkspaceTemplateController ..> WorkspaceTemplateResponse : returns
+WorkspaceTemplateController ..> WorkspaceResponse : returns
+
+@enduml

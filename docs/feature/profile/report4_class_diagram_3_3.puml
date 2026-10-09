@@ -1,0 +1,432 @@
+@startuml 3.3 - Profile Management Class Diagram
+title Class Diagram — Module 3.3: Profile Management (BrandHub)
+
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam classFontStyle bold
+skinparam linetype ortho
+skinparam nodesep 50
+skinparam ranksep 60
+
+skinparam class {
+    BackgroundColor<<controller>> #E3F2FD
+    BorderColor<<controller>> #1565C0
+    BackgroundColor<<service>> #E8F5E9
+    BorderColor<<service>> #2E7D32
+    BackgroundColor<<repository>> #FFF3E0
+    BorderColor<<repository>> #E65100
+    BackgroundColor<<entity>> #F3E5F5
+    BorderColor<<entity>> #7B1FA2
+    BackgroundColor<<dto>> #ECEFF1
+    BorderColor<<dto>> #455A64
+    BackgroundColor<<enum>> #FFFDE7
+    BorderColor<<enum>> #F57F17
+}
+
+' ==========================================================
+' CONTROLLER LAYER
+' ==========================================================
+package "com.brandhub.business.controller" {
+    class UserController <<controller>> {
+        - userService: UserService
+        + UserController(userService: UserService)
+        + getProfile(currentUser: AuthenticatedUser, request: WebRequest): ResponseEntity<ApiResponse<UserProfileResponse>>
+        + updateProfile(currentUser: AuthenticatedUser, updateRequest: UpdateProfileRequest, request: WebRequest): ResponseEntity<ApiResponse<UserProfileResponse>>
+        + lookupByEmail(email: String, request: WebRequest): ResponseEntity<ApiResponse<UserLookupResponse>>
+        + uploadAvatar(currentUser: AuthenticatedUser, file: MultipartFile, request: WebRequest): ResponseEntity<ApiResponse<AvatarResponse>>
+        + uploadBanner(currentUser: AuthenticatedUser, file: MultipartFile, request: WebRequest): ResponseEntity<ApiResponse<BannerResponse>>
+    }
+
+    class ClientProfileController <<controller>> {
+        - clientProfileService: ClientProfileService
+        + ClientProfileController(clientProfileService: ClientProfileService)
+        + listMine(currentUser: AuthenticatedUser, webRequest: WebRequest): ApiResponse<List<ClientProfileResponse>>
+        + createProfile(currentUser: AuthenticatedUser, request: ClientProfileRequest, webRequest: WebRequest): ApiResponse<ClientProfileResponse>
+        + uploadDraftLogo(currentUser: AuthenticatedUser, file: MultipartFile, webRequest: WebRequest): ApiResponse<String>
+        + getById(currentUser: AuthenticatedUser, profileId: UUID, webRequest: WebRequest): ApiResponse<ClientProfileResponse>
+        + updateById(currentUser: AuthenticatedUser, profileId: UUID, request: ClientProfileRequest, webRequest: WebRequest): ApiResponse<ClientProfileResponse>
+        + uploadLogo(currentUser: AuthenticatedUser, profileId: UUID, file: MultipartFile, webRequest: WebRequest): ApiResponse<ClientProfileResponse>
+        + deleteById(currentUser: AuthenticatedUser, profileId: UUID, webRequest: WebRequest): ApiResponse<Void>
+    }
+}
+
+' ==========================================================
+' SERVICE LAYER
+' ==========================================================
+package "com.brandhub.business.service" {
+    interface UserService <<service>> {
+        + getUserProfile(currentUser: AuthenticatedUser): UserProfileResponse
+        + updateUserProfile(currentUser: AuthenticatedUser, updateRequest: UpdateProfileRequest): UserProfileResponse
+        + updateAvatar(currentUser: AuthenticatedUser, file: MultipartFile): String
+        + updateBanner(currentUser: AuthenticatedUser, file: MultipartFile): String
+        + getUsers(page: int, size: int, search: String): Map<String, Object>
+        + banUser(userId: String): Map<String, String>
+        + lookupByEmail(email: String): Optional<UserLookupResponse>
+    }
+
+    class UserServiceImpl <<service>> {
+        - userRepository: UserRepository
+        - emailService: EmailService
+        - userSystemRoleRepository: UserSystemRoleRepository
+        - workspaceMemberRepository: WorkspaceMemberRepository
+        - fileStorageService: FileStorageService
+        - objectMapper: ObjectMapper
+        + getUserProfile(currentUser: AuthenticatedUser): UserProfileResponse
+        + updateUserProfile(currentUser: AuthenticatedUser, updateRequest: UpdateProfileRequest): UserProfileResponse
+        + updateAvatar(currentUser: AuthenticatedUser, file: MultipartFile): String
+        + updateBanner(currentUser: AuthenticatedUser, file: MultipartFile): String
+        + getUsers(page: int, size: int, search: String): Map<String, Object>
+        + banUser(userId: String): Map<String, String>
+        + lookupByEmail(email: String): Optional<UserLookupResponse>
+        - toResponse(user: User, currentUser: AuthenticatedUser): UserProfileResponse
+        - parseStringList(json: String): List<String>
+        - toMap(value: Object): Map<String, Object>
+        - toBooleanMap(value: Object): Map<String, Boolean>
+        - parsePreferences(user: User): Map<String, Object>
+        - validateImage(file: MultipartFile): String
+    }
+
+    interface ClientProfileService <<service>> {
+        + listMine(currentUser: AuthenticatedUser): List<ClientProfileResponse>
+        + createProfile(currentUser: AuthenticatedUser, request: ClientProfileRequest): ClientProfileResponse
+        + getById(currentUser: AuthenticatedUser, profileId: UUID): ClientProfileResponse
+        + updateById(currentUser: AuthenticatedUser, profileId: UUID, request: ClientProfileRequest): ClientProfileResponse
+        + updateLogo(currentUser: AuthenticatedUser, profileId: UUID, file: MultipartFile): ClientProfileResponse
+        + uploadDraftLogo(currentUser: AuthenticatedUser, file: MultipartFile): String
+        + deleteById(currentUser: AuthenticatedUser, profileId: UUID): void
+    }
+
+    class ClientProfileServiceImpl <<service>> {
+        - clientProfileRepository: ClientProfileRepository
+        - workspaceMemberRepository: WorkspaceMemberRepository
+        - fileStorageService: FileStorageService
+        - objectMapper: ObjectMapper
+        + listMine(currentUser: AuthenticatedUser): List<ClientProfileResponse>
+        + createProfile(currentUser: AuthenticatedUser, request: ClientProfileRequest): ClientProfileResponse
+        + getById(currentUser: AuthenticatedUser, profileId: UUID): ClientProfileResponse
+        + updateById(currentUser: AuthenticatedUser, profileId: UUID, request: ClientProfileRequest): ClientProfileResponse
+        + updateLogo(currentUser: AuthenticatedUser, profileId: UUID, file: MultipartFile): ClientProfileResponse
+        + uploadDraftLogo(currentUser: AuthenticatedUser, file: MultipartFile): String
+        + deleteById(currentUser: AuthenticatedUser, profileId: UUID): void
+        - applyRequest(profile: ClientProfile, request: ClientProfileRequest): void
+        - findOwnedProfileOrThrow(currentUser: AuthenticatedUser, profileId: UUID): ClientProfile
+        - toResponse(profile: ClientProfile): ClientProfileResponse
+        - serializeSocialLinks(socialLinks: Map<String, String>): String
+        - parseSocialLinks(json: String): Map<String, String>
+    }
+}
+
+' ==========================================================
+' REPOSITORY LAYER
+' ==========================================================
+package "com.brandhub.business.repository" {
+    interface UserRepository <<repository>> {
+        + findById(id: UUID): Optional<User>
+        + save(user: User): User
+        + delete(user: User): void
+        + findByEmail(email: String): Optional<User>
+        + existsByEmail(email: String): boolean
+        + findByPhone(phone: String): Optional<User>
+        + existsByPhone(phone: String): boolean
+        + searchByEmailOrFullName(search: String, pageable: Pageable): Page<User>
+        + findAdminUsers(search: String, status: UserStatus, role: SystemRole, pageable: Pageable): Page<User>
+        + lockById(id: UUID): Optional<User>
+        + findDueAccountIds(now: OffsetDateTime, pageable: Pageable): List<UUID>
+    }
+
+    interface UserSystemRoleRepository <<repository>> {
+        + findById(id: UUID): Optional<UserSystemRole>
+        + save(role: UserSystemRole): UserSystemRole
+        + findByUserId(userId: UUID): Optional<UserSystemRole>
+        + findByUserIdIn(ids: List<UUID>): List<UserSystemRole>
+    }
+
+    interface ClientProfileRepository <<repository>> {
+        + findById(id: UUID): Optional<ClientProfile>
+        + save(profile: ClientProfile): ClientProfile
+        + delete(profile: ClientProfile): void
+        + findByUserId(userId: UUID): List<ClientProfile>
+        + findFirstByUserIdOrderByUpdatedAtDesc(userId: UUID): Optional<ClientProfile>
+    }
+
+    interface WorkspaceMemberRepository <<repository>> {
+        + findById(id: UUID): Optional<WorkspaceMember>
+        + findFirstByUserIdAndIsActiveTrue(userId: UUID): Optional<WorkspaceMember>
+        + findByWorkspaceIdAndUserIdAndIsActiveTrue(workspaceId: UUID, userId: UUID): Optional<WorkspaceMember>
+        + findByWorkspaceIdAndClientProfileIdAndIsActiveTrue(workspaceId: UUID, clientProfileId: UUID): Optional<WorkspaceMember>
+        + findByWorkspaceIdAndIsActiveTrue(workspaceId: UUID): List<WorkspaceMember>
+        + findByUserIdAndIsActiveTrue(userId: UUID): List<WorkspaceMember>
+        + findByClientProfileIdInAndIsActiveTrue(clientProfileIds: List<UUID>): List<WorkspaceMember>
+        + countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId: UUID, role: MemberRole): long
+        + countByWorkspaceIdAndIsActiveTrue(workspaceId: UUID): long
+    }
+}
+
+' ==========================================================
+' DOMAIN MODEL / ENTITY LAYER
+' ==========================================================
+package "com.brandhub.business.model" {
+    class User <<entity>> {
+        - id: UUID
+        - email: String
+        - phone: String
+        - passwordHash: String
+        - fullName: String
+        - avatarUrl: String
+        - professionalTitle: String
+        - bio: String
+        - portfolioUrls: String [jsonb]
+        - workingLanguage: String
+        - skills: String [jsonb]
+        - location: String
+        - yearsOfExperience: Integer
+        - linkedinUrl: String
+        - facebookUrl: String
+        - instagramUrl: String
+        - tiktokUrl: String
+        - website: String
+        - bannerUrl: String
+        - status: UserStatus
+        - isActive: boolean
+        - lastBannedAt: OffsetDateTime
+        - cleanPeriodEndsAt: OffsetDateTime
+        - reactivateAt: OffsetDateTime
+        - tokensRevokedBefore: OffsetDateTime
+        - sessionVersion: long
+        - rowVersion: Long
+        - preferences: String [jsonb]
+        - lastLoginAt: OffsetDateTime
+        - lastPasswordChange: OffsetDateTime
+        - otpCode: String
+        - otpExpiry: OffsetDateTime
+        - emailVerifiedAt: OffsetDateTime
+        - twoFactorEnabled: boolean
+        - totpSecret: String
+        - createdAt: OffsetDateTime
+        - updatedAt: OffsetDateTime
+    }
+
+    class UserSystemRole <<entity>> {
+        - id: UUID
+        - userId: UUID
+        - systemRole: SystemRole
+        - grantedBy: UUID
+        - grantedAt: OffsetDateTime
+    }
+
+    class ClientProfile <<entity>> {
+        - id: UUID
+        - userId: UUID
+        - displayName: String
+        - company: String
+        - phone: String
+        - note: String
+        - logoUrl: String
+        - website: String
+        - industry: String
+        - location: String
+        - description: String
+        - socialLinks: String [jsonb]
+        - contactName: String
+        - contactEmail: String
+        - companySize: String
+        - instagramUrl: String
+        - taxCode: String
+        - address: String
+        - tagline: String
+        - foundedYear: Integer
+        - budgetRange: String
+        - bannerUrl: String
+        - createdAt: OffsetDateTime
+        - updatedAt: OffsetDateTime
+    }
+}
+
+' ==========================================================
+' ENUMS
+' ==========================================================
+package "com.brandhub.business.model.enums" {
+    enum UserStatus <<enum>> {
+        ACTIVE
+        INACTIVE
+        SUSPENDED
+        PENDING_VERIFICATION
+    }
+
+    enum SystemRole <<enum>> {
+        ADMIN
+        USER
+    }
+}
+
+' ==========================================================
+' DTO LAYER (REQUESTS & RESPONSES)
+' ==========================================================
+package "com.brandhub.business.dto" {
+    package "request" {
+        class UpdateProfileRequest <<dto>> {
+            + fullName: String
+            + phone: String
+            + professionalTitle: String
+            + bio: String
+            + portfolioUrls: List<String>
+            + workingLanguage: String
+            + skills: List<String>
+            + location: String
+            + yearsOfExperience: Integer
+            + linkedinUrl: String
+            + facebookUrl: String
+            + instagramUrl: String
+            + tiktokUrl: String
+            + website: String
+            + bannerUrl: String
+            + timezone: String
+            + notificationPreferences: Map<String, Object>
+            + profileVisibility: Map<String, Boolean>
+        }
+
+        class ClientProfileRequest <<dto>> {
+            + displayName: String
+            + company: String
+            + phone: String
+            + note: String
+            + logoUrl: String
+            + website: String
+            + industry: String
+            + location: String
+            + description: String
+            + socialLinks: Map<String, String>
+            + contactName: String
+            + contactEmail: String
+            + companySize: String
+            + instagramUrl: String
+            + taxCode: String
+            + address: String
+            + tagline: String
+            + foundedYear: Integer
+            + budgetRange: String
+            + bannerUrl: String
+        }
+    }
+
+    package "response" {
+        class UserProfileResponse <<dto>> {
+            + userId: UUID
+            + email: String
+            + fullName: String
+            + avatarUrl: String
+            + phone: String
+            + role: String
+            + workspaceId: UUID
+            + professionalTitle: String
+            + bio: String
+            + portfolioUrls: List<String>
+            + workingLanguage: String
+            + skills: List<String>
+            + location: String
+            + yearsOfExperience: Integer
+            + linkedinUrl: String
+            + facebookUrl: String
+            + instagramUrl: String
+            + tiktokUrl: String
+            + website: String
+            + bannerUrl: String
+            + timezone: String
+            + notificationPreferences: Map<String, Object>
+            + createdAt: OffsetDateTime
+            + profileVisibility: Map<String, Boolean>
+        }
+
+        class ClientProfileResponse <<dto>> {
+            + id: UUID
+            + userId: UUID
+            + displayName: String
+            + company: String
+            + phone: String
+            + note: String
+            + logoUrl: String
+            + website: String
+            + industry: String
+            + location: String
+            + description: String
+            + socialLinks: Map<String, String>
+            + contactName: String
+            + contactEmail: String
+            + companySize: String
+            + instagramUrl: String
+            + taxCode: String
+            + address: String
+            + tagline: String
+            + foundedYear: Integer
+            + budgetRange: String
+            + bannerUrl: String
+            + createdAt: OffsetDateTime
+            + updatedAt: OffsetDateTime
+        }
+
+        class UserLookupResponse <<dto>> {
+            + id: UUID
+            + fullName: String
+            + email: String
+            + avatarUrl: String
+        }
+
+        class AvatarResponse <<dto>> {
+            + avatarUrl: String
+        }
+
+        class BannerResponse <<dto>> {
+            + bannerUrl: String
+        }
+    }
+}
+
+' ==========================================================
+' RELATIONSHIPS & DEPENDENCIES
+' ==========================================================
+
+' Controller -> Service (Dependency)
+UserController ..> UserService : delegates
+ClientProfileController ..> ClientProfileService : delegates
+
+' Service Implementations (Realization)
+UserServiceImpl ..|> UserService : implements
+ClientProfileServiceImpl ..|> ClientProfileService : implements
+
+' Service -> Repository (Dependency)
+UserServiceImpl ..> UserRepository : uses
+UserServiceImpl ..> UserSystemRoleRepository : uses
+UserServiceImpl ..> WorkspaceMemberRepository : uses
+ClientProfileServiceImpl ..> ClientProfileRepository : uses
+ClientProfileServiceImpl ..> WorkspaceMemberRepository : uses
+
+' Repository -> Entity (Dependency)
+UserRepository ..> User : manages
+UserSystemRoleRepository ..> UserSystemRole : manages
+ClientProfileRepository ..> ClientProfile : manages
+
+' Entity Associations & Compositions
+User "1" *-- "0..1" UserSystemRole : system role
+User "1" o-- "0..*" ClientProfile : owns profiles
+User --> UserStatus : status
+UserSystemRole --> SystemRole : systemRole
+
+' DTO Usage (Dependency)
+UserController ..> UpdateProfileRequest : consumes
+UserController ..> UserProfileResponse : returns
+UserController ..> UserLookupResponse : returns
+UserController ..> AvatarResponse : returns
+UserController ..> BannerResponse : returns
+
+ClientProfileController ..> ClientProfileRequest : consumes
+ClientProfileController ..> ClientProfileResponse : returns
+
+UserServiceImpl ..> UpdateProfileRequest : transforms
+UserServiceImpl ..> UserProfileResponse : creates
+UserServiceImpl ..> UserLookupResponse : creates
+
+ClientProfileServiceImpl ..> ClientProfileRequest : transforms
+ClientProfileServiceImpl ..> ClientProfileResponse : creates
+
+@enduml

@@ -17,29 +17,35 @@ entity "AgencyMemberRepository" as agencymemberrepository
 entity "AgencyMember" as agencymember
 
 ' === Flow ===
-owner -> agencymemberspage_ui: opens Member list, selects Remove on a member row, confirms
+owner -> agencymemberspage_ui: clicks Remove on member, confirms
 agencymemberspage_ui -> agencycontroller: DELETE /api/v1/agencies/{agencyId}/members/{memberId}
 agencycontroller -> agencyserviceimpl: removeMember(agencyId, memberId, currentUser)
 agencyserviceimpl -> agencyrepository: findAgencyOrThrow(agencyId)
 agencyrepository --> agencyserviceimpl: Agency
-opt !agency.ownerId.equals(currentUser.id)
-  agencyserviceimpl -> owner: throw 403 NOT_AGENCY_OWNER
+opt caller != OWNER
+  agencyserviceimpl --> agencycontroller: throw 403 NOT_AGENCY_OWNER
+  agencycontroller --> agencymemberspage_ui: 403 Forbidden error response
+  agencymemberspage_ui --> owner: shows 403 toast
 end
-agencyserviceimpl -> agencymemberrepository: findById(memberId).filter(agencyId match)
+agencyserviceimpl -> agencymemberrepository: findById(memberId)
 agencymemberrepository --> agencyserviceimpl: Optional<AgencyMember>
-opt not found or wrong agency
-  agencyserviceimpl -> owner: throw 404 NOT_FOUND
+opt !member.present || wrongAgency
+  agencyserviceimpl --> agencycontroller: throw 404 NOT_FOUND
+  agencycontroller --> agencymemberspage_ui: 404 Error response
+  agencymemberspage_ui --> owner: shows 404 toast
 end
-agencyserviceimpl -> agencymember: map row -> AgencyMember
-agencymember --> agencyserviceimpl: AgencyMember
-alt member.role == OWNER
-  agencyserviceimpl -> owner: throw 409 CANNOT_REMOVE_OWNER  [member.role == OWNER]
-else member.role != OWNER
+agencyserviceimpl -> agencymember: getRole()
+agencymember --> agencyserviceimpl: role
+alt role == OWNER
+  agencyserviceimpl --> agencycontroller: throw 409 CANNOT_REMOVE_OWNER
+  agencycontroller --> agencymemberspage_ui: 409 Error response
+  agencymemberspage_ui --> owner: shows 409 toast
+else role != OWNER
   agencyserviceimpl -> agencymemberrepository: delete(member)
   agencymemberrepository --> agencyserviceimpl: void
-  agencyserviceimpl -> agencycontroller: void
-  agencycontroller --> agencymemberspage_ui: 200 OK (no data)
-  agencymemberspage_ui -> owner: drops row, shows confirmation - access to Agency+Workspaces revoked immediately
+  agencyserviceimpl --> agencycontroller: 200 OK
+  agencycontroller --> agencymemberspage_ui: 200 OK
+  agencymemberspage_ui --> owner: shows 200 toast
 end
 
 @enduml

@@ -17,59 +17,62 @@ entity "Workspace" as workspace
 entity "WorkspaceResponse" as workspaceresponse
 participant "FileStorageService" as filestorageservice
 
-' === Flow 1 ===
-note over workspace_manager, filestorageservice : == LUỒNG 1: CẬP NHẬT THÔNG TIN VÀ CẤU HÌNH WORKSPACE ==\nWorkspace Manager chỉnh sửa thông tin chung và cấu hình cài đặt của Workspace
-
-workspace_manager -> workspacesettingspage_ui: edits settings fields (name, timezone, platforms) and submits
-workspacesettingspage_ui -> workspacecontroller: PUT /api/v1/workspaces/{id}/settings
-opt caller is not the Workspace MANAGER
-  workspacecontroller -> workspace_manager: throw 403 FORBIDDEN (@RequireRole({MANAGER}))
-end
-workspacecontroller -> workspaceserviceimpl: updateSettings(currentUser, workspaceId, request)
-workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
-workspacerepository --> workspaceserviceimpl: Optional<Workspace>
-opt not found
-  workspaceserviceimpl -> workspace_manager: throw 404 WORKSPACE_NOT_FOUND
-end
-workspaceserviceimpl -> workspace: map row -> Workspace
-workspace --> workspaceserviceimpl: Workspace
-workspaceserviceimpl -> workspaceserviceimpl: apply name; parse+merge settings; apply metadata fields
-workspaceserviceimpl -> workspacerepository: save(workspace)
-workspacerepository --> workspaceserviceimpl: Workspace
-workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
-workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
-workspaceserviceimpl -> workspacecontroller: WorkspaceResponse
-workspacecontroller --> workspacesettingspage_ui: 200 OK WorkspaceResponse
-workspacesettingspage_ui -> workspace_manager: shows success confirmation, refreshes profile
-
-' === Flow 2 ===
-note over workspace_manager, filestorageservice : == LUỒNG 2: TẢI LÊN LOGO WORKSPACE ==\nWorkspace Manager tải lên ảnh logo mới cho Workspace
-
-workspace_manager -> workspacesettingspage_ui: chooses a logo file and clicks Upload
-workspacesettingspage_ui -> workspacecontroller: POST /api/v1/workspaces/{id}/logo (multipart file)
-opt caller is not the Workspace MANAGER
-  workspacecontroller -> workspace_manager: throw 403 FORBIDDEN (@RequireRole({MANAGER}))
-end
-workspacecontroller -> workspaceserviceimpl: uploadLogo(currentUser, workspaceId, file)
-workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
-workspacerepository --> workspaceserviceimpl: Optional<Workspace>
-opt not found
-  workspaceserviceimpl -> workspace_manager: throw 404 WORKSPACE_NOT_FOUND
-end
-alt file read fails
-  workspaceserviceimpl -> workspace_manager: throw 400 FILE_READ_ERROR (IOException)
-else file read OK
-  workspaceserviceimpl -> filestorageservice: uploadWorkspaceLogo(workspaceId, bytes, contentType)
-  filestorageservice --> workspaceserviceimpl: logo URL
-  workspaceserviceimpl -> workspace: workspace.setLogoUrl(url); setUpdatedAt(now)
+alt saves settings
+  workspace_manager -> workspacesettingspage_ui: submits settings form
+  workspacesettingspage_ui -> workspacecontroller: PUT /api/v1/workspaces/{id}/settings
+  opt caller != MANAGER
+    workspacecontroller --> workspacesettingspage_ui: 403 Forbidden
+    workspacesettingspage_ui --> workspace_manager: shows 403 toast
+  end
+  workspacecontroller -> workspaceserviceimpl: updateSettings(workspaceId, request)
+  workspaceserviceimpl -> workspacerepository: findById(workspaceId)
+  workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+  opt !workspace.present
+    workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+    workspacecontroller --> workspacesettingspage_ui: 404 Not Found
+    workspacesettingspage_ui --> workspace_manager: shows 404 toast
+  end
+  workspaceserviceimpl -> workspace: applySettings(request)
   workspace --> workspaceserviceimpl: Workspace
   workspaceserviceimpl -> workspacerepository: save(workspace)
   workspacerepository --> workspaceserviceimpl: Workspace
   workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
   workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
-  workspaceserviceimpl -> workspacecontroller: WorkspaceResponse
-  workspacecontroller --> workspacesettingspage_ui: 200 OK WorkspaceResponse
-  workspacesettingspage_ui -> workspace_manager: displays updated workspace logo preview
+  workspaceserviceimpl --> workspacecontroller: WorkspaceResponse
+  workspacecontroller --> workspacesettingspage_ui: 200 OK
+  workspacesettingspage_ui --> workspace_manager: shows 200 toast
+else uploads logo
+  workspace_manager -> workspacesettingspage_ui: uploads logo file
+  workspacesettingspage_ui -> workspacecontroller: POST /api/v1/workspaces/{id}/logo
+  opt caller != MANAGER
+    workspacecontroller --> workspacesettingspage_ui: 403 Forbidden
+    workspacesettingspage_ui --> workspace_manager: shows 403 toast
+  end
+  workspacecontroller -> workspaceserviceimpl: uploadLogo(workspaceId, file)
+  workspaceserviceimpl -> workspacerepository: findById(workspaceId)
+  workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+  opt !workspace.present
+    workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+    workspacecontroller --> workspacesettingspage_ui: 404 Not Found
+    workspacesettingspage_ui --> workspace_manager: shows 404 toast
+  end
+  alt fileError
+    workspaceserviceimpl --> workspacecontroller: throw 400 FILE_READ_ERROR
+    workspacecontroller --> workspacesettingspage_ui: 400 Bad Request
+    workspacesettingspage_ui --> workspace_manager: shows 400 toast
+  else valid(file)
+    workspaceserviceimpl -> filestorageservice: uploadLogo(workspaceId, file)
+    filestorageservice --> workspaceserviceimpl: logo URL
+    workspaceserviceimpl -> workspace: updateLogoUrl(url)
+    workspace --> workspaceserviceimpl: Workspace
+    workspaceserviceimpl -> workspacerepository: save(workspace)
+    workspacerepository --> workspaceserviceimpl: Workspace
+    workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
+    workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+    workspaceserviceimpl --> workspacecontroller: WorkspaceResponse
+    workspacecontroller --> workspacesettingspage_ui: 200 OK
+    workspacesettingspage_ui --> workspace_manager: shows 200 toast
+  end
 end
 
 @enduml

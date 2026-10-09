@@ -1,0 +1,50 @@
+@startuml 3.4.19b - Assign Workspace Member from Agency
+title Sequence Diagram — 3.4.19b - Assign Workspace Member from Agency
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Workspace MANAGER" as workspace_manager
+boundary "WorkspaceMembersPage (UI)" as workspacememberspage_ui
+boundary "WorkspaceController" as workspacecontroller
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "WorkspaceRepository" as workspacerepository
+entity "AgencyMemberRepository" as agencymemberrepository
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "AssignMembersResponse" as assignmembersresponse
+
+' === Flow ===
+workspace_manager -> workspacememberspage_ui: submits assignments
+workspacememberspage_ui -> workspacecontroller: POST /api/v1/workspaces/{id}/members/assign
+opt caller != MANAGER
+  workspacecontroller --> workspacememberspage_ui: 403 Forbidden
+  workspacememberspage_ui --> workspace_manager: shows 403 toast
+end
+workspacecontroller -> workspaceserviceimpl: assignMembers(currentUser, workspaceId, request)
+workspaceserviceimpl -> workspacerepository: findById(workspaceId)
+workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+opt !workspace.present
+  workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+  workspacecontroller --> workspacememberspage_ui: 404 Not Found
+  workspacememberspage_ui --> workspace_manager: shows 404 toast
+end
+workspaceserviceimpl -> agencymemberrepository: findByAgencyIdAndUserIds(agencyId, userIds)
+agencymemberrepository --> workspaceserviceimpl: List<AgencyMember>
+opt !allInAgency(userIds)
+  workspaceserviceimpl --> workspacecontroller: throw 400 MEMBER_NOT_IN_AGENCY
+  workspacecontroller --> workspacememberspage_ui: 400 Bad Request
+  workspacememberspage_ui --> workspace_manager: shows 400 toast
+end
+workspaceserviceimpl -> workspacememberrepository: saveAll(newMembers)
+workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+workspaceserviceimpl -> assignmembersresponse: new AssignMembersResponse(...)
+assignmembersresponse --> workspaceserviceimpl: AssignMembersResponse
+workspaceserviceimpl --> workspacecontroller: AssignMembersResponse
+workspacecontroller --> workspacememberspage_ui: 200 OK AssignMembersResponse
+workspacememberspage_ui --> workspace_manager: shows 200 toast
+
+@enduml

@@ -1,0 +1,65 @@
+@startuml 3.4.8b - View and Decline My Invitations
+title Sequence Diagram — 3.4.8b - View and Decline My Invitations
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Invitee" as invitee
+boundary "UserInvitationsPage (UI)" as userinvitationspage_ui
+boundary "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "UserRepository" as userrepository
+entity "AgencyInvitationRepository" as agencyinvitationrepository
+entity "AgencyRepository" as agencyrepository
+entity "WorkspaceRepository" as workspacerepository
+entity "AgencyInvitation" as agencyinvitation
+entity "AgencyInvitationResponse" as agencyinvitationresponse
+
+alt views invitations
+  invitee -> userinvitationspage_ui: selects invitations tab
+  userinvitationspage_ui -> agencycontroller: GET /api/v1/agencies/invitations/my-pending
+  agencycontroller -> agencyserviceimpl: listMyPendingInvitations(currentUser)
+  agencyserviceimpl -> userrepository: findById(currentUser.id)
+  userrepository --> agencyserviceimpl: Optional<User>
+  opt !user.present
+    agencyserviceimpl --> agencycontroller: throw 404 USER_NOT_FOUND
+    agencycontroller --> userinvitationspage_ui: 404 Not Found
+    userinvitationspage_ui --> invitee: shows 404 toast
+  end
+  agencyserviceimpl -> agencyinvitationrepository: findByInvitedEmailAndStatus(user.email, PENDING)
+  agencyinvitationrepository --> agencyserviceimpl: List<AgencyInvitation>
+  agencyserviceimpl -> agencyserviceimpl: filterUnexpired(invitations)
+  agencyserviceimpl -> agencyrepository: findAllById(agencyIds)
+  agencyrepository --> agencyserviceimpl: Map<UUID, Agency>
+  agencyserviceimpl -> workspacerepository: findAllById(workspaceIds)
+  workspacerepository --> agencyserviceimpl: Map<UUID, Workspace>
+  agencyserviceimpl -> agencyinvitationresponse: toInvitationResponse(inv)
+  agencyinvitationresponse --> agencyserviceimpl: AgencyInvitationResponse
+  agencyserviceimpl --> agencycontroller: List<AgencyInvitationResponse>
+  agencycontroller --> userinvitationspage_ui: 200 OK List<AgencyInvitationResponse>
+  userinvitationspage_ui --> invitee: renders invitations list
+else declines invitation
+  invitee -> userinvitationspage_ui: clicks Decline on invitation
+  userinvitationspage_ui -> agencycontroller: POST /api/v1/agencies/invitations/decline
+  agencycontroller -> agencyserviceimpl: declineInvitation(currentUser, request)
+  agencyserviceimpl -> agencyinvitationrepository: findByToken(request.token)
+  agencyinvitationrepository --> agencyserviceimpl: Optional<AgencyInvitation>
+  opt !inv.present || status != PENDING || expired
+    agencyserviceimpl --> agencycontroller: throw 400 INVALID_INVITATION
+    agencycontroller --> userinvitationspage_ui: 400 Bad Request
+    userinvitationspage_ui --> invitee: shows 400 toast
+  end
+  agencyserviceimpl -> agencyinvitation: setStatus(REVOKED)
+  agencyinvitation --> agencyserviceimpl: AgencyInvitation
+  agencyserviceimpl -> agencyinvitationrepository: save(invitation)
+  agencyinvitationrepository --> agencyserviceimpl: AgencyInvitation
+  agencyserviceimpl --> agencycontroller: 200 OK
+  agencycontroller --> userinvitationspage_ui: 200 OK
+  userinvitationspage_ui --> invitee: shows 200 toast
+end
+
+@enduml
