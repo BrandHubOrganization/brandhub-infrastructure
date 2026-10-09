@@ -18,22 +18,31 @@ entity "AgencyMemberRepository" as agencymemberrepository
 entity "AgencyResponse" as agencyresponse
 
 ' === Flow ===
-user -> createagencypage_ui: fills in Agency form (logoUrl optional string), submits
-createagencypage_ui -> agencycontroller: POST /api/v1/agencies (@Valid AgencyRequest: name @NotBlank)
-opt name blank -> Spring MethodArgumentNotValidException, Controller never entered
-  agencycontroller -> user: GlobalExceptionHandler -> 400 VALIDATION_ERROR (field errors)
+alt !valid(form)
+  user -> createagencypage_ui: submits invalid form
+  createagencypage_ui -> agencycontroller: POST /api/v1/agencies
+  agencycontroller --> createagencypage_ui: 400 Bad Request
+  createagencypage_ui --> user: shows 400 toast
+else !authenticated
+  user -> createagencypage_ui: submits unauthenticated form
+  createagencypage_ui -> agencycontroller: POST /api/v1/agencies
+  agencycontroller --> createagencypage_ui: 401 Unauthorized
+  createagencypage_ui --> user: shows 401 toast
+else valid(form)
+  user -> createagencypage_ui: submits form
+  createagencypage_ui -> agencycontroller: POST /api/v1/agencies
+  agencycontroller -> agencyserviceimpl: createAgency(currentUser, request)
+  agencyserviceimpl -> agency: new Agency(request, currentUser.getId())
+  agency --> agencyserviceimpl: Agency
+  agencyserviceimpl -> agencyrepository: save(agency)
+  agencyrepository --> agencyserviceimpl: Agency
+  agencyserviceimpl -> agencymemberrepository: save(ownerMember)
+  agencymemberrepository --> agencyserviceimpl: AgencyMember
+  agencyserviceimpl -> agencyresponse: toResponse(agency, OWNER)
+  agencyresponse --> agencyserviceimpl: AgencyResponse
+  agencyserviceimpl --> agencycontroller: AgencyResponse
+  agencycontroller --> createagencypage_ui: 201 Created
+  createagencypage_ui --> user: shows 201 toast
 end
-agencycontroller -> agencyserviceimpl: createAgency(currentUser, request)
-agencyserviceimpl -> agency: Agency.builder() name/logoUrl/description/.../ownerId(currentUser.getId()).build()
-agency --> agencyserviceimpl: agency (transient, no id)
-agencyserviceimpl -> agencyrepository: agencyRepository.save(agency)
-agencyrepository --> agencyserviceimpl: agency (with generated id)
-agencyserviceimpl -> agencymemberrepository: AgencyMember.builder().agencyId(agency.getId()).userId(currentUser.getId()).role(OWNER).build() -> save
-agencymemberrepository --> agencyserviceimpl: AgencyMember (OWNER)
-agencyserviceimpl -> agencyresponse: toResponse(agency, AgencyMemberRole.OWNER)
-agencyresponse --> agencyserviceimpl: AgencyResponse
-agencyserviceimpl -> agencycontroller: AgencyResponse
-agencycontroller --> createagencypage_ui: 201 Created - ApiResponse<AgencyResponse>
-createagencypage_ui -> user: shows Agency Profile (created)
 
 @enduml

@@ -1,77 +1,80 @@
-@startuml
+@startuml 3.6.15 - Apply Watermark
+title Sequence Diagram — 3.6.15 - Apply Watermark
+
 autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
 skinparam BoxPadding 10
 skinparam ParticipantPadding 10
 
-actor creator as "Creator"
-boundary watermarkmodal_ui as "WatermarkStudio (UI)"
-control materialcontroller as "MaterialController"
-entity materialserviceimpl as "MaterialServiceImpl"
-entity imagewatermarkprocessor as "ImageWatermarkProcessor"
-database brandcollectionrepository as "BrandCollectionRepository"
-database materialrepository as "MaterialRepository"
-boundary filestorageservice as "FileStorageService (S3)"
+actor "Creator" as creator
+boundary "WatermarkStudio (UI)" as watermarkmodal_ui
+boundary "MaterialController" as materialcontroller
+control "MaterialServiceImpl" as materialserviceimpl
+control "ImageWatermarkProcessor" as imagewatermarkprocessor
+entity "BrandCollectionRepository" as brandcollectionrepository
+entity "MaterialRepository" as materialrepository
+participant "FileStorageService" as filestorageservice
 
-note over creator, filestorageservice : == LUỒNG 1: MỞ WATERMARK STUDIO & XEM TRƯỚC THỜI GIAN THỰC (LIVE PREVIEW) ==\nCreator mở công cụ đóng dấu trên Material hoặc Task Detail và tùy chỉnh vị trí/độ mờ
+alt opens watermark studio
+  creator -> watermarkmodal_ui: opens studio on retouched image
+  watermarkmodal_ui -> materialcontroller: GET /api/v1/workspaces/{id}/brand-collection?type=LOGO
+  materialcontroller -> materialserviceimpl: getBrandLogos(workspaceId)
+  materialserviceimpl -> brandcollectionrepository: findByWorkspaceIdAndAssetType(workspaceId, "LOGO")
+  brandcollectionrepository --> materialserviceimpl: List<BrandAsset>
+  materialserviceimpl --> materialcontroller: List<BrandAssetResponse>
+  materialcontroller --> watermarkmodal_ui: 200 OK List<BrandAssetResponse>
 
-creator -> watermarkmodal_ui: Mở modal Watermark trên ảnh đã retouched
-watermarkmodal_ui -> materialcontroller: GET /api/v1/workspaces/{id}/brand-collection?type=LOGO
-materialcontroller -> materialserviceimpl: getBrandLogos(workspaceId)
-materialserviceimpl -> brandcollectionrepository: findByWorkspaceIdAndAssetType(workspaceId, "LOGO")
-brandcollectionrepository --> materialserviceimpl: List<BrandAsset>
-materialserviceimpl --> materialcontroller: List<BrandAssetResponse>
-materialcontroller --> watermarkmodal_ui: 200 OK (Danh sách logo thương hiệu)
+  alt brandLogos.isEmpty()
+    watermarkmodal_ui --> creator: shows "no logo" warning, disables Apply
+  else !brandLogos.isEmpty()
+    creator -> watermarkmodal_ui: selects logo, position, opacity, scale
+    watermarkmodal_ui -> watermarkmodal_ui: renderPreview(canvas)
+    watermarkmodal_ui --> creator: renders live preview
+  end
 
-alt Chưa có logo nào trong Brand Collection
-  watermarkmodal_ui --> creator: Hiển thị cảnh báo "Chưa có logo trong Brand Collection", vô hiệu hóa nút Apply
-else Đã có logo hợp lệ
-  creator -> watermarkmodal_ui: Chọn Logo, chọn 1 trong 9 vị trí (BOTTOM_RIGHT), chỉnh Opacity (80%), Scale (15%)
-  watermarkmodal_ui -> watermarkmodal_ui: Render Live Preview trên HTML5 Canvas (Local, <16ms)
-  watermarkmodal_ui --> creator: Hiển thị preview ảnh kèm logo tức thì
+else applies watermark
+  creator -> watermarkmodal_ui: clicks Apply
+  watermarkmodal_ui -> materialcontroller: POST /api/v1/workspaces/{id}/materials/{materialId}/watermark
+  materialcontroller -> materialserviceimpl: applyWatermark(workspaceId, materialId, request, currentUser)
+
+  materialserviceimpl -> materialrepository: findByIdAndWorkspaceId(materialId, workspaceId)
+  materialrepository --> materialserviceimpl: Optional<Material>
+
+  opt !material.present || !material.isImage()
+    materialserviceimpl --> materialcontroller: throw 400 INVALID_MATERIAL_TYPE
+    materialcontroller --> watermarkmodal_ui: 400 Bad Request
+    watermarkmodal_ui --> creator: shows 400 toast
+  end
+
+  materialserviceimpl -> brandcollectionrepository: findByIdAndWorkspaceId(request.logoAssetId, workspaceId)
+  brandcollectionrepository --> materialserviceimpl: Optional<BrandAsset>
+
+  opt !logo.present
+    materialserviceimpl --> materialcontroller: throw 404 LOGO_NOT_FOUND
+    materialcontroller --> watermarkmodal_ui: 404 Not Found
+    watermarkmodal_ui --> creator: shows 404 toast
+  end
+
+  materialserviceimpl -> filestorageservice: downloadInputStream(originalMaterial.url)
+  filestorageservice --> materialserviceimpl: InputStream (baseImage)
+
+  materialserviceimpl -> filestorageservice: downloadInputStream(logoAsset.url)
+  filestorageservice --> materialserviceimpl: InputStream (logoImage)
+
+  materialserviceimpl -> imagewatermarkprocessor: composite(baseImage, logoImage, position, opacity, scale)
+  imagewatermarkprocessor -> imagewatermarkprocessor: renderComposite()
+  imagewatermarkprocessor --> materialserviceimpl: ByteArrayOutputStream (stream)
+
+  materialserviceimpl -> filestorageservice: upload(stream, newFileName, mimeType)
+  filestorageservice --> materialserviceimpl: newFileUrl
+
+  materialserviceimpl -> materialrepository: save(new Material(...))
+  materialrepository --> materialserviceimpl: Material
+
+  materialserviceimpl --> materialcontroller: WatermarkedMaterialResponse
+  materialcontroller --> watermarkmodal_ui: 201 Created
+  watermarkmodal_ui --> creator: shows 201 toast
 end
-
-note over creator, filestorageservice : == LUỒNG 2: XÁC NHẬN ĐÓNG DẤU & XUẤT ẢNH MỚI (APPLY & SAVE NON-DESTRUCTIVE) ==\nCreator ấn xác nhận, hệ thống composite ảnh phân giải cao và lưu bản ghi mới
-
-creator -> watermarkmodal_ui: Bấm "Áp dụng & Tạo bản mới" (Apply Watermark)
-watermarkmodal_ui -> materialcontroller: POST /api/v1/workspaces/{id}/materials/{materialId}/watermark (logoAssetId, position, opacity, scale)
-materialcontroller -> materialserviceimpl: applyWatermark(workspaceId, materialId, request, currentUser)
-
-materialserviceimpl -> materialrepository: findByIdAndWorkspaceId(materialId, workspaceId)
-materialrepository --> materialserviceimpl: Optional<Material>
-
-opt Material không tồn tại hoặc không phải định dạng ảnh
-  materialserviceimpl --> materialcontroller: throw 400 INVALID_MATERIAL_TYPE / 404 NOT_FOUND
-  materialcontroller --> watermarkmodal_ui: 400 Bad Request / 404 Not Found
-  watermarkmodal_ui --> creator: Hiển thị thông báo lỗi
-end
-
-materialserviceimpl -> brandcollectionrepository: findByIdAndWorkspaceId(request.logoAssetId, workspaceId)
-brandcollectionrepository --> materialserviceimpl: Optional<BrandAsset>
-
-opt Logo không tồn tại
-  materialserviceimpl --> materialcontroller: throw 400 LOGO_NOT_FOUND
-  materialcontroller --> watermarkmodal_ui: 400 Bad Request
-  watermarkmodal_ui --> creator: Hiển thị thông báo lỗi
-end
-
-materialserviceimpl -> filestorageservice: downloadInputStream(originalMaterial.url)
-filestorageservice --> materialserviceimpl: InputStream (baseImage)
-
-materialserviceimpl -> filestorageservice: downloadInputStream(logoAsset.url)
-filestorageservice --> materialserviceimpl: InputStream (logoImage)
-
-materialserviceimpl -> imagewatermarkprocessor: composite(baseImage, logoImage, position, opacity, scale, mode)
-imagewatermarkprocessor -> imagewatermarkprocessor: Tính toán tọa độ lưới 9 ô + lề an toàn (3%)\nThiết lập AlphaComposite(SRC_OVER, opacity)\nVẽ bằng Graphics2D (Bicubic quality)
-imagewatermarkprocessor --> materialserviceimpl: ByteArrayOutputStream (watermarkedImageStream)
-
-materialserviceimpl -> filestorageservice: upload(watermarkedImageStream, newFileName, mimeType)
-filestorageservice --> materialserviceimpl: newFileUrl
-
-materialserviceimpl -> materialrepository: save(new Material(type=WATERMARKED, parentMaterialId=materialId, watermarkMeta=request))
-materialrepository --> materialserviceimpl: Material (watermarkedRecord)
-
-materialserviceimpl --> materialcontroller: WatermarkedMaterialResponse
-materialcontroller --> watermarkmodal_ui: 201 Created (Watermarked Material)
-watermarkmodal_ui --> creator: Đóng modal, hiển thị ảnh mới kèm badge "Watermarked"
 
 @enduml

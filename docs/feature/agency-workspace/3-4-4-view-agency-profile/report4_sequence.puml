@@ -22,32 +22,35 @@ entity "AgencyResponse" as agencyresponse
 viewer_owner_member_client -> agencyprofilepage_ui: opens Agency profile
 agencyprofilepage_ui -> agencycontroller: GET /api/v1/agencies/{agencyId}
 agencycontroller -> agencyserviceimpl: getAgency(agencyId, currentUser)
-alt agency not found
+alt !agency.present
   agencyserviceimpl -> agencyrepository: findById(agencyId)
   agencyrepository --> agencyserviceimpl: Optional.empty()
   agencyserviceimpl --> agencycontroller: throw AGENCY_NOT_FOUND (404)
   agencycontroller --> agencyprofilepage_ui: 404 AGENCY_NOT_FOUND
-else agency found
+  agencyprofilepage_ui --> viewer_owner_member_client: shows 404 toast
+else agency.present
   agencyserviceimpl -> agencyrepository: findById(agencyId)
-  agencyrepository --> agencyserviceimpl: Optional<Agency row>
-  agencyserviceimpl -> agency: map row -> Agency
-  agency --> agencyserviceimpl: Agency
-  agencyserviceimpl -> agencyserviceimpl: isOwner = agency.getOwnerId().equals(currentUser.getId())
-  agencyserviceimpl -> agencymemberrepository: findByAgencyIdAndUserId(agencyId, currentUser.getId())
+  agencyrepository --> agencyserviceimpl: Optional<Agency>
+  agencyserviceimpl -> agency: getOwnerId()
+  agency --> agencyserviceimpl: ownerId
+  agencyserviceimpl -> agencyserviceimpl: checkIsOwner(currentUser)
+  agencyserviceimpl -> agencymemberrepository: findByAgencyIdAndUserId(agencyId, userId)
   agencymemberrepository --> agencyserviceimpl: Optional<AgencyMember>
-  opt membership empty and not Owner
-    agencyserviceimpl -> clientprofilerepository: findByUserId(currentUser.getId())
+  opt !isMember && !isOwner
+    agencyserviceimpl -> clientprofilerepository: findByUserId(userId)
     clientprofilerepository --> agencyserviceimpl: List<ClientProfile>
-    agencyserviceimpl -> agencyserviceimpl: isClientOfAgency = any cp.getAgencyId() == agencyId
+    agencyserviceimpl -> agencyserviceimpl: checkIsClient(agencyId)
   end
-  opt not Owner, not Member, not Client of this Agency
+  opt !isOwner && !isMember && !isClient
     agencyserviceimpl --> agencycontroller: throw NOT_AGENCY_MEMBER (400)
+    agencycontroller --> agencyprofilepage_ui: 400 NOT_AGENCY_MEMBER
+    agencyprofilepage_ui --> viewer_owner_member_client: shows 400 toast
   end
   agencyserviceimpl -> agencyresponse: toResponse(agency, myRole)
   agencyresponse --> agencyserviceimpl: AgencyResponse
   agencyserviceimpl --> agencycontroller: AgencyResponse
   agencycontroller --> agencyprofilepage_ui: 200 OK AgencyResponse
+  agencyprofilepage_ui --> viewer_owner_member_client: renders Agency profile
 end
-agencyprofilepage_ui -> viewer_owner_member_client: renders Agency profile
 
 @enduml

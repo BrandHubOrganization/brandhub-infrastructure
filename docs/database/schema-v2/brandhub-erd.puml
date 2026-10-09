@@ -1,6 +1,6 @@
 @startuml BrandHub ERD V2
-' STATUS: DESIGN — chưa áp dụng vào scripts/init-postgres.sql thật.
-' Nguồn: brandhub-dbml.dbml, docs/ba/11-data-entities-glossary.md
+' STATUS: DESIGN — not yet applied to scripts/init-postgres.sql.
+' Source: brandhub-dbml.dbml, docs/ba/11-data-entities-glossary.md
 skinparam shadowing false
 skinparam linetype ortho
 skinparam nodesep 60
@@ -13,7 +13,7 @@ skinparam entity {
 }
 
 ' ============================================================
-' POSTGRESQL — IDENTITY (4 tables, không đổi so với V1)
+' POSTGRESQL — IDENTITY (4 tables, unchanged from V1)
 ' ============================================================
 
 entity "users" as users <<PostgreSQL>> {
@@ -87,8 +87,8 @@ entity "agencies" as agencies <<PostgreSQL, NEW V2>> {
   * updated_at : timestamptz
 }
 note right of agencies
-  1 Agency = 1 Owner cố định
-  Soft delete, khôi phục 30 ngày
+  1 Agency = 1 Owner (fixed)
+  Soft delete, 30 days recovery
 end note
 
 entity "agency_members" as agency_members <<PostgreSQL, NEW V2>> {
@@ -100,7 +100,7 @@ entity "agency_members" as agency_members <<PostgreSQL, NEW V2>> {
 }
 note right of agency_members
   UNIQUE(agency_id, user_id)
-  KHÔNG có cột role
+  NO role column
 end note
 
 entity "agency_invitations" as agency_invitations <<PostgreSQL, NEW V2>> {
@@ -116,7 +116,7 @@ entity "agency_invitations" as agency_invitations <<PostgreSQL, NEW V2>> {
   * created_at : timestamptz
 }
 note right of agency_invitations
-  Hết hạn 3 ngày
+  Expires in 3 days
 end note
 
 entity "workspaces" as workspaces <<PostgreSQL, CHANGED V2>> {
@@ -133,7 +133,7 @@ entity "workspaces" as workspaces <<PostgreSQL, CHANGED V2>> {
   * updated_at : timestamptz
 }
 note right of workspaces
-  ĐỔI V2: agency_id FK thay vì đứng độc lập
+  V2 CHANGE: agency_id FK instead of standalone
   Owner suy ra qua agency.owner_id
 end note
 
@@ -152,7 +152,7 @@ entity "workspace_members" as workspace_members <<PostgreSQL, CHANGED V2>> {
 }
 note right of workspace_members
   role: OWNER | MANAGER | CREATOR | CLIENT
-  ĐỔI V2: CLIENT gộp vào đây thay vì bảng clients riêng
+  V2 CHANGE: CLIENT merged here instead of separate clients table
   UNIQUE(workspace_id, user_id)
   UNIQUE(workspace_id, client_profile_id)
 end note
@@ -195,9 +195,9 @@ entity "client_profiles" as client_profiles <<PostgreSQL, NEW V2>> {
   * updated_at : timestamptz
 }
 note right of client_profiles
-  Tách bảng riêng khỏi users
-  Tái sử dụng xuyên nhiều Agency/Workspace
-  email CỐ ĐỊNH, không đổi được (FR 3.3.4)
+  Separate table from users
+  Reused across multiple Agencies/Workspaces
+  email FIXED, immutable (FR 3.3.4)
 end note
 
 ' ============================================================
@@ -218,9 +218,9 @@ entity "media_packages" as media_packages <<PostgreSQL, NEW V2>> {
   * updated_at : timestamptz
 }
 note right of media_packages
-  Gộp Template+Custom 1 bảng
-  is_template=true: Admin template dùng chung
-  is_template=false: custom copy riêng 1 Workspace
+  Merged Template+Custom into 1 table
+  is_template=true: Shared Admin template
+  is_template=false: Custom copy for 1 Workspace
 end note
 
 entity "workspace_media_packages" as ws_media_packages <<PostgreSQL, NEW V2>> {
@@ -236,8 +236,8 @@ entity "workspace_media_packages" as ws_media_packages <<PostgreSQL, NEW V2>> {
   * updated_at : timestamptz
 }
 note right of ws_media_packages
-  ACID 2-bên-approve (Hard Rule 4)
-  1 bên sửa final_terms → reset cột approve bên kia
+  ACID 2-party-approve (Hard Rule 4)
+  1 party edits final_terms -> resets approval of other party
 end note
 
 entity "media_campaigns" as media_campaigns <<PostgreSQL, NEW V2>> {
@@ -276,8 +276,8 @@ entity "third_party_collaborators" as collaborators <<PostgreSQL, NEW V2>> {
   * updated_at : timestamptz
 }
 note right of collaborators
-  Danh bạ chung cấp Agency
-  KHÔNG gắn cứng 1 Campaign
+  Agency-level shared directory
+  NOT hard-bound to 1 Campaign
 end note
 
 entity "campaign_collaborators" as campaign_collaborators <<PostgreSQL, NEW V2>> {
@@ -290,12 +290,12 @@ entity "campaign_collaborators" as campaign_collaborators <<PostgreSQL, NEW V2>>
   * updated_at : timestamptz
 }
 note right of campaign_collaborators
-  N-N: trạng thái hợp tác THEO TỪNG Campaign
+  N-N: Collaboration status PER Campaign
   UNIQUE(media_campaign_id, collaborator_id)
 end note
 
 ' ============================================================
-' POSTGRESQL — BILLING (đổi phạm vi gắn Plan: User thay vì Workspace)
+' POSTGRESQL — BILLING (Plan bound to User instead of Workspace)
 ' ============================================================
 
 entity "subscription_plans" as subscription_plans <<PostgreSQL>> {
@@ -324,8 +324,8 @@ entity "user_subscriptions" as user_subscriptions <<PostgreSQL, RENAMED V2>> {
   * updated_at : timestamptz
 }
 note right of user_subscriptions
-  ĐỔI TÊN V2 từ workspace_subscriptions
-  Plan gắn cấp User/Owner, áp dụng toàn bộ Agency
+  V2 RENAMED from workspace_subscriptions
+  Plan bound to User/Owner, applies to whole Agency
 end note
 
 entity "transactions" as transactions <<PostgreSQL, RENAMED V2>> {
@@ -344,8 +344,8 @@ entity "transactions" as transactions <<PostgreSQL, RENAMED V2>> {
   * updated_at : timestamptz
 }
 note right of transactions
-  ĐỔI TÊN V2 từ payments, gộp invoices
-  PayOS, ACID toàn bộ process
+  V2 RENAMED from payments, invoices merged
+  PayOS, ACID full process
 end note
 
 entity "ai_credit_ledgers" as ai_credit_ledgers <<PostgreSQL, NEW V2>> {
@@ -358,8 +358,8 @@ entity "ai_credit_ledgers" as ai_credit_ledgers <<PostgreSQL, NEW V2>> {
   * updated_at : timestamptz
 }
 note right of ai_credit_ledgers
-  Reset hàng tháng, KHÔNG rollover
-  UNIQUE(agency_id, month) — không gắn user
+  Reset monthly, NO rollover
+  UNIQUE(agency_id, month) — not bound to user
 end note
 
 entity "ai_credit_creator_limits" as ai_credit_creator_limits <<PostgreSQL, NEW 2026-09-16>> {
@@ -373,7 +373,7 @@ entity "ai_credit_creator_limits" as ai_credit_creator_limits <<PostgreSQL, NEW 
   * updated_at : timestamptz
 }
 note right of ai_credit_creator_limits
-  Config hạn mức credit RIÊNG từng Creator
+  Config credit limits per Creator
   UNIQUE(agency_id, creator_id)
 end note
 
@@ -390,11 +390,11 @@ entity "audit_logs" as audit_logs <<PostgreSQL>> {
   * created_at : timestamptz
 }
 note right of audit_logs
-  Append-only, không UPDATE/DELETE
+  Append-only, no UPDATE/DELETE
 end note
 
 ' ============================================================
-' MONGODB — 14 COLLECTIONS (business-service, soft ref, không có FK thật)
+' MONGODB — 14 COLLECTIONS (business-service, soft ref, no physical FK)
 ' ============================================================
 
 entity "tasks" as tasks <<MongoDB, NEW V2>> {
@@ -409,15 +409,15 @@ entity "tasks" as tasks <<MongoDB, NEW V2>> {
   qcAssigneeId : string
   * requiresClientApproval : boolean
   * status : task_status
-  * approvalRound : int <<0 khi chưa submit; tăng mỗi lần resubmit>>
+  * approvalRound : int <<0 before submit; increments each resubmit>>
   typeMetadata : object
   dueDate : date
   * createdAt : date
   * updatedAt : date
 }
 note right of tasks
-  THAY posts V1 — generic 3 loại: post/livestream/survey
-  campaignId NULL khi Task sinh từ Content Request
+  REPLACES posts V1 — generic 3 types: post/livestream/survey
+  campaignId NULL when Task spawned from Content Request
 end note
 
 entity "task_approvals" as task_approvals <<MongoDB, NEW V2>> {
@@ -432,8 +432,8 @@ entity "task_approvals" as task_approvals <<MongoDB, NEW V2>> {
   * createdAt : date
 }
 note right of task_approvals
-  Append-only — GIỮ approval cũ khi step sau reject
-  Query approval round hiện hành theo tasks.approvalRound
+  Append-only — retains old approval when next step rejects
+  Query current approval round via tasks.approvalRound
 end note
 
 entity "posts" as posts <<MongoDB, CHANGED MEANING V2>> {
@@ -456,7 +456,7 @@ entity "posts" as posts <<MongoDB, CHANGED MEANING V2>> {
   * updatedAt : date
 }
 note right of posts
-  ĐỔI NGHĨA V2 — chỉ bài ĐÃ PUBLISH thành công
+  V2 MEANING — only posts successfully PUBLISHED
 end note
 
 entity "content_requests" as content_requests <<MongoDB, CHANGED FSM V2>> {
@@ -473,7 +473,7 @@ entity "content_requests" as content_requests <<MongoDB, CHANGED FSM V2>> {
 }
 note right of content_requests
   status: pending → in_progress → accepted/denied
-  denied = TERMINAL (khác V1)
+  denied = TERMINAL (differs from V1)
 end note
 
 entity "material_repository" as material_repository <<MongoDB, NEW V2>> {
@@ -535,7 +535,7 @@ entity "livestream_sessions" as livestream_sessions <<MongoDB, NEW V2>> {
   * updatedAt : date
 }
 note right of livestream_sessions
-  Con của Task loại livestream — FR 3.6.22-3.6.24
+  Child of livestream Task — FR 3.6.22-3.6.24
 end note
 
 entity "survey_forms" as survey_forms <<MongoDB, NEW V2>> {
@@ -549,7 +549,7 @@ entity "survey_forms" as survey_forms <<MongoDB, NEW V2>> {
   * updatedAt : date
 }
 note right of survey_forms
-  Con của Task loại survey — FR 3.6.25
+  Child of survey Task — FR 3.6.25
 end note
 
 entity "survey_responses" as survey_responses <<MongoDB, NEW V2>> {
@@ -561,7 +561,7 @@ entity "survey_responses" as survey_responses <<MongoDB, NEW V2>> {
   * submittedAt : date
 }
 note right of survey_responses
-  Tách khỏi survey_forms vì high write throughput
+  Separated from survey_forms due to high write throughput
 end note
 
 entity "mail_templates" as mail_templates <<MongoDB, NEW V2>> {
@@ -598,7 +598,7 @@ entity "social_accounts" as social_accounts <<MongoDB>> {
 }
 note right of social_accounts
   platform: FACEBOOK | INSTAGRAM | TIKTOK | THREADS
-  (ZALO_OA đã loại khỏi scope)
+  (ZALO_OA removed from scope)
 end note
 
 entity "notifications" as notifications <<MongoDB>> {
@@ -615,7 +615,7 @@ entity "notifications" as notifications <<MongoDB>> {
 }
 
 ' ============================================================
-' RELATIONSHIPS — PostgreSQL FK thật
+' RELATIONSHIPS — PostgreSQL physical FKs
 ' ============================================================
 
 users ||--o{ oauth
@@ -642,16 +642,16 @@ users ||--o| user_subscriptions
 subscription_plans ||--o{ user_subscriptions
 users ||--o{ transactions
 
-' MongoDB soft refs (không FK thật — vẽ dashed line ở diagram tool riêng nếu cần)
+' MongoDB soft refs (no physical FK — dashed line in diagram if needed)
 note as N1
   MongoDB collections (tasks, task_approvals, posts,
   content_requests, material_repository, brand_collections,
   hashtag_collections, content_versions, livestream_sessions,
   survey_forms, survey_responses, mail_templates,
-  social_accounts, notifications) dùng SOFT REFERENCE tới
-  PostgreSQL — không có FK constraint thật, join ở
+  social_accounts, notifications) use SOFT REFERENCE to
+  PostgreSQL — no physical FK constraint, joined at
   application layer.
-  Xem docs/database/database-strategy.md mục 5.
+  See docs/database/database-strategy.md section 5.
 end note
 
 @enduml

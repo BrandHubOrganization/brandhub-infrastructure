@@ -20,37 +20,54 @@ entity "Workspace" as workspace
 entity "WorkspaceResponse" as workspaceresponse
 
 ' === Flow ===
-agency_member -> createworkspacepage_ui: fills Create Workspace form (name, agencyId, optional fields, optional assignMembers)
+agency_member -> createworkspacepage_ui: submits form
 createworkspacepage_ui -> workspacecontroller: POST /api/v1/workspaces
 workspacecontroller -> workspaceserviceimpl: createWorkspace(currentUser, request)
-workspaceserviceimpl -> agencymemberrepository: findByAgencyIdAndUserId(agencyId, currentUser.id)
+workspaceserviceimpl -> agencymemberrepository: findByAgencyIdAndUserId(agencyId, userId)
 agencymemberrepository --> workspaceserviceimpl: Optional<AgencyMember>
-opt not found, or role != OWNER
-  workspaceserviceimpl -> agency_member: throw 403 NOT_AGENCY_OWNER
+opt !agency.present || role != OWNER
+  workspaceserviceimpl --> workspacecontroller: throw 403 NOT_AGENCY_OWNER
+  workspacecontroller --> createworkspacepage_ui: 403 Forbidden
+  createworkspacepage_ui --> agency_member: shows 403 toast
 end
-workspaceserviceimpl -> workspace: new Workspace(agencyId, name, createdBy, settings={}, ...)
+workspaceserviceimpl -> workspace: new Workspace(...)
 workspace --> workspaceserviceimpl: Workspace
 workspaceserviceimpl -> workspacerepository: save(workspace)
 workspacerepository --> workspaceserviceimpl: Workspace
-workspaceserviceimpl -> workspaceserviceimpl: anotherManagerChosen = assignMembers has entry role=MANAGER & userId != creator
-workspaceserviceimpl -> workspacememberrepository: save(creator WorkspaceMember: role = anotherManagerChosen ? CREATOR : MANAGER)
+workspaceserviceimpl -> workspaceserviceimpl: checkManagerAssignment(assignMembers)
+workspaceserviceimpl -> workspacememberrepository: save(creatorMember)
 workspacememberrepository --> workspaceserviceimpl: WorkspaceMember
-opt assignMembers present and not empty
-  workspaceserviceimpl -> agencymemberrepository: per entry: findByAgencyIdAndUserId(agencyId, entry.userId)
-  agencymemberrepository --> workspaceserviceimpl: Optional<AgencyMember> - not found -> throw 403 NOT_AGENCY_MEMBER
-  workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndUserIdAndIsActiveTrue - existing? skip entry
+opt !assignMembers.isEmpty()
+  workspaceserviceimpl -> agencymemberrepository: findByAgencyIdAndUserId(agencyId, entry.userId)
+  agencymemberrepository --> workspaceserviceimpl: Optional<AgencyMember>
+  opt !inAgency(userId)
+    workspaceserviceimpl --> workspacecontroller: throw 403 NOT_AGENCY_MEMBER
+    workspacecontroller --> createworkspacepage_ui: 403 Forbidden error response
+    createworkspacepage_ui --> agency_member: shows 400 toast
+  end
+  workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndUserId(workspaceId, userId)
   workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
-  workspaceserviceimpl -> workspacememberrepository: if role=MANAGER: countByWorkspaceIdAndRoleAndIsActiveTrue - >0 -> throw 409 MANAGER_ALREADY_ASSIGNED
+  workspaceserviceimpl -> workspacememberrepository: countByWorkspaceIdAndRole(workspaceId, MANAGER)
   workspacememberrepository --> workspaceserviceimpl: long count
-  workspaceserviceimpl -> userrepository: findById(entry.userId) - not found -> throw USER_NOT_FOUND
+  opt role == MANAGER && count > 0
+    workspaceserviceimpl --> workspacecontroller: throw 409 MANAGER_ALREADY_ASSIGNED
+    workspacecontroller --> createworkspacepage_ui: 409 Conflict error response
+    createworkspacepage_ui --> agency_member: shows 409 toast
+  end
+  workspaceserviceimpl -> userrepository: findById(entry.userId)
   userrepository --> workspaceserviceimpl: Optional<User>
-  workspaceserviceimpl -> workspacememberrepository: save(entry WorkspaceMember)
+  opt !user.present
+    workspaceserviceimpl --> workspacecontroller: throw 404 USER_NOT_FOUND
+    workspacecontroller --> createworkspacepage_ui: 404 Error response
+    createworkspacepage_ui --> agency_member: shows 404 toast
+  end
+  workspaceserviceimpl -> workspacememberrepository: save(member)
   workspacememberrepository --> workspaceserviceimpl: WorkspaceMember
 end
 workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
 workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
-workspaceserviceimpl -> workspacecontroller: WorkspaceResponse
-workspacecontroller --> createworkspacepage_ui: 200 OK - created Workspace summary
-createworkspacepage_ui -> agency_member: navigates into new Workspace (MANAGER = creator, or designated user if MANAGER transferred)
+workspaceserviceimpl --> workspacecontroller: WorkspaceResponse
+workspacecontroller --> createworkspacepage_ui: 200 OK WorkspaceResponse
+createworkspacepage_ui --> agency_member: navigates to workspace
 
 @enduml

@@ -1,5 +1,5 @@
-@startuml 3.4.8 - View Agency Invitation Status
-title Sequence Diagram — 3.4.8 - View Agency Invitation Status
+@startuml 3.4.8a - View Agency Invitation Status
+title Sequence Diagram — 3.4.8a - View Agency Invitation Status
 
 autonumber
 skinparam shadowing false
@@ -8,109 +8,69 @@ skinparam BoxPadding 10
 skinparam ParticipantPadding 10
 
 ' === Participants ===
-actor "Owner" as owner
-actor "Invitee" as invitee
+actor "Agency Owner" as owner
 boundary "AgencyInvitationsPage (UI)" as agencyinvitationspage_ui
-boundary "UserInvitationsPage (UI)" as userinvitationspage_ui
 boundary "AgencyController" as agencycontroller
 control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyRepository" as agencyrepository
 entity "AgencyInvitationRepository" as agencyinvitationrepository
 entity "AgencyInvitation" as agencyinvitation
-entity "AgencyRepository" as agencyrepository
 entity "WorkspaceRepository" as workspacerepository
-entity "UserRepository" as userrepository
 entity "AgencyInvitationResponse" as agencyinvitationresponse
 
-' === Flow 1 ===
-note over owner, agencyinvitationresponse : == LUỒNG 1: AGENCY OWNER XEM DANH SÁCH LỜI MỜI CỦA AGENCY ==\nOwner truy cập trang quản lý lời mời để theo dõi trạng thái các lời mời đã gửi
-
-owner -> agencyinvitationspage_ui: opens pending-invitations tab
-agencyinvitationspage_ui -> agencycontroller: GET /api/v1/agencies/{agencyId}/invitations
-agencycontroller -> agencyserviceimpl: listInvitations(currentUser, agencyId)
-agencyserviceimpl -> agencyrepository: findAgencyOrThrow(agencyId)
-agencyrepository --> agencyserviceimpl: Agency
-opt agency.ownerId != currentUser.id
-  agencyserviceimpl -> owner: throw 403 NOT_AGENCY_OWNER
+alt views pending invitations
+  owner -> agencyinvitationspage_ui: selects pending invitations tab
+  agencyinvitationspage_ui -> agencycontroller: GET /api/v1/agencies/{agencyId}/invitations
+  agencycontroller -> agencyserviceimpl: listInvitations(currentUser, agencyId)
+  agencyserviceimpl -> agencyrepository: findById(agencyId)
+  agencyrepository --> agencyserviceimpl: Optional<Agency>
+  opt caller != OWNER
+    agencyserviceimpl --> agencycontroller: throw 403 NOT_AGENCY_OWNER
+    agencycontroller --> agencyinvitationspage_ui: 403 Forbidden
+    agencyinvitationspage_ui --> owner: shows 403 toast
+  end
+  agencyserviceimpl -> agencyinvitationrepository: findByAgencyId(agencyId)
+  agencyinvitationrepository --> agencyserviceimpl: List<AgencyInvitation>
+  agencyserviceimpl -> workspacerepository: findAllById(workspaceIds)
+  workspacerepository --> agencyserviceimpl: Map<UUID, Workspace>
+  agencyserviceimpl -> agencyserviceimpl: calculateEffectiveStatus(inv)
+  agencyserviceimpl -> agencyinvitation: getStatus()
+  agencyinvitation --> agencyserviceimpl: status
+  agencyserviceimpl -> agencyinvitationresponse: toInvitationResponse(effective)
+  agencyinvitationresponse --> agencyserviceimpl: AgencyInvitationResponse
+  agencyserviceimpl --> agencycontroller: List<AgencyInvitationResponse>
+  agencycontroller --> agencyinvitationspage_ui: 200 OK List<AgencyInvitationResponse>
+  agencyinvitationspage_ui --> owner: renders invitations list
+else clicks Cancel on invitation
+  owner -> agencyinvitationspage_ui: clicks Cancel on invitation
+  agencyinvitationspage_ui -> agencycontroller: DELETE /api/v1/agencies/{agencyId}/invitations/{invitationId}
+  agencycontroller -> agencyserviceimpl: cancelInvitation(agencyId, invitationId)
+  agencyserviceimpl -> agencyrepository: findById(agencyId)
+  agencyrepository --> agencyserviceimpl: Optional<Agency>
+  opt caller != OWNER
+    agencyserviceimpl --> agencycontroller: throw 403 NOT_AGENCY_OWNER
+    agencycontroller --> agencyinvitationspage_ui: 403 Forbidden
+    agencyinvitationspage_ui --> owner: shows 403 toast
+  end
+  agencyserviceimpl -> agencyinvitationrepository: findById(invitationId)
+  agencyinvitationrepository --> agencyserviceimpl: Optional<AgencyInvitation>
+  opt !inv.present || wrongAgency
+    agencyserviceimpl --> agencycontroller: throw 404 INVITATION_NOT_FOUND
+    agencycontroller --> agencyinvitationspage_ui: 404 Not Found
+    agencyinvitationspage_ui --> owner: shows 404 toast
+  end
+  opt status != PENDING
+    agencyserviceimpl --> agencycontroller: throw 400 INVALID_INVITATION
+    agencycontroller --> agencyinvitationspage_ui: 400 Bad Request
+    agencyinvitationspage_ui --> owner: shows 400 toast
+  end
+  agencyserviceimpl -> agencyinvitation: setStatus(REVOKED)
+  agencyinvitation --> agencyserviceimpl: AgencyInvitation
+  agencyserviceimpl -> agencyinvitationrepository: save(invitation)
+  agencyinvitationrepository --> agencyserviceimpl: AgencyInvitation
+  agencyserviceimpl --> agencycontroller: 200 OK
+  agencycontroller --> agencyinvitationspage_ui: 200 OK
+  agencyinvitationspage_ui --> owner: shows 200 toast
 end
-agencyserviceimpl -> agencyinvitationrepository: findByAgencyId(agencyId)
-agencyinvitationrepository --> agencyserviceimpl: List<AgencyInvitation>
-agencyserviceimpl -> workspacerepository: findAllById(workspaceIds)
-workspacerepository --> agencyserviceimpl: Map<UUID, Workspace>
-agencyserviceimpl -> agencyserviceimpl: effectiveStatus(inv) - derive EXPIRED if past expiresAt
-agencyserviceimpl -> agencyinvitation: map each -> effective AgencyInvitation
-agencyinvitation --> agencyserviceimpl: AgencyInvitation (effective)
-agencyserviceimpl -> agencyinvitationresponse: toInvitationResponse(effective, agencyName, workspaceName)
-agencyinvitationresponse --> agencyserviceimpl: AgencyInvitationResponse
-agencyserviceimpl -> agencycontroller: List<AgencyInvitationResponse>
-agencycontroller --> agencyinvitationspage_ui: 200 OK List<AgencyInvitationResponse>
-agencyinvitationspage_ui -> owner: renders list with reported statuses (PENDING/EXPIRED/ACCEPTED/REVOKED)
-
-' === Flow 2 ===
-note over owner, agencyinvitationresponse : == LUỒNG 2: AGENCY OWNER HỦY / THU HỒI LỜI MỜI ==\nOwner hủy lời mời đang ở trạng thái PENDING
-
-owner -> agencyinvitationspage_ui: clicks Cancel on an invitation row
-agencyinvitationspage_ui -> agencycontroller: DELETE /api/v1/agencies/{agencyId}/invitations/{invitationId}
-agencycontroller -> agencyserviceimpl: cancelInvitation(currentUser, agencyId, invitationId)
-agencyserviceimpl -> agencyrepository: findAgencyOrThrow(agencyId)
-agencyrepository --> agencyserviceimpl: Agency
-opt !agency.ownerId.equals(currentUser.id)
-  agencyserviceimpl -> owner: throw 403 NOT_AGENCY_OWNER
-end
-agencyserviceimpl -> agencyinvitationrepository: findById(invitationId).filter(agencyId match)
-agencyinvitationrepository --> agencyserviceimpl: Optional<AgencyInvitation>
-opt not found or wrong agency
-  agencyserviceimpl -> owner: throw 404 INVITATION_NOT_FOUND
-end
-opt invitation.status != PENDING
-  agencyserviceimpl -> owner: throw 400 INVALID_INVITATION
-end
-agencyserviceimpl -> agencyinvitation: invitation.setStatus(REVOKED)
-agencyserviceimpl -> agencyinvitationrepository: save(invitation)
-agencyinvitationrepository --> agencyserviceimpl: AgencyInvitation
-agencyserviceimpl -> agencycontroller: void
-agencycontroller --> agencyinvitationspage_ui: 200 OK (no data)
-agencyinvitationspage_ui -> owner: removes row from list / marks status REVOKED
-
-' === Flow 3 ===
-note over invitee, agencyinvitationresponse : == LUỒNG 3: NGƯỜI ĐƯỢC MỜI XEM DANH SÁCH LỜI MỜI ĐANG CHỜ ==\nInvitee kiểm tra các lời mời gửi đến email của mình còn hiệu lực
-
-invitee -> userinvitationspage_ui: opens \"My Invitations\" section
-userinvitationspage_ui -> agencycontroller: GET /api/v1/agencies/invitations/my-pending
-agencycontroller -> agencyserviceimpl: listMyPendingInvitations(currentUser)
-agencyserviceimpl -> userrepository: findById(currentUser.id)
-userrepository --> agencyserviceimpl: Optional<User>
-opt user not found
-  agencyserviceimpl -> invitee: throw USER_NOT_FOUND
-end
-agencyserviceimpl -> agencyinvitationrepository: findByInvitedEmailAndStatus(user.email, PENDING)
-agencyinvitationrepository --> agencyserviceimpl: List<AgencyInvitation>
-agencyserviceimpl -> agencyserviceimpl: filter expiresAt.isAfter(now) - only unexpired ones
-agencyserviceimpl -> agencyrepository: findAllById(agencyIds)
-agencyrepository --> agencyserviceimpl: Map<UUID, Agency>
-agencyserviceimpl -> workspacerepository: findAllById(workspaceIds)
-workspacerepository --> agencyserviceimpl: Map<UUID, Workspace>
-agencyserviceimpl -> agencyinvitationresponse: toInvitationResponse(inv, agencyName, workspaceName)
-agencyinvitationresponse --> agencyserviceimpl: AgencyInvitationResponse
-agencyserviceimpl -> agencycontroller: List<AgencyInvitationResponse>
-agencycontroller --> userinvitationspage_ui: 200 OK List<AgencyInvitationResponse>
-userinvitationspage_ui -> invitee: renders list with Accept and Decline actions
-
-' === Flow 4 ===
-note over invitee, agencyinvitationresponse : == LUỒNG 4: NGƯỜI ĐƯỢC MỜI TỪ CHỐI LỜI MỜI ==\nInvitee từ chối lời mời tham gia Agency
-
-invitee -> userinvitationspage_ui: clicks Decline on an invitation item
-userinvitationspage_ui -> agencycontroller: POST /api/v1/agencies/invitations/decline (token)
-agencycontroller -> agencyserviceimpl: declineInvitation(currentUser, request)
-agencyserviceimpl -> agencyinvitationrepository: findByToken(request.token)
-agencyinvitationrepository --> agencyserviceimpl: Optional<AgencyInvitation>
-opt not found, or status != PENDING, or expired
-  agencyserviceimpl -> invitee: throw 400 INVALID_INVITATION
-end
-agencyserviceimpl -> agencyinvitation: invitation.setStatus(REVOKED)
-agencyserviceimpl -> agencyinvitationrepository: save(invitation)
-agencyinvitationrepository --> agencyserviceimpl: AgencyInvitation
-agencyserviceimpl -> agencycontroller: void
-agencycontroller --> userinvitationspage_ui: 200 OK (no data)
-userinvitationspage_ui -> invitee: drops item from list
 
 @enduml

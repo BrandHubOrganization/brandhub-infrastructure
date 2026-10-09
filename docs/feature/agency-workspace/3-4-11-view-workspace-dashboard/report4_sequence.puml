@@ -22,35 +22,40 @@ entity "WorkspaceDashboardResponse" as workspacedashboardresponse
 ' === Flow ===
 member_manager_creator_client -> workspacedashboardpage_ui: opens Workspace dashboard
 workspacedashboardpage_ui -> workspacecontroller: GET /api/v1/workspaces/{workspaceId}/dashboard
-opt caller has no membership row with qualifying role
-  workspacecontroller -> member_manager_creator_client: throw 403 FORBIDDEN  @RequireRole({MANAGER,CREATOR,CLIENT})
+opt !hasQualifyingRole
+  workspacecontroller --> workspacedashboardpage_ui: 403 Forbidden error response
+  workspacedashboardpage_ui --> member_manager_creator_client: displays error toast (403 FORBIDDEN)
 end
 workspacecontroller -> workspaceserviceimpl: getDashboard(workspaceId, currentUser)
 workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
 workspacerepository --> workspaceserviceimpl: Optional<Workspace>
-opt not found
-  workspaceserviceimpl -> member_manager_creator_client: throw 404 WORKSPACE_NOT_FOUND
+opt !workspace.present
+  workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+  workspacecontroller --> workspacedashboardpage_ui: 404 Error response
+  workspacedashboardpage_ui --> member_manager_creator_client: shows 404 toast
 end
-workspaceserviceimpl -> workspaceserviceimpl: assertMember(workspaceId, userId) - active WorkspaceMember row, or CLIENT via own ClientProfile
-opt caller has no active membership row
-  workspaceserviceimpl -> member_manager_creator_client: throw 403 WORKSPACE_ACCESS_DENIED
+workspaceserviceimpl -> workspaceserviceimpl: assertMember(workspaceId, userId)
+opt !activeMember
+  workspaceserviceimpl --> workspacecontroller: throw 403 WORKSPACE_ACCESS_DENIED
+  workspacecontroller --> workspacedashboardpage_ui: 403 Forbidden error response
+  workspacedashboardpage_ui --> member_manager_creator_client: shows 403 toast
 end
 workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndIsActiveTrue(workspaceId)
 workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
-workspaceserviceimpl -> workspaceserviceimpl: group by role -> membersByRole
+workspaceserviceimpl -> workspaceserviceimpl: groupByRole(members)
 workspaceserviceimpl -> workspacemediapackagerepository: findByWorkspaceId(workspaceId)
 workspacemediapackagerepository --> workspaceserviceimpl: Optional<WorkspaceMediaPackage>
-opt mediaPackage present
+opt mediaPackage.present
   workspaceserviceimpl -> mediacampaignrepository: findByWorkspaceMediaPackageId(packageId)
   mediacampaignrepository --> workspaceserviceimpl: List<MediaCampaign>
-  workspaceserviceimpl -> workspaceserviceimpl: group by CampaignStatus -> campaignsByStatus (empty if no package)
-  workspaceserviceimpl -> aicreditledgerrepository: findByAgencyIdAndMonth(workspace.agencyId, currentMonth)
+  workspaceserviceimpl -> workspaceserviceimpl: groupByStatus(campaigns)
+  workspaceserviceimpl -> aicreditledgerrepository: findByAgencyIdAndMonth(agencyId, month)
 end
-aicreditledgerrepository --> workspaceserviceimpl: Optional<AiCreditLedger> (0 if absent)
-workspaceserviceimpl -> workspacedashboardresponse: new WorkspaceDashboardResponse(toResponse(workspace), memberCount, membersByRole, campaignCount, campaignsByStatus, packageNegotiationStatus, agencyId, currentMonth, creditsUsed)
+aicreditledgerrepository --> workspaceserviceimpl: Optional<AiCreditLedger>
+workspaceserviceimpl -> workspacedashboardresponse: new WorkspaceDashboardResponse(...)
 workspacedashboardresponse --> workspaceserviceimpl: WorkspaceDashboardResponse
-workspaceserviceimpl -> workspacecontroller: WorkspaceDashboardResponse
-workspacecontroller --> workspacedashboardpage_ui: 200 OK - dashboard payload
-workspacedashboardpage_ui -> member_manager_creator_client: renders stat cards + breakdowns (empty Workspace -> zeros, no error)
+workspaceserviceimpl --> workspacecontroller: WorkspaceDashboardResponse
+workspacecontroller --> workspacedashboardpage_ui: 200 OK WorkspaceDashboardResponse
+workspacedashboardpage_ui --> member_manager_creator_client: renders metrics
 
 @enduml

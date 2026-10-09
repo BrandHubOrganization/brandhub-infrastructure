@@ -16,28 +16,32 @@ entity "WorkspaceMemberRepository" as workspacememberrepository
 entity "WorkspaceMember" as workspacemember
 
 ' === Flow ===
-member_manager_creator_client -> workspacesettingspage_ui: chooses \"Leave Workspace\", confirms in dialog
+member_manager_creator_client -> workspacesettingspage_ui: confirms leave
 workspacesettingspage_ui -> workspacecontroller: POST /workspaces/{workspaceId}/leave
-workspacecontroller -> workspaceserviceimpl: leaveWorkspace(workspaceId, currentUser) - caller identity from session principal only
-workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndUserIdAndIsActiveTrue(workspaceId, currentUser.id)
+workspacecontroller -> workspaceserviceimpl: leaveWorkspace(workspaceId, currentUser)
+workspaceserviceimpl -> workspacememberrepository: findActiveMember(workspaceId, userId)
 workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
-opt no active membership row
-  workspaceserviceimpl -> member_manager_creator_client: throw 403 WORKSPACE_ACCESS_DENIED
+opt !activeMember
+  workspaceserviceimpl --> workspacecontroller: throw 403 WORKSPACE_ACCESS_DENIED
+  workspacecontroller --> workspacesettingspage_ui: 403 Forbidden
+  workspacesettingspage_ui --> member_manager_creator_client: shows 403 toast
 end
-workspaceserviceimpl -> workspacemember: map row -> WorkspaceMember
-workspacemember --> workspaceserviceimpl: WorkspaceMember
-alt last-MANAGER guard
-  workspaceserviceimpl -> workspacememberrepository: assertNotLastManager: countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId, MANAGER)  [member.role == MANAGER]
+workspaceserviceimpl -> workspacemember: getRole()
+workspacemember --> workspaceserviceimpl: role
+alt count(MANAGER) <= 1
+  workspaceserviceimpl -> workspacememberrepository: countByWorkspaceIdAndRole(workspaceId, MANAGER)
   workspacememberrepository --> workspaceserviceimpl: long count
-  workspaceserviceimpl -> member_manager_creator_client: throw 409 LAST_MANAGER_CANNOT_BE_REMOVED  [count <= 1]
-else member.role != MANAGER, or count > 1
-  workspaceserviceimpl -> workspacemember: member.setActive(false); setUpdatedAt(now)
+  workspaceserviceimpl --> workspacecontroller: throw 409 LAST_MANAGER_CANNOT_BE_REMOVED
+  workspacecontroller --> workspacesettingspage_ui: 409 Conflict
+  workspacesettingspage_ui --> member_manager_creator_client: shows 409 toast
+else role != MANAGER || count > 1
+  workspaceserviceimpl -> workspacemember: deactivateMember()
   workspacemember --> workspaceserviceimpl: WorkspaceMember
   workspaceserviceimpl -> workspacememberrepository: save(member)
   workspacememberrepository --> workspaceserviceimpl: WorkspaceMember
-  workspaceserviceimpl -> workspacecontroller: void
-  workspacecontroller --> workspacesettingspage_ui: 200 OK - membership deactivated
-  workspacesettingspage_ui -> member_manager_creator_client: returns to Workspace list (Agency membership + other Workspaces untouched)
+  workspaceserviceimpl --> workspacecontroller: 200 OK
+  workspacecontroller --> workspacesettingspage_ui: 200 OK
+  workspacesettingspage_ui --> member_manager_creator_client: shows 200 toast
 end
 
 @enduml

@@ -25,16 +25,16 @@ agencyserviceimpl -> agencyrepository: findByOwnerIdAndStatusNot(userId, SOFT_DE
 agencyrepository --> agencyserviceimpl: owned agency ids
 agencyserviceimpl -> agencymemberrepository: findByUserId(userId)
 agencymemberrepository --> agencyserviceimpl: member agency ids + roles
-agencyserviceimpl -> agencyserviceimpl: merge + dedupe ids
+agencyserviceimpl -> agencyserviceimpl: mergeAndDedupe(ids)
 agencyserviceimpl -> agencyrepository: findAllById(ids)
-agencyrepository --> agencyserviceimpl: List<Agency row>
-agencyserviceimpl -> agency: map rows -> List<Agency>
-agency --> agencyserviceimpl: List<Agency>
-agencyserviceimpl -> agencyserviceimpl: filter SOFT_DELETED
-agencyserviceimpl -> agencyresponse: map toResponse(agency, myRole) for each
+agencyrepository --> agencyserviceimpl: List<Agency>
+agencyserviceimpl -> agency: isActive()
+agency --> agencyserviceimpl: boolean
+agencyserviceimpl -> agencyserviceimpl: filterActiveAgencies()
+agencyserviceimpl -> agencyresponse: toResponse(agency, role)
 agencyresponse --> agencyserviceimpl: List<AgencyResponse>
 agencyserviceimpl --> agencycontroller: List<AgencyResponse>
-agencycontroller --> agenciespage_ui: 200 OK - list (possibly empty)
-agenciespage_ui -> user: renders one card per Agency (or empty state)
+agencycontroller --> agenciespage_ui: 200 OK List<AgencyResponse>
+agenciespage_ui --> user: renders agencies
 
 @enduml
