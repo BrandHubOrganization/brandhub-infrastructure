@@ -357,6 +357,9 @@ CREATE TABLE IF NOT EXISTS workspaces (
     name            VARCHAR(255)      NOT NULL,
     created_by      UUID              NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     workspace_media_package_id UUID,
+    source_workspace_id UUID,
+    duplication_request_id UUID,
+    duplication_fingerprint UUID,
     timezone_config VARCHAR(100)      NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',
     settings        JSONB             NOT NULL DEFAULT '{}',
     industry        workspace_industry,
@@ -381,6 +384,12 @@ CREATE TABLE IF NOT EXISTS workspaces (
 );
 
 CREATE INDEX IF NOT EXISTS idx_workspaces_agency_id ON workspaces(agency_id);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_workspaces_duplication_request
+    ON workspaces(agency_id, duplication_request_id)
+    WHERE duplication_request_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_workspaces_source_workspace
+    ON workspaces(source_workspace_id)
+    WHERE source_workspace_id IS NOT NULL;
 
 DROP TRIGGER IF EXISTS trg_workspaces_updated_at ON workspaces;
 CREATE TRIGGER trg_workspaces_updated_at
