@@ -65,11 +65,11 @@ BrandHub V2's ERD chứa **37 entity**: **23 PostgreSQL** tables (identity, tổ
 | 22 | `ai_credit_creator_limits` | **MỚI 2026-09-16** | Cấu hình giới hạn credit RIÊNG từng Creator (Owner set), chỉ config — usage thật đọc từ `ai_usage_logs`. |
 | — | `audit_logs` | Không đổi | Append-only, log hành động nhạy cảm. |
 
-### 2.6 MongoDB Collections (14 collections)
+### 2.6 MongoDB Collections (16 collections)
 
 | # | Entity | Trạng thái | Description |
 |---|---|---|---|
-| 23 | `tasks` | **MỚI**, thay `posts` V1 | Đơn vị công việc chung 3 loại (post/livestream/survey), dùng chung Approval Sequence. |
+| 23 | `tasks` | **MỚI**, thay `posts` V1 | Đơn vị công việc chung 5 loại (POST/LIVESTREAM/SURVEY/EVENT_PLAN/PRESS_RECOMMENDATION), dùng chung Approval Sequence. |
 | 24 | `task_approvals` | **MỚI**, tách khỏi `tasks` | Lịch sử duyệt theo từng step — giữ nguyên approval cũ khi step sau bị reject. |
 | 25 | `posts` | **ĐỔI NGHĨA** | Chỉ còn bài ĐÃ PUBLISH thành công lên social (kết quả Task type=post hoàn thành). |
 | 26 | `content_requests` | **ĐỔI FSM** | `pending → in_progress → accepted/denied`, `denied` là trạng thái terminal. |
@@ -83,6 +83,8 @@ BrandHub V2's ERD chứa **37 entity**: **23 PostgreSQL** tables (identity, tổ
 | 34 | `mail_templates` | **MỚI 2026-09-16** | Mẫu email CRUD + gửi (FR 3.6.28-32) — thiếu hoàn toàn ở thiết kế trước. |
 | 35 | `social_accounts` | Giữ nguyên, bỏ `ZALO_OA` | Tài khoản social đã connect (Facebook/Instagram/TikTok/Threads). |
 | 36 | `notifications` | Giữ nguyên, thêm type mới | Thông báo, thêm loại cho Package/Campaign/Task approval. |
+| 37 | `event_plans` | **MỚI DA-948** | Nội dung kế hoạch bàn giao của Task EVENT_PLAN; không phải module vận hành sự kiện. |
+| 38 | `press_recommendations` | **MỚI DA-948** | Gợi ý bên báo chí của Task PRESS_RECOMMENDATION; không phải booking tích hợp. |
 
 ---
 
