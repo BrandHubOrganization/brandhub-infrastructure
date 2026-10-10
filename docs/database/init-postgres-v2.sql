@@ -542,16 +542,68 @@ CREATE TABLE IF NOT EXISTS media_campaigns (
     package_terms_version       INT,
     allocation_period           VARCHAR(7),
     allocations                 JSONB NOT NULL DEFAULT '[]',
+    deliverable_plan            JSONB NOT NULL DEFAULT '[]',
+    work_items                  JSONB NOT NULL DEFAULT '[]',
+    content_version             INT NOT NULL DEFAULT 1,
+    row_version                 BIGINT NOT NULL DEFAULT 0,
     brand_guideline             TEXT,
     timeline                    JSONB           NOT NULL DEFAULT '{}',
     status                      campaign_status NOT NULL DEFAULT 'DRAFT',
     approved_by_agency_at       TIMESTAMPTZ,
+    approved_by_agency_id       UUID,
+    approved_by_agency_version  INT,
     approved_by_client_at       TIMESTAMPTZ,
+    approved_by_client_id       UUID,
+    approved_by_client_version  INT,
+    completed_at                TIMESTAMPTZ,
+    completed_by                UUID,
+    completion_reason           VARCHAR(2000),
+    completion_task_summary     JSONB,
     created_at                  TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
     updated_at                  TIMESTAMPTZ     NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_media_campaigns_wmp_id ON media_campaigns(workspace_media_package_id);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_media_campaigns_agreement ON media_campaigns(workspace_media_package_id);
+
+CREATE TABLE IF NOT EXISTS campaign_versions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    campaign_id UUID NOT NULL REFERENCES media_campaigns(id) ON DELETE CASCADE,
+    content_version INT NOT NULL,
+    snapshot JSONB NOT NULL,
+    created_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT uq_campaign_versions_campaign_version UNIQUE (campaign_id, content_version)
+);
+
+CREATE TABLE IF NOT EXISTS campaign_review_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    campaign_id UUID NOT NULL REFERENCES media_campaigns(id) ON DELETE CASCADE,
+    content_version INT NOT NULL,
+    actor_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    actor_side VARCHAR(16) NOT NULL CHECK (actor_side IN ('AGENCY', 'CLIENT')),
+    event_type VARCHAR(16) NOT NULL CHECK (event_type IN ('FEEDBACK', 'APPROVE')),
+    comment TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_campaign_review_events_campaign_created
+    ON campaign_review_events(campaign_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS campaign_deployments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    campaign_id UUID NOT NULL UNIQUE REFERENCES media_campaigns(id) ON DELETE CASCADE,
+    content_version INT NOT NULL,
+    requested_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    status VARCHAR(16) NOT NULL DEFAULT 'PENDING'
+        CHECK (status IN ('PENDING', 'FAILED', 'SUCCEEDED')),
+    attempt_count INT NOT NULL DEFAULT 0,
+    last_error_code VARCHAR(64),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    completed_at TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_campaign_deployments_status_created
+    ON campaign_deployments(status, created_at);
 
 DROP TRIGGER IF EXISTS trg_media_campaigns_updated_at ON media_campaigns;
 CREATE TRIGGER trg_media_campaigns_updated_at
@@ -579,7 +631,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_workspace_id ON tasks(workspace_id);
 
 CREATE TABLE IF NOT EXISTS task_content_operations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    task_id UUID NOT NULL REFERENCES tasks(id),
+    task_id UUID NOT NULL,
     sequence_number BIGINT NOT NULL,
     yjs_update TEXT NOT NULL,
     edited_by UUID NOT NULL REFERENCES users(id),
@@ -591,7 +643,7 @@ CREATE INDEX IF NOT EXISTS idx_task_content_operations_task_id ON task_content_o
 
 CREATE TABLE IF NOT EXISTS task_content_snapshots (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    task_id UUID NOT NULL REFERENCES tasks(id),
+    task_id UUID NOT NULL,
     sequence_number BIGINT NOT NULL,
     yjs_state TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()

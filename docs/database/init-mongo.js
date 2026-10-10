@@ -1,7 +1,7 @@
 // BrandHub — MongoDB initialization script
-// Runs inside mongosh automatically on first container start
-// Path in container: /docker-entrypoint-initdb.d/init-mongo.js
-// Idempotent: createCollection + createIndex are no-ops if already exist
+// For a fresh local MongoDB volume only (docker-entrypoint-initdb.d/init-mongo.js).
+// Do NOT run this file against existing MongoDB Atlas data. Apply the ordered
+// scripts in docs/database/migrations instead; see mongo-atlas-migrations.md.
 
 db = db.getSiblingDB('brandhub');
 
@@ -137,7 +137,7 @@ db.createCollection('content_requests', {
   validationAction: 'warn',
 });
 
-// tasks (V2) — one generic collection for post, livestream, and survey work.
+// tasks (V2) — one generic collection for all supported Task types.
 // A task created from a Content Request has campaignId = null.
 db.createCollection('tasks', {
   validator: {
@@ -150,16 +150,20 @@ db.createCollection('tasks', {
       properties: {
         workspaceId:            { bsonType: 'string' },
         campaignId:             { bsonType: ['string', 'null'] },
-        type:                   { enum: ['POST', 'LIVESTREAM', 'SURVEY'] },
+        campaignWorkItemId:     { bsonType: ['string', 'null'] },
+        type:                   { enum: ['POST', 'LIVESTREAM', 'SURVEY', 'EVENT_PLAN', 'PRESS_RECOMMENDATION'] },
         name:                   { bsonType: 'string' },
-        dueDate:                { bsonType: 'date' },
+        dueDate:                { bsonType: ['date', 'null'] },
         status:                 { enum: ['BACKLOG', 'DETAIL_IDENTIFIED', 'ASSIGNED', 'IN_PROGRESS', 'QC_REVIEW', 'MANAGER_REVIEW', 'CLIENT_REVIEW', 'COMPLETED'] },
         assigneeId:             { bsonType: ['string', 'null'] },
         qcAssigneeId:           { bsonType: ['string', 'null'] },
         requiresClientApproval: { bsonType: 'bool' },
         description:            { bsonType: ['string', 'null'] },
-        approvalRound:          { bsonType: 'int', minimum: 0 },
+        approvalRound:          { bsonType: 'int', minimum: 1 },
         typeMetadata:           { bsonType: 'object' },
+        sourceType:             { bsonType: ['string', 'null'] },
+        sourceRefId:            { bsonType: ['string', 'null'] },
+        createdBy:              { bsonType: ['string', 'null'] },
         createdAt:              { bsonType: 'date' },
         updatedAt:              { bsonType: 'date' },
       },
@@ -187,6 +191,30 @@ db.createCollection('task_approvals', {
     },
   },
   validationAction: 'error',
+});
+
+// Specialist content for EVENT_PLAN and PRESS_RECOMMENDATION stays outside
+// the generic Task identity/workflow collection.
+const specialistTaskValidator = {
+  $jsonSchema: {
+    bsonType: 'object',
+    required: ['taskId', 'contentVersion', 'createdAt', 'updatedAt'],
+    properties: {
+      taskId: { bsonType: 'string' },
+      contentVersion: { bsonType: 'int', minimum: 1 },
+      createdAt: { bsonType: 'date' },
+      updatedAt: { bsonType: 'date' },
+      planContent: { bsonType: ['string', 'null'] },
+      referenceLinks: { bsonType: 'array' },
+      recommendations: { bsonType: 'array' },
+    },
+  },
+};
+db.createCollection('event_plans', {
+  validator: specialistTaskValidator, validationAction: 'error',
+});
+db.createCollection('press_recommendations', {
+  validator: specialistTaskValidator, validationAction: 'error',
 });
 
 // knowledge_documents (ai-service)
@@ -327,12 +355,20 @@ db.tasks.createIndex({ workspaceId: 1, status: 1 }, { name: 'idx_tasks_workspace
 db.tasks.createIndex({ workspaceId: 1, assigneeId: 1 }, { name: 'idx_tasks_workspace_assignee' });
 db.tasks.createIndex({ workspaceId: 1, type: 1 }, { name: 'idx_tasks_workspace_type' });
 db.tasks.createIndex({ workspaceId: 1, campaignId: 1 }, { name: 'idx_tasks_workspace_campaign' });
+db.tasks.createIndex({ campaignId: 1, campaignWorkItemId: 1 }, {
+  name: 'uq_tasks_campaign_work_item', unique: true,
+  partialFilterExpression: {
+    campaignId: { $type: 'string' }, campaignWorkItemId: { $type: 'string' },
+  },
+});
 
 // task_approvals (V2) — supports latest action per step in the active round.
 db.task_approvals.createIndex(
   { taskId: 1, approvalRound: 1, step: 1, createdAt: 1 },
   { name: 'idx_task_approvals_task_round_step_created' }
 );
+db.event_plans.createIndex({ taskId: 1 }, { name: 'uq_event_plans_task', unique: true });
+db.press_recommendations.createIndex({ taskId: 1 }, { name: 'uq_press_recommendations_task', unique: true });
 
 // knowledge_documents
 db.knowledge_documents.createIndex({ workspace_id: 1 }, { name: 'idx_knowledge_docs_workspace_id' });
@@ -357,4 +393,4 @@ db.ai_usage_logs.createIndex({ created_at: -1 }, { name: 'idx_ai_usage_created_a
 // report_jobs
 db.report_jobs.createIndex({ workspace_id: 1, status: 1 }, { name: 'idx_report_jobs_ws_status' });
 
-print('✅ BrandHub MongoDB initialized: 14 collections, all indexes created.');
+print('✅ BrandHub MongoDB initialized: 16 collections, all indexes created.');
