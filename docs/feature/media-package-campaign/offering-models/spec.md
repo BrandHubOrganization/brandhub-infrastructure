@@ -2,8 +2,10 @@
 
 > Checkpoint of the implemented Package/demo slice. The Campaign allocation rules
 > below describe the earlier prototype. The user's 2026-10-08 decision supersedes
-> multiple Campaigns per agreement: one approved WorkspaceMediaPackage leads to one
-> Campaign, with periods/phases inside it. See [next delivery](../campaign-delivery-plan.md).
+> multiple Campaigns: one Workspace has one Campaign. A new campaign uses a new
+> Workspace, with an Owner duplication feature planned. Phase 1 now confirms total
+> quantities for new packages, no monthly allowance; preserve legacy snapshots.
+> See [phase-1 design](../phase-1-design/spec.md) and [next delivery](../campaign-delivery-plan.md).
 > Package catalogue, snapshot, proposal and approval rules remain applicable per agreement.
 
 ## Objective and actors
