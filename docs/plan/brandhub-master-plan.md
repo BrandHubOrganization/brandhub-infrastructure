@@ -1104,8 +1104,9 @@
 | DA-E16-10 | Thêm field `agency_id` (FK) vào `Workspace.java`, migration | S | `docs/ba/01-organization-structure.md` mục 1 "Mô hình tổng quan", `docs/database/schema-v2/database-strategy.md` |
 | DA-E16-11 | Client Profile tái sử dụng xuyên Agency (liên kết `ClientProfile` từ E13-06) | M | `docs/feature/profile/3-3-3-view-client-profile/spec.md`, `docs/feature/profile/3-3-4-update-client-profile/spec.md` |
 | DA-E16-12 | Workspace Template — lưu cấu hình Workspace để tái sử dụng | S | `docs/feature/agency-workspace/3-4-17-save-workspace-template/spec.md` |
+| DA-E16-13 / DA-1255 | Nhân bản Workspace có chọn lọc để chuẩn bị chiến dịch mới _(phát sinh, ngoài plan gốc)_ | M | `docs/feature/media-package-campaign/implementation-roadmap.md` giai đoạn 5, `docs/feature/media-package-campaign/campaign-delivery-plan.md` mục M4 |
 
-**Ước lượng (đã cập nhật sau re-audit):** 8 task con thật sự cần làm (bớt 1 so với 12 ban đầu vì Client đã xong), vẫn là domain **chặn (blocking)** — Agency entity phải xong trước khi RBAC Agency-level (E14) và Media Package/Campaign (E50) có thể triển khai đúng.
+**Ước lượng:** 8 task E16-05–12 theo re-audit, cộng 1 task phát sinh E16-13 về Nhân bản Workspace (9 task); Agency entity vẫn là domain **chặn (blocking)** trước RBAC Agency-level (E14) và Media Package/Campaign (E50).
 
 ### EPIC E17 — Subscription & Billing (xác nhận lại phạm vi gắn Plan)
 
@@ -3931,6 +3932,28 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 **Spec Reference:** `docs/feature/agency-workspace/3-4-17-save-workspace-template/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E16-06].
+
+---
+
+### DA-E16-13 — Duplicate Workspace with Selective Copy
+
+**Jira:** DA-1255. _(Phát sinh, ngoài plan gốc — do BA chốt một Workspace chỉ có một Campaign; chiến dịch tiếp theo cần Workspace mới mà không phải thiết lập lại từ đầu. Docs: `docs/feature/media-package-campaign/implementation-roadmap.md`, giai đoạn 5.)_
+
+**Assignee:** Lộc | **Priority:** 🟡 High
+
+**Goal:** Cho Agency Owner tạo Workspace mới độc lập từ Workspace hiện có trong cùng Agency, tự chọn từng nhóm dữ liệu cần sao chép để chuẩn bị Campaign tiếp theo.
+
+**Acceptance Criteria:**
+
+- [ ] Owner chọn Workspace nguồn, nhập tên Workspace mới và chọn riêng từng **thành viên** (Manager, Creator, Client) và việc sao chép **múi giờ**; hiển thị tóm tắt để xác nhận trước khi tạo. Không sao chép các trường `settings` khác.
+- [ ] Chỉ sao chép thành viên đang hoạt động và còn hợp lệ; Owner kiểm tra/xác nhận danh sách cùng vai trò trước khi tạo. Workspace mới tuân thủ quy tắc một Manager và quyền thành viên hiện hành.
+- [ ] Nhóm **tài nguyên Workspace** là lựa chọn dự kiến nhưng chưa triển khai sao chép khi module quản lý tài nguyên chưa tồn tại; không hiển thị lựa chọn có thể thao tác rồi âm thầm bỏ qua.
+- [ ] Workspace đích có ID và vòng đời độc lập, nguồn không thay đổi; không kế thừa Package đã chọn/đã duyệt, Campaign, Task, approval, chat, lời mời, token kết nối hay lịch sử thực thi. Workspace mới đi qua luồng chọn và duyệt Package hiện hành.
+- [ ] Chỉ Agency Owner có quyền nhân bản Workspace trong Agency của mình; từ chối nguồn khác Agency hoặc đã xóa. Thao tác tạo không được để lại Workspace đích ở trạng thái sao chép dở khi có lỗi.
+
+**Technical Notes:** Không đồng nhất với DA-E16-12 Save Workspace Template: template lưu cấu hình để tái sử dụng, còn task này tạo Workspace mới từ nguồn và có bước chọn/xác nhận thành viên. BA đã chốt chỉ sao chép múi giờ; dùng request ID để chống tạo trùng. Phạm vi tài nguyên cần chốt sau khi module tài nguyên hình thành. Không dùng lại file thuộc Workspace nguồn khi chưa có quy tắc sở hữu/vòng đời file.
+
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E15-01, DA-E16-05]. Sao chép tài nguyên phụ thuộc module Workspace Material/Brand Collection tương ứng (E51), không thuộc phạm vi triển khai ban đầu.
 
 ---
 
@@ -9567,19 +9590,20 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Goal:** Let Owner/Manager create one detailed execution Campaign for each approved Workspace Package agreement — a strategy/timeline document, explicitly NOT a contract, becoming immutable once approved.
 
-**BA update (2026-10-08):** one approved agreement maps to one Campaign. A Workspace
-can retain multiple cooperation rounds and negotiate the next while the current
-Campaign runs. The multiple-draft allocation prototype needs adaptation. See
-`docs/feature/media-package-campaign/campaign-delivery-plan.md`; round lifecycle
-needs a Jira follow-up, and concurrent Campaign deployment remains undecided.
+**Latest BA update (2026-10-08):** one Workspace has one Campaign, including drafts
+and completed campaigns. A new campaign needs a new Workspace. Owner can duplicate
+selected Workspace members/timezone through DA-E16-13 / Jira DA-1255; resource copy
+awaits its own module. This replaces the multiple-cooperation-round proposal. See
+`docs/feature/media-package-campaign/campaign-delivery-plan.md` for decisions and rollout.
 
 **Acceptance Criteria:**
 
 - [ ] `POST /api/v1/workspaces/{id}/campaigns` accepts `{name, strategyDetail, brandGuideline?, timeline?, workItems}`, only allowed when the Workspace's `MediaPackage.negotiationStatus = APPROVED`; entity includes `contentVersion` for approval validity
-- [ ] `workItems` are stored as JSONB; each requires stable `id`, `name`, `type` (`POST|LIVESTREAM|SURVEY`), and `dueDate`
+- [ ] `workItems` are stored as JSONB; each requires stable `id`, `deliverableId`, `name`, `type` (`POST|LIVESTREAM|SURVEY|EVENT_PLAN|PRESS_RECOMMENDATION`), and `dueDate`; draft completeness and approval validation follow the phase-1 contract
+- [ ] Package quantities are totals for the whole agreement, with no monthly allowance in this delivery; preserve legacy approved snapshots without silently converting quantities
 - [ ] Initial Campaign status: `DRAFT`
 - [ ] Attempting to create a Campaign against a non-approved package returns 409 `PACKAGE_NOT_APPROVED`
-- [ ] A Workspace can have multiple Campaigns over time, each linked to a different approved WorkspaceMediaPackage; enforce at most one Campaign per agreement, including drafts
+- [ ] Enforce at most one Campaign per Workspace, including drafts and completed campaigns; use a new Workspace for a new campaign
 
 **Spec Reference:** `docs/feature/media-package-campaign/3-5-5-create-media-campaign/spec.md`, `docs/ba/12-state-machines.md` mục 3
 
@@ -9591,15 +9615,18 @@ needs a Jira follow-up, and concurrent Campaign deployment remains undecided.
 
 **Assignee:** Lộc | **Priority:** 🔴 Critical
 
-**Goal:** Mirror the Package's 2-party approval mechanism for Campaigns, and on approval, automatically explode the Campaign's work items into a raw Task backlog in the Workspace.
+**Goal:** Mirror the Package's 2-party approval mechanism for Campaigns, then let Manager explicitly deploy the approved Campaign to generate its Task backlog. Approval alone does not deploy.
 
 **Acceptance Criteria:**
 
 - [ ] `POST /api/v1/workspaces/{id}/campaigns/{campaignId}/approve` requires both sides for the same campaign content version; an edit invalidates both prior approvals
 - [ ] `POST /api/v1/workspaces/{id}/campaigns/{campaignId}/deploy` (available only once both approved) creates N Tasks in the backlog, one per Campaign work item
 - [ ] Generated Tasks are minimal: name + deadline only — no assignee or detailed requirements yet (those come from Identify Task Detail, DA-E51-04-equivalent FR 3.6.1); each carries its stable `campaignWorkItemId` for idempotency
-- [ ] Campaign transitions to `IN_PROGRESS` immediately after deploy
+- [ ] Campaign transitions to `IN_PROGRESS` only after durable deployment confirms all work items have corresponding Tasks; partial failures remain retryable
 - [ ] Calling deploy twice (double-click) does not create duplicate Tasks — idempotency required
+- [ ] Manager explicitly completes an `IN_PROGRESS` Campaign; unfinished Tasks require a nonblank reason. Record actor/time and preserve every child Task's state and workflow
+
+**Confirmed design (2026-10-08):** See `docs/feature/media-package-campaign/phase-1-design/plan.md` for versioned approval, total quantities, deployment recovery and Mongo Task/editor integration. Design completion is not implementation completion.
 
 **Technical Notes:** This is the hand-off point into E51 (Task & Content Workflow) — the Task collection (DA-E51-01) must exist before this task's deploy logic can insert into it.
 
@@ -9670,6 +9697,13 @@ needs a Jira follow-up, and concurrent Campaign deployment remains undecided.
 **Assignee:** Lộc | **Priority:** 🔴 Critical
 
 **Goal:** Model a single generic `tasks` MongoDB collection covering all 3 task types (post/livestream/survey) via a `type` discriminator, instead of 3 separate collections — the V2 DB design decision.
+
+**Scope amendment confirmed 2026-10-08:** Extend the original three types with
+`EVENT_PLAN` and `PRESS_RECOMMENDATION` in the same generic collection. Specialized
+`event_plans` and `press_recommendations` collections hold content only; no event
+operations, booking or publishing integration. Coordinate E51 ownership before
+implementation. Existing PostgreSQL editor content must retain its Task identity
+when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Acceptance Criteria:**
 
