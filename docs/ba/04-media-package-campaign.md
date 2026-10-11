@@ -10,11 +10,15 @@
 > về chọn gói trước khi mời Client và hai bảng riêng là lịch sử, không còn dùng để triển khai.
 > Workshop chỉ hỗ trợ tạo link Meet và survey; Event chỉ bàn giao kế hoạch sự kiện.
 
-> **Chốt BA tiếp theo — 2026-10-08:** mỗi bản Package đã approved trong Workspace
-> tương ứng một Campaign do Manager tạo. Workspace giữ nhiều đợt hợp tác theo thời gian;
-> được đàm phán đợt tiếp theo khi Campaign hiện tại còn chạy. Chưa chốt triển khai hai
-> Campaign đồng thời. Xem [lộ trình Campaign](../feature/media-package-campaign/campaign-delivery-plan.md)
-> để phân biệt quy tắc đã xác nhận với câu hỏi và dependency còn mở.
+> **BA mới nhất — 2026-10-08:** một Workspace gắn với một Campaign. Chiến dịch mới
+> dùng Workspace mới; Owner có tính năng Nhân bản Workspace để chọn thông tin/tài nguyên
+> từ Workspace cũ. Quyết định này thay thế đề xuất nhiều đợt trong cùng Workspace.
+> Task giữ Mongo V2; Client góp ý, Manager sửa và hai bên duyệt lại; Manager mark Campaign
+> completed. Gói mới tính tổng sản lượng; thêm Task EVENT_PLAN/PRESS_RECOMMENDATION;
+> complete khi Task chưa xong phải có lý do và không đổi trạng thái Task con. Phạm vi
+> Duplicate Workspace đã chốt DA-1255: chọn từng thành viên và tùy chọn copy timezone;
+> tài nguyên chờ module riêng. Thiết kế Campaign đã ghi trong phase-1-design của feature.
+> Xem [lộ trình Campaign](../feature/media-package-campaign/campaign-delivery-plan.md).
 
 ## 1. Thứ tự chuẩn: Workspace → Package → Campaign → Task
 
