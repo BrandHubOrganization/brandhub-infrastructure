@@ -9661,8 +9661,17 @@ awaits its own module. This replaces the multiple-cooperation-round proposal. Se
 
 **Acceptance Criteria:**
 
-- [ ] `CampaignCollaborator` junction table: `campaignId`, `collaboratorId`, `status` (contacted/negotiating/confirmed/live)
-- [ ] Same `ThirdPartyCollaborator` can be linked to multiple Campaigns independently, each with its own status
+- [x] `CampaignCollaborator` junction table: `campaignId`, `collaboratorId`, `status` (contacted/negotiating/confirmed/live)
+- [x] Same `ThirdPartyCollaborator` can be linked to multiple Campaigns independently, each with its own status
+
+**Implementation checkpoint (2026-10-10, DA-950):** Existing V2 PostgreSQL table
+reused; implemented scoped assignment/list/manual status APIs and Workspace UI.
+Manager/Creator/Owner can update, Client reads only; backwards status changes
+allowed per BA. Unique pair, row locks and timestamp guard protect assignment
+and updates without modifying Campaign approvals. 49 backend tests and 12 browser
+API-mock tests pass; PostgreSQL/API JWT/concurrency smoke remains pending.
+E50-08 directory CRUD is not implemented by this task. Details and verification:
+`docs/feature/media-package-campaign/campaign-collaborators/{spec,plan,task,test}.md`.
 
 **Spec Reference:** `docs/ba/12-state-machines.md` mục 6
 

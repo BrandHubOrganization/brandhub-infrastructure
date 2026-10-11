@@ -42,7 +42,7 @@ thiết kế kỹ thuật nằm trong [campaign-delivery-plan.md](campaign-deliv
 | **3. Góp ý và duyệt Campaign** | Client góp ý; Manager sửa; version/diff, thông báo; approval hai bên và reset-on-edit | Hai bên chốt cùng phiên bản; lỗi stale version và sai quyền được xử lý; sẵn sàng triển khai | DA-948 / E50-07 / FR 3.5.6 | Code + migration local + targeted tests + Web build đã có 2026-10-09; còn smoke test API và review UI trực quan |
 | **4. Triển khai và kết thúc Campaign** | Sinh Task Mongo ở BACKLOG; chống trùng/retry, tích hợp editor, tiến độ; Manager mark completed | Demo Package → Campaign → Task thật → hoàn thành; retry không ghi đè Task đã xử lý | DA-948, phối hợp E51 | Code, PostgreSQL migration local và unit tests đã có. Đã cung cấp hướng dẫn chạy/kiểm tra migration Atlas; chưa nhận kết quả xác minh schema và chưa smoke test deploy/editor với Atlas thật |
 | **5. Nhân bản Workspace** | Owner chọn nguồn, tên mới, múi giờ và thành viên cần sao chép; tài nguyên chờ module quản lý tài nguyên | Setup chiến dịch mới từ dữ liệu được chọn; nguồn không đổi; không kế thừa approval hoặc thực thi cũ ngoài ý muốn | DA-E16-13 / DA-1255 | Code API/UI và migration đã có; migration local đã áp và kiểm tra cột/index 2026-10-09; còn smoke test API/browser |
-| **6. Bổ sung nghiệp vụ mở rộng** | Danh bạ đối tác, theo dõi hợp tác Campaign; Content Request bổ sung ngoài kế hoạch | Hoàn thiện các nhánh đối tác và yêu cầu bổ sung, không trộn vào luồng Campaign chính | DA-949, DA-950, DA-951 | Chưa triển khai trong lộ trình này |
+| **6. Bổ sung nghiệp vụ mở rộng** | Danh bạ đối tác, theo dõi hợp tác Campaign; Content Request bổ sung ngoài kế hoạch | Hoàn thiện các nhánh đối tác và yêu cầu bổ sung, không trộn vào luồng Campaign chính | DA-949, DA-950, DA-951 | DA-950 đã có API/UI và tests 2026-10-10; còn PostgreSQL/API smoke. DA-949 CRUD và DA-951 chưa triển khai |
 
 ## Thứ tự và phụ thuộc
 
@@ -120,7 +120,7 @@ cùng checkpoint; dùng `git log` để tra mã commit đó.
 | DA-947 / E50-06 | Code/API/UI Campaign nháp 1:1, snapshot, work items và version guard; migration local đã kiểm tra | Smoke test API có xác thực và concurrent create; lỗi utility redirect |
 | DA-948 / E50-07 | Code góp ý/duyệt/version/diff/inbox, durable deploy Mongo, retry và complete | Xác minh migration Atlas; smoke test Package → Campaign → Task/editor, retry sau partial failure/restart |
 | DA-949 / E50-08 | Entity/controller/repository có sẵn; service vẫn throw Not implemented | Implement CRUD đối tác và test |
-| DA-950 / E50-09 | Entity/repository có sẵn; assign/update service vẫn throw Not implemented | Implement liên kết/trạng thái hợp tác và test |
+| DA-950 / E50-09 | Đã có Workspace API, legacy assign/update, Agency scoping, role checks, idempotent assignment, reversible status, stale-update guard và UI; 49 backend tests + 12 browser mock tests pass | Smoke PostgreSQL/API JWT/concurrent assignment; danh bạ CRUD vẫn phụ thuộc DA-949. Xem campaign-collaborators/test.md |
 | DA-951 / E50-10 | Đã có tài liệu/DB baseline | Chưa có backend Content Request lifecycle và UI thật trong luồng hiện tại |
 | DA-1255 / E16-13 | API/UI nhân bản thành viên có chọn lọc + timezone, idempotency; migration local và 7 service tests pass | Smoke test API/browser light/dark/mobile; tài nguyên chờ module riêng |
 
