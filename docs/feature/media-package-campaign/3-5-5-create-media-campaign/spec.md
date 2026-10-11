@@ -2,18 +2,17 @@
 
 | Field | Value |
 |---|---|
-| Status | One-agreement/one-Campaign BA confirmed; dependent lifecycle/service decisions pending |
+| Status | Implemented in code; live API/concurrency verification pending (2026-10-10) |
 | Roles | Owner/Manager |
 | Delivery task | DA-E50-06 / DA-947 |
 
 ## Outcome
 
-> Current implementation slice: [offering models](../offering-models/spec.md).
-> Draft creation uses the existing `/api/v1/media-campaigns` controller, with
-> workspaceMediaPackageId in the body and server-side workspace authorization.
-> This slice records frozen package terms and deliverable allocations. The workItems,
-> contentVersion and approval/deployment criteria below remain the subsequent E50-06/07 scope;
-> this change does not claim full FR 3.5.5/3.5.6 completion.
+> Current implementation uses Workspace-scoped create/list/detail/PATCH endpoints.
+> The earlier `/api/v1/media-campaigns` create route remains compatible and also
+> enforces one Campaign per agreement and total quantities. Frozen terms, work items
+> and content versions are persisted; live verification remains in the
+> [roadmap](../implementation-roadmap.md).
 
 Owner/Manager creates a `DRAFT` campaign from an approved workspace package. The campaign is an execution plan, not a contract.
 
@@ -21,15 +20,15 @@ Owner/Manager creates a `DRAFT` campaign from an approved workspace package. The
 
 - `POST /api/v1/workspaces/{workspaceId}/campaigns` rejects an unapproved package with `PACKAGE_NOT_APPROVED`.
 - A campaign stores name, strategy detail, brand guideline, timeline, status, `contentVersion`, approvals, and JSONB `workItems`.
-- Each work item has stable `id`, `name`, `type` (`POST|LIVESTREAM|SURVEY`), and `dueDate`, so deployment creates one task exactly once.
-- A workspace may have multiple campaigns over time, each for a different approved
-  WorkspaceMediaPackage (cooperation round). A specific agreement has at most one
-  Campaign, even while it is DRAFT. The catalogue MediaPackage can be reused in a new round.
-- The next round can be negotiated while the current Campaign runs; permission to
-  deploy both Campaigns concurrently has not been decided.
-- RETAINER months and bundle phases belong inside one Campaign rather than creating
-  several Campaigns from one agreement. Period boundaries and non-Task services are
-  open decisions in [the delivery plan](../campaign-delivery-plan.md).
+- Each work item has stable `id`, `deliverableId`, `name`, `type`
+  (`POST|LIVESTREAM|SURVEY|EVENT_PLAN|PRESS_RECOMMENDATION`) and `dueDate`, so deployment creates one task exactly once.
+- A Workspace has at most one Campaign, including DRAFT and COMPLETED. A new
+  campaign uses a new Workspace; an Owner duplication feature is planned separately.
+- Keep one selected WorkspaceMediaPackage per Workspace. Do not implement multiple
+  cooperation rounds or allow agreement reassignment to bypass Campaign uniqueness.
+- New packages use total quantities for the whole package, with no monthly allowance.
+  Legacy monthly snapshots remain unchanged and require explicit handling, not automatic
+  conversion. See [phase-1 contract](../phase-1-design/plan.md) for fields/API and migration gates.
 
 ## Constraint
 

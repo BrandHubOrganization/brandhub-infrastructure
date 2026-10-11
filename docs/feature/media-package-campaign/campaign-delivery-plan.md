@@ -1,177 +1,180 @@
 # Media Campaign — lộ trình triển khai sau Media Package
 
-Ngày: 2026-10-08. Trạng thái: đề xuất triển khai; các quyết định mở bên dưới chưa
-được phép coi là BA đã chốt. Chỉ lập kế hoạch trong checkpoint này, chưa code Campaign mới.
+Theo dõi tiến độ theo [lộ trình 6 giai đoạn](implementation-roadmap.md).
+File hiện tại giữ thiết kế kỹ thuật và các phương án cần BA quyết định.
+
+**Giai đoạn 1 hoàn thành thiết kế 2026-10-08:** [spec](phase-1-design/spec.md),
+[data/API/editor contract](phase-1-design/plan.md), [checklist](phase-1-design/task.md),
+[test matrix](phase-1-design/test.md). A1–A3 đã được người dùng xác nhận.
+
+Ngày: 2026-10-08. BA mới nhất thay thế đề xuất nhiều đợt hợp tác trong một
+Workspace. Code/migration cho giai đoạn 2–5 đã có; trạng thái kiểm chứng mới nhất
+nằm trong [roadmap](implementation-roadmap.md), checkpoint 2026-10-10.
 
 ## 1. BA đã xác nhận
 
-- Manager tạo một Media Campaign tương ứng với mỗi bản Media Package đã approved
-  trong Workspace. Đây là quan hệ với `WorkspaceMediaPackage`, không phải gói trong
-  danh mục Agency (`MediaPackage`). Trước khi Manager tạo, thỏa thuận có 0 Campaign;
-  sau khi tạo có đúng 1 Campaign.
-- Giữ Workspace để hợp tác tiếp với cùng Client. Mỗi đợt cần bản thỏa thuận riêng,
-  giữ nguyên lịch sử điều khoản, approval, Campaign và Task của các đợt trước.
-- Agency và Client có thể đàm phán đợt kế tiếp khi Campaign hiện tại đang chạy.
-  Điều này chưa xác nhận quyền triển khai hai Campaign đồng thời.
-- Giữ ba cách đóng gói. RETAINER tính sản lượng theo tháng, không chuyển dư;
-  theo quan hệ 1:1 mới, các tháng thuộc kế hoạch bên trong cùng một Campaign.
-- Package mới không được ghi đè snapshot của đợt đang thực hiện. Việc sao chép
-  gói cũ cho lần hợp tác mới không mang theo approval cũ.
-- Event chỉ bàn giao kế hoạch; Workshop chỉ hỗ trợ Meet/survey. Không thêm Task
-  type EVENT hoặc triển khai module hậu cần, nhân sự, phát sóng, booking báo chí.
+- Một Workspace gắn với một Media Campaign. Trước khi Manager tạo thì có 0 Campaign;
+  sau khi tạo có đúng 1, kể cả Campaign đã hoàn thành. Chiến dịch mới dùng Workspace mới.
+- Manager tạo Campaign từ WorkspaceMediaPackage đã được hai bên approved.
+- Owner có tính năng Nhân bản Workspace để chọn thông tin/tài nguyên từ Workspace
+  cũ đưa sang Workspace mới, giảm công việc setup. DA-1255 đã chốt copy từng thành
+  viên và tùy chọn timezone; tài nguyên chờ module riêng.
+- Không triển khai nhiều đợt Package/Campaign trong cùng Workspace. Đề xuất đàm phán
+  đợt tiếp theo trong cùng Workspace được thay thế bằng chuẩn bị Workspace mới.
+- Task tiếp tục dùng MongoDB theo V2. Phải nối editor PostgreSQL hiện tại vào cùng
+  Task identity/source of truth trước khi hoàn thiện Campaign → backlog.
+- Client góp ý; Manager sửa Campaign; cả hai duyệt lại phiên bản nội dung đã sửa.
+- Manager chủ động mark Campaign COMPLETED; còn Task dang dở thì bắt buộc ghi lý do,
+  giữ nguyên trạng thái Task con. Không tự complete chỉ vì Task list rỗng/đã xong hết.
+- Thêm EVENT_PLAN và PRESS_RECOMMENDATION vào tasks chung, collection riêng lưu
+  nội dung theo taskId. Không mở scope hậu cần, nhân sự, vận hành sự kiện hoặc booking.
+- Gói mới dùng tổng sản lượng cả gói, không monthly allowance trong đợt này. Ba
+  offeringModel cũ không còn quyết định luồng mới; giữ đọc legacy/snapshot đã chốt
+  và không tự quy đổi gói theo tháng khi thiếu thông tin.
 
-## 2. Hiện trạng đã đối chiếu code và migration
+## 2. Hiện trạng và tác động
 
-| Phần | Hiện trạng | Khoảng trống |
+| Phần | Hiện trạng | Thay đổi cần làm |
 |---|---|---|
-| Package | Catalogue, structured offerings, snapshot, đàm phán, giới hạn lượt Client, thông báo/diff | Chưa có nhiều đợt trong một Workspace |
-| Workspace agreement | `workspace_id` đang UNIQUE; repository đọc một bản theo Workspace | Cần định danh đợt và đọc/ghi theo agreement ID |
-| Campaign nháp | Create/read/list, package snapshot/version, allocations, khóa tránh phân bổ vượt mức | Prototype cho phép nhiều Campaign một agreement; phải đổi theo BA mới |
-| Campaign approve | Trả `CAMPAIGN_APPROVAL_NOT_AVAILABLE` | Chưa có duyệt hai bên và kiểm tra phiên bản |
-| Campaign deploy | Chưa có | Cần đầu việc, chống trùng và phục hồi khi lỗi |
-| Task | V2/migration dùng Mongo; Content Writing hiện dùng JPA/PostgreSQL | Phải thống nhất tích hợp trước khi sinh backlog |
+| WorkspaceMediaPackage | workspace_id UNIQUE; một selection mỗi Workspace | Giữ quan hệ hiện tại; bỏ kế hoạch mở nhiều đợt |
+| Campaign | Prototype tạo nhiều draft/allocations cho một agreement | Giới hạn một Campaign/Workspace, sửa UI không còn tạo thêm |
+| Campaign approval/deploy | Approve chưa khả dụng, chưa có deploy | Hoàn thiện DA-948 |
+| Task | V2 Mongo; editor dùng JPA Task và FK PostgreSQL | Mongo đã chốt; còn thiết kế tích hợp editor |
+| Duplicate Workspace | Chưa được audit implementation | Task riêng thuộc Workspace; chốt danh mục copy rồi mới code |
 
-Không dùng checklist Jira hoặc entity tồn tại để kết luận feature đã hoàn thành.
-`previous_terms` hiện chỉ giữ bản liền trước, không phải toàn bộ lịch sử đàm phán.
+Audit cả số Campaign theo agreement và theo Workspace trước khi thêm constraint.
+Không tự xóa/gộp/chuyển Campaign cũ để migration chạy được.
+previous_terms chỉ giữ bản liền trước, không phải full negotiation history.
 
-## 3. Thứ tự triển khai và mapping FR/Jira
+## 3. Thứ tự triển khai và Jira
 
-| Mốc | FR / Jira | Kết quả bàn giao | Điều kiện bắt đầu |
-|---|---|---|---|
-| M0 | DA-942/944/945/946; prototype DA-947 | Commit baseline Package và draft đang có | Đã checkpoint; không đánh dấu toàn bộ Jira Done |
-| M1 | FR 3.5.3/3.5.4; follow-up E50 mới, liên kết DA-943–946 | Nhiều đợt thỏa thuận trong Workspace, lịch sử và đàm phán đợt tiếp theo | Chốt lifecycle đợt và tạo Jira follow-up trước code |
-| M2 | FR 3.5.5 — DA-947 / E50-06 | Một Campaign/thỏa thuận, kế hoạch và work items, UI tạo/xem/sửa nháp | M1; chốt kỳ RETAINER và mapping dịch vụ |
-| M3 | FR 3.5.6 — DA-948 / E50-07 | Duyệt hai bên theo contentVersion, thông báo và reset-on-edit | M2; chốt cách Client góp ý |
-| M4 | FR 3.5.6 — DA-948; phối hợp E51-01 | Triển khai an toàn thành Task backlog | M3; chốt nguồn Task/editor và quyền chạy Campaign đồng thời |
-| M5 | E50-08/09 — DA-949/950 | Danh bạ đối tác và theo dõi hợp tác theo Campaign | Campaign có dữ liệu; không chặn M2/M3 |
-| M6 | FR 3.5.7–3.5.10 — DA-951 | Content Request ngoài kế hoạch | Giữ luồng riêng, dùng chung contract sinh Task đã chốt ở M4 |
-
-M1 là mở rộng BA so với scope một Workspace/một agreement cũ. Chưa tự đặt mã
-Jira mới hoặc giả định DA-943–946 đã bao gồm toàn bộ phần này. Cần task follow-up
-có Epic/Sprint, cập nhật master-plan và mã commit thật trước khi code M1.
-Campaign Addendum cũng chưa có task riêng; không tự gộp vào DA-947/948.
-
-## 4. Thiết kế dự kiến cho từng mốc
-
-### M1 — các đợt hợp tác trong một Workspace
-
-- Tái sử dụng `workspace_media_packages` làm bản thỏa thuận từng đợt. Bổ sung
-  số thứ tự/nhãn đợt nếu cần, và quy tắc phân biệt đợt đang thực hiện/đang chuẩn bị.
-  Trạng thái đàm phán không thay thế trạng thái vòng đời đợt hợp tác.
-- Bỏ UNIQUE riêng trên workspace_id bằng migration mới; giữ FK và index truy vấn
-  theo Workspace. Chốt giới hạn đợt đang chuẩn bị trước khi chọn partial unique index.
-- Audit `findByWorkspaceId`, khóa agreement, DTO, cache/query key, notification link,
-  và `workspaces.workspace_media_package_id`. Không dùng một con trỏ duy nhất để vừa
-  chỉ đợt đang chạy vừa chỉ đợt đang đàm phán; không chọn bản "mới nhất" một cách ngầm định.
-- API selection/negotiate/approve phải chỉ rõ agreement ID và kiểm tra agreement
-  thuộc workspaceId của URL. Giữ tương thích endpoint cũ bằng quy tắc tường minh;
-  nếu có nhiều agreement và không rõ đích thì báo lỗi, không tự cập nhật nhầm đợt.
-- Hard gate lần đầu vẫn theo Package approval. Khi có đợt cũ, đàm phán đợt mới
-  không làm mất quyền truy cập chat, lịch sử và công việc đã được phép thực hiện.
-- Gói Catalogue được dùng lại nhưng approval/counter/snapshot mỗi đợt độc lập.
-
-### M2 — Campaign planning (DA-947)
-
-- Unique FK `media_campaigns.workspace_media_package_id`: tối đa một Campaign
-  cho một agreement, áp dụng với cả draft. Concurrent create phải trả cùng tài nguyên
-  hoặc lỗi conflict rõ ràng, không sinh Campaign thứ hai.
-- Trước migration: thống kê agreement đã có nhiều Campaign. Không xóa/gộp/sửa liên
-  kết tự động; giữ dữ liệu và yêu cầu quyết định với danh sách ID cụ thể nếu gặp.
-- Giữ snapshot/version Package; thêm content_version, work_items JSONB và khóa
-  optimistic concurrency. Work item có ID ổn định, deliverableId, tên, loại Task
-  khi phù hợp, hạn hoàn thành; chưa giao người làm ở bước này.
-- Thay prototype chọn sản lượng cho nhiều Campaign bằng kế hoạch cho toàn bộ một
-  agreement. Bundle chia theo giai đoạn bên trong Campaign; RETAINER chia theo kỳ
-  bên trong Campaign. Số đầu việc không mặc nhiên bằng số sản phẩm bàn giao.
-- Cần kỳ bắt đầu/kết thúc rõ cho RETAINER. Không quy đổi durationWeeks thành số tháng
-  hoặc tự coi mỗi tháng là 4 tuần. Các ràng buộc này chờ BA ở mục 6.
-- UI `/workspaces/:id/campaigns` và trang chi tiết: phạm vi gói đã chốt, chiến lược,
-  hướng dẫn thương hiệu, timeline, hạng mục/đầu việc, trạng thái duyệt.
-- Giữ route `/api/v1/media-campaigns` đang được UI sử dụng trong thời gian chuyển đổi;
-  thêm contract workspace-scoped nhất quán hoặc alias cùng service, không để hai bộ logic.
-
-### M3 — approval (DA-948)
-
-- Agency và Client approve cùng `contentVersion`; lưu actor, version, timestamp.
-  Một người không đại diện đồng thời cho hai phía trong cùng thỏa thuận.
-- Thay đổi nội dung trước khi chốt làm tăng version và hủy hiệu lực cả hai approval.
-  Reject/góp ý không xóa lịch sử duyệt; chính sách góp ý chờ BA xác nhận.
-- Sau khi cả hai phía approve, nội dung Campaign bất biến theo BA Campaign hiện hành.
-  Dữ liệu vận hành/tiến độ tách khỏi nội dung đã chốt.
-- Dùng inbox hiện có, kiểm tra recipient và link đúng Workspace/Campaign; hiển thị
-  hai bản khi review thay đổi nếu có phiên bản trước. Không dùng maxChanges của
-  Package làm giới hạn sửa Campaign khi chưa có yêu cầu.
-
-### M4 — deployment (DA-948; đang có dependency kiến trúc)
-
-- Chỉ Agency được triển khai Campaign đã được hai bên duyệt. Quyền triển khai khi
-  Campaign khác đang chạy chưa được chốt, không suy ra từ quyền đàm phán song song.
-- Nếu Task tiếp tục theo V2 Mongo: outbox/deployment record bền vững trong PostgreSQL,
-  ID task ổn định, unique key `(campaignId, campaignWorkItemId)`, upsert chỉ tạo mới
-  để retry không ghi đè Task đã được Creator xử lý. Partial unique index phải tránh
-  ảnh hưởng các Task thủ công/Content Request không có campaignWorkItemId.
-- Chỉ chuyển IN_PROGRESS sau khi toàn bộ task cần sinh được ghi thành công. Lưu tiến
-  trình/lỗi để retry sau restart; không dựa vào một timestamp hoặc lock trong RAM.
-- Phải thống nhất Task ID và cách Content Writing tra cứu trước khi deploy: hiện
-  editor có FK PostgreSQL tới tasks. Không dual-write hai nguồn Task độc lập.
-- Không init lại Atlas. Nếu cần, chỉ bổ sung migration validator/index có kiểm tra
-  dữ liệu hiện hữu và kiểm thử editor của thành viên phụ trách.
-- Các Task mới ở BACKLOG, chưa assignee/QC. Identify detail/assign và nội dung
-  Livestream/Survey/Meet tiếp tục thuộc E51.
-
-## 5. Repo và commit
-
-- Infrastructure: spec → plan → task → test; migration mới + init đồng bộ. Không sửa
-  migration đã commit để thay đổi lịch sử. Tài liệu SQL dùng tag `docs` theo yêu cầu.
-- Business Service: agreement selection, campaign service/controller/entity, approval,
-  deployment adapter, notification và test phạm vi liên quan.
-- Web: các trang Package/Campaign, route/sidebar/gate theo đợt, UI trạng thái;
-  thêm key tương ứng trong `src/i18n/locales/{vi,en}/mediaPackage.json` và namespace
-  Campaign mới nếu cần. Kiểm tra light/dark, mobile và stale request khi đổi Workspace.
-- Gateway: route `/api/v1/**` đã forward Business; chỉ commit khi thực sự cần đổi.
-- Không code trên develop, không tự push/merge. Chốt baseline trước khi bắt đầu
-  implementation; đồng bộ develop bằng bước riêng có kiểm tra thay đổi đang có.
-
-Commit dự kiến: `docs(DA-947): define one-campaign agreement planning`,
-`feat(DA-947): implement versioned campaign plans`,
-`feat(DA-948): add two-party campaign approval`,
-`feat(DA-948): deploy campaign work items with retry safety`,
-`test(DA-948): cover stale approvals and partial deployment recovery`.
-M1 dùng mã Jira follow-up thật khi được cấp; không dùng placeholder trong commit.
-
-## 6. Câu hỏi và cổng quyết định
-
-| ID | Cần chốt | Đề xuất để review, chưa phải quyết định |
+| Mốc | FR / Jira | Kết quả |
 |---|---|---|
-| Q1 | Có cho hai Campaign cùng chạy? | Cho chuẩn bị/duyệt sớm; chốt điều kiện deploy riêng |
-| Q2 | Task dùng Mongo hay PostgreSQL, editor nối thế nào? | Giữ V2 Mongo và phối hợp chủ editor; chốt một nguồn chính/ID thống nhất |
-| Q3 | Event/press và Workshop Meet trở thành work item gì? | Giữ deliverable kế hoạch; chỉ sinh Task hỗ trợ đúng loại đã thống nhất |
-| Q4 | Client trực tiếp sửa Campaign hay gửi góp ý? | Client góp ý, Manager sửa và hai bên duyệt lại |
-| Q5 | Ai mở đợt mới, tối đa bao nhiêu đợt chuẩn bị, có hủy draft? | Manager mở một đợt kế tiếp; soft cancel có lịch sử, không reset đợt đang chạy |
-| Q6 | RETAINER tính tháng lịch hay chu kỳ từ ngày bắt đầu? Kỳ cuối xử lý thế nào? | Chốt mốc bắt đầu/kết thúc và sản lượng từng kỳ, không suy từ durationWeeks |
-| Q7 | Campaign COMPLETED khi có deliverable không phải Task hoặc chỉ có Event/press? | Chốt nghiệm thu phần phi-Task; tránh tự completed khi danh sách Task rỗng |
+| M0 | DA-942/944/945/946; prototype DA-947 | Baseline đã commit; không khẳng định mọi AC của Jira đã xong |
+| M1 | FR 3.5.5 — DA-947 / E50-06 | Một Campaign/Workspace; kế hoạch, work items, UI xem/sửa |
+| M2 | FR 3.5.6 — DA-948 / E50-07 | Client góp ý, Manager sửa, duyệt hai bên theo phiên bản |
+| M3 | FR 3.5.6 — DA-948, phối hợp E51 | Sinh Task Mongo an toàn và mở được trong editor; Manager hoàn thành Campaign |
+| M4 | Duplicate Workspace — DA-1255 / E16-13 | Owner chọn từng thành viên và tùy chọn timezone để tạo Workspace mới; tài nguyên chưa có module |
+| M5 | DA-949/950 — E50-08/09 | Danh bạ đối tác và theo dõi hợp tác |
+| M6 | DA-951 — FR 3.5.7–3.5.10 | Content Request ngoài kế hoạch, giữ luồng riêng |
 
-Không triển khai đoạn phụ thuộc câu hỏi chưa trả lời. Mốc create/approve và deploy
-có thể tách bàn giao; không báo hoàn tất FR 3.5.6 khi chưa đi được tới backlog thật.
+M4 có thể triển khai độc lập sau khi audit tạo Workspace hiện tại, không chặn M1/M2.
+Không dùng các mã DA-943–946 để ngầm bao gồm Duplicate Workspace. Tạo task có
+Epic/Sprint và mã thật trước khi code; chưa tự tạo task hoặc cập nhật Jira trong lần này.
+Campaign Addendum chưa có task; phải xem lại tính tương thích với một Campaign/Workspace
+trước khi thiết kế, không tự tạo thêm Campaign trong cùng Workspace dưới tên Addendum.
 
-## 7. Kiểm thử và tiêu chí demo
+## 4. Thiết kế dự kiến
 
-- Agreement mới có ID và snapshot riêng; chọn lại gói catalogue không sửa đợt trước.
-- Đàm phán đợt kế tiếp không chặn Task/chat/lịch sử của đợt đang chạy.
-- Không truy cập/sửa agreement hoặc Campaign của Workspace khác bằng cách đổi ID.
-- Một agreement chỉ có một Campaign kể cả hai request tạo đồng thời.
-- Sửa draft, approve cạnh tranh hoặc approve phiên bản cũ không chốt sai nội dung.
-- Retry/deploy song song/crash giữa chừng không sinh trùng hoặc reset Task hiện hữu.
-- Demo bằng account hiện có: Package approved → Manager lập Campaign → hai bên duyệt
-  → deploy → đọc được backlog thật → mở đợt tiếp theo mà đợt cũ không bị ảnh hưởng.
-- Hồi quy Media Package, notification, Workspace settings/gate và Content Writing;
-  kiểm thử migration trên dữ liệu cũ và fresh init. Test mới ghi Chưa chạy đến khi có code.
+### M1 — Campaign planning
 
-## Nguồn
+- Giữ UNIQUE workspace_media_packages.workspace_id. Thêm unique FK
+  media_campaigns.workspace_media_package_id và kiểm tra truy cập Workspace để đảm bảo 1:1.
+  Không cho đổi agreement hoặc chuyển Campaign sang Workspace khác nhằm lách constraint.
+- Concurrent create phải trả Campaign đã tồn tại hoặc conflict rõ ràng. UI chuyển sang
+  Xem/Chỉnh sửa Campaign khi đã có một bản, không cho tạo thêm dù bản trước COMPLETED.
+- Giữ snapshot/version Package; thêm content_version, work_items JSONB và concurrency guard.
+  Mỗi đầu việc có ID ổn định, deliverableId, tên, loại phù hợp và hạn thực hiện.
+- Dùng EVENT_PLAN/PRESS_RECOMMENDATION đã chốt cho Event/press, không ép thành POST.
+  Phối hợp schema/adapter chuyên biệt với chủ E51; dữ liệu nội dung tham chiếu taskId.
+- Một sản phẩm bàn giao có thể cần nhiều Task. Không trừ sản lượng theo số Task máy móc.
+- UI danh sách Workspace dẫn đến Campaign duy nhất; phần chi tiết gồm phạm vi gói đã
+  chốt, chiến lược, brand guideline, timeline, đầu việc và approval.
+- Giữ tương thích endpoint hiện tại khi bổ sung API workspace-scoped. Khóa record để
+  chống cập nhật mất dữ liệu. Không tạo hai service logic cho hai kiểu route.
+- Luồng mới dùng quantityBasis=TOTAL; không chọn period. Xử lý tương thích legacy
+  theo phase-1-design/plan.md, không tự nhân hoặc chuyển monthly snapshot.
 
-- [Team guide](../../team_guide.md), [commit convention](../../rule/git-commit-convention.md).
-- [FR 3.5.5](3-5-5-create-media-campaign/spec.md), [FR 3.5.6](3-5-6-approve-media-campaign/spec.md).
-- [BA](../../ba/04-media-package-campaign.md), [state machines](../../ba/12-state-machines.md).
-- [Master-plan](../../plan/brandhub-master-plan.md), [Jira mapping](../../plan/jira_status.json).
-- Xác nhận người dùng trong phiên làm việc ngày 2026-10-07/08: một Campaign cho
-  mỗi agreement và cho phép đàm phán đợt kế tiếp khi Campaign hiện tại đang chạy.
+### M2 — góp ý và duyệt
+
+- Client gửi góp ý; Manager sửa draft. Mọi sửa nội dung tăng contentVersion và làm
+  mất hiệu lực cả hai approval. Reject/góp ý không xóa lịch sử đã duyệt.
+- Approve phải kèm version; lưu actor/version/timestamp. Một actor không được đại diện
+  cả Agency và Client để tự hoàn thành hai phía.
+- Sau khi cả hai approve, giữ nội dung bất biến theo BA hiện hành; tiến độ vận hành
+  tách khỏi nội dung. Không áp maxChanges của Package vào Campaign khi chưa được yêu cầu.
+- Inbox hiện có gửi thông báo cho phía đối diện, link đúng Workspace/Campaign.
+  So sánh bản cũ/mới cho Client khi duyệt lại.
+
+### M3 — deploy và complete
+
+- Mongo là nguồn chính cho Task. Thống nhất ID và chỉnh lookup/editor integration;
+  giữ dữ liệu editor đang có, không ghi hai bản Task độc lập ở Mongo và PostgreSQL.
+- Outbox/deployment record bền vững ở PostgreSQL; unique key
+  (campaignId, campaignWorkItemId), insert-only upsert để retry không reset Task hiện hữu.
+  Partial unique index không ảnh hưởng Task thủ công/Content Request thiếu campaignWorkItemId.
+- Chỉ chuyển IN_PROGRESS sau khi tất cả Task cần sinh đã được ghi bền vững.
+  Lưu tiến trình/lỗi và phục hồi được sau restart hoặc mất kết nối.
+- Task mới ở BACKLOG, chưa assignee/QC. Nội dung Post/Livestream/Survey/Meet theo E51.
+  Không init lại Atlas; chỉ migration có kiểm tra dữ liệu và index phù hợp.
+- Manager mark completed từ IN_PROGRESS; lưu actor/time/reason/Task summary và xử lý
+  request lặp an toàn. Có unfinished Task thì reason bắt buộc; không đổi Task con.
+- Quyền chuẩn bị Workspace mới không tự xác nhận hạn mức hoặc điều kiện deploy
+  đồng thời giữa các Workspace; audit quy tắc Workspace/subscription hiện tại.
+
+### M4 — Duplicate Workspace (đề xuất để BA review)
+
+Owner chọn Workspace nguồn → chọn Nhân bản → nhập tên mới, kiểm tra Client/Manager
+và chọn nhóm dữ liệu → xem tóm tắt → tạo Workspace mới → chọn/duyệt Package mới
+→ Manager lập Campaign mới.
+
+| Nhóm dữ liệu | Đề xuất, chưa mặc định copy |
+|---|---|
+| Brand, mô tả, guideline, cấu hình phù hợp | Cho chọn copy; giá trị mới độc lập với nguồn |
+| Tài liệu thương hiệu, material, template, hashtag | Chọn danh mục; audit quyền và cơ chế lưu file trước |
+| Client/Manager/thành viên | Owner chọn lại hoặc xác nhận người được giữ; kiểm tra trạng thái/quyền hiện tại |
+| Package | Có thể gợi ý gói catalogue đã dùng; nếu copy terms thì phải là draft cần duyệt lại |
+| Campaign, Task, approval, chat, lịch sử | Đề xuất không copy như công việc đang thực hiện; Workspace nguồn giữ lịch sử |
+| Social account/token, lời mời, lịch đăng, job | Không tự chuyển kết nối/quyền/thực thi; chốt quy trình kết nối riêng nếu cần |
+
+- Scope đầu tiên đề xuất chỉ trong cùng Agency; kiểm tra Owner có quyền đọc nguồn
+  và tạo đích. Cross-Agency cần yêu cầu riêng, không suy ra từ quyền Owner.
+- Có sourceWorkspaceId để truy vết, nhưng không phụ thuộc vòng đời nguồn. FK hoặc
+  liên kết phải tránh cascade xóa dữ liệu đã copy khi xóa Workspace nguồn.
+- Tài nguyên tham chiếu chung và file copy riêng có chi phí/quyền/xóa khác nhau;
+  phải chốt. Không dùng bản sao metadata trỏ vào object sẽ bị xóa theo Workspace cũ.
+- Idempotency cho thao tác tạo; nếu copy nhiều tài nguyên dùng tiến trình/job có retry
+  và hiển thị lỗi rõ ràng. Không báo hoàn thành khi chỉ copy được một phần.
+- Workspace mới giữ package gate hiện tại; thao tác trên đích không ảnh hưởng nguồn.
+- Trước code: audit Workspace create/template/member/material services, viết đủ
+  spec → plan → task → test riêng và phối hợp người phụ trách Workspace.
+
+## 5. Quyết định và câu hỏi còn mở
+
+| ID | Trạng thái mới |
+|---|---|
+| Q1 | Cho chuẩn bị/duyệt sớm; nay ở Workspace mới. Điều kiện deploy riêng chưa chốt |
+| Q2 | Mongo V2; thiết kế editor soft refs/backfill/cutover ở phase-1-design/plan.md, còn thực hiện và kiểm chứng |
+| Q3 | Đã chốt EVENT_PLAN/PRESS_RECOMMENDATION + collection riêng; phối hợp ownership và schema form trước implementation |
+| Q4 | Đã chốt Client góp ý, Manager sửa, hai bên duyệt lại |
+| Q5 | Đề xuất nhiều đợt trong một Workspace bị thay thế bởi Duplicate Workspace cho Owner |
+| Q6 | Đã chốt tổng sản lượng cả gói; không theo tháng trong đợt này |
+| Q7 | Đã chốt Manager được complete còn Task dang dở nếu ghi lý do; giữ nguyên Task con |
+| D1 | Owner được copy nhóm tài nguyên/thành viên nào; default chọn gì? |
+| D2 | File dùng chung hay sao chép độc lập; xử lý sửa/xóa nguồn và quota ra sao? |
+| D3 | Package chỉ gợi ý catalogue hay cho sao chép terms thành draft mới? |
+
+## 6. Repo, commit và kiểm thử
+
+- Infrastructure: migration mới + init đồng bộ; SQL trong docs dùng docs tag theo
+  yêu cầu. Không sửa migration cũ. Business/Web triển khai theo từng mốc đã chốt.
+- Web: paired vi/en keys, light/dark/mobile, lỗi/loading/empty/permission states.
+  Gateway /api/v1/** đã forward Business; chỉ sửa khi có nhu cầu thật.
+- Commit DA-947 cho planning; DA-948 cho approve/deploy. Duplicate Workspace dùng
+  mã Jira được cấp, không dùng placeholder hay đánh dấu task Done khi mới có tài liệu.
+- Test một Campaign/Workspace kể cả concurrent create, COMPLETED hoặc đổi ID.
+- Test approve phiên bản cũ, reset cả hai approval, permission và notification.
+- Test crash/retry deploy không sinh trùng/reset Task; Post mở trong editor dùng cùng ID.
+- Test duplicate theo allowlist, người không phải Owner, retry, copy lỗi một phần,
+  thành viên inactive, xóa/sửa nguồn, không copy approval/token/job, và package gate đích.
+- Demo bằng account hiện có; không seed account mới. Không thay đổi DB trong lần cập nhật này.
+- Các test cho BA mới đều chưa chạy vì chưa có implementation.
+
+## Nguồn và lịch sử
+
+[Team guide](../../team_guide.md) · [Master-plan](../../plan/brandhub-master-plan.md) ·
+[BA](../../ba/04-media-package-campaign.md) ·
+[FR 3.5.5](3-5-5-create-media-campaign/spec.md) · [FR 3.5.6](3-5-6-approve-media-campaign/spec.md).
+
+Bản kế hoạch nhiều đợt trong một Workspace đã được thay thế bởi quyết định BA mới nhất
+ngày 2026-10-08: một Workspace/một Campaign, Owner nhân bản Workspace cho chiến dịch mới.

@@ -2,11 +2,22 @@
 
 ## Purpose
 
-**Next delivery, confirmed 2026-10-08:** one approved Workspace agreement maps to
-one Campaign; a Workspace can retain multiple cooperation rounds and negotiate
-the next while the current Campaign runs. See [Campaign delivery plan](campaign-delivery-plan.md)
-for rollout, Jira mapping, migration risks and open decisions. This is a target
-model, not a claim that the existing draft allocation prototype implements it.
+Class diagram cho FR 3.5.1–3.5.10: [Mô hình lớp Package, Campaign và Content Request](class-diagram.md).
+
+**Điểm bắt đầu khi tiếp tục công việc:** [Lộ trình 6 giai đoạn](implementation-roadmap.md)
+ghi trạng thái, thứ tự triển khai, Jira, tiêu chí bàn giao và các quyết định còn mở.
+
+Giai đoạn 1 đã hoàn thành thiết kế: [spec/plan/task/test](phase-1-design/spec.md).
+Đã chốt tổng sản lượng cả gói, Task EVENT_PLAN/PRESS_RECOMMENDATION và Manager
+complete với lý do khi còn Task dang dở. Giai đoạn 2–5 đã có code; điểm tiếp theo
+là xác minh migration Atlas và smoke test API/browser theo roadmap.
+
+**Latest BA, 2026-10-08:** one Workspace has one Campaign, created from its approved
+package. A new campaign uses a new Workspace; Owner can duplicate selected information
+and resources from an existing Workspace. This supersedes multiple cooperation rounds
+in one Workspace. See [Campaign delivery plan](campaign-delivery-plan.md) for rollout,
+copy scope and remaining verification. Campaign draft, review/deployment and selective
+Workspace duplication are implemented in code; this does not imply Jira Done.
 
 October 2026 structured offering extension: see [offering-models/spec.md](offering-models/spec.md)
 and its plan/task/test. This slice adds packaging, deliverables, immutable negotiation snapshots
@@ -47,7 +58,12 @@ This folder is the technical working baseline for FR 3.5.1--3.5.10. It is intend
 4. E50-06 and E50-07: campaign work items, approval, and idempotent deploy.
 5. E50-10 with E51-01: content request lifecycle and generated task.
 
-E50-08 and E50-09 (campaign collaborators) can proceed independently after a campaign exists.
+E50-09 / DA-950 now has manual per-Campaign partner tracking APIs and a dedicated
+Workspace page for Owner/Manager/Creator/Client. See the
+[spec, plan, task and test evidence](campaign-collaborators/spec.md).
+E50-08 directory CRUD remains separate: assignment uses existing Agency partners;
+an empty directory needs E50-08 before users can provision partners themselves.
+Real PostgreSQL/API smoke remains to be verified; code completion is not Jira Done.
 
 ## Decisions required before affected code
 
