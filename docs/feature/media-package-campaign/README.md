@@ -58,7 +58,12 @@ This folder is the technical working baseline for FR 3.5.1--3.5.10. It is intend
 4. E50-06 and E50-07: campaign work items, approval, and idempotent deploy.
 5. E50-10 with E51-01: content request lifecycle and generated task.
 
-E50-08 and E50-09 (campaign collaborators) can proceed independently after a campaign exists.
+E50-09 / DA-950 now has manual per-Campaign partner tracking APIs and a dedicated
+Workspace page for Owner/Manager/Creator/Client. See the
+[spec, plan, task and test evidence](campaign-collaborators/spec.md).
+E50-08 directory CRUD remains separate: assignment uses existing Agency partners;
+an empty directory needs E50-08 before users can provision partners themselves.
+Real PostgreSQL/API smoke remains to be verified; code completion is not Jira Done.
 
 ## Decisions required before affected code
 
