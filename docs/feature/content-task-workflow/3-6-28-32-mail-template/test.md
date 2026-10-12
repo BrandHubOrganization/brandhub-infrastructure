@@ -243,3 +243,19 @@ Nhánh `feat/DA-998-mail-template-crud` (business-service), commit `23503e3`.
 Chưa chạy: gửi (DA-1002), tệp đính kèm (DA-1256), hẹn giờ/unsubscribe (DA-1257), lịch sử (DA-1258), Admin (DA-1259), toàn bộ frontend và E2E.
 
 Ghi chú triển khai: ảnh trong nội dung bị loại hết cho đến khi cấu hình `mail.allowed-image-hosts` (bước tệp đính kèm); subject không HTML-escape (là header văn bản thuần), chỉ bỏ xuống dòng.
+
+### 14.2 Bước 3–8 (đủ backend + frontend) — 2026-10-12
+Nhánh `feat/DA-998-mail-template-crud` (business-service, 6 commit), `feat/DA-998-mail-template-ui` (web-dashboard, 2 commit), `feat/DA-1257-mail-public-route` (api-gateway, 1 commit).
+
+| Nhóm | Cách chạy | Kết quả |
+|---|---|---|
+| JUnit mail (sanitizer, renderer, template, attachment, send, delivery, batch, unsubscribe, seeder, MailService) | `mvn test -Dtest='Mail*Test,...'` | 107+ test pass |
+| Toàn bộ business-service | `mvn clean test` | **675/675**, không hồi quy |
+| Vitest web-dashboard | `npm test` | **59/59** (12 test mới: biến, CSV, người nhận, HTML→text) |
+| Playwright mail templates (REST mock) | `npx playwright test tests/e2e/mail-templates` | **16/16**: list, tìm kiếm, lỗi/retry, xóa, tạo, chèn biến, gửi CSV, đính kèm, quota, hẹn giờ, preview/test, >200, lô + hủy, unsubscribe |
+| Type-check, ESLint (file mới) | `tsc --noEmit`, `eslint` | 0 lỗi (5 cảnh báo `set-state-in-effect` theo mẫu nạp dữ liệu có sẵn) |
+| Live: backend thật + Postgres + Mongo + SMTP sink | curl + sink script | gửi 3 người (1 nội bộ, 2 ngoài) đúng 3 mail; Reply-To = người gửi; footer + `List-Unsubscribe` chỉ cho người ngoài; footer vi/en; unsubscribe công khai (GET/POST, idempotent, token giả bị 400); gửi lại thì người đã hủy `SUPPRESSED`; quota 429 kèm số còn lại; hẹn giờ, quá gần bị 400, hủy 403/200/409; gửi thử vào hộp thư người dùng; lịch sử 2 lô đúng; notification trong app; retention SQL chạy đúng |
+
+**Lỗi tìm thấy nhờ test live và đã sửa:** thông báo cuối lô được ghi trong cùng giao dịch với việc gửi; khi bảng `user_notifications` thiếu, câu lệnh lỗi làm hỏng giao dịch, trạng thái `SENT` bị rollback và **cùng một mail bị gửi lặp mỗi tick** (người nhận nhận 12+ bản). Đã tách thông báo ra ngoài giao dịch (commit `8c9f0e8`) và thêm test hồi quy.
+
+**Chưa kiểm chứng:** upload tệp đính kèm/ảnh lên S3 thật (chỉ test đơn vị với storage giả); Mongo validator với tệp đính kèm; light/dark mode và responsive bằng mắt; screen reader; hiển thị trên Gmail/Outlook; hai instance worker; quota đồng thời nhiều luồng trên DB thật; trang Client (nút Gửi email) chưa có E2E vì trang dùng mock service; gateway route chưa chạy trên gateway thật.
