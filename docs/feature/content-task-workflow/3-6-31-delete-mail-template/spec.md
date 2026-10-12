@@ -5,9 +5,18 @@
 | FR Code | 3.6.31 |
 | Feature | Delete Mail Template |
 | Domain | Content & Workflow (FR 3.6) |
-| Role | TBD (chưa gán role trong CSV) |
+| Role | OWNER, MANAGER, CREATOR (đã chốt 2026-10-12) |
 | Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Trạng thái tài liệu | Đã chốt nghiệp vụ 2026-10-12 — xem plan.md, chưa code |
+
+## Quyết định đã chốt (2026-10-12)
+
+> Nguồn chuẩn: [../3-6-28-32-mail-template/plan.md](../3-6-28-32-mail-template/plan.md). Mục này **ghi đè** các phần "đề xuất" và `TBD` bên dưới khi có mâu thuẫn.
+
+- **Phạm vi**: template theo **Workspace**. **Role**: OWNER, MANAGER, CREATOR (CLIENT không). Sửa/xóa template của Workspace: người tạo hoặc OWNER/MANAGER; template hệ thống chỉ Admin sửa/xóa.
+- **Soft delete** bằng `deletedAt` (không `repository.delete()`); không có khôi phục.
+- Xóa template **không** hủy lô đã hẹn (đã snapshot) và không xóa lịch sử gửi.
+- Quyền: người tạo hoặc OWNER/MANAGER; template hệ thống chỉ Admin (`DELETE /api/v1/admin/mail-templates/{tid}`).
 
 ## 1. Objective
 

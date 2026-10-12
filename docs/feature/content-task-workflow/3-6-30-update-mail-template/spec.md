@@ -5,9 +5,18 @@
 | FR Code | 3.6.30 |
 | Feature | Update Mail Template |
 | Domain | Content & Workflow (FR 3.6) |
-| Role | TBD (chưa gán role trong CSV) |
+| Role | OWNER, MANAGER, CREATOR (đã chốt 2026-10-12) |
 | Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Trạng thái tài liệu | Đã chốt nghiệp vụ 2026-10-12 — xem plan.md, chưa code |
+
+## Quyết định đã chốt (2026-10-12)
+
+> Nguồn chuẩn: [../3-6-28-32-mail-template/plan.md](../3-6-28-32-mail-template/plan.md). Mục này **ghi đè** các phần "đề xuất" và `TBD` bên dưới khi có mâu thuẫn.
+
+- **Phạm vi**: template theo **Workspace**. **Role**: OWNER, MANAGER, CREATOR (CLIENT không). Sửa/xóa template của Workspace: người tạo hoặc OWNER/MANAGER; template hệ thống chỉ Admin sửa/xóa.
+- **Method**: **PATCH** (không phải PUT), trường `bodyHtml`; thêm `attachmentIds?`.
+- Template hệ thống từ Workspace → 403 `SYSTEM_TEMPLATE_READ_ONLY`. Sửa template của người khác chỉ OWNER/MANAGER. Template không tồn tại → 404 `TEMPLATE_NOT_FOUND`.
+- Sửa template **không** ảnh hưởng lô đã gửi hoặc đã hẹn (snapshot).
 
 ## 1. Objective
 
