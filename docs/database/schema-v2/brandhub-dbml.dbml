@@ -854,8 +854,11 @@
     id               uuid         [pk, default: `gen_random_uuid()`]
     workspace_id     uuid         [not null, ref: > workspaces.id]
     template_id      varchar(64)  [not null, note: 'Soft ref → mail_templates._id (MongoDB)']
+    workspace_name   varchar(255)
     template_name    varchar(120) [not null]
     sent_by          uuid         [not null, ref: > users.id]
+    sender_email     varchar(255) [not null, note: 'Reply-To của lô']
+    sender_name      varchar(255)
     kind             mail_batch_kind   [not null, default: 'SEND']
     status           mail_batch_status [not null]
     subject          varchar(200) [not null]

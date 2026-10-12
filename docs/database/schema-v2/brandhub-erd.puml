@@ -619,8 +619,11 @@ entity "mail_batches" as mail_batches <<PostgreSQL, NEW V2>> {
   --
   * workspace_id : uuid <<FK>>
   * template_id : varchar(64) <<soft ref mail_templates>>
+  workspace_name : varchar(255)
   * template_name : varchar(120)
   * sent_by : uuid <<FK>>
+  * sender_email : varchar(255)
+  sender_name : varchar(255)
   * kind : mail_batch_kind
   * status : mail_batch_status
   * subject : varchar(200) <<snapshot>>
