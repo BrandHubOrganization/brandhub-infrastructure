@@ -114,3 +114,19 @@ Full FK relationship diagram nằm ở [`brandhub-erd.puml`](./brandhub-erd.puml
 ::: warning Ghi chú thay đổi lớn nhất
 So với V1 (17 entity theo mô tả gốc cũ, thực tế tăng lên 23 entity trước khi V2), schema V2 tăng lên **37 entity** (23 PostgreSQL + 14 MongoDB) — chủ yếu do 3 nhóm hoàn toàn mới: Organization (Agency layer, 8 bảng), Commerce (Media Package/Campaign, 3 bảng), Third-party Collaborator (2 bảng). Đây là thiết kế **DESIGN**, chưa migrate vào DB thật.
 :::
+
+### mail_recipient_groups (MongoDB)
+
+Named recipient lists a Workspace sends mail to repeatedly (FR 3.6.32 follow-up).
+
+| Field | Type | Notes |
+|---|---|---|
+| _id | ObjectId | |
+| workspaceId | string | owner Workspace |
+| name | string(80) | |
+| recipients | array<{email, name}> | max 200, emails lower-cased and unique |
+| createdBy | string | user id; only the creator or OWNER/MANAGER may delete |
+| createdAt | date | |
+
+Index: `{workspaceId:1, name:1}`. Limit: 50 groups per Workspace (service rule).
+
