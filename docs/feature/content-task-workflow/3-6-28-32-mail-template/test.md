@@ -269,15 +269,21 @@ Reviewer: java-reviewer agent over `git diff origin/develop...HEAD` of business-
 - Attachment type detection uses the bytes only (not the file name); OOXML must contain its own part folder.
 - Recipient addresses containing `,` or `;` are rejected up front (they used to burn 5 attempts).
 
-**Open follow-ups (not blocking merge, track as tech debt)**
-| # | Severity | Item |
+**Fixed in a second pass (same day)**
+| # | Item | Fix |
 |---|---|---|
-| 3 | Medium | Unsubscribe rate limit uses `getRemoteAddr()` (proxy IP) and never evicts keys; use forwarded IP + eviction |
-| 5 | Medium | No per-workspace upload cap; IMAGE uploads are never orphan-cleaned |
-| 6 | Medium | Scheduled sends skip quota; no cap on pending deliveries per workspace |
-| 7 | Medium | `POST /send` has no idempotency key; a double click sends twice |
-| 8 | Medium | SMTP + S3 download run inside the delivery DB transaction; move to claim-lease-then-send |
-| 9 | Low | Quota release after midnight hits the wrong day; permanent 5xx is retried 5 times |
-| 10 | Low | Per-variable length is not capped |
-| 11 | Low | Send-test limiter is per JVM and never pruned |
-| 12 | Low | Mongo save and JDBC `markBound` are not atomic; replaced attachments are never unbound |
+| 3 | Unsubscribe rate limit | Key = last `X-Forwarded-For` entry (proxy-appended), idle keys evicted above 10k |
+| 5 | Upload abuse | `mail.attachment.max-uploads-per-day` (60) per Workspace, size pre-check before reading bytes |
+| 6 | Pending backlog | `mail.max-pending-per-workspace` (1000) checked on every send, scheduled included |
+| 7 | Double send | Optional `Idempotency-Key` header; deterministic batch id, `on conflict do nothing`; web sends one key per payload |
+| 8 | SMTP inside the DB tx | Claim + 10 min lease in a short tx, SMTP and S3 outside, status write in a second short tx |
+| 9 | Quota day / 5xx | Release hits the day it consumed; a 5xx SMTP reply fails immediately |
+| 10 | Variable size | max 30 variables, name 64, value 1000 chars |
+| 11 | Send-test map | idle entries pruned above 1000 keys |
+| 12 | Bind before save | Template create/update mark attachments bound only after the Mongo save |
+
+**Still open (low risk, documented)**
+- Replacing or removing a template attachment does not unbind it: clones share the same attachment id and S3 key, so unbinding needs reference counting first.
+- IMAGE uploads are never orphan-cleaned (their URL lives in template bodies); growth is bounded by the daily upload cap.
+- Send-test limiter and unsubscribe limiter are per instance.
+- An idempotent replay returns `rejected: []` because the per-row rejection list is not stored.
