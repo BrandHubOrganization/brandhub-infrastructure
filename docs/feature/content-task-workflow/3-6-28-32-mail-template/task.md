@@ -11,23 +11,23 @@
 
 ## 1. Nền tảng dữ liệu (plan §4 — DA-998)
 - [ ] 1.1 Migration Postgres: `mail_batches`, `mail_deliveries`, `mail_send_quota`, `mail_suppressions`, `mail_attachments` (+ index, unique `event_key`, unique `(workspace_id, email_lower)`).
-- [ ] 1.2 Migration Mongo: collection `mail_templates` (validator `$jsonSchema`, index `{workspaceId, deletedAt, createdAt}`, `{type, deletedAt}`).
+- [x] 1.2 Migration Mongo: collection `mail_templates` (validator `$jsonSchema`, index `{workspaceId, deletedAt, createdAt}`, `{type, deletedAt}`).
 - [ ] 1.3 Cập nhật `init-postgres-v2.sql`, `init-mongo.js`, `mongo-atlas-migrations.md`.
 - [ ] 1.4 Cập nhật ERD, DBML, `erd-entity-descriptions.md`, `database-strategy.md` (xem mục 10).
-- [ ] 1.5 Entity/Document + repository: `MailTemplateDocument`, `MailBatch`, `MailDelivery`, `MailSendQuota`, `MailSuppression`, `MailAttachment`.
-- [ ] 1.6 `ErrorCode` mới: `TEMPLATE_NOT_FOUND`, `SYSTEM_TEMPLATE_READ_ONLY`, `MAIL_QUOTA_EXCEEDED`, `MAIL_SCHEDULE_OUT_OF_RANGE`, `MAIL_ATTACHMENT_INVALID`, `MAIL_BATCH_NOT_CANCELLABLE`, `EMAIL_SERVICE_UNAVAILABLE`.
+- [ ] 1.5 (MailTemplateDocument + MailTemplateMongoRepository done; Postgres entities pending DA-1002) Entity/Document + repository: `MailTemplateDocument`, `MailBatch`, `MailDelivery`, `MailSendQuota`, `MailSuppression`, `MailAttachment`.
+- [ ] 1.6 (TEMPLATE_NOT_FOUND, SYSTEM_TEMPLATE_READ_ONLY done; the rest come with later steps) `ErrorCode` mới: `TEMPLATE_NOT_FOUND`, `SYSTEM_TEMPLATE_READ_ONLY`, `MAIL_QUOTA_EXCEEDED`, `MAIL_SCHEDULE_OUT_OF_RANGE`, `MAIL_ATTACHMENT_INVALID`, `MAIL_BATCH_NOT_CANCELLABLE`, `EMAIL_SERVICE_UNAVAILABLE`.
 - [ ] 1.7 Cấu hình: các property ở plan §10 (có mặc định, khai báo trong `application.yml`, `AppProperties`).
-- [ ] 1.8 Thêm dependency `jsoup`, `tika-core` (backend).
+- [ ] 1.8 Thêm dependency `jsoup` (done), `tika-core` (pending, DA-1256) (backend).
 
 ## 2. Template CRUD (plan §5.1, §6.1 — DA-998..DA-1001)
-- [ ] 2.1 `HtmlSanitizer` (allow-list jsoup) + unit test payload XSS.
-- [ ] 2.2 `MailTemplateService`: list (lọc `deletedAt`, `includeSystem`, tìm kiếm, phân trang), get.
-- [ ] 2.3 Create (+ clone từ `cloneFromId`, kiểm nguồn hợp lệ, `type = CUSTOM`).
-- [ ] 2.4 Update PATCH một phần; chặn template hệ thống; kiểm sở hữu (người tạo hoặc OWNER/MANAGER).
-- [ ] 2.5 Soft delete; kiểm quyền như 2.4.
-- [ ] 2.6 `MailTemplateController` + `@RequireRole({OWNER, MANAGER, CREATOR})`.
-- [ ] 2.7 `TemplateRenderer`: parse biến `{{x}}`, built-in, escape, danh sách biến còn thiếu; `POST .../preview`.
-- [ ] 2.8 Test JUnit cho 2.1–2.7 (AC-V*, AC-C*, AC-U*, AC-D*).
+- [x] 2.1 `HtmlSanitizer` (allow-list jsoup) + unit test payload XSS.
+- [x] 2.2 `MailTemplateService`: list (lọc `deletedAt`, `includeSystem`, tìm kiếm, phân trang), get.
+- [x] 2.3 Create (+ clone từ `cloneFromId`, kiểm nguồn hợp lệ, `type = CUSTOM`).
+- [x] 2.4 Update PATCH một phần; chặn template hệ thống; kiểm sở hữu (người tạo hoặc OWNER/MANAGER).
+- [x] 2.5 Soft delete; kiểm quyền như 2.4.
+- [x] 2.6 `MailTemplateController` + `@RequireRole({OWNER, MANAGER, CREATOR})`.
+- [x] 2.7 `TemplateRenderer`: parse biến `{{x}}`, built-in, escape, danh sách biến còn thiếu; `POST .../preview`.
+- [x] 2.8 Test JUnit cho 2.1–2.7 (AC-V*, AC-C*, AC-U*, AC-D*).
 
 ## 3. Tệp đính kèm và ảnh (plan §5.4, §8 — DA-1256)
 - [ ] 3.1 `MailAttachmentService`: upload S3 (khóa riêng theo Workspace), kiểm kích thước, allow-list, magic bytes (Tika), tổng ≤10MB, ≤3 tệp.

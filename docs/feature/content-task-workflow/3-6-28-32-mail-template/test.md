@@ -227,4 +227,19 @@ Ghi chú môi trường: nếu Maven báo `source level 25`, chạy `mvn clean` 
 - Gmail có thể vẫn đánh dấu spam dù đã cap; cần theo dõi thực tế.
 
 ## 14. Kết quả thực thi
-_Chưa thực thi — điền khi code xong._
+
+### 14.1 Bước 1–2 (CRUD, sanitize, render, preview) — 2026-10-12
+Nhánh `feat/DA-998-mail-template-crud` (business-service), commit `23503e3`.
+
+| Nhóm | Cách chạy | Kết quả |
+|---|---|---|
+| JUnit: `HtmlSanitizerTest` | `mvn test` | 11/11 (TC-SAN-01..05 và biến thể) |
+| JUnit: `TemplateRendererTest` | `mvn test` | 8/8 (TC-VAR-01..07) |
+| JUnit: `MailTemplateServiceImplTest` | `mvn test` | 28/28 (TC-MT-01..15 mức service, TC-PRE-01) |
+| Toàn bộ business-service | `mvn clean test` | 587/587, không hồi quy |
+| Live (backend thật + Postgres + Mongo local) | curl, DB scratch | pass: tạo (script bị loại), 401/403/404, PATCH khác người tạo 403, PATCH subject trống 400, preview escape, tìm kiếm, soft delete (`deletedAt` set, GET 404, list loại) |
+| Migration Mongo `2026-10-12-create-mail-templates-collection.js` | mongosh trên DB tạm | validator nhận bản ghi hợp lệ, từ chối `subject` rỗng và `type` sai; chạy lại idempotent; 3 index |
+
+Chưa chạy: gửi (DA-1002), tệp đính kèm (DA-1256), hẹn giờ/unsubscribe (DA-1257), lịch sử (DA-1258), Admin (DA-1259), toàn bộ frontend và E2E.
+
+Ghi chú triển khai: ảnh trong nội dung bị loại hết cho đến khi cấu hình `mail.allowed-image-hosts` (bước tệp đính kèm); subject không HTML-escape (là header văn bản thuần), chỉ bỏ xuống dòng.
