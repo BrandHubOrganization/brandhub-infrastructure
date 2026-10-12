@@ -1,8 +1,8 @@
-# Task — Mail Template (FR 3.6.28 – 3.6.32)
+# Task — Create Mail Template (FR 3.6.29)
 
-> Bước ③ của [feature-workflow](../../../rule/feature-workflow.md). Đọc [spec.md](spec.md) và [plan.md](plan.md) trước; kiểm chứng bằng [test.md](test.md).
-> Mỗi task ánh xạ tới mục trong plan và nhóm AC trong spec. Tick khi xong; không đổi nghiệp vụ trong lúc code — sai nghiệp vụ thì quay lại spec (feature-workflow §5).
-> Quy ước commit: `<type>(DA-xxx): <English description>` — xem [git-commit-convention](../../../rule/git-commit-convention.md). Nhánh: `feat/DA-<id>-<mô-tả>` từ `develop`, không push thẳng `develop`.
+- **FR:** 3.6.29 · **Jira:** DA-999
+- **Mục tiêu:** Tạo mẫu email mới (từ đầu hoặc clone mẫu hệ thống/mẫu Workspace), có biến, ảnh và tệp đính kèm.
+- Mục đã tick là đã làm và đã kiểm chứng (kết quả ở `test.md`).
 
 ## 0. Chuẩn bị
 - [ ] 0.1 Đọc đủ spec/plan/task/test; xác nhận các giả định ở plan §13 còn hiệu lực.
@@ -36,30 +36,6 @@
 - [x] 3.4 Job dọn tệp chưa gắn quá 24h.
 - [x] 3.5 Test JUnit: loại hợp lệ/không hợp lệ, đuôi giả, vượt kích thước, vượt số tệp (AC-A*).
 
-## 4. Engine gửi (plan §5.2, §6.2, §7 — DA-1002)
-- [x] 4.1 `MailService`: hàm gửi có tệp đính kèm, Reply-To, `List-Unsubscribe`; ném `EmailDeliveryException` (giữ nguyên 4 hàm cũ).
-- [x] 4.2 `RecipientClassifier`: trong/ngoài Workspace (Client `contact_email`, thành viên active).
-- [x] 4.3 `MailSendService.send`: validate, dedupe, render từng dòng, loại dòng lỗi, kiểm quota còn lại, ghi batch + deliveries trong một transaction, trả `202`.
-- [x] 4.4 `MailSendService.sendTest`: gửi đồng bộ, rate limit 10 lần/giờ/người dùng, 502 khi SMTP lỗi.
-- [x] 4.5 `MailDeliveryWorker`: `FOR UPDATE SKIP LOCKED`, throttle, retry/backoff, `event_key` idempotent, guard dev recipient.
-- [x] 4.6 `QuotaService`: tăng nguyên tử SYSTEM + WORKSPACE, ngày theo `Asia/Ho_Chi_Minh`, dời `next_attempt_at` sang ngày kế.
-- [x] 4.7 Test JUnit (service + worker) cho AC-S* (cần PostgreSQL thật cho `SKIP LOCKED` và quota đồng thời).
-
-## 5. Hẹn giờ, hủy, unsubscribe (plan §6.3, §6.5 — DA-1257)
-- [x] 5.1 Hẹn giờ: validate khoảng, snapshot subject/body/đính kèm vào batch, trạng thái `SCHEDULED`.
-- [x] 5.2 Job mỗi phút chuyển `SCHEDULED → QUEUED` khi đến hạn.
-- [x] 5.3 `POST .../mail-batches/{bid}/cancel` (409 khi sai trạng thái; quyền người tạo hoặc OWNER/MANAGER).
-- [x] 5.4 `UnsubscribeTokenService` (HMAC `MAIL_UNSUBSCRIBE_SECRET`), footer + header cho người ngoài Workspace.
-- [x] 5.5 Endpoint công khai `GET/POST /api/v1/public/mail/unsubscribe` (permit ở SecurityConfig, không cần JWT, rate limit theo IP).
-- [x] 5.6 Bỏ qua người trong `mail_suppressions` (`SUPPRESSED`).
-- [x] 5.7 Test JUnit cho AC-H*, AC-X*.
-
-## 6. Lịch sử, thông báo, retention (plan §5.3, §7 — DA-1258)
-- [x] 6.1 `GET .../mail-batches`, `GET .../mail-batches/{bid}` (phân trang, lọc trạng thái), `GET .../mail-quota`.
-- [x] 6.2 Notification trong app cho người tạo khi lô `COMPLETED`/`FAILED` (dùng service notification sẵn có).
-- [x] 6.3 Job retention 12 tháng (xóa deliveries và `body_html`, giữ counters).
-- [x] 6.4 Test JUnit cho AC-L*.
-
 ## 7. Frontend Workspace (plan §9 — DA-998..DA-1002, DA-1256..1258)
 - [x] 7.1 Service/API client + types + hooks (`useMailTemplates`, `useMailBatches`, `useMailQuota`).
 - [x] 7.2 Trang list `/workspaces/:id/mail-templates` (tìm kiếm, phân trang, chip "Hệ thống", loading/empty/error).
@@ -69,14 +45,6 @@
 - [x] 7.6 Trang unsubscribe công khai (vi/en).
 - [x] 7.7 Route, `ROUTE_ACCESS`, mục sidebar.
 - [x] 7.8 Vitest cho parser biến/CSV/validate form; Playwright E2E theo test.md.
-
-## 8. Điểm vào Client và Admin (plan §6.6, §6.7 — DA-1259)
-- [x] 8.1 Nút "Gửi email" trên trang Client, mở modal với người nhận và `clientName` điền sẵn.
-- [x] 8.2 Admin API `/api/v1/admin/mail-templates` (quyền hệ thống ADMIN, audit như các Admin controller).
-- [x] 8.3 Trang Admin "Mẫu email hệ thống" (CRUD, TipTap).
-- [x] 8.4 Seed 4 mẫu hệ thống (migration/seeder idempotent).
-- [x] 8.5 Nút "Chọn mẫu" trong form Broadcast 3.10.1 (chỉ sao chép subject/body); không sửa worker 3.10.1.
-- [x] 8.6 Test JUnit + Playwright cho AC-M*.
 
 ## 9. i18n và giao diện
 - [x] 9.1 Thêm namespace `mailTemplate` + `admin.mailTemplate` + `nav` + `broadcast.pickTemplate` vào **cả** `vi.json` và `en.json` (key song song).
@@ -102,12 +70,4 @@
 
 | Jira | Nhóm task |
 |---|---|
-| DA-998 View | 1, 2.2, 2.6–2.8, 7.2, 7.7 |
 | DA-999 Create | 2.1, 2.3, 7.3 |
-| DA-1000 Update | 2.4, 7.3 |
-| DA-1001 Delete | 2.5, 7.2 |
-| DA-1002 Send | 4, 7.4, 8.1 |
-| DA-1256 Attachments | 3, 7.3–7.4 |
-| DA-1257 Scheduling/Quota/Unsubscribe | 4.6, 5, 7.4, 7.6 |
-| DA-1258 History/Notifications | 6, 7.5 |
-| DA-1259 Admin templates | 8.2–8.6 |

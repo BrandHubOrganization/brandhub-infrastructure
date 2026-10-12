@@ -1,11 +1,8 @@
-# Plan — Mail Template (FR 3.6.28 – 3.6.32)
+# Plan — Send Email via Template (FR 3.6.32)
 
-> Trạng thái: **SPEC CHỐT (2026-10-12) — mọi câu hỏi nghiệp vụ, quy tắc quota và 10 giả định đã được chủ task đồng ý. Chưa viết code.**
-> Jira: DA-998 (View), DA-999 (Create), DA-1000 (Update), DA-1001 (Delete), DA-1002 (Send) + task mở rộng DA-1256 (Attachments), DA-1257 (Scheduling/Quota/Unsubscribe), DA-1258 (History/Notifications), DA-1259 (Admin templates + Broadcast picker) — epic DA-939.
-> Tài liệu liên quan: 5 `spec.md` cùng cấp (đã cập nhật phần "Quyết định 2026-10-12"), `BA/05-content-task-workflow.md` §9.
-> Nguồn đã đối chiếu: spec/report3/sequence của 5 FR, ERD + DBML + database-strategy, `MailServiceImpl`, `AdminEmailOutbox`, `AdminNotificationService`, `ClientProfile`, `WorkspaceMember`, `application.yml`.
-
----
+- **FR:** 3.6.32 · **Jira:** DA-1002
+- **Mục tiêu:** Gửi email theo mẫu tới danh sách người nhận: hàng đợi, hạn mức, hẹn giờ/hủy, hủy đăng ký, lịch sử, Admin.
+- **Spec:** [spec.md](spec.md) · **Sequence:** [report4_sequence.puml](report4_sequence.puml)
 
 ## 1. Mục tiêu và phạm vi
 
@@ -68,25 +65,6 @@ Cho phép thành viên Workspace soạn **mẫu email** có biến, đính kèm 
 
 Backend: `@RequireRole({OWNER, MANAGER, CREATOR})` + kiểm tra sở hữu cho sửa/xóa/hủy. Admin API dùng quyền hệ thống `ADMIN` như các `Admin*Controller` hiện có.
 
-## 4. Mô hình dữ liệu
-
-### 4.1 MongoDB — `mail_templates` (theo ERD hiện có, bổ sung trường)
-| Trường | Kiểu | Ghi chú |
-|---|---|---|
-| `_id` | ObjectId | |
-| `workspaceId` | string / null | `null` với `SYSTEM_DEFAULT` |
-| `name` | string ≤120 | bắt buộc |
-| `subject` | string ≤200 | bắt buộc, được chứa biến |
-| `bodyHtml` | string ≤100KB | bắt buộc, đã sanitize |
-| `type` | `SYSTEM_DEFAULT` \| `CUSTOM` | |
-| `attachments` | array `{attachmentId, name, contentType, size, s3Key}` | mặc định gắn kèm (D9) |
-| `clonedFromId` | string | truy vết |
-| `createdBy` | string | user id |
-| `createdAt`, `updatedAt` | date | |
-| `deletedAt` | date | soft delete; mọi truy vấn lọc `deletedAt = null` |
-
-Index: `{workspaceId:1, deletedAt:1, createdAt:-1}`, `{type:1, deletedAt:1}`.
-
 ### 4.2 PostgreSQL (cùng DB với `admin_email_outbox`, để enqueue transactional và `FOR UPDATE SKIP LOCKED`)
 
 **`mail_batches`** — một lần bấm gửi
@@ -102,22 +80,6 @@ Index: `{workspaceId:1, deletedAt:1, createdAt:-1}`, `{type:1, deletedAt:1}`.
 **`mail_attachments`** (tệp tạm trước khi gắn) — `id`, `workspace_id`, `uploaded_by`, `name`, `content_type`, `size`, `s3_key`, `kind` (`FILE`/`IMAGE`), `created_at`, `bound boolean`; job dọn tệp chưa gắn quá 24h.
 
 Migration đặt ở `docs/database/migrations/` (SQL cho Postgres, JS cho Mongo, kèm cập nhật `init-postgres-v2.sql`, `init-mongo.js`, ERD, DBML — cùng pattern các migration 2026-10-xx).
-
-## 5. API
-
-Tiền tố `/api/v1`. Mọi response bọc `{success, data, error, requestId}`.
-
-### 5.1 Template (Workspace)
-| Method | Path | Mô tả |
-|---|---|---|
-| GET | `/workspaces/{id}/mail-templates?includeSystem=true&q=&page=&size=` | List: `id, name, subject (preview 120 ký tự), type, attachmentCount, createdAt` |
-| GET | `/workspaces/{id}/mail-templates/{tid}` | Chi tiết đầy đủ (kể cả template hệ thống) |
-| POST | `/workspaces/{id}/mail-templates` | `{name, subject, bodyHtml, attachmentIds?, cloneFromId?}` → `201 {id,...}`. Trống `subject`/`bodyHtml` → 400 `VALIDATION_ERROR`; `cloneFromId` thiếu `name/subject/bodyHtml` thì lấy từ nguồn |
-| PATCH | `/workspaces/{id}/mail-templates/{tid}` | `{name?, subject?, bodyHtml?, attachmentIds?}` → `200`. Template hệ thống → 403 `SYSTEM_TEMPLATE_READ_ONLY` |
-| DELETE | `/workspaces/{id}/mail-templates/{tid}` | Soft delete → `200 null` |
-| POST | `/workspaces/{id}/mail-templates/{tid}/preview` | `{variables?, recipient?}` → `{subject, bodyHtml, missingVariables[]}` |
-| POST | `/workspaces/{id}/mail-templates/{tid}/send-test` | `{variables?}` → gửi **đồng bộ** tới email người dùng; không tính quota; SMTP lỗi → 502 |
-| POST | `/workspaces/{id}/mail-templates/{tid}/send` | Xem 5.2 |
 
 ### 5.2 Gửi
 ```
@@ -140,12 +102,6 @@ Quy tắc: `recipients` rỗng → 400 `VALIDATION_ERROR`; >200 → 400; email s
 | POST | `/workspaces/{id}/mail-batches/{bid}/cancel` | Chỉ lô `SCHEDULED` (409 `MAIL_BATCH_NOT_CANCELLABLE` nếu khác) |
 | GET | `/workspaces/{id}/mail-quota` | `{ day, workspaceUsed, workspaceLimit, systemRemaining }` để UI hiển thị |
 
-### 5.4 Tệp
-| Method | Path | Mô tả |
-|---|---|---|
-| POST | `/workspaces/{id}/mail-templates/attachments` | multipart `file` → `{attachmentId, name, size, contentType}`. Loại ngoài allow-list hoặc magic bytes không khớp, >5MB → 400/413 `MAIL_ATTACHMENT_INVALID` |
-| POST | `/workspaces/{id}/mail-templates/images` | multipart ảnh → `{url}` (URL công khai trên S3) để TipTap chèn |
-
 ### 5.5 Công khai
 | Method | Path | Mô tả |
 |---|---|---|
@@ -159,14 +115,6 @@ Quy tắc: `recipients` rỗng → 400 `VALIDATION_ERROR`; >200 → 400; email s
 | GET/PATCH/DELETE | `/admin/mail-templates/{tid}` | Xem / sửa / xóa mềm |
 
 Mã lỗi mới: `TEMPLATE_NOT_FOUND` 404, `SYSTEM_TEMPLATE_READ_ONLY` 403, `MAIL_QUOTA_EXCEEDED` 429, `MAIL_SCHEDULE_OUT_OF_RANGE` 400, `MAIL_ATTACHMENT_INVALID` 400, `MAIL_BATCH_NOT_CANCELLABLE` 409, `EMAIL_SERVICE_UNAVAILABLE` 502.
-
-## 6. Luồng nghiệp vụ
-
-### 6.1 CRUD template (3.6.28–31)
-1. Member mở `/workspaces/:id/mail-templates` → list gồm template của Workspace + (tùy chọn) template hệ thống, lọc `deletedAt = null`.
-2. Tạo: form tên/subject/TipTap/đính kèm; "Dùng mẫu hệ thống" chọn nguồn để clone rồi sửa; backend sanitize `bodyHtml`, kiểm `attachmentIds` thuộc Workspace.
-3. Sửa: PATCH từng phần; template hệ thống không sửa được từ Workspace.
-4. Xóa: confirm → `deletedAt = now`. Lô đã gửi/đã hẹn **không bị ảnh hưởng** (snapshot).
 
 ### 6.2 Gửi ngay (3.6.32)
 1. Người dùng chọn template, dán/upload CSV (FE parse thành `recipients`), điền biến, xem **preview**, có thể **gửi thử**.
@@ -205,30 +153,6 @@ Nút "Gửi email" ở trang Client mở modal gửi với `recipients = [contac
 - **Guard dev**: dùng lại `admin.mail.allowed-recipients` và `suppressed-domain` của outbox hiện có để dev không gửi mail thật.
 - **Job lịch**: mỗi phút chuyển batch `SCHEDULED` đến hạn. **Job retention**: hằng ngày xóa `mail_deliveries` quá 12 tháng, xóa `body_html` của batch tương ứng. **Job dọn tệp** chưa gắn quá 24h.
 - `MailService` thêm hàm gửi có tệp đính kèm, có Reply-To và header List-Unsubscribe, **ném** `EmailDeliveryException` khi lỗi; 4 hàm cũ giữ nguyên hành vi.
-
-## 8. Biến, HTML, tệp
-
-- **Cú pháp**: `{{ten_bien}}`, chỉ `[A-Za-z0-9_]`. Biến built-in: `workspaceName`, `senderName`, `clientName` (khi gửi từ trang Client), `name` (từ cột CSV `name`). Biến khác phải có giá trị (từ CSV dòng hoặc `variables` chung).
-- **Giá trị biến** luôn bị HTML-escape khi chèn. Subject cũng render biến (escape thô).
-- **Sanitize** (jsoup allow-list): `p, br, b, strong, i, em, u, a[href http/https/mailto], ul, ol, li, h1–h3, blockquote, img[src https], span, div`; bỏ `script`, `style`, event handler, `javascript:`. Ảnh chỉ nhận URL thuộc bucket của hệ thống.
-- **Tệp**: allow-list `pdf, png, jpg, jpeg, gif, docx, xlsx, pptx`; kiểm magic bytes (Tika-core); từ chối `exe, zip, html, js...`; 5MB/tệp, ≤3 tệp, tổng ≤10MB. Lưu S3 khóa riêng theo Workspace.
-- **Giới hạn nội dung**: subject ≤200 ký tự, body ≤100KB sau sanitize.
-- **Footer unsubscribe** (chỉ với người ngoài): đoạn text song ngữ vi/en + link; token HMAC từ `MAIL_UNSUBSCRIBE_SECRET`.
-
-## 9. Frontend (web-dashboard)
-
-| Trang / thành phần | Nội dung |
-|---|---|
-| `/workspaces/:id/mail-templates` | List + tìm kiếm, nút Tạo, hành động Sửa/Xóa/Gửi; chip "Hệ thống" |
-| Form tạo/sửa | Tên, subject, TipTap (nút chèn biến, ảnh), đính kèm, "Dùng mẫu hệ thống" |
-| Modal Gửi | Template, người nhận (dán, upload CSV có map cột), biến tự phát hiện, đính kèm bật/tắt, preview, gửi thử, hẹn giờ; hiển thị quota còn lại |
-| Trang lô `/workspaces/:id/mail-templates/batches` | Danh sách lô, chi tiết người nhận, Hủy lịch |
-| Trang Client | Nút "Gửi email" mở modal Gửi |
-| Admin console | Trang "Mẫu email hệ thống" (CRUD) |
-| Form Broadcast 3.10.1 | Nút "Chọn mẫu" (sao chép nội dung) |
-| i18n/route | `vi`/`en`, mục sidebar, `ROUTE_ACCESS` OWNER/MANAGER/CREATOR |
-
-Thêm thư viện FE: parser CSV (papaparse hoặc parser nhỏ tự viết). BE: `jsoup`, `tika-core`.
 
 ## 10. Cấu hình
 
