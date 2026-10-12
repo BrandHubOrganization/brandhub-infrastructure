@@ -1,0 +1,55 @@
+@startuml 3.6.29 - Create Mail Template
+title Sequence Diagram — 3.6.29 - Create Mail Template
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Creator" as creator
+boundary "CreateMailTemplateModal (UI)" as createmailtemplate_ui
+boundary "MailTemplateController" as mailtemplatecontroller
+control "MailTemplateServiceImpl" as mailtemplateserviceimpl
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "MailTemplateRepository" as mailtemplaterepository
+entity "WorkspaceMember" as workspacemember
+entity "MailTemplateDocument" as mailtemplatedocument
+entity "MailTemplateResponse" as mailtemplateresponse
+
+' === Flow ===
+creator -> createmailtemplate_ui: fills form (name, subject, bodyHtml, cloneFromId?) and clicks Save
+createmailtemplate_ui -> mailtemplatecontroller: POST /api/v1/workspaces/{id}/mail-templates
+mailtemplatecontroller -> mailtemplateserviceimpl: createMailTemplate(currentUser, workspaceId, request)
+opt subject.isBlank() || bodyHtml.isBlank()
+  mailtemplateserviceimpl --> mailtemplatecontroller: throw 400 VALIDATION_ERROR
+  mailtemplatecontroller --> createmailtemplate_ui: 400 Bad Request
+  createmailtemplate_ui --> creator: shows validation error
+end
+mailtemplateserviceimpl -> workspacememberrepository: findByWorkspaceIdAndUserId(workspaceId, currentUser.getId())
+workspacememberrepository --> mailtemplateserviceimpl: Optional<Row>
+opt !memberOpt.isPresent()
+  mailtemplateserviceimpl --> mailtemplatecontroller: throw 403 FORBIDDEN
+  mailtemplatecontroller --> createmailtemplate_ui: 403 Forbidden
+  createmailtemplate_ui --> creator: shows forbidden toast
+end
+mailtemplateserviceimpl -> workspacemember: map row -> member
+workspacemember --> mailtemplateserviceimpl: member
+opt request.cloneFromId() != null
+  mailtemplateserviceimpl -> mailtemplaterepository: findById(request.cloneFromId())
+  mailtemplaterepository --> mailtemplateserviceimpl: Optional<Row>
+  mailtemplateserviceimpl -> mailtemplatedocument: map row -> sourceTemplate
+  mailtemplatedocument --> mailtemplateserviceimpl: sourceTemplate
+end
+mailtemplateserviceimpl -> mailtemplatedocument: new MailTemplateDocument(workspaceId, name, subject, bodyHtml, CUSTOM, userId)
+mailtemplatedocument --> mailtemplateserviceimpl: newTemplate
+mailtemplateserviceimpl -> mailtemplaterepository: save(newTemplate)
+mailtemplaterepository --> mailtemplateserviceimpl: savedTemplate
+mailtemplateserviceimpl -> mailtemplateresponse: new MailTemplateResponse(savedTemplate)
+mailtemplateresponse --> mailtemplateserviceimpl: MailTemplateResponse
+mailtemplateserviceimpl --> mailtemplatecontroller: MailTemplateResponse
+mailtemplatecontroller --> createmailtemplate_ui: 201 Created MailTemplateResponse
+createmailtemplate_ui --> creator: shows success toast & updates list
+
+@enduml

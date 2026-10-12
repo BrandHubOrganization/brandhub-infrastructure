@@ -1,0 +1,48 @@
+@startuml 3.6.31 - Delete Mail Template
+title Sequence Diagram — 3.6.31 - Delete Mail Template
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Creator" as creator
+boundary "DeleteMailTemplateConfirmDialog (UI)" as deletemailtemplate_ui
+boundary "MailTemplateController" as mailtemplatecontroller
+control "MailTemplateServiceImpl" as mailtemplateserviceimpl
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "MailTemplateRepository" as mailtemplaterepository
+entity "WorkspaceMember" as workspacemember
+entity "MailTemplateDocument" as mailtemplatedocument
+
+' === Flow ===
+creator -> deletemailtemplate_ui: clicks Delete on template row & confirms dialog
+deletemailtemplate_ui -> mailtemplatecontroller: DELETE /api/v1/workspaces/{id}/mail-templates/{templateId}
+mailtemplatecontroller -> mailtemplateserviceimpl: deleteMailTemplate(currentUser, workspaceId, templateId)
+mailtemplateserviceimpl -> workspacememberrepository: findByWorkspaceIdAndUserId(workspaceId, currentUser.getId())
+workspacememberrepository --> mailtemplateserviceimpl: Optional<Row>
+opt !memberOpt.isPresent()
+  mailtemplateserviceimpl --> mailtemplatecontroller: throw 403 FORBIDDEN
+  mailtemplatecontroller --> deletemailtemplate_ui: 403 Forbidden
+  deletemailtemplate_ui --> creator: shows forbidden toast
+end
+mailtemplateserviceimpl -> workspacemember: map row -> member
+workspacemember --> mailtemplateserviceimpl: member
+mailtemplateserviceimpl -> mailtemplaterepository: findByIdAndWorkspaceId(templateId, workspaceId)
+mailtemplaterepository --> mailtemplateserviceimpl: Optional<Row>
+opt !templateOpt.isPresent()
+  mailtemplateserviceimpl --> mailtemplatecontroller: throw 404 TEMPLATE_NOT_FOUND
+  mailtemplatecontroller --> deletemailtemplate_ui: 404 Not Found
+  deletemailtemplate_ui --> creator: shows not found error
+end
+mailtemplateserviceimpl -> mailtemplatedocument: map row -> template
+mailtemplatedocument --> mailtemplateserviceimpl: template
+mailtemplateserviceimpl -> mailtemplaterepository: delete(template)
+mailtemplaterepository --> mailtemplateserviceimpl: void
+mailtemplateserviceimpl --> mailtemplatecontroller: void
+mailtemplatecontroller --> deletemailtemplate_ui: 200 OK (data: null)
+deletemailtemplate_ui --> creator: removes template from table & shows success toast
+
+@enduml

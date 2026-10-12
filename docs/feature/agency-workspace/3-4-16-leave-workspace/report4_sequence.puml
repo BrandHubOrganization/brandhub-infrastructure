@@ -1,0 +1,47 @@
+@startuml 3.4.16 - Leave Workspace
+title Sequence Diagram — 3.4.16 - Leave Workspace
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Member (MANAGER/CREATOR/CLIENT)" as member_manager_creator_client
+boundary "WorkspaceSettingsPage (UI)" as workspacesettingspage_ui
+boundary "WorkspaceController" as workspacecontroller
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "WorkspaceMember" as workspacemember
+
+' === Flow ===
+member_manager_creator_client -> workspacesettingspage_ui: confirms leave
+workspacesettingspage_ui -> workspacecontroller: POST /workspaces/{workspaceId}/leave
+workspacecontroller -> workspaceserviceimpl: leaveWorkspace(workspaceId, currentUser)
+workspaceserviceimpl -> workspacememberrepository: findActiveMember(workspaceId, userId)
+workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
+opt !activeMember
+  workspaceserviceimpl --> workspacecontroller: throw 403 WORKSPACE_ACCESS_DENIED
+  workspacecontroller --> workspacesettingspage_ui: 403 Forbidden
+  workspacesettingspage_ui --> member_manager_creator_client: shows 403 toast
+end
+workspaceserviceimpl -> workspacemember: getRole()
+workspacemember --> workspaceserviceimpl: role
+alt count(MANAGER) <= 1
+  workspaceserviceimpl -> workspacememberrepository: countByWorkspaceIdAndRole(workspaceId, MANAGER)
+  workspacememberrepository --> workspaceserviceimpl: long count
+  workspaceserviceimpl --> workspacecontroller: throw 409 LAST_MANAGER_CANNOT_BE_REMOVED
+  workspacecontroller --> workspacesettingspage_ui: 409 Conflict
+  workspacesettingspage_ui --> member_manager_creator_client: shows 409 toast
+else role != MANAGER || count > 1
+  workspaceserviceimpl -> workspacemember: deactivateMember()
+  workspacemember --> workspaceserviceimpl: WorkspaceMember
+  workspaceserviceimpl -> workspacememberrepository: save(member)
+  workspacememberrepository --> workspaceserviceimpl: WorkspaceMember
+  workspaceserviceimpl --> workspacecontroller: 200 OK
+  workspacecontroller --> workspacesettingspage_ui: 200 OK
+  workspacesettingspage_ui --> member_manager_creator_client: shows 200 toast
+end
+
+@enduml
