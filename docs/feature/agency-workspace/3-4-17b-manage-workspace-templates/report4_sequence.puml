@@ -1,0 +1,62 @@
+@startuml 3.4.17b - Manage Workspace Templates
+title Sequence Diagram — 3.4.17b - Manage Workspace Templates
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Agency member (owner)" as agency_member_owner
+boundary "TemplatesPage (UI)" as templatespage_ui
+boundary "WorkspaceTemplateController" as workspacetemplatecontroller
+control "WorkspaceTemplateServiceImpl" as workspacetemplateserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "WorkspaceTemplateRepository" as workspacetemplaterepository
+entity "WorkspaceTemplateResponse" as workspacetemplateresponse
+
+alt views templates
+  agency_member_owner -> templatespage_ui: opens templates page
+  templatespage_ui -> workspacetemplatecontroller: GET /api/v1/workspace-templates
+  workspacetemplatecontroller -> workspacetemplateserviceimpl: listTemplates(currentUser)
+  workspacetemplateserviceimpl -> agencyrepository: resolveOwnedAgencyId(currentUser)
+  agencyrepository --> workspacetemplateserviceimpl: Optional<Agency>
+  opt !agency.present
+    workspacetemplateserviceimpl --> workspacetemplatecontroller: throw 404 AGENCY_NOT_FOUND
+    workspacetemplatecontroller --> templatespage_ui: 404 Not Found
+    templatespage_ui --> agency_member_owner: shows 404 toast
+  end
+  workspacetemplateserviceimpl -> workspacetemplaterepository: findByAgencyId(agencyId)
+  workspacetemplaterepository --> workspacetemplateserviceimpl: List<WorkspaceTemplate>
+  workspacetemplateserviceimpl -> workspacetemplateresponse: toResponse(template)
+  workspacetemplateresponse --> workspacetemplateserviceimpl: WorkspaceTemplateResponse
+  workspacetemplateserviceimpl --> workspacetemplatecontroller: List<WorkspaceTemplateResponse>
+  workspacetemplatecontroller --> templatespage_ui: 200 OK List<WorkspaceTemplateResponse>
+  templatespage_ui --> agency_member_owner: renders templates list
+else deletes template
+  agency_member_owner -> templatespage_ui: confirms delete
+  templatespage_ui -> workspacetemplatecontroller: DELETE /api/v1/workspace-templates/{templateId}
+  workspacetemplatecontroller -> workspacetemplateserviceimpl: deleteTemplate(currentUser, templateId)
+  workspacetemplateserviceimpl -> workspacetemplaterepository: findById(templateId)
+  workspacetemplaterepository --> workspacetemplateserviceimpl: Optional<WorkspaceTemplate>
+  opt !template.present
+    workspacetemplateserviceimpl --> workspacetemplatecontroller: throw 404 NOT_FOUND
+    workspacetemplatecontroller --> templatespage_ui: 404 Not Found
+    templatespage_ui --> agency_member_owner: shows 404 toast
+  end
+  workspacetemplateserviceimpl -> agencyrepository: resolveOwnedAgencyId(currentUser)
+  agencyrepository --> workspacetemplateserviceimpl: Optional<Agency>
+  opt template.agencyId != agency.id
+    workspacetemplateserviceimpl --> workspacetemplatecontroller: throw 403 FORBIDDEN
+    workspacetemplatecontroller --> templatespage_ui: 403 Forbidden
+    templatespage_ui --> agency_member_owner: shows 403 toast
+  end
+  workspacetemplateserviceimpl -> workspacetemplaterepository: delete(template)
+  workspacetemplaterepository --> workspacetemplateserviceimpl: void
+  workspacetemplateserviceimpl --> workspacetemplatecontroller: 200 OK
+  workspacetemplatecontroller --> templatespage_ui: 200 OK
+  templatespage_ui --> agency_member_owner: shows 200 toast
+end
+
+@enduml

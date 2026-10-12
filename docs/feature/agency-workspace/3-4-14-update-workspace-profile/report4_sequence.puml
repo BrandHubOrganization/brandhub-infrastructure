@@ -1,0 +1,78 @@
+@startuml 3.4.14 - Update Workspace Profile
+title Sequence Diagram — 3.4.14 - Update Workspace Profile
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Workspace MANAGER" as workspace_manager
+boundary "WorkspaceSettingsPage (UI)" as workspacesettingspage_ui
+boundary "WorkspaceController" as workspacecontroller
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "WorkspaceRepository" as workspacerepository
+entity "Workspace" as workspace
+entity "WorkspaceResponse" as workspaceresponse
+participant "FileStorageService" as filestorageservice
+
+alt saves settings
+  workspace_manager -> workspacesettingspage_ui: submits settings form
+  workspacesettingspage_ui -> workspacecontroller: PUT /api/v1/workspaces/{id}/settings
+  opt caller != MANAGER
+    workspacecontroller --> workspacesettingspage_ui: 403 Forbidden
+    workspacesettingspage_ui --> workspace_manager: shows 403 toast
+  end
+  workspacecontroller -> workspaceserviceimpl: updateSettings(workspaceId, request)
+  workspaceserviceimpl -> workspacerepository: findById(workspaceId)
+  workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+  opt !workspace.present
+    workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+    workspacecontroller --> workspacesettingspage_ui: 404 Not Found
+    workspacesettingspage_ui --> workspace_manager: shows 404 toast
+  end
+  workspaceserviceimpl -> workspace: applySettings(request)
+  workspace --> workspaceserviceimpl: Workspace
+  workspaceserviceimpl -> workspacerepository: save(workspace)
+  workspacerepository --> workspaceserviceimpl: Workspace
+  workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
+  workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+  workspaceserviceimpl --> workspacecontroller: WorkspaceResponse
+  workspacecontroller --> workspacesettingspage_ui: 200 OK
+  workspacesettingspage_ui --> workspace_manager: shows 200 toast
+else uploads logo
+  workspace_manager -> workspacesettingspage_ui: uploads logo file
+  workspacesettingspage_ui -> workspacecontroller: POST /api/v1/workspaces/{id}/logo
+  opt caller != MANAGER
+    workspacecontroller --> workspacesettingspage_ui: 403 Forbidden
+    workspacesettingspage_ui --> workspace_manager: shows 403 toast
+  end
+  workspacecontroller -> workspaceserviceimpl: uploadLogo(workspaceId, file)
+  workspaceserviceimpl -> workspacerepository: findById(workspaceId)
+  workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+  opt !workspace.present
+    workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+    workspacecontroller --> workspacesettingspage_ui: 404 Not Found
+    workspacesettingspage_ui --> workspace_manager: shows 404 toast
+  end
+  alt fileError
+    workspaceserviceimpl --> workspacecontroller: throw 400 FILE_READ_ERROR
+    workspacecontroller --> workspacesettingspage_ui: 400 Bad Request
+    workspacesettingspage_ui --> workspace_manager: shows 400 toast
+  else valid(file)
+    workspaceserviceimpl -> filestorageservice: uploadLogo(workspaceId, file)
+    filestorageservice --> workspaceserviceimpl: logo URL
+    workspaceserviceimpl -> workspace: updateLogoUrl(url)
+    workspace --> workspaceserviceimpl: Workspace
+    workspaceserviceimpl -> workspacerepository: save(workspace)
+    workspacerepository --> workspaceserviceimpl: Workspace
+    workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
+    workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+    workspaceserviceimpl --> workspacecontroller: WorkspaceResponse
+    workspacecontroller --> workspacesettingspage_ui: 200 OK
+    workspacesettingspage_ui --> workspace_manager: shows 200 toast
+  end
+end
+
+@enduml

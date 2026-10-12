@@ -1,0 +1,51 @@
+@startuml 3.4.21 - Remove Workspace Member
+title Sequence Diagram — 3.4.21 - Remove Workspace Member
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Workspace MANAGER" as workspace_manager
+boundary "WorkspaceMembersPage (UI)" as workspacememberspage_ui
+boundary "WorkspaceController" as workspacecontroller
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "WorkspaceMember" as workspacemember
+
+' === Flow ===
+workspace_manager -> workspacememberspage_ui: confirms remove
+workspacememberspage_ui -> workspacecontroller: DELETE /workspaces/{workspaceId}/members/{memberId}
+opt caller != MANAGER
+  workspacecontroller --> workspacememberspage_ui: 403 Forbidden
+  workspacememberspage_ui --> workspace_manager: shows 403 toast
+end
+workspacecontroller -> workspaceserviceimpl: removeMember(workspaceId, memberId)
+workspaceserviceimpl -> workspacememberrepository: findById(memberId)
+workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
+opt !member.present || !active
+  workspaceserviceimpl --> workspacecontroller: throw 404 NOT_FOUND
+  workspacecontroller --> workspacememberspage_ui: 404 Not Found
+  workspacememberspage_ui --> workspace_manager: shows 404 toast
+end
+workspaceserviceimpl -> workspacemember: validateWorkspace(workspaceId)
+workspacemember --> workspaceserviceimpl: WorkspaceMember
+alt count(MANAGER) <= 1
+  workspaceserviceimpl -> workspacememberrepository: countByWorkspaceIdAndRole(workspaceId, MANAGER)
+  workspacememberrepository --> workspaceserviceimpl: long count
+  workspaceserviceimpl --> workspacecontroller: throw 409 LAST_MANAGER_CANNOT_BE_REMOVED
+  workspacecontroller --> workspacememberspage_ui: 409 Conflict
+  workspacememberspage_ui --> workspace_manager: shows 409 toast
+else role != MANAGER || count > 1
+  workspaceserviceimpl -> workspacemember: deactivateMember()
+  workspacemember --> workspaceserviceimpl: WorkspaceMember
+  workspaceserviceimpl -> workspacememberrepository: save(member)
+  workspacememberrepository --> workspaceserviceimpl: WorkspaceMember
+  workspaceserviceimpl --> workspacecontroller: void
+  workspacecontroller --> workspacememberspage_ui: 200 OK
+  workspacememberspage_ui --> workspace_manager: shows 200 toast
+end
+
+@enduml

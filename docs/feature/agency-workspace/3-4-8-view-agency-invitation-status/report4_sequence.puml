@@ -1,0 +1,76 @@
+@startuml 3.4.8a - View Agency Invitation Status
+title Sequence Diagram — 3.4.8a - View Agency Invitation Status
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Agency Owner" as owner
+boundary "AgencyInvitationsPage (UI)" as agencyinvitationspage_ui
+boundary "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "AgencyInvitationRepository" as agencyinvitationrepository
+entity "AgencyInvitation" as agencyinvitation
+entity "WorkspaceRepository" as workspacerepository
+entity "AgencyInvitationResponse" as agencyinvitationresponse
+
+alt views pending invitations
+  owner -> agencyinvitationspage_ui: selects pending invitations tab
+  agencyinvitationspage_ui -> agencycontroller: GET /api/v1/agencies/{agencyId}/invitations
+  agencycontroller -> agencyserviceimpl: listInvitations(currentUser, agencyId)
+  agencyserviceimpl -> agencyrepository: findById(agencyId)
+  agencyrepository --> agencyserviceimpl: Optional<Agency>
+  opt caller != OWNER
+    agencyserviceimpl --> agencycontroller: throw 403 NOT_AGENCY_OWNER
+    agencycontroller --> agencyinvitationspage_ui: 403 Forbidden
+    agencyinvitationspage_ui --> owner: shows 403 toast
+  end
+  agencyserviceimpl -> agencyinvitationrepository: findByAgencyId(agencyId)
+  agencyinvitationrepository --> agencyserviceimpl: List<AgencyInvitation>
+  agencyserviceimpl -> workspacerepository: findAllById(workspaceIds)
+  workspacerepository --> agencyserviceimpl: Map<UUID, Workspace>
+  agencyserviceimpl -> agencyserviceimpl: calculateEffectiveStatus(inv)
+  agencyserviceimpl -> agencyinvitation: getStatus()
+  agencyinvitation --> agencyserviceimpl: status
+  agencyserviceimpl -> agencyinvitationresponse: toInvitationResponse(effective)
+  agencyinvitationresponse --> agencyserviceimpl: AgencyInvitationResponse
+  agencyserviceimpl --> agencycontroller: List<AgencyInvitationResponse>
+  agencycontroller --> agencyinvitationspage_ui: 200 OK List<AgencyInvitationResponse>
+  agencyinvitationspage_ui --> owner: renders invitations list
+else clicks Cancel on invitation
+  owner -> agencyinvitationspage_ui: clicks Cancel on invitation
+  agencyinvitationspage_ui -> agencycontroller: DELETE /api/v1/agencies/{agencyId}/invitations/{invitationId}
+  agencycontroller -> agencyserviceimpl: cancelInvitation(agencyId, invitationId)
+  agencyserviceimpl -> agencyrepository: findById(agencyId)
+  agencyrepository --> agencyserviceimpl: Optional<Agency>
+  opt caller != OWNER
+    agencyserviceimpl --> agencycontroller: throw 403 NOT_AGENCY_OWNER
+    agencycontroller --> agencyinvitationspage_ui: 403 Forbidden
+    agencyinvitationspage_ui --> owner: shows 403 toast
+  end
+  agencyserviceimpl -> agencyinvitationrepository: findById(invitationId)
+  agencyinvitationrepository --> agencyserviceimpl: Optional<AgencyInvitation>
+  opt !inv.present || wrongAgency
+    agencyserviceimpl --> agencycontroller: throw 404 INVITATION_NOT_FOUND
+    agencycontroller --> agencyinvitationspage_ui: 404 Not Found
+    agencyinvitationspage_ui --> owner: shows 404 toast
+  end
+  opt status != PENDING
+    agencyserviceimpl --> agencycontroller: throw 400 INVALID_INVITATION
+    agencycontroller --> agencyinvitationspage_ui: 400 Bad Request
+    agencyinvitationspage_ui --> owner: shows 400 toast
+  end
+  agencyserviceimpl -> agencyinvitation: setStatus(REVOKED)
+  agencyinvitation --> agencyserviceimpl: AgencyInvitation
+  agencyserviceimpl -> agencyinvitationrepository: save(invitation)
+  agencyinvitationrepository --> agencyserviceimpl: AgencyInvitation
+  agencyserviceimpl --> agencycontroller: 200 OK
+  agencycontroller --> agencyinvitationspage_ui: 200 OK
+  agencyinvitationspage_ui --> owner: shows 200 toast
+end
+
+@enduml

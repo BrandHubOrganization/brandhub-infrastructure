@@ -1,0 +1,54 @@
+@startuml 3.6.32 - Send Email via Template
+title Sequence Diagram — 3.6.32 - Send Email via Template
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Creator" as creator
+boundary "SendEmailModal (UI)" as sendemail_ui
+boundary "MailTemplateController" as mailtemplatecontroller
+control "MailTemplateServiceImpl" as mailtemplateserviceimpl
+boundary "MailService" as mailservice
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "MailTemplateRepository" as mailtemplaterepository
+entity "WorkspaceMember" as workspacemember
+entity "MailTemplateDocument" as mailtemplatedocument
+entity "SendEmailResponse" as sendemailresponse
+
+' === Flow ===
+creator -> sendemail_ui: enters recipient email & variables, clicks Send
+sendemail_ui -> mailtemplatecontroller: POST /api/v1/workspaces/{id}/mail-templates/{templateId}/send
+mailtemplatecontroller -> mailtemplateserviceimpl: sendEmailViaTemplate(currentUser, workspaceId, templateId, request)
+mailtemplateserviceimpl -> workspacememberrepository: findByWorkspaceIdAndUserId(workspaceId, currentUser.getId())
+workspacememberrepository --> mailtemplateserviceimpl: Optional<Row>
+opt !memberOpt.isPresent()
+  mailtemplateserviceimpl --> mailtemplatecontroller: throw 403 FORBIDDEN
+  mailtemplatecontroller --> sendemail_ui: 403 Forbidden
+  sendemail_ui --> creator: shows forbidden toast
+end
+mailtemplateserviceimpl -> workspacemember: map row -> member
+workspacemember --> mailtemplateserviceimpl: member
+mailtemplateserviceimpl -> mailtemplaterepository: findByIdAndWorkspaceId(templateId, workspaceId)
+mailtemplaterepository --> mailtemplateserviceimpl: Optional<Row>
+opt !templateOpt.isPresent()
+  mailtemplateserviceimpl --> mailtemplatecontroller: throw 404 TEMPLATE_NOT_FOUND
+  mailtemplatecontroller --> sendemail_ui: 404 Not Found
+  sendemail_ui --> creator: shows not found error
+end
+mailtemplateserviceimpl -> mailtemplatedocument: map row -> template
+mailtemplatedocument --> mailtemplateserviceimpl: template
+mailtemplateserviceimpl -> mailtemplatedocument: renderBody(request.variables())
+mailtemplatedocument --> mailtemplateserviceimpl: renderedHtml
+mailtemplateserviceimpl -> mailservice: sendHtml(request.recipientEmail(), template.getSubject(), renderedHtml)
+mailservice --> mailtemplateserviceimpl: void
+mailtemplateserviceimpl -> sendemailresponse: new SendEmailResponse(request.recipientEmail(), "SENT")
+sendemailresponse --> mailtemplateserviceimpl: SendEmailResponse
+mailtemplateserviceimpl --> mailtemplatecontroller: SendEmailResponse
+mailtemplatecontroller --> sendemail_ui: 200 OK SendEmailResponse
+sendemail_ui --> creator: shows email sent successfully toast
+
+@enduml
