@@ -1,10 +1,9 @@
-# Test — Mail Template (FR 3.6.28 – 3.6.32)
+# Test — Send Email via Template (FR 3.6.32)
 
-> Bước ④ của [feature-workflow](../../../rule/feature-workflow.md). Test case bám theo Acceptance Criteria trong [spec.md](spec.md); công việc ở [task.md](task.md); thiết kế ở [plan.md](plan.md).
-> Trạng thái: **Kịch bản đã viết, chưa thực thi** (chưa có code). Mục 14 cập nhật khi chạy.
-> Dữ liệu test dùng email giả (`@example.test`) và thời gian ISO-8601. Không gửi mail thật: dùng SMTP giả (GreenMail/MailHog).
+- **FR:** 3.6.32 · **Jira:** DA-1002
+- **Mục tiêu:** Gửi email theo mẫu tới danh sách người nhận: hàng đợi, hạn mức, hẹn giờ/hủy, hủy đăng ký, lịch sử, Admin.
 
-## 1. Cách chạy (dự kiến)
+## 1. Cách chạy 
 
 ```bash
 # Backend (cần Postgres + Mongo thật cho phần worker/quota)
@@ -12,10 +11,11 @@ cd brandhub-business-service && mvn clean test -Dtest='MailTemplate*Test,MailSen
 
 # Frontend
 cd brandhub-web-dashboard && npm test                     # Vitest
-npx playwright test tests/e2e/mail-template/              # E2E (mock REST)
+npx playwright test tests/e2e/mail-templates              # E2E (mock REST)
 
 # Live integration (backend thật + SMTP giả)
-node brandhub-infrastructure/docs/feature/content-task-workflow/3-6-28-32-mail-template/integration-test.cjs
+# Chạy backend thật (profile dev) + SMTP giả cổng 2525, rồi gọi API bằng curl; các bước và kết quả
+# ở mục 7 (không có script commit sẵn).
 ```
 Ghi chú môi trường: nếu Maven báo `source level 25`, chạy `mvn clean` (class của IDE trong `target/`). Playwright cần `npx playwright install chromium`.
 
@@ -29,46 +29,7 @@ Ghi chú môi trường: nếu Maven báo `source level 25`, chạy `mvn clean` 
 | UI | Playwright (mock REST) | Luồng người dùng, trạng thái UI, i18n, light/dark |
 | Live | Node script + SMTP giả | Header, tệp đính kèm, unsubscribe thật, quota, hẹn giờ |
 
-## 3. CRUD template (AC-V, AC-C, AC-U, AC-D)
-
-| ID | Case | Input | Mong đợi |
-|---|---|---|---|
-| TC-MT-01 | List chỉ lấy template của Workspace và hệ thống khi `includeSystem=true` | 2 template Workspace + 1 hệ thống | 3 mục; khi `false` còn 2 |
-| TC-MT-02 | List bỏ template đã xóa mềm | 1 template `deletedAt != null` | Không xuất hiện |
-| TC-MT-03 | List có tìm kiếm và phân trang | `q=sale`, `size=1` | Chỉ mục khớp; `page` đúng |
-| TC-MT-04 | CLIENT/không thành viên gọi list | role CLIENT | 403 `FORBIDDEN` |
-| TC-MT-05 | Tạo hợp lệ | `name`, `subject`, `bodyHtml` | 201, `type=CUSTOM`, `createdBy` đúng |
-| TC-MT-06 | Tạo thiếu `subject` hoặc `bodyHtml` | rỗng/khoảng trắng | 400 `VALIDATION_ERROR` |
-| TC-MT-07 | Clone từ template hệ thống | `cloneFromId` | Có `clonedFromId`, nội dung kế thừa, sửa được |
-| TC-MT-08 | Clone từ template Workspace khác | `cloneFromId` thuộc Workspace khác | 404 (không lộ tồn tại) |
-| TC-MT-09 | PATCH một phần | chỉ `name` | Chỉ `name` đổi, `updatedAt` mới |
-| TC-MT-10 | PATCH template hệ thống từ Workspace | — | 403 `SYSTEM_TEMPLATE_READ_ONLY` |
-| TC-MT-11 | CREATOR sửa template của người khác | — | 403; OWNER/MANAGER thì 200 |
-| TC-MT-12 | PATCH/DELETE template không tồn tại | id lạ | 404 `TEMPLATE_NOT_FOUND` |
-| TC-MT-13 | Xóa mềm | DELETE | `deletedAt` set; không còn trong list; GET trả 404 |
-| TC-MT-14 | Xóa không ảnh hưởng lô cũ | batch đã có | Batch và deliveries nguyên vẹn |
-| TC-MT-15 | Truy cập chéo Workspace | token Workspace A, template của B | 404/403, không lộ dữ liệu |
-
-## 4. Sanitize và biến (AC-C3, AC-S3, AC-S4, AC-S7)
-
-| ID | Case | Input | Mong đợi |
-|---|---|---|---|
-| TC-SAN-01 | Loại `<script>` | `<p>a</p><script>x</script>` | Chỉ còn `<p>a</p>` |
-| TC-SAN-02 | Loại event handler | `<a onclick="x()">` | Không còn `onclick` |
-| TC-SAN-03 | Loại `javascript:` | `<a href="javascript:...">` | `href` bị bỏ |
-| TC-SAN-04 | Giữ thẻ cho phép | `b,i,u,a,ul,ol,li,h1-h3,blockquote,img` | Giữ nguyên |
-| TC-SAN-05 | `img` ngoài bucket hệ thống | `src="https://evil.test/x.png"` | Bị loại/từ chối |
-| TC-SAN-06 | Body quá 100KB | 101KB | 400 `VALIDATION_ERROR` |
-| TC-VAR-01 | Render biến đầy đủ | `Hi {{name}}` + `name=An` | `Hi An` |
-| TC-VAR-02 | Escape giá trị | `name=<b>x</b>` | `&lt;b&gt;x&lt;/b&gt;` |
-| TC-VAR-03 | Biến thiếu | không có `name` | Dòng vào `rejected`, `MISSING_VARIABLE:name` |
-| TC-VAR-04 | Biến built-in | `{{workspaceName}}`, `{{senderName}}` | Tự điền |
-| TC-VAR-05 | Biến trong subject | `Hello {{name}}` | Subject đã render |
-| TC-VAR-06 | Tên biến sai cú pháp | `{{ten bien}}` | Không coi là biến; giữ nguyên text, cảnh báo ở preview |
-| TC-VAR-07 | CSV cố ghi đè built-in | cột `workspaceName` | Giá trị hệ thống thắng |
-| TC-PRE-01 | Preview trả biến còn thiếu | thiếu `x` | `missingVariables=["x"]` |
-
-## 5. Gửi (AC-S, AC-H)
+## 3. Test case của FR này
 
 | ID | Case | Input | Mong đợi |
 |---|---|---|---|
@@ -104,8 +65,6 @@ Ghi chú môi trường: nếu Maven báo `source level 25`, chạy `mvn clean` 
 | TC-SCH-10 | Múi giờ Workspace | `+07:00` vs UTC | Giờ chạy đúng |
 | TC-SCH-11 | Người không phải tác giả hủy | CREATOR khác | 403; OWNER/MANAGER 200 |
 
-## 6. Quota, worker (AC-S9, AC-H4)
-
 | ID | Case | Mong đợi |
 |---|---|---|
 | TC-WK-01 | 2 worker cùng lấy delivery | `SKIP LOCKED`: mỗi delivery chỉ một worker |
@@ -117,8 +76,6 @@ Ghi chú môi trường: nếu Maven báo `source level 25`, chạy `mvn clean` 
 | TC-WK-07 | Guard dev: recipient ngoài `allowed-recipients` | `FAILED` `DEV_RECIPIENT_BLOCKED`, không chạm SMTP |
 | TC-WK-08 | Quota reset 00:00 `Asia/Ho_Chi_Minh` | Delivery `PENDING` gửi tiếp |
 | TC-WK-09 | Crash giữa gửi và commit | Tối đa gửi trùng một lần; ghi nhận hành vi |
-
-## 7. Unsubscribe (AC-X)
 
 | ID | Case | Mong đợi |
 |---|---|---|
@@ -132,19 +89,8 @@ Ghi chú môi trường: nếu Maven báo `source level 25`, chạy `mvn clean` 
 | TC-UNS-08 | Người nhận là Client trong suppression | Vẫn gửi (coi là trong Workspace) |
 | TC-UNS-09 | Rate limit theo IP | Spam endpoint → 429 |
 
-## 8. Tệp đính kèm, lịch sử, Admin
-
 | ID | Case | Mong đợi |
 |---|---|---|
-| TC-ATT-01 | Upload PDF hợp lệ ≤5MB | 200 + `attachmentId` |
-| TC-ATT-02 | Đuôi `.pdf` nhưng nội dung là exe | 400 `MAIL_ATTACHMENT_INVALID` |
-| TC-ATT-03 | Loại không cho phép (`.exe`, `.zip`, `.html`) | 400 |
-| TC-ATT-04 | Tệp >5MB | 413/400 |
-| TC-ATT-05 | Quá 3 tệp / tổng >10MB | 400 |
-| TC-ATT-06 | Tệp chưa gắn quá 24h | Job dọn xóa |
-| TC-ATT-07 | Tệp thuộc Workspace khác | Từ chối gắn |
-| TC-ATT-08 | Tệp S3 mất trước giờ gửi | Delivery `FAILED` rõ lý do, không gửi thiếu tệp |
-| TC-ATT-09 | Ảnh trong nội dung | URL công khai chèn được; sanitize chấp nhận |
 | TC-HIS-01 | Danh sách lô | Đúng Workspace, mới nhất trước |
 | TC-HIS-02 | Chi tiết lô | Phân trang + lọc trạng thái |
 | TC-HIS-03 | Quyền xem | OWNER/MANAGER/CREATOR xem; CLIENT 403 |
@@ -157,68 +103,31 @@ Ghi chú môi trường: nếu Maven báo `source level 25`, chạy `mvn clean` 
 | TC-ADM-04 | Broadcast "Chọn mẫu" | Sao chép subject/body vào form; worker 3.10.1 không đổi |
 | TC-ADM-05 | Workspace clone mẫu hệ thống | Có bản `CUSTOM` mới, mẫu gốc không đổi |
 
-## 9. UI (Playwright, mock REST)
+| TC | Case | Where | Result |
+|---|---|---|---|
+| TC-ENH-04 | Members/Clients picked and a saved group are merged without duplicates | Playwright + vitest | pass |
+| TC-ENH-05 | Finished batch with failures: Resend queues only failed rows, Export CSV downloads | Playwright + JUnit | pass |
+| TC-ENH-06 | Resend refused while sending / when nothing failed / by a non-owner creator | JUnit | pass |
+| TC-ENH-07 | CSV cells starting with `= + - @` are prefixed with `'` | JUnit | pass |
+| TC-ENH-08 | Unsubscribed list pages, re-subscribe needs OWNER/MANAGER | Playwright + JUnit | pass |
+| TC-ENH-09 | Group create keeps only valid distinct emails, capped per Workspace, owner-only delete | JUnit | pass |
+
+## 4. Bảo mật
 
 | ID | Case | Mong đợi |
 |---|---|---|
-| E2E-MT-01 | Mở trang list | Hiển thị bảng, chip "Hệ thống", loading → dữ liệu |
-| E2E-MT-02 | Trạng thái rỗng và lỗi | Thông điệp rỗng; lỗi có nút thử lại |
-| E2E-MT-03 | Tạo template (TipTap, chèn biến, ảnh) | Gọi POST đúng payload `bodyHtml`; hiện trong list |
-| E2E-MT-04 | Lỗi tạo | Form giữ nguyên dữ liệu, hiển thị lỗi |
-| E2E-MT-05 | Sửa và xóa có xác nhận | PATCH/DELETE đúng; hủy xác nhận không gọi API |
-| E2E-MT-06 | Modal Gửi: dán CSV | Parse đúng, hiển thị dòng lỗi, map cột |
-| E2E-MT-07 | CSV có BOM/ngoặc kép/dòng trống | Parse đúng |
-| E2E-MT-08 | Biến tự phát hiện | Hiển thị ô nhập cho biến chưa có trong CSV |
-| E2E-MT-09 | Preview | Hiển thị subject/body đã render và cảnh báo biến thiếu |
-| E2E-MT-10 | Gửi thử | Gọi `send-test`; toast thành công/lỗi 502 |
-| E2E-MT-11 | Gửi ngay | 202 → chuyển sang trang lô |
-| E2E-MT-12 | Hết quota | Nút gửi ngay khóa; vẫn hẹn giờ được; hiện số còn lại |
-| E2E-MT-13 | Hẹn giờ | Chọn giờ hợp lệ; ngoài khoảng bị chặn tại form |
-| E2E-MT-14 | Bấm đúp | Chỉ một request gửi |
-| E2E-MT-15 | Trang lô và hủy lịch | Hủy gọi POST cancel; trạng thái cập nhật |
-| E2E-MT-16 | Nút gửi từ trang Client | Modal có `contact_email` và `clientName` điền sẵn |
-| E2E-MT-17 | Trang unsubscribe công khai | Xác nhận và kết quả, không cần đăng nhập, vi/en |
-| E2E-MT-18 | Admin: trang mẫu hệ thống | CRUD hoạt động; user thường không thấy |
-| E2E-MT-19 | Broadcast: Chọn mẫu | Điền subject/body vào form |
-| E2E-MT-20 | i18n | Đổi vi ↔ en không vỡ layout, không còn key thô |
-| E2E-MT-21 | Light/Dark | Chuyển theme không vỡ contrast; chip và trạng thái dùng token |
-| E2E-MT-22 | Responsive | Modal gửi, list và trang lô dùng được ở 375px |
-| E2E-MT-23 | Route guard | CLIENT không vào được `/mail-templates` |
-
-## 10. Live integration (backend thật + SMTP giả)
-
-| ID | Case | Mong đợi |
-|---|---|---|
-| IT-MT-01 | Gửi 1 Client | Hộp thư giả nhận; subject/body đúng; `Reply-To`/`From` đúng |
-| IT-MT-02 | Gửi nhiều người ngoài | Có footer và header `List-Unsubscribe` + `List-Unsubscribe-Post` |
-| IT-MT-03 | Tệp đính kèm | Mail có đúng tệp, nội dung khớp |
-| IT-MT-04 | Unsubscribe thật qua link trong mail | Lần gửi sau bị `SUPPRESSED` |
-| IT-MT-05 | Quota nhỏ (cap=3) | 3 gửi, phần còn `PENDING`, dời ngày kế |
-| IT-MT-06 | Hẹn giờ ngắn (chỉnh cấu hình) | Mail đến đúng giờ |
-| IT-MT-07 | Hủy lịch | Không có mail |
-| IT-MT-08 | 2 instance worker | Không gửi trùng |
-| IT-MT-09 | Quyền chéo Workspace | 403/404 ở mọi endpoint |
-| IT-MT-10 | Retention giả lập | Dữ liệu cũ bị xóa, counters giữ |
-
-## 11. Bảo mật
-
-| ID | Case | Mong đợi |
-|---|---|---|
-| SEC-MT-01 | XSS qua body/biến/subject | Không thực thi trong preview và mail |
 | SEC-MT-02 | Header injection (`\r\n` trong subject/email) | Bị loại/từ chối |
 | SEC-MT-03 | Token unsubscribe giả/lặp lại/của Workspace khác | Từ chối hoặc idempotent, không ảnh hưởng dữ liệu khác |
 | SEC-MT-04 | IDOR template/batch/attachment | 403/404 |
-| SEC-MT-05 | Upload tệp giả mạo | Bị magic bytes chặn |
-| SEC-MT-06 | Mass assignment (`type`, `workspaceId`, `createdBy` trong body) | Bị bỏ qua |
 | SEC-MT-07 | Rò rỉ email trên trang unsubscribe | Chỉ hiển thị email đã che |
 
-## 12. Tiêu chí đạt
+## 5. Tiêu chí đạt
 
 - 100% case mục 3–11 đạt hoặc có ghi chú giới hạn rõ ràng.
 - Không còn lỗi lint/type-check mới; vi/en song song; light/dark kiểm tra.
 - Mọi AC trong spec §4 có ít nhất một case tương ứng đạt.
 
-## 13. Giới hạn đã biết (dự kiến)
+## 6. Giới hạn đã biết (dự kiến)
 
 - Không quét virus (chỉ allow-list + magic bytes).
 - Giao hàng at-least-once: crash đúng khoảnh khắc giữa gửi và commit có thể gửi trùng một mail.
@@ -226,23 +135,7 @@ Ghi chú môi trường: nếu Maven báo `source level 25`, chạy `mvn clean` 
 - Hiển thị email phụ thuộc client thư (Gmail/Outlook/Apple Mail) — kiểm tra bằng mắt.
 - Gmail có thể vẫn đánh dấu spam dù đã cap; cần theo dõi thực tế.
 
-## 14. Kết quả thực thi
-
-### 14.1 Bước 1–2 (CRUD, sanitize, render, preview) — 2026-10-12
-Nhánh `feat/DA-998-mail-template-crud` (business-service), commit `23503e3`.
-
-| Nhóm | Cách chạy | Kết quả |
-|---|---|---|
-| JUnit: `HtmlSanitizerTest` | `mvn test` | 11/11 (TC-SAN-01..05 và biến thể) |
-| JUnit: `TemplateRendererTest` | `mvn test` | 8/8 (TC-VAR-01..07) |
-| JUnit: `MailTemplateServiceImplTest` | `mvn test` | 28/28 (TC-MT-01..15 mức service, TC-PRE-01) |
-| Toàn bộ business-service | `mvn clean test` | 587/587, không hồi quy |
-| Live (backend thật + Postgres + Mongo local) | curl, DB scratch | pass: tạo (script bị loại), 401/403/404, PATCH khác người tạo 403, PATCH subject trống 400, preview escape, tìm kiếm, soft delete (`deletedAt` set, GET 404, list loại) |
-| Migration Mongo `2026-10-12-create-mail-templates-collection.js` | mongosh trên DB tạm | validator nhận bản ghi hợp lệ, từ chối `subject` rỗng và `type` sai; chạy lại idempotent; 3 index |
-
-Chưa chạy: gửi (DA-1002), tệp đính kèm (DA-1256), hẹn giờ/unsubscribe (DA-1257), lịch sử (DA-1258), Admin (DA-1259), toàn bộ frontend và E2E.
-
-Ghi chú triển khai: ảnh trong nội dung bị loại hết cho đến khi cấu hình `mail.allowed-image-hosts` (bước tệp đính kèm); subject không HTML-escape (là header văn bản thuần), chỉ bỏ xuống dòng.
+## 7. Kết quả thực thi
 
 ### 14.2 Bước 3–8 (đủ backend + frontend) — 2026-10-12
 Nhánh `feat/DA-998-mail-template-crud` (business-service, 6 commit), `feat/DA-998-mail-template-ui` (web-dashboard, 2 commit), `feat/DA-1257-mail-public-route` (api-gateway, 1 commit).
@@ -260,7 +153,7 @@ Nhánh `feat/DA-998-mail-template-crud` (business-service, 6 commit), `feat/DA-9
 
 **Chưa kiểm chứng:** upload tệp đính kèm/ảnh lên S3 thật (chỉ test đơn vị với storage giả); Mongo validator với tệp đính kèm; light/dark mode và responsive bằng mắt; screen reader; hiển thị trên Gmail/Outlook; hai instance worker; quota đồng thời nhiều luồng trên DB thật; trang Client (nút Gửi email) chưa có E2E vì trang dùng mock service; gateway route chưa chạy trên gateway thật.
 
-## 15. Independent review (2026-10-12)
+### 15. Independent review (2026-10-12)
 
 Reviewer: java-reviewer agent over `git diff origin/develop...HEAD` of business-service. No cross-workspace IDOR, header injection or HMAC timing issue found.
 
@@ -288,7 +181,7 @@ Reviewer: java-reviewer agent over `git diff origin/develop...HEAD` of business-
 - Send-test limiter and unsubscribe limiter are per instance.
 - An idempotent replay returns `rejected: []` because the per-row rejection list is not stored.
 
-## 16. Enhancements (Addendum A)
+### 16. Enhancements (Addendum A)
 
 | TC | Case | Where | Result |
 |---|---|---|---|

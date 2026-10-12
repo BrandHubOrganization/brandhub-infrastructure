@@ -118,7 +118,7 @@ Role toàn bộ: CREATOR, CLIENT, MANAGER.
 ## 9. Mail Template (FR 3.6.28 – 3.6.32)
 
 - View/Create/Update/Delete Mail Template, Send Email via Template — CRUD chuẩn cho mẫu email + gửi email thực tế.
-- **[CẬP NHẬT 2026-10-12 — thay thế quyết định 2026-09-17]** Mail Template **thuộc Workspace** (không phải mẫu cá nhân của mọi user). Role dùng: OWNER, MANAGER, CREATOR; CLIENT không. Gửi nhiều người (dán/CSV), async qua hàng đợi, giới hạn theo chuẩn Gmail (450/ngày hệ thống, 100/ngày/Workspace, 200/lần), hẹn giờ, tệp đính kèm, unsubscribe + suppression theo Workspace. Admin quản trị thư viện mẫu hệ thống và dùng làm mẫu cho Broadcast 3.10.1. Chi tiết: `feature/content-task-workflow/3-6-28-32-mail-template/plan.md`.
+- **[CẬP NHẬT 2026-10-12 — thay thế quyết định 2026-09-17]** Mail Template **thuộc Workspace** (không phải mẫu cá nhân của mọi user). Role dùng: OWNER, MANAGER, CREATOR; CLIENT không. Gửi nhiều người (dán/CSV), async qua hàng đợi, giới hạn theo chuẩn Gmail (450/ngày hệ thống, 100/ngày/Workspace, 200/lần), hẹn giờ, tệp đính kèm, unsubscribe + suppression theo Workspace. Admin quản trị thư viện mẫu hệ thống và dùng làm mẫu cho Broadcast 3.10.1. Chi tiết: `feature/content-task-workflow/3-6-32-send-email-via-template/plan.md` (cùng bộ với các FR `3-6-28` đến `3-6-31`, mỗi FR có đủ spec, plan, task, test).
 
 ## 10. Tham chiếu Media Platform Post (chi tiết trong sơ đồ)
 
