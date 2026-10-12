@@ -287,3 +287,21 @@ Reviewer: java-reviewer agent over `git diff origin/develop...HEAD` of business-
 - IMAGE uploads are never orphan-cleaned (their URL lives in template bodies); growth is bounded by the daily upload cap.
 - Send-test limiter and unsubscribe limiter are per instance.
 - An idempotent replay returns `rejected: []` because the per-row rejection list is not stored.
+
+## 16. Enhancements (Addendum A)
+
+| TC | Case | Where | Result |
+|---|---|---|---|
+| TC-ENH-01 | Preview renders the typed body; mobile toggle limits width to 375px | Playwright | pass |
+| TC-ENH-02 | `{{nmae}}` shows a "Did you mean {{name}}" hint, saving is not blocked | Playwright + vitest | pass |
+| TC-ENH-03 | New template draft survives close/reopen and can be discarded | Playwright | pass |
+| TC-ENH-04 | Members/Clients picked and a saved group are merged without duplicates | Playwright + vitest | pass |
+| TC-ENH-05 | Finished batch with failures: Resend queues only failed rows, Export CSV downloads | Playwright + JUnit | pass |
+| TC-ENH-06 | Resend refused while sending / when nothing failed / by a non-owner creator | JUnit | pass |
+| TC-ENH-07 | CSV cells starting with `= + - @` are prefixed with `'` | JUnit | pass |
+| TC-ENH-08 | Unsubscribed list pages, re-subscribe needs OWNER/MANAGER | Playwright + JUnit | pass |
+| TC-ENH-09 | Group create keeps only valid distinct emails, capped per Workspace, owner-only delete | JUnit | pass |
+| TC-ENH-10 | Removed attachment is released through the reference check; delete releases all | JUnit | pass |
+
+Totals after this pass: business-service 704, vitest 64, Playwright mail 25.
+Known limit: the first Playwright run after a cold dev server start can time out once (re-run passes).

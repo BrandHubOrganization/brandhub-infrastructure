@@ -165,3 +165,20 @@ Chi tiết ở [test.md](test.md). Nhóm: CRUD + quyền, sanitize, biến, ngư
 ## 11. Out of Scope
 
 - Contact List lưu sẵn; cá nhân hóa `{{fullName}}` cho Broadcast; sửa lịch đã hẹn; quét virus; thống kê mở/click; giới hạn theo gói Subscription; hàng đợi tách service; đa instance worker.
+
+## Addendum A (2026-10-13): usability enhancements
+
+Scope added after the first live review. No change to the approved rules above.
+
+| ID | Behaviour |
+|---|---|
+| A1 | The template form shows a live, sandboxed preview (desktop / mobile width) with sample values; unknown variables show as `[name]`. |
+| A2 | The form lists the variables it found and warns (never blocks) about likely typos (`{{nmae}}` -> `{{name}}`) and broken braces. |
+| A3 | A new template keeps an autosaved draft (localStorage, 7 days); closing keeps it, saving clears it. Editing an existing template asks before discarding changes. The send dialog keeps the unsent recipient list per template. |
+| A4 | The send dialog can add recipients from Workspace members and Client contacts, and from saved recipient groups (max 50 groups, 200 recipients each); the current list can be saved as a group. |
+| A5 | Send history refreshes itself while a batch is queued or sending; a finished batch with failed emails can be re-sent (failed rows only); the recipients of a batch can be exported as CSV (formula cells neutralised). |
+| A6 | A Workspace page lists unsubscribed addresses; OWNER/MANAGER can re-subscribe an address. |
+| A7 | Removing an attachment from a template (or deleting the template) releases it for the orphan sweep unless another template or a pending batch still references it. |
+
+API additions: `GET/DELETE /workspaces/{id}/mail-suppressions`, `GET /workspaces/{id}/mail-recipients?q=`, `GET/POST /workspaces/{id}/mail-recipient-groups`, `DELETE .../{groupId}`, `POST /mail-batches/{bid}/resend-failed`, `GET /mail-batches/{bid}/export.csv`.
+Data: Mongo collection `mail_recipient_groups` (migration `2026-10-13-create-mail-recipient-groups-collection.js`).
