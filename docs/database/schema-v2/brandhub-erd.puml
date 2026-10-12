@@ -589,18 +589,108 @@ end note
 entity "mail_templates" as mail_templates <<MongoDB, NEW V2>> {
   * _id : ObjectId <<PK>>
   --
-  * workspaceId : string
+  workspaceId : string <<null for SYSTEM_DEFAULT>>
   * name : string
   * subject : string
-  * bodyHtml : string
+  * bodyHtml : string <<sanitized, max 100KB>>
   * type : mail_template_type
+  attachments : array <<{attachmentId, name, contentType, size, s3Key}>>
+  clonedFromId : string
   createdBy : string
   * createdAt : date
   * updatedAt : date
+  deletedAt : date <<soft delete>>
 }
 note right of mail_templates
   FR 3.6.28-3.6.32
+  SYSTEM_DEFAULT templates are managed by Admin,
+  Workspaces can only clone them.
 end note
+
+' ============================================================
+' POSTGRESQL — MAIL SENDING (FR 3.6.32, business-service)
+' Same database as admin_email_outbox so that enqueue is
+' transactional and the worker can use FOR UPDATE SKIP LOCKED.
+' template_id is a soft reference to mail_templates (MongoDB).
+' ============================================================
+
+entity "mail_batches" as mail_batches <<PostgreSQL, NEW V2>> {
+  * id : uuid <<PK>>
+  --
+  * workspace_id : uuid <<FK>>
+  * template_id : varchar(64) <<soft ref mail_templates>>
+  * template_name : varchar(120)
+  * sent_by : uuid <<FK>>
+  * kind : mail_batch_kind
+  * status : mail_batch_status
+  * subject : varchar(200) <<snapshot>>
+  * body_html : text <<snapshot, purged after 12 months>>
+  attachments : jsonb <<snapshot>>
+  scheduled_at : timestamptz
+  * timezone : varchar(64)
+  * total : int
+  * accepted : int
+  * rejected_count : int
+  * sent_count : int
+  * failed_count : int
+  * suppressed_count : int
+  * created_at : timestamptz
+  completed_at : timestamptz
+}
+
+entity "mail_deliveries" as mail_deliveries <<PostgreSQL, NEW V2>> {
+  * id : uuid <<PK>>
+  --
+  * batch_id : uuid <<FK>>
+  * recipient : varchar(255)
+  recipient_name : varchar(255)
+  variables : jsonb
+  * rendered_subject : varchar(255)
+  * rendered_body_html : text <<purged after 12 months>>
+  * external_audience : boolean <<footer + List-Unsubscribe>>
+  * status : mail_delivery_status
+  * attempts : int
+  last_error : varchar(500)
+  * next_attempt_at : timestamptz
+  sent_at : timestamptz
+  * event_key : varchar(300) <<UQ>>
+}
+
+entity "mail_send_quota" as mail_send_quota <<PostgreSQL, NEW V2>> {
+  * day : date <<PK, Asia/Ho_Chi_Minh>>
+  * scope : varchar(16) <<PK, SYSTEM|WORKSPACE>>
+  * scope_id : varchar(64) <<PK>>
+  --
+  * sent_count : int
+}
+
+entity "mail_suppressions" as mail_suppressions <<PostgreSQL, NEW V2>> {
+  * id : uuid <<PK>>
+  --
+  * workspace_id : uuid <<FK>>
+  * email_lower : varchar(255)
+  * reason : varchar(32)
+  * created_at : timestamptz
+}
+
+entity "mail_attachments" as mail_attachments <<PostgreSQL, NEW V2>> {
+  * id : uuid <<PK>>
+  --
+  * workspace_id : uuid <<FK>>
+  * uploaded_by : uuid <<FK>>
+  * name : varchar(255)
+  * content_type : varchar(100)
+  * size : bigint
+  * s3_key : varchar(500)
+  * kind : varchar(16) <<FILE|IMAGE>>
+  * bound : boolean
+  * created_at : timestamptz
+}
+
+mail_batches ||--o{ mail_deliveries : "1..N recipients"
+workspaces ||--o{ mail_batches : "sends"
+workspaces ||--o{ mail_suppressions : "scoped"
+workspaces ||--o{ mail_attachments : "uploads"
 
 entity "social_accounts" as social_accounts <<MongoDB>> {
   * _id : ObjectId <<PK>>
