@@ -208,6 +208,27 @@
     SYSTEM_DEFAULT
   }
 
+  Enum mail_batch_kind {
+    SEND
+    TEST
+  }
+
+  Enum mail_batch_status {
+    SCHEDULED
+    QUEUED
+    SENDING
+    COMPLETED
+    CANCELLED
+    FAILED
+  }
+
+  Enum mail_delivery_status {
+    PENDING
+    SENT
+    FAILED
+    SUPPRESSED
+  }
+
   Enum ai_usage_feature {
     GENERATE_CAPTION
     GENERATE_IMAGE
@@ -809,18 +830,117 @@
     indexes { (surveyFormId, submittedAt) }
   }
 
-  Table mail_templates [note: 'MongoDB — NEW V2 — FR 3.6.28-3.6.32, hoàn toàn thiếu ở thiết kế trước'] {
+  Table mail_templates [note: 'MongoDB — FR 3.6.28-3.6.32. SYSTEM_DEFAULT do Admin quản trị (workspaceId null), Workspace chỉ clone. Soft delete bằng deletedAt.'] {
     _id           ObjectId          [pk]
-    workspaceId   string            [not null, note: 'Soft ref → workspaces.id (PG)']
+    workspaceId   string            [note: 'Soft ref → workspaces.id (PG); null với SYSTEM_DEFAULT']
     name          string            [not null]
     subject       string            [not null]
-    bodyHtml      string            [not null]
-    type          mail_template_type [not null, default: 'CUSTOM', note: 'SYSTEM_DEFAULT = mẫu có sẵn, CUSTOM = user tự tạo hoặc clone từ default']
+    bodyHtml      string            [not null, note: 'đã sanitize allow-list, tối đa 100KB']
+    type          mail_template_type [not null, default: 'CUSTOM', note: 'SYSTEM_DEFAULT = mẫu hệ thống, CUSTOM = user tự tạo hoặc clone']
+    attachments   array             [note: '{attachmentId, name, contentType, size, s3Key}; tối đa 3 tệp, 5MB/tệp, 10MB tổng']
+    clonedFromId  string
     createdBy     string            [note: 'Soft ref → users.id (PG)']
     createdAt     date              [not null]
     updatedAt     date              [not null]
+    deletedAt     date              [note: 'soft delete; mọi truy vấn lọc deletedAt = null']
 
-    indexes { workspaceId }
+    indexes {
+      (workspaceId, deletedAt, createdAt)
+      (type, deletedAt)
+    }
+  }
+
+  Table mail_batches [note: 'PostgreSQL — NEW V2 — FR 3.6.32. Một lần bấm gửi/hẹn giờ; snapshot nội dung lúc tạo.'] {
+    id               uuid         [pk, default: `gen_random_uuid()`]
+    workspace_id     uuid         [not null, ref: > workspaces.id]
+    template_id      varchar(64)  [not null, note: 'Soft ref → mail_templates._id (MongoDB)']
+    workspace_name   varchar(255)
+    template_name    varchar(120) [not null]
+    sent_by          uuid         [not null, ref: > users.id]
+    sender_email     varchar(255) [not null, note: 'Reply-To của lô']
+    sender_name      varchar(255)
+    kind             mail_batch_kind   [not null, default: 'SEND']
+    status           mail_batch_status [not null]
+    subject          varchar(200) [not null]
+    body_html        text         [not null, note: 'snapshot, xóa sau 12 tháng']
+    attachments      jsonb
+    scheduled_at     timestamptz
+    timezone         varchar(64)  [not null, default: 'Asia/Ho_Chi_Minh']
+    total            int          [not null]
+    accepted         int          [not null]
+    rejected_count   int          [not null, default: 0]
+    sent_count       int          [not null, default: 0]
+    failed_count     int          [not null, default: 0]
+    suppressed_count int          [not null, default: 0]
+    created_at       timestamptz  [not null, default: `now()`]
+    completed_at     timestamptz
+
+    indexes {
+      (workspace_id, created_at)
+      (status, scheduled_at)
+    }
+  }
+
+  Table mail_deliveries [note: 'PostgreSQL — NEW V2 — một người nhận của một lô; worker lấy bằng FOR UPDATE SKIP LOCKED.'] {
+    id                 uuid         [pk, default: `gen_random_uuid()`]
+    batch_id           uuid         [not null, ref: > mail_batches.id]
+    recipient          varchar(255) [not null]
+    recipient_name     varchar(255)
+    variables          jsonb
+    rendered_subject   varchar(255) [not null]
+    rendered_body_html text         [not null, note: 'xóa sau 12 tháng']
+    external_audience  boolean      [not null, default: false, note: 'true = chèn footer unsubscribe + List-Unsubscribe']
+    status             mail_delivery_status [not null, default: 'PENDING']
+    attempts           int          [not null, default: 0]
+    last_error         varchar(500)
+    next_attempt_at    timestamptz  [not null, default: `now()`]
+    sent_at            timestamptz
+    event_key          varchar(300) [not null, unique, note: 'MAIL:{batchId}:{lower(email)} — idempotent']
+
+    indexes {
+      (status, next_attempt_at)
+      batch_id
+    }
+  }
+
+  Table mail_send_quota [note: 'PostgreSQL — NEW V2 — bộ đếm gửi theo ngày (Asia/Ho_Chi_Minh), cap hệ thống và cap Workspace.'] {
+    day        date        [not null]
+    scope      varchar(16) [not null, note: 'SYSTEM | WORKSPACE']
+    scope_id   varchar(64) [not null, note: 'dấu * cho SYSTEM, workspace_id cho WORKSPACE']
+    sent_count int         [not null, default: 0]
+
+    indexes {
+      (day, scope, scope_id) [pk]
+    }
+  }
+
+  Table mail_suppressions [note: 'PostgreSQL — NEW V2 — người đã hủy đăng ký, theo Workspace gửi.'] {
+    id           uuid         [pk, default: `gen_random_uuid()`]
+    workspace_id uuid         [not null, ref: > workspaces.id]
+    email_lower  varchar(255) [not null]
+    reason       varchar(32)  [not null, default: 'UNSUBSCRIBED']
+    created_at   timestamptz  [not null, default: `now()`]
+
+    indexes {
+      (workspace_id, email_lower) [unique]
+    }
+  }
+
+  Table mail_attachments [note: 'PostgreSQL — NEW V2 — tệp/ảnh upload cho Mail Template; tệp chưa gắn (bound=false) quá 24h bị dọn.'] {
+    id           uuid         [pk, default: `gen_random_uuid()`]
+    workspace_id uuid         [not null, ref: > workspaces.id]
+    uploaded_by  uuid         [not null, ref: > users.id]
+    name         varchar(255) [not null]
+    content_type varchar(100) [not null]
+    size         bigint       [not null]
+    s3_key       varchar(500) [not null]
+    kind         varchar(16)  [not null, default: 'FILE', note: 'FILE | IMAGE']
+    bound        boolean      [not null, default: false]
+    created_at   timestamptz  [not null, default: `now()`]
+
+    indexes {
+      (workspace_id, bound, created_at)
+    }
   }
 
   Table social_accounts [note: 'MongoDB — giữ nguyên V1, bỏ ZALO_OA khỏi enum platform'] {

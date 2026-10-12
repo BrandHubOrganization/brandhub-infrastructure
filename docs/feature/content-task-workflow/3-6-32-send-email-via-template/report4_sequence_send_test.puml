@@ -1,0 +1,42 @@
+@startuml 3.6.32 - Send Test Email
+title Sequence Diagram — 3.6.32 - Send Test Email to Myself
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+actor "Member" as member
+boundary "SendEmailModal (UI)" as ui
+boundary "MailTemplateController" as controller
+control "MailSendService" as service
+entity "RateLimiter" as limiter
+control "TemplateRenderer" as renderer
+entity "MailService (SMTP)" as smtp
+
+member -> ui: clicks "Send test to me"
+ui -> controller: POST .../mail-templates/{templateId}/send-test {variables?}
+controller -> service: sendTest(currentUser, workspaceId, templateId, request)
+service -> limiter: check 10 tests/hour/user
+limiter --> service: ok / exceeded
+opt exceeded
+  service --> controller: throw 429
+  controller --> ui: 429 Too Many Requests
+end
+service -> renderer: render(template, variables, built-ins)
+renderer --> service: subject, html
+service -> smtp: sendHtml(currentUser.email, subject, html) (synchronous, no quota)
+alt SMTP ok
+  smtp --> service: ok
+  service --> controller: 200 OK
+  controller --> ui: 200 OK
+  ui --> member: "Test sent"
+else SMTP error
+  smtp --> service: EmailDeliveryException
+  service --> controller: throw 502 EMAIL_SERVICE_UNAVAILABLE
+  controller --> ui: 502 Bad Gateway
+  ui --> member: shows error, can retry
+end
+
+@enduml
