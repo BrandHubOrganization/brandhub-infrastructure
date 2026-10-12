@@ -8,47 +8,95 @@ skinparam BoxPadding 10
 skinparam ParticipantPadding 10
 
 ' === Participants ===
-actor "Creator" as creator
-boundary "SendEmailModal (UI)" as sendemail_ui
-boundary "MailTemplateController" as mailtemplatecontroller
-control "MailTemplateServiceImpl" as mailtemplateserviceimpl
-boundary "MailService" as mailservice
-entity "WorkspaceMemberRepository" as workspacememberrepository
-entity "MailTemplateRepository" as mailtemplaterepository
-entity "WorkspaceMember" as workspacemember
-entity "MailTemplateDocument" as mailtemplatedocument
-entity "SendEmailResponse" as sendemailresponse
+actor "Member (OWNER/MANAGER/CREATOR)" as member
+boundary "SendEmailModal (UI)" as ui
+boundary "MailTemplateController" as controller
+control "MailSendService" as service
+entity "WorkspaceAccessService" as access
+entity "MailTemplateRepository (MongoDB)" as templates
+control "TemplateRenderer" as renderer
+entity "RecipientClassifier" as classifier
+entity "QuotaService" as quota
+entity "MailBatchRepository (PostgreSQL)" as batches
+entity "MailDeliveryRepository (PostgreSQL)" as deliveries
+control "MailDeliveryWorker" as worker
+entity "MailService (SMTP)" as smtp
+entity "SuppressionRepository" as suppressions
+entity "NotificationService" as notifier
 
-' === Flow ===
-creator -> sendemail_ui: enters recipient email & variables, clicks Send
-sendemail_ui -> mailtemplatecontroller: POST /api/v1/workspaces/{id}/mail-templates/{templateId}/send
-mailtemplatecontroller -> mailtemplateserviceimpl: sendEmailViaTemplate(currentUser, workspaceId, templateId, request)
-mailtemplateserviceimpl -> workspacememberrepository: findByWorkspaceIdAndUserId(workspaceId, currentUser.getId())
-workspacememberrepository --> mailtemplateserviceimpl: Optional<Row>
-opt !memberOpt.isPresent()
-  mailtemplateserviceimpl --> mailtemplatecontroller: throw 403 FORBIDDEN
-  mailtemplatecontroller --> sendemail_ui: 403 Forbidden
-  sendemail_ui --> creator: shows forbidden toast
+' === Flow: submit ===
+member -> ui: pastes / uploads CSV, fills variables, previews, clicks Send now or Schedule
+ui -> controller: POST /api/v1/workspaces/{id}/mail-templates/{templateId}/send {recipients, variables, attachmentIds?, scheduledAt?}
+controller -> service: send(currentUser, workspaceId, templateId, request)
+service -> access: requireActiveMember(workspaceId, userId)
+access --> service: member(role)
+opt role not permitted
+  service --> controller: throw 403 FORBIDDEN
+  controller --> ui: 403 Forbidden
 end
-mailtemplateserviceimpl -> workspacemember: map row -> member
-workspacemember --> mailtemplateserviceimpl: member
-mailtemplateserviceimpl -> mailtemplaterepository: findByIdAndWorkspaceId(templateId, workspaceId)
-mailtemplaterepository --> mailtemplateserviceimpl: Optional<Row>
-opt !templateOpt.isPresent()
-  mailtemplateserviceimpl --> mailtemplatecontroller: throw 404 TEMPLATE_NOT_FOUND
-  mailtemplatecontroller --> sendemail_ui: 404 Not Found
-  sendemail_ui --> creator: shows not found error
+service -> templates: findByIdAndDeletedAtIsNull(templateId)
+templates --> service: Optional<template>
+opt template missing
+  service --> controller: throw 404 TEMPLATE_NOT_FOUND
+  controller --> ui: 404 Not Found
 end
-mailtemplateserviceimpl -> mailtemplatedocument: map row -> template
-mailtemplatedocument --> mailtemplateserviceimpl: template
-mailtemplateserviceimpl -> mailtemplatedocument: renderBody(request.variables())
-mailtemplatedocument --> mailtemplateserviceimpl: renderedHtml
-mailtemplateserviceimpl -> mailservice: sendHtml(request.recipientEmail(), template.getSubject(), renderedHtml)
-mailservice --> mailtemplateserviceimpl: void
-mailtemplateserviceimpl -> sendemailresponse: new SendEmailResponse(request.recipientEmail(), "SENT")
-sendemailresponse --> mailtemplateserviceimpl: SendEmailResponse
-mailtemplateserviceimpl --> mailtemplatecontroller: SendEmailResponse
-mailtemplatecontroller --> sendemail_ui: 200 OK SendEmailResponse
-sendemail_ui --> creator: shows email sent successfully toast
+opt recipients empty or > 200
+  service --> controller: throw 400 VALIDATION_ERROR
+  controller --> ui: 400 Bad Request
+end
+opt scheduledAt outside [now+5min, now+30d]
+  service --> controller: throw 400 MAIL_SCHEDULE_OUT_OF_RANGE
+  controller --> ui: 400 Bad Request
+end
+loop each recipient row
+  service -> renderer: render(template, row.variables + shared + built-ins) (HTML-escape values)
+  renderer --> service: rendered / MISSING_VARIABLE:x
+  service -> classifier: isInsideWorkspace(email) (Client contact_email or active member)
+  classifier --> service: true / false
+end
+service -> service: dedupe (case-insensitive), collect rejected[]
+opt all rows rejected
+  service --> controller: throw 400 VALIDATION_ERROR
+  controller --> ui: 400 Bad Request
+end
+opt scheduledAt == null
+  service -> quota: remainingToday(workspaceId)
+  quota --> service: remaining
+  opt accepted > remaining
+    service --> controller: throw 429 MAIL_QUOTA_EXCEEDED (remainingToday)
+    controller --> ui: 429 Too Many Requests
+    ui --> member: shows quota left, suggests scheduling
+  end
+end
+service -> batches: save(batch: QUEUED or SCHEDULED, snapshot subject/body/attachments)
+service -> deliveries: saveAll(PENDING deliveries, event_key unique) in the same transaction
+service --> controller: 202 {batchId, status, accepted, rejected[], scheduledAt}
+controller --> ui: 202 Accepted
+ui --> member: shows batch page and rejected rows
+
+' === Flow: background delivery ===
+== Background worker ==
+worker -> deliveries: claim next due PENDING (FOR UPDATE SKIP LOCKED)
+deliveries --> worker: delivery
+worker -> suppressions: isSuppressed(workspaceId, email) (external recipients only)
+suppressions --> worker: true / false
+opt suppressed
+  worker -> deliveries: mark SUPPRESSED
+end
+worker -> quota: tryConsume(day, workspaceId) atomic SYSTEM + WORKSPACE
+quota --> worker: ok / exhausted
+opt exhausted
+  worker -> deliveries: next_attempt_at = next day 00:00 (Asia/Ho_Chi_Minh)
+end
+worker -> smtp: sendHtml(to, subject, html, replyTo, attachments, List-Unsubscribe)
+alt delivered
+  smtp --> worker: ok
+  worker -> deliveries: mark SENT
+else failure
+  smtp --> worker: error
+  worker -> deliveries: attempts++, backoff or FAILED after 5
+end
+worker -> batches: update counters; COMPLETED / FAILED when no PENDING left
+worker -> notifier: notify sender (in-app) when batch finished
 
 @enduml
