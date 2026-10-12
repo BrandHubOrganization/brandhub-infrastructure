@@ -1,0 +1,44 @@
+@startuml 3.6.32 - Unsubscribe
+title Sequence Diagram — 3.6.32 - Recipient Unsubscribe
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+actor "Recipient (external)" as recipient
+boundary "UnsubscribePage (public UI)" as ui
+boundary "PublicMailController" as controller
+control "UnsubscribeService" as service
+entity "UnsubscribeTokenService" as tokens
+entity "MailSuppressionRepository" as suppressions
+
+recipient -> ui: clicks the unsubscribe link in the email footer
+ui -> controller: GET /api/v1/public/mail/unsubscribe?token=...
+controller -> service: describe(token)
+service -> tokens: verify HMAC(token)
+tokens --> service: workspaceId, email / invalid
+opt invalid token
+  service --> controller: throw 400
+  controller --> ui: 400 Bad Request
+  ui --> recipient: generic invalid link message
+end
+service --> controller: workspace name, masked email
+controller --> ui: 200 OK
+ui --> recipient: asks for confirmation
+recipient -> ui: confirms
+ui -> controller: POST /api/v1/public/mail/unsubscribe?token=...
+controller -> service: unsubscribe(token)
+service -> suppressions: upsert(workspaceId, emailLower, UNSUBSCRIBED) (idempotent)
+suppressions --> service: ok
+service --> controller: 200 OK
+controller --> ui: 200 OK
+ui --> recipient: confirmation shown
+note right of service
+  Mail clients may also call POST directly
+  (List-Unsubscribe-Post one-click, RFC 8058).
+  Scope is the sending Workspace only.
+end note
+
+@enduml
