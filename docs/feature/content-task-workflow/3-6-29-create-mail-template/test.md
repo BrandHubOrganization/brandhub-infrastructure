@@ -1,21 +1,35 @@
 # Test — Create Mail Template (FR 3.6.29)
 
-> Nguồn chuẩn dùng chung cho cả 5 FR: [../3-6-28-32-mail-template/](../3-6-28-32-mail-template/) (spec, plan, task, test gộp). File này lấy đúng phần của FR 3.6.29 để mỗi FR có đủ bộ 4 tài liệu (`spec.md`, `plan.md`, `task.md`, `test.md`) theo `docs/rule/feature-workflow.md`. Khi có khác biệt, bản gộp là bản đúng.
-
-- **Jira:** DA-999
+- **FR:** 3.6.29 · **Jira:** DA-999
 - **Mục tiêu:** Tạo mẫu email mới (từ đầu hoặc clone mẫu hệ thống/mẫu Workspace), có biến, ảnh và tệp đính kèm.
 
-## 1. Cách chạy
+## 1. Cách chạy 
 
 ```bash
-# Backend (JUnit): mail template, gửi, worker
-cd brandhub-business-service && mvn test -Dtest='Mail*Test'
-# Frontend
-cd brandhub-web-dashboard && npx vitest run src/pages/mail-templates
-cd brandhub-web-dashboard && npx playwright test tests/e2e/mail-templates
-```
+# Backend (cần Postgres + Mongo thật cho phần worker/quota)
+cd brandhub-business-service && mvn clean test -Dtest='MailTemplate*Test,MailSend*Test,MailDelivery*Test,Quota*Test,Unsubscribe*Test'
 
-## 2. Test case của FR này
+# Frontend
+cd brandhub-web-dashboard && npm test                     # Vitest
+npx playwright test tests/e2e/mail-templates              # E2E (mock REST)
+
+# Live integration (backend thật + SMTP giả)
+# Chạy backend thật (profile dev) + SMTP giả cổng 2525, rồi gọi API bằng curl; các bước và kết quả
+# ở mục 7 (không có script commit sẵn).
+```
+Ghi chú môi trường: nếu Maven báo `source level 25`, chạy `mvn clean` (class của IDE trong `target/`). Playwright cần `npx playwright install chromium`.
+
+## 2. Ma trận kiểm thử
+
+| Tầng | Công cụ | Phạm vi |
+|---|---|---|
+| Đơn vị service | JUnit 5 + Mockito | CRUD, quyền, sanitize, render biến, phân loại người nhận, hẹn giờ |
+| Tích hợp DB | JUnit + Postgres/Mongo thật | `SKIP LOCKED`, quota đồng thời, idempotent, retention |
+| Frontend logic | Vitest | Parse biến, parse CSV, validate form |
+| UI | Playwright (mock REST) | Luồng người dùng, trạng thái UI, i18n, light/dark |
+| Live | Node script + SMTP giả | Header, tệp đính kèm, unsubscribe thật, quota, hẹn giờ |
+
+## 3. Test case của FR này
 
 | ID | Case | Input | Mong đợi |
 |---|---|---|---|
@@ -56,8 +70,61 @@ cd brandhub-web-dashboard && npx playwright test tests/e2e/mail-templates
 |---|---|---|---|
 | TC-ENH-03 | New template draft survives close/reopen and can be discarded | Playwright | pass |
 
-## 3. Kết quả
+## 4. Bảo mật
 
-- Toàn bộ test case ở trên đã chạy và đạt; chi tiết số liệu từng đợt ở mục 14–16 của [bản gộp](../3-6-28-32-mail-template/test.md).
-- Tổng sau đợt cuối: business-service 704 test, vitest 64, Playwright mail 25, kèm chạy live với Postgres + Mongo + SMTP giả.
-- Giới hạn đã biết và việc chưa kiểm (Gmail/Outlook, S3 thật, staging): xem mục 13 và 14.2 của bản gộp.
+| ID | Case | Mong đợi |
+|---|---|---|
+| SEC-MT-01 | XSS qua body/biến/subject | Không thực thi trong preview và mail |
+| SEC-MT-02 | Header injection (`\r\n` trong subject/email) | Bị loại/từ chối |
+| SEC-MT-05 | Upload tệp giả mạo | Bị magic bytes chặn |
+| SEC-MT-06 | Mass assignment (`type`, `workspaceId`, `createdBy` trong body) | Bị bỏ qua |
+
+## 5. Tiêu chí đạt
+
+- 100% case mục 3–11 đạt hoặc có ghi chú giới hạn rõ ràng.
+- Không còn lỗi lint/type-check mới; vi/en song song; light/dark kiểm tra.
+- Mọi AC trong spec §4 có ít nhất một case tương ứng đạt.
+
+## 6. Giới hạn đã biết (dự kiến)
+
+- Không quét virus (chỉ allow-list + magic bytes).
+- Giao hàng at-least-once: crash đúng khoảnh khắc giữa gửi và commit có thể gửi trùng một mail.
+- Worker đơn instance được kiểm cho `SKIP LOCKED`; scale đa instance chưa được xác nhận ở môi trường thật.
+- Hiển thị email phụ thuộc client thư (Gmail/Outlook/Apple Mail) — kiểm tra bằng mắt.
+- Gmail có thể vẫn đánh dấu spam dù đã cap; cần theo dõi thực tế.
+
+## 7. Kết quả thực thi
+
+### 14.1 Bước 1–2 (CRUD, sanitize, render, preview) — 2026-10-12
+Nhánh `feat/DA-998-mail-template-crud` (business-service), commit `23503e3`.
+
+| Nhóm | Cách chạy | Kết quả |
+|---|---|---|
+| JUnit: `HtmlSanitizerTest` | `mvn test` | 11/11 (TC-SAN-01..05 và biến thể) |
+| JUnit: `TemplateRendererTest` | `mvn test` | 8/8 (TC-VAR-01..07) |
+| JUnit: `MailTemplateServiceImplTest` | `mvn test` | 28/28 (TC-MT-01..15 mức service, TC-PRE-01) |
+| Toàn bộ business-service | `mvn clean test` | 587/587, không hồi quy |
+| Live (backend thật + Postgres + Mongo local) | curl, DB scratch | pass: tạo (script bị loại), 401/403/404, PATCH khác người tạo 403, PATCH subject trống 400, preview escape, tìm kiếm, soft delete (`deletedAt` set, GET 404, list loại) |
+| Migration Mongo `2026-10-12-create-mail-templates-collection.js` | mongosh trên DB tạm | validator nhận bản ghi hợp lệ, từ chối `subject` rỗng và `type` sai; chạy lại idempotent; 3 index |
+
+Chưa chạy: gửi (DA-1002), tệp đính kèm (DA-1256), hẹn giờ/unsubscribe (DA-1257), lịch sử (DA-1258), Admin (DA-1259), toàn bộ frontend và E2E.
+
+Ghi chú triển khai: ảnh trong nội dung bị loại hết cho đến khi cấu hình `mail.allowed-image-hosts` (bước tệp đính kèm); subject không HTML-escape (là header văn bản thuần), chỉ bỏ xuống dòng.
+
+### 16. Enhancements (Addendum A)
+
+| TC | Case | Where | Result |
+|---|---|---|---|
+| TC-ENH-01 | Preview renders the typed body; mobile toggle limits width to 375px | Playwright | pass |
+| TC-ENH-02 | `{{nmae}}` shows a "Did you mean {{name}}" hint, saving is not blocked | Playwright + vitest | pass |
+| TC-ENH-03 | New template draft survives close/reopen and can be discarded | Playwright | pass |
+| TC-ENH-04 | Members/Clients picked and a saved group are merged without duplicates | Playwright + vitest | pass |
+| TC-ENH-05 | Finished batch with failures: Resend queues only failed rows, Export CSV downloads | Playwright + JUnit | pass |
+| TC-ENH-06 | Resend refused while sending / when nothing failed / by a non-owner creator | JUnit | pass |
+| TC-ENH-07 | CSV cells starting with `= + - @` are prefixed with `'` | JUnit | pass |
+| TC-ENH-08 | Unsubscribed list pages, re-subscribe needs OWNER/MANAGER | Playwright + JUnit | pass |
+| TC-ENH-09 | Group create keeps only valid distinct emails, capped per Workspace, owner-only delete | JUnit | pass |
+| TC-ENH-10 | Removed attachment is released through the reference check; delete releases all | JUnit | pass |
+
+Totals after this pass: business-service 704, vitest 64, Playwright mail 25.
+Known limit: the first Playwright run after a cold dev server start can time out once (re-run passes).
