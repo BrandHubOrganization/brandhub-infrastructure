@@ -1,0 +1,46 @@
+@startuml 3.6.28 - View Mail Template
+title Sequence Diagram — 3.6.28 - View Mail Template
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "MailTemplateListPage (UI)" as mailtemplate_ui
+boundary "MailTemplateController" as mailtemplatecontroller
+control "MailTemplateServiceImpl" as mailtemplateserviceimpl
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "MailTemplateRepository" as mailtemplaterepository
+entity "WorkspaceMember" as workspacemember
+entity "MailTemplateDocument" as mailtemplatedocument
+entity "MailTemplateResponse" as mailtemplateresponse
+
+' === Flow ===
+user -> mailtemplate_ui: opens /workspaces/{id}/mail-templates
+mailtemplate_ui -> mailtemplatecontroller: GET /api/v1/workspaces/{id}/mail-templates
+mailtemplatecontroller -> mailtemplateserviceimpl: listMailTemplates(currentUser, workspaceId)
+mailtemplateserviceimpl -> workspacememberrepository: findByWorkspaceIdAndUserId(workspaceId, currentUser.getId())
+workspacememberrepository --> mailtemplateserviceimpl: Optional<Row>
+opt !memberOpt.isPresent()
+  mailtemplateserviceimpl --> mailtemplatecontroller: throw 403 FORBIDDEN
+  mailtemplatecontroller --> mailtemplate_ui: 403 Forbidden
+  mailtemplate_ui --> user: shows access denied error
+end
+mailtemplateserviceimpl -> workspacemember: map row -> member
+workspacemember --> mailtemplateserviceimpl: member
+mailtemplateserviceimpl -> mailtemplaterepository: findByWorkspaceId(workspaceId)
+mailtemplaterepository --> mailtemplateserviceimpl: List<Row>
+mailtemplateserviceimpl -> mailtemplatedocument: map rows -> List<MailTemplateDocument>
+mailtemplatedocument --> mailtemplateserviceimpl: List<MailTemplateDocument>
+loop for each template in templates
+  mailtemplateserviceimpl -> mailtemplateresponse: new MailTemplateResponse(template)
+  mailtemplateresponse --> mailtemplateserviceimpl: MailTemplateResponse
+end
+mailtemplateserviceimpl --> mailtemplatecontroller: List<MailTemplateResponse>
+mailtemplatecontroller --> mailtemplate_ui: 200 OK List<MailTemplateResponse>
+mailtemplate_ui --> user: renders template list
+
+@enduml

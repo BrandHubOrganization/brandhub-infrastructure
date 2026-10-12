@@ -394,7 +394,7 @@ note right of audit_logs
 end note
 
 ' ============================================================
-' MONGODB — 14 COLLECTIONS (business-service, soft ref, no physical FK)
+' MONGODB — 16 COLLECTIONS (business-service, soft ref, không có FK thật)
 ' ============================================================
 
 entity "tasks" as tasks <<MongoDB, NEW V2>> {
@@ -402,6 +402,7 @@ entity "tasks" as tasks <<MongoDB, NEW V2>> {
   --
   * workspaceId : string
   campaignId : string <<nullable for Content Request Task>>
+  campaignWorkItemId : string <<unique with campaignId when present>>
   * type : task_type
   * name : string
   description : string
@@ -409,16 +410,37 @@ entity "tasks" as tasks <<MongoDB, NEW V2>> {
   qcAssigneeId : string
   * requiresClientApproval : boolean
   * status : task_status
-  * approvalRound : int <<0 before submit; increments each resubmit>>
+  * approvalRound : int <<initial 1; tăng mỗi lần resubmit>>
   typeMetadata : object
+  sourceType : string
+  sourceRefId : string
+  createdBy : string
   dueDate : date
   * createdAt : date
   * updatedAt : date
 }
 note right of tasks
-  REPLACES posts V1 — generic 3 types: post/livestream/survey
-  campaignId NULL when Task spawned from Content Request
+  THAY posts V1 — generic 5 loại: POST/LIVESTREAM/SURVEY/
+  EVENT_PLAN/PRESS_RECOMMENDATION
+  campaignId NULL khi Task sinh từ Content Request
 end note
+
+entity "event_plans" as event_plans <<MongoDB, NEW V2>> {
+  * taskId : string <<unique>>
+  * contentVersion : int
+  planContent : string
+  referenceLinks : array
+  * createdAt : date
+  * updatedAt : date
+}
+
+entity "press_recommendations" as press_recommendations <<MongoDB, NEW V2>> {
+  * taskId : string <<unique>>
+  * contentVersion : int
+  recommendations : array
+  * createdAt : date
+  * updatedAt : date
+}
 
 entity "task_approvals" as task_approvals <<MongoDB, NEW V2>> {
   * _id : ObjectId <<PK>>

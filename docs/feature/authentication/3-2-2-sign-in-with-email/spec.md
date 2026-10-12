@@ -77,3 +77,14 @@ Figure — Sign-in Screen (`LoginPage.tsx`, route `/login`):
 
 ## References
 [AuthController.java](../../../../../brandhub-business-service/src/main/java/com/brandhub/business/controller/AuthController.java), [AuthServiceImpl.java](../../../../../brandhub-business-service/src/main/java/com/brandhub/business/service/impl/AuthServiceImpl.java), Section5_Requirement_Appendix.md (BR-05, BR-06, BR-07, BR-08, BR-12; MSG02, MSG04, MSG07, MSG09, MSG11, MSG22)
+
+## Dev Quick Login repair — 2026-10-04
+
+Chỉ áp dụng helper `import.meta.env.DEV`. Nguyên nhân thực tế: DB có Admin/demo statistics nhưng thiếu user177@hotmail.com, user1@gmail.com, user59@gmail.com và không có Workspace/ClientProfile; bulk seeder bỏ qua vì marker Admin đã tồn tại.
+
+- Giữ login và quyền thật từ API. Owner/Manager/Creator/Client là quyền Agency/Workspace, systemRole vẫn USER. Không bỏ AuthGuard/RequireRole hoặc mô phỏng role.
+- Bổ sung seed nhỏ, opt-in, transaction: chỉ tạo các tài khoản dev còn thiếu, Agency và hai Workspace thử nghiệm. User1 là MANAGER ở Workspace thứ nhất, CREATOR ở Workspace thứ hai; Client59 gắn qua ClientProfile. Không xóa dữ liệu, reset mật khẩu/status/quyền của tài khoản đã tồn tại.
+- Manager/Creator lấy `GET /api/v1/workspaces`, chọn `myRole` đúng nút; không dùng UUID cố định. Không có Workspace đúng quyền → tới danh sách Agency và báo hướng dẫn seed. Owner tới Agency, Client tới ClientProfile.
+- Helper xử lý challenge 2FA giống form thường, không gọi profile khi chưa có access token. Chuỗi lỗi VI/EN, loading khóa nút lặp.
+- Các package APPROVED trong seed là dữ liệu fixture riêng, không đổi trạng thái package thực tế.
+

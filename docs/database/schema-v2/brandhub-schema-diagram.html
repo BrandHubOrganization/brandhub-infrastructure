@@ -155,7 +155,7 @@
 // ── Schema Data V2 — DESIGN, chưa áp dụng init-postgres.sql thật ──
 // Nguồn: brandhub-dbml.dbml, docs/ba/11-data-entities-glossary.md
 // PostgreSQL: 23 tables (Identity×4, Organization×8, Commerce×3, Collaborator×2, Billing×6)
-// MongoDB: 14 collections (business-service)
+// MongoDB: 16 collections (business-service)
 const SCHEMA = {
   tables: [
 
@@ -481,23 +481,49 @@ const SCHEMA = {
     },
 
     // ══════════════════════════════════════════
-    // MONGODB — 14 COLLECTIONS (business-service)
+    // MONGODB — 16 COLLECTIONS (business-service)
     // ══════════════════════════════════════════
     {
-      name: 'tasks', db: 'mongo', isNew: true, note: 'MongoDB · NEW V2 · thay posts · generic 3 loại',
+      name: 'tasks', db: 'mongo', isNew: true, note: 'MongoDB · NEW V2 · generic 5 loại',
       fields: [
         { name: '_id', type: 'ObjectId', pk: true },
         { name: 'workspaceId', type: 'string', notNull: true, note: 'Soft ref → workspaces.id (PG)' },
+        { name: 'campaignId', type: 'string', note: 'Nullable for Content Request Tasks' },
+        { name: 'campaignWorkItemId', type: 'string', note: 'Unique with campaignId when both present' },
         { name: 'sourceType', type: 'task_source_type', notNull: true, note: 'campaign | content_request | manual' },
         { name: 'sourceRefId', type: 'string', note: 'Soft ref → media_campaigns.id / content_requests._id' },
-        { name: 'type', type: 'task_type', notNull: true, note: 'post | livestream | survey' },
-        { name: 'title', type: 'string', notNull: true },
+        { name: 'type', type: 'task_type', notNull: true, note: 'POST | LIVESTREAM | SURVEY | EVENT_PLAN | PRESS_RECOMMENDATION' },
+        { name: 'name', type: 'string', notNull: true },
         { name: 'assigneeId', type: 'string', note: 'Soft ref → users.id (PG)' },
         { name: 'qcAssigneeId', type: 'string', note: 'Soft ref → users.id (PG), tùy chọn' },
         { name: 'requiresClientApproval', type: 'boolean', notNull: true },
         { name: 'status', type: 'task_status', notNull: true },
+        { name: 'approvalRound', type: 'int', notNull: true, note: 'Initial 1; increments on resubmit' },
         { name: 'typeMetadata', type: 'object' },
         { name: 'dueDate', type: 'date' },
+        { name: 'createdAt', type: 'date', notNull: true },
+        { name: 'updatedAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'event_plans', db: 'mongo', isNew: true, note: 'Specialist EVENT_PLAN Task content',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'taskId', type: 'string', notNull: true, note: 'Unique ref → tasks._id' },
+        { name: 'contentVersion', type: 'int', notNull: true },
+        { name: 'planContent', type: 'string' },
+        { name: 'referenceLinks', type: 'array' },
+        { name: 'createdAt', type: 'date', notNull: true },
+        { name: 'updatedAt', type: 'date', notNull: true },
+      ]
+    },
+    {
+      name: 'press_recommendations', db: 'mongo', isNew: true, note: 'Specialist PRESS_RECOMMENDATION Task content',
+      fields: [
+        { name: '_id', type: 'ObjectId', pk: true },
+        { name: 'taskId', type: 'string', notNull: true, note: 'Unique ref → tasks._id' },
+        { name: 'contentVersion', type: 'int', notNull: true },
+        { name: 'recommendations', type: 'array' },
         { name: 'createdAt', type: 'date', notNull: true },
         { name: 'updatedAt', type: 'date', notNull: true },
       ]
@@ -507,8 +533,9 @@ const SCHEMA = {
       fields: [
         { name: '_id', type: 'ObjectId', pk: true },
         { name: 'taskId', type: 'string', notNull: true, note: 'ref → tasks._id' },
-        { name: 'step', type: 'task_approval_step', notNull: true, note: 'creator | qc | manager | client' },
-        { name: 'action', type: 'task_approval_action', notNull: true, note: 'submit | approve | reject' },
+        { name: 'approvalRound', type: 'int', notNull: true },
+        { name: 'step', type: 'task_approval_step', notNull: true, note: 'QC | MANAGER | CLIENT' },
+        { name: 'action', type: 'task_approval_action', notNull: true, note: 'APPROVE | REJECT' },
         { name: 'actorId', type: 'string', notNull: true, note: 'Soft ref → users.id (PG)' },
         { name: 'comment', type: 'string' },
         { name: 'createdAt', type: 'date', notNull: true },
@@ -729,6 +756,8 @@ const LAYOUT = {
   audit_logs:                    { x: 2820, y: 60 },
   // MongoDB (bottom half)
   tasks:                         { x: 60,   y: 1200 },
+  event_plans:                   { x: 2860, y: 1200 },
+  press_recommendations:         { x: 2860, y: 1720 },
   task_approvals:                { x: 460,  y: 1200 },
   posts:                         { x: 860,  y: 1200 },
   content_requests:              { x: 1260, y: 1200 },

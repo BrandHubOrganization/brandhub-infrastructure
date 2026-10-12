@@ -23,7 +23,7 @@ Giữ nguyên chiến lược 2-database của V1 — không đổi công nghệ
 - Thêm tầng **Agency** phía trên Workspace — mọi FK chain giờ bắt đầu từ `agencies`, không phải `workspaces`.
 - `clients` (bảng đơn giản V1) → tách thành `client_profiles` (PostgreSQL, tái sử dụng xuyên Agency) + quan hệ N-N với Workspace qua `workspace_members` (Client cũng là 1 dạng WorkspaceMember, role riêng biệt khỏi OWNER/MANAGER).
 - Thêm chuỗi thương mại mới: `media_packages`, `workspace_media_packages`, `media_campaigns` — thay thế hoàn toàn `service_package` (jsonb tự do trong `clients` cũ).
-- `posts` (MongoDB V1, đơn) → mở rộng thành `tasks` (MongoDB, generic 3 loại: post/livestream/survey) + `task_approvals` (lịch sử duyệt theo từng step, KHÔNG chỉ 1 status field — quyết định thiết kế quan trọng, xem mục 4.4).
+- `posts` (MongoDB V1, đơn) → mở rộng thành `tasks` (MongoDB, generic ban đầu 3 loại post/livestream/survey, DA-948 mở rộng EVENT_PLAN/PRESS_RECOMMENDATION) + `task_approvals` (lịch sử duyệt theo từng step, KHÔNG chỉ 1 status field — xem mục 4.4).
 - Thêm `third_party_collaborators` + `campaign_collaborators` (N-N) — module hoàn toàn mới, không tồn tại ở V1.
 - `content_requests` giữ tên nhưng đổi state machine (`pending → in_progress → accepted/denied`, `denied` là terminal — khác 8-state cũ).
 
@@ -35,7 +35,7 @@ Giữ nguyên chiến lược 2-database của V1 — không đổi công nghệ
 
 | Tiêu chí | Áp dụng cho entity V2 |
 |---|---|
-| Schema linh hoạt, field thêm/bớt không cần migration | `task.typeMetadata` khác nhau theo `type` (post/livestream/survey) |
+| Schema linh hoạt, field thêm/bớt không cần migration | `task.typeMetadata` khác nhau theo `type` (POST/LIVESTREAM/SURVEY/EVENT_PLAN/PRESS_RECOMMENDATION) |
 | Dữ liệu nested, tránh JOIN nhiều bảng | Xem xét inline `approvalHistory[]` trong `tasks` — **quyết định: KHÔNG inline, tách collection riêng** (mục 4.4 — cần query/filter theo step độc lập khi giữ nguyên approval cũ sau reject) |
 | High write throughput | `content_versions`, `ai_usage_logs`, `publish_logs` |
 | Multi-tenant isolation đơn giản qua filter | Mọi Task/Content collection filter `{ workspaceId }` |
@@ -145,9 +145,9 @@ workspace_members.client_profile_id → client_profiles.id (nullable, chỉ set 
 
 ### 4.4 Quyết định thiết kế: `tasks` 1 bảng chung + `task_approvals` tách collection riêng
 
-**Quyết định (đóng câu hỏi mở #3):** 1 collection MongoDB `tasks` chung, cột `type` (`post`/`livestream`/`survey`) phân biệt, field riêng nằm trong `typeMetadata` thay vì 3 collection riêng.
+**Quyết định (đóng câu hỏi mở #3):** 1 collection MongoDB `tasks` chung, cột `type` phân biệt POST/LIVESTREAM/SURVEY và hai loại mở rộng DA-948 EVENT_PLAN/PRESS_RECOMMENDATION. Nội dung chuyên biệt của hai loại mới nằm trong `event_plans`/`press_recommendations`; identity và workflow vẫn ở `tasks`.
 
-**Lý do:** cả 3 loại Task dùng chung 100% Approval Sequence — tách 3 collection sẽ trùng lặp toàn bộ logic transition.
+**Lý do:** các Task type dùng chung Approval Sequence — tách collection workflow theo loại sẽ trùng lặp logic transition.
 
 **`task_approvals` tách collection riêng, KHÔNG inline** — lý do trực tiếp từ rule nghiệp vụ: khi Task reject quay về `ASSIGNED`, approval ở step TRƯỚC step bị reject phải **giữ nguyên** (`docs/ba/13_Confirmations_Round2_2026-09-15.md` mục 4). Collection là append-only; `tasks.approvalRound` tăng mỗi lần resubmit, và mỗi approval lưu round tương ứng. Vì vậy query approval hiện hành chỉ đọc action mới nhất theo step trong round hiện tại, không cần xoá hay ghi đè lịch sử.
 
@@ -155,7 +155,8 @@ workspace_members.client_profile_id → client_profiles.id (nullable, chỉ set 
 
 | Collection | Đổi so với V1 | Lý do |
 |---|---|---|
-| `tasks` | **THAY** `posts` — generic 3 loại | Post giờ chỉ là 1 `type` của Task |
+| `tasks` | **THAY** `posts` — generic 5 loại | Post giờ chỉ là 1 `type` của Task; Campaign work item được chống trùng bằng partial unique index |
+| `event_plans` / `press_recommendations` | **MỚI DA-948**, nội dung chuyên biệt của Task | Không tạo module vận hành sự kiện hoặc booking báo chí |
 | `task_approvals` | **MỚI**, tách từ `posts.approvalHistory[]` | Giữ lịch sử approve khi reject |
 | `posts` | **GIỮ nhưng đổi nghĩa** — chỉ còn bài **đã publish thành công** | Tách "đang làm" (Task) khỏi "đã đăng" (Post) |
 | `content_requests` | **ĐỔI state machine** — `pending → in_progress → accepted/denied`, `denied` terminal | `docs/ba/13` mục 5 |
