@@ -1,0 +1,53 @@
+@startuml 3.6.30 - Update Mail Template
+title Sequence Diagram — 3.6.30 - Update Mail Template
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Creator" as creator
+boundary "EditMailTemplateModal (UI)" as editmailtemplate_ui
+boundary "MailTemplateController" as mailtemplatecontroller
+control "MailTemplateServiceImpl" as mailtemplateserviceimpl
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "MailTemplateRepository" as mailtemplaterepository
+entity "WorkspaceMember" as workspacemember
+entity "MailTemplateDocument" as mailtemplatedocument
+entity "MailTemplateResponse" as mailtemplateresponse
+
+' === Flow ===
+creator -> editmailtemplate_ui: modifies fields (name, subject, bodyHtml) and clicks Save
+editmailtemplate_ui -> mailtemplatecontroller: PUT /api/v1/workspaces/{id}/mail-templates/{templateId}
+mailtemplatecontroller -> mailtemplateserviceimpl: updateMailTemplate(currentUser, workspaceId, templateId, request)
+mailtemplateserviceimpl -> workspacememberrepository: findByWorkspaceIdAndUserId(workspaceId, currentUser.getId())
+workspacememberrepository --> mailtemplateserviceimpl: Optional<Row>
+opt !memberOpt.isPresent()
+  mailtemplateserviceimpl --> mailtemplatecontroller: throw 403 FORBIDDEN
+  mailtemplatecontroller --> editmailtemplate_ui: 403 Forbidden
+  editmailtemplate_ui --> creator: shows forbidden toast
+end
+mailtemplateserviceimpl -> workspacemember: map row -> member
+workspacemember --> mailtemplateserviceimpl: member
+mailtemplateserviceimpl -> mailtemplaterepository: findByIdAndWorkspaceId(templateId, workspaceId)
+mailtemplaterepository --> mailtemplateserviceimpl: Optional<Row>
+opt !templateOpt.isPresent()
+  mailtemplateserviceimpl --> mailtemplatecontroller: throw 404 TEMPLATE_NOT_FOUND
+  mailtemplatecontroller --> editmailtemplate_ui: 404 Not Found
+  editmailtemplate_ui --> creator: shows not found error
+end
+mailtemplateserviceimpl -> mailtemplatedocument: map row -> template
+mailtemplatedocument --> mailtemplateserviceimpl: template
+mailtemplateserviceimpl -> mailtemplatedocument: updateContent(request.name(), request.subject(), request.bodyHtml())
+mailtemplatedocument --> mailtemplateserviceimpl: updatedTemplate
+mailtemplateserviceimpl -> mailtemplaterepository: save(updatedTemplate)
+mailtemplaterepository --> mailtemplateserviceimpl: savedTemplate
+mailtemplateserviceimpl -> mailtemplateresponse: new MailTemplateResponse(savedTemplate)
+mailtemplateresponse --> mailtemplateserviceimpl: MailTemplateResponse
+mailtemplateserviceimpl --> mailtemplatecontroller: MailTemplateResponse
+mailtemplatecontroller --> editmailtemplate_ui: 200 OK MailTemplateResponse
+editmailtemplate_ui --> creator: shows updated toast & refreshes list
+
+@enduml

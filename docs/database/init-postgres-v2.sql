@@ -3,7 +3,9 @@
 -- Purpose: Agency -> Workspace -> Media Package -> Media Campaign -> Task model.
 -- Replaces init-postgres.sql (V1). See docs/database/migration/migration-plan-v1-to-v2.md.
 --
--- Idempotent: safe to run again on an empty or existing V2 database.
+-- Fresh database bootstrap; existing databases must use docs/database/migrations/.
+-- CREATE IF NOT EXISTS does not upgrade existing table definitions.
+-- Synchronized with PostgreSQL migrations through 2026-10-02.
 -- Scope: PostgreSQL-owned entities only. MongoDB collections are not mirrored here.
 --
 -- Decisions confirmed 2026-09-16 (docs/database/migration/migration-plan-v1-to-v2.md §0):
@@ -18,13 +20,14 @@
 --   - ai_credit_ledgers: split into ai_credit_ledgers (Agency-wide monthly usage, no user)
 --     + ai_credit_creator_limits (per-Creator cap set by Owner, config only, not usage tracking).
 --
--- PostgreSQL tables (27):
+-- PostgreSQL tables (31):
 --   Monitoring:   monitoring_servers, monitoring_collectors,
---                 monitoring_health_targets, monitoring_health_results
+--                 monitoring_health_targets, monitoring_health_results, monitoring_enrollments
 --   Identity:     users, user_oauth_providers, user_refresh_tokens, user_system_roles
 --   Organization: agencies, agency_members, agency_invitations, workspaces,
 --                 workspace_members, workspace_invitations, workspace_templates, client_profiles
 --   Commerce:     media_packages, workspace_media_packages, media_campaigns
+--   Content:      tasks, task_content_operations, task_content_snapshots
 --   Collaborator: third_party_collaborators, campaign_collaborators
 --   Billing:      subscription_plans, user_subscriptions, transactions,
 --                 ai_credit_ledgers, ai_credit_creator_limits, audit_logs
@@ -103,6 +106,11 @@ END $$;
 
 DO $$ BEGIN
     CREATE TYPE campaign_status AS ENUM ('DRAFT', 'APPROVED', 'IN_PROGRESS', 'COMPLETED');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE task_type AS ENUM ('POST');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -250,6 +258,7 @@ CREATE TABLE IF NOT EXISTS agencies (
     name           VARCHAR(255)     NOT NULL,
     owner_id       UUID             NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     logo_url       VARCHAR,
+    banner_url     VARCHAR,
     description    TEXT,
     category       agency_category,
     company_size   company_size,
@@ -311,11 +320,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_agency_inv_unique_pending
 CREATE TABLE IF NOT EXISTS client_profiles (
     id              UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id         UUID         REFERENCES users(id) ON DELETE SET NULL,
-    agency_id       UUID         REFERENCES agencies(id) ON DELETE CASCADE,
     display_name    VARCHAR(255) NOT NULL,
     company         VARCHAR(255),
     industry        VARCHAR(100),
     logo_url        VARCHAR(500),
+    banner_url      VARCHAR(500),
     phone           VARCHAR(50),
     website         VARCHAR(255),
     location        VARCHAR(255),
@@ -336,7 +345,6 @@ CREATE TABLE IF NOT EXISTS client_profiles (
 );
 
 CREATE INDEX IF NOT EXISTS idx_client_profiles_user_id ON client_profiles(user_id);
-CREATE INDEX IF NOT EXISTS idx_client_profiles_agency_id ON client_profiles(agency_id);
 
 DROP TRIGGER IF EXISTS trg_client_profiles_updated_at ON client_profiles;
 CREATE TRIGGER trg_client_profiles_updated_at
@@ -349,6 +357,9 @@ CREATE TABLE IF NOT EXISTS workspaces (
     name            VARCHAR(255)      NOT NULL,
     created_by      UUID              NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     workspace_media_package_id UUID,
+    source_workspace_id UUID,
+    duplication_request_id UUID,
+    duplication_fingerprint UUID,
     timezone_config VARCHAR(100)      NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',
     settings        JSONB             NOT NULL DEFAULT '{}',
     industry        workspace_industry,
@@ -360,6 +371,7 @@ CREATE TABLE IF NOT EXISTS workspaces (
     brand_color     VARCHAR(9),
     logo_icon       VARCHAR(50),
     logo_url        VARCHAR(255),
+    banner_url      VARCHAR,
     tagline         VARCHAR(140),
     founded_year    INTEGER,
     facebook_url    VARCHAR(255),
@@ -372,6 +384,12 @@ CREATE TABLE IF NOT EXISTS workspaces (
 );
 
 CREATE INDEX IF NOT EXISTS idx_workspaces_agency_id ON workspaces(agency_id);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_workspaces_duplication_request
+    ON workspaces(agency_id, duplication_request_id)
+    WHERE duplication_request_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_workspaces_source_workspace
+    ON workspaces(source_workspace_id)
+    WHERE source_workspace_id IS NOT NULL;
 
 DROP TRIGGER IF EXISTS trg_workspaces_updated_at ON workspaces;
 CREATE TRIGGER trg_workspaces_updated_at
@@ -436,7 +454,7 @@ CREATE INDEX IF NOT EXISTS idx_workspace_inv_workspace_id ON workspace_invitatio
 
 CREATE TABLE IF NOT EXISTS workspace_templates (
     id                   UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-    agency_id            UUID         NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
+    agency_id            UUID         REFERENCES agencies(id) ON DELETE CASCADE,
     name                 VARCHAR(255) NOT NULL,
     source_workspace_id  UUID         REFERENCES workspaces(id) ON DELETE SET NULL,
     config_snapshot      JSONB        NOT NULL,
@@ -454,13 +472,16 @@ CREATE TABLE IF NOT EXISTS media_packages (
     id                 UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
     name               VARCHAR(255) NOT NULL,
     is_template        BOOLEAN      NOT NULL DEFAULT FALSE,
-    agency_id          UUID         REFERENCES agencies(id) ON DELETE RESTRICT,
-    source_template_id UUID         REFERENCES media_packages(id) ON DELETE SET NULL,
+    agency_id          UUID         CONSTRAINT fk_media_packages_agency REFERENCES agencies(id) ON DELETE RESTRICT,
+    source_template_id UUID         CONSTRAINT fk_media_packages_source_template REFERENCES media_packages(id) ON DELETE SET NULL,
     is_available_to_workspaces BOOLEAN NOT NULL DEFAULT TRUE,
     package_type       package_type NOT NULL,
     duration_weeks     INT,
     budget_amount      DECIMAL(14,2),
     scope_description  TEXT,
+    offering_model     VARCHAR(30) CONSTRAINT chk_media_packages_offering_model
+        CHECK (offering_model IN ('CAMPAIGN', 'RETAINER', 'DELIVERABLE_BUNDLE')),
+    offering_details   JSONB,
     created_by         UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     created_at         TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at         TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
@@ -490,12 +511,15 @@ CREATE TABLE IF NOT EXISTS workspace_media_packages (
     package_id             UUID                       NOT NULL REFERENCES media_packages(id) ON DELETE RESTRICT,
     negotiation_status     package_negotiation_status NOT NULL DEFAULT 'DRAFT',
     final_terms            JSONB                      NOT NULL DEFAULT '{}',
+    previous_terms         JSONB,
     terms_version          INT                        NOT NULL DEFAULT 1,
+    client_proposal_count  INT                        NOT NULL DEFAULT 0,
     approved_by_agency_at  TIMESTAMPTZ,
     approved_by_client_at  TIMESTAMPTZ,
     created_at             TIMESTAMPTZ                NOT NULL DEFAULT NOW(),
     updated_at             TIMESTAMPTZ                NOT NULL DEFAULT NOW(),
-    CONSTRAINT chk_workspace_media_packages_terms_version_positive CHECK (terms_version > 0)
+    CONSTRAINT chk_workspace_media_packages_terms_version_positive CHECK (terms_version > 0),
+    CONSTRAINT chk_workspace_media_packages_client_proposal_count CHECK (client_proposal_count >= 0)
 );
 
 DROP TRIGGER IF EXISTS trg_workspace_media_packages_updated_at ON workspace_media_packages;
@@ -514,21 +538,118 @@ CREATE TABLE IF NOT EXISTS media_campaigns (
     workspace_media_package_id UUID             NOT NULL REFERENCES workspace_media_packages(id) ON DELETE RESTRICT,
     name                        VARCHAR(255)    NOT NULL,
     strategy_detail             TEXT,
+    package_terms_snapshot      JSONB,
+    package_terms_version       INT,
+    allocation_period           VARCHAR(7),
+    allocations                 JSONB NOT NULL DEFAULT '[]',
+    deliverable_plan            JSONB NOT NULL DEFAULT '[]',
+    work_items                  JSONB NOT NULL DEFAULT '[]',
+    content_version             INT NOT NULL DEFAULT 1,
+    row_version                 BIGINT NOT NULL DEFAULT 0,
     brand_guideline             TEXT,
     timeline                    JSONB           NOT NULL DEFAULT '{}',
     status                      campaign_status NOT NULL DEFAULT 'DRAFT',
     approved_by_agency_at       TIMESTAMPTZ,
+    approved_by_agency_id       UUID,
+    approved_by_agency_version  INT,
     approved_by_client_at       TIMESTAMPTZ,
+    approved_by_client_id       UUID,
+    approved_by_client_version  INT,
+    completed_at                TIMESTAMPTZ,
+    completed_by                UUID,
+    completion_reason           VARCHAR(2000),
+    completion_task_summary     JSONB,
     created_at                  TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
     updated_at                  TIMESTAMPTZ     NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_media_campaigns_wmp_id ON media_campaigns(workspace_media_package_id);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_media_campaigns_agreement ON media_campaigns(workspace_media_package_id);
+
+CREATE TABLE IF NOT EXISTS campaign_versions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    campaign_id UUID NOT NULL REFERENCES media_campaigns(id) ON DELETE CASCADE,
+    content_version INT NOT NULL,
+    snapshot JSONB NOT NULL,
+    created_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT uq_campaign_versions_campaign_version UNIQUE (campaign_id, content_version)
+);
+
+CREATE TABLE IF NOT EXISTS campaign_review_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    campaign_id UUID NOT NULL REFERENCES media_campaigns(id) ON DELETE CASCADE,
+    content_version INT NOT NULL,
+    actor_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    actor_side VARCHAR(16) NOT NULL CHECK (actor_side IN ('AGENCY', 'CLIENT')),
+    event_type VARCHAR(16) NOT NULL CHECK (event_type IN ('FEEDBACK', 'APPROVE')),
+    comment TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_campaign_review_events_campaign_created
+    ON campaign_review_events(campaign_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS campaign_deployments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    campaign_id UUID NOT NULL UNIQUE REFERENCES media_campaigns(id) ON DELETE CASCADE,
+    content_version INT NOT NULL,
+    requested_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    status VARCHAR(16) NOT NULL DEFAULT 'PENDING'
+        CHECK (status IN ('PENDING', 'FAILED', 'SUCCEEDED')),
+    attempt_count INT NOT NULL DEFAULT 0,
+    last_error_code VARCHAR(64),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    completed_at TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_campaign_deployments_status_created
+    ON campaign_deployments(status, created_at);
 
 DROP TRIGGER IF EXISTS trg_media_campaigns_updated_at ON media_campaigns;
 CREATE TRIGGER trg_media_campaigns_updated_at
 BEFORE UPDATE ON media_campaigns
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ============================================================
+-- Content writing (2026-10-01 PostgreSQL migrations)
+-- Minimal task anchor for the canvas editor, not a replacement for the
+-- generic MongoDB tasks/task_approvals collections defined separately.
+-- Create tasks before content tables because both reference tasks(id).
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID NOT NULL REFERENCES workspaces(id),
+    type task_type NOT NULL DEFAULT 'POST',
+    title VARCHAR(255) NOT NULL,
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_tasks_workspace_id ON tasks(workspace_id);
+
+CREATE TABLE IF NOT EXISTS task_content_operations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    task_id UUID NOT NULL,
+    sequence_number BIGINT NOT NULL,
+    yjs_update TEXT NOT NULL,
+    edited_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (task_id, sequence_number)
+);
+
+CREATE INDEX IF NOT EXISTS idx_task_content_operations_task_id ON task_content_operations(task_id);
+
+CREATE TABLE IF NOT EXISTS task_content_snapshots (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    task_id UUID NOT NULL,
+    sequence_number BIGINT NOT NULL,
+    yjs_state TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_task_content_snapshots_task_id ON task_content_snapshots(task_id, sequence_number DESC);
 
 -- ============================================================
 -- Collaborator group (V2, new)
@@ -698,7 +819,7 @@ ON CONFLICT (name) DO UPDATE SET
 
 -- ============================================================
 -- System Health Monitoring (FR 3.10.3)
--- Mirrors scripts/migrations/2026-09-24-monitoring.sql for fresh databases.
+-- Mirrors docs/database/migrations/2026-09-24-monitoring.sql for fresh databases.
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS monitoring_servers (
@@ -812,12 +933,261 @@ COMMENT ON COLUMN monitoring_health_results.collector_id IS 'Result provenance; 
 COMMENT ON COLUMN monitoring_health_results.check_id IS 'Idempotency key scoped to target. Same current checkId is a no-op; do not update received_at.';
 COMMENT ON COLUMN monitoring_health_results.received_at IS 'Backend-assigned; never trust client timestamp. Application enforces ordering and past-age window atomically.';
 
-CREATE TABLE monitoring_enrollments (
+CREATE TABLE IF NOT EXISTS monitoring_enrollments (
     token_hash CHAR(64) PRIMARY KEY,
     name VARCHAR(255) NOT NULL CHECK (btrim(name) <> ''),
     environment VARCHAR(50) NOT NULL CHECK (btrim(environment) <> ''),
     expires_at TIMESTAMPTZ NOT NULL
 );
-CREATE INDEX idx_monitoring_enrollments_expiry ON monitoring_enrollments(expires_at);
+CREATE INDEX IF NOT EXISTS idx_monitoring_enrollments_expiry ON monitoring_enrollments(expires_at);
+COMMENT ON TABLE monitoring_enrollments IS 'Single-use admin-issued host enrollment; only token digests are stored. Claimed atomically.';
+
+COMMIT;
+
+-- =====================================================================
+-- Admin Management (FR 3.10.x) — folded in from docs/database/migrations after
+-- verification (test DB twice, dev DB twice). Keep in sync with those files.
+-- =====================================================================
+
+-- ---- 2026-10-01-admin-account-strikes.sql ----
+-- Run with psql autocommit before deploying the new Business Service.
+-- Additive: never reinterpret legacy SUSPENDED or self-DEACTIVATED accounts.
+ALTER TYPE user_status ADD VALUE IF NOT EXISTS 'FLAGGED';
+ALTER TYPE user_status ADD VALUE IF NOT EXISTS 'PENDING_VERIFICATION';
+
+BEGIN;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS clean_period_ends_at TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS reactivate_at TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS tokens_revoked_before TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS row_version BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS session_version BIGINT NOT NULL DEFAULT 0;
+CREATE INDEX IF NOT EXISTS idx_users_clean_period ON users(clean_period_ends_at)
+    WHERE clean_period_ends_at IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_users_reactivate ON users(reactivate_at) WHERE reactivate_at IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS user_strikes (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id),
+    level VARCHAR(10) NOT NULL CHECK (level IN ('YELLOW','ORANGE','RED')),
+    category VARCHAR(100) NOT NULL,
+    reason VARCHAR(2000) NOT NULL,
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    converted_to_id UUID REFERENCES user_strikes(id) DEFERRABLE INITIALLY DEFERRED,
+    removed_by UUID REFERENCES users(id),
+    removed_at TIMESTAMPTZ,
+    removal_reason VARCHAR(2000),
+    CHECK (expires_at > created_at),
+    CHECK ((removed_at IS NULL) = (removed_by IS NULL)),
+    CHECK (converted_to_id IS NULL OR level = 'YELLOW')
+);
+CREATE INDEX IF NOT EXISTS idx_user_strikes_history ON user_strikes(user_id,created_at DESC,id DESC);
+CREATE INDEX IF NOT EXISTS idx_user_strikes_live ON user_strikes(user_id,expires_at) WHERE removed_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS sanction_reviews (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id),
+    status VARCHAR(20) NOT NULL CHECK (status IN ('PENDING','CONFIRMED','CLOSED')),
+    created_at TIMESTAMPTZ NOT NULL,
+    resolved_at TIMESTAMPTZ,
+    resolved_by UUID REFERENCES users(id),
+    reason VARCHAR(2000)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sanction_one_pending ON sanction_reviews(user_id) WHERE status='PENDING';
+CREATE TABLE IF NOT EXISTS admin_account_operations (
+    user_id UUID NOT NULL REFERENCES users(id),
+    operation_id UUID NOT NULL,
+    payload_hash VARCHAR(64) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id,operation_id)
+);
+CREATE TABLE IF NOT EXISTS admin_email_outbox (
+    id UUID PRIMARY KEY,
+    event_key VARCHAR(150) NOT NULL UNIQUE,
+    recipient VARCHAR(255) NOT NULL,
+    subject VARCHAR(255) NOT NULL,
+    body TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    sent_at TIMESTAMPTZ,
+    next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    attempts INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_admin_email_due ON admin_email_outbox(next_attempt_at) WHERE sent_at IS NULL;
+COMMIT;
+
+-- Rollback deployment: restore previous application; leave added tables/columns intact.
+-- Do not drop strike/audit data or remove enum values. Export history before any future destructive migration.
+
+-- ---- 2026-10-04-admin-notifications-reports.sql ----
+-- FR 3.10.1 (email broadcast) + FR 3.10.12 (PDF export) + BR-16 audit actions.
+-- Run with psql autocommit before deploying the new Business Service:
+--   docker exec -i brandhub-postgres psql -U postgres -d brandhub -v ON_ERROR_STOP=1 < 2026-10-04-admin-notifications-reports.sql
+-- Additive and idempotent: safe to run twice. Depends on 2026-10-01-admin-account-strikes.sql (admin_email_outbox).
+
+-- Enum values must be committed before any statement uses them.
+ALTER TYPE audit_action ADD VALUE IF NOT EXISTS 'VIEW';
+ALTER TYPE audit_action ADD VALUE IF NOT EXISTS 'EXPORT';
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS admin_notifications (
+    id UUID PRIMARY KEY,
+    title VARCHAR(200) NOT NULL CHECK (char_length(btrim(title)) BETWEEN 5 AND 200),
+    content VARCHAR(5000) NOT NULL CHECK (char_length(btrim(content)) BETWEEN 10 AND 5000),
+    type VARCHAR(20) NOT NULL CHECK (type IN ('SYSTEM','MAINTENANCE','UPDATE','PROMOTION')),
+    target_type VARCHAR(10) NOT NULL CHECK (target_type IN ('ALL','BY_PLAN','BY_ROLE')),
+    target_values TEXT[] NOT NULL DEFAULT '{}',
+    action_url VARCHAR(500),
+    status VARCHAR(12) NOT NULL CHECK (status IN ('DRAFT','SCHEDULED','SENDING','SENT','FAILED','CANCELLED')),
+    scheduled_at TIMESTAMPTZ,
+    sent_at TIMESTAMPTZ,
+    recipient_count INTEGER,
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    row_version BIGINT NOT NULL DEFAULT 0,
+    CHECK (status <> 'SCHEDULED' OR scheduled_at IS NOT NULL),
+    CHECK (target_type = 'ALL' OR cardinality(target_values) > 0)
+);
+CREATE INDEX IF NOT EXISTS idx_admin_notifications_due
+    ON admin_notifications(scheduled_at) WHERE status = 'SCHEDULED';
+CREATE INDEX IF NOT EXISTS idx_admin_notifications_history
+    ON admin_notifications(created_at DESC, id DESC);
+
+-- One outbox row per recipient = delivery record; event_key keeps (notification, user) unique.
+ALTER TABLE admin_email_outbox
+    ADD COLUMN IF NOT EXISTS notification_id UUID REFERENCES admin_notifications(id),
+    ADD COLUMN IF NOT EXISTS failed_at TIMESTAMPTZ,
+    ADD COLUMN IF NOT EXISTS last_error VARCHAR(255);
+CREATE INDEX IF NOT EXISTS idx_admin_email_outbox_notification
+    ON admin_email_outbox(notification_id) WHERE notification_id IS NOT NULL;
+
+-- Generated PDFs are private: bytes live here for 24h, metadata stays as the export audit.
+CREATE TABLE IF NOT EXISTS admin_report_exports (
+    id UUID PRIMARY KEY,
+    report_type VARCHAR(20) NOT NULL CHECK (report_type IN ('REVENUE','USER','PLATFORM')),
+    period_start DATE NOT NULL,
+    period_end DATE NOT NULL,
+    timezone VARCHAR(40) NOT NULL,
+    as_of TIMESTAMPTZ NOT NULL,
+    row_count INTEGER NOT NULL,
+    file_name VARCHAR(120) NOT NULL,
+    file_size INTEGER NOT NULL,
+    content BYTEA,
+    token_hash CHAR(64) NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CHECK (period_end >= period_start),
+    CHECK (expires_at > created_at)
+);
+CREATE INDEX IF NOT EXISTS idx_admin_report_exports_expiry
+    ON admin_report_exports(expires_at) WHERE content IS NOT NULL;
+
+COMMIT;
+
+-- ---- 2026-10-04-content-moderation.sql ----
+-- FR 3.10.4 Content Moderation Queue — PostgreSQL side (decisions, strike link, audit trail).
+-- The immutable content snapshot of each reviewed version lives in Mongo `post_versions`
+-- (see 2026-10-04-create-post-versions-collection.js); this table stores its SHA-256 hash.
+-- Run with psql before deploying the new Business Service. Additive and idempotent.
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS content_moderation_reviews (
+    id UUID PRIMARY KEY,
+    post_id VARCHAR(64) NOT NULL,
+    content_version BIGINT NOT NULL CHECK (content_version > 0),
+    content_hash CHAR(64) NOT NULL,
+    workspace_id UUID,
+    author_id UUID NOT NULL REFERENCES users(id),
+    source VARCHAR(20) NOT NULL CHECK (source IN ('FLAGGED_AUTHOR','COMPLIANCE','COPYRIGHT')),
+    reason VARCHAR(2000) NOT NULL,
+    status VARCHAR(10) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING','APPROVED','BLOCKED')),
+    decision_note VARCHAR(2000),
+    strike_level VARCHAR(10) CHECK (strike_level IN ('YELLOW','ORANGE','RED')),
+    strike_category VARCHAR(100),
+    reviewed_by UUID REFERENCES users(id),
+    reviewed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    row_version BIGINT NOT NULL DEFAULT 0,
+    -- BR-64: one decision per immutable post version; a repeated flag reuses the pending row.
+    CONSTRAINT uq_moderation_post_version UNIQUE (post_id, content_version),
+    CHECK ((status = 'PENDING') = (reviewed_at IS NULL AND reviewed_by IS NULL)),
+    CHECK (status <> 'APPROVED' OR char_length(btrim(decision_note)) >= 10),
+    CHECK (status <> 'BLOCKED' OR (strike_level IS NOT NULL AND decision_note IS NOT NULL))
+);
+CREATE INDEX IF NOT EXISTS idx_moderation_queue ON content_moderation_reviews(status, created_at, id);
+CREATE INDEX IF NOT EXISTS idx_moderation_author ON content_moderation_reviews(author_id);
+
+COMMENT ON TABLE content_moderation_reviews IS
+    'FR 3.10.4. BLOCK records the strike through the admin account journal with operation id = review id, so retries never add a second strike.';
+
+COMMIT;
+
+-- ---- 2026-10-04-user-notifications.sql ----
+-- FR 3.10.1 in-app channel (scope extended 2026-10-04): every broadcast recipient also gets an
+-- inbox row, written in the same transaction as the email outbox snapshot.
+-- Depends on 2026-10-04-admin-notifications-reports.sql. Additive and idempotent.
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS user_notifications (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    notification_id UUID REFERENCES admin_notifications(id),
+    type VARCHAR(20) NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    content VARCHAR(5000) NOT NULL,
+    action_url VARCHAR(500),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    read_at TIMESTAMPTZ,
+    CONSTRAINT uq_user_notification UNIQUE (notification_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_user_notifications_inbox ON user_notifications(user_id, created_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS idx_user_notifications_unread ON user_notifications(user_id) WHERE read_at IS NULL;
+
+COMMIT;
+
+-- ---- 2026-10-05-admin-user-provisioning.sql ----
+-- FR 3.10.7 Create User + FR 3.10.8 Update User.
+-- Admin-created accounts start PENDING_VERIFICATION with require_password_reset=true; a one-time
+-- activation link proves email ownership and sets the user's own password in one step (BR-15).
+-- Admin plan changes are recorded for the next billing period and still require payment (BR-60).
+-- Additive and idempotent.
+
+BEGIN;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS require_password_reset BOOLEAN NOT NULL DEFAULT FALSE;
+
+CREATE TABLE IF NOT EXISTS account_activation_tokens (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token_hash CHAR(64) NOT NULL UNIQUE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    used_at TIMESTAMPTZ,
+    revoked_at TIMESTAMPTZ,
+    created_by UUID REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CHECK (expires_at > created_at)
+);
+CREATE INDEX IF NOT EXISTS idx_activation_tokens_open
+    ON account_activation_tokens(user_id) WHERE used_at IS NULL AND revoked_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS subscription_plan_changes (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    plan_id UUID NOT NULL REFERENCES subscription_plans(id),
+    status VARCHAR(10) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING','APPLIED','CANCELLED')),
+    -- NULL: no current period yet, the change starts with the user's first paid subscription.
+    effective_at TIMESTAMPTZ,
+    payment_required BOOLEAN NOT NULL DEFAULT TRUE,
+    requested_by UUID NOT NULL REFERENCES users(id),
+    reason VARCHAR(2000) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_plan_change_pending
+    ON subscription_plan_changes(user_id) WHERE status = 'PENDING';
 
 COMMIT;

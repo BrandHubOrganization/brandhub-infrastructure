@@ -91,6 +91,8 @@
     POST
     LIVESTREAM
     SURVEY
+    EVENT_PLAN
+    PRESS_RECOMMENDATION
   }
 
   Enum task_status {
@@ -598,14 +600,15 @@
   }
 
   // ============================================================
-  // MONGODB — 14 COLLECTIONS (business-service)
+  // MONGODB — 16 COLLECTIONS (business-service)
   // Note: soft refs tới PostgreSQL, filter workspaceId bắt buộc.
   // ============================================================
 
-  Table tasks [note: 'MongoDB — NEW V2, thay posts — generic 3 loại (docs/database/database-strategy.md mục 4.4)'] {
+  Table tasks [note: 'MongoDB — NEW V2, thay posts — generic 5 loại; EVENT_PLAN/PRESS_RECOMMENDATION có collection nội dung riêng'] {
     _id                     ObjectId          [pk]
     workspaceId             string            [not null, note: 'Soft ref → workspaces.id (PG)']
     campaignId              string            [note: 'Soft ref → media_campaigns.id (PG); NULL when generated from Content Request']
+    campaignWorkItemId      string            [note: 'Stable Campaign work-item ID; unique together with campaignId when both present']
     type                    task_type         [not null]
     name                    string            [not null]
     description             string
@@ -613,9 +616,12 @@
     qcAssigneeId            string            [note: 'Soft ref → users.id (PG) — tùy chọn']
     requiresClientApproval  boolean           [not null, default: false]
     status                  task_status       [not null, default: 'BACKLOG']
-    approvalRound           int               [not null, default: 0, note: 'Tăng khi Creator resubmit sau reject; approval records dùng cùng round']
+    approvalRound           int               [not null, default: 1, note: 'Tăng khi Creator resubmit sau reject; approval records dùng cùng round']
     currentContentVersionId string            [note: 'Soft ref → content_versions._id — bản nội dung MỚI NHẤT của Task loại post, tránh phải suy luận qua query content_versions mỗi lần đọc']
     typeMetadata            object            [note: 'field riêng theo type: platformTargets[] (post), livestreamSessionId (livestream, soft ref → livestream_sessions._id), surveyFormId (survey, soft ref → survey_forms._id)']
+    sourceType              string            [note: 'CAMPAIGN or CONTENT_REQUEST when generated']
+    sourceRefId             string
+    createdBy               string            [note: 'Soft ref → users.id (PG)']
     dueDate                 date
     createdAt               date              [not null]
     updatedAt               date              [not null]
@@ -625,7 +631,27 @@
       (workspaceId, assigneeId)
       (workspaceId, type)
       (workspaceId, campaignId)
+      (campaignId, campaignWorkItemId) [unique, note: 'Partial unique when both values are strings']
     }
+  }
+
+  Table event_plans [note: 'MongoDB — specialist content for EVENT_PLAN Task; no event operations module'] {
+    _id            ObjectId [pk]
+    taskId         string   [not null, unique]
+    contentVersion int      [not null]
+    planContent    string
+    referenceLinks object
+    createdAt      date     [not null]
+    updatedAt      date     [not null]
+  }
+
+  Table press_recommendations [note: 'MongoDB — specialist content for PRESS_RECOMMENDATION Task; no booking integration'] {
+    _id             ObjectId [pk]
+    taskId          string   [not null, unique]
+    contentVersion  int      [not null]
+    recommendations object
+    createdAt       date     [not null]
+    updatedAt       date     [not null]
   }
 
   Table task_approvals [note: 'MongoDB — NEW V2 — append-only; không update/delete approval cũ'] {
