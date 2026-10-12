@@ -259,3 +259,25 @@ Nhánh `feat/DA-998-mail-template-crud` (business-service, 6 commit), `feat/DA-9
 **Lỗi tìm thấy nhờ test live và đã sửa:** thông báo cuối lô được ghi trong cùng giao dịch với việc gửi; khi bảng `user_notifications` thiếu, câu lệnh lỗi làm hỏng giao dịch, trạng thái `SENT` bị rollback và **cùng một mail bị gửi lặp mỗi tick** (người nhận nhận 12+ bản). Đã tách thông báo ra ngoài giao dịch (commit `8c9f0e8`) và thêm test hồi quy.
 
 **Chưa kiểm chứng:** upload tệp đính kèm/ảnh lên S3 thật (chỉ test đơn vị với storage giả); Mongo validator với tệp đính kèm; light/dark mode và responsive bằng mắt; screen reader; hiển thị trên Gmail/Outlook; hai instance worker; quota đồng thời nhiều luồng trên DB thật; trang Client (nút Gửi email) chưa có E2E vì trang dùng mock service; gateway route chưa chạy trên gateway thật.
+
+## 15. Independent review (2026-10-12)
+
+Reviewer: java-reviewer agent over `git diff origin/develop...HEAD` of business-service. No cross-workspace IDOR, header injection or HMAC timing issue found.
+
+**Fixed in code**
+- Unsubscribe secret / public base URL dev defaults now fail startup on `prod`/`production`/`staging` (`MailConfigGuard`).
+- Attachment type detection uses the bytes only (not the file name); OOXML must contain its own part folder.
+- Recipient addresses containing `,` or `;` are rejected up front (they used to burn 5 attempts).
+
+**Open follow-ups (not blocking merge, track as tech debt)**
+| # | Severity | Item |
+|---|---|---|
+| 3 | Medium | Unsubscribe rate limit uses `getRemoteAddr()` (proxy IP) and never evicts keys; use forwarded IP + eviction |
+| 5 | Medium | No per-workspace upload cap; IMAGE uploads are never orphan-cleaned |
+| 6 | Medium | Scheduled sends skip quota; no cap on pending deliveries per workspace |
+| 7 | Medium | `POST /send` has no idempotency key; a double click sends twice |
+| 8 | Medium | SMTP + S3 download run inside the delivery DB transaction; move to claim-lease-then-send |
+| 9 | Low | Quota release after midnight hits the wrong day; permanent 5xx is retried 5 times |
+| 10 | Low | Per-variable length is not capped |
+| 11 | Low | Send-test limiter is per JVM and never pruned |
+| 12 | Low | Mongo save and JDBC `markBound` are not atomic; replaced attachments are never unbound |
