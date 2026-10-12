@@ -1,10 +1,13 @@
 # Task — Create Mail Template (FR 3.6.29)
 
-> Nguồn chuẩn dùng chung cho cả 5 FR: [../3-6-28-32-mail-template/](../3-6-28-32-mail-template/) (spec, plan, task, test gộp). File này lấy đúng phần của FR 3.6.29 để mỗi FR có đủ bộ 4 tài liệu (`spec.md`, `plan.md`, `task.md`, `test.md`) theo `docs/rule/feature-workflow.md`. Khi có khác biệt, bản gộp là bản đúng.
-
-- **Jira:** DA-999
+- **FR:** 3.6.29 · **Jira:** DA-999
 - **Mục tiêu:** Tạo mẫu email mới (từ đầu hoặc clone mẫu hệ thống/mẫu Workspace), có biến, ảnh và tệp đính kèm.
-- Các mục đã tick là đã làm và đã kiểm chứng (kết quả ở `test.md`).
+- Mục đã tick là đã làm và đã kiểm chứng (kết quả ở `test.md`).
+
+## 0. Chuẩn bị
+- [ ] 0.1 Đọc đủ spec/plan/task/test; xác nhận các giả định ở plan §13 còn hiệu lực.
+- [ ] 0.2 Chuyển DA-998..DA-1002 và DA-1256..DA-1259 sang In Progress khi bắt đầu từng task.
+- [x] 0.3 Dựng môi trường dev: Postgres, Redis, Mongo, SMTP giả (MailHog/GreenMail), S3 hoặc emulator; kiểm `admin.mail.allowed-recipients` để không gửi mail thật.
 
 ## 1. Nền tảng dữ liệu (plan §4 — DA-998)
 - [x] 1.1 Migration Postgres: `mail_batches`, `mail_deliveries`, `mail_send_quota`, `mail_suppressions`, `mail_attachments` (+ index, unique `event_key`, unique `(workspace_id, email_lower)`).
@@ -47,3 +50,24 @@
 - [x] 9.1 Thêm namespace `mailTemplate` + `admin.mailTemplate` + `nav` + `broadcast.pickTemplate` vào **cả** `vi.json` và `en.json` (key song song).
 - [ ] 9.2 Kiểm tra light/dark: không hex/rgb cứng, trạng thái lô và chip dùng token.
 - [ ] 9.3 Kiểm tra responsive (mobile) cho list, modal gửi, trang lô.
+
+## 10. Tài liệu
+- [x] 10.1 ERD (`brandhub-erd.puml`): thêm `mail_batches`, `mail_deliveries`, `mail_send_quota`, `mail_suppressions`, `mail_attachments`; cập nhật `mail_templates` (`attachments`, `clonedFromId`, `deletedAt`, `workspaceId` nullable) — **đã làm ở bản tài liệu 2026-10-12**, đối chiếu lại với code.
+- [x] 10.2 DBML + `erd-entity-descriptions.md` + `database-strategy.md` + `service-boundaries.md` tương ứng.
+- [x] 10.3 Đối chiếu `report3_spec.md` và `report4_sequence.puml` của 5 FR với code thật.
+- [x] 10.4 Ghi kết quả test và giới hạn vào `test.md` (mục kết quả).
+- [x] 10.5 Cập nhật BA §9 nếu phát sinh thay đổi nghiệp vụ.
+
+## 11. Kiểm thử và bàn giao
+- [x] 11.1 Chạy JUnit, Vitest, Playwright, type-check, lint (0 lỗi mới).
+- [x] 11.2 Chạy integration live (backend thật + Postgres + Mongo + SMTP giả): theo test.md §9.
+- [ ] 11.3 Review độc lập diff (đặc biệt: sanitize, quota đồng thời, token unsubscribe, quyền chéo Workspace).
+- [ ] 11.4 Commit theo convention; PR vào `develop` với tiêu đề `[DA-xxx] ...`, Squash and merge.
+- [ ] 11.5 Chuyển Jira các task sang In review; sau review → Done.
+- [ ] 11.6 Kiểm tra migration đã áp dụng trên môi trường staging trước khi deploy (Postgres + Mongo + seed).
+
+## Ánh xạ Jira ↔ task
+
+| Jira | Nhóm task |
+|---|---|
+| DA-999 Create | 2.1, 2.3, 7.3 |
