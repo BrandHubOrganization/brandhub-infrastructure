@@ -1,16 +1,24 @@
 services:
   chromadb:
-    image: chromadb/chroma:0.6.3
+    # Keep in sync with brandhub-ai-service/requirements.txt (chromadb-client).
+    image: chromadb/chroma:1.5.9
     container_name: brandhub-chromadb
     ports:
       - "${CHROMADB_HOST_PORT:?CHROMADB_HOST_PORT is required}:8000"
     environment:
-      IS_PERSISTENT: "TRUE"
       ANONYMIZED_TELEMETRY: "FALSE"
     volumes:
-      - chroma-data:/chroma/chroma
+      - chroma-data:/data
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/api/v1/heartbeat || exit 1"]
+      test:
+        - CMD
+        - bash
+        - -ec
+        - |
+          exec 3<>/dev/tcp/127.0.0.1/8000
+          printf 'GET /api/v2/heartbeat HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3
+          read -r -t 4 health_status <&3
+          [[ "$$health_status" == *" 200 "* ]]
       interval: 15s
       timeout: 5s
       retries: 3
