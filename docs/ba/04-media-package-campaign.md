@@ -2,6 +2,24 @@
 
 > [<< Về Overview](00-overview.md)
 
+> **Cập nhật theo xác nhận người dùng 2026-10:** Flow triển khai hiện hành nằm tại
+> [Media Package baseline](../feature/media-package-campaign/README.md) và
+> [Offering models](../feature/media-package-campaign/offering-models/spec.md).
+> Workspace đã có Client khi tạo; Client chọn gói khả dụng của Agency. Dùng một bảng
+> media_packages (Admin template global; Agency package scoped). Các đoạn tháng 9 bên dưới
+> về chọn gói trước khi mời Client và hai bảng riêng là lịch sử, không còn dùng để triển khai.
+> Workshop chỉ hỗ trợ tạo link Meet và survey; Event chỉ bàn giao kế hoạch sự kiện.
+
+> **BA mới nhất — 2026-10-08:** một Workspace gắn với một Campaign. Chiến dịch mới
+> dùng Workspace mới; Owner có tính năng Nhân bản Workspace để chọn thông tin/tài nguyên
+> từ Workspace cũ. Quyết định này thay thế đề xuất nhiều đợt trong cùng Workspace.
+> Task giữ Mongo V2; Client góp ý, Manager sửa và hai bên duyệt lại; Manager mark Campaign
+> completed. Gói mới tính tổng sản lượng; thêm Task EVENT_PLAN/PRESS_RECOMMENDATION;
+> complete khi Task chưa xong phải có lý do và không đổi trạng thái Task con. Phạm vi
+> Duplicate Workspace đã chốt DA-1255: chọn từng thành viên và tùy chọn copy timezone;
+> tài nguyên chờ module riêng. Thiết kế Campaign đã ghi trong phase-1-design của feature.
+> Xem [lộ trình Campaign](../feature/media-package-campaign/campaign-delivery-plan.md).
+
 ## 1. Thứ tự chuẩn: Workspace → Package → Campaign → Task
 
 **[CONFIRMED 2026-09-14]** — đây là điểm quan trọng nhất của file này, đảo ngược cách đọc thẳng câu chữ CSV gốc.
