@@ -8,48 +8,47 @@ skinparam BoxPadding 10
 skinparam ParticipantPadding 10
 
 ' === Participants ===
-actor "Creator" as creator
-boundary "CreateMailTemplateModal (UI)" as createmailtemplate_ui
-boundary "MailTemplateController" as mailtemplatecontroller
-control "MailTemplateServiceImpl" as mailtemplateserviceimpl
-entity "WorkspaceMemberRepository" as workspacememberrepository
-entity "MailTemplateRepository" as mailtemplaterepository
-entity "WorkspaceMember" as workspacemember
-entity "MailTemplateDocument" as mailtemplatedocument
-entity "MailTemplateResponse" as mailtemplateresponse
+actor "Member (OWNER/MANAGER/CREATOR)" as member
+boundary "CreateMailTemplateForm (UI, TipTap)" as ui
+boundary "MailTemplateController" as controller
+control "MailTemplateService" as service
+entity "WorkspaceAccessService" as access
+control "HtmlSanitizer" as sanitizer
+entity "MailAttachmentRepository" as attachments
+entity "MailTemplateRepository (MongoDB)" as repo
 
 ' === Flow ===
-creator -> createmailtemplate_ui: fills form (name, subject, bodyHtml, cloneFromId?) and clicks Save
-createmailtemplate_ui -> mailtemplatecontroller: POST /api/v1/workspaces/{id}/mail-templates
-mailtemplatecontroller -> mailtemplateserviceimpl: createMailTemplate(currentUser, workspaceId, request)
-opt subject.isBlank() || bodyHtml.isBlank()
-  mailtemplateserviceimpl --> mailtemplatecontroller: throw 400 VALIDATION_ERROR
-  mailtemplatecontroller --> createmailtemplate_ui: 400 Bad Request
-  createmailtemplate_ui --> creator: shows validation error
+member -> ui: fills name, subject, body (variables, images), uploads attachments, optional "use system template"
+ui -> controller: POST /api/v1/workspaces/{id}/mail-templates {name, subject, bodyHtml, attachmentIds?, cloneFromId?}
+controller -> service: createTemplate(currentUser, workspaceId, request)
+service -> access: requireActiveMember(workspaceId, userId)
+access --> service: member(role)
+opt role not permitted
+  service --> controller: throw 403 FORBIDDEN
+  controller --> ui: 403 Forbidden
 end
-mailtemplateserviceimpl -> workspacememberrepository: findByWorkspaceIdAndUserId(workspaceId, currentUser.getId())
-workspacememberrepository --> mailtemplateserviceimpl: Optional<Row>
-opt !memberOpt.isPresent()
-  mailtemplateserviceimpl --> mailtemplatecontroller: throw 403 FORBIDDEN
-  mailtemplatecontroller --> createmailtemplate_ui: 403 Forbidden
-  createmailtemplate_ui --> creator: shows forbidden toast
+opt cloneFromId != null
+  service -> repo: findVisibleById(cloneFromId, workspaceId) (own or SYSTEM_DEFAULT)
+  repo --> service: Optional<source>
+  opt source missing
+    service --> controller: throw 404 TEMPLATE_NOT_FOUND
+    controller --> ui: 404 Not Found
+  end
+  service -> service: fill missing fields and attachments from source
 end
-mailtemplateserviceimpl -> workspacemember: map row -> member
-workspacemember --> mailtemplateserviceimpl: member
-opt request.cloneFromId() != null
-  mailtemplateserviceimpl -> mailtemplaterepository: findById(request.cloneFromId())
-  mailtemplaterepository --> mailtemplateserviceimpl: Optional<Row>
-  mailtemplateserviceimpl -> mailtemplatedocument: map row -> sourceTemplate
-  mailtemplatedocument --> mailtemplateserviceimpl: sourceTemplate
+opt subject or bodyHtml blank, or body > 100KB
+  service --> controller: throw 400 VALIDATION_ERROR
+  controller --> ui: 400 Bad Request
+  ui --> member: keeps form data, shows validation error
 end
-mailtemplateserviceimpl -> mailtemplatedocument: new MailTemplateDocument(workspaceId, name, subject, bodyHtml, CUSTOM, userId)
-mailtemplatedocument --> mailtemplateserviceimpl: newTemplate
-mailtemplateserviceimpl -> mailtemplaterepository: save(newTemplate)
-mailtemplaterepository --> mailtemplateserviceimpl: savedTemplate
-mailtemplateserviceimpl -> mailtemplateresponse: new MailTemplateResponse(savedTemplate)
-mailtemplateresponse --> mailtemplateserviceimpl: MailTemplateResponse
-mailtemplateserviceimpl --> mailtemplatecontroller: MailTemplateResponse
-mailtemplatecontroller --> createmailtemplate_ui: 201 Created MailTemplateResponse
-createmailtemplate_ui --> creator: shows success toast & updates list
+service -> sanitizer: sanitize(bodyHtml) (allow-list)
+sanitizer --> service: safeHtml
+service -> attachments: validate attachmentIds belong to workspace, mark bound
+attachments --> service: ok / MAIL_ATTACHMENT_INVALID
+service -> repo: save(new MailTemplateDocument(workspaceId, name, subject, safeHtml, CUSTOM, clonedFromId, createdBy))
+repo --> service: savedTemplate
+service --> controller: MailTemplateResponse
+controller --> ui: 201 Created
+ui --> member: success toast, list refreshed
 
 @enduml
