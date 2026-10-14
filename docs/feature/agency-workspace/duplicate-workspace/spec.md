@@ -10,8 +10,9 @@ timezone and which active Manager, Creator and Client memberships to copy.
   currently valid members are copied. A Client retains a link to the same ClientProfile,
   not a copy of the profile; no invitation is recreated.
 - `copyTimezone=false` uses the Workspace default `Asia/Ho_Chi_Minh`; true copies only
-  the effective timezone (currently stored in `settings.timezone`, with
-  `timezone_config` fallback). The other `settings` keys, profile/branding fields,
+  the effective timezone from canonical `timezone_config`, which Workspace API exposes as
+  `settings.timezone` (consistency fix 2026-10-14, superseding JSON-first precedence).
+  The other `settings` keys, profile/branding fields,
   logo/banner and files are not copied.
 - Workspace resources are not copied in this release because the resource management
   module is not implemented. The UI must not offer a functional resource-copy switch.

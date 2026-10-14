@@ -1,5 +1,10 @@
 # Implementation
 
+Timezone consistency fix 2026-10-14: WorkspaceServiceImpl projects API settings.timezone from
+timezone_config and synchronizes both values on Settings updates. Clone copies the same column.
+No Web/API Gateway contract shape or DB schema changes; see
+[fix plan](../../agency-workspace/workspace-timezone-consistency/plan.md).
+
 UI refinement: add request-scoped deadline helper and useRequestDeadline hook, reading existing campaignService.list/workspaceService.getById only while the form is mounted. Compute timezone-aware day boundaries, convert to browser-local min/max, refresh on focus/60-second tick. Pass workspaceId from WorkspaceRequestPage; WorkspaceRequestForm displays loading/error/empty/range and blocks invalid saves. Add parallel requests locale keys. No auth/global input or backend/schema changes.
 
 Serialize creation, Client mutation and Manager receipt with the existing PostgreSQL agreement row lock used by Campaign completion. Validate Request deadlines using Campaign timeline and Workspace timezone on server.

@@ -156,7 +156,9 @@ Cuối cùng, trước khi dùng chức năng hủy đầu việc, chạy migrat
 
 ```javascript
 globalThis.CAMPAIGN_CLOSURE_APPLY = false;
-load('D:/FPT/FA26/SEP490/brandhub-infrastructure/docs/database/migrations/2026-10-14-campaign-closure.js');
+load(
+  "D:/FPT/FA26/SEP490/brandhub-infrastructure/docs/database/migrations/2026-10-14-campaign-closure.js",
+);
 ```
 
 Review dry-run và backup trước khi đổi flag thành `true` rồi chạy lại toàn script. Validator Task phải có `CANCELLED` và `cancellation`; không ghi đè bằng migration cũ hơn. Script không tự gắn lại Task Request cũ có campaignId=null. Kiểm tra toàn bộ metadata bằng `check-mongo-migrations.mongodb.js` (read-only).
