@@ -1160,7 +1160,7 @@
 | DA-E51-06e | Apply Watermark to Material (FR 3.6.15) | Trung | M | `docs/feature/content-task-workflow/3-6-15-apply-watermark/spec.md` |
 | DA-E51-06f | Download Material (FR 3.6.16) | Tuấn | S | `docs/feature/content-task-workflow/3-6-16-download-material/spec.md` |
 | DA-E51-06g | Entity/Endpoint `brand_collections` (Client-supplied reference assets) | Tuấn | M | `docs/ba/05-content-task-workflow.md` |
-| DA-E51-07 | Apply Hashtag to Task (FR 3.6.17) | Tuấn | S | `docs/feature/content-task-workflow/3-6-17-apply-hastag/spec.md` |
+| DA-E51-07 | Apply Hashtag to Post Draft (FR 3.6.17) | Tuấn | S | `docs/feature/apply-hashtag-to-post/spec.md` |
 | DA-E51-07b | Workspace hashtag collection `workspace_hashtags` + View (FR 3.6.18) | Tuấn | S | `docs/feature/view-hashtag-collection/spec.md` |
 | DA-E51-07c | Add Hashtag to Collection (FR 3.6.19) | Tuấn | S | `docs/feature/add-hashtag-collection/spec.md` |
 | DA-E51-07d | Update Hashtag in Collection (FR 3.6.20) | Tuấn | S | `docs/feature/content-task-workflow/3-6-20-update-hastag-collection/spec.md` |
@@ -9893,21 +9893,23 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 ---
 
-### DA-E51-07 — Apply Hashtag to Task (FR 3.6.17)
+### DA-E51-07 — Apply Hashtag to Post Draft (FR 3.6.17)
 
 **Assignee:** Tuấn | **Priority:** 🟢 Medium
 
-**Goal:** Let a Creator attach one or more hashtags (from the Workspace's Hashtag Collection, or free-typed) to a Post-type Task.
+**Goal:** Let a Creator apply active workspace collection hashtags to the existing Post draft editor and persist display-text snapshots through the existing Post API.
 
 **Acceptance Criteria:**
 
-- [ ] `PATCH /api/v1/workspaces/{id}/tasks/{taskId}/hashtags` attaches one or more hashtags to a Post-type Task
-- [ ] A hashtag not yet in the Collection when applied is auto-created into the Collection (per BA edge case)
-- [ ] Hashtag not belonging to this Workspace returns 400 `INVALID_HASHTAG`
+- [ ] The editor loads and selects active hashtags from its workspace collection; selected entries appear in Post preview.
+- [ ] New typed hashtags require a purpose and are added to the collection before being applied to editor state.
+- [ ] The existing Post draft create/update API saves hashtag display strings as a Post snapshot.
+- [ ] “Apply to Post” from the collection opens a new draft editor with the chosen hashtag prefilled.
+- [ ] Campaign-required hashtags cannot be applied to a draft without a campaign association.
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-17-apply-hastag/spec.md`
+**Spec Reference:** `docs/feature/apply-hashtag-to-post/spec.md`
 
-**Dependencies:** Blocks: [None]. Blocked by: [DA-E51-07b].
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E51-07b, DA-E51-07c].
 
 ---
 
