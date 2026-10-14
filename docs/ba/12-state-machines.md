@@ -5,11 +5,13 @@
 
 ## 1. Content Request
 
+> **Quyết định mới nhất 2026-10-14 thay thế các ghi chú lịch sử về xử lý Request sau hoàn thành bên dưới:** Task được chấp nhận gắn Campaign hiện tại và giữ Request nguồn; mọi Task chưa COMPLETED/CANCELLED và Request IN_PROGRESS chặn Manager hoàn thành Campaign. Sau hoàn thành thành công, PENDING tự hủy bằng durable queue; không tạo/sửa/tiếp nhận mới. Hủy Task là thao tác riêng có lựa chọn, lý do chung và xác nhận. Xem [Campaign closure](../feature/media-package-campaign/campaign-closure/spec.md).
+
 ```
         create (CLIENT)
               │
               ▼
-         [PENDING] ──────update/cancel (CLIENT, chỉ khi PENDING)──────┐
+         [PENDING] ──────update (CLIENT, chỉ khi PENDING)────────────┐
               │                                                        │
    set in_progress (MANAGER)                                          │
               │                                                        ▼
@@ -23,17 +25,21 @@
         │
         ▼
   tự động sinh 1 Task mới (xem mục 3)
+
+  PENDING ──cancel (CLIENT tạo Request)──► CANCELLED (terminal)
 ```
 
 | Từ | Đến | Ai bấm | Điều kiện |
 |---|---|---|---|
 | (mới) | PENDING | CLIENT | Create Content Request |
 | PENDING | PENDING (update nội dung) | CLIENT | Chỉ khi đang PENDING |
-| PENDING | (xóa) | CLIENT | Cancel — chỉ khi đang PENDING |
-| PENDING | IN_PROGRESS | MANAGER | Track Request Status |
+| PENDING | CANCELLED | CLIENT tạo Request | Hủy mềm; chỉ khi PENDING |
+| PENDING | IN_PROGRESS | MANAGER thuộc Workspace | Bấm “Tiếp nhận yêu cầu”; xem trang không chuyển trạng thái; lưu người/thời điểm |
 | IN_PROGRESS | ACCEPTED | MANAGER | → tự sinh Task mới |
 | IN_PROGRESS | DENIED | MANAGER | Kết thúc, không sinh Task |
-| ACCEPTED/DENIED | * | KHÔNG AI | Trạng thái cuối, Client hết quyền sửa/xóa |
+| ACCEPTED/DENIED/CANCELLED | * | KHÔNG AI | Trạng thái cuối, không mở lại |
+
+Xác nhận người dùng 2026-10-13: IN_PROGRESS hiển thị “Đang xem xét”, không phải Task đang thực hiện. Client chỉ sửa title/description/type/dueDate và hủy trong PENDING. Chỉ tạo mới khi Campaign IN_PROGRESS, deployment SUCCEEDED; không tạo khi COMPLETED. Request đã có tiếp tục xử lý sau hoàn thành, không tự hủy. Các thay đổi BA chung cần lead/team review theo team guide.
 
 ## 2. Media Package (đàm phán)
 
