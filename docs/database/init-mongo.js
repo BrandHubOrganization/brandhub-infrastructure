@@ -2,6 +2,7 @@
 // For a fresh local MongoDB volume only (docker-entrypoint-initdb.d/init-mongo.js).
 // Do NOT run this file against existing MongoDB Atlas data. Apply the ordered
 // scripts in docs/database/migrations instead; see mongo-atlas-migrations.md.
+// Includes Mongo migration effects through 2026-10-14 (8 migration scripts).
 
 db = db.getSiblingDB('brandhub');
 
@@ -125,20 +126,29 @@ db.createCollection('content_requests', {
   validator: {
     $jsonSchema: {
       bsonType: 'object',
-      required: ['workspace_id', 'requested_by', 'title', 'status', 'created_at', 'updated_at'],
+      required: ['workspaceId', 'requestedBy', 'title', 'description', 'type', 'dueDate',
+        'status', 'version', 'history', 'createdAt', 'updatedAt'],
       properties: {
-        workspace_id:  { bsonType: 'string' },
-        requested_by:  { bsonType: 'string' },
-        title:         { bsonType: 'string' },
-        status:        { enum: ['SUBMITTED', 'ASSIGNED', 'IN_PROGRESS', 'PENDING_REVIEW', 'SENT_TO_CLIENT', 'APPROVED', 'REJECTED', 'CANCELLED'] },
+        workspaceId: { bsonType: 'string' }, requestedBy: { bsonType: 'string' },
+        title: { bsonType: 'string', minLength: 1, maxLength: 255 },
+        description: { bsonType: 'string', maxLength: 10000 },
+        type: { enum: ['POST', 'LIVESTREAM', 'SURVEY'] }, dueDate: { bsonType: 'date' },
+        status: { enum: ['PENDING', 'IN_PROGRESS', 'ACCEPTED', 'DENIED', 'CANCELLED'] },
+        version: { bsonType: ['long', 'int', 'double', 'decimal'], minimum: 1, multipleOf: 1 },
+        history: { bsonType: 'array' }, generatedTaskId: { bsonType: ['string', 'null'] },
+        reviewedBy: { bsonType: ['string', 'null'] }, reviewedAt: { bsonType: ['date', 'null'] },
+        decisionNote: { bsonType: ['string', 'null'], maxLength: 2000 },
+        decidedBy: { bsonType: ['string', 'null'] }, decidedAt: { bsonType: ['date', 'null'] },
+        createdAt: { bsonType: 'date' }, updatedAt: { bsonType: 'date' },
       },
     },
   },
-  validationAction: 'warn',
+  validationAction: 'error',
+  validationLevel: 'strict',
 });
 
 // tasks (V2) — one generic collection for all supported Task types.
-// A task created from a Content Request has campaignId = null.
+// New accepted Content Request Tasks link to the current Campaign; manual/legacy Tasks may have campaignId = null.
 db.createCollection('tasks', {
   validator: {
     $jsonSchema: {
@@ -154,7 +164,7 @@ db.createCollection('tasks', {
         type:                   { enum: ['POST', 'LIVESTREAM', 'SURVEY', 'EVENT_PLAN', 'PRESS_RECOMMENDATION'] },
         name:                   { bsonType: 'string' },
         dueDate:                { bsonType: ['date', 'null'] },
-        status:                 { enum: ['BACKLOG', 'DETAIL_IDENTIFIED', 'ASSIGNED', 'IN_PROGRESS', 'QC_REVIEW', 'MANAGER_REVIEW', 'CLIENT_REVIEW', 'COMPLETED'] },
+        status:                 { enum: ['BACKLOG', 'DETAIL_IDENTIFIED', 'ASSIGNED', 'IN_PROGRESS', 'QC_REVIEW', 'MANAGER_REVIEW', 'CLIENT_REVIEW', 'COMPLETED', 'CANCELLED'] },
         assigneeId:             { bsonType: ['string', 'null'] },
         qcAssigneeId:           { bsonType: ['string', 'null'] },
         requiresClientApproval: { bsonType: 'bool' },
@@ -164,6 +174,14 @@ db.createCollection('tasks', {
         sourceType:             { bsonType: ['string', 'null'] },
         sourceRefId:            { bsonType: ['string', 'null'] },
         createdBy:              { bsonType: ['string', 'null'] },
+        cancellation: {
+          bsonType: 'object', required: ['actorId', 'at', 'reasonCode', 'previousStatus'],
+          properties: {
+            actorId: { bsonType: 'string' }, at: { bsonType: 'date' },
+            reasonCode: { enum: ['CLIENT_NO_LONGER_NEEDS', 'MUTUAL_AGREEMENT', 'DUPLICATE_OR_REPLACED', 'NO_LONGER_SUITABLE', 'OTHER'] },
+            note: { bsonType: ['string', 'null'], maxLength: 2000 }, previousStatus: { bsonType: 'string' },
+          },
+        },
         createdAt:              { bsonType: 'date' },
         updatedAt:              { bsonType: 'date' },
       },
@@ -215,6 +233,49 @@ db.createCollection('event_plans', {
 });
 db.createCollection('press_recommendations', {
   validator: specialistTaskValidator, validationAction: 'error',
+});
+
+// Workspace chat (2026-10-02 migration).
+db.createCollection('chat_messages', {
+  validator: { $jsonSchema: {
+    bsonType: 'object',
+    required: ['workspaceId', 'senderMemberId', 'senderUserId', 'senderRole',
+      'senderDisplayName', 'content', 'contextType', 'clientMessageId', 'createdAt'],
+    properties: {
+      workspaceId: { bsonType: 'string' }, senderMemberId: { bsonType: 'string' },
+      senderUserId: { bsonType: 'string' }, senderRole: { enum: ['MANAGER', 'CREATOR', 'CLIENT'] },
+      senderDisplayName: { bsonType: 'string' },
+      content: { bsonType: 'string', minLength: 1, maxLength: 4000 },
+      contextType: { enum: ['GENERAL', 'MEDIA_PACKAGE', 'MEDIA_CAMPAIGN'] },
+      contextId: { bsonType: ['string', 'null'] }, clientMessageId: { bsonType: 'string' },
+      createdAt: { bsonType: 'date' },
+    },
+  } }, validationLevel: 'strict', validationAction: 'error',
+});
+db.createCollection('chat_read_states', {
+  validator: { $jsonSchema: {
+    bsonType: 'object', required: ['workspaceId', 'userId', 'lastReadMessageId', 'lastReadAt'],
+    properties: {
+      workspaceId: { bsonType: 'string' }, userId: { bsonType: 'string' },
+      lastReadMessageId: { bsonType: 'string' }, lastReadAt: { bsonType: 'date' },
+    },
+  } }, validationLevel: 'strict', validationAction: 'error',
+});
+
+// Immutable post snapshots for moderation (2026-10-04 migration).
+db.createCollection('post_versions', {
+  validator: { $jsonSchema: {
+    bsonType: 'object', required: ['_id', 'post_id', 'version', 'content_hash', 'captured_at'],
+    properties: {
+      _id: { bsonType: 'string' }, post_id: { bsonType: 'string' },
+      version: { bsonType: ['long', 'int'], minimum: 1 },
+      workspace_id: { bsonType: ['string', 'null'] }, created_by: { bsonType: ['string', 'null'] },
+      content_text: { bsonType: ['string', 'null'] }, hashtags: { bsonType: 'array' },
+      media: { bsonType: 'array' }, target_platforms: { bsonType: 'array' },
+      content_hash: { bsonType: 'string', minLength: 64, maxLength: 64 },
+      captured_at: { bsonType: 'date' },
+    },
+  } }, validationLevel: 'strict', validationAction: 'error',
 });
 
 // knowledge_documents (ai-service)
@@ -346,9 +407,9 @@ db.posts.createIndex({ workspace_id: 1, scheduled_at: 1 }, { name: 'idx_posts_ws
 db.posts.createIndex({ workspace_id: 1, client_id: 1 }, { name: 'idx_posts_ws_client_id' });
 
 // content_requests
-db.content_requests.createIndex({ workspace_id: 1, status: 1 }, { name: 'idx_content_requests_ws_status' });
-db.content_requests.createIndex({ workspace_id: 1, client_id: 1 }, { name: 'idx_content_requests_ws_client_id' });
-db.content_requests.createIndex({ workspace_id: 1, assigned_to: 1 }, { name: 'idx_content_requests_ws_assigned_to' });
+db.content_requests.createIndex({ workspaceId: 1, status: 1, createdAt: -1 }, { name: 'idx_content_requests_v2_workspace_status' });
+db.content_requests.createIndex({ workspaceId: 1, requestedBy: 1 }, { name: 'idx_content_requests_v2_requester' });
+db.content_requests.createIndex({ workspaceId: 1, createdAt: -1, _id: -1 }, { name: 'idx_content_requests_v2_workspace_created' });
 
 // tasks (V2) — every access is scoped by workspaceId.
 db.tasks.createIndex({ workspaceId: 1, status: 1 }, { name: 'idx_tasks_workspace_status' });
@@ -362,6 +423,12 @@ db.tasks.createIndex({ campaignId: 1, campaignWorkItemId: 1 }, {
   },
 });
 
+// tasks (V2) — one Task per accepted Content Request, independent of Campaign sources.
+db.tasks.createIndex({ sourceType: 1, sourceRefId: 1 }, {
+  name: 'uq_tasks_content_request_source', unique: true,
+  partialFilterExpression: { sourceType: 'CONTENT_REQUEST', sourceRefId: { $type: 'string' } },
+});
+
 // task_approvals (V2) — supports latest action per step in the active round.
 db.task_approvals.createIndex(
   { taskId: 1, approvalRound: 1, step: 1, createdAt: 1 },
@@ -369,6 +436,16 @@ db.task_approvals.createIndex(
 );
 db.event_plans.createIndex({ taskId: 1 }, { name: 'uq_event_plans_task', unique: true });
 db.press_recommendations.createIndex({ taskId: 1 }, { name: 'uq_press_recommendations_task', unique: true });
+
+db.chat_messages.createIndex({ workspaceId: 1, createdAt: -1, _id: -1 },
+  { name: 'idx_chat_messages_workspace_created' });
+db.chat_messages.createIndex({ workspaceId: 1, senderUserId: 1, clientMessageId: 1 },
+  { name: 'uq_chat_messages_client_message', unique: true });
+db.chat_messages.createIndex({ workspaceId: 1, contextType: 1, contextId: 1, createdAt: -1 },
+  { name: 'idx_chat_messages_workspace_context' });
+db.chat_read_states.createIndex({ workspaceId: 1, userId: 1 },
+  { name: 'uq_chat_read_states_workspace_user', unique: true });
+db.post_versions.createIndex({ post_id: 1, version: -1 }, { name: 'post_versions_post_version' });
 
 // knowledge_documents
 db.knowledge_documents.createIndex({ workspace_id: 1 }, { name: 'idx_knowledge_docs_workspace_id' });
@@ -393,4 +470,4 @@ db.ai_usage_logs.createIndex({ created_at: -1 }, { name: 'idx_ai_usage_created_a
 // report_jobs
 db.report_jobs.createIndex({ workspace_id: 1, status: 1 }, { name: 'idx_report_jobs_ws_status' });
 
-print('✅ BrandHub MongoDB initialized: 16 collections, all indexes created.');
+print('BrandHub MongoDB initialized: 19 collections, all indexes created.');
