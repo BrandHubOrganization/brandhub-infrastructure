@@ -9514,8 +9514,8 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 - [ ] `POST /api/v1/workspaces/{id}/media-package` accepts `{packageId}`, returns 201 with `workspaceMediaPackageId`
 - [ ] Client can select only `is_template=false`, available packages belonging to the Workspace's Agency
-- [ ] If no package is selected, the Workspace dashboard displays a prominent non-blocking prompt; Client can navigate directly to package selection
-- [ ] If no package selected within X days of Workspace creation, a reminder notification is sent to the Client (does not block Workspace access)
+- [ ] Before Package approval, the Workspace dashboard redirects to package negotiation/selection; creative features are gated while Package/Chat and Manager settings remain accessible.
+- [ ] Preserve the current Package gate and negotiation redirect (Client: Package/Chat; Manager additionally retains settings). Scheduled X-day reminders are removed by confirmed BA on 2026-10-13; no scheduler is required.
 - [ ] Package can be freely changed BEFORE the Client starts negotiating (DA-E50-04); once negotiation has started, switching to a different package entirely is blocked — only continued negotiation on the current package is allowed
 
 **Spec Reference:** `docs/feature/media-package-campaign/3-5-1-create-media-package/spec.md`, `docs/ba/04-media-package-campaign.md` mục 1
@@ -9624,7 +9624,7 @@ awaits its own module. This replaces the multiple-cooperation-round proposal. Se
 - [ ] Generated Tasks are minimal: name + deadline only — no assignee or detailed requirements yet (those come from Identify Task Detail, DA-E51-04-equivalent FR 3.6.1); each carries its stable `campaignWorkItemId` for idempotency
 - [ ] Campaign transitions to `IN_PROGRESS` only after durable deployment confirms all work items have corresponding Tasks; partial failures remain retryable
 - [ ] Calling deploy twice (double-click) does not create duplicate Tasks — idempotency required
-- [ ] Manager explicitly completes an `IN_PROGRESS` Campaign; unfinished Tasks require a nonblank reason. Record actor/time and preserve every child Task's state and workflow
+- [ ] Confirmed 2026-10-14: Manager completes IN_PROGRESS only when every linked Task is COMPLETED/CANCELLED and no Request is IN_PROGRESS. Preview blockers; optional explicit bulk cancellation uses one shared preset/OTHER reason and per-Task audit, preserving approval/content history. PENDING Requests auto-cancel after completion. See docs/feature/media-package-campaign/campaign-closure/spec.md; replaces reason-only bypass.
 
 **Confirmed design (2026-10-08):** See `docs/feature/media-package-campaign/phase-1-design/plan.md` for versioned approval, total quantities, deployment recovery and Mongo Task/editor integration. Design completion is not implementation completion.
 
@@ -9646,6 +9646,7 @@ awaits its own module. This replaces the multiple-cooperation-round proposal. Se
 
 - [ ] `ThirdPartyCollaborator` table scoped to `agencyId`: `name`, `type` (newspaper/banner/TV/other), `contactInfo`
 - [ ] Basic CRUD endpoints under `/api/v1/agencies/{id}/collaborators`
+- [ ] Confirmed BA 2026-10-13: Agency Owner alone manages the directory. Unused partners may be deleted; previously used partners may only be deactivated, never newly assigned while inactive. Existing Campaign links remain readable/updateable. See `docs/feature/media-package-campaign/partner-directory/spec.md` (DA-949).
 
 **Spec Reference:** `docs/ba/07-publishing-social-collaborator.md`, `docs/ba/12-state-machines.md` mục 6 "Third-party Collaborator"
 
@@ -9689,13 +9690,23 @@ E50-08 directory CRUD is not implemented by this task. Details and verification:
 
 - [ ] `POST /api/v1/workspaces/{id}/content-requests` accepts `{title, description, type, dueDate}` — CLIENT role only; Owner/Manager can view but not self-create (per BA confirmation 2026-09-14)
 - [ ] Initial status `pending`
+- [ ] Creation only while Workspace Campaign is IN_PROGRESS and deployment SUCCEEDED. Confirmed 2026-10-14: IN_PROGRESS Requests block completion until processed; PENDING auto-cancel with audit after successful completion. Deadline within Campaign dates and today-or-later in Workspace timezone.
 - [ ] FSM: `PENDING → IN_PROGRESS → ACCEPTED/DENIED`; `DENIED` and `CANCELLED` are terminal (cannot transition further)
-- [ ] `PUT` update allowed only while `status=pending` (DA-E50 track-status/update, FR 3.5.8/3.5.9)
+- [ ] Manager explicitly receives the request to enter `IN_PROGRESS` (UI: Đang xem xét); simply viewing never changes status. Accept/deny only from `IN_PROGRESS`.
+- [ ] `PATCH` update of title/description/type/dueDate allowed only to the requesting Client while `status=pending`; receipt locks editing/cancellation (BA 2026-10-13).
 - [ ] `DELETE` (cancel) allowed only while `status=pending`; after Manager changes status, Client can no longer cancel — returns 409 `REQUEST_NOT_CANCELLABLE`
 - [ ] Cancel is a soft-delete (`status=cancelled`), consistent with the soft-delete convention used elsewhere in V2
 - [ ] Non-Client attempting to create, or non-owner-of-request attempting to cancel, returns 403
+- [ ] Confirmed 2026-10-14: acceptance creates exactly one generic Mongo Task BACKLOG with current Campaign ID, campaignWorkItemId=null, sourceType=CONTENT_REQUEST/sourceRefId=requestId, and links generatedTaskId. Serialize with Campaign closure; retries cannot duplicate it. Supplemental group does not change approved plan/package quantities. Legacy unlinked Tasks need explicit reconciliation, not silent reassignment.
+- [ ] Align legacy Request UI/mock states and Atlas schema through new migrations plus init parity; no Atlas reinitialisation or guessed legacy mappings. See `docs/feature/media-package-campaign/remaining-work/spec.md` for decisions (DA-951).
 
 **Spec Reference:** `docs/feature/media-package-campaign/3-5-7-create-content-request/spec.md`, `docs/feature/media-package-campaign/3-5-8-track-request-status/spec.md`, `docs/feature/media-package-campaign/3-5-9-update-request/spec.md`, `docs/feature/media-package-campaign/3-5-10-cancel-request/spec.md`, `docs/ba/12-state-machines.md` mục 1 "Content Request"
+
+**Implementation checkpoint 2026-10-13 (DA-951):** Giai đoạn 2–3 đã có API/UI create/read/edit/cancel,
+Manager receive/accept/deny, transaction Request/Task/audit và source uniqueness. Unit/MockMvc,
+transaction/race/rollback trên Mongo local cô lập và UI fixtures đã chạy. Atlas chỉ inventory/hello
+read-only; hai migration chưa apply, chưa live smoke qua Gateway hoặc đánh dấu task Done.
+Evidence: `docs/feature/media-package-campaign/remaining-work/test.md`.
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E15-01].
 
@@ -9716,7 +9727,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Acceptance Criteria:**
 
-- [ ] `tasks` collection: `id`, `workspaceId`, `campaignId` (nullable — some Tasks come from Content Request, not Campaign), `campaignWorkItemId` (nullable), `sourceType`/`sourceRefId` (nullable), `type` (post/livestream/survey), `name`, `dueDate`, `status` (backlog/detail_identified/assigned/...), `assigneeId`, `qcAssigneeId`, `requiresClientApproval`, `description`, type-specific sub-fields
+- [ ] `tasks` collection: `id`, `workspaceId`, `campaignId` (nullable for manual/legacy Tasks; new accepted Content Request Tasks link current Campaign, confirmed 2026-10-14), `campaignWorkItemId` (nullable for supplemental Tasks), `sourceType`/`sourceRefId` (nullable), `type` (post/livestream/survey), `name`, `dueDate`, `status` (backlog/detail_identified/assigned/...; CANCELLED terminal added for explicit Manager cancellation), `assigneeId`, `qcAssigneeId`, `requiresClientApproval`, `description`, type-specific sub-fields. Task workflow team must preserve cancellation audit and never reopen CANCELLED through normal transitions.
 - [ ] Task starts in `backlog` status when auto-generated from Campaign deploy (DA-E50-07) or Content Request acceptance
 
 **Spec Reference:** `docs/ba/05-content-task-workflow.md`, `docs/ba/11-data-entities-glossary.md`

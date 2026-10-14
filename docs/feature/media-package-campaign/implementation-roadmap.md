@@ -1,5 +1,14 @@
 # Lộ trình triển khai Media Campaign — 6 giai đoạn
 
+> **Checkpoint 2026-10-13 — lộ trình phần 3.5 còn lại:** giai đoạn 1 tài liệu đã
+> bổ sung tại [remaining-work](remaining-work/spec.md), không trùng số giai đoạn của
+> rollout Campaign lịch sử bên dưới. Dùng [plan mới](remaining-work/plan.md) và
+> [checklist mới](remaining-work/task.md) cho công việc tiếp theo: giai đoạn 2 DA-951
+> create/read/edit/cancel, giai đoạn 3 receipt/accept→Task, giai đoạn 4 DA-949/950,
+> giai đoạn 5 history/regression. Không còn BA blocker Q1–Q3; inventory/mapping legacy
+> phải được kiểm chứng trước migration. Đợt này chỉ tài liệu, chưa code/chạy migration/test runtime.
+> Tài liệu BA dùng chung cần lead/team review; không tự cập nhật Jira Done.
+
 Cập nhật: 2026-10-10. Đây là thứ tự triển khai, chưa có ngày bắt đầu/kết thúc
 hoặc deadline được chốt. Dùng file này để xác định điểm tiếp tục công việc;
 thiết kế kỹ thuật nằm trong [campaign-delivery-plan.md](campaign-delivery-plan.md).
@@ -113,15 +122,15 @@ cùng checkpoint; dùng `git log` để tra mã commit đó.
 | Jira / Master-plan | Bằng chứng hiện tại | Việc còn lại trước khi đóng task |
 |---|---|---|
 | DA-942 / E50-01 | Entity, API template/Agency package, tạo/copy gói, ẩn/hiện và UI đã có ở baseline | Admin authoring thuộc luồng Admin; review theo AC hiện hành |
-| DA-943 / E50-02 | Client chọn gói Agency, snapshot và gate Workspace đã có | Reminder sau X ngày chưa triển khai; X/cadence cần chốt; AC prompt không chặn trong master-plan cũ cần đối chiếu BA hard gate đã chốt |
+| DA-943 / E50-02 | Client chọn gói Agency, snapshot và gate Workspace đã có | BA 2026-10-13 bỏ scheduled reminder; regression gate/redirect/Chat/Manager settings |
 | DA-944 / E50-03 | WorkspaceMediaPackage, snapshot/version/approval persistence đã có | Không phát hiện phần triển khai mới còn thiếu trong phạm vi entity |
 | DA-945 / E50-04 | Đàm phán hai phía, thông báo và diff bản liền trước đã có | Chưa có append-only full negotiation history; giới hạn Client proposals theo maxChanges khác AC không giới hạn trong master-plan cũ |
 | DA-946 / E50-05 | Duyệt hai phía và reset approvals khi đổi terms đã có | Chưa có thao tác tự rút approval; cần đối chiếu AC |
 | DA-947 / E50-06 | Code/API/UI Campaign nháp 1:1, snapshot, work items và version guard; migration local đã kiểm tra | Smoke test API có xác thực và concurrent create; lỗi utility redirect |
 | DA-948 / E50-07 | Code góp ý/duyệt/version/diff/inbox, durable deploy Mongo, retry và complete | Xác minh migration Atlas; smoke test Package → Campaign → Task/editor, retry sau partial failure/restart |
-| DA-949 / E50-08 | Entity/controller/repository có sẵn; service vẫn throw Not implemented | Implement CRUD đối tác và test |
+| DA-949 / E50-08 | Entity/controller/repository có sẵn; service vẫn throw Not implemented | Spec/plan/task/test partner-directory đã chốt Owner-only và deactivate khi đã dùng; chưa code |
 | DA-950 / E50-09 | Đã có Workspace API, legacy assign/update, Agency scoping, role checks, idempotent assignment, reversible status, stale-update guard và UI; 49 backend tests + 12 browser mock tests pass | Smoke PostgreSQL/API JWT/concurrent assignment; danh bạ CRUD vẫn phụ thuộc DA-949. Xem campaign-collaborators/test.md |
-| DA-951 / E50-10 | Đã có tài liệu/DB baseline | Chưa có backend Content Request lifecycle và UI thật trong luồng hiện tại |
+| DA-951 / E50-10 | Giai đoạn 2–3 có API/UI create/read/edit/cancel + Manager receive/accept/deny, Mongo transaction Task/audit, source unique index và init parity | Local tests/browser fixtures hoàn tất; Atlas chỉ read-only topology/inventory, chưa apply/live Gateway smoke. Evidence: remaining-work/test.md |
 | DA-1255 / E16-13 | API/UI nhân bản thành viên có chọn lọc + timezone, idempotency; migration local và 7 service tests pass | Smoke test API/browser light/dark/mobile; tài nguyên chờ module riêng |
 
 Các đánh giá này là trạng thái code được kiểm tra, không phải trạng thái Jira đã cập nhật.
