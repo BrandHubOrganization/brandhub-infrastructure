@@ -56,16 +56,33 @@ Body: { "yjsState": "<base64 Yjs state>", "atSequenceNumber" }
 // Client-reported: the server has no Yjs runtime to merge updates into a state itself.
 
 GET /api/v1/workspaces/{id}/tasks/{taskId}/content/versions
-→ 200 { "success": true, "data": [{ "snapshotId", "sequenceNumber", "createdAt" }] }
+→ 200 { "success": true, "data": [{ "snapshotId", "sequenceNumber", "createdAt", "editedBy", "editedByName" }] }
+// newest first. editedBy/editedByName = last editor whose operation is included in the snapshot (null if unknown).
+
+GET /api/v1/workspaces/{id}/tasks/{taskId}/content/versions/{snapshotId}
+→ 200 { "success": true, "data": { "snapshot": "<base64 Yjs state>", "operationsSinceSnapshot": [], "sequenceNumber" } }
+// read-only; the client decodes it to text to render a diff against the previous version.
 
 POST /api/v1/workspaces/{id}/tasks/{taskId}/content/versions/{snapshotId}/restore
 → 200 { "success": true, "data": { "snapshot": "<base64 Yjs state>", "operationsSinceSnapshot": [], "sequenceNumber" } }
+// READ-ONLY on the server: returns the old state and writes nothing. A CRDT cannot rewind by merging an older state,
+// so the client replaces the live Y.Text with the old content as a normal edit (delete + applyDelta); that update
+// is persisted and broadcast over the WebSocket like any other, keeping the log append-only.
 ```
+
+**Snapshots** are client-reported (`POST .../content/snapshot`): when the log since the last snapshot reaches 200
+operations, **or** after 20 s without edits, **or** when the editor unmounts. The server ignores a report whose
+`atSequenceNumber` is not newer than the latest snapshot.
+
+**Lists** are literal text prefixes (`• `, `1. `) so the published text matches what is displayed; Enter inside an item
+continues the list and Enter on an empty item leaves it. **Publish text** (`toPublishText`) NFC-normalizes Vietnamese and
+renders bold/italic runs as Unicode Mathematical Sans-Serif letters; see [test.md](test.md) for the verified cases.
 
 ## 6. Error Handling
 
 - Task is not of type `post` → 400 `INVALID_TASK_TYPE_FOR_CONTENT_WRITING`.
 - WebSocket handshake without a valid JWT → connection rejected with 401 (`WsJwtHandshakeInterceptor`).
+- STOMP SEND `/app/tasks/{id}/content` or SUBSCRIBE `/topic/tasks/{id}/content` by a user who is not an active MANAGER/CREATOR of the task's workspace, or for an unknown task → the frame is rejected with a STOMP ERROR (`ChatInboundChannelInterceptor.authorizeTask`); nothing is persisted or delivered.
 - Stale-sequence rejection (`STALE_SEQUENCE_NUMBER`) is defined as an error code but **not yet wired to any check** — there is no compaction job that prunes old operations in this implementation (`task_content_operations` only grows), so the condition it would guard against cannot currently occur.
 
 ## 7. Edge Cases

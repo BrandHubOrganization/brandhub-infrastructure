@@ -1,0 +1,63 @@
+@startuml 3.4.20 - Update Workspace Member Role
+title Sequence Diagram — 3.4.20 - Update Workspace Member Role
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Workspace MANAGER" as workspace_manager
+boundary "WorkspaceMembersPage (UI)" as workspacememberspage_ui
+boundary "WorkspaceController" as workspacecontroller
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "WorkspaceMember" as workspacemember
+entity "UserRepository" as userrepository
+entity "WorkspaceMemberResponse" as workspacememberresponse
+
+' === Flow ===
+workspace_manager -> workspacememberspage_ui: selects role
+workspacememberspage_ui -> workspacecontroller: PATCH /workspaces/{id}/members/{memberId}/role
+opt caller != MANAGER
+  workspacecontroller --> workspacememberspage_ui: 403 Forbidden
+  workspacememberspage_ui --> workspace_manager: shows 403 toast
+end
+workspacecontroller -> workspaceserviceimpl: updateMemberRole(workspaceId, memberId, newRole)
+workspaceserviceimpl -> workspacememberrepository: findById(memberId)
+workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
+opt !member.present || !active
+  workspaceserviceimpl --> workspacecontroller: throw 404 NOT_FOUND
+  workspacecontroller --> workspacememberspage_ui: 404 Not Found
+  workspacememberspage_ui --> workspace_manager: shows 404 toast
+end
+workspaceserviceimpl -> workspacemember: validateWorkspace(workspaceId)
+workspacemember --> workspaceserviceimpl: WorkspaceMember
+alt count(MANAGER) <= 1
+  workspaceserviceimpl -> workspacememberrepository: countByWorkspaceIdAndRole(workspaceId, MANAGER)
+  workspacememberrepository --> workspaceserviceimpl: long count
+  workspaceserviceimpl --> workspacecontroller: throw 409 LAST_MANAGER_CANNOT_BE_REMOVED
+  workspacecontroller --> workspacememberspage_ui: 409 Conflict
+  workspacememberspage_ui --> workspace_manager: shows 409 toast
+else count(MANAGER) > 0
+  workspaceserviceimpl -> workspacememberrepository: countByWorkspaceIdAndRole(workspaceId, MANAGER)
+  workspacememberrepository --> workspaceserviceimpl: long count
+  workspaceserviceimpl --> workspacecontroller: throw 409 MANAGER_ALREADY_ASSIGNED
+  workspacecontroller --> workspacememberspage_ui: 409 Conflict
+  workspacememberspage_ui --> workspace_manager: shows 409 toast
+else ok
+  workspaceserviceimpl -> workspacemember: updateRole(newRole)
+  workspacemember --> workspaceserviceimpl: WorkspaceMember
+  workspaceserviceimpl -> workspacememberrepository: save(member)
+  workspacememberrepository --> workspaceserviceimpl: WorkspaceMember
+  workspaceserviceimpl -> userrepository: findById(member.userId)
+  userrepository --> workspaceserviceimpl: Optional<User>
+  workspaceserviceimpl -> workspacememberresponse: new WorkspaceMemberResponse(...)
+  workspacememberresponse --> workspaceserviceimpl: WorkspaceMemberResponse
+  workspaceserviceimpl --> workspacecontroller: WorkspaceMemberResponse
+  workspacecontroller --> workspacememberspage_ui: 200 OK WorkspaceMemberResponse
+  workspacememberspage_ui --> workspace_manager: shows 200 toast
+end
+
+@enduml

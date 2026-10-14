@@ -65,11 +65,11 @@ BrandHub V2's ERD chứa **37 entity**: **23 PostgreSQL** tables (identity, tổ
 | 22 | `ai_credit_creator_limits` | **MỚI 2026-09-16** | Cấu hình giới hạn credit RIÊNG từng Creator (Owner set), chỉ config — usage thật đọc từ `ai_usage_logs`. |
 | — | `audit_logs` | Không đổi | Append-only, log hành động nhạy cảm. |
 
-### 2.6 MongoDB Collections (14 collections)
+### 2.6 MongoDB Collections (16 collections)
 
 | # | Entity | Trạng thái | Description |
 |---|---|---|---|
-| 23 | `tasks` | **MỚI**, thay `posts` V1 | Đơn vị công việc chung 3 loại (post/livestream/survey), dùng chung Approval Sequence. |
+| 23 | `tasks` | **MỚI**, thay `posts` V1 | Đơn vị công việc chung 5 loại (POST/LIVESTREAM/SURVEY/EVENT_PLAN/PRESS_RECOMMENDATION), dùng chung Approval Sequence. |
 | 24 | `task_approvals` | **MỚI**, tách khỏi `tasks` | Lịch sử duyệt theo từng step — giữ nguyên approval cũ khi step sau bị reject. |
 | 25 | `posts` | **ĐỔI NGHĨA** | Chỉ còn bài ĐÃ PUBLISH thành công lên social (kết quả Task type=post hoàn thành). |
 | 26 | `content_requests` | **ĐỔI FSM** | `pending → in_progress → accepted/denied`, `denied` là trạng thái terminal. |
@@ -80,11 +80,26 @@ BrandHub V2's ERD chứa **37 entity**: **23 PostgreSQL** tables (identity, tổ
 | 31 | `livestream_sessions` | **MỚI 2026-09-16** | Con của Task loại livestream — idea/script/status (FR 3.6.22-24). |
 | 32 | `survey_forms` | **MỚI 2026-09-16** | Con của Task loại survey — form câu hỏi (FR 3.6.25). |
 | 33 | `survey_responses` | **MỚI 2026-09-16** | Câu trả lời khảo sát, tách riêng vì high write throughput. |
-| 34 | `mail_templates` | **MỚI 2026-09-16** | Mẫu email CRUD + gửi (FR 3.6.28-32) — thiếu hoàn toàn ở thiết kế trước. |
+| 34 | `mail_templates` | **MỚI 2026-09-16, SỬA 2026-10-12** | Mẫu email theo Workspace + mẫu hệ thống (`workspaceId` null, Admin quản trị); có `attachments`, `clonedFromId`, soft delete `deletedAt` (FR 3.6.28-32). |
 | 35 | `social_accounts` | Giữ nguyên, bỏ `ZALO_OA` | Tài khoản social đã connect (Facebook/Instagram/TikTok/Threads). |
 | 36 | `notifications` | Giữ nguyên, thêm type mới | Thông báo, thêm loại cho Package/Campaign/Task approval. |
+| 37 | `event_plans` | **MỚI DA-948** | Nội dung kế hoạch bàn giao của Task EVENT_PLAN; không phải module vận hành sự kiện. |
+| 38 | `press_recommendations` | **MỚI DA-948** | Gợi ý bên báo chí của Task PRESS_RECOMMENDATION; không phải booking tích hợp. |
 
 ---
+
+
+### 2.7 PostgreSQL — Mail Sending Group (5 tables, MỚI 2026-10-12, FR 3.6.32)
+
+| # | Entity | Description |
+|---|---|---|
+| M1 | `mail_batches` | Một lần bấm gửi/hẹn giờ/gửi thử: snapshot subject, body, đính kèm; trạng thái `SCHEDULED/QUEUED/SENDING/COMPLETED/CANCELLED/FAILED`; bộ đếm kết quả. |
+| M2 | `mail_deliveries` | Một người nhận của một lô: nội dung đã render, trạng thái `PENDING/SENT/FAILED/SUPPRESSED`, số lần thử, `event_key` idempotent. Worker lấy bằng `FOR UPDATE SKIP LOCKED`. |
+| M3 | `mail_send_quota` | Bộ đếm gửi theo ngày (`Asia/Ho_Chi_Minh`) cho phạm vi `SYSTEM` (450) và `WORKSPACE` (100). |
+| M4 | `mail_suppressions` | Người nhận đã hủy đăng ký, theo Workspace gửi; unique `(workspace_id, email_lower)`. |
+| M5 | `mail_attachments` | Tệp/ảnh upload cho template (S3 key, loại, kích thước); `bound=false` quá 24h bị job dọn. |
+
+Các bảng này nằm cùng PostgreSQL với `admin_email_outbox` để enqueue transactional. `mail_batches.template_id` là soft reference tới `mail_templates` (MongoDB). Nội dung đã render và địa chỉ nhận bị xóa sau 12 tháng, số liệu tổng giữ lại.
 
 ## 3. Relationship Notes
 
@@ -99,3 +114,19 @@ Full FK relationship diagram nằm ở [`brandhub-erd.puml`](./brandhub-erd.puml
 ::: warning Ghi chú thay đổi lớn nhất
 So với V1 (17 entity theo mô tả gốc cũ, thực tế tăng lên 23 entity trước khi V2), schema V2 tăng lên **37 entity** (23 PostgreSQL + 14 MongoDB) — chủ yếu do 3 nhóm hoàn toàn mới: Organization (Agency layer, 8 bảng), Commerce (Media Package/Campaign, 3 bảng), Third-party Collaborator (2 bảng). Đây là thiết kế **DESIGN**, chưa migrate vào DB thật.
 :::
+
+### mail_recipient_groups (MongoDB)
+
+Named recipient lists a Workspace sends mail to repeatedly (FR 3.6.32 follow-up).
+
+| Field | Type | Notes |
+|---|---|---|
+| _id | ObjectId | |
+| workspaceId | string | owner Workspace |
+| name | string(80) | |
+| recipients | array<{email, name}> | max 200, emails lower-cased and unique |
+| createdBy | string | user id; only the creator or OWNER/MANAGER may delete |
+| createdAt | date | |
+
+Index: `{workspaceId:1, name:1}`. Limit: 50 groups per Workspace (service rule).
+

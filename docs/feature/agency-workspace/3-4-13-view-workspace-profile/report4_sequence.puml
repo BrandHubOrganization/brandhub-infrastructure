@@ -1,0 +1,51 @@
+@startuml 3.4.13 - View Workspace Profile
+title Sequence Diagram — 3.4.13 - View Workspace Profile
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Member (MANAGER/CREATOR/CLIENT)" as member_manager_creator_client
+boundary "WorkspaceSettingsPage (UI)" as workspacesettingspage_ui
+boundary "WorkspaceController" as workspacecontroller
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "WorkspaceRepository" as workspacerepository
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "Workspace" as workspace
+entity "WorkspaceResponse" as workspaceresponse
+
+' === Flow ===
+member_manager_creator_client -> workspacesettingspage_ui: opens /workspaces/:id/settings
+workspacesettingspage_ui -> workspacecontroller: GET /api/v1/workspaces/{workspaceId}
+opt role !in {MANAGER, CREATOR, CLIENT}
+  workspacecontroller --> workspacesettingspage_ui: 403 Forbidden error response
+  workspacesettingspage_ui --> member_manager_creator_client: shows 403 toast
+end
+workspacecontroller -> workspaceserviceimpl: getWorkspace(workspaceId, currentUser)
+workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
+workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+opt !workspace.present
+  workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+  workspacecontroller --> workspacesettingspage_ui: 404 Error response
+  workspacesettingspage_ui --> member_manager_creator_client: shows 404 toast
+end
+workspaceserviceimpl -> workspacememberrepository: assertActiveMember(workspaceId, userId)
+workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
+opt !activeMember
+  workspaceserviceimpl --> workspacecontroller: throw 403 WORKSPACE_ACCESS_DENIED
+  workspacecontroller --> workspacesettingspage_ui: 403 Forbidden
+  workspacesettingspage_ui --> member_manager_creator_client: shows 403 toast
+end
+workspaceserviceimpl -> workspace: getSettings()
+workspace --> workspaceserviceimpl: settings
+workspaceserviceimpl -> workspaceserviceimpl: parseSettings(json)
+workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
+workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+workspaceserviceimpl --> workspacecontroller: WorkspaceResponse
+workspacecontroller --> workspacesettingspage_ui: 200 OK WorkspaceResponse
+workspacesettingspage_ui --> member_manager_creator_client: renders profile
+
+@enduml

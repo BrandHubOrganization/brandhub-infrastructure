@@ -1,0 +1,57 @@
+@startuml 3.6.30 - Update Mail Template
+title Sequence Diagram — 3.6.30 - Update Mail Template
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Member (creator or OWNER/MANAGER)" as member
+boundary "EditMailTemplateForm (UI, TipTap)" as ui
+boundary "MailTemplateController" as controller
+control "MailTemplateService" as service
+entity "WorkspaceAccessService" as access
+control "HtmlSanitizer" as sanitizer
+entity "MailTemplateRepository (MongoDB)" as repo
+
+' === Flow ===
+member -> ui: modifies name / subject / body / attachments, clicks Save
+ui -> controller: PATCH /api/v1/workspaces/{id}/mail-templates/{templateId} {name?, subject?, bodyHtml?, attachmentIds?}
+controller -> service: updateTemplate(currentUser, workspaceId, templateId, request)
+service -> access: requireActiveMember(workspaceId, userId)
+access --> service: member(role)
+service -> repo: findByIdAndDeletedAtIsNull(templateId)
+repo --> service: Optional<template>
+opt template missing or other Workspace
+  service --> controller: throw 404 TEMPLATE_NOT_FOUND
+  controller --> ui: 404 Not Found
+end
+opt template.type == SYSTEM_DEFAULT
+  service --> controller: throw 403 SYSTEM_TEMPLATE_READ_ONLY
+  controller --> ui: 403 Forbidden
+end
+opt caller is not creator and role not in {OWNER, MANAGER}
+  service --> controller: throw 403 FORBIDDEN
+  controller --> ui: 403 Forbidden
+end
+opt provided subject/bodyHtml blank
+  service --> controller: throw 400 VALIDATION_ERROR
+  controller --> ui: 400 Bad Request
+end
+opt bodyHtml provided
+  service -> sanitizer: sanitize(bodyHtml)
+  sanitizer --> service: safeHtml
+end
+service -> repo: save(template.apply(patch)) with updatedAt = now
+repo --> service: savedTemplate
+service --> controller: MailTemplateResponse
+controller --> ui: 200 OK
+ui --> member: updated toast, list refreshed
+note right of service
+  Batches already sent or scheduled keep their snapshot
+  and are not changed by this update.
+end note
+
+@enduml

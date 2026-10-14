@@ -1,0 +1,39 @@
+@startuml 3.4.2 - View Agency Dashboard
+title Sequence Diagram — 3.4.2 - View Agency Dashboard
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "AgencyDashboardPage (UI)" as agencydashboardpage_ui
+boundary "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "AgencyMemberRepository" as agencymemberrepository
+
+' === Flow ===
+user -> agencydashboardpage_ui: opens dashboard
+agencydashboardpage_ui -> agencycontroller: GET /api/v1/agencies/{agencyId}/dashboard
+agencycontroller -> agencyserviceimpl: getDashboard(agencyId, currentUser)
+agencyserviceimpl -> agencyrepository: findById(agencyId)
+agencyrepository --> agencyserviceimpl: Optional<Agency>
+agencyserviceimpl -> agencyrepository: findByAgencyIdAndUserId(agencyId, userId)
+agencyrepository --> agencyserviceimpl: Optional<AgencyMember>
+alt caller in {OWNER, MEMBER}
+  agencyserviceimpl -> agencymemberrepository: countByAgencyId(agencyId)
+  agencymemberrepository --> agencyserviceimpl: member count
+  agencyserviceimpl -> agencyserviceimpl: calculateDashboardSummary()
+  agencyserviceimpl --> agencycontroller: 200 OK
+  agencycontroller --> agencydashboardpage_ui: 200 OK 200 OK
+  agencydashboardpage_ui --> user: renders dashboard summary
+else caller !in {OWNER, MEMBER}
+  agencyserviceimpl --> agencycontroller: 403 FORBIDDEN
+  agencycontroller --> agencydashboardpage_ui: 403 FORBIDDEN
+  agencydashboardpage_ui --> user: displays 403 Forbidden error toast
+end
+
+@enduml

@@ -1,0 +1,52 @@
+@startuml 3.3.4 - Update Client Profile
+title Sequence Diagram — 3.3.4 - Update Client Profile
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "ClientProfileListPage (UI)" as clientprofilelistpage_ui
+boundary "ClientProfileController" as clientprofilecontroller
+control "ClientProfileServiceImpl" as clientprofileserviceimpl
+entity "ClientProfileRepository" as clientprofilerepository
+entity "WorkspaceMemberRepository" as workspacememberrepository
+
+alt creates profile
+  user -> clientprofilelistpage_ui: submits form
+  clientprofilelistpage_ui -> clientprofilecontroller: POST /api/v1/client-profile
+  clientprofilecontroller -> clientprofileserviceimpl: createProfile(currentUser, request)
+  clientprofileserviceimpl -> clientprofileserviceimpl: new ClientProfile(...)
+  clientprofileserviceimpl -> clientprofilerepository: save(profile)
+  clientprofilerepository --> clientprofileserviceimpl: saved ClientProfile
+  clientprofileserviceimpl --> clientprofilecontroller: 200 OK ClientProfileResponse
+  clientprofilecontroller --> clientprofilelistpage_ui: 200 OK ClientProfileResponse
+  clientprofilelistpage_ui --> user: shows 200 toast
+else updates profile
+  user -> clientprofilelistpage_ui: submits form
+  clientprofilelistpage_ui -> clientprofilecontroller: PUT /api/v1/client-profile/{profileId}
+  clientprofilecontroller -> clientprofileserviceimpl: updateById(currentUser, profileId, request)
+  clientprofileserviceimpl -> clientprofilerepository: findById(profileId)
+  clientprofilerepository --> clientprofileserviceimpl: Optional<ClientProfile>
+  clientprofileserviceimpl -> clientprofilerepository: save(updatedProfile)
+  clientprofilerepository --> clientprofileserviceimpl: updated ClientProfile
+  clientprofileserviceimpl --> clientprofilecontroller: 200 OK ClientProfileResponse
+  clientprofilecontroller --> clientprofilelistpage_ui: 200 OK ClientProfileResponse
+  clientprofilelistpage_ui --> user: shows 200 toast
+else deletes profile
+  user -> clientprofilelistpage_ui: confirms delete
+  clientprofilelistpage_ui -> clientprofilecontroller: DELETE /api/v1/client-profile/{profileId}
+  clientprofilecontroller -> clientprofileserviceimpl: deleteById(currentUser, profileId)
+  clientprofileserviceimpl -> workspacememberrepository: checkProfileInUse(profileId)
+  workspacememberrepository --> clientprofileserviceimpl: List<WorkspaceMember>
+  clientprofileserviceimpl -> clientprofilerepository: delete(profile)
+  clientprofilerepository --> clientprofileserviceimpl: deleted
+  clientprofileserviceimpl --> clientprofilecontroller: 200 OK
+  clientprofilecontroller --> clientprofilelistpage_ui: 200 OK
+  clientprofilelistpage_ui --> user: shows 200 toast
+end
+
+@enduml
