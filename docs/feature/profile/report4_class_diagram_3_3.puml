@@ -60,8 +60,6 @@ package "com.brandhub.business.service" {
         + updateUserProfile(currentUser: AuthenticatedUser, updateRequest: UpdateProfileRequest): UserProfileResponse
         + updateAvatar(currentUser: AuthenticatedUser, file: MultipartFile): String
         + updateBanner(currentUser: AuthenticatedUser, file: MultipartFile): String
-        + getUsers(page: int, size: int, search: String): Map<String, Object>
-        + banUser(userId: String): Map<String, String>
         + lookupByEmail(email: String): Optional<UserLookupResponse>
     }
 
@@ -76,15 +74,10 @@ package "com.brandhub.business.service" {
         + updateUserProfile(currentUser: AuthenticatedUser, updateRequest: UpdateProfileRequest): UserProfileResponse
         + updateAvatar(currentUser: AuthenticatedUser, file: MultipartFile): String
         + updateBanner(currentUser: AuthenticatedUser, file: MultipartFile): String
-        + getUsers(page: int, size: int, search: String): Map<String, Object>
-        + banUser(userId: String): Map<String, String>
         + lookupByEmail(email: String): Optional<UserLookupResponse>
         - toResponse(user: User, currentUser: AuthenticatedUser): UserProfileResponse
-        - parseStringList(json: String): List<String>
-        - toMap(value: Object): Map<String, Object>
-        - toBooleanMap(value: Object): Map<String, Boolean>
-        - parsePreferences(user: User): Map<String, Object>
         - validateImage(file: MultipartFile): String
+        - parsePreferences(user: User): Map<String, Object>
     }
 
     interface ClientProfileService <<service>> {
@@ -112,8 +105,6 @@ package "com.brandhub.business.service" {
         - applyRequest(profile: ClientProfile, request: ClientProfileRequest): void
         - findOwnedProfileOrThrow(currentUser: AuthenticatedUser, profileId: UUID): ClientProfile
         - toResponse(profile: ClientProfile): ClientProfileResponse
-        - serializeSocialLinks(socialLinks: Map<String, String>): String
-        - parseSocialLinks(json: String): Map<String, String>
     }
 }
 
@@ -124,42 +115,23 @@ package "com.brandhub.business.repository" {
     interface UserRepository <<repository>> {
         + findById(id: UUID): Optional<User>
         + save(user: User): User
-        + delete(user: User): void
         + findByEmail(email: String): Optional<User>
-        + existsByEmail(email: String): boolean
-        + findByPhone(phone: String): Optional<User>
-        + existsByPhone(phone: String): boolean
-        + searchByEmailOrFullName(search: String, pageable: Pageable): Page<User>
-        + findAdminUsers(search: String, status: UserStatus, role: SystemRole, pageable: Pageable): Page<User>
-        + lockById(id: UUID): Optional<User>
-        + findDueAccountIds(now: OffsetDateTime, pageable: Pageable): List<UUID>
     }
 
     interface UserSystemRoleRepository <<repository>> {
-        + findById(id: UUID): Optional<UserSystemRole>
-        + save(role: UserSystemRole): UserSystemRole
         + findByUserId(userId: UUID): Optional<UserSystemRole>
-        + findByUserIdIn(ids: List<UUID>): List<UserSystemRole>
     }
 
     interface ClientProfileRepository <<repository>> {
+        + findByUserId(userId: UUID): List<ClientProfile>
         + findById(id: UUID): Optional<ClientProfile>
         + save(profile: ClientProfile): ClientProfile
         + delete(profile: ClientProfile): void
-        + findByUserId(userId: UUID): List<ClientProfile>
-        + findFirstByUserIdOrderByUpdatedAtDesc(userId: UUID): Optional<ClientProfile>
     }
 
     interface WorkspaceMemberRepository <<repository>> {
-        + findById(id: UUID): Optional<WorkspaceMember>
         + findFirstByUserIdAndIsActiveTrue(userId: UUID): Optional<WorkspaceMember>
-        + findByWorkspaceIdAndUserIdAndIsActiveTrue(workspaceId: UUID, userId: UUID): Optional<WorkspaceMember>
-        + findByWorkspaceIdAndClientProfileIdAndIsActiveTrue(workspaceId: UUID, clientProfileId: UUID): Optional<WorkspaceMember>
-        + findByWorkspaceIdAndIsActiveTrue(workspaceId: UUID): List<WorkspaceMember>
-        + findByUserIdAndIsActiveTrue(userId: UUID): List<WorkspaceMember>
         + findByClientProfileIdInAndIsActiveTrue(clientProfileIds: List<UUID>): List<WorkspaceMember>
-        + countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId: UUID, role: MemberRole): long
-        + countByWorkspaceIdAndIsActiveTrue(workspaceId: UUID): long
     }
 }
 
@@ -205,6 +177,45 @@ package "com.brandhub.business.model" {
         - totpSecret: String
         - createdAt: OffsetDateTime
         - updatedAt: OffsetDateTime
+        __ Accessors (Used in Profile) __
+        + getId(): UUID
+        + getEmail(): String
+        + getFullName(): String
+        + setFullName(fullName: String): void
+        + getAvatarUrl(): String
+        + setAvatarUrl(avatarUrl: String): void
+        + getBannerUrl(): String
+        + setBannerUrl(bannerUrl: String): void
+        + getPhone(): String
+        + setPhone(phone: String): void
+        + getProfessionalTitle(): String
+        + setProfessionalTitle(professionalTitle: String): void
+        + getBio(): String
+        + setBio(bio: String): void
+        + getPortfolioUrls(): String
+        + setPortfolioUrls(portfolioUrls: String): void
+        + getWorkingLanguage(): String
+        + setWorkingLanguage(workingLanguage: String): void
+        + getSkills(): String
+        + setSkills(skills: String): void
+        + getLocation(): String
+        + setLocation(location: String): void
+        + getYearsOfExperience(): Integer
+        + setYearsOfExperience(yearsOfExperience: Integer): void
+        + getLinkedinUrl(): String
+        + setLinkedinUrl(linkedinUrl: String): void
+        + getFacebookUrl(): String
+        + setFacebookUrl(facebookUrl: String): void
+        + getInstagramUrl(): String
+        + setInstagramUrl(instagramUrl: String): void
+        + getTiktokUrl(): String
+        + setTiktokUrl(tiktokUrl: String): void
+        + getWebsite(): String
+        + setWebsite(website: String): void
+        + getPreferences(): String
+        + setPreferences(preferences: String): void
+        + getCreatedAt(): OffsetDateTime
+        + isActive(): boolean
     }
 
     class UserSystemRole <<entity>> {
@@ -213,6 +224,9 @@ package "com.brandhub.business.model" {
         - systemRole: SystemRole
         - grantedBy: UUID
         - grantedAt: OffsetDateTime
+        __ Accessors (Used in Profile) __
+        + getUserId(): UUID
+        + getSystemRole(): SystemRole
     }
 
     class ClientProfile <<entity>> {
@@ -240,6 +254,52 @@ package "com.brandhub.business.model" {
         - bannerUrl: String
         - createdAt: OffsetDateTime
         - updatedAt: OffsetDateTime
+        __ Accessors (Used in Profile) __
+        + getId(): UUID
+        + getUserId(): UUID
+        + getDisplayName(): String
+        + setDisplayName(displayName: String): void
+        + getCompany(): String
+        + setCompany(company: String): void
+        + getPhone(): String
+        + setPhone(phone: String): void
+        + getNote(): String
+        + setNote(note: String): void
+        + getLogoUrl(): String
+        + setLogoUrl(logoUrl: String): void
+        + getWebsite(): String
+        + setWebsite(website: String): void
+        + getIndustry(): String
+        + setIndustry(industry: String): void
+        + getLocation(): String
+        + setLocation(location: String): void
+        + getDescription(): String
+        + setDescription(description: String): void
+        + getSocialLinks(): String
+        + setSocialLinks(socialLinks: String): void
+        + getContactName(): String
+        + setContactName(contactName: String): void
+        + getContactEmail(): String
+        + setContactEmail(contactEmail: String): void
+        + getCompanySize(): String
+        + setCompanySize(companySize: String): void
+        + getInstagramUrl(): String
+        + setInstagramUrl(instagramUrl: String): void
+        + getTaxCode(): String
+        + setTaxCode(taxCode: String): void
+        + getAddress(): String
+        + setAddress(address: String): void
+        + getTagline(): String
+        + setTagline(tagline: String): void
+        + getFoundedYear(): Integer
+        + setFoundedYear(foundedYear: Integer): void
+        + getBudgetRange(): String
+        + setBudgetRange(budgetRange: String): void
+        + getBannerUrl(): String
+        + setBannerUrl(bannerUrl: String): void
+        + getCreatedAt(): OffsetDateTime
+        + getUpdatedAt(): OffsetDateTime
+        + setUpdatedAt(updatedAt: OffsetDateTime): void
     }
 }
 
