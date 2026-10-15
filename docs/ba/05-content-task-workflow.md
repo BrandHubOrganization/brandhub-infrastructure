@@ -1,14 +1,27 @@
 # 05 — Content & Task Workflow
 
+> **BA mới đã chốt 2026-10-15:** Task chỉ còn TODO / IN_PROGRESS / IN_REVIEW / CANCELLED / FINISHED. Giao việc là metadata, không còn bước DETAIL_IDENTIFIED/ASSIGNED. Phải có mô tả + deadline hợp lệ trước giao; Creator được giao bấm bắt đầu mới IN_PROGRESS; sau đó Manager khóa sửa/giao lại. IN_REVIEW giữ QC → Manager → Client khi được cấu hình; reject về IN_PROGRESS, duyệt lại từ QC nếu có. Approval do thành viên khác triển khai. Autosave on-blur và action list chỉ assignment/deadline/start. Ghi chú mới này thay thế vòng đời Task lịch sử bên dưới; xem [spec mới](../feature/content-task-workflow/task-five-state-inline-edit/spec.md).
+
 > [<< Về Overview](00-overview.md)
 
+> **Xác nhận mới nhất 2026-10-14 — FR 3.6.1/2/3 và tích hợp Approval:** tách hạn hoàn thành mọi Task khỏi ngày đăng dự kiến POST; Manager chỉ sửa yêu cầu/giao lại trước lần Creator bắt đầu đầu tiên; đợt này làm khung đầu vào cho 5 loại Task, không làm thay nội dung chuyên biệt. Vẫn cho comment trên COMPLETED/CANCELLED; mention và ảnh JPEG/PNG/WebP, tối đa 5 ảnh × 5 MB/comment. Q13 mới nhất: Client active xem/bình luận mọi Task cùng Workspace, kể cả Task thủ công và cũ; không phân biệt nội bộ/thường. Comment không phụ thuộc requiresClientApproval, cờ này chỉ cấu hình bước Client duyệt kết quả. Resubmit sau reject duyệt lại từ QC nếu có (không có thì Manager), giữ nguyên lịch sử audit. Các đoạn cũ về 3 loại/nhân sự ở bước Identify chỉ là nền lịch sử; chi tiết và câu hỏi còn mở ở [roadmap](../feature/content-task-workflow/task-detail-assignment-comments-roadmap.md). Người dùng/lead cần thông báo các chủ module liên quan; không tự sửa code của họ.
+
 ## 1. Nguồn gốc Task trong backlog
+
+**Q13 confirmed 2026-10-14 — thay phần phân quyền Q6/Q9 và quy tắc Q12:** Client active được xem
+và bình luận mọi Task trong đúng Workspace, kể cả Task Manager tạo thủ công và Task cũ.
+Không có phân biệt nội bộ/thường hoặc field/default/bộ chọn visibility; Q12 cũ không còn áp dụng.
+requiresClientApproval=true/false chỉ quyết định chuỗi duyệt kết quả, không quyết định quyền xem/bình luận.
+Giữ quyền sửa/giao việc/editor theo vai trò; membership/scope và quyền riêng của upload DRAFT vẫn kiểm tra.
+Không tự sửa dữ liệu legacy; marker start chỉ ảnh hưởng mutation quản lý, không chặn đọc/bình luận.
+
+**Bổ sung Q9–Q11 confirmed 2026-10-14:** Phần phân quyền/default Task Q9 đã được Q13 thay thế; mọi nguồn Task cùng Workspace cho Client active xem/bình luận. Task Campaign đặt hạn trong max(today,start)..end theo múi giờ Workspace; ngày đăng POST không trước dueDate và trong Campaign. Task thủ công không Campaign có hạn từ hôm nay. Notification comment chỉ in-app cho mentions, assignee, QC, Manager; bỏ trùng/tác giả/người không còn quyền, Client chỉ nhận khi mention. Q8 confirmed: Creator bấm Bắt đầu làm mới chuyển ASSIGNED → IN_PROGRESS; mở trang/editor không tính. Dấu mốc lần đầu giữ nguyên sau reject.
 
 Backlog KHÔNG đóng — có 3 nguồn tạo Task:
 
 1. **Từ Media Campaign approve** — xem [04-media-package-campaign.md](04-media-package-campaign.md) mục 3.
 2. **Từ Content Request được accept** — xem [04-media-package-campaign.md](04-media-package-campaign.md) mục 4.
-3. **[CONFIRMED 2026-09-14]** Manager tự do thêm Task thủ công vào backlog bất cứ lúc nào — không bắt buộc phải có nguồn gốc từ Campaign hay Content Request (việc nội bộ: sửa bài cũ, họp nội bộ, v.v.)
+3. **[CONFIRMED 2026-09-14]** Manager tự do thêm Task thủ công vào backlog bất cứ lúc nào — không bắt buộc phải có nguồn gốc từ Campaign hay Content Request (ví dụ sửa bài cũ, họp chuẩn bị, v.v.; theo Q13 Client cùng Workspace vẫn xem/bình luận được)
 
 ## 2. Vòng đời 1 Task
 

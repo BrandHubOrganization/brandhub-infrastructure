@@ -1,0 +1,7 @@
+# Plan
+1. Record confirmed BA and Approval ownership before code.
+2. Central TaskLifecycle normalization/aliases, TODO new writers, no status change on detail/assign, brief/date prerequisite on assign/start. Targeted field PATCH, validate resulting draft/assigned state, keep CAS/first-start lock. Reader/filter/Campaign closure accepts canonical + legacy; no specialist editor or Approval writes.
+3. New additive migration after closure/foundation, optional reviewStep + canonical enum values; update init/checker/tests. Harden closure preflight without changing its persisted schema definition. Never backfill unknown legacy or initialize Atlas. Apply metadata only after explicit operator approval and clean preflight.
+4. Workspace-scoped shared QueryClient; per-Task serial mutation queue uses latest acknowledged revision, never retries 409 using a newer revision. Persistent failed field drafts with retry/discard and navigation warning. Lazy workflow fetch for row actions; backend capabilities authoritative.
+5. Tasks-only fixed-height split layout; min-h-0/overflow-hidden ancestors, scroll list/detail body, fixed header/filter/footer. InlineTaskField, TaskInlineDetails/Assignment and TaskRowActions, no new global CSS/editor changes. Locale src/i18n/locales/{vi,en}/tasks.json, BrandHub tokens/fonts, compact rows and functional split border.
+6. Java/Web/DB regression + isolated Mongo + browser mock; read-only Atlas inventory and authorized metadata migration. No commit/push or shared DB document writes.
