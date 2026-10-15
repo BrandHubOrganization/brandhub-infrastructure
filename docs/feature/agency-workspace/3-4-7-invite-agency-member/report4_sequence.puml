@@ -1,0 +1,64 @@
+@startuml 3.4.7a - Invite Agency Member
+title Sequence Diagram — 3.4.7a - Invite Agency Member
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Owner" as owner
+boundary "MembersPage (UI)" as memberspage_ui
+boundary "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "AgencyInvitationRepository" as agencyinvitationrepository
+entity "AgencyInvitation" as agencyinvitation
+entity "AgencyMemberRepository" as agencymemberrepository
+entity "WorkspaceRepository" as workspacerepository
+entity "AgencyInvitationResponse" as agencyinvitationresponse
+participant "MailService" as mailservice
+
+' === Flow: Owner Sends Invitation ===
+owner -> memberspage_ui: fills and submits invite form
+memberspage_ui -> agencycontroller: POST /api/v1/agencies/{agencyId}/invitations
+agencycontroller -> agencyserviceimpl: inviteMember(agencyId, request, currentUser)
+agencyserviceimpl -> agencyrepository: findAgencyOrThrow(agencyId)
+agencyrepository --> agencyserviceimpl: Agency
+opt caller != OWNER
+  agencyserviceimpl --> agencycontroller: throw 403 NOT_AGENCY_OWNER
+  agencycontroller --> memberspage_ui: 403 Error response
+  memberspage_ui --> owner: shows 403 toast
+end
+agencyserviceimpl -> agencymemberrepository: findMemberByEmail(email)
+agencymemberrepository --> agencyserviceimpl: Optional<AgencyMember>
+opt isMember(email)
+  agencyserviceimpl --> agencycontroller: throw 409 ALREADY_AGENCY_MEMBER
+  agencycontroller --> memberspage_ui: 409 Error response
+  memberspage_ui --> owner: shows 409 toast
+end
+agencyserviceimpl -> agencyinvitationrepository: findPendingInvitation(email)
+agencyinvitationrepository --> agencyserviceimpl: Optional<AgencyInvitation>
+opt hasPendingInvitation(email)
+  agencyserviceimpl --> agencycontroller: throw 409 INVITATION_ALREADY_PENDING
+  agencycontroller --> memberspage_ui: 409 Error response
+  memberspage_ui --> owner: shows 409 toast
+end
+opt workspaceId != null
+  agencyserviceimpl -> workspacerepository: findById(workspaceId)
+  workspacerepository --> agencyserviceimpl: Optional<Workspace>
+end
+agencyserviceimpl -> agencyinvitation: new AgencyInvitation(...)
+agencyinvitation --> agencyserviceimpl: AgencyInvitation
+agencyserviceimpl -> agencyinvitationrepository: save(invitation)
+agencyinvitationrepository --> agencyserviceimpl: AgencyInvitation
+agencyserviceimpl -> mailservice: sendInvitationEmail(email, token)
+mailservice --> agencyserviceimpl: sent
+agencyserviceimpl -> agencyinvitationresponse: toInvitationResponse(invitation)
+agencyinvitationresponse --> agencyserviceimpl: AgencyInvitationResponse
+agencyserviceimpl --> agencycontroller: AgencyInvitationResponse
+agencycontroller --> memberspage_ui: 200 OK AgencyInvitationResponse
+memberspage_ui --> owner: shows invitation sent toast
+
+@enduml

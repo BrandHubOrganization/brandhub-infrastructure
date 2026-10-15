@@ -1,0 +1,73 @@
+@startuml 3.4.5 - Update Agency Profile
+title Sequence Diagram — 3.4.5 - Update Agency Profile
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Owner" as owner
+boundary "AgencyProfilePage (UI, edit mode)" as agencyprofilepage_ui_edit_mode
+boundary "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "Agency" as agency
+entity "AgencyResponse" as agencyresponse
+participant "FileStorageService" as filestorageservice
+
+' === Flow ===
+alt saves profile
+  owner -> agencyprofilepage_ui_edit_mode: submits profile form
+  agencyprofilepage_ui_edit_mode -> agencycontroller: PUT /api/v1/agencies/{agencyId}
+  agencycontroller -> agencyserviceimpl: updateAgency(currentUser, agencyId, request)
+  agencyserviceimpl -> agencyrepository: findById(agencyId)
+  agencyrepository --> agencyserviceimpl: Optional<Agency>
+  opt !agency.present || caller != OWNER
+    agencyserviceimpl --> agencycontroller: throw 403 NOT_AGENCY_OWNER
+    agencycontroller --> agencyprofilepage_ui_edit_mode: 403 Forbidden
+    agencyprofilepage_ui_edit_mode --> owner: shows 403 toast
+  end
+  agencyserviceimpl -> agency: updateFields(request)
+  agency --> agencyserviceimpl: Agency
+  agencyserviceimpl -> agencyrepository: save(agency)
+  agencyrepository --> agencyserviceimpl: Agency
+  agencyserviceimpl -> agencyresponse: toResponse(agency, OWNER)
+  agencyresponse --> agencyserviceimpl: AgencyResponse
+  agencyserviceimpl --> agencycontroller: AgencyResponse
+  agencycontroller --> agencyprofilepage_ui_edit_mode: 200 OK
+  agencyprofilepage_ui_edit_mode --> owner: shows 200 toast
+else uploads logo
+  owner -> agencyprofilepage_ui_edit_mode: uploads logo file
+  agencyprofilepage_ui_edit_mode -> agencycontroller: POST /api/v1/agencies/{agencyId}/logo
+  agencycontroller -> agencyserviceimpl: updateLogo(currentUser, agencyId, file)
+  agencyserviceimpl -> agencyrepository: findById(agencyId)
+  agencyrepository --> agencyserviceimpl: Optional<Agency>
+  opt !agency.present || caller != OWNER
+    agencyserviceimpl --> agencycontroller: throw 403 NOT_AGENCY_OWNER
+    agencycontroller --> agencyprofilepage_ui_edit_mode: 403 Forbidden
+    agencyprofilepage_ui_edit_mode --> owner: shows 403 toast
+  end
+  alt fileError
+    agencyserviceimpl -> filestorageservice: uploadLogo(agencyId, file)
+    filestorageservice --> agencyserviceimpl: throws error
+    agencyserviceimpl --> agencycontroller: throw 400 FILE_READ_ERROR
+    agencycontroller --> agencyprofilepage_ui_edit_mode: 400 Bad Request
+    agencyprofilepage_ui_edit_mode --> owner: shows 400 toast
+  else valid(file)
+    agencyserviceimpl -> filestorageservice: uploadLogo(agencyId, file)
+    filestorageservice --> agencyserviceimpl: logo URL
+    agencyserviceimpl -> agency: setLogoUrl(url)
+    agency --> agencyserviceimpl: Agency
+    agencyserviceimpl -> agencyrepository: save(agency)
+    agencyrepository --> agencyserviceimpl: Agency
+    agencyserviceimpl -> agencyresponse: toResponse(agency, OWNER)
+    agencyresponse --> agencyserviceimpl: AgencyResponse
+    agencyserviceimpl --> agencycontroller: AgencyResponse
+    agencycontroller --> agencyprofilepage_ui_edit_mode: 200 OK
+    agencyprofilepage_ui_edit_mode --> owner: shows 200 toast
+  end
+end
+
+@enduml

@@ -136,16 +136,26 @@ docker compose --env-file compose/.env -f compose/production/compose.yaml restar
 | ------------------- | ---------------------------------- | ------------ |
 | `api-gateway`       | Custom (JDK 21)                    | 8080         |
 | `business-service`  | Custom (JDK 21)                    | 8081         |
-| `ai-service`        | Custom (Python 3.11)               | 8082         |
+| `ai-service`        | Custom (Python 3.13)               | 8082         |
 | `publisher-service` | Custom (JDK 21)                    | 8083         |
 | `web-dashboard`     | Custom (nginx)                     | 3000         |
 | `mongodb`           | Atlas (cloud, not containerized)   | —            |
 | `postgres`          | postgres:17-alpine                 | 5432         |
 | `redis`             | redis:7.2-alpine                   | 6379         |
 | `rabbitmq`          | rabbitmq:3.12-management-alpine    | 5672 / 15672 |
-| `chromadb`          | chromadb/chroma:0.6.3              | 8000         |
+| `chromadb`          | chromadb/chroma:1.5.9              | 8000         |
 | `neo4j`             | neo4j:5.26-community               | 7474 / 7687  |
 | `pgadmin`           | dpage/pgadmin4:9                   | 5050         |
+
+ChromaDB server and the AI HTTP client are pinned together at **1.5.9**
+(`chromadb-client==1.5.9` in `brandhub-ai-service/requirements.txt`). Chroma 1.x
+stores persistent data in `/data`; the shared `brandhub-chroma-data` volume is
+mounted there. Back up existing data before upgrading from a 0.6.x server.
+The container healthcheck uses Bash HTTP over TCP because the 1.5.9 image does
+not include Python, wget or curl. The AI launcher checks the deployed Docker image
+tag against the installed client, so heartbeat alone cannot hide a version mismatch.
+The official 1.5.9 Rust image reports a hardcoded `1.0.0` at `/api/v2/version`
+and its CLI crate reports `1.4.4`; neither string identifies the Docker release.
 
 ## Database Initialization
 

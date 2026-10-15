@@ -1,0 +1,63 @@
+@startuml 3.7.12 - Recommend Collaborator
+title Sequence Diagram — 3.7.12 - Recommend Collaborator
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "RecommendCollaboratorPage (UI)" as recommend_ui
+boundary "CollaboratorController" as collaboratorcontroller
+control "CollaboratorServiceImpl" as collaboratorserviceimpl
+boundary "AiServiceClient" as aiserviceclient
+entity "ThirdPartyCollaboratorRepository" as thirdpartycollaboratorrepository
+entity "CampaignCollaboratorRepository" as campaigncollaboratorrepository
+entity "ThirdPartyCollaborator" as thirdpartycollaborator
+entity "CampaignCollaborator" as campaigncollaborator
+entity "CollaboratorResponse" as collaboratorresponse
+entity "CampaignCollaboratorResponse" as campaigncollaboratorresponse
+
+' === Flow ===
+user -> recommend_ui: enters target audience & budget, clicks "Get Recommendations"
+recommend_ui -> collaboratorcontroller: GET /api/v1/collaborators/agencies/{agencyId}
+collaboratorcontroller -> collaboratorserviceimpl: listByAgency(agencyId)
+collaboratorserviceimpl -> thirdpartycollaboratorrepository: findByAgencyId(agencyId)
+thirdpartycollaboratorrepository --> collaboratorserviceimpl: Optional<List<Row>>
+collaboratorserviceimpl -> thirdpartycollaborator: map rows -> List<ThirdPartyCollaborator>
+thirdpartycollaborator --> collaboratorserviceimpl: List<ThirdPartyCollaborator>
+collaboratorserviceimpl -> aiserviceclient: post("/api/v1/ai/collaborators/recommend", requestNode)
+aiserviceclient --> collaboratorserviceimpl: JsonNode recommendations
+loop for each recommendation item
+  collaboratorserviceimpl -> collaboratorresponse: new CollaboratorResponse(id, agencyId, partnerName, partnerType, contactInfo, notes, ...)
+  collaboratorresponse --> collaboratorserviceimpl: CollaboratorResponse
+end
+collaboratorserviceimpl --> collaboratorcontroller: List<CollaboratorResponse>
+collaboratorcontroller --> recommend_ui: 200 OK List<CollaboratorResponse>
+recommend_ui --> user: renders ranked media partners
+
+user -> recommend_ui: selects partner & clicks "Assign to Campaign"
+recommend_ui -> collaboratorcontroller: POST /api/v1/collaborators/assign
+collaboratorcontroller -> collaboratorserviceimpl: assign(currentUser, request)
+collaboratorserviceimpl -> thirdpartycollaboratorrepository: findById(request.collaboratorId())
+thirdpartycollaboratorrepository --> collaboratorserviceimpl: Optional<ThirdPartyCollaborator>
+opt !collaboratorOpt.isPresent()
+  collaboratorserviceimpl --> collaboratorcontroller: throw 404 NOT_FOUND
+  collaboratorcontroller --> recommend_ui: 404 Not Found
+  recommend_ui --> user: shows collaborator not found error
+end
+collaboratorserviceimpl -> thirdpartycollaborator: map row -> collaborator
+thirdpartycollaborator --> collaboratorserviceimpl: collaborator
+collaboratorserviceimpl -> campaigncollaborator: new CampaignCollaborator(mediaCampaignId, collaboratorId, CONTACTED)
+campaigncollaborator --> collaboratorserviceimpl: newCampaignCollaborator
+collaboratorserviceimpl -> campaigncollaboratorrepository: save(newCampaignCollaborator)
+campaigncollaboratorrepository --> collaboratorserviceimpl: savedAssignment
+collaboratorserviceimpl -> campaigncollaboratorresponse: new CampaignCollaboratorResponse(savedAssignment)
+campaigncollaboratorresponse --> collaboratorserviceimpl: campaignCollaboratorResponse
+collaboratorserviceimpl --> collaboratorcontroller: campaignCollaboratorResponse
+collaboratorcontroller --> recommend_ui: 200 OK CampaignCollaboratorResponse
+recommend_ui --> user: shows partner linked to campaign toast
+
+@enduml

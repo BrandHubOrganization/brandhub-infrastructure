@@ -1,0 +1,107 @@
+@startuml 3.3.2 - Update Profile
+title Sequence Diagram — 3.3.2 - Update Profile
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "ProfilePage (UI)" as profilepage_ui
+boundary "UserController" as usercontroller
+control "UserServiceImpl" as userserviceimpl
+entity "UserRepository" as userrepository
+entity "User" as user_1
+entity "UserSystemRoleRepository" as usersystemrolerepository
+entity "UserSystemRole" as usersystemrole
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "UserProfileResponse" as userprofileresponse
+participant "FileStorageService" as filestorageservice
+
+alt saves profile
+  user -> profilepage_ui: submits profile form
+  profilepage_ui -> usercontroller: PUT /api/v1/users/me
+  usercontroller -> userserviceimpl: updateUserProfile(currentUser, request)
+  alt !user.present
+    userserviceimpl -> userrepository: findById(currentUser.getId())
+    userrepository --> userserviceimpl: Optional.empty()
+    userserviceimpl --> usercontroller: throw 404 USER_NOT_FOUND
+    usercontroller --> profilepage_ui: 404 Not Found
+    profilepage_ui --> user: shows 404 toast
+  else user.present
+    userserviceimpl -> userrepository: findById(currentUser.getId())
+    userrepository --> userserviceimpl: Optional<User>
+    userserviceimpl -> user_1: updateProfileFields(request)
+    user_1 --> userserviceimpl: User
+    userserviceimpl -> userserviceimpl: serialize(portfolioUrls)
+    opt hasPortfolioUrls
+      userserviceimpl -> userserviceimpl: mergePreferences(user, request)
+      userserviceimpl -> userserviceimpl: serialize(preferences)
+      userserviceimpl -> userrepository: save(user)
+    end
+    userrepository --> userserviceimpl: User
+    userserviceimpl -> usersystemrolerepository: findByUserId(user.getId())
+    usersystemrolerepository --> userserviceimpl: Optional<UserSystemRole>
+    userserviceimpl -> usersystemrole: getRole()
+    usersystemrole --> userserviceimpl: role
+    opt workspaceId == null
+      userserviceimpl -> workspacememberrepository: findFirstByUserIdAndIsActiveTrue(user.getId())
+      workspacememberrepository --> userserviceimpl: Optional<WorkspaceMember>
+    end
+    userserviceimpl -> userprofileresponse: new UserProfileResponse(...)
+    userprofileresponse --> userserviceimpl: UserProfileResponse
+    userserviceimpl --> usercontroller: UserProfileResponse
+    usercontroller --> profilepage_ui: 200 OK UserProfileResponse
+    profilepage_ui --> user: shows 200 toast
+  end
+else uploads avatar
+  user -> profilepage_ui: uploads avatar file
+  profilepage_ui -> usercontroller: POST /api/v1/users/me/avatar
+  usercontroller -> userserviceimpl: updateAvatar(currentUser, file)
+  alt !file || file.empty
+    userserviceimpl -> userserviceimpl: validateImage(file)
+    userserviceimpl --> usercontroller: throw 400 NO_FILE_PROVIDED
+    usercontroller --> profilepage_ui: 400 Bad Request
+    profilepage_ui --> user: shows 400 toast
+  else !file.isImage
+    userserviceimpl -> userserviceimpl: validateImage(file)
+    userserviceimpl --> usercontroller: throw 400 INVALID_FILE_TYPE
+    usercontroller --> profilepage_ui: 400 Bad Request
+    profilepage_ui --> user: shows 400 toast
+  else file.size > 5MB
+    userserviceimpl -> userserviceimpl: validateImage(file)
+    userserviceimpl --> usercontroller: throw 400 FILE_TOO_LARGE
+    usercontroller --> profilepage_ui: 400 Bad Request
+    profilepage_ui --> user: shows 400 toast
+  else valid(file)
+    userserviceimpl -> userrepository: findById(currentUser.getId())
+    userrepository --> userserviceimpl: Optional<User>
+    userserviceimpl -> user_1: getAvatarUrl()
+    user_1 --> userserviceimpl: oldAvatarUrl
+    userserviceimpl -> userserviceimpl: getBytes(file)
+    userserviceimpl -> filestorageservice: uploadAvatar(file)
+    filestorageservice --> userserviceimpl: newAvatarUrl
+    opt hasOldAvatar
+      userserviceimpl -> filestorageservice: deleteFile(oldAvatarUrl)
+    end
+    userserviceimpl -> userrepository: save(user)
+    userrepository --> userserviceimpl: User
+    userserviceimpl -> usersystemrolerepository: findByUserId(user.getId())
+    usersystemrolerepository --> userserviceimpl: Optional<UserSystemRole>
+    userserviceimpl -> usersystemrole: getRole()
+    usersystemrole --> userserviceimpl: role
+    opt workspaceId == null
+      userserviceimpl -> workspacememberrepository: findFirstByUserIdAndIsActiveTrue(user.getId())
+      workspacememberrepository --> userserviceimpl: Optional<WorkspaceMember>
+    end
+    userserviceimpl -> userprofileresponse: new UserProfileResponse(...)
+    userprofileresponse --> userserviceimpl: UserProfileResponse
+    userserviceimpl --> usercontroller: UserProfileResponse
+    usercontroller --> profilepage_ui: 200 OK UserProfileResponse
+    profilepage_ui --> user: shows 200 toast
+  end
+end
+
+@enduml

@@ -70,14 +70,23 @@ cả 2 bên approve
       ▼
   [APPROVED] ──(nhấn triển khai)──► sinh Task backlog (N task) ──► [IN_PROGRESS]
                                                                           │
-                                                            tất cả Task hoàn thành
+                                                            Manager mark completed
                                                                           │
                                                                           ▼
                                                                    [COMPLETED]
 ```
 
 - Giống Package, `APPROVED` yêu cầu đồng thuận 2 phía.
-- Trạng thái `IN_PROGRESS`/`COMPLETED` của Campaign phụ thuộc tổng hợp trạng thái các Task con — không tự set tay.
+- **[Cập nhật BA 2026-10-08]** `IN_PROGRESS` sau deploy thành công; Manager chủ động
+  mark `COMPLETED` từ `IN_PROGRESS`. Được phép khi còn Task chưa hoàn thành nhưng
+  bắt buộc ghi lý do; không đổi trạng thái hoặc tự khóa workflow các Task con.
+- Một Workspace chỉ có một Campaign; chiến dịch mới dùng Workspace mới. Owner được
+  chọn từng thành viên và tùy chọn timezone khi nhân bản Workspace (DA-1255);
+  tài nguyên chờ module riêng. Đề xuất nhiều đợt
+  trong cùng Workspace không còn áp dụng.
+
+> **Campaign Addendum bên dưới là BA lịch sử cần review:** chưa có task riêng và
+> không được tạo Campaign thứ hai trong cùng Workspace để lách quan hệ 1:1 mới.
 
 **[CONFIRMED 2026-09-17] Campaign Addendum — bổ sung cho tính immutable:** Campaign gốc sau `APPROVED` vẫn immutable (không sửa trực tiếp), nhưng khi phát sinh khối lượng công việc lớn giữa chiến dịch (không phải 1 task lẻ qua Content Request hay Manager add thủ công), Agency tạo 1 **Campaign Addendum** — bản bổ sung link tới Campaign gốc (`parentCampaignId`), có thể chứa nhiều Task mới, cũng phải qua chu trình duyệt 2 phía riêng (Draft → Approved) như Campaign gốc. Mục đích: Task lớn phát sinh giữa kỳ vẫn truy vết được về đúng Campaign nào sinh ra nó, phục vụ báo cáo/billing — không để lẫn vào Task rời không rõ nguồn gốc như Manual Task đơn lẻ. Xem entity đề xuất tại [11-data-entities-glossary.md](11-data-entities-glossary.md).
 

@@ -1,0 +1,48 @@
+@startuml 3.6.32 - Schedule and Cancel Batch
+title Sequence Diagram — 3.6.32 - Scheduled Batch Lifecycle and Cancel
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+actor "Member" as member
+boundary "MailBatchesPage (UI)" as ui
+boundary "MailBatchController" as controller
+control "MailBatchService" as service
+entity "MailBatchRepository" as batches
+control "MailScheduleJob (every minute)" as job
+entity "MailDeliveryRepository" as deliveries
+
+== Cancel before run ==
+member -> ui: clicks "Cancel schedule" on a SCHEDULED batch
+ui -> controller: POST /api/v1/workspaces/{id}/mail-batches/{batchId}/cancel
+controller -> service: cancel(currentUser, workspaceId, batchId)
+service -> batches: findById(batchId)
+batches --> service: batch
+opt caller is not creator and role not in {OWNER, MANAGER}
+  service --> controller: throw 403 FORBIDDEN
+end
+opt batch.status != SCHEDULED
+  service --> controller: throw 409 MAIL_BATCH_NOT_CANCELLABLE
+  controller --> ui: 409 Conflict
+end
+service -> batches: status = CANCELLED
+service -> deliveries: drop PENDING deliveries
+service --> controller: 200 OK
+ui --> member: batch shows CANCELLED
+
+== Run at scheduled time ==
+job -> batches: find SCHEDULED where scheduled_at <= now
+batches --> job: due batches
+loop each due batch
+  job -> batches: status = QUEUED
+  job -> deliveries: set next_attempt_at = now for PENDING deliveries
+end
+note right of job
+  The MailDeliveryWorker then sends them under the
+  daily quota and throttle (see 3.6.32 send sequence).
+end note
+
+@enduml

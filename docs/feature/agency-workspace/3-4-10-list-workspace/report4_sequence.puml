@@ -1,0 +1,66 @@
+@startuml 3.4.10 - List Workspace
+title Sequence Diagram — 3.4.10 - List Workspace
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User (any role)" as user_any_role
+boundary "WorkspacePage (UI)" as workspacepage_ui
+boundary "WorkspaceController" as workspacecontroller
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "WorkspaceRepository" as workspacerepository
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "ClientProfileRepository" as clientprofilerepository
+entity "Workspace" as workspace
+entity "WorkspaceResponse" as workspaceresponse
+
+alt views all workspaces
+  user_any_role -> workspacepage_ui: opens workspace list
+  workspacepage_ui -> workspacecontroller: GET /api/v1/workspaces
+  workspacecontroller -> workspaceserviceimpl: listWorkspaces(currentUser)
+  workspaceserviceimpl -> agencyrepository: findByOwnerIdAndStatusNot(userId, SOFT_DELETED)
+  agencyrepository --> workspaceserviceimpl: List<Agency>
+  workspaceserviceimpl -> workspacerepository: findByAgencyId(agencyId)
+  workspacerepository --> workspaceserviceimpl: List<Workspace>
+  workspaceserviceimpl -> workspacememberrepository: findByUserIdAndIsActiveTrue(userId)
+  workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+  workspaceserviceimpl -> clientprofilerepository: findByUserId(userId)
+  clientprofilerepository --> workspaceserviceimpl: List<ClientProfile>
+  opt !clientProfileIds.isEmpty()
+    workspaceserviceimpl -> workspacememberrepository: findByClientProfileIds(clientProfileIds)
+    workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+    workspaceserviceimpl -> workspaceserviceimpl: mergeWorkspaceIds(...)
+    workspaceserviceimpl -> workspacerepository: findAllById(workspaceIds)
+  end
+  workspacerepository --> workspaceserviceimpl: List<Workspace>
+  workspaceserviceimpl -> workspace: getSettings()
+  workspace --> workspaceserviceimpl: settings
+  workspaceserviceimpl -> workspaceresponse: toResponse(ws, role)
+  workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+  workspaceserviceimpl --> workspacecontroller: List<WorkspaceResponse>
+  workspacecontroller --> workspacepage_ui: 200 OK List<WorkspaceResponse>
+  workspacepage_ui --> user_any_role: renders workspace list
+else views managed workspaces
+  user_any_role -> workspacepage_ui: selects managed workspaces tab
+  workspacepage_ui -> workspacecontroller: GET /api/v1/workspaces/my-managed
+  workspacecontroller -> workspaceserviceimpl: listMyManagedWorkspaces(currentUser)
+  workspaceserviceimpl -> workspacememberrepository: findByUserIdAndIsActiveTrue(userId)
+  workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+  workspaceserviceimpl -> workspaceserviceimpl: filterManagerRole()
+  workspaceserviceimpl -> workspacerepository: findAllById(managedWorkspaceIds)
+  workspacerepository --> workspaceserviceimpl: Map<UUID, Workspace>
+  workspaceserviceimpl -> workspacememberrepository: countByWorkspaceId(workspaceId)
+  workspacememberrepository --> workspaceserviceimpl: long memberCount
+  workspaceserviceimpl -> workspaceresponse: new ManagedWorkspaceResponse(...)
+  workspaceresponse --> workspaceserviceimpl: ManagedWorkspaceResponse
+  workspaceserviceimpl --> workspacecontroller: List<ManagedWorkspaceResponse>
+  workspacecontroller --> workspacepage_ui: 200 OK List<ManagedWorkspaceResponse>
+  workspacepage_ui --> user_any_role: renders managed workspaces
+end
+
+@enduml

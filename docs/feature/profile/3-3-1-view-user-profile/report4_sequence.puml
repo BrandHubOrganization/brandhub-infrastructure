@@ -1,0 +1,57 @@
+@startuml 3.3.1 - View User Profile
+title Sequence Diagram — 3.3.1 - View User Profile
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "ProfilePage (UI)" as profilepage_ui
+boundary "UserController" as usercontroller
+control "UserServiceImpl" as userserviceimpl
+entity "UserRepository" as userrepository
+entity "UserSystemRoleRepository" as usersystemrolerepository
+entity "UserSystemRole" as usersystemrole
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "UserProfileResponse" as userprofileresponse
+
+' === Flow ===
+user -> profilepage_ui: opens /profile
+profilepage_ui -> usercontroller: GET /api/v1/users/me
+usercontroller -> userserviceimpl: getUserProfile(currentUser)
+userserviceimpl -> userrepository: findById(currentUser.getId())
+userrepository --> userserviceimpl: Optional<User>
+opt !user.present
+  userserviceimpl --> usercontroller: throw 404 USER_NOT_FOUND
+  usercontroller --> profilepage_ui: 404 Not Found
+  profilepage_ui --> user: shows 404 toast
+end
+userserviceimpl -> userserviceimpl: user = userOpt.get()
+opt !role.present
+  userserviceimpl -> usersystemrolerepository: findByUserId(user.getId())
+  usersystemrolerepository --> userserviceimpl: Optional.empty()
+  userserviceimpl -> userserviceimpl: role = USER
+end
+opt role.present
+  userserviceimpl -> usersystemrolerepository: findByUserId(user.getId())
+  usersystemrolerepository --> userserviceimpl: Optional<UserSystemRole>
+  userserviceimpl -> usersystemrole: getRole()
+  usersystemrole --> userserviceimpl: role
+end
+opt workspaceId == null
+  userserviceimpl -> workspacememberrepository: findFirstByUserIdAndIsActiveTrue(user.getId())
+  workspacememberrepository --> userserviceimpl: Optional<WorkspaceMember>
+  userserviceimpl -> userserviceimpl: workspaceId = member.getWorkspaceId()
+end
+userserviceimpl -> userserviceimpl: parsePreferences(user)
+userserviceimpl -> userserviceimpl: parseSkillsAndUrls(user)
+userserviceimpl -> userprofileresponse: new UserProfileResponse(...)
+userprofileresponse --> userserviceimpl: UserProfileResponse
+userserviceimpl --> usercontroller: UserProfileResponse
+usercontroller --> profilepage_ui: 200 OK UserProfileResponse
+profilepage_ui --> user: renders profile
+
+@enduml

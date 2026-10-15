@@ -1,0 +1,44 @@
+@startuml 3.3.3 - View Client Profile
+title Sequence Diagram — 3.3.3 - View Client Profile
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "ClientProfileListPage (UI)" as clientprofilelistpage_ui
+boundary "WorkspaceClientsPage (UI)" as workspaceclientspage_ui
+boundary "ClientProfileController" as clientprofilecontroller
+boundary "WorkspaceController" as workspacecontroller
+control "ClientProfileServiceImpl" as clientprofileserviceimpl
+control "WorkspaceServiceImpl" as workspaceserviceimpl
+entity "ClientProfileRepository" as clientprofilerepository
+entity "WorkspaceMemberRepository" as workspacememberrepository
+
+' === Flow ===
+user -> clientprofilelistpage_ui: opens /client-profiles
+clientprofilelistpage_ui -> clientprofilelistpage_ui: checkRoleAndContext()
+
+alt role == BRAND_OWNER
+  clientprofilelistpage_ui -> clientprofilecontroller: GET /api/v1/client-profile/mine
+  clientprofilecontroller -> clientprofileserviceimpl: listMine(currentUser)
+  clientprofileserviceimpl -> clientprofilerepository: findByUserId(currentUser.getId())
+  clientprofilerepository --> clientprofileserviceimpl: List<ClientProfile>
+  clientprofileserviceimpl --> clientprofilecontroller: List<ClientProfileResponse>
+  clientprofilecontroller --> clientprofilelistpage_ui: 200 OK List<ClientProfileResponse>
+  clientprofilelistpage_ui --> user: renders brand profiles
+else role == AGENCY_MEMBER
+  clientprofilelistpage_ui -> workspaceclientspage_ui: navigates to /workspaces/:id/clients
+  workspaceclientspage_ui -> workspacecontroller: GET /api/v1/workspaces/{id}/members
+  workspacecontroller -> workspaceserviceimpl: listMembers(workspaceId)
+  workspaceserviceimpl -> workspacememberrepository: assertActiveMember(workspaceId, userId)
+  workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+  workspaceserviceimpl --> workspacecontroller: List<WorkspaceMemberResponse>
+  workspacecontroller --> workspaceclientspage_ui: 200 OK List<WorkspaceMemberResponse>
+  workspaceclientspage_ui --> user: renders client members
+end
+
+@enduml

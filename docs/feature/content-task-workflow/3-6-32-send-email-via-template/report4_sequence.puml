@@ -1,0 +1,102 @@
+@startuml 3.6.32 - Send Email via Template
+title Sequence Diagram — 3.6.32 - Send Email via Template
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Member (OWNER/MANAGER/CREATOR)" as member
+boundary "SendEmailModal (UI)" as ui
+boundary "MailTemplateController" as controller
+control "MailSendService" as service
+entity "WorkspaceAccessService" as access
+entity "MailTemplateRepository (MongoDB)" as templates
+control "TemplateRenderer" as renderer
+entity "RecipientClassifier" as classifier
+entity "QuotaService" as quota
+entity "MailBatchRepository (PostgreSQL)" as batches
+entity "MailDeliveryRepository (PostgreSQL)" as deliveries
+control "MailDeliveryWorker" as worker
+entity "MailService (SMTP)" as smtp
+entity "SuppressionRepository" as suppressions
+entity "NotificationService" as notifier
+
+' === Flow: submit ===
+member -> ui: pastes / uploads CSV, fills variables, previews, clicks Send now or Schedule
+ui -> controller: POST /api/v1/workspaces/{id}/mail-templates/{templateId}/send {recipients, variables, attachmentIds?, scheduledAt?}
+controller -> service: send(currentUser, workspaceId, templateId, request)
+service -> access: requireActiveMember(workspaceId, userId)
+access --> service: member(role)
+opt role not permitted
+  service --> controller: throw 403 FORBIDDEN
+  controller --> ui: 403 Forbidden
+end
+service -> templates: findByIdAndDeletedAtIsNull(templateId)
+templates --> service: Optional<template>
+opt template missing
+  service --> controller: throw 404 TEMPLATE_NOT_FOUND
+  controller --> ui: 404 Not Found
+end
+opt recipients empty or > 200
+  service --> controller: throw 400 VALIDATION_ERROR
+  controller --> ui: 400 Bad Request
+end
+opt scheduledAt outside [now+5min, now+30d]
+  service --> controller: throw 400 MAIL_SCHEDULE_OUT_OF_RANGE
+  controller --> ui: 400 Bad Request
+end
+loop each recipient row
+  service -> renderer: render(template, row.variables + shared + built-ins) (HTML-escape values)
+  renderer --> service: rendered / MISSING_VARIABLE:x
+  service -> classifier: isInsideWorkspace(email) (Client contact_email or active member)
+  classifier --> service: true / false
+end
+service -> service: dedupe (case-insensitive), collect rejected[]
+opt all rows rejected
+  service --> controller: throw 400 VALIDATION_ERROR
+  controller --> ui: 400 Bad Request
+end
+opt scheduledAt == null
+  service -> quota: remainingToday(workspaceId)
+  quota --> service: remaining
+  opt accepted > remaining
+    service --> controller: throw 429 MAIL_QUOTA_EXCEEDED (remainingToday)
+    controller --> ui: 429 Too Many Requests
+    ui --> member: shows quota left, suggests scheduling
+  end
+end
+service -> batches: save(batch: QUEUED or SCHEDULED, snapshot subject/body/attachments)
+service -> deliveries: saveAll(PENDING deliveries, event_key unique) in the same transaction
+service --> controller: 202 {batchId, status, accepted, rejected[], scheduledAt}
+controller --> ui: 202 Accepted
+ui --> member: shows batch page and rejected rows
+
+' === Flow: background delivery ===
+== Background worker ==
+worker -> deliveries: claim next due PENDING (FOR UPDATE SKIP LOCKED)
+deliveries --> worker: delivery
+worker -> suppressions: isSuppressed(workspaceId, email) (external recipients only)
+suppressions --> worker: true / false
+opt suppressed
+  worker -> deliveries: mark SUPPRESSED
+end
+worker -> quota: tryConsume(day, workspaceId) atomic SYSTEM + WORKSPACE
+quota --> worker: ok / exhausted
+opt exhausted
+  worker -> deliveries: next_attempt_at = next day 00:00 (Asia/Ho_Chi_Minh)
+end
+worker -> smtp: sendHtml(to, subject, html, replyTo, attachments, List-Unsubscribe)
+alt delivered
+  smtp --> worker: ok
+  worker -> deliveries: mark SENT
+else failure
+  smtp --> worker: error
+  worker -> deliveries: attempts++, backoff or FAILED after 5
+end
+worker -> batches: update counters; COMPLETED / FAILED when no PENDING left
+worker -> notifier: notify sender (in-app) when batch finished
+
+@enduml
