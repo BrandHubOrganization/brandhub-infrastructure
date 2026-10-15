@@ -1,6 +1,6 @@
 # Test — Content Writing View (FR 3.6.10)
 
-> Status: **Implemented & executed (2026-10-12).** All passing: 47 frontend unit + 22 backend service unit + 18 browser E2E + 31 live-backend integration. The live run (before merging the team's develop) found three defects the mocked tests could not see (§7 #4–#6); #4/#5 were meanwhile fixed upstream in `ChatInboundChannelInterceptor` and #6 was re-applied on top of develop. Items that could **not** be executed or are out of scope are listed explicitly in §6. See [spec.md](spec.md), [task.md](task.md).
+> Status: **Implemented & executed (2026-10-12).** All passing: 47 frontend unit + 22 backend service unit + 20 browser E2E + 31 live-backend integration (re-run 31/31 on the merged develop code). The live run (before merging the team's develop) found three defects the mocked tests could not see (§7 #4–#6); #4/#5 were meanwhile fixed upstream in `ChatInboundChannelInterceptor` and #6 was re-applied on top of develop. Items that could **not** be executed or are out of scope are listed explicitly in §6. See [spec.md](spec.md), [task.md](task.md).
 
 ## 1. Summary
 
@@ -8,7 +8,7 @@
 |---|---|---|---|---|
 | FE pure logic (list, diff, publish text, restore, CRDT) | Vitest | `brandhub-web-dashboard/src/pages/content-writing/*.test.ts` | 47 | ✅ 47 / 47 |
 | BE service logic (load, op log, snapshot, versions, restore) | JUnit 5 + Mockito | `brandhub-business-service/src/test/java/.../service/impl/TaskContentServiceImplTest.java` | 22 | ✅ 22 / 22 |
-| Browser E2E (real canvas editor, mocked REST + in-test STOMP broker) | Playwright | `brandhub-web-dashboard/tests/e2e/editor/content-writing.spec.ts` | 18 | ✅ 18 / 18 |
+| Browser E2E (real canvas editor, mocked REST + in-test STOMP broker) | Playwright | `brandhub-web-dashboard/tests/e2e/editor/content-writing.spec.ts` | 20 | ✅ 20 / 20 |
 | **Live backend integration** (real Spring Boot + Postgres + JWT + STOMP; two WS clients with real Yjs) | Node script | [integration-test.cjs](integration-test.cjs) | 31 | ✅ 31 / 31 |
 
 ## 2. How to run
@@ -29,7 +29,7 @@ cd brandhub-web-dashboard && npx playwright test tests/e2e/editor/content-writin
 WS_ID=<workspace uuid> node integration-test.cjs
 ```
 
-Live integration setup (used for the 2026-10-12 run): start `brandhub-postgres` + `brandhub-redis`; create a scratch DB cloned with `pg_dump -s brandhub | psql brandhub_e2e`; run business-service with `POSTGRES_URL=jdbc:postgresql://localhost:5432/brandhub_e2e`, `SPRING_JPA_HIBERNATE_DDL_AUTO=update`, `MONGODB_URI=mongodb://localhost:27017` and the JWT/Redis vars from `docker/.env`; register `e2e_a/b/c@test.local` (password `Passw0rdx1`) via `/api/v1/auth/register`, activate them in SQL (`status='ACTIVE', email_verified_at=now()`), and seed one agency + workspace with `e2e_a` as MANAGER, `e2e_b` as CREATOR and `e2e_c` as non-member. The script covers: REST load/RBAC (IT-01..06), WS handshake (IT-07..08), two live clients and 120-update concurrent burst (IT-09..16), snapshots/versions/who (IT-17..24), read-only restore + live propagation (IT-25..28), non-member over WS (IT-29..30), payload validation (IT-31).
+Live integration setup (used for the 2026-10-12 run): start `brandhub-postgres` + `brandhub-redis`; create a scratch DB cloned with `pg_dump -s brandhub | psql brandhub_e2e`; run business-service with `POSTGRES_URL=jdbc:postgresql://localhost:5432/brandhub_e2e`, `SPRING_JPA_HIBERNATE_DDL_AUTO=update`, `MONGODB_URI=mongodb://localhost:27017` and the JWT/Redis vars from `docker/.env`; register `e2e_a/b/c@test.local` (password `Passw0rdx1`) via `/api/v1/auth/register`, activate them in SQL (`status='ACTIVE', email_verified_at=now()`), and seed one agency + workspace with `e2e_a` as MANAGER, `e2e_b` as CREATOR and `e2e_c` as non-member. Since Tasks moved to MongoDB (develop, 2026-10): create the `uq_tasks_campaign_work_item` index on the scratch Mongo `tasks` collection (as in `2026-10-09-campaign-task-deployment.js`, otherwise `TASK_SCHEMA_NOT_READY`) and apply the FK drops from `2026-10-09-campaign-deployment.sql` to `task_content_*` (otherwise inserts fail on the old FK to Postgres `tasks`). Re-run on the merged develop code: 31/31. The script covers: REST load/RBAC (IT-01..06), WS handshake (IT-07..08), two live clients and 120-update concurrent burst (IT-09..16), snapshots/versions/who (IT-17..24), read-only restore + live propagation (IT-25..28), non-member over WS (IT-29..30), payload validation (IT-31).
 
 Notes:
 - First E2E run on a machine needs `npx playwright install chromium` (the installed `@playwright/test` pins a specific Chromium build).
@@ -142,6 +142,8 @@ Notes:
 | E2E-16 | type, wait 21 s (fake clock) | exactly one `POST .../content/snapshot` with the typed text |
 | E2E-17 | bold text → "Sao chép bản đăng" | clipboard holds converted text |
 | E2E-18 | empty document | copy button disabled |
+| E2E-19 | socket dropped, edit typed offline, then reconnect | edit queued + persisted in localStorage, sent after reconnect, queue cleared; update missed while offline is pulled from REST and merged |
+| E2E-20 | accessibility attributes | hidden input has `role=textbox` + `aria-multiline`; canvas is `aria-hidden` |
 
 ## 6. Not executed / known gaps
 
@@ -152,7 +154,8 @@ Notes:
 | Full browser → gateway → backend run | **Not run** | Gateway not started; the frontend's real `useTaskContentSync` against the live backend was not exercised (the Node client mirrors it). |
 | Pre-existing failures elsewhere in business-service | Out of scope | Startup logs show unrelated missing tables (`admin_notifications`, `admin_email_outbox`, `admin_report_exports`) in the cloned schema; `/actuator/health` reports DOWN. Not touched. |
 | Screen reader | Partial | Only that the hidden `aria-live` mirror tracks the document (E2E-02..10); no real AT run. |
-| Offline queue, virtualization | Out of scope | Not implemented (see [task.md](task.md) #8, #10). |
+| Offline resilience | ✅ E2E-19 | In-memory + localStorage queue and REST resync on reconnect. Not covered: a real network outage against a live backend, token refresh during a long outage. |
+| Virtualization | Out of scope | Not implemented (see [task.md](task.md) #8). |
 | Mutation check of the per-task lock | ✅ Effectively done | The live burst (IT-13) failed with the old lock-inside-`@Transactional` code (228 duplicate-key errors) and passes after the fix. The Mockito concurrency test could **not** catch this because mocks have no transactions. |
 | Rendering of styled Unicode on target platforms | Manual | Facebook/TikTok/Zalo rendering of Vietnamese styled letters varies by font; verify manually before relying on it. |
 | Wrapped-line hanging indent / mid-list renumbering | Known limitation | Lists are literal text prefixes (see spec.md). |
