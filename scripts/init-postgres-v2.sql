@@ -614,6 +614,20 @@ BEFORE INSERT ON campaign_collaborators
 FOR EACH ROW EXECUTE FUNCTION mark_collaborator_usage_on_link();
 
 -- ============================================================
+-- Content request completion outbox (durable SQL queue)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS content_request_completion_jobs (
+    campaign_id  UUID        PRIMARY KEY,
+    workspace_id UUID        NOT NULL,
+    actor_id     UUID        NOT NULL,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_content_req_completion_jobs_created
+    ON content_request_completion_jobs (created_at);
+
+-- ============================================================
 -- Billing group
 -- ============================================================
 
