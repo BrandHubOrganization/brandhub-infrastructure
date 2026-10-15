@@ -78,6 +78,7 @@ test('init and migration content_requests validator/index parity', () => {
   };
   const proxy = new Proxy(db, { get(target, key) {
     if (key === 'getSiblingDB') return () => proxy;
+    if (key === 'getCollection') return name => proxy[name];
     if (key in target) return target[key];
     return { createIndex: (keys, options) => {
       if (!initIndexes.has(key)) initIndexes.set(key, []);
