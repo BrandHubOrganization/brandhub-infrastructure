@@ -97,7 +97,7 @@ renders bold/italic runs as Unicode Mathematical Sans-Serif letters; see [test.m
 
 - **Vietnamese IME through the off-screen hidden input**: typing diacritics (Unikey, Telex, VNI) through the off-screen `contenteditable` must work correctly with `compositionstart`/`compositionupdate`/`compositionend` — raw keystrokes must not be forwarded into the canvas state before composition ends, or diacritics will render incorrectly. **Implemented and browser-verified.**
 
-- **Offline / WebSocket disconnect mid-session**: **not implemented in this pass** (see task.md) — edits made while disconnected are not queued; `useTaskContentSync` simply reconnects (`reconnectDelay: 3000`) and resumes subscribing. A disconnected client's local Yjs edits are not lost in memory, but are not persisted/broadcast until the connection is back.
+- **Offline / WebSocket disconnect mid-session**: **implemented.** `useTaskContentSync` reconnects (`reconnectDelay: 3000`, with a fresh access token via `beforeConnect`). Edits typed while disconnected go into a queue that is also persisted in `localStorage` (`brandhub-content-pending:{taskId}`), so closing the tab does not lose them; the queue is flushed after reconnect (Yjs updates are idempotent, replay is safe). On every reconnect the client re-reads the content log (`GET .../content`) and merges updates broadcast while it was away.
 
 ## 8. Definition of Done
 

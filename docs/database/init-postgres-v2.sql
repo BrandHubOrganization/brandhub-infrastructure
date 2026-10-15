@@ -5,7 +5,7 @@
 --
 -- Fresh database bootstrap; existing databases must use docs/database/migrations/.
 -- CREATE IF NOT EXISTS does not upgrade existing table definitions.
--- Synchronized with PostgreSQL migrations through 2026-10-02.
+-- Synchronized with PostgreSQL migrations through 2026-10-14.
 -- Scope: PostgreSQL-owned entities only. MongoDB collections are not mirrored here.
 --
 -- Decisions confirmed 2026-09-16 (docs/database/migration/migration-plan-v1-to-v2.md §0):
@@ -20,15 +20,22 @@
 --   - ai_credit_ledgers: split into ai_credit_ledgers (Agency-wide monthly usage, no user)
 --     + ai_credit_creator_limits (per-Creator cap set by Owner, config only, not usage tracking).
 --
--- PostgreSQL tables (31):
+-- PostgreSQL tables (52):
 --   Monitoring:   monitoring_servers, monitoring_collectors,
 --                 monitoring_health_targets, monitoring_health_results, monitoring_enrollments
---   Identity:     users, user_oauth_providers, user_refresh_tokens, user_system_roles
+--   Identity:     users, user_oauth_providers, user_refresh_tokens, user_system_roles,
+--                 account_activation_tokens, subscription_plan_changes
 --   Organization: agencies, agency_members, agency_invitations, workspaces,
---                 workspace_members, workspace_invitations, workspace_templates, client_profiles
---   Commerce:     media_packages, workspace_media_packages, media_campaigns
---   Content:      tasks, task_content_operations, task_content_snapshots
+--                 workspace_members, workspace_invitations, workspace_templates, client_profiles,
+--                 workspace_hashtags
+--   Commerce:     media_packages, workspace_media_packages, package_negotiation_events,
+--                 media_campaigns, campaign_versions, campaign_review_events, campaign_deployments
+--   Content & Outbox: tasks, task_content_operations, task_content_snapshots,
+--                 content_request_completion_jobs
 --   Collaborator: third_party_collaborators, campaign_collaborators
+--   Mail Sending: mail_attachments, mail_batches, mail_deliveries, mail_send_quota, mail_suppressions
+--   Admin & Mod:  user_strikes, sanction_reviews, admin_account_operations, admin_email_outbox,
+--                 admin_notifications, admin_report_exports, content_moderation_reviews, user_notifications
 --   Billing:      subscription_plans, user_subscriptions, transactions,
 --                 ai_credit_ledgers, ai_credit_creator_limits, audit_logs
 -- ============================================================
@@ -1008,6 +1015,9 @@ CREATE TABLE IF NOT EXISTS content_request_completion_jobs (
     actor_id     UUID        NOT NULL,
     created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_content_req_completion_jobs_created
+    ON content_request_completion_jobs (created_at);
 
 -- ============================================================
 -- Seed subscription plans
