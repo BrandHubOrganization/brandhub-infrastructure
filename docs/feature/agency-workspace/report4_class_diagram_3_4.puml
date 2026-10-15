@@ -267,34 +267,38 @@ package "com.brandhub.business.repository" {
     interface AgencyRepository <<repository>> {
         + findById(id: UUID): Optional<Agency>
         + save(agency: Agency): Agency
-        + findByOwnerId(ownerId: UUID): List<Agency>
         + findByOwnerIdAndStatusNot(ownerId: UUID, status: EntityStatus): List<Agency>
+        + findAllById(ids: Iterable<UUID>): List<Agency>
     }
 
     interface AgencyMemberRepository <<repository>> {
+        + findById(id: UUID): Optional<AgencyMember>
         + findByAgencyId(agencyId: UUID): List<AgencyMember>
-        + findByAgencyIdAndUserId(agencyId: UUID, userId: UUID): Optional<AgencyMember>
         + findByUserId(userId: UUID): List<AgencyMember>
+        + findByAgencyIdAndUserId(agencyId: UUID, userId: UUID): Optional<AgencyMember>
         + save(member: AgencyMember): AgencyMember
         + delete(member: AgencyMember): void
     }
 
     interface AgencyInvitationRepository <<repository>> {
+        + findById(id: UUID): Optional<AgencyInvitation>
         + findByAgencyId(agencyId: UUID): List<AgencyInvitation>
         + findByToken(token: String): Optional<AgencyInvitation>
         + findByAgencyIdAndInvitedEmailAndStatusAndExpiresAtAfter(agencyId: UUID, email: String, status: InvitationStatus, now: OffsetDateTime): Optional<AgencyInvitation>
         + findByInvitedEmailAndStatus(email: String, status: InvitationStatus): List<AgencyInvitation>
         + countByAgencyIdAndStatusAndExpiresAtAfter(agencyId: UUID, status: InvitationStatus, now: OffsetDateTime): long
+        + save(invitation: AgencyInvitation): AgencyInvitation
     }
 
     interface WorkspaceRepository <<repository>> {
         + findById(id: UUID): Optional<Workspace>
-        + findByIdForUpdate(id: UUID): Optional<Workspace>
+        + findAllById(ids: Iterable<UUID>): List<Workspace>
         + findByAgencyId(agencyId: UUID): List<Workspace>
         + save(workspace: Workspace): Workspace
     }
 
     interface WorkspaceMemberRepository <<repository>> {
+        + findById(id: UUID): Optional<WorkspaceMember>
         + findByWorkspaceIdAndUserIdAndIsActiveTrue(workspaceId: UUID, userId: UUID): Optional<WorkspaceMember>
         + findByWorkspaceIdAndClientProfileIdAndIsActiveTrue(workspaceId: UUID, clientProfileId: UUID): Optional<WorkspaceMember>
         + findByWorkspaceIdAndIsActiveTrue(workspaceId: UUID): List<WorkspaceMember>
@@ -302,6 +306,7 @@ package "com.brandhub.business.repository" {
         + findByClientProfileIdInAndIsActiveTrue(clientProfileIds: List<UUID>): List<WorkspaceMember>
         + countByWorkspaceIdAndRoleAndIsActiveTrue(workspaceId: UUID, role: MemberRole): long
         + countByWorkspaceIdAndIsActiveTrue(workspaceId: UUID): long
+        + save(member: WorkspaceMember): WorkspaceMember
     }
 
     interface WorkspaceInvitationRepository <<repository>> {
@@ -309,9 +314,11 @@ package "com.brandhub.business.repository" {
         + findByWorkspaceIdAndInvitedEmailAndStatusAndExpiresAtAfter(workspaceId: UUID, email: String, status: InvitationStatus, now: OffsetDateTime): Optional<WorkspaceInvitation>
         + findByInvitedEmailAndStatus(email: String, status: InvitationStatus): List<WorkspaceInvitation>
         + findByToken(token: String): Optional<WorkspaceInvitation>
+        + save(invitation: WorkspaceInvitation): WorkspaceInvitation
     }
 
     interface WorkspaceTemplateRepository <<repository>> {
+        + findById(id: UUID): Optional<WorkspaceTemplate>
         + findByAgencyId(agencyId: UUID): List<WorkspaceTemplate>
         + findByAgencyIdOrAgencyIdIsNull(agencyId: UUID): List<WorkspaceTemplate>
         + save(template: WorkspaceTemplate): WorkspaceTemplate
@@ -320,7 +327,6 @@ package "com.brandhub.business.repository" {
 
     interface WorkspaceMediaPackageRepository <<repository>> {
         + findByWorkspaceId(workspaceId: UUID): Optional<WorkspaceMediaPackage>
-        + findByWorkspaceIdForUpdate(workspaceId: UUID): Optional<WorkspaceMediaPackage>
     }
 }
 
@@ -351,6 +357,48 @@ package "com.brandhub.business.model" {
         - deletedAt: OffsetDateTime
         - createdAt: OffsetDateTime
         - updatedAt: OffsetDateTime
+        __ Accessors (Used in Feature) __
+        + getId(): UUID
+        + getOwnerId(): UUID
+        + getName(): String
+        + setName(name: String): void
+        + getLogoUrl(): String
+        + setLogoUrl(logoUrl: String): void
+        + getBannerUrl(): String
+        + setBannerUrl(bannerUrl: String): void
+        + getDescription(): String
+        + setDescription(description: String): void
+        + getCategory(): AgencyCategory
+        + setCategory(category: AgencyCategory): void
+        + getCompanySize(): CompanySize
+        + setCompanySize(companySize: CompanySize): void
+        + getWebsite(): String
+        + setWebsite(website: String): void
+        + getPhone(): String
+        + setPhone(phone: String): void
+        + getLocation(): String
+        + setLocation(location: String): void
+        + getBrandColor(): String
+        + setBrandColor(brandColor: String): void
+        + getLogoIcon(): String
+        + setLogoIcon(logoIcon: String): void
+        + getTagline(): String
+        + setTagline(tagline: String): void
+        + getFoundedYear(): Integer
+        + setFoundedYear(foundedYear: Integer): void
+        + getFacebookUrl(): String
+        + setFacebookUrl(facebookUrl: String): void
+        + getLinkedinUrl(): String
+        + setLinkedinUrl(linkedinUrl: String): void
+        + getInstagramUrl(): String
+        + setInstagramUrl(instagramUrl: String): void
+        + getStatus(): EntityStatus
+        + setStatus(status: EntityStatus): void
+        + getDeletedAt(): OffsetDateTime
+        + setDeletedAt(deletedAt: OffsetDateTime): void
+        + getCreatedAt(): OffsetDateTime
+        + getUpdatedAt(): OffsetDateTime
+        + setUpdatedAt(updatedAt: OffsetDateTime): void
     }
 
     class AgencyMember <<entity>> {
@@ -359,6 +407,13 @@ package "com.brandhub.business.model" {
         - userId: UUID
         - role: AgencyMemberRole
         - joinedAt: OffsetDateTime
+        __ Accessors (Used in Feature) __
+        + getId(): UUID
+        + getAgencyId(): UUID
+        + getUserId(): UUID
+        + getRole(): AgencyMemberRole
+        + setRole(role: AgencyMemberRole): void
+        + getJoinedAt(): OffsetDateTime
     }
 
     class AgencyInvitation <<entity>> {
@@ -374,6 +429,21 @@ package "com.brandhub.business.model" {
         - expiresAt: OffsetDateTime
         - acceptedAt: OffsetDateTime
         - createdAt: OffsetDateTime
+        __ Accessors (Used in Feature) __
+        + getId(): UUID
+        + getAgencyId(): UUID
+        + getInvitedEmail(): String
+        + getInvitedBy(): UUID
+        + getToken(): String
+        + getNote(): String
+        + getWorkspaceId(): UUID
+        + getRole(): MemberRole
+        + getStatus(): InvitationStatus
+        + setStatus(status: InvitationStatus): void
+        + getExpiresAt(): OffsetDateTime
+        + getAcceptedAt(): OffsetDateTime
+        + setAcceptedAt(acceptedAt: OffsetDateTime): void
+        + getCreatedAt(): OffsetDateTime
     }
 
     class Workspace <<entity>> {
@@ -403,6 +473,51 @@ package "com.brandhub.business.model" {
         - deletedAt: OffsetDateTime
         - createdAt: OffsetDateTime
         - updatedAt: OffsetDateTime
+        __ Accessors (Used in Feature) __
+        + getId(): UUID
+        + getAgencyId(): UUID
+        + getName(): String
+        + setName(name: String): void
+        + getCreatedBy(): UUID
+        + getSettings(): String
+        + setSettings(settings: String): void
+        + getIndustry(): WorkspaceIndustry
+        + setIndustry(industry: WorkspaceIndustry): void
+        + getCompanySize(): CompanySize
+        + setCompanySize(companySize: CompanySize): void
+        + getWebsite(): String
+        + setWebsite(website: String): void
+        + getPhone(): String
+        + setPhone(phone: String): void
+        + getLocation(): String
+        + setLocation(location: String): void
+        + getDescription(): String
+        + setDescription(description: String): void
+        + getBrandColor(): String
+        + setBrandColor(brandColor: String): void
+        + getLogoIcon(): String
+        + setLogoIcon(logoIcon: String): void
+        + getLogoUrl(): String
+        + setLogoUrl(logoUrl: String): void
+        + getBannerUrl(): String
+        + setBannerUrl(bannerUrl: String): void
+        + getTagline(): String
+        + setTagline(tagline: String): void
+        + getFoundedYear(): Integer
+        + setFoundedYear(foundedYear: Integer): void
+        + getFacebookUrl(): String
+        + setFacebookUrl(facebookUrl: String): void
+        + getLinkedinUrl(): String
+        + setLinkedinUrl(linkedinUrl: String): void
+        + getInstagramUrl(): String
+        + setInstagramUrl(instagramUrl: String): void
+        + getStatus(): EntityStatus
+        + setStatus(status: EntityStatus): void
+        + getDeletedAt(): OffsetDateTime
+        + setDeletedAt(deletedAt: OffsetDateTime): void
+        + getCreatedAt(): OffsetDateTime
+        + getUpdatedAt(): OffsetDateTime
+        + setUpdatedAt(updatedAt: OffsetDateTime): void
     }
 
     class WorkspaceMember <<entity>> {
@@ -416,6 +531,19 @@ package "com.brandhub.business.model" {
         - isActive: boolean
         - createdAt: OffsetDateTime
         - updatedAt: OffsetDateTime
+        __ Accessors (Used in Feature) __
+        + getId(): UUID
+        + getWorkspaceId(): UUID
+        + getUserId(): UUID
+        + getClientProfileId(): UUID
+        + setClientProfileId(clientProfileId: UUID): void
+        + getRole(): MemberRole
+        + setRole(role: MemberRole): void
+        + getAddedBy(): UUID
+        + getJoinedAt(): OffsetDateTime
+        + isActive(): boolean
+        + setActive(isActive: boolean): void
+        + getCreatedAt(): OffsetDateTime
     }
 
     class WorkspaceInvitation <<entity>> {
@@ -429,6 +557,19 @@ package "com.brandhub.business.model" {
         - expiresAt: OffsetDateTime
         - acceptedAt: OffsetDateTime
         - createdAt: OffsetDateTime
+        __ Accessors (Used in Feature) __
+        + getId(): UUID
+        + getWorkspaceId(): UUID
+        + getInvitedEmail(): String
+        + getInvitedBy(): UUID
+        + getToken(): String
+        + getRole(): MemberRole
+        + getStatus(): InvitationStatus
+        + setStatus(status: InvitationStatus): void
+        + getExpiresAt(): OffsetDateTime
+        + getAcceptedAt(): OffsetDateTime
+        + setAcceptedAt(acceptedAt: OffsetDateTime): void
+        + getCreatedAt(): OffsetDateTime
     }
 
     class WorkspaceTemplate <<entity>> {
@@ -439,6 +580,16 @@ package "com.brandhub.business.model" {
         - configSnapshot: String [jsonb]
         - createdBy: UUID
         - createdAt: OffsetDateTime
+        __ Accessors (Used in Feature) __
+        + getId(): UUID
+        + getAgencyId(): UUID
+        + getName(): String
+        + setName(name: String): void
+        + getSourceWorkspaceId(): UUID
+        + getConfigSnapshot(): String
+        + setConfigSnapshot(configSnapshot: String): void
+        + getCreatedBy(): UUID
+        + getCreatedAt(): OffsetDateTime
     }
 
     class WorkspaceMediaPackage <<entity>> {
@@ -452,6 +603,17 @@ package "com.brandhub.business.model" {
         - approvedByClientAt: OffsetDateTime
         - createdAt: OffsetDateTime
         - updatedAt: OffsetDateTime
+        __ Accessors (Used in Feature) __
+        + getId(): UUID
+        + getWorkspaceId(): UUID
+        + getPackageId(): UUID
+        + getNegotiationStatus(): PackageNegotiationStatus
+        + getFinalTerms(): String
+        + getTermsVersion(): int
+        + getApprovedByAgencyAt(): OffsetDateTime
+        + getApprovedByClientAt(): OffsetDateTime
+        + getCreatedAt(): OffsetDateTime
+        + getUpdatedAt(): OffsetDateTime
     }
 }
 
