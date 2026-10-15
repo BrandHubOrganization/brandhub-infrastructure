@@ -1,5 +1,7 @@
 # UC — Approval Sequence (Creator -> Manager -> Client)
 
+> **Ưu tiên BA mới 2026-10-15:** xem [Task năm trạng thái + inline autosave](../task-five-state-inline-edit/spec.md). TODO thay BACKLOG/DETAIL_IDENTIFIED/ASSIGNED; giao việc cần mô tả + deadline hợp lệ, không chuyển trạng thái. IN_REVIEW lưu bước QC/Manager/Client riêng, reject về IN_PROGRESS, bước cuối thành công mới FINISHED. Manager khóa sửa/giao lại sau lần bắt đầu đầu tiên. Phần vòng đời/form cũ bên dưới được giữ làm lịch sử, không phải contract mới. Đợt này chỉ code FR 3.6.1/2; Approval và Comments không được coi là đã hoàn thành.
+
 | | |
 |---|---|
 | FR Code | 3.6.9 |
@@ -7,7 +9,7 @@
 | Domain | Content & Workflow (FR 3.6) |
 | Role | CREATOR, CLIENT, MANAGER |
 | Version | 2.0 (V2 — nghiệp vụ mới, 2026-09-14) |
-| Trạng thái tài liệu | Draft — BA confirmed, chưa code |
+| Trạng thái tài liệu | Resubmit BA reconfirmed 2026-10-14; code do chủ E51-03 triển khai/phối hợp |
 
 ## 1. Objective
 
@@ -24,7 +26,7 @@ tôi muốn tham gia đúng vai trò của mình trong chuỗi duyệt Task,
 - Chuỗi: `Creator submit → [QC review, TÙY CHỌN] → Manager review → [Client review, NẾU requiresClientApproval] → Completed`.
 - **[CONFIRMED 2026-09-14]** Bước QC là tùy chọn, do Manager quyết định lúc Assign Task (FR 3.6.2) có giao `qcAssigneeId` hay không.
 - **Reject ở BẤT KỲ bước nào → Task luôn quay về trạng thái `ASSIGNED`** — Creator (người làm ban đầu) sửa lại nội dung rồi submit lại.
-- **[SỬA 2026-09-15, override bản 2026-09-14]** Approval các step TRƯỚC step bị reject KHÔNG bị xoá. Ví dụ: QC đã approve → Manager reject → về `ASSIGNED` → Creator submit lại → **đi thẳng vào `MANAGER_REVIEW`, không phải qua lại `QC_REVIEW`**. Manager có thể chủ động gửi lại QC thủ công nếu thấy cần, không tự động.
+- **[XÁC NHẬN LẠI 2026-10-14, thay thế quy tắc skip của bản 15/09]** Approval đã pass KHÔNG bị xóa khỏi lịch sử, nhưng nội dung được Creator sửa và submit lại phải duyệt lại từ QC nếu có; không có QC thì từ Manager. Không dùng approval lượt cũ làm approval hợp lệ cho nội dung mới. Phân biệt giữ lịch sử audit với hiệu lực duyệt của lượt hiện tại.
 - Đi hết chuỗi không bị reject → Task chuyển `COMPLETED`.
 - Chi tiết đầy đủ transition xem [12-state-machines.md](../../../BA/12-state-machines.md) mục 4.
 
@@ -45,7 +47,7 @@ POST /api/v1/workspaces/{id}/tasks/{taskId}/approve
 POST /api/v1/workspaces/{id}/tasks/{taskId}/reject
 { "step": "qc|manager|client", "reason": "string" }
 → 200 { "success": true, "data": { ...task..., "status": "assigned" } }
-(chỉ TaskApproval của step này đổi thành reject, các step trước giữ nguyên approve trong lịch sử)
+(append record reject; không sửa/xóa record approve trước đó. Lượt resubmit mới có approval riêng.)
 
 GET /api/v1/workspaces/{id}/tasks/{taskId}/approvals
 → 200 { "success": true, "data": [{ "step", "action", "actorId", "comment", "createdAt" }] }
@@ -59,12 +61,13 @@ GET /api/v1/workspaces/{id}/tasks/{taskId}/approvals
 ## 7. Edge Cases
 
 - Task không có QC, không cần Client approval → chuỗi ngắn nhất: Creator submit → Manager approve → Completed (2 bước).
-- Reject ở bước Client (bước cuối) → vẫn quay về `ASSIGNED`, không quay về `MANAGER_REVIEW` — nhưng approval của Manager (đã pass trước đó) vẫn giữ; submit lại đi thẳng vào `CLIENT_REVIEW` lại, không phải qua `MANAGER_REVIEW` lần 2.
+- Reject ở bước Client → về ASSIGNED; lịch sử QC/Manager cũ giữ nguyên. Submit lại bắt đầu từ QC nếu có, nếu không thì Manager, rồi Client nếu requiresClientApproval; không đi thẳng Client nhờ approval cũ.
 - QC reject → về `ASSIGNED` → không có approval nào trước để giữ (QC là step đầu tiên) → submit lại đi vào `QC_REVIEW` như bình thường.
+- Reject về ASSIGNED không xóa dấu mốc đã bắt đầu để mở khóa sửa brief/giao lại theo FR 3.6.1/3.6.2. Q8 confirmed 2026-10-14: Creator bấm Bắt đầu làm mới chuyển IN_PROGRESS; mở trang/editor không tính. Cần phối hợp contract marker/CAS cùng chủ E51-03, không tự sửa code Approval trong giai đoạn 1.
 
 ## 8. Definition of Done
 
-- Toàn bộ transition trong state machine (mục 12 BA) hoạt động đúng, reject luôn quay về ASSIGNED, approval các step trước không bị xoá.
+- Toàn bộ transition theo state machine (mục 12 BA), reject về ASSIGNED, không mất lịch sử; resubmit duyệt lại đúng chuỗi của lượt mới. Không đánh dấu Done chỉ vì cập nhật tài liệu.
 
 ## Out of Scope
 
@@ -72,4 +75,4 @@ GET /api/v1/workspaces/{id}/tasks/{taskId}/approvals
 
 ## Tham chiếu BA
 
-[05-content-task-workflow.md](../../../BA/05-content-task-workflow.md), [12-state-machines.md](../../../BA/12-state-machines.md)
+[05-content-task-workflow.md](../../../ba/05-content-task-workflow.md), [12-state-machines.md](../../../ba/12-state-machines.md), [quyết định 2026-10-14](../task-detail-assignment-comments-roadmap.md). Người dùng/lead cần thông báo chủ E51-03 trước khi tích hợp; thay đổi này chỉ đồng bộ tài liệu, không sửa code của thành viên đó.
