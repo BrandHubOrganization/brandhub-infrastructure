@@ -1,5 +1,46 @@
 # Update an existing BrandHub MongoDB Atlas database
 
+## DA-978 — Task five-state / inline workflow (2026-10-15)
+
+Order: `2026-10-14-campaign-closure.js` →
+`2026-10-14-task-detail-comments-foundation.js` →
+`2026-10-15-task-five-state-workflow.js`.
+All default to DRY_RUN. Inspect metadata/invalid-document/duplicate-index preflight and back up first.
+Only set the matching global flag to true after review, then reset it in `finally`:
+`CAMPAIGN_CLOSURE_APPLY`, `TASK_WORKFLOW_FOUNDATION_APPLY`, `TASK_FIVE_STATE_APPLY`.
+Scripts explicitly target `brandhub`, not the default `test` database.
+
+The new migration adds TODO / IN_REVIEW / FINISHED and optional `reviewStep`
+(QC / MANAGER / CLIENT). Legacy enum values remain temporarily for read/writer
+compatibility; the new workflow API/UI exposes five business states only.
+No PostgreSQL change. `init-mongo.js` contains the final fresh schema; **do not run init on Atlas**.
+
+Authorized APPLY completed 2026-10-15 after an all-three read-only staged preflight.
+Metadata before/after saved locally under `.local-backups/task-ui-audit-20261015/`
+(`atlas-metadata-2026-10-15T07-59-06-369Z-{before,after}.json`).
+31 Task documents have identical count and SHA-256 before/after; no document
+insert/update/delete/backfill was performed. Checker verifies all three effects MATCH
+and `schemaChecks.taskFiveState=true`, `taskWorkflowFoundation=true`.
+One legacy Content Request Task has no campaign link; reported only, not repaired.
+Unrelated Chat/Mail/Post-version schema drift/missing effects were reported but not changed.
+
+Missing revision/explicit first-start evidence on legacy Tasks is **not** repaired
+by metadata migration. Those Tasks remain readable but management mutations stay
+locked. Test edit/assign/start using a Task created by the new writers, or request a
+separately reviewed reconciliation; never infer “never started” from a legacy status.
+Restart Business Service with the updated code before testing API/UI readiness.
+
+Separate operator-approved TEST DATA reconciliation was subsequently completed on
+2026-10-15: user waived document backup, approved deletion of exactly six identified
+empty drafts and confirmed the remaining 25 test Tasks had never started. Those 25
+were explicitly initialized to TODO/revision=0/first-start markers=null in one Mongo
+transaction, preserving content/deadlines/identity/source links. Post-check found 25
+workflow-ready Tasks, the six deleted IDs absent, and all nine Campaign/two Request
+Task links preserved. No PostgreSQL writes. This is **not** a general migration rule:
+do not initialize unknown legacy start history in other datasets without review.
+Cleanup scripts/allowlists and operational receipts remain local, not in the repo.
+
+
 `init-mongo.js` is only for a **fresh local MongoDB volume**. Do not run it on
 Atlas: it contains `createCollection` calls for the whole database. Apply the
 incremental migration files below to the existing Atlas deployment instead.
@@ -32,10 +73,35 @@ Offline checker regression tests (no Mongo connection):
 
 The regression suite also executes `init-mongo.js` in an in-memory metadata
 recorder and compares the exact validators and indexes of every collection
-touched by the eight migrations against their cumulative effects. Fresh init
+touched by the twelve migrations against their cumulative effects. Fresh init
 includes Chat and Post Versions as well as Tasks, approvals, Campaign deployment
-and Content Request acceptance. This is an offline metadata check, not a live
+and Content Request acceptance, Mail Template/Recipient Groups and Task workflow foundation.
+This is an offline metadata check, not a live
 MongoDB integration test or a validation of existing Atlas documents.
+
+In mongosh, `load()` returns true rather than the report: after loading the checker,
+inspect `globalThis.BRANDHUB_MONGO_MIGRATION_REPORT`. VS Code Run All still displays the returned report.
+
+### Task workflow foundation — DA-978 / DA-1236 (2026-10-14)
+
+Schema only; API/UI are not implemented by applying this migration. Read
+[phase-1 inventory/setup](../feature/content-task-workflow/task-workflow-phase-1.md) first.
+Run `task-workflow-inventory.mongodb.js` read-only to inventory legacy source/revision/start
+evidence. Missing firstStartedAt is unknown history, not proof of never-started work.
+Current BA (Q13): active Clients may read/comment every Task in their Workspace, including manual
+and legacy Tasks. No internal/public Task classification is added. Missing legacy start/revision
+only gates management mutations, not read/comment access. requiresClientApproval configures approvals only.
+
+Dependency order: Task V2 → Campaign deployment → Request acceptance → Campaign closure →
+`2026-10-14-task-detail-comments-foundation.js`. The new migration defaults to DRY_RUN,
+always selects brandhub and does NOT backfill/delete any documents. It adds optional Task fields
+and private task_comments/task_comment_uploads/task_notification_outbox collections/indexes.
+Back up/freeze writers, review conflicts/invalidDocuments/duplicateGroups before setting
+`globalThis.TASK_WORKFLOW_FOUNDATION_APPLY = true` in the same full-script run. Reset the flag afterward.
+No TTL for private uploads: cleanup must delete the object before its metadata.
+DDL is not atomic across collections; keep feature disabled on partial operational failure.
+Rerun checker and verify taskWorkflowFoundation readiness; never rerun init or old Task validators
+against existing data. No PostgreSQL migration is introduced for this foundation.
 
 ### Campaign closure / Task cancellation (2026-10-14)
 

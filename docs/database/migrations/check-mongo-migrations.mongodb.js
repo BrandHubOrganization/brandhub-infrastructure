@@ -121,7 +121,143 @@
     })),
   ] });
 
+  migrationSpecs.push({ file: '2026-10-12-create-mail-templates-collection.js', collections: [
+    collection('mail_templates', ({
+  $jsonSchema: {
+    bsonType: 'object',
+    required: ['_id', 'name', 'subject', 'bodyHtml', 'type', 'createdAt', 'updatedAt'],
+    properties: {
+      workspaceId:  { bsonType: ['string', 'null'], description: 'null for SYSTEM_DEFAULT' },
+      name:         { bsonType: 'string', minLength: 1, maxLength: 120 },
+      subject:      { bsonType: 'string', minLength: 1, maxLength: 200 },
+      bodyHtml:     { bsonType: 'string', minLength: 1, maxLength: 102400 },
+      type:         { enum: ['SYSTEM_DEFAULT', 'CUSTOM'] },
+      attachments:  {
+        bsonType: 'array',
+        maxItems: 3,
+        items: {
+          bsonType: 'object',
+          required: ['attachmentId', 's3Key'],
+          properties: {
+            attachmentId: { bsonType: 'string' },
+            name:         { bsonType: 'string' },
+            contentType:  { bsonType: 'string' },
+            size:         { bsonType: ['long', 'int'] },
+            s3Key:        { bsonType: 'string' },
+          },
+        },
+      },
+      clonedFromId: { bsonType: ['string', 'null'] },
+      createdBy:    { bsonType: ['string', 'null'] },
+      createdAt:    { bsonType: 'date' },
+      updatedAt:    { bsonType: 'date' },
+      deletedAt:    { bsonType: ['date', 'null'] },
+    },
+  },
+}).$jsonSchema, [index('ix_mail_templates_workspace_created', { workspaceId: 1, deletedAt: 1, createdAt: -1 }), index('ix_mail_templates_type', { type: 1, deletedAt: 1 })]),
+  ] });
+
+  migrationSpecs.push({ file: '2026-10-13-create-mail-recipient-groups-collection.js', collections: [
+    collection('mail_recipient_groups', ({
+  $jsonSchema: {
+    bsonType: 'object',
+    required: ['_id', 'workspaceId', 'name', 'recipients', 'createdAt'],
+    properties: {
+      workspaceId: { bsonType: 'string' },
+      name:        { bsonType: 'string', minLength: 1, maxLength: 80 },
+      recipients:  {
+        bsonType: 'array',
+        maxItems: 200,
+        items: {
+          bsonType: 'object',
+          required: ['email'],
+          properties: {
+            email: { bsonType: 'string', maxLength: 255 },
+            name:  { bsonType: ['string', 'null'], maxLength: 120 },
+          },
+        },
+      },
+      createdBy:   { bsonType: ['string', 'null'] },
+      createdAt:   { bsonType: 'date' },
+    },
+  },
+}).$jsonSchema, [index('ix_mail_recipient_groups_workspace_name', { workspaceId: 1, name: 1 })]),
+  ] });
+
+  const taskFoundation = (() => {
+    const nullableDate = { bsonType: ['date', 'null'] };
+    const taskProperties = {
+      workflowRevision: { bsonType: ['long', 'int'], minimum: 0 },
+      plannedPublishAt: nullableDate,
+      inputReferences: { bsonType: 'array', maxItems: 20, items: schema(['label', 'url'], {
+        label: { bsonType: 'string', minLength: 1, maxLength: 200 },
+        url: { bsonType: 'string', minLength: 1, maxLength: 2048, pattern: '^https?://' },
+      }) },
+      detailIdentifiedAt: nullableDate, detailIdentifiedBy: nullableString,
+      assignedAt: nullableDate, assignedBy: nullableString,
+      firstStartedAt: nullableDate, firstStartedBy: nullableString,
+    };
+    const additions = [
+      { name: 'tasks', properties: taskProperties, indexes: [
+        index('idx_tasks_workspace_workflow_created', { workspaceId: 1, createdAt: -1, _id: -1 }),
+      ] },
+      { name: 'task_comments', validator: schema(['_id', 'workspaceId', 'taskId', 'authorId',
+        'authorRole', 'authorDisplayName', 'content', 'mentions', 'attachmentIds', 'clientRequestId', 'createdAt'], {
+        _id: string, workspaceId: string, taskId: string, authorId: string,
+        authorRole: { enum: ['MANAGER', 'CREATOR', 'CLIENT'] }, authorDisplayName: string,
+        content: { bsonType: 'string', minLength: 1, maxLength: 10000 },
+        mentions: { bsonType: 'array', uniqueItems: true, items: string },
+        attachmentIds: { bsonType: 'array', maxItems: 5, uniqueItems: true, items: string },
+        clientRequestId: string, createdAt: date,
+      }), indexes: [
+        index('idx_task_comments_timeline', { workspaceId: 1, taskId: 1, createdAt: -1, _id: -1 }),
+        index('uq_task_comments_client_request', { workspaceId: 1, taskId: 1, authorId: 1, clientRequestId: 1 }, { unique: true }),
+      ] },
+      { name: 'task_comment_uploads', validator: schema(['_id', 'workspaceId', 'taskId', 'uploadedBy',
+        'storageKey', 'contentType', 'byteSize', 'state', 'createdAt', 'expiresAt'], {
+        _id: string, workspaceId: string, taskId: string, uploadedBy: string, storageKey: string,
+        originalName: { bsonType: 'string', maxLength: 255 },
+        contentType: { enum: ['image/jpeg', 'image/png', 'image/webp'] },
+        byteSize: { bsonType: ['long', 'int'], minimum: 1, maximum: 5242880 },
+        state: { enum: ['DRAFT', 'ATTACHED', 'CLEANUP_PENDING'] },
+        commentId: nullableString, attachedAt: nullableDate, leaseUntil: nullableDate,
+        createdAt: date, expiresAt: date,
+      }), indexes: [
+        index('uq_task_comment_uploads_storage_key', { storageKey: 1 }, { unique: true }),
+        index('idx_task_comment_uploads_owner', { workspaceId: 1, taskId: 1, uploadedBy: 1, state: 1 }),
+        index('idx_task_comment_uploads_cleanup', { state: 1, expiresAt: 1 }),
+      ] },
+      { name: 'task_notification_outbox', validator: schema(['_id', 'eventKey', 'workspaceId', 'taskId',
+        'actorId', 'recipientId', 'eventType', 'payload', 'status', 'attempts', 'availableAt', 'createdAt', 'updatedAt'], {
+        _id: string, eventKey: string, workspaceId: string, taskId: string, actorId: string, recipientId: string,
+        eventType: { enum: ['TASK_ASSIGNED', 'TASK_COMMENTED'] },
+        payload: schema(['title', 'content', 'actionUrl'], {
+          title: { bsonType: 'string', maxLength: 200 }, content: { bsonType: 'string', maxLength: 5000 },
+          actionUrl: { bsonType: 'string', maxLength: 500 },
+        }),
+        status: { enum: ['PENDING', 'LEASED', 'SENT', 'SUPPRESSED'] },
+        attempts: { bsonType: ['long', 'int'], minimum: 0 },
+        availableAt: date, createdAt: date, updatedAt: date,
+        leaseOwner: nullableString, leaseUntil: nullableDate, deliveredAt: nullableDate,
+      }), indexes: [
+        index('uq_task_notification_outbox_event', { eventKey: 1 }, { unique: true }),
+        index('idx_task_notification_outbox_due', { status: 1, availableAt: 1 }),
+        index('idx_task_notification_outbox_lease', { status: 1, leaseUntil: 1 }),
+      ] },
+    ];
+    return additions;
+  })();
+  migrationSpecs.push({ file: '2026-10-14-task-detail-comments-foundation.js', collections:
+    taskFoundation.map(item => collection(item.name, item.validator ?? schema([], item.properties), item.indexes)),
+  });
+
   const asArray = value => Array.isArray(value) ? value : [value];
+  migrationSpecs.push({ file: '2026-10-15-task-five-state-workflow.js', collections: [
+    collection('tasks', schema([], {
+      status: { enum: ['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'CANCELLED', 'FINISHED'] },
+      reviewStep: { bsonType: ['string', 'null'], enum: ['QC', 'MANAGER', 'CLIENT', null] },
+    })),
+  ] });
   const canonical = value => JSON.stringify(sortObject(value));
   function sortObject(value) {
     if (Array.isArray(value)) return value.map(sortObject);
@@ -193,6 +329,12 @@
     summary: Object.fromEntries(['MATCH', 'MISSING', 'DRIFT', 'UNKNOWN'].map(status =>
       [status, results.filter(result => result.status === status).length])),
     schemaChecks: {
+      taskFiveState: matches('2026-10-15-task-five-state-workflow.js')
+        && matches('2026-10-14-task-detail-comments-foundation.js') && matches('2026-10-14-campaign-closure.js'),
+      taskWorkflowFoundation: matches('2026-10-14-task-detail-comments-foundation.js')
+        && matches('2026-10-14-campaign-closure.js')
+        && matches('2026-10-09-campaign-task-deployment.js')
+        && matches('2026-10-13-content-request-acceptance.js'),
       contentRequestV2: matches('2026-10-13-content-requests-v2.js'),
       contentRequestAcceptance: matches('2026-10-13-content-requests-v2.js')
         && matches('2026-10-13-content-request-acceptance.js'),
@@ -202,6 +344,7 @@
     },
     results,
     excludedReadOnlyUtility: '2026-10-09-campaign-task-preflight.js (no persisted migration effect)',
+    additionalReadOnlyUtility: 'task-workflow-inventory.mongodb.js (aggregate counts only, no migration effect)',
     notes: [
       'MATCH means current metadata matches expected effects, NOT proof that the migration was executed.',
       'No documents are read or validated; no permission/transaction/API readiness guarantee.',
@@ -210,6 +353,9 @@
       'No create/update/delete/collMod/createIndex/init operations were performed.',
     ],
   };
+  // load() in mongosh returns true, not the script result. Expose metadata-only report
+  // for shell verification; this changes no database state and contains no documents.
+  globalThis.BRANDHUB_MONGO_MIGRATION_REPORT = report;
   // Return the report so VS Code Playground displays it (no trailing undefined).
   return report;
 })();

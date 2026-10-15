@@ -54,6 +54,7 @@ test('apply and rerun preserve existing schema; init metadata and source index m
   const db = new Proxy({ createCollection: (name, options) => collections.set(name, options) }, {
     get(target, key) {
       if (key === 'getSiblingDB') return () => db;
+      if (key === 'getCollection') return name => db[name];
       if (key in target) return target[key];
       return { createIndex: (keys, options) => {
         if (options.name === 'uq_tasks_content_request_source') initSourceIndex = { keys, options };

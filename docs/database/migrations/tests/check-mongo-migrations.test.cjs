@@ -13,6 +13,10 @@ const files = [
   '2026-10-13-content-requests-v2.js',
   '2026-10-13-content-request-acceptance.js',
   '2026-10-14-campaign-closure.js',
+  '2026-10-12-create-mail-templates-collection.js',
+  '2026-10-13-create-mail-recipient-groups-collection.js',
+  '2026-10-14-task-detail-comments-foundation.js',
+  '2026-10-15-task-five-state-workflow.js',
 ];
 const clone = value => JSON.parse(JSON.stringify(value));
 
@@ -22,6 +26,8 @@ function fixture() {
   const metadata = new Map();
   let readOnly = false;
   const calls = [];
+  const invalidCounts = new Map();
+  const duplicateCounts = new Map();
   function write(name) {
     calls.push(name);
     if (readOnly) throw new Error('Checker attempted a write: ' + name);
@@ -35,9 +41,10 @@ function fixture() {
       const index = clone({ key, ...options });
       if (previous < 0) indexes.push(index); else indexes[previous] = index;
     },
-    aggregate: () => { if (readOnly) throw new Error('Checker read documents'); return { toArray: () => [] }; },
+    aggregate: () => { if (readOnly) throw new Error('Checker read documents');
+      return { toArray: () => duplicateCounts.has(name) ? [{ groups: duplicateCounts.get(name) }] : [] }; },
     find: () => { if (readOnly) throw new Error('Checker read documents'); return { forEach: () => {} }; },
-    countDocuments: () => { if (readOnly) throw new Error('Checker counted documents'); return 0; },
+    countDocuments: () => { if (readOnly) throw new Error('Checker counted documents'); return invalidCounts.get(name) || 0; },
   });
   const target = new Proxy({
     getName: () => 'brandhub',
@@ -57,9 +64,9 @@ function fixture() {
     },
   }, { get: (object, key) => key in object ? object[key] : collection(key) });
   function apply(file, flags = {}) {
-    vm.runInNewContext(readFileSync(join(__dirname, '..', file), 'utf8'), {
+    return vm.runInNewContext(readFileSync(join(__dirname, '..', file), 'utf8'), {
       db: target, print: () => {}, CONTENT_REQUEST_MIGRATION_APPLY: true, CONTENT_REQUEST_ACCEPTANCE_APPLY: true,
-      CAMPAIGN_CLOSURE_APPLY: true,
+      CAMPAIGN_CLOSURE_APPLY: true, TASK_WORKFLOW_FOUNDATION_APPLY: true, TASK_FIVE_STATE_APPLY: true,
       ...flags,
     });
   }
@@ -77,25 +84,25 @@ function fixture() {
     assert.ok(!calls.some(name => ['createCollection', 'runCommand', 'createIndex'].includes(name)));
     return clone(report);
   }
-  return { metadata, apply, check };
+  return { metadata, apply, check, calls, invalidCounts, duplicateCounts };
 }
 const complete = () => { const f = fixture(); files.forEach(f.apply); return f; };
 const result = (report, file) => report.results.find(entry => entry.migration === file);
 
 test('all real migration effects MATCH, including superseded Task schemas; checker is read-only', () => {
   const report = complete().check();
-  assert.deepEqual(report.summary, { MATCH: 8, MISSING: 0, DRIFT: 0, UNKNOWN: 0 });
+  assert.deepEqual(report.summary, { MATCH: 12, MISSING: 0, DRIFT: 0, UNKNOWN: 0 });
   assert.equal(report.database, 'brandhub'); assert.equal(report.initialDatabase, 'test');
   assert.equal(report.mode, 'READ_ONLY');
-  assert.deepEqual(report.schemaChecks, { contentRequestV2: true, contentRequestAcceptance: true, campaignDeployment: true });
+  assert.deepEqual(report.schemaChecks, { taskFiveState: true, taskWorkflowFoundation: true, contentRequestV2: true, contentRequestAcceptance: true, campaignDeployment: true });
 });
 test('empty database reports missing collections, never creates them', () => {
-  assert.equal(fixture().check().summary.MISSING, 8);
+  assert.equal(fixture().check().summary.MISSING, 12);
 });
 
-test('fresh Mongo init matches all eight migration effects and their exact validators/indexes', () => {
+test('fresh Mongo init matches all twelve migration effects and their exact validators/indexes', () => {
   const initialized = fixture(); initialized.apply('../init-mongo.js');
-  assert.deepEqual(initialized.check().summary, { MATCH: 8, MISSING: 0, DRIFT: 0, UNKNOWN: 0 });
+  assert.deepEqual(initialized.check().summary, { MATCH: 12, MISSING: 0, DRIFT: 0, UNKNOWN: 0 });
   const migrated = complete();
   for (const [name, expected] of migrated.metadata) {
     const actual = initialized.metadata.get(name);
@@ -105,7 +112,7 @@ test('fresh Mongo init matches all eight migration effects and their exact valid
     assert.equal(actual.options.validationLevel || 'strict', expected.options.validationLevel || 'strict', name);
     assert.deepEqual(actual.indexes, expected.indexes, name + ' indexes');
   }
-  assert.equal(initialized.metadata.size, 19);
+  assert.equal(initialized.metadata.size, 24);
 });
 test('missing readiness index is caught even with a valid Request validator', () => {
   const f = complete();
@@ -126,7 +133,7 @@ test('closure dry run does not change schema; APPLY preserves earlier fields/ind
   const indexes = clone(task.indexes);
   f.apply(files[7]); f.apply(files[7]);
   assert.deepEqual(task.indexes, indexes);
-  assert.equal(f.check().summary.MATCH, 8);
+  assert.equal(f.check().summary.MATCH, 12);
 });
 test('same index name but incorrect compound key order is DRIFT', () => {
   const f = complete();
@@ -163,6 +170,158 @@ test('warn or moderate validator policies are DRIFT', () => {
 });
 test('permission errors are UNKNOWN, not a false missing migration; no secret details', () => {
   const report = fixture().check('test', true);
-  assert.equal(report.summary.UNKNOWN, 8);
+  assert.equal(report.summary.UNKNOWN, 12);
   assert.ok(!JSON.stringify(report).includes('private credential'));
+});
+
+test('foundation dry run preserves metadata, APPLY is repeatable and does not require new fields on legacy Tasks', () => {
+  const f = fixture(); files.slice(0, 10).forEach(f.apply);
+  const before = JSON.stringify([...f.metadata]);
+  f.apply(files[10], { TASK_WORKFLOW_FOUNDATION_APPLY: false });
+  assert.equal(JSON.stringify([...f.metadata]), before);
+  const required = clone(f.metadata.get('tasks').options.validator.$jsonSchema.required);
+  f.apply(files[10]);
+  const applied = JSON.stringify([...f.metadata]);
+  f.apply(files[10]);
+  assert.equal(JSON.stringify([...f.metadata]), applied);
+  assert.deepEqual(f.metadata.get('tasks').options.validator.$jsonSchema.required, required);
+});
+
+test('foundation preserves unrelated validator fields, root clauses and indexes', () => {
+  const f = fixture(); files.slice(0, 10).forEach(f.apply);
+  const task = f.metadata.get('tasks');
+  task.options.validator.$jsonSchema.properties.otherTeamField = { bsonType: 'string' };
+  task.options.validator.$and = [{ otherTeamField: { $exists: true } }];
+  task.indexes.push({ name: 'other_team_index', key: { otherTeamField: 1 } });
+  f.apply(files[10]);
+  assert.deepEqual(task.options.validator.$jsonSchema.properties.otherTeamField, { bsonType: 'string' });
+  assert.deepEqual(task.options.validator.$and, [{ otherTeamField: { $exists: true } }]);
+  assert.ok(task.indexes.some(index => index.name === 'other_team_index'));
+});
+
+test('foundation aborts BEFORE any DDL if a later collection has an incompatible field or index', () => {
+  for (const conflict of ['field', 'index']) {
+    const f = complete();
+    const outbox = f.metadata.get('task_notification_outbox');
+    if (conflict === 'field') outbox.options.validator.$jsonSchema.properties.attempts = { bsonType: 'string' };
+    else outbox.indexes.find(item => item.name === 'uq_task_notification_outbox_event').unique = false;
+    const before = JSON.stringify([...f.metadata]); f.calls.length = 0;
+    assert.throws(() => f.apply(files[10]), /incompatible field|index conflict/);
+    assert.equal(JSON.stringify([...f.metadata]), before);
+    assert.ok(!f.calls.some(name => ['runCommand', 'createCollection', 'createIndex'].includes(name)));
+  }
+});
+
+test('foundation refuses missing closure and wrong prior source index shape', () => {
+  const f = fixture(); files.slice(0, 7).forEach(f.apply);
+  assert.throws(() => f.apply(files[10]), /closure foundation missing/);
+  f.apply(files[7]);
+  f.metadata.get('tasks').indexes.find(item => item.name === 'uq_tasks_content_request_source').unique = false;
+  assert.throws(() => f.apply(files[10]), /indexes missing or incompatible/);
+});
+
+test('foundation drift is caught and uploads never use TTL', () => {
+  const f = complete();
+  const upload = f.metadata.get('task_comment_uploads');
+  assert.ok(upload.indexes.every(item => item.expireAfterSeconds === undefined));
+  upload.indexes.find(item => item.name === 'idx_task_comment_uploads_cleanup').expireAfterSeconds = 0;
+  assert.equal(f.check().schemaChecks.taskWorkflowFoundation, false);
+});
+
+test('Q13 foundation has no Task visibility field/index and keeps legacy revision/start fields optional', () => {
+  for (const f of [complete(), (() => { const initialized = fixture(); initialized.apply('../init-mongo.js'); return initialized; })()]) {
+    const tasks = f.metadata.get('tasks');
+    assert.ok(!Object.hasOwn(tasks.options.validator.$jsonSchema.properties, 'visibility'));
+    assert.ok(tasks.indexes.every(item => !Object.hasOwn(item.key, 'visibility')));
+    assert.deepEqual(tasks.indexes.find(item => item.name === 'idx_tasks_workspace_workflow_created').key,
+      { workspaceId: 1, createdAt: -1, _id: -1 });
+    assert.ok(!tasks.options.validator.$jsonSchema.required.includes('workflowRevision'));
+    assert.ok(!tasks.options.validator.$jsonSchema.required.includes('firstStartedAt'));
+  }
+});
+
+test('Q13 migration never drops unused metadata if an operator applied the older unmerged draft', () => {
+  const f = fixture(); files.slice(0, 10).forEach(f.apply);
+  const tasks = f.metadata.get('tasks');
+  const oldVisibility = { enum: ['INTERNAL', 'CLIENT_VISIBLE'] };
+  tasks.options.validator.$jsonSchema.properties.visibility = clone(oldVisibility);
+  const oldIndex = { name: 'idx_tasks_workspace_visibility_created',
+    key: { workspaceId: 1, visibility: 1, createdAt: -1, _id: -1 } };
+  tasks.indexes.push(clone(oldIndex));
+  f.apply(files[10]);
+  assert.deepEqual(tasks.options.validator.$jsonSchema.properties.visibility, oldVisibility);
+  assert.ok(tasks.indexes.some(item => item.name === oldIndex.name));
+  assert.equal(f.check().schemaChecks.taskWorkflowFoundation, true, 'Unused metadata must not become a readiness/permission gate');
+});
+
+test('mail metadata from develop is checked without changing Mail contracts', () => {
+  const f = complete();
+  f.metadata.get('mail_templates').options.validator.$jsonSchema.properties.subject.maxLength = 300;
+  assert.equal(result(f.check(), files[8]).status, 'DRIFT');
+});
+
+test('invalid legacy documents or duplicate unique keys block foundation before ALL metadata writes', () => {
+  for (const kind of ['invalid', 'duplicate']) {
+    const f = fixture(); files.slice(0, 10).forEach(f.apply);
+    // Pretend the final collection already exists, with data reported by read-only preflight.
+    f.metadata.set('task_notification_outbox', { options: {
+      validator: { $jsonSchema: { bsonType: 'object', properties: {} } },
+    }, indexes: [] });
+    (kind === 'invalid' ? f.invalidCounts : f.duplicateCounts).set('task_notification_outbox', 2);
+    const before = JSON.stringify([...f.metadata]); f.calls.length = 0;
+    const report = f.apply(files[10], { TASK_WORKFLOW_FOUNDATION_APPLY: false });
+    assert.equal(report.blocked, true);
+    assert.throws(() => f.apply(files[10]), /preflight blocked/);
+    assert.equal(JSON.stringify([...f.metadata]), before);
+    assert.ok(!f.calls.some(name => ['runCommand', 'createCollection', 'createIndex'].includes(name)));
+  }
+});
+
+test('Task inventory playground selects brandhub and returns counts/metadata without writing', () => {
+  const f = complete(); const before = JSON.stringify([...f.metadata]); f.calls.length = 0;
+  const report = f.apply('task-workflow-inventory.mongodb.js');
+  assert.equal(report.database, 'brandhub'); assert.equal(report.mode, 'READ_ONLY');
+  assert.equal(report.collections.tasks.validatorSupportsCancellation, true);
+  assert.equal(report.collections.tasks.missingRevision, 0);
+  assert.equal(report.collections.task_comments.exists, true);
+  assert.equal(JSON.stringify([...f.metadata]), before);
+  assert.ok(!f.calls.some(name => ['runCommand', 'createCollection', 'createIndex'].includes(name)));
+});
+
+test('five-state migration is additive, optional, dry-run safe and repeatable', () => {
+  const f = fixture(); files.slice(0, 11).forEach(f.apply);
+  const before = JSON.stringify([...f.metadata]);
+  f.apply(files[11], { TASK_FIVE_STATE_APPLY: false });
+  assert.equal(JSON.stringify([...f.metadata]), before);
+  f.apply(files[11]); const applied = JSON.stringify([...f.metadata]); f.apply(files[11]);
+  assert.equal(JSON.stringify([...f.metadata]), applied);
+  const schema = f.metadata.get('tasks').options.validator.$jsonSchema;
+  assert.ok(['TODO', 'IN_REVIEW', 'FINISHED', 'BACKLOG', 'ASSIGNED'].every(value => schema.properties.status.enum.includes(value)));
+  assert.ok(!schema.required.includes('reviewStep'));
+  assert.deepEqual(schema.properties.reviewStep.enum, ['QC', 'MANAGER', 'CLIENT', null]);
+  assert.equal(f.check().schemaChecks.taskFiveState, true);
+});
+
+test('five-state migration blocks incompatible reviewStep or invalid documents without DDL', () => {
+  for (const kind of ['field', 'invalid']) {
+    const f = fixture(); files.slice(0, 11).forEach(f.apply);
+    if (kind === 'field') f.metadata.get('tasks').options.validator.$jsonSchema.properties.reviewStep = { bsonType: 'int' };
+    else f.invalidCounts.set('tasks', 1);
+    const before = JSON.stringify([...f.metadata]); f.calls.length = 0;
+    assert.throws(() => f.apply(files[11]), /Incompatible reviewStep|Invalid existing/);
+    assert.equal(JSON.stringify([...f.metadata]), before);
+    assert.ok(!f.calls.some(name => ['runCommand', 'createCollection', 'createIndex'].includes(name)));
+  }
+});
+
+test('closure refuses incompatible cancellation and invalid existing documents before DDL', () => {
+  for (const kind of ['field', 'invalid']) {
+    const f = fixture(); files.slice(0, 7).forEach(f.apply);
+    if (kind === 'field') f.metadata.get('tasks').options.validator.$jsonSchema.properties.cancellation = { bsonType: 'string' };
+    else f.invalidCounts.set('tasks', 1);
+    const before = JSON.stringify([...f.metadata]); f.calls.length = 0;
+    assert.throws(() => f.apply(files[7]), /Incompatible Task|Invalid existing/);
+    assert.equal(JSON.stringify([...f.metadata]), before);
+    assert.ok(!f.calls.some(name => ['runCommand', 'createCollection', 'createIndex'].includes(name)));
+  }
 });

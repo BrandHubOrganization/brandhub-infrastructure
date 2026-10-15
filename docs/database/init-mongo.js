@@ -2,7 +2,8 @@
 // For a fresh local MongoDB volume only (docker-entrypoint-initdb.d/init-mongo.js).
 // Do NOT run this file against existing MongoDB Atlas data. Apply the ordered
 // scripts in docs/database/migrations instead; see mongo-atlas-migrations.md.
-// Includes Mongo migration effects through 2026-10-14 (8 migration scripts).
+// Includes Mongo migration effects through 2026-10-14 (11 migration scripts).
+// Task workflow foundation is schema only; application implementation/legacy review are separate.
 
 db = db.getSiblingDB('brandhub');
 
@@ -147,6 +148,76 @@ db.createCollection('content_requests', {
   validationLevel: 'strict',
 });
 
+// Optional Task workflow fields and private comment collections (DA-978/DA-1236).
+const taskWorkflowFoundation = (() => {
+  const string = { bsonType: 'string' };
+  const date = { bsonType: 'date' };
+  const nullableString = { bsonType: ['string', 'null'] };
+  const nullableDate = { bsonType: ['date', 'null'] };
+  const schema = (required, properties) => ({ bsonType: 'object', required, properties });
+  const index = (name, key, extra = {}) => ({ name, key, ...extra });
+  const taskProperties = {
+    workflowRevision: { bsonType: ['long', 'int'], minimum: 0 },
+    plannedPublishAt: nullableDate,
+    inputReferences: { bsonType: 'array', maxItems: 20, items: schema(['label', 'url'], {
+      label: { bsonType: 'string', minLength: 1, maxLength: 200 },
+      url: { bsonType: 'string', minLength: 1, maxLength: 2048, pattern: '^https?://' },
+    }) },
+    detailIdentifiedAt: nullableDate, detailIdentifiedBy: nullableString,
+    assignedAt: nullableDate, assignedBy: nullableString,
+    firstStartedAt: nullableDate, firstStartedBy: nullableString,
+  };
+  const additions = [
+    { name: 'tasks', properties: taskProperties, indexes: [
+      index('idx_tasks_workspace_workflow_created', { workspaceId: 1, createdAt: -1, _id: -1 }),
+    ] },
+    { name: 'task_comments', validator: schema(['_id', 'workspaceId', 'taskId', 'authorId',
+      'authorRole', 'authorDisplayName', 'content', 'mentions', 'attachmentIds', 'clientRequestId', 'createdAt'], {
+      _id: string, workspaceId: string, taskId: string, authorId: string,
+      authorRole: { enum: ['MANAGER', 'CREATOR', 'CLIENT'] }, authorDisplayName: string,
+      content: { bsonType: 'string', minLength: 1, maxLength: 10000 },
+      mentions: { bsonType: 'array', uniqueItems: true, items: string },
+      attachmentIds: { bsonType: 'array', maxItems: 5, uniqueItems: true, items: string },
+      clientRequestId: string, createdAt: date,
+    }), indexes: [
+      index('idx_task_comments_timeline', { workspaceId: 1, taskId: 1, createdAt: -1, _id: -1 }),
+      index('uq_task_comments_client_request', { workspaceId: 1, taskId: 1, authorId: 1, clientRequestId: 1 }, { unique: true }),
+    ] },
+    { name: 'task_comment_uploads', validator: schema(['_id', 'workspaceId', 'taskId', 'uploadedBy',
+      'storageKey', 'contentType', 'byteSize', 'state', 'createdAt', 'expiresAt'], {
+      _id: string, workspaceId: string, taskId: string, uploadedBy: string, storageKey: string,
+      originalName: { bsonType: 'string', maxLength: 255 },
+      contentType: { enum: ['image/jpeg', 'image/png', 'image/webp'] },
+      byteSize: { bsonType: ['long', 'int'], minimum: 1, maximum: 5242880 },
+      state: { enum: ['DRAFT', 'ATTACHED', 'CLEANUP_PENDING'] },
+      commentId: nullableString, attachedAt: nullableDate, leaseUntil: nullableDate,
+      createdAt: date, expiresAt: date,
+    }), indexes: [
+      index('uq_task_comment_uploads_storage_key', { storageKey: 1 }, { unique: true }),
+      index('idx_task_comment_uploads_owner', { workspaceId: 1, taskId: 1, uploadedBy: 1, state: 1 }),
+      index('idx_task_comment_uploads_cleanup', { state: 1, expiresAt: 1 }),
+    ] },
+    { name: 'task_notification_outbox', validator: schema(['_id', 'eventKey', 'workspaceId', 'taskId',
+      'actorId', 'recipientId', 'eventType', 'payload', 'status', 'attempts', 'availableAt', 'createdAt', 'updatedAt'], {
+      _id: string, eventKey: string, workspaceId: string, taskId: string, actorId: string, recipientId: string,
+      eventType: { enum: ['TASK_ASSIGNED', 'TASK_COMMENTED'] },
+      payload: schema(['title', 'content', 'actionUrl'], {
+        title: { bsonType: 'string', maxLength: 200 }, content: { bsonType: 'string', maxLength: 5000 },
+        actionUrl: { bsonType: 'string', maxLength: 500 },
+      }),
+      status: { enum: ['PENDING', 'LEASED', 'SENT', 'SUPPRESSED'] },
+      attempts: { bsonType: ['long', 'int'], minimum: 0 },
+      availableAt: date, createdAt: date, updatedAt: date,
+      leaseOwner: nullableString, leaseUntil: nullableDate, deliveredAt: nullableDate,
+    }), indexes: [
+      index('uq_task_notification_outbox_event', { eventKey: 1 }, { unique: true }),
+      index('idx_task_notification_outbox_due', { status: 1, availableAt: 1 }),
+      index('idx_task_notification_outbox_lease', { status: 1, leaseUntil: 1 }),
+    ] },
+  ];
+  return { taskProperties, additions };
+})();
+
 // tasks (V2) — one generic collection for all supported Task types.
 // New accepted Content Request Tasks link to the current Campaign; manual/legacy Tasks may have campaignId = null.
 db.createCollection('tasks', {
@@ -164,7 +235,9 @@ db.createCollection('tasks', {
         type:                   { enum: ['POST', 'LIVESTREAM', 'SURVEY', 'EVENT_PLAN', 'PRESS_RECOMMENDATION'] },
         name:                   { bsonType: 'string' },
         dueDate:                { bsonType: ['date', 'null'] },
-        status:                 { enum: ['BACKLOG', 'DETAIL_IDENTIFIED', 'ASSIGNED', 'IN_PROGRESS', 'QC_REVIEW', 'MANAGER_REVIEW', 'CLIENT_REVIEW', 'COMPLETED', 'CANCELLED'] },
+        // Legacy states accepted for compatibility; new writers/API use five canonical states.
+        status:                 { enum: ['BACKLOG', 'DETAIL_IDENTIFIED', 'ASSIGNED', 'IN_PROGRESS', 'QC_REVIEW', 'MANAGER_REVIEW', 'CLIENT_REVIEW', 'COMPLETED', 'CANCELLED', 'TODO', 'IN_REVIEW', 'FINISHED'] },
+        reviewStep: { bsonType: ['string', 'null'], enum: ['QC', 'MANAGER', 'CLIENT', null] },
         assigneeId:             { bsonType: ['string', 'null'] },
         qcAssigneeId:           { bsonType: ['string', 'null'] },
         requiresClientApproval: { bsonType: 'bool' },
@@ -174,6 +247,7 @@ db.createCollection('tasks', {
         sourceType:             { bsonType: ['string', 'null'] },
         sourceRefId:            { bsonType: ['string', 'null'] },
         createdBy:              { bsonType: ['string', 'null'] },
+        ...taskWorkflowFoundation.taskProperties,
         cancellation: {
           bsonType: 'object', required: ['actorId', 'at', 'reasonCode', 'previousStatus'],
           properties: {
@@ -189,6 +263,13 @@ db.createCollection('tasks', {
   },
   validationAction: 'error',
 });
+
+// New private Task collections. No public URLs and no upload TTL.
+for (const addition of taskWorkflowFoundation.additions.filter(item => item.name !== 'tasks')) {
+  db.createCollection(addition.name, {
+    validator: { $jsonSchema: addition.validator }, validationLevel: 'strict', validationAction: 'error',
+  });
+}
 
 // task_approvals (V2) — append-only approval events. A reject never
 // overwrites earlier approvals; approvalRound identifies the submit cycle.
@@ -277,6 +358,84 @@ db.createCollection('post_versions', {
     },
   } }, validationLevel: 'strict', validationAction: 'error',
 });
+
+// Exact schema/index effects of 2026-10-12-create-mail-templates-collection.js; no Mail behavior changes.
+(() => {
+  const validator = {
+  $jsonSchema: {
+    bsonType: 'object',
+    required: ['_id', 'name', 'subject', 'bodyHtml', 'type', 'createdAt', 'updatedAt'],
+    properties: {
+      workspaceId:  { bsonType: ['string', 'null'], description: 'null for SYSTEM_DEFAULT' },
+      name:         { bsonType: 'string', minLength: 1, maxLength: 120 },
+      subject:      { bsonType: 'string', minLength: 1, maxLength: 200 },
+      bodyHtml:     { bsonType: 'string', minLength: 1, maxLength: 102400 },
+      type:         { enum: ['SYSTEM_DEFAULT', 'CUSTOM'] },
+      attachments:  {
+        bsonType: 'array',
+        maxItems: 3,
+        items: {
+          bsonType: 'object',
+          required: ['attachmentId', 's3Key'],
+          properties: {
+            attachmentId: { bsonType: 'string' },
+            name:         { bsonType: 'string' },
+            contentType:  { bsonType: 'string' },
+            size:         { bsonType: ['long', 'int'] },
+            s3Key:        { bsonType: 'string' },
+          },
+        },
+      },
+      clonedFromId: { bsonType: ['string', 'null'] },
+      createdBy:    { bsonType: ['string', 'null'] },
+      createdAt:    { bsonType: 'date' },
+      updatedAt:    { bsonType: 'date' },
+      deletedAt:    { bsonType: ['date', 'null'] },
+    },
+  },
+};
+  db.createCollection('mail_templates', { validator, validationAction: 'error' });
+db.mail_templates.createIndex(
+  { workspaceId: 1, deletedAt: 1, createdAt: -1 },
+  { name: 'ix_mail_templates_workspace_created' });
+db.mail_templates.createIndex(
+  { type: 1, deletedAt: 1 },
+  { name: 'ix_mail_templates_type' });
+
+})();
+
+// Exact schema/index effects of 2026-10-13-create-mail-recipient-groups-collection.js; no Mail behavior changes.
+(() => {
+  const validator = {
+  $jsonSchema: {
+    bsonType: 'object',
+    required: ['_id', 'workspaceId', 'name', 'recipients', 'createdAt'],
+    properties: {
+      workspaceId: { bsonType: 'string' },
+      name:        { bsonType: 'string', minLength: 1, maxLength: 80 },
+      recipients:  {
+        bsonType: 'array',
+        maxItems: 200,
+        items: {
+          bsonType: 'object',
+          required: ['email'],
+          properties: {
+            email: { bsonType: 'string', maxLength: 255 },
+            name:  { bsonType: ['string', 'null'], maxLength: 120 },
+          },
+        },
+      },
+      createdBy:   { bsonType: ['string', 'null'] },
+      createdAt:   { bsonType: 'date' },
+    },
+  },
+};
+  db.createCollection('mail_recipient_groups', { validator, validationAction: 'error' });
+db.mail_recipient_groups.createIndex(
+  { workspaceId: 1, name: 1 },
+  { name: 'ix_mail_recipient_groups_workspace_name' });
+
+})();
 
 // knowledge_documents (ai-service)
 db.createCollection('knowledge_documents', {
@@ -429,6 +588,11 @@ db.tasks.createIndex({ sourceType: 1, sourceRefId: 1 }, {
   partialFilterExpression: { sourceType: 'CONTENT_REQUEST', sourceRefId: { $type: 'string' } },
 });
 
+// Optional workflow list and private comment/upload/outbox indexes.
+for (const addition of taskWorkflowFoundation.additions) {
+  for (const { key, ...options } of addition.indexes) db.getCollection(addition.name).createIndex(key, options);
+}
+
 // task_approvals (V2) — supports latest action per step in the active round.
 db.task_approvals.createIndex(
   { taskId: 1, approvalRound: 1, step: 1, createdAt: 1 },
@@ -470,4 +634,4 @@ db.ai_usage_logs.createIndex({ created_at: -1 }, { name: 'idx_ai_usage_created_a
 // report_jobs
 db.report_jobs.createIndex({ workspace_id: 1, status: 1 }, { name: 'idx_report_jobs_ws_status' });
 
-print('BrandHub MongoDB initialized: 19 collections, all indexes created.');
+print('BrandHub MongoDB initialized: 24 collections, all indexes created.');
