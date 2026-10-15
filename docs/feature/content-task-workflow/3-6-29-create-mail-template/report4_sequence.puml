@@ -1,0 +1,54 @@
+@startuml 3.6.29 - Create Mail Template
+title Sequence Diagram — 3.6.29 - Create Mail Template
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Member (OWNER/MANAGER/CREATOR)" as member
+boundary "CreateMailTemplateForm (UI, TipTap)" as ui
+boundary "MailTemplateController" as controller
+control "MailTemplateService" as service
+entity "WorkspaceAccessService" as access
+control "HtmlSanitizer" as sanitizer
+entity "MailAttachmentRepository" as attachments
+entity "MailTemplateRepository (MongoDB)" as repo
+
+' === Flow ===
+member -> ui: fills name, subject, body (variables, images), uploads attachments, optional "use system template"
+ui -> controller: POST /api/v1/workspaces/{id}/mail-templates {name, subject, bodyHtml, attachmentIds?, cloneFromId?}
+controller -> service: createTemplate(currentUser, workspaceId, request)
+service -> access: requireActiveMember(workspaceId, userId)
+access --> service: member(role)
+opt role not permitted
+  service --> controller: throw 403 FORBIDDEN
+  controller --> ui: 403 Forbidden
+end
+opt cloneFromId != null
+  service -> repo: findVisibleById(cloneFromId, workspaceId) (own or SYSTEM_DEFAULT)
+  repo --> service: Optional<source>
+  opt source missing
+    service --> controller: throw 404 TEMPLATE_NOT_FOUND
+    controller --> ui: 404 Not Found
+  end
+  service -> service: fill missing fields and attachments from source
+end
+opt subject or bodyHtml blank, or body > 100KB
+  service --> controller: throw 400 VALIDATION_ERROR
+  controller --> ui: 400 Bad Request
+  ui --> member: keeps form data, shows validation error
+end
+service -> sanitizer: sanitize(bodyHtml) (allow-list)
+sanitizer --> service: safeHtml
+service -> attachments: validate attachmentIds belong to workspace, mark bound
+attachments --> service: ok / MAIL_ATTACHMENT_INVALID
+service -> repo: save(new MailTemplateDocument(workspaceId, name, subject, safeHtml, CUSTOM, clonedFromId, createdBy))
+repo --> service: savedTemplate
+service --> controller: MailTemplateResponse
+controller --> ui: 201 Created
+ui --> member: success toast, list refreshed
+
+@enduml

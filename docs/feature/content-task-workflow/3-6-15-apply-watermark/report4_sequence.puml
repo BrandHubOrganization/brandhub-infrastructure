@@ -1,0 +1,80 @@
+@startuml 3.6.15 - Apply Watermark
+title Sequence Diagram — 3.6.15 - Apply Watermark
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+actor "Creator" as creator
+boundary "WatermarkStudio (UI)" as watermarkmodal_ui
+boundary "MaterialController" as materialcontroller
+control "MaterialServiceImpl" as materialserviceimpl
+control "ImageWatermarkProcessor" as imagewatermarkprocessor
+entity "BrandCollectionRepository" as brandcollectionrepository
+entity "MaterialRepository" as materialrepository
+participant "FileStorageService" as filestorageservice
+
+alt opens watermark studio
+  creator -> watermarkmodal_ui: opens studio on retouched image
+  watermarkmodal_ui -> materialcontroller: GET /api/v1/workspaces/{id}/brand-collection?type=LOGO
+  materialcontroller -> materialserviceimpl: getBrandLogos(workspaceId)
+  materialserviceimpl -> brandcollectionrepository: findByWorkspaceIdAndAssetType(workspaceId, "LOGO")
+  brandcollectionrepository --> materialserviceimpl: List<BrandAsset>
+  materialserviceimpl --> materialcontroller: List<BrandAssetResponse>
+  materialcontroller --> watermarkmodal_ui: 200 OK List<BrandAssetResponse>
+
+  alt brandLogos.isEmpty()
+    watermarkmodal_ui --> creator: shows "no logo" warning, disables Apply
+  else !brandLogos.isEmpty()
+    creator -> watermarkmodal_ui: selects logo, position, opacity, scale
+    watermarkmodal_ui -> watermarkmodal_ui: renderPreview(canvas)
+    watermarkmodal_ui --> creator: renders live preview
+  end
+
+else applies watermark
+  creator -> watermarkmodal_ui: clicks Apply
+  watermarkmodal_ui -> materialcontroller: POST /api/v1/workspaces/{id}/materials/{materialId}/watermark
+  materialcontroller -> materialserviceimpl: applyWatermark(workspaceId, materialId, request, currentUser)
+
+  materialserviceimpl -> materialrepository: findByIdAndWorkspaceId(materialId, workspaceId)
+  materialrepository --> materialserviceimpl: Optional<Material>
+
+  opt !material.present || !material.isImage()
+    materialserviceimpl --> materialcontroller: throw 400 INVALID_MATERIAL_TYPE
+    materialcontroller --> watermarkmodal_ui: 400 Bad Request
+    watermarkmodal_ui --> creator: shows 400 toast
+  end
+
+  materialserviceimpl -> brandcollectionrepository: findByIdAndWorkspaceId(request.logoAssetId, workspaceId)
+  brandcollectionrepository --> materialserviceimpl: Optional<BrandAsset>
+
+  opt !logo.present
+    materialserviceimpl --> materialcontroller: throw 404 LOGO_NOT_FOUND
+    materialcontroller --> watermarkmodal_ui: 404 Not Found
+    watermarkmodal_ui --> creator: shows 404 toast
+  end
+
+  materialserviceimpl -> filestorageservice: downloadInputStream(originalMaterial.url)
+  filestorageservice --> materialserviceimpl: InputStream (baseImage)
+
+  materialserviceimpl -> filestorageservice: downloadInputStream(logoAsset.url)
+  filestorageservice --> materialserviceimpl: InputStream (logoImage)
+
+  materialserviceimpl -> imagewatermarkprocessor: composite(baseImage, logoImage, position, opacity, scale)
+  imagewatermarkprocessor -> imagewatermarkprocessor: renderComposite()
+  imagewatermarkprocessor --> materialserviceimpl: ByteArrayOutputStream (stream)
+
+  materialserviceimpl -> filestorageservice: upload(stream, newFileName, mimeType)
+  filestorageservice --> materialserviceimpl: newFileUrl
+
+  materialserviceimpl -> materialrepository: save(new Material(...))
+  materialrepository --> materialserviceimpl: Material
+
+  materialserviceimpl --> materialcontroller: WatermarkedMaterialResponse
+  materialcontroller --> watermarkmodal_ui: 201 Created
+  watermarkmodal_ui --> creator: shows 201 toast
+end
+
+@enduml

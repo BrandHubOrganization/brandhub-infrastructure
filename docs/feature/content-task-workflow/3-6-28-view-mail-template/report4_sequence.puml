@@ -1,0 +1,39 @@
+@startuml 3.6.28 - View Mail Template
+title Sequence Diagram — 3.6.28 - View Mail Template
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Member (OWNER/MANAGER/CREATOR)" as member
+boundary "MailTemplateListPage (UI)" as ui
+boundary "MailTemplateController" as controller
+control "MailTemplateService" as service
+entity "WorkspaceAccessService" as access
+entity "MailTemplateRepository (MongoDB)" as repo
+entity "MailTemplateResponse" as response
+
+' === Flow ===
+member -> ui: opens /workspaces/{id}/mail-templates
+ui -> controller: GET /api/v1/workspaces/{id}/mail-templates?includeSystem&q&page&size
+controller -> service: listTemplates(currentUser, workspaceId, query)
+service -> access: requireActiveMember(workspaceId, userId)
+access --> service: member(role)
+opt role not in {OWNER, MANAGER, CREATOR}
+  service --> controller: throw 403 FORBIDDEN
+  controller --> ui: 403 Forbidden
+  ui --> member: shows access denied
+end
+service -> repo: findVisible(workspaceId, includeSystem, q, pageable) where deletedAt == null
+repo --> service: Page<MailTemplateDocument>
+loop each template
+  service -> response: map(name, subject preview, type, attachmentCount, createdAt)
+end
+service --> controller: Page<MailTemplateResponse>
+controller --> ui: 200 OK
+ui --> member: renders list (or empty state)
+
+@enduml

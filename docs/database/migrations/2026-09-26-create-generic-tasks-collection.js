@@ -12,47 +12,76 @@
 //   mongosh "$MONGODB_URI" docs/database/migrations/2026-09-26-create-generic-tasks-collection.js
 // ============================================================
 
-db = db.getSiblingDB('brandhub');
+db = db.getSiblingDB("brandhub");
 
 const taskValidator = {
   $jsonSchema: {
-    bsonType: 'object',
+    bsonType: "object",
     required: [
-      'workspaceId', 'type', 'name', 'status', 'requiresClientApproval',
-      'typeMetadata', 'createdAt', 'updatedAt',
+      "workspaceId",
+      "type",
+      "name",
+      "status",
+      "requiresClientApproval",
+      "typeMetadata",
+      "createdAt",
+      "updatedAt",
     ],
     properties: {
-      workspaceId:            { bsonType: 'string' },
-      campaignId:             { bsonType: ['string', 'null'] },
-      type:                   { enum: ['POST', 'LIVESTREAM', 'SURVEY'] },
-      name:                   { bsonType: 'string' },
-      dueDate:                { bsonType: 'date' },
-      status:                 { enum: ['BACKLOG', 'DETAIL_IDENTIFIED', 'ASSIGNED', 'IN_PROGRESS', 'QC_REVIEW', 'MANAGER_REVIEW', 'CLIENT_REVIEW', 'COMPLETED'] },
-      assigneeId:             { bsonType: ['string', 'null'] },
-      qcAssigneeId:           { bsonType: ['string', 'null'] },
-      requiresClientApproval: { bsonType: 'bool' },
-      description:            { bsonType: ['string', 'null'] },
-      typeMetadata:           { bsonType: 'object' },
-      createdAt:              { bsonType: 'date' },
-      updatedAt:              { bsonType: 'date' },
+      workspaceId: { bsonType: "string" },
+      campaignId: { bsonType: ["string", "null"] },
+      type: { enum: ["POST", "LIVESTREAM", "SURVEY"] },
+      name: { bsonType: "string" },
+      dueDate: { bsonType: "date" },
+      status: {
+        enum: [
+          "BACKLOG",
+          "DETAIL_IDENTIFIED",
+          "ASSIGNED",
+          "IN_PROGRESS",
+          "QC_REVIEW",
+          "MANAGER_REVIEW",
+          "CLIENT_REVIEW",
+          "COMPLETED",
+        ],
+      },
+      assigneeId: { bsonType: ["string", "null"] },
+      qcAssigneeId: { bsonType: ["string", "null"] },
+      requiresClientApproval: { bsonType: "bool" },
+      description: { bsonType: ["string", "null"] },
+      typeMetadata: { bsonType: "object" },
+      createdAt: { bsonType: "date" },
+      updatedAt: { bsonType: "date" },
     },
   },
 };
 
-if (db.getCollectionInfos({ name: 'tasks' }).length === 0) {
-  db.createCollection('tasks', {
+if (db.getCollectionInfos({ name: "tasks" }).length === 0) {
+  db.createCollection("tasks", {
     validator: taskValidator,
-    validationAction: 'error',
+    validationAction: "error",
   });
 } else {
   db.runCommand({
-    collMod: 'tasks',
+    collMod: "tasks",
     validator: taskValidator,
-    validationAction: 'error',
+    validationAction: "error",
   });
 }
 
-db.tasks.createIndex({ workspaceId: 1, status: 1 }, { name: 'idx_tasks_workspace_status' });
-db.tasks.createIndex({ workspaceId: 1, assigneeId: 1 }, { name: 'idx_tasks_workspace_assignee' });
-db.tasks.createIndex({ workspaceId: 1, type: 1 }, { name: 'idx_tasks_workspace_type' });
-db.tasks.createIndex({ workspaceId: 1, campaignId: 1 }, { name: 'idx_tasks_workspace_campaign' });
+db.tasks.createIndex(
+  { workspaceId: 1, status: 1 },
+  { name: "idx_tasks_workspace_status" },
+);
+db.tasks.createIndex(
+  { workspaceId: 1, assigneeId: 1 },
+  { name: "idx_tasks_workspace_assignee" },
+);
+db.tasks.createIndex(
+  { workspaceId: 1, type: 1 },
+  { name: "idx_tasks_workspace_type" },
+);
+db.tasks.createIndex(
+  { workspaceId: 1, campaignId: 1 },
+  { name: "idx_tasks_workspace_campaign" },
+);

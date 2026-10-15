@@ -1,0 +1,65 @@
+@startuml 3.4.3.B - Create Agency (Personal and Business Mode)
+title Sequence Diagram — 3.4.3.B - Create Agency (Personal and Business Mode)
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants (BCE Pattern) ===
+actor "User" as user
+boundary "CreateAgencyPage (UI)" as createagencypage_ui
+boundary "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "Agency" as agency
+entity "AgencyMemberRepository" as agencymemberrepository
+entity "WorkspaceRepository" as workspacerepository
+entity "Workspace" as workspace
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "AgencyResponse" as agencyresponse
+
+' === Flow ===
+user -> createagencypage_ui: submits form(type)
+createagencypage_ui -> agencycontroller: POST /api/v1/agencies
+
+opt !valid(request)
+  agencycontroller --> createagencypage_ui: 400 Bad Request
+  createagencypage_ui --> user: shows 400 toast
+end
+
+agencycontroller -> agencyserviceimpl: createAgency(currentUser, request)
+
+agencyserviceimpl -> agency: new Agency(request, currentUser.getId())
+agency --> agencyserviceimpl: Agency
+agencyserviceimpl -> agencyrepository: save(agency)
+agencyrepository --> agencyserviceimpl: Agency
+
+agencyserviceimpl -> agencymemberrepository: save(new AgencyMember(...))
+agencymemberrepository --> agencyserviceimpl: AgencyMember
+
+alt type == PERSONAL
+  agencyserviceimpl -> workspace: new Workspace(...)
+  workspace --> agencyserviceimpl: Workspace
+  agencyserviceimpl -> workspacerepository: save(workspace)
+  workspacerepository --> agencyserviceimpl: Workspace
+
+  agencyserviceimpl -> workspacememberrepository: save(new WorkspaceMember(...))
+  workspacememberrepository --> agencyserviceimpl: WorkspaceMember
+  agencyserviceimpl -> agencyresponse: toResponse(agency, OWNER, workspaceId)
+else type == BUSINESS
+  agencyserviceimpl -> agencyresponse: toResponse(agency, OWNER, null)
+end
+
+agencyresponse --> agencyserviceimpl: AgencyResponse
+agencyserviceimpl -> agencycontroller: AgencyResponse
+agencycontroller --> createagencypage_ui: 201 Created
+
+alt type == PERSONAL
+  createagencypage_ui --> user: navigates to workspace dashboard
+else type == BUSINESS
+  createagencypage_ui --> user: navigates to agency dashboard
+end
+
+@enduml

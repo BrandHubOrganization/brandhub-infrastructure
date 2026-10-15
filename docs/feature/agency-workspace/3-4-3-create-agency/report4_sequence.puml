@@ -1,0 +1,48 @@
+@startuml 3.4.3 - Create Agency
+title Sequence Diagram — 3.4.3 - Create Agency
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "CreateAgencyPage (UI)" as createagencypage_ui
+boundary "AgencyController" as agencycontroller
+control "AgencyServiceImpl" as agencyserviceimpl
+entity "AgencyRepository" as agencyrepository
+entity "Agency" as agency
+entity "AgencyMemberRepository" as agencymemberrepository
+entity "AgencyResponse" as agencyresponse
+
+' === Flow ===
+alt !valid(form)
+  user -> createagencypage_ui: submits invalid form
+  createagencypage_ui -> agencycontroller: POST /api/v1/agencies
+  agencycontroller --> createagencypage_ui: 400 Bad Request
+  createagencypage_ui --> user: shows 400 toast
+else !authenticated
+  user -> createagencypage_ui: submits unauthenticated form
+  createagencypage_ui -> agencycontroller: POST /api/v1/agencies
+  agencycontroller --> createagencypage_ui: 401 Unauthorized
+  createagencypage_ui --> user: shows 401 toast
+else valid(form)
+  user -> createagencypage_ui: submits form
+  createagencypage_ui -> agencycontroller: POST /api/v1/agencies
+  agencycontroller -> agencyserviceimpl: createAgency(currentUser, request)
+  agencyserviceimpl -> agency: new Agency(request, currentUser.getId())
+  agency --> agencyserviceimpl: Agency
+  agencyserviceimpl -> agencyrepository: save(agency)
+  agencyrepository --> agencyserviceimpl: Agency
+  agencyserviceimpl -> agencymemberrepository: save(ownerMember)
+  agencymemberrepository --> agencyserviceimpl: AgencyMember
+  agencyserviceimpl -> agencyresponse: toResponse(agency, OWNER)
+  agencyresponse --> agencyserviceimpl: AgencyResponse
+  agencyserviceimpl --> agencycontroller: AgencyResponse
+  agencycontroller --> createagencypage_ui: 201 Created
+  createagencypage_ui --> user: shows 201 toast
+end
+
+@enduml
