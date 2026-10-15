@@ -473,6 +473,61 @@ ALTER TABLE workspaces
     ADD CONSTRAINT fk_workspaces_media_package
     FOREIGN KEY (workspace_media_package_id) REFERENCES workspace_media_packages(id) ON DELETE SET NULL;
 
+-- DA-E50-04: append-only package negotiation history.
+-- Requires the terms-version migration. Run with psql -v ON_ERROR_STOP=1 -1.
+-- Rerunnable: preserve existing history, baseline only non-draft selections
+-- without history. A baseline is current known state, not reconstructed events.
+CREATE TABLE IF NOT EXISTS package_negotiation_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_media_package_id UUID NOT NULL
+        REFERENCES workspace_media_packages(id) ON DELETE CASCADE,
+    terms_version INT NOT NULL CHECK (terms_version > 0),
+    action VARCHAR(30) NOT NULL
+        CHECK (action IN ('BASELINE', 'REQUEST_CHANGE', 'COUNTER_OFFER')),
+    actor_id UUID,
+    actor_role VARCHAR(20),
+    note VARCHAR(2000),
+    terms_snapshot JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_package_negotiation_events_version
+        UNIQUE (workspace_media_package_id, terms_version)
+);
+
+CREATE OR REPLACE FUNCTION protect_package_negotiation_history()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE parent_exists BOOLEAN;
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        -- Permit FK cascade only after the parent selection has been deleted.
+        EXECUTE format('SELECT EXISTS (SELECT 1 FROM %I.workspace_media_packages WHERE id = $1)',
+                       TG_TABLE_SCHEMA)
+            INTO parent_exists USING OLD.workspace_media_package_id;
+        IF NOT parent_exists THEN
+            RETURN OLD;
+        END IF;
+    END IF;
+    RAISE EXCEPTION 'package_negotiation_events is append-only';
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_package_negotiation_events_append_only ON package_negotiation_events;
+CREATE TRIGGER trg_package_negotiation_events_append_only
+BEFORE UPDATE OR DELETE ON package_negotiation_events
+FOR EACH ROW EXECUTE FUNCTION protect_package_negotiation_history();
+
+INSERT INTO package_negotiation_events (
+    workspace_media_package_id, terms_version, action, terms_snapshot
+)
+SELECT p.id, p.terms_version, 'BASELINE', p.final_terms
+FROM workspace_media_packages p
+WHERE p.negotiation_status <> 'DRAFT'
+  AND NOT EXISTS (
+      SELECT 1 FROM package_negotiation_events e
+      WHERE e.workspace_media_package_id = p.id
+  )
+ON CONFLICT (workspace_media_package_id, terms_version) DO NOTHING;
+
+
 CREATE TABLE IF NOT EXISTS media_campaigns (
     id                          UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_media_package_id UUID             NOT NULL REFERENCES workspace_media_packages(id) ON DELETE RESTRICT,
@@ -505,6 +560,10 @@ CREATE TABLE IF NOT EXISTS third_party_collaborators (
     partner_type collaborator_type NOT NULL,
     contact_info JSONB             NOT NULL DEFAULT '{}',
     notes        TEXT,
+    is_active    BOOLEAN           NOT NULL DEFAULT TRUE,
+    first_used_at TIMESTAMPTZ,
+    usage_history_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    version      BIGINT            NOT NULL DEFAULT 0,
     created_by   UUID              NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     created_at   TIMESTAMPTZ       NOT NULL DEFAULT NOW(),
     updated_at   TIMESTAMPTZ       NOT NULL DEFAULT NOW()
@@ -526,6 +585,33 @@ CREATE TABLE IF NOT EXISTS campaign_collaborators (
     updated_at          TIMESTAMPTZ        NOT NULL DEFAULT NOW(),
     UNIQUE (media_campaign_id, collaborator_id)
 );
+
+CREATE OR REPLACE FUNCTION mark_collaborator_usage_on_link()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE active BOOLEAN;
+BEGIN
+    SELECT is_active INTO active
+      FROM third_party_collaborators
+     WHERE id = NEW.collaborator_id
+     FOR UPDATE;
+    IF active IS NULL THEN
+        RAISE EXCEPTION USING ERRCODE = '23503', MESSAGE = 'collaborator does not exist';
+    END IF;
+    IF NOT active THEN
+        RAISE EXCEPTION USING ERRCODE = '23514', MESSAGE = 'collaborator is inactive';
+    END IF;
+    UPDATE third_party_collaborators
+       SET first_used_at = COALESCE(first_used_at, NOW()),
+           version = version + 1
+     WHERE id = NEW.collaborator_id;
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_campaign_collaborator_mark_used ON campaign_collaborators;
+CREATE TRIGGER trg_campaign_collaborator_mark_used
+BEFORE INSERT ON campaign_collaborators
+FOR EACH ROW EXECUTE FUNCTION mark_collaborator_usage_on_link();
 
 -- ============================================================
 -- Billing group
