@@ -1,64 +1,53 @@
--- ============================================================
--- BrandHub - PostgreSQL migration: package negotiation history
--- Date: 2026-10-13
--- Reason: DA-945, DA-946 (FR 3.5.3). Preserve negotiation history
---         and enforce terms versioning. Append-only event store.
--- ============================================================
-BEGIN;
-
+-- DA-E50-04: append-only package negotiation history.
+-- Requires the terms-version migration. Run with psql -v ON_ERROR_STOP=1 -1.
+-- Rerunnable: preserve existing history, baseline only non-draft selections
+-- without history. A baseline is current known state, not reconstructed events.
 CREATE TABLE IF NOT EXISTS package_negotiation_events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    workspace_media_package_id UUID NOT NULL REFERENCES workspace_media_packages(id) ON DELETE CASCADE,
-    terms_version INT NOT NULL,
-    action VARCHAR(30) NOT NULL,
-    actor_id UUID REFERENCES users(id),
+    workspace_media_package_id UUID NOT NULL
+        REFERENCES workspace_media_packages(id) ON DELETE CASCADE,
+    terms_version INT NOT NULL CHECK (terms_version > 0),
+    action VARCHAR(30) NOT NULL
+        CHECK (action IN ('BASELINE', 'REQUEST_CHANGE', 'COUNTER_OFFER')),
+    actor_id UUID,
     actor_role VARCHAR(20),
     note VARCHAR(2000),
     terms_snapshot JSONB NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_package_negotiation_events_version
+        UNIQUE (workspace_media_package_id, terms_version)
 );
 
-CREATE INDEX IF NOT EXISTS idx_pkg_negotiation_events_pkg_version
-    ON package_negotiation_events(workspace_media_package_id, terms_version DESC);
-
-CREATE OR REPLACE FUNCTION prevent_package_negotiation_event_mutation()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION protect_package_negotiation_history()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE parent_exists BOOLEAN;
 BEGIN
-    IF TG_OP = 'UPDATE' THEN
-        RAISE EXCEPTION 'package_negotiation_events is append-only and cannot be updated';
-    ELSIF TG_OP = 'DELETE' THEN
-        IF EXISTS (SELECT 1 FROM workspace_media_packages WHERE id = OLD.workspace_media_package_id) THEN
-            RAISE EXCEPTION 'package_negotiation_events is append-only and direct deletes are not allowed';
+    IF TG_OP = 'DELETE' THEN
+        -- Permit FK cascade only after the parent selection has been deleted.
+        EXECUTE format('SELECT EXISTS (SELECT 1 FROM %I.workspace_media_packages WHERE id = $1)',
+                       TG_TABLE_SCHEMA)
+            INTO parent_exists USING OLD.workspace_media_package_id;
+        IF NOT parent_exists THEN
+            RETURN OLD;
         END IF;
     END IF;
-    RETURN OLD;
+    RAISE EXCEPTION 'package_negotiation_events is append-only';
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
-DROP TRIGGER IF EXISTS trg_pkg_negotiation_events_mutation ON package_negotiation_events;
-CREATE TRIGGER trg_pkg_negotiation_events_mutation
+DROP TRIGGER IF EXISTS trg_package_negotiation_events_append_only ON package_negotiation_events;
+CREATE TRIGGER trg_package_negotiation_events_append_only
 BEFORE UPDATE OR DELETE ON package_negotiation_events
-FOR EACH ROW EXECUTE FUNCTION prevent_package_negotiation_event_mutation();
+FOR EACH ROW EXECUTE FUNCTION protect_package_negotiation_history();
 
--- Backfill baseline for active negotiations beyond initial version
 INSERT INTO package_negotiation_events (
-    id, workspace_media_package_id, terms_version, action, actor_id, actor_role, note, terms_snapshot, created_at
+    workspace_media_package_id, terms_version, action, terms_snapshot
 )
-SELECT
-    gen_random_uuid(),
-    wmp.id,
-    wmp.terms_version,
-    'BASELINE',
-    NULL,
-    NULL,
-    NULL,
-    wmp.final_terms,
-    now()
-FROM workspace_media_packages wmp
-WHERE wmp.terms_version > 1
+SELECT p.id, p.terms_version, 'BASELINE', p.final_terms
+FROM workspace_media_packages p
+WHERE p.negotiation_status <> 'DRAFT'
   AND NOT EXISTS (
-      SELECT 1 FROM package_negotiation_events pne
-      WHERE pne.workspace_media_package_id = wmp.id
-  );
-
-COMMIT;
+      SELECT 1 FROM package_negotiation_events e
+      WHERE e.workspace_media_package_id = p.id
+  )
+ON CONFLICT (workspace_media_package_id, terms_version) DO NOTHING;
