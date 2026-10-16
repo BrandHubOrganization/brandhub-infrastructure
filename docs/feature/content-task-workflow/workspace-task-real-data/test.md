@@ -1,5 +1,22 @@
 # Cases before implementation
 
+## Demo isolation correction cases (2026-10-16)
+
+- Empty Workspace: Owner/Manager/Creator/Client GET returns empty, only count/find reads; no sample creation or assignee mutation.
+- Existing `Untitled post`: GET returns original Task ID and metadata unchanged, no extra Tasks or writes.
+- Seed compatibility: TaskSampleSeeder and explicit MongoDataSeeder remain available; never execute full seed on shared Atlas.
+- Migration rehearsal: all five scripts pass on a temporary Mongo clone before Atlas writes; final validator accepts legacy states and TODO/IN_REVIEW/FINISHED; Task document hashes unchanged.
+- Regression: Task details, assignment/start, Campaign deployment/closure, Request acceptance and content-writing/publishing tests remain green. No real Facebook posting or Campaign retry during verification.
+
+### Verification results (2026-10-16)
+
+- Business `fix/task-demo-isolation`: clean build/package passed; 156 focused unit tests, zero failures/errors/skips. Covers reader (15), workflow service (37), dates (14), content-writing (22), Post service (3), seed guard (5), Campaign deployment/closure and Request services. No real Facebook calls or publishing consumer test in this suite.
+- Initial incremental test discovery failed with stale compiled classes (`NoClassDefFoundError: TaskListQuery`); clean Maven build resolved it without dependency changes.
+- Rehearsed all five existing Request/Task migrations on ephemeral Mongo with a bounded clone of affected data/metadata; schema guards passed and all five canonical Task states were inserted successfully on the local clone only.
+- After user-confirmed Business stop, Atlas APPLY passed against the identical source/script fingerprints. All 5 Task documents and approval history hashes unchanged; 1 Request normalized to V2 without changing its CANCELLED status/business data; legacy Task status enum retained. Post/Chat/Mail and other collection metadata unchanged.
+- Private before/after audit artifacts retained outside repositories under `.local-backups`; no init, bulk seed, Task backfill, deployment retry or external publication. Existing local inventory-script edits in Infrastructure left untouched.
+- Restart Business on the fixed branch, reload Web, then explicitly retry the approved Campaign. This real authenticated retry was NOT performed by the agent; schema readiness is verified, end-to-end deployment remains a user smoke test. Legacy Tasks without first-start evidence may remain mutation-locked by design.
+
 | Case | Expected |
 | --- | --- |
 | API path and filters | Versioned endpoint; page/sort/status/type/search/campaignId forwarded |
