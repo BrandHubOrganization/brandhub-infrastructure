@@ -1174,6 +1174,7 @@
 | DA-E51-02 | Collection `task_approvals` (tách riêng khỏi tasks, giữ approval cũ khi step sau reject) | Lộc | C | `docs/ba/12-state-machines.md` mục 4 "Task — Approval Sequence", `docs/ba/11-data-entities-glossary.md` |
 | DA-E51-03 | Implement Approval Sequence 4-bước (Creator→Manager→Client) | Phước | C | `docs/feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md`, `docs/ba/12-state-machines.md` mục 4 |
 | DA-E51-04 | Implement Task backlog + assign (Manager assign cho Creator) | Lộc | M | `docs/feature/content-task-workflow/3-6-2-assign-task-to-creator/spec.md` |
+| DA-E51-04b (Jira DA-1236) | Add Comments On Task (FR 3.6.3), mentions and image references | Lộc | M | `docs/feature/content-task-workflow/3-6-3-add-comments-on-task/spec.md` |
 | DA-E51-05 | Implement Task views: List, Calendar, Gantt/Timeline, Kanban board, Filter | Phước | M | `docs/feature/content-task-workflow/3-6-4-list-task-view/spec.md`, `3-6-5-calendar-task-view`, `3-6-6-grantt-timeline-task-view`, `3-6-7-kanban-board-task-view`, `3-6-8-view-task-filter` (cùng thư mục `docs/feature/content-task-workflow/`) |
 | DA-E51-06 | Collection `material_repository` + View Material (FR 3.6.11) | Tuấn | M | `docs/feature/content-task-workflow/3-6-11-view-material-repository/spec.md` |
 | DA-E51-06b | Add Material to Repository (FR 3.6.12) | Tuấn | S | `docs/feature/content-task-workflow/3-6-12-add-material-repository/spec.md` |
@@ -9807,8 +9808,8 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 - [ ] `POST /api/v1/workspaces/{id}/media-package` accepts `{packageId}`, returns 201 with `workspaceMediaPackageId`
 - [ ] Client can select only `is_template=false`, available packages belonging to the Workspace's Agency
-- [ ] If no package is selected, the Workspace dashboard displays a prominent non-blocking prompt; Client can navigate directly to package selection
-- [ ] If no package selected within X days of Workspace creation, a reminder notification is sent to the Client (does not block Workspace access)
+- [ ] Before Package approval, the Workspace dashboard redirects to package negotiation/selection; creative features are gated while Package/Chat and Manager settings remain accessible.
+- [ ] Preserve the current Package gate and negotiation redirect (Client: Package/Chat; Manager additionally retains settings). Scheduled X-day reminders are removed by confirmed BA on 2026-10-13; no scheduler is required.
 - [ ] Package can be freely changed BEFORE the Client starts negotiating (DA-E50-04); once negotiation has started, switching to a different package entirely is blocked — only continued negotiation on the current package is allowed
 
 **Spec Reference:** `docs/feature/media-package-campaign/3-5-1-create-media-package/spec.md`, `docs/ba/04-media-package-campaign.md` mục 1
@@ -9917,7 +9918,7 @@ awaits its own module. This replaces the multiple-cooperation-round proposal. Se
 - [ ] Generated Tasks are minimal: name + deadline only — no assignee or detailed requirements yet (those come from Identify Task Detail, DA-E51-04-equivalent FR 3.6.1); each carries its stable `campaignWorkItemId` for idempotency
 - [ ] Campaign transitions to `IN_PROGRESS` only after durable deployment confirms all work items have corresponding Tasks; partial failures remain retryable
 - [ ] Calling deploy twice (double-click) does not create duplicate Tasks — idempotency required
-- [ ] Manager explicitly completes an `IN_PROGRESS` Campaign; unfinished Tasks require a nonblank reason. Record actor/time and preserve every child Task's state and workflow
+- [ ] Confirmed 2026-10-14: Manager completes IN_PROGRESS only when every linked Task is COMPLETED/CANCELLED and no Request is IN_PROGRESS. Preview blockers; optional explicit bulk cancellation uses one shared preset/OTHER reason and per-Task audit, preserving approval/content history. PENDING Requests auto-cancel after completion. See docs/feature/media-package-campaign/campaign-closure/spec.md; replaces reason-only bypass.
 
 **Confirmed design (2026-10-08):** See `docs/feature/media-package-campaign/phase-1-design/plan.md` for versioned approval, total quantities, deployment recovery and Mongo Task/editor integration. Design completion is not implementation completion.
 
@@ -9939,6 +9940,7 @@ awaits its own module. This replaces the multiple-cooperation-round proposal. Se
 
 - [ ] `ThirdPartyCollaborator` table scoped to `agencyId`: `name`, `type` (newspaper/banner/TV/other), `contactInfo`
 - [ ] Basic CRUD endpoints under `/api/v1/agencies/{id}/collaborators`
+- [ ] Confirmed BA 2026-10-13: Agency Owner alone manages the directory. Unused partners may be deleted; previously used partners may only be deactivated, never newly assigned while inactive. Existing Campaign links remain readable/updateable. See `docs/feature/media-package-campaign/partner-directory/spec.md` (DA-949).
 
 **Spec Reference:** `docs/ba/07-publishing-social-collaborator.md`, `docs/ba/12-state-machines.md` mục 6 "Third-party Collaborator"
 
@@ -9982,13 +9984,23 @@ E50-08 directory CRUD is not implemented by this task. Details and verification:
 
 - [ ] `POST /api/v1/workspaces/{id}/content-requests` accepts `{title, description, type, dueDate}` — CLIENT role only; Owner/Manager can view but not self-create (per BA confirmation 2026-09-14)
 - [ ] Initial status `pending`
+- [ ] Creation only while Workspace Campaign is IN_PROGRESS and deployment SUCCEEDED. Confirmed 2026-10-14: IN_PROGRESS Requests block completion until processed; PENDING auto-cancel with audit after successful completion. Deadline within Campaign dates and today-or-later in Workspace timezone.
 - [ ] FSM: `PENDING → IN_PROGRESS → ACCEPTED/DENIED`; `DENIED` and `CANCELLED` are terminal (cannot transition further)
-- [ ] `PUT` update allowed only while `status=pending` (DA-E50 track-status/update, FR 3.5.8/3.5.9)
+- [ ] Manager explicitly receives the request to enter `IN_PROGRESS` (UI: Đang xem xét); simply viewing never changes status. Accept/deny only from `IN_PROGRESS`.
+- [ ] `PATCH` update of title/description/type/dueDate allowed only to the requesting Client while `status=pending`; receipt locks editing/cancellation (BA 2026-10-13).
 - [ ] `DELETE` (cancel) allowed only while `status=pending`; after Manager changes status, Client can no longer cancel — returns 409 `REQUEST_NOT_CANCELLABLE`
 - [ ] Cancel is a soft-delete (`status=cancelled`), consistent with the soft-delete convention used elsewhere in V2
 - [ ] Non-Client attempting to create, or non-owner-of-request attempting to cancel, returns 403
+- [ ] Confirmed 2026-10-14: acceptance creates exactly one generic Mongo Task BACKLOG with current Campaign ID, campaignWorkItemId=null, sourceType=CONTENT_REQUEST/sourceRefId=requestId, and links generatedTaskId. Serialize with Campaign closure; retries cannot duplicate it. Supplemental group does not change approved plan/package quantities. Legacy unlinked Tasks need explicit reconciliation, not silent reassignment.
+- [ ] Align legacy Request UI/mock states and Atlas schema through new migrations plus init parity; no Atlas reinitialisation or guessed legacy mappings. See `docs/feature/media-package-campaign/remaining-work/spec.md` for decisions (DA-951).
 
 **Spec Reference:** `docs/feature/media-package-campaign/3-5-7-create-content-request/spec.md`, `docs/feature/media-package-campaign/3-5-8-track-request-status/spec.md`, `docs/feature/media-package-campaign/3-5-9-update-request/spec.md`, `docs/feature/media-package-campaign/3-5-10-cancel-request/spec.md`, `docs/ba/12-state-machines.md` mục 1 "Content Request"
+
+**Implementation checkpoint 2026-10-13 (DA-951):** Giai đoạn 2–3 đã có API/UI create/read/edit/cancel,
+Manager receive/accept/deny, transaction Request/Task/audit và source uniqueness. Unit/MockMvc,
+transaction/race/rollback trên Mongo local cô lập và UI fixtures đã chạy. Atlas chỉ inventory/hello
+read-only; hai migration chưa apply, chưa live smoke qua Gateway hoặc đánh dấu task Done.
+Evidence: `docs/feature/media-package-campaign/remaining-work/test.md`.
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E15-01].
 
@@ -10009,7 +10021,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Acceptance Criteria:**
 
-- [ ] `tasks` collection: `id`, `workspaceId`, `campaignId` (nullable — some Tasks come from Content Request, not Campaign), `campaignWorkItemId` (nullable), `sourceType`/`sourceRefId` (nullable), `type` (post/livestream/survey), `name`, `dueDate`, `status` (backlog/detail_identified/assigned/...), `assigneeId`, `qcAssigneeId`, `requiresClientApproval`, `description`, type-specific sub-fields
+- [ ] `tasks` collection: `id`, `workspaceId`, `campaignId` (nullable for manual/legacy Tasks; new accepted Content Request Tasks link current Campaign, confirmed 2026-10-14), `campaignWorkItemId` (nullable for supplemental Tasks), `sourceType`/`sourceRefId` (nullable), `type` (post/livestream/survey), `name`, `dueDate`, `status` (backlog/detail_identified/assigned/...; CANCELLED terminal added for explicit Manager cancellation), `assigneeId`, `qcAssigneeId`, `requiresClientApproval`, `description`, type-specific sub-fields. Task workflow team must preserve cancellation audit and never reopen CANCELLED through normal transitions.
 - [ ] Task starts in `backlog` status when auto-generated from Campaign deploy (DA-E50-07) or Content Request acceptance
 
 **Spec Reference:** `docs/ba/05-content-task-workflow.md`, `docs/ba/11-data-entities-glossary.md`
@@ -10040,18 +10052,20 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 ### DA-E51-03 — Implement Approval Sequence State Machine (Creator → [QC] → Manager → [Client])
 
+> **Lifecycle amendment confirmed 2026-10-15 (supersedes historical status names below):** the five business states are TODO, IN_PROGRESS, IN_REVIEW, CANCELLED and FINISHED. IN_REVIEW carries a separate QC/MANAGER/CLIENT review step; rejection returns to IN_PROGRESS, and only final successful approval reaches FINISHED. Preserve first-start evidence and approval history; revised content starts a new round from QC if configured, otherwise Manager. Approval implementation remains owned by this task's assignee; DA-978 only supplies the integration contract. See `docs/feature/content-task-workflow/task-five-state-inline-edit/spec.md`.
+
 **Assignee:** Phước | **Priority:** 🔴 Critical
 
-**Goal:** Implement the full approval chain with optional QC and optional Client steps, where a reject at ANY step always returns the Task to `ASSIGNED` for the Creator to fix, but resubmission skips back only to the step immediately AFTER the last-passed step — never redoing already-approved steps automatically.
+**Goal:** Implement the full approval chain with optional QC and optional Client steps. Rejection returns the Task to ASSIGNED; historical approvals are preserved, but revised content must be reviewed again from QC if assigned, otherwise Manager. This replaces the historical skip-passed-steps rule, reconfirmed by the user on 2026-10-14.
 
 **Acceptance Criteria:**
 
 - [ ] Chain: `Creator submit → [QC review, optional] → Manager review → [Client review, optional if requiresClientApproval] → Completed`
 - [ ] Whether QC runs is determined by `qcAssigneeId` being set at Assign time (DA-E51-04), not a separate toggle
 - [ ] Reject at ANY step → Task returns to `ASSIGNED`; approvals from steps BEFORE the rejected step are preserved, NOT cleared
-- [ ] Resubmission after reject skips directly to the step after the last-passed one (e.g. QC approved → Manager rejected → resubmit → goes straight to `MANAGER_REVIEW`, does NOT re-enter `QC_REVIEW`) — Manager may manually re-request QC if desired, but it is never automatic
+- [ ] Resubmission after reject starts a new approval round from QC if assigned, otherwise Manager. Past approvals remain audit records and do not authorize revised content. Example: QC approved → Manager rejected → resubmit → QC_REVIEW again if QC exists.
 - [ ] If QC rejects (the first step), there is no prior approval to preserve — resubmit re-enters `QC_REVIEW` normally
-- [ ] If Client rejects (the last step), Manager's earlier approval is preserved — resubmit goes straight back to `CLIENT_REVIEW`, not `MANAGER_REVIEW`
+- [ ] If Client rejects, preserve earlier QC/Manager records; resubmit starts at QC if assigned, otherwise Manager, then Client if required. Never skip directly to Client based on prior-round approvals.
 - [ ] Full chain with no rejects → Task reaches `COMPLETED`
 - [ ] Shortest possible chain (no QC, no Client approval): Creator submit → Manager approve → Completed (2 steps)
 - [ ] Approve/reject called by the wrong actor for the current step returns 403 `WRONG_APPROVAL_STEP`
@@ -10068,23 +10082,52 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 ### DA-E51-04 — Implement Task Backlog, Identify Detail + Assign to Creator
 
+> **Latest confirmed BA, 2026-10-15 (Jira DA-978):** detail preparation and assignment remain TODO; remove DETAIL_IDENTIFIED/ASSIGNED as business states and remove the intermediate-step prerequisite. Assignment/start require a nonblank description and a valid deadline. The assigned Creator explicitly starts TODO → IN_PROGRESS; Manager edits/reassignment remain locked after first start, including rejection. Detail autosaves on blur/selection. List actions are Manager assignee/deadline and assigned Creator Start only. Mandatory expectedRevision/CAS applies. This amendment supersedes the historical acceptance criteria below; see `docs/feature/content-task-workflow/task-five-state-inline-edit/spec.md`. FR 3.6.3 is still planned, not implemented.
+
 **Assignee:** Lộc | **Priority:** 🟡 High
 
 **Goal:** Let Manager fill in full detail for a raw backlog Task (name + rough deadline only from Campaign deploy) and then assign it to a Creator, optionally with a QC reviewer and a Client-approval requirement.
 
+**Q13 confirmed 2026-10-14 (DA-978/DA-1236), superseding Task visibility rules and Q12:** Active Clients may read/comment every Task in their Workspace, including Manager-created manual and legacy Tasks. No internal/public classification, visibility field/filter/default or Q12 validation. requiresClientApproval configures result approval only. Preserve role-based management/editor permissions, Workspace isolation, draft-upload ownership and Q11 notification recipients.
+
+**Amendment confirmed 2026-10-14 (Jira DA-978):** Separate Task dueDate from POST planned publication time; no automatic scheduling. Common brief/input scope covers all five current Task types without implementing specialist authoring modules. Manager may edit/reassign only before the Creator first starts, including initial ASSIGNED; reject returning to ASSIGNED must not reopen these controls. Under the latest Q13, active Clients can read/comment every Task in their Workspace, regardless of source or legacy start/revision fields. Missing first-start evidence gates management mutations only. Campaign Task deadlines fall within max(today,start)..end in Workspace timezone; POST planned publication is not before dueDate and stays within Campaign. Manual Tasks without Campaign have deadlines from today onward. Q8 confirmed: the assignee explicitly clicks Start to transition ASSIGNED to IN_PROGRESS; opening a page/editor does not start work. Preserve first-start evidence across rejects. Coordinate lifecycle/revision changes with the E51-03 owner; see `docs/feature/content-task-workflow/task-detail-assignment-comments-roadmap.md`.
+
 **Acceptance Criteria:**
 
-- [ ] `PATCH /api/v1/workspaces/{id}/tasks/{taskId}/detail` accepts `{description, dueDate, typeSpecificFields}`, only allowed while `status=backlog`; transitions to `DETAIL_IDENTIFIED`
-- [ ] Calling detail-fill on a non-backlog Task returns 409 `TASK_NOT_IN_BACKLOG`
-- [ ] `POST /api/v1/workspaces/{id}/tasks/{taskId}/assign` accepts `{assigneeId, qcAssigneeId?, requiresClientApproval}`, only allowed after `DETAIL_IDENTIFIED`; transitions to `ASSIGNED`
-- [ ] `assigneeId` must be a Workspace Member with role MEMBER/CREATOR; invalid target returns 400 `INVALID_ASSIGNEE`
+- [ ] Initial detail-fill transitions BACKLOG → DETAIL_IDENTIFIED. Common requirements/deadline/input references and separate POST planned publication time are saved without replacing specialist content. Exact payload/revision contract follows the confirmed FR plan.
+- [ ] Subsequent edits preserve DETAIL_IDENTIFIED/ASSIGNED and are permitted only before first start. Started/reviewing/terminal Tasks reject edits with 409; the old blanket “non-backlog always rejects” rule is superseded.
+- [ ] Initial `POST /api/v1/workspaces/{id}/tasks/{taskId}/assign` accepts `{assigneeId, qcAssigneeId?, requiresClientApproval}` plus a revision guard, requires DETAIL_IDENTIFIED and transitions to ASSIGNED. Later reassignment follows the before-first-start amendment above.
+- [ ] `assigneeId` must resolve to an active User membership with role CREATOR in the same Workspace; invalid target returns 400 `INVALID_ASSIGNEE`. QC must also be an active Creator in that Workspace.
 - [ ] `qcAssigneeId` cannot equal `assigneeId` — returns 400 `QC_CANNOT_BE_SAME_AS_ASSIGNEE`
 - [ ] Assigning before detail is identified returns 409 `TASK_DETAIL_NOT_IDENTIFIED`
 - [ ] Creator receives a notification upon assignment
+- [ ] Manager can reassign before first start, preserving ASSIGNED; after first start/approval/terminal status this operation is locked. Preserve Task identity, source linkage, cancellation audit and approval history.
 
 **Spec Reference:** `docs/feature/content-task-workflow/3-6-1-identify-task-detail/spec.md`, `docs/feature/content-task-workflow/3-6-2-assign-task-to-creator/spec.md`
 
 **Dependencies:** Blocks: [DA-E51-03]. Blocked by: [DA-E51-01, DA-E50-07].
+
+---
+
+### DA-E51-04b — Add Comments On Task (FR 3.6.3)
+
+**Jira:** DA-1236 (already exists; do not create a duplicate) | **Assignee:** Lộc | **Priority:** Not confirmed here
+
+**Goal:** Provide a Task-scoped discussion timeline for authorized Manager, Creator and Client users, separate from Workspace chat.
+
+**Acceptance Criteria — confirmed scope 2026-10-14:**
+
+- [ ] GET/POST `/api/v1/workspaces/{id}/tasks/{taskId}/comments` support scoped reading and creation with stable pagination and retry deduplication.
+- [ ] Show content, author name/role and timestamp; support valid Workspace mentions and image/reference links.
+- [ ] Support JPEG/PNG/WebP, at most five images per comment and 5 MB per image, with server-side type/size/ownership/access checks.
+- [ ] COMPLETED and CANCELLED Tasks still allow new comments for users who retain access, without reopening the Task or Campaign.
+- [ ] Active Clients may read/comment all manual/Campaign/Request/legacy Tasks in their Workspace, including comment history and ATTACHED images. No internal/public classification. Read/comment access is independent of requiresClientApproval; outsiders/removed members and other users' DRAFT uploads remain unauthorized.
+- [ ] Send in-app comment notifications to mentions, assignee, QC and Workspace Managers; deduplicate, exclude the author and recipients without current Task access. Clients receive notifications only when mentioned (Q11 confirmed). No comment edit/delete in this scope.
+- [ ] Parallel vi/en, semantic light/dark, keyboard access, mobile layout and API authorization tests.
+
+**Spec Reference:** `docs/feature/content-task-workflow/3-6-3-add-comments-on-task/spec.md`; planning decisions in `docs/feature/content-task-workflow/task-detail-assignment-comments-roadmap.md`.
+
+**Dependencies:** Uses DA-E51-01 Task identity and the shared Task detail/access integration from DA-E51-04. Comments do not require the Task to be assigned or the Client-approval flag to be enabled. No runtime/database implementation has been added by this plan update.
 
 ---
 

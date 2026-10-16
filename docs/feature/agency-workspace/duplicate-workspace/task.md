@@ -8,3 +8,5 @@
 - [x] Unit/controller tests, full Business Service suite, frontend type-check/lint/build.
 - [ ] Smoke-test API against local PostgreSQL.
 - [ ] Browser review for light/dark and narrow viewport.
+- [x] Regression 2026-10-14: clone timezone follows canonical column when legacy settings disagree;
+  tracked with [timezone consistency fix](../workspace-timezone-consistency/task.md).

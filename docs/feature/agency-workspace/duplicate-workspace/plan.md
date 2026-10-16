@@ -13,3 +13,7 @@
 4. Verify service happy/error/retry cases, migration and UI type-check/lint/build.
 
 No MongoDB access or changes are required for this feature.
+
+Timezone consistency fix 2026-10-14: effectiveTimezone reads timezone_config so clone/API/deadline
+share one source. No change to copyTimezone=false or other copied data. See
+[fix plan](../workspace-timezone-consistency/plan.md); no live backfill/schema migration.

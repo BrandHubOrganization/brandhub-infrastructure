@@ -40,6 +40,15 @@ validation, Playwright mock flow cho Manager/Creator/Client/empty/error.
 Chạy Maven, lint, type-check, build, browser tests. Không tự sửa dữ liệu thật.
 E50-08 CRUD vẫn là dependency để người dùng tự bổ sung danh bạ nếu đang rỗng.
 
+## Delta DA-949/950 — thiết kế 2026-10-13, chưa implementation
+
+Theo [partner-directory/plan.md](../partner-directory/plan.md), picker chỉ active;
+assign mới phải lock/verify partner active và ghi first_used_at cùng transaction.
+Phối hợp lock ordering với delete/deactivate để không deadlock. Trả link đã tồn tại
+idempotently, kể cả partner inactive; giữ đọc/cập nhật hợp tác của link cũ.
+Legacy assign dùng cùng rule. Chỉ bổ sung parallel vi/en campaign.json cho badge
+inactive/lỗi unavailable và regression light/dark/mobile; không thay quyền DA-950.
+
 OpenAPI đã đồng bộ tại `brandhub-business-service/docs/openapi.yaml` cho bốn
 endpoint mới. Opt-in `CampaignCollaboratorPostgresTest` chạy service với JPA thật
 trong transaction rollback-only, không khởi động seeders hoặc kết nối Mongo.

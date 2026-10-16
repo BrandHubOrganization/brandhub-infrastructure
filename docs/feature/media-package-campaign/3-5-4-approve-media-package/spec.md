@@ -20,3 +20,8 @@ A workspace package becomes `APPROVED` only when Agency and Client approve the s
 ## Terms-version rule
 
 Every terms change creates a new version. Both prior approvals are invalid; Agency and Client must each approve the current version before status becomes `APPROVED`.
+
+Confirmed phase 5: request body `{expectedTermsVersion: integer >=1}` is mandatory.
+Compare under the selection row lock; stale version returns 409 without mutation,
+including retries after final approval. Same-version repeat by the same side preserves
+its original approval timestamp. No reopen/withdraw API is introduced.
