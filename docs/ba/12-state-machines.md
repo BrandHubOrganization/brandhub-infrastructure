@@ -1,15 +1,19 @@
 # 12 — State Machines (sơ đồ trạng thái chi tiết)
 
+> **BA mới đã chốt 2026-10-15:** Task chỉ còn TODO / IN_PROGRESS / IN_REVIEW / CANCELLED / FINISHED. Giao việc là metadata, không còn bước DETAIL_IDENTIFIED/ASSIGNED. Phải có mô tả + deadline hợp lệ trước giao; Creator được giao bấm bắt đầu mới IN_PROGRESS; sau đó Manager khóa sửa/giao lại. IN_REVIEW giữ QC → Manager → Client khi được cấu hình; reject về IN_PROGRESS, duyệt lại từ QC nếu có. Approval do thành viên khác triển khai. Autosave on-blur và action list chỉ assignment/deadline/start. Ghi chú mới này thay thế vòng đời Task lịch sử bên dưới; xem [spec mới](../feature/content-task-workflow/task-five-state-inline-edit/spec.md).
+
 > [<< Về Overview](00-overview.md)
 > Mục đích: mô tả chi tiết TỪNG cạnh chuyển trạng thái (transition) — điều kiện, ai được phép bấm — cho các entity có vòng đời phức tạp. Bổ sung cho mô tả bằng lời ở các file 04, 05, 07.
 
 ## 1. Content Request
 
+> **Quyết định mới nhất 2026-10-14 thay thế các ghi chú lịch sử về xử lý Request sau hoàn thành bên dưới:** Task được chấp nhận gắn Campaign hiện tại và giữ Request nguồn; mọi Task chưa COMPLETED/CANCELLED và Request IN_PROGRESS chặn Manager hoàn thành Campaign. Sau hoàn thành thành công, PENDING tự hủy bằng durable queue; không tạo/sửa/tiếp nhận mới. Hủy Task là thao tác riêng có lựa chọn, lý do chung và xác nhận. Xem [Campaign closure](../feature/media-package-campaign/campaign-closure/spec.md).
+
 ```
         create (CLIENT)
               │
               ▼
-         [PENDING] ──────update/cancel (CLIENT, chỉ khi PENDING)──────┐
+         [PENDING] ──────update (CLIENT, chỉ khi PENDING)────────────┐
               │                                                        │
    set in_progress (MANAGER)                                          │
               │                                                        ▼
@@ -23,17 +27,21 @@
         │
         ▼
   tự động sinh 1 Task mới (xem mục 3)
+
+  PENDING ──cancel (CLIENT tạo Request)──► CANCELLED (terminal)
 ```
 
 | Từ | Đến | Ai bấm | Điều kiện |
 |---|---|---|---|
 | (mới) | PENDING | CLIENT | Create Content Request |
 | PENDING | PENDING (update nội dung) | CLIENT | Chỉ khi đang PENDING |
-| PENDING | (xóa) | CLIENT | Cancel — chỉ khi đang PENDING |
-| PENDING | IN_PROGRESS | MANAGER | Track Request Status |
+| PENDING | CANCELLED | CLIENT tạo Request | Hủy mềm; chỉ khi PENDING |
+| PENDING | IN_PROGRESS | MANAGER thuộc Workspace | Bấm “Tiếp nhận yêu cầu”; xem trang không chuyển trạng thái; lưu người/thời điểm |
 | IN_PROGRESS | ACCEPTED | MANAGER | → tự sinh Task mới |
 | IN_PROGRESS | DENIED | MANAGER | Kết thúc, không sinh Task |
-| ACCEPTED/DENIED | * | KHÔNG AI | Trạng thái cuối, Client hết quyền sửa/xóa |
+| ACCEPTED/DENIED/CANCELLED | * | KHÔNG AI | Trạng thái cuối, không mở lại |
+
+Xác nhận người dùng 2026-10-13: IN_PROGRESS hiển thị “Đang xem xét”, không phải Task đang thực hiện. Client chỉ sửa title/description/type/dueDate và hủy trong PENDING. Chỉ tạo mới khi Campaign IN_PROGRESS, deployment SUCCEEDED; không tạo khi COMPLETED. Request đã có tiếp tục xử lý sau hoàn thành, không tự hủy. Các thay đổi BA chung cần lead/team review theo team guide.
 
 ## 2. Media Package (đàm phán)
 
@@ -91,6 +99,8 @@ cả 2 bên approve
 **[CONFIRMED 2026-09-17] Campaign Addendum — bổ sung cho tính immutable:** Campaign gốc sau `APPROVED` vẫn immutable (không sửa trực tiếp), nhưng khi phát sinh khối lượng công việc lớn giữa chiến dịch (không phải 1 task lẻ qua Content Request hay Manager add thủ công), Agency tạo 1 **Campaign Addendum** — bản bổ sung link tới Campaign gốc (`parentCampaignId`), có thể chứa nhiều Task mới, cũng phải qua chu trình duyệt 2 phía riêng (Draft → Approved) như Campaign gốc. Mục đích: Task lớn phát sinh giữa kỳ vẫn truy vết được về đúng Campaign nào sinh ra nó, phục vụ báo cáo/billing — không để lẫn vào Task rời không rõ nguồn gốc như Manual Task đơn lẻ. Xem entity đề xuất tại [11-data-entities-glossary.md](11-data-entities-glossary.md).
 
 ## 4. Task — Approval Sequence (chi tiết nhất, có reject-loop)
+
+> **Xác nhận lại 2026-10-14:** giữ quy tắc duyệt lại ở bản 17/09 dưới đây; không bỏ qua bước đã pass ở lượt cũ. Reject → ASSIGNED không tự mở khóa sửa yêu cầu/giao lại của Manager vì Task đã từng bắt đầu. Q8 confirmed: Creator bấm Bắt đầu làm mới chuyển ASSIGNED → IN_PROGRESS, ghi dấu mốc lần đầu và giữ nguyên sau reject; phối hợp chủ E51-03. COMPLETED/CANCELLED vẫn cho bình luận mới theo quyền, không phải transition mở lại Task. Xem [roadmap](../feature/content-task-workflow/task-detail-assignment-comments-roadmap.md).
 
 ```
 [BACKLOG] (chỉ có tên + deadline thô)

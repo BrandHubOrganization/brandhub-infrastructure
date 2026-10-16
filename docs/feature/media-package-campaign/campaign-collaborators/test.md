@@ -21,6 +21,17 @@
 Unit/controller và browser API-mock không thay thế smoke trên PostgreSQL thực.
 Chưa chạy smoke dữ liệu thật; không seed hoặc init database trong task này.
 
+## Delta AC7 — 2026-10-13 (planned, chưa chạy)
+
+| Case | Mong đợi |
+|---|---|
+| Picker và legacy/API assign đối tác inactive mới | Picker không hiện; API chặn, không tạo link |
+| Link cũ của inactive | Đọc/update hợp tác và assign lặp giữ trạng thái, không tạo mới |
+| Race assign/delete/deactivate | Lock/FK/first-use marker bảo vệ; không orphan, không link mới sau deactivate thắng |
+| Locale/theme | Badge/errors vi/en và light/dark/mobile không thay quyền hay reset approval |
+
+Các kết quả Pass AC1–6 dưới đây là lịch sử, không chứng minh AC7 đã có code/test.
+
 ## Bằng chứng 2026-10-10
 
 - `mvn.cmd -q test -Ddebug=false`: 496 tests trước khi thêm optional PostgreSQL

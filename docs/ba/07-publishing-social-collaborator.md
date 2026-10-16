@@ -51,5 +51,7 @@ Tất cả role: MEMBER. Đây là hàng đợi Publish nhận Task loại **Pos
 - AI Recommend Collaborator (FR 3.7.12, xem [06-ai-features.md](06-ai-features.md)) chỉ đưa ra gợi ý ứng viên ban đầu — không tác động vào trạng thái hợp tác.
 
 ### Việc CẦN LÀM tiếp (chưa thiết kế chi tiết)
+
+> **Xác nhận người dùng 2026-10-13:** E50-08 / DA-949 là danh bạ cấp Agency, chỉ Owner quản lý. Đối tác chưa từng được Campaign dùng có thể xóa; đã dùng chỉ ngừng sử dụng, không được gán mới. Campaign đã liên kết vẫn xem và cập nhật hợp tác theo E50-09 / DA-950. Entity/schema V2 đã có; phần mô tả “chưa có schema” bên dưới là lịch sử. Thiết kế hiện hành: `docs/feature/media-package-campaign/partner-directory/spec.md`. Không mở rộng sang AI/booking/thanh toán. Cần lead/team review thông tin BA chung.
 - Chưa có entity/DB schema chính thức cho Third-party Collaborator — cần thiết kế field cụ thể (tên đối tác, loại kênh, chi phí, người phụ trách, ghi chú, trạng thái, lịch sử thay đổi trạng thái...).
 - Chưa có FR số hiệu chính thức trong CSV — đây là module PHÁT SINH ngoài 109 FR gốc, cần bổ sung số FR mới khi cập nhật CSV chính thức (đề xuất: nhóm vào 3.8, ví dụ 3.8.17 – 3.8.2x, hoặc nhóm riêng 3.11 "Third-party Media Collaboration").

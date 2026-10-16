@@ -10,7 +10,8 @@
 | Owner Agency management | Owner opens `/agency/{agencyId}/media-packages`, reloads persisted packages, reviews global templates, and controls availability. |
 | Owner custom form | A valid standalone or template-derived package creates an Agency-scoped package; invalid values show inline errors. |
 | Existing selection after hide | A selected package remains readable and negotiable after the Owner hides it from future selections. |
-| Dashboard missing-package state | Client sees a selection action; Agency roles see a non-blocking informational message. |
+| Dashboard before package approval | Redirect to Package negotiation; Client retains Package/Chat, Manager additionally retains settings; creative features are gated. |
+| Scheduled reminder | No scheduled reminder is required; no timer/scheduler is introduced by this slice. |
 | Role visibility | Workspace selection is Client-only; the Agency management route is Owner-only. |
 | Responsive and theme | Cards/dialog remain usable at 375px, 768px, and 1440px in light and dark mode. |
 | Language switch | Vietnamese and English render from parallel `mediaPackage` keys without layout breakage. |

@@ -10,3 +10,10 @@
 - [x] Chạy test/build; ghi kết quả trong test.md.
 - [ ] Tuấn nối FR 3.6.33/34 vào `/flags`; Phước gọi `/eligibility` trong `PublishJobConsumer` trước adapter (fail closed).
 - [ ] Review độc lập diff trước khi commit/push.
+
+## Local schema recovery — 2026-10-14
+
+- [x] Backup DB local và chạy migration moderation hiện có; không chạy init/seed.
+- [x] Kiểm tra bảng, constraints/indexes, rerun và query danh sách/bộ đếm trên DB đã migrate.
+- [x] Đối chiếu init không thiếu/trùng định nghĩa; chạy test quyền Admin hiện có.
+- [x] Ghi kết quả thực tế, giới hạn xác minh và hướng dẫn tải lại trang; không commit/push.

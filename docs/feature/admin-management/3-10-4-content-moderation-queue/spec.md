@@ -58,3 +58,7 @@ POST /api/v1/admin/content-moderation-queue/{taskId}/override
 ## Tham chiếu BA
 
 [09-admin-management.md](../../../BA/09-admin-management.md)
+
+## Local schema recovery — 2026-10-14
+
+Phạm vi người dùng yêu cầu: chỉ sửa lỗi 500 tại `/admin?view=moderation`. API đang triển khai là `GET /api/v1/admin/moderation?status=PENDING&page=1&size=10` theo plan tổng thể. Không thay đổi BA, contract, UI hoặc quyền Admin. DB local thiếu `content_moderation_reviews`; áp dụng migration PostgreSQL đã có. Hàng đợi chưa có dữ liệu phải trả danh sách rỗng, không lỗi thiếu bảng. Không tạo dữ liệu mẫu, không chạy init hoặc sửa Mongo Atlas, không sửa Dashboard/logout.

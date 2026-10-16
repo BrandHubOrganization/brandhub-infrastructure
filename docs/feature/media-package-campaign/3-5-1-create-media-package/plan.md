@@ -26,5 +26,5 @@ Agency must exist (DA-E16-05).
 2. First selection creates `workspace_media_packages` and snapshots source terms into `final_terms` at version 1.
 3. Before the first negotiation event, replacement updates the same workspace-package record, snapshots the replacement terms, and clears approvals; after negotiation starts it returns a conflict.
 4. First selection returns `201`; a permitted replacement returns `200`.
-5. Keep the reminder delay/cadence configurable until the business value for `X` days is confirmed.
-6. Show an immediate dashboard prompt while no package is selected; this is separate from the scheduled reminder.
+5. Do not implement scheduled reminders (BA confirmed 2026-10-13).
+6. Preserve the existing approved-Package Workspace gate and dashboard redirect, including Chat and Manager settings access; regression-test without changing unrelated navigation.

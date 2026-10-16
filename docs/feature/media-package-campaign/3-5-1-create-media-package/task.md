@@ -15,3 +15,4 @@
 - [x] Add key-parallel Vietnamese and English `mediaPackage` translations.
 - [x] Verify mobile/tablet/desktop layouts and light/dark mode.
 - [x] Run frontend lint, type-check, and production build.
+- [ ] Regression current Package gate/redirect, Chat and Manager settings access; no scheduled reminder is required (BA 2026-10-13).
