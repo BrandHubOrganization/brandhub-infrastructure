@@ -20,3 +20,9 @@ Preserve the current layout and semantic theme tokens. New labels/messages are p
 ## Out of scope
 
 Approval/assignment/start/drag-and-drop mutations, specialised Task editors, Task phase-1 stash, Campaign/package terms, new account/data, database schema changes, auto commit/push, full completion of all Task-view FRs.
+
+## Demo isolation correction (2026-10-16, user confirmed)
+
+- GET Task list is strictly read-only, including empty Workspaces or Workspaces containing only `Untitled post` Tasks. It must not invoke a sample seeder or assign Tasks to the viewer.
+- Preserve existing demo Tasks and the explicit development Mongo seed entrypoint. Do not change Editor/Post/publishing APIs or another member's approval module.
+- The separate, existing Request/Task migrations may be applied after isolated rehearsal and clean preflight; preserve legacy status values and all existing Task documents. Request V2 normalizes only its existing Request fields. No init, bulk seed, Task backfill, automatic deployment retry or external publication.

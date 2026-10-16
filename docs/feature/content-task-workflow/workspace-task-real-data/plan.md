@@ -1,5 +1,9 @@
 # Technical plan
 
+## Demo isolation correction (2026-10-16)
+
+Remove only the TaskSampleSeeder dependency/call from WorkspaceTaskReader. Retain TaskSampleSeeder and its invocation from the opt-in MongoDataSeeder; do not run this seeder on Atlas. Extend reader regression tests to prove that empty/Untitled results cause only count/find reads. Run Campaign, Request, workflow, content-writing and publishing regression suites. Rehearse the five existing Request/Task migrations against an isolated clone of affected schema/data before Atlas APPLY, recheck fingerprints and keep existing Task documents unchanged. Business writers must be stopped; do not touch Post/Chat/Mail schemas in this change.
+
 1. Add typed Task list query/reader behind the existing TaskService/controller. Preserve old service signature for existing integrations; controller invokes a query-object overload. MongoTemplate filters/counts/pages TaskDocument with workspace criteria always applied. Validate types/status/search length/campaign ID, quote regex, stable sorting. Bulk-resolve only names/avatars via UserRepository (one lookup per page); extend list DTO with source metadata and description, not specialised editor content.
 2. Web taskService uses the full versioned endpoint and typed envelope/page guards, forwards real filters, and never imports mockTaskService. useTasks handles errors, stale request cancellation and page reset. Remove local mutation-only hooks; preserve data on transient refresh only when scope matches, never display stale rows on error/scope change.
 3. Expand Task type/status constants and filters. Display unknown priority as missing. Retain layout; add read-only actual Task summary dialog and current-page pagination on all views. Add `tasks.json` in vi/en and register in i18n/index.ts.
