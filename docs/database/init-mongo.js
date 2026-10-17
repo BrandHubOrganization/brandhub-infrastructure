@@ -2,7 +2,7 @@
 // For a fresh local MongoDB volume only (docker-entrypoint-initdb.d/init-mongo.js).
 // Do NOT run this file against existing MongoDB Atlas data. Apply the ordered
 // scripts in docs/database/migrations instead; see mongo-atlas-migrations.md.
-// Includes Mongo migration effects through 2026-10-14 (11 migration scripts).
+// Includes Task structure simplification metadata through 2026-10-17.
 // Task workflow foundation is schema only; application implementation/legacy review are separate.
 
 db = db.getSiblingDB('brandhub');
@@ -158,7 +158,6 @@ const taskWorkflowFoundation = (() => {
   const index = (name, key, extra = {}) => ({ name, key, ...extra });
   const taskProperties = {
     workflowRevision: { bsonType: ['long', 'int'], minimum: 0 },
-    plannedPublishAt: nullableDate,
     inputReferences: { bsonType: 'array', maxItems: 20, items: schema(['label', 'url'], {
       label: { bsonType: 'string', minLength: 1, maxLength: 200 },
       url: { bsonType: 'string', minLength: 1, maxLength: 2048, pattern: '^https?://' },
@@ -239,6 +238,7 @@ db.createCollection('tasks', {
         status:                 { enum: ['BACKLOG', 'DETAIL_IDENTIFIED', 'ASSIGNED', 'IN_PROGRESS', 'QC_REVIEW', 'MANAGER_REVIEW', 'CLIENT_REVIEW', 'COMPLETED', 'CANCELLED', 'TODO', 'IN_REVIEW', 'FINISHED'] },
         reviewStep: { bsonType: ['string', 'null'], enum: ['QC', 'MANAGER', 'CLIENT', null] },
         assigneeId:             { bsonType: ['string', 'null'] },
+        // Historical compatibility only; new workflow does not assign QC.
         qcAssigneeId:           { bsonType: ['string', 'null'] },
         requiresClientApproval: { bsonType: 'bool' },
         description:            { bsonType: ['string', 'null'] },
