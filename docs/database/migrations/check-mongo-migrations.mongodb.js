@@ -188,7 +188,6 @@
     const nullableDate = { bsonType: ['date', 'null'] };
     const taskProperties = {
       workflowRevision: { bsonType: ['long', 'int'], minimum: 0 },
-      plannedPublishAt: nullableDate,
       inputReferences: { bsonType: 'array', maxItems: 20, items: schema(['label', 'url'], {
         label: { bsonType: 'string', minLength: 1, maxLength: 200 },
         url: { bsonType: 'string', minLength: 1, maxLength: 2048, pattern: '^https?://' },
@@ -258,6 +257,13 @@
       reviewStep: { bsonType: ['string', 'null'], enum: ['QC', 'MANAGER', 'CLIENT', null] },
     })),
   ] });
+  const taskSimplification = collection('tasks', schema([], {
+    workflowRevision: { bsonType: ['long', 'int'], minimum: 0 },
+    firstStartedAt: { bsonType: ['date', 'null'] },
+    firstStartedBy: nullableString,
+  }));
+  taskSimplification.absentProperties = ['plannedPublishAt'];
+  migrationSpecs.push({ file: '2026-10-17-task-structure-simplification.js', collections: [taskSimplification] });
   const canonical = value => JSON.stringify(sortObject(value));
   function sortObject(value) {
     if (Array.isArray(value)) return value.map(sortObject);
@@ -309,6 +315,14 @@
       if ((info.options?.validationLevel ?? 'strict') !== 'strict') problems.push('validationLevel is not strict');
       if ((info.options?.validationAction ?? 'error') !== 'error') problems.push('validationAction is not error');
       compareSchema(expected.validator, info.options?.validator?.$jsonSchema, 'validator.$jsonSchema', problems);
+      const checkedProperties = info.options?.validator?.$jsonSchema?.properties ?? {};
+      const checkedRequired = info.options?.validator?.$jsonSchema?.required ?? [];
+      for (const field of expected.absentProperties ?? []) {
+        if (checkedProperties[field])
+          problems.push('validator.$jsonSchema.properties.' + field + ': retired field still defined');
+        if (checkedRequired.includes(field))
+          problems.push('validator.$jsonSchema.required.' + field + ': retired field still required');
+      }
       expected.indexes.forEach(wanted => compareIndex(wanted, indexes, problems));
       return { collection: expected.name, status: problems.length ? 'DRIFT' : 'MATCH', problems,
         indexNames: indexes.map(item => item.name) };
