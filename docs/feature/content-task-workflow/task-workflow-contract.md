@@ -136,7 +136,8 @@ không tự đặt thành BA hay xóa shared data trong phase 1.
 
 ## 6. Notification
 
-TASK_ASSIGNED gửi Creator mới nhận việc; TASK_COMMENTED lấy hợp của mentions + assignee + QC + Managers.
+TASK_ASSIGNED gửi Creator mới nhận việc; TASK_COMMENTED lấy hợp của mentions + Creator phụ trách + Managers.
+BA mới không còn QC/review chéo: không gửi cho người QC lịch sử. Owner cần membership Manager trong Workspace.
 Dedup/exclude author; Client chỉ khi được mention; recheck ACL trước delivery. Không gửi email.
 Mỗi delivery có eventKey ổn định và UUID id dùng cho SQL `user_notifications.id`.
 Worker lease + retry; INSERT ON CONFLICT chống trùng, đánh SENT chỉ sau SQL commit.
