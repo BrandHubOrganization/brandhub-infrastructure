@@ -107,11 +107,6 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE package_type AS ENUM ('BY_DURATION', 'BY_BUDGET', 'FULL_DELEGATION');
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-
-DO $$ BEGIN
     CREATE TYPE campaign_status AS ENUM ('DRAFT', 'APPROVED', 'IN_PROGRESS', 'COMPLETED');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
@@ -482,12 +477,9 @@ CREATE TABLE IF NOT EXISTS media_packages (
     agency_id          UUID         CONSTRAINT fk_media_packages_agency REFERENCES agencies(id) ON DELETE RESTRICT,
     source_template_id UUID         CONSTRAINT fk_media_packages_source_template REFERENCES media_packages(id) ON DELETE SET NULL,
     is_available_to_workspaces BOOLEAN NOT NULL DEFAULT TRUE,
-    package_type       package_type NOT NULL,
     duration_weeks     INT,
     budget_amount      DECIMAL(14,2),
     scope_description  TEXT,
-    offering_model     VARCHAR(30) CONSTRAINT chk_media_packages_offering_model
-        CHECK (offering_model IN ('CAMPAIGN', 'RETAINER', 'DELIVERABLE_BUNDLE')),
     offering_details   JSONB,
     created_by         UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     created_at         TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
