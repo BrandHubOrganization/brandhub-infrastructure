@@ -60,8 +60,8 @@
 - **Precondition:** Task detail defined (UC-42).
 - **Main Flow:**
   1. MANAGER selects a Creator to execute the task.
-  2. Optionally assigns a second Creator as QC (quality-control reviewer).
-  3. System notifies the assigned Creator(s).
+  2. Requires a nonblank brief and valid dueDate; no QC assignment in the current workflow. Task remains TODO; Manager edits/reassignment are locked after the Creator first starts.
+  3. System notifies the assigned Creator.
 
 ## UC-44 — Comment on Task
 
@@ -93,16 +93,19 @@
 ## UC-47 — Task Approval Sequence
 
 - **Actor(s):** CREATOR/CLIENT/MANAGER
-- **Description:** Approve tasks in a hierarchy of Creator → Manager → Client; a rejection sends it back to the initial Creator step.
-- **Precondition:** Task work has been submitted by the assigned Creator.
+- **Current BA:** Confirmed 2026-10-18; [FR 3.6.9 v3](../../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md) supersedes the previous QC/intermediate-state flow. Backend, POST integration and UI have isolated verification; rollout remains disabled pending Atlas preflight/APPLY, publisher coordination and SQL/inbox/Gateway end-to-end testing.
+- **Description:** Assigned Creator submits → Manager → one active Client if required; no QC. Integrate POST from /editor first, one current content record, no review snapshots.
+- **Precondition:** Active assignee explicitly started the Task, Task is IN_PROGRESS, a valid linked Post exists, and required reviewers are available. Missing active Client when required blocks submission and prompts the Manager to add one.
 - **Main Flow:**
-  1. Creator completes the work, submits for review.
-  2. (Optional) QC Creator reviews — only if a QC was assigned at UC-43.
-  3. Manager reviews and approves/rejects.
-  4. Client reviews and approves/rejects — only if the task requires client approval.
-  5. All steps pass → Task marked complete.
+  1. Creator saves the linked Post and submits: IN_REVIEW/MANAGER; content is locked server-side.
+  2. Manager reviews and approves/rejects.
+  3. Any one active Client reviews at CLIENT step only if requiresClientApproval; first valid decision wins.
+  4. Final approval sets FINISHED, clears reviewStep; publishing remains a separate action.
 - **Alternate Flow:**
-  - A1. Any step rejects → the entire sequence restarts from the original Creator step (not from the rejecting step).
+  - A1. Reject requires a reason → IN_PROGRESS. Edit the same Post, resubmit in a new round from Manager. Retain past decisions; no old-content snapshot/diff is available.
+  - A2. Assigned Creator may withdraw only before the Manager decides; IN_PROGRESS, next submit starts a new round. No withdrawal while waiting for Client.
+  - A3. All Clients leave during CLIENT review → remain waiting, no automatic skip; Manager adds a Client through the existing membership feature.
+  - A4. Cancellation closes the review; stale/duplicate/wrong-step decisions cannot mutate a terminal Task or create duplicate history. Manager brief/reassignment stays locked after first start.
 
 ## UC-48 — Write Content
 

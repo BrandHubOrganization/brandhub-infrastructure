@@ -19,7 +19,7 @@
 | `WorkspaceMediaPackage` | MỚI | [04](04-media-package-campaign.md) | Package đã áp dụng + đàm phán cho 1 Workspace cụ thể |
 | `MediaCampaign` | MỚI | [04](04-media-package-campaign.md) | Kế hoạch thực thi chi tiết, sinh từ Package đã approve |
 | `ContentRequest` | MỚI | [04](04-media-package-campaign.md) | Đề xuất bài đăng riêng do Client tạo |
-| `Task` | ĐỔI | [05](05-content-task-workflow.md) | Đơn vị công việc, 3 loại (Post/Livestream/Survey) |
+| `Task` | ĐỔI | [05](05-content-task-workflow.md) | Đơn vị công việc, 5 loại; khung duyệt chung, POST tích hợp trước |
 | `TaskApproval` | MỚI | [05](05-content-task-workflow.md) | Lịch sử duyệt theo Approval Sequence |
 | `MaterialRepository` | MỚI | [05](05-content-task-workflow.md) | Kho ảnh/video, raw vs retouched |
 | `BrandCollection` | MỚI | [05](05-content-task-workflow.md) | Tài liệu do Client cung cấp làm tham khảo |
@@ -101,23 +101,23 @@ createdAt, updatedAt
 
 ### `Task`
 ```
-id, workspaceId (FK), sourceType (campaign | content_request | manual),
-sourceRefId (FK — MediaCampaign hoặc ContentRequest, nullable nếu manual),
-type (post | livestream | survey),
-title, description, assigneeId (FK User, nullable ở backlog),
-qcAssigneeId (FK User, nullable — tùy chọn theo Approval Sequence),
-requiresClientApproval (boolean),
-status (backlog | detail_identified | assigned | in_progress |
-         qc_review | manager_review | client_review | completed | rejected),
-dueDate, createdAt, updatedAt
+id, workspaceId, campaignId?, campaignWorkItemId?, sourceType, sourceRefId?,
+type (POST | LIVESTREAM | SURVEY | EVENT_PLAN | PRESS_RECOMMENDATION),
+name, description, dueDate, inputReferences, assigneeId?, requiresClientApproval,
+status (TODO | IN_PROGRESS | IN_REVIEW | FINISHED | CANCELLED),
+reviewStep (MANAGER | CLIENT | null), approvalRound, workflowRevision,
+assignedBy/At, firstStartedBy/At, createdBy/At, updatedAt, cancellation?, typeMetadata
 ```
+
+BA 2026-10-18: không QC/ngày đăng dự kiến trong workflow mới; field/history legacy giữ để tương thích, không tự clean. `sourceRefId` của Campaign writer hiện tại là work-item ID, không tự coi là Campaign ID. `approvalRound` là lượt duyệt, không phiên bản nội dung. Kế hoạch bổ sung `lastSubmission` metadata lượt gần nhất và `posts.task_id` tại [plan FR3.6.9](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/plan.md); chưa migration/implementation trong giai đoạn 1.
 
 ### `TaskApproval` (lịch sử duyệt)
 ```
-id, taskId (FK), step (creator | qc | manager | client),
-action (submit | approve | reject), actorId (FK User),
-comment, createdAt
+id, taskId, approvalRound, step (MANAGER | CLIENT),
+action (APPROVE | REJECT), actorId (User ID), comment?, createdAt
 ```
+
+Append-only; mục tiêu unique(Task, lượt, bước), tối đa hai decision/lượt; reject bắt buộc comment. Giữ tên `comment`, UI gọi “Nhận xét duyệt”; không thay `task_comments`. Submit/withdraw là chuyển trạng thái, không tạo decision giả. Không snapshot/content-version history mới; không xem lại nội dung cũ qua TaskApproval. QC legacy không bị xóa. [Spec hiện hành](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md).
 
 ### `ThirdPartyCollaborator` (SỬA 2026-09-15 — danh bạ chung cấp Agency, không gắn cứng Campaign)
 ```
