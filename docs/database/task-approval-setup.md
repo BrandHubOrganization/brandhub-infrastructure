@@ -1,5 +1,13 @@
 # FR 3.6.9 — Task Approval foundation / giai đoạn 2
 
+## Hướng dẫn hiện hành — bỏ cờ rollout 18/10/2026
+
+Code mới không còn `TaskApprovalProperties` hoặc cờ `APP_TASK_APPROVAL_POST_INTEGRATION_READY`. Sau khi cập nhật Business, compile và khởi động lại; không cần thêm biến môi trường, không cần migration mới. Nếu đã đặt cờ cũ, có thể bỏ khỏi cấu hình chạy (code mới không đọc nó).
+
+Creator được giao phải bấm Bắt đầu làm để Task POST thành IN_PROGRESS rồi vào /editor để soạn/lưu/gửi. Manager duyệt trước, Client duyệt khi được yêu cầu. Schema, quyền, phiên bản và trạng thái vẫn được kiểm tra; bỏ cờ không bỏ những guard này. Worker handoff Admin được đăng ký bình thường và xử lý event TASK_POST_SUBMITTED riêng. Publish giữ nguyên theo yêu cầu người dùng, chưa có bảo đảm chặn mọi đường publish trước duyệt; cần thành viên phụ trách tích hợp. Chưa xác minh E2E SQL/inbox/Gateway thật.
+
+Các mục nói “gate false/chưa bật” phía dưới mô tả checkpoint lịch sử, đã được quyết định mới này thay thế. Atlas đã APPLY ngày 18/10 theo báo cáo liên kết; không chạy init lại.
+
 Ngày 2026-10-18. [Spec](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md), [plan](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/plan.md), [migration](migrations/2026-10-18-task-approval-foundation.js), [checker](migrations/check-mongo-migrations.mongodb.js).
 
 **Đã APPLY metadata/index trên Atlas ngày 18/10 sau khi người dùng duyệt reset đúng 5 Task về TODO. Preflight sạch; checker Approval/Task structure=true; document không đổi trong bước DDL. Mutation vẫn mặc định tắt, chưa rollout API/E2E thật. Xem [báo cáo 18/10](task-approval-preflight-2026-10-18.md). Inventory và mô tả blocked phía dưới là lịch sử trước APPLY. Không chạy init lên DB đang có dữ liệu.**
