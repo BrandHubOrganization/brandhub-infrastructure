@@ -1,5 +1,17 @@
 # Test plan — FR 3.6.9
 
+## Kiểm trang duyệt riêng
+
+Kiểm menu/URL deep link đúng Workspace, POST/IN_REVIEW mặc định, search/page/status thực gọi API; loading/error/retry/empty. Chọn bài chỉ tải review của bài đó, đúng caption/version; action vẫn APIallowedActions. Duyệt/từ chối cập nhật danh sách, bài được chọn vẫn xem được kể cả rời filter sau quyết định. Note chưa gửi có app discard guard khi chuyển bài/lọc/page; pending chặn chuyển. Task Detail không có review section nhưng có link. Mobile 375/tablet768/desktop1440, vi/en, light/dark, keyboard; API fixtures không ghi DB demo. Notification cũ vẫn mở Task và đi tiếp bằng link, không thay backend notification trong scope này.
+
+Kết quả tách trang: 15 browser checks flow/list/detail/reject/note-preservation/search/pagination/mobile return/viewport đạt; 6 checks bổ sung en/status filter/list 503-retry/keyboard đạt. Playwright CLI session riêng, Vite 3012, mọi API đều fixtures. Đã xem ảnh 375/768/1440 light/dark, vùng cuộn nằm trong viewport và không tràn ngang; đổi theme đợi transition trước chụp. Lỗi locator/timing ban đầu sửa trong harness rồi chạy lại sạch, 503 console là fixture cố ý. 15 key approvalPage vi/en song song; lint page/component/menu/access/layout/navbar đạt, Vite production bundle đạt. Toàn Web type-check còn đúng 12 lỗi baseline ở content-writing/useTaskContentSync, editor/MediaDropzone, workspace/dashboard và hai unused imports AppRoutes; không sửa ngoài scope, không gọi npm build/typecheck toàn repo Pass. Không kiểm HTTP/Gateway/ACL thật, browser back khi note chưa gửi hoặc mọi role end-to-end. Không thay DB/backend/publish, không thêm test trong src; artifact local ignored, không commit/push.
+
+## Kiểm tra bổ sung — bỏ cờ tích hợp
+
+Không khai báo cờ: Creator IN_PROGRESS được lưu/gửi; Manager/Client đúng bước được quyết định; worker handoff đăng ký bình thường. TODO/chưa start, sai assignee, schema thiếu, version cũ và nội dung đang duyệt vẫn bị chặn; reject/withdraw/resubmit giữ hành vi cũ. Cờ cũ không còn tác động. Không test publish thật hoặc mở Spring writer vào Atlas. Các kết quả gate=false bên dưới là kiểm thử lịch sử.
+
+Kết quả: Maven compile BUILD SUCCESS; javac 21 classes riêng đạt; ApprovalSmoke 186 checks và TaskPostSmoke tổng 230 checks đạt trên Mongo 7 replica set approval-api-test chỉ localhost 62871, tmpfs. Harness bỏ các assertion cờ cũ, thay bằng default-config canSubmit/blockReason checks; các kịch bản state/ACL/concurrency/rollback/save/handoff còn lại giữ nguyên. Không thêm test trong src. SQL/ACL/Admin/inbox dùng mock, chưa phải HTTP UI/Gateway E2E. Source src/main không còn tham chiếu cờ/config; không diff PostPublishServiceImpl, không thay schema/Atlas.
+
 Theo [spec](spec.md) và [task](task.md). TA-28 đã kiểm DB/schema giai đoạn 2; giai đoạn 3 đã kiểm backend/Mongo riêng theo mục kết quả cuối file. Các ca bên dưới vẫn là phạm vi đích end-to-end: ghi Pass BE hoặc Một phần không có nghĩa Editor/UI/SQL runtime đã hoàn tất. Không suy ra Pass từ review tài liệu; không dùng Atlas/demo data làm dữ liệu test tự động, không gửi bài lên mạng xã hội thật. Không thêm/commit file test trong src; tests schema đặt ngoài src dưới docs/database/migrations/tests.
 
 | ID | AC | Loại | Điều kiện / thao tác | Mong đợi | Trạng thái |
