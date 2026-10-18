@@ -1,5 +1,7 @@
 # Hợp đồng Task Detail / Assignment / Comments
 
+> **Amendment 2026-10-18:** Approval hiện hành ở [FR 3.6.9 v3](3-6-9-approval-sequence-creator-manager-client/spec.md) và [API/data plan](3-6-9-approval-sequence-creator-manager-client/plan.md). Không QC; Manager→Client tùy chọn, năm trạng thái, một bản Post qua /editor, không review snapshot. Creator chỉ withdraw trước Manager decision; reject/withdraw không mở khóa brief/assignment. Các bảng/API có QC/plannedPublishAt/ASSIGNED bên dưới là contract lịch sử; FR3.6.1/2 hiện hành theo [Task structure](task-structure-simplification/spec.md). Comments đã có code theo [bàn giao 17/10](task-comments-implementation-2026-10-17.md), chưa đồng nghĩa mọi test live đã pass. Giai đoạn 1 Approval chỉ tài liệu, không API runtime hoặc DB APPLY.
+
 > **Ưu tiên BA mới 2026-10-15:** xem [Task năm trạng thái + inline autosave](task-five-state-inline-edit/spec.md). TODO thay BACKLOG/DETAIL_IDENTIFIED/ASSIGNED; giao việc cần mô tả + deadline hợp lệ, không chuyển trạng thái. IN_REVIEW lưu bước QC/Manager/Client riêng, reject về IN_PROGRESS, bước cuối thành công mới FINISHED. Manager khóa sửa/giao lại sau lần bắt đầu đầu tiên. Phần vòng đời/form cũ bên dưới được giữ làm lịch sử, không phải contract mới. Đợt này chỉ code FR 3.6.1/2; Approval và Comments không được coi là đã hoàn thành.
 
 Ngày 2026-10-14. DA-978 (FR 3.6.1/2), DA-1236 (FR 3.6.3).

@@ -1,4 +1,7 @@
 # Task five-state inline editing — DA-978 / FR 3.6.1, 3.6.2
+
+> **Current amendment 2026-10-18:** no QC/plannedPublishAt in new workflow (see [Task structure](../task-structure-simplification/spec.md)); approval uses Manager → optional Client under [FR 3.6.9 v3](../3-6-9-approval-sequence-creator-manager-client/spec.md). Historical QC/ownership/snapshot clauses below are not the current approval contract. This amendment is documentation, not completed Approval implementation.
+
 ## BA confirmed 2026-10-15
 Five business states TODO / IN_PROGRESS / IN_REVIEW / CANCELLED / FINISHED. New Tasks, requirements preparation and assignment stay TODO; no DETAIL_IDENTIFIED/ASSIGNED step. Before assignment: nonblank description and valid deadline, active Creator, optional distinct active QC. Only assigned Creator explicitly starts. After first start Manager cannot edit requirements/deadline/reassign, including after rejection. Client reads every Workspace Task, never edits/assigns/starts.
 Approval remains QC if configured -> Manager -> Client if required; final approval finishes, rejection returns IN_PROGRESS, resubmit restarts QC if configured. User confirms Approval belongs to teammate: this slice ONLY state/integration contract; no submit/approve/reject endpoints or editor changes.

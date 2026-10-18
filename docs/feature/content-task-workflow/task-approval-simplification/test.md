@@ -1,4 +1,6 @@
-> Checkpoint 2026-10-17: restored from reviewed stash. Task structure removal of QC/plannedPublishAt and Atlas metadata APPLY are now implemented; see ../task-structure-simplification/. Approval endpoints, Post linkage, review notifications and snapshot/withdrawal decisions below remain pending. Earlier inventory/results are dated history, not current-state evidence.
+> **SUPERSEDED for new implementation — 2026-10-18:** tài liệu này giữ lịch sử đề xuất ngày 16/10, không dùng làm checklist hiện hành hoặc lệnh APPLY. Xem [spec FR3.6.9 v3](../3-6-9-approval-sequence-creator-manager-client/spec.md), [plan](../3-6-9-approval-sequence-creator-manager-client/plan.md), [task](../3-6-9-approval-sequence-creator-manager-client/task.md), [test](../3-6-9-approval-sequence-creator-manager-client/test.md). Đã chốt /editor, một bản hiện tại không review snapshots, withdraw trước Manager decision và một Client bất kỳ. Task structure đã triển khai riêng; Approval mới hoàn thành tài liệu giai đoạn 1.
+
+> Checkpoint 2026-10-17 (historical): Task structure removal of QC/plannedPublishAt and Atlas metadata APPLY were implemented separately; earlier inventory/results below are dated history, not current-state evidence.
 
 # Test plan — Task/Approval simplification
 
