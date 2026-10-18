@@ -1,5 +1,7 @@
 # 05 — Content & Task Workflow
 
+> **BA hiện hành 2026-10-18 — FR 3.6.9:** Creator được giao → Manager → một Client active bất kỳ nếu requiresClientApproval. Không QC. Giữ TODO/IN_PROGRESS/IN_REVIEW/FINISHED/CANCELLED và reviewStep riêng. POST dùng `/editor`, một bản nội dung hiện tại được khóa sửa khi IN_REVIEW; không snapshot/diff nội dung lượt cũ. Reject về IN_PROGRESS; gửi lại lượt mới từ Manager. Creator chỉ thu hồi trước Manager decision. Thiếu Client active thì chặn submit và báo Manager bổ sung, không tự bỏ bước. FINISHED không tự publish. Quy tắc này thay thế phần Approval/QC/ngày đăng dự kiến trong các ghi chú lịch sử bên dưới. [Spec v3 và kế hoạch giai đoạn](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md). Code/API và UI giai đoạn 3–5 đã kiểm thử cô lập; feature gate vẫn tắt, Atlas chưa APPLY và chưa nghiệm thu end-to-end/rollout.
+
 > **BA mới đã chốt 2026-10-15:** Task chỉ còn TODO / IN_PROGRESS / IN_REVIEW / CANCELLED / FINISHED. Giao việc là metadata, không còn bước DETAIL_IDENTIFIED/ASSIGNED. Phải có mô tả + deadline hợp lệ trước giao; Creator được giao bấm bắt đầu mới IN_PROGRESS; sau đó Manager khóa sửa/giao lại. IN_REVIEW giữ QC → Manager → Client khi được cấu hình; reject về IN_PROGRESS, duyệt lại từ QC nếu có. Approval do thành viên khác triển khai. Autosave on-blur và action list chỉ assignment/deadline/start. Ghi chú mới này thay thế vòng đời Task lịch sử bên dưới; xem [spec mới](../feature/content-task-workflow/task-five-state-inline-edit/spec.md).
 
 > [<< Về Overview](00-overview.md)
@@ -31,14 +33,16 @@ Backlog KHÔNG đóng — có 3 nguồn tạo Task:
 - Role: MANAGER.
 
 ### 3.6.2 — Assign Task To Creator
-- Gắn công việc cho người làm (Creator), và **người chịu trách nhiệm check lại công việc đó** (QC — tùy chọn, xem mục 4).
+- Gắn công việc cho Creator active; cần mô tả và dueDate hợp lệ, Task vẫn TODO. Không giao QC. Manager chỉ sửa/giao lại trước lần Creator bắt đầu đầu tiên; reject/withdraw không mở lại quyền này.
 - Role: MANAGER.
 
 ### 3.6.3 — Add Comments On Task
 - Đưa ra nhận xét, yêu cầu chỉnh sửa trên task.
 - Role: CREATOR, CLIENT, MANAGER.
 
-## 3. Ba loại Task — dùng chung 1 khung Approval Sequence
+## 3. Các loại Task — dùng chung khung workflow
+
+**Cập nhật 2026-10-18:** ngoài POST/LIVESTREAM/SURVEY, nền Task hiện có EVENT_PLAN và PRESS_RECOMMENDATION. Đợt FR 3.6.9 chỉ tích hợp nội dung POST qua /editor; các loại khác phối hợp chủ module sau, không tự submit/duyệt giả. Mô tả module chuyên biệt bên dưới giữ phạm vi của người phụ trách.
 
 **[CONFIRMED 2026-09-14]** Task có 3 loại nội dung khác nhau, nhưng đều đi qua chung quy trình duyệt (mục 4).
 
@@ -66,18 +70,30 @@ Backlog KHÔNG đóng — có 3 nguồn tạo Task:
 
 ## 4. Approval Sequence (FR 3.6.9)
 
-```
-Creator làm
-  → [QC bởi 1 Creator khác được gán quyền quản lý chất lượng — TÙY CHỌN]
-  → Manager duyệt
-  → Client duyệt (chỉ nếu task đó có yêu cầu cần duyệt qua khách hàng)
-  → Hoàn thành
+BA được người dùng xác nhận 2026-10-18, thay thế quy tắc QC và các vòng duyệt lịch sử:
+
+```text
+TODO --Creator được giao bấm Bắt đầu--> IN_PROGRESS
+IN_PROGRESS --lưu bài và Gửi duyệt--> IN_REVIEW / MANAGER
+  Manager approve:
+    requiresClientApproval=false --> FINISHED
+    requiresClientApproval=true  --> IN_REVIEW / CLIENT
+  Client active bất kỳ approve --> FINISHED
+  Manager hoặc Client reject có lý do --> IN_PROGRESS
+  Creator withdraw trước Manager decision --> IN_PROGRESS
 ```
 
-- **[CONFIRMED 2026-09-14]** Bước QC bởi Creator khác là **tùy chọn**, có hoặc không tùy Manager quyết định có giao trách nhiệm QC hay không lúc Assign Task (3.6.2).
-- Nếu bị trả về (reject) ở bất kỳ bước nào trong chuỗi → **quay lại từ đầu**: Creator (người làm ban đầu ở bước đầu tiên) phải làm lại từ đầu, không phải từ bước vừa bị reject.
-- Đi hết chuỗi không bị reject → Task chính thức tính là hoàn thành.
-- Role: CREATOR, CLIENT, MANAGER.
+- POST tích hợp trước qua /editor, liên kết tối đa một Post cùng Workspace. Một bản nội dung hiện tại; khóa sửa khi review, không snapshot/diff các lượt cũ. Giữ content_version của Admin, không xây kho phiên bản mới.
+- Client cần duyệt nhưng chưa có Client có User active thì chặn gửi, báo Manager bổ sung. Nếu hết Client trong lúc chờ thì giữ bước, không tự skip. Client mới được thêm có thể duyệt.
+- Chỉ một Client bất kỳ quyết định; decision hợp lệ đầu tiên thắng. Không yêu cầu toàn bộ Client hoặc gán đại diện.
+- Thu hồi chỉ cho assignee Creator trước Manager decision; không thu hồi khi chờ Client. Reject/withdraw không mở quyền sửa brief/deadline/giao lại cho Manager.
+- Submit lại sau reject/withdraw tạo lượt mới từ Manager; approval cũ chỉ là audit, không còn hiệu lực cho nội dung mới.
+- task_approvals giữ APPROVE/REJECT theo từng lượt/bước, tối đa hai decision/lượt; nhận xét duyệt khác task_comments. Không tạo sẵn dòng decision hoặc collection round riêng.
+- IN_REVIEW giữ bước MANAGER/CLIENT riêng; ngoài IN_REVIEW reviewStep=null. Cancel đóng lượt chờ; FINISHED không mở lại, không tự publish.
+- In-app báo người duyệt tiếp theo và Creator khi reject, không email. Quyền kiểm theo Workspace và User active; Owner Agency không tự có quyền Manager.
+- Các loại Task khác chỉ chuẩn bị contract, tích hợp nội dung theo chủ module sau. Không thay Yjs/editor chuyên biệt, publishing hoặc Admin moderation của thành viên khác.
+
+Chi tiết AC, API, chống xung đột và kế hoạch 6 giai đoạn: [FR3.6.9](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md). API/POST integration/UI đã kiểm thử cô lập; rollout vẫn tắt, Atlas APPLY và SQL/inbox/Gateway end-to-end còn chờ giai đoạn 6/phối hợp chủ publish.
 
 ## 5. Các View hỗ trợ Task (FR 3.6.4 – 3.6.8)
 

@@ -2,7 +2,7 @@
 // For a fresh local MongoDB volume only (docker-entrypoint-initdb.d/init-mongo.js).
 // Do NOT run this file against existing MongoDB Atlas data. Apply the ordered
 // scripts in docs/database/migrations instead; see mongo-atlas-migrations.md.
-// Includes Task structure simplification metadata through 2026-10-17.
+// Includes Task approval foundation metadata through 2026-10-18 (no snapshots/backfill).
 // Task workflow foundation is schema only; application implementation/legacy review are separate.
 
 db = db.getSiblingDB('brandhub');
@@ -111,6 +111,7 @@ db.createCollection('posts', {
       required: ['workspace_id', 'created_by', 'content_text', 'platform', 'status', 'ai_generated', 'created_at', 'updated_at'],
       properties: {
         workspace_id:  { bsonType: 'string' },
+        task_id:       { bsonType: ['string', 'null'], minLength: 1 },
         created_by:    { bsonType: 'string' },
         content_text:  { bsonType: 'string' },
         platform:      { enum: ['FACEBOOK', 'INSTAGRAM', 'TIKTOK', 'THREADS', 'ZALO_OA'] },
@@ -199,7 +200,12 @@ const taskWorkflowFoundation = (() => {
     { name: 'task_notification_outbox', validator: schema(['_id', 'eventKey', 'workspaceId', 'taskId',
       'actorId', 'recipientId', 'eventType', 'payload', 'status', 'attempts', 'availableAt', 'createdAt', 'updatedAt'], {
       _id: string, eventKey: string, workspaceId: string, taskId: string, actorId: string, recipientId: string,
-      eventType: { enum: ['TASK_ASSIGNED', 'TASK_COMMENTED'] },
+      eventType: { enum: ['TASK_ASSIGNED', 'TASK_COMMENTED', 'TASK_REVIEW_REQUESTED', 'TASK_REVIEW_REJECTED', 'TASK_POST_SUBMITTED'] },
+      approvalRound: { bsonType: 'int', minimum: 1 },
+      reviewStep: { bsonType: ['string', 'null'], enum: ['MANAGER', 'CLIENT', null] },
+      decisionId: nullableString,
+      postId: { ...nullableString, minLength: 1 },
+      postContentVersion: { bsonType: ['long', 'int'], minimum: 1 },
       payload: schema(['title', 'content', 'actionUrl'], {
         title: { bsonType: 'string', maxLength: 200 }, content: { bsonType: 'string', maxLength: 5000 },
         actionUrl: { bsonType: 'string', maxLength: 500 },
@@ -243,6 +249,16 @@ db.createCollection('tasks', {
         requiresClientApproval: { bsonType: 'bool' },
         description:            { bsonType: ['string', 'null'] },
         approvalRound:          { bsonType: 'int', minimum: 1 },
+        // Latest submission metadata only; not a content snapshot or review-round collection.
+        lastSubmission: {
+          bsonType: ['object', 'null'], required: ['round', 'submittedBy', 'submittedAt'],
+          properties: {
+            round: { bsonType: 'int', minimum: 1 }, submittedBy: { bsonType: 'string' },
+            submittedAt: { bsonType: 'date' }, closedBy: { bsonType: ['string', 'null'] },
+            closedAt: { bsonType: ['date', 'null'] },
+            outcome: { enum: ['APPROVED', 'REJECTED', 'WITHDRAWN', 'CANCELLED', null] },
+          },
+        },
         typeMetadata:           { bsonType: 'object' },
         sourceType:             { bsonType: ['string', 'null'] },
         sourceRefId:            { bsonType: ['string', 'null'] },
@@ -564,6 +580,8 @@ db.social_accounts.createIndex(
 db.posts.createIndex({ workspace_id: 1, status: 1 }, { name: 'idx_posts_ws_status' });
 db.posts.createIndex({ workspace_id: 1, scheduled_at: 1 }, { name: 'idx_posts_ws_scheduled_at' });
 db.posts.createIndex({ workspace_id: 1, client_id: 1 }, { name: 'idx_posts_ws_client_id' });
+db.posts.createIndex({ task_id: 1 }, { name: 'uq_posts_task', unique: true,
+  partialFilterExpression: { task_id: { $type: 'string' } } });
 
 // content_requests
 db.content_requests.createIndex({ workspaceId: 1, status: 1, createdAt: -1 }, { name: 'idx_content_requests_v2_workspace_status' });
@@ -598,6 +616,10 @@ db.task_approvals.createIndex(
   { taskId: 1, approvalRound: 1, step: 1, createdAt: 1 },
   { name: 'idx_task_approvals_task_round_step_created' }
 );
+db.task_approvals.createIndex({ taskId: 1, approvalRound: 1, step: 1 },
+  { name: 'uq_task_approvals_round_step', unique: true });
+db.task_approvals.createIndex({ taskId: 1, createdAt: -1, _id: -1 },
+  { name: 'idx_task_approvals_timeline' });
 db.event_plans.createIndex({ taskId: 1 }, { name: 'uq_event_plans_task', unique: true });
 db.press_recommendations.createIndex({ taskId: 1 }, { name: 'uq_press_recommendations_task', unique: true });
 

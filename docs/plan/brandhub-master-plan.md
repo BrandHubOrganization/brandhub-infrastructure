@@ -1172,7 +1172,7 @@
 |---|---|---|---|---|
 | DA-E51-01 | Collection `tasks` (generic 3 loại: post/livestream/survey, discriminator `type`) | Lộc | C | `docs/ba/05-content-task-workflow.md`, `docs/feature/content-task-workflow/3-6-1-identify-task-detail/spec.md`, `docs/ba/11-data-entities-glossary.md` |
 | DA-E51-02 | Collection `task_approvals` (tách riêng khỏi tasks, giữ approval cũ khi step sau reject) | Lộc | C | `docs/ba/12-state-machines.md` mục 4 "Task — Approval Sequence", `docs/ba/11-data-entities-glossary.md` |
-| DA-E51-03 | Implement Approval Sequence 4-bước (Creator→Manager→Client) | Phước | C | `docs/feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md`, `docs/ba/12-state-machines.md` mục 4 |
+| DA-E51-03 | Task Approval: Creator→Manager→Client tùy chọn, không QC; POST trước (BA 18/10) | Lộc (tiếp nhận theo người dùng; Jira cần đồng bộ) | C | `docs/feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/{spec,plan,task,test}.md`, `docs/ba/12-state-machines.md` mục 4 |
 | DA-E51-04 | Implement Task backlog + assign (Manager assign cho Creator) | Lộc | M | `docs/feature/content-task-workflow/3-6-2-assign-task-to-creator/spec.md` |
 | DA-E51-04b (Jira DA-1236) | Add Comments On Task (FR 3.6.3), mentions and image references | Lộc | M | `docs/feature/content-task-workflow/3-6-3-add-comments-on-task/spec.md` |
 | DA-E51-05 | Implement Task views: List, Calendar, Gantt/Timeline, Kanban board, Filter | Phước | M | `docs/feature/content-task-workflow/3-6-4-list-task-view/spec.md`, `3-6-5-calendar-task-view`, `3-6-6-grantt-timeline-task-view`, `3-6-7-kanban-board-task-view`, `3-6-8-view-task-filter` (cùng thư mục `docs/feature/content-task-workflow/`) |
@@ -10044,39 +10044,42 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Technical Notes:** Do not model this as a single embedded array on the Task document that gets overwritten — that was the exact anti-pattern flagged as a top project risk in `docs/plan/document-plan.md` R2 §1.3 ("reject-giữ-approval-cũ tính sai trong code"). A separate, append-only collection makes "what got preserved" queryable and auditable.
 
+**Amendment 2026-10-18:** new decisions only MANAGER/CLIENT, action APPROVE/REJECT, grouped by approvalRound; keep comment as review feedback, separate from task_comments. Target unique(Task,round,step); retain legacy QC history without generating new QC decisions. Submit/withdraw do not create decision rows; no review snapshot/round collection. See FR3.6.9 v3; schema/runtime implementation is not marked done by this documentation.
+
 **Spec Reference:** `docs/ba/12-state-machines.md` mục 4 "Task — Approval Sequence", `docs/ba/11-data-entities-glossary.md`
 
 **Dependencies:** Blocks: [DA-E51-03]. Blocked by: [DA-E51-01].
 
 ---
 
-### DA-E51-03 — Implement Approval Sequence State Machine (Creator → [QC] → Manager → [Client])
+### DA-E51-03 — Implement Task Approval (Creator → Manager → optional Client)
 
-> **Lifecycle amendment confirmed 2026-10-15 (supersedes historical status names below):** the five business states are TODO, IN_PROGRESS, IN_REVIEW, CANCELLED and FINISHED. IN_REVIEW carries a separate QC/MANAGER/CLIENT review step; rejection returns to IN_PROGRESS, and only final successful approval reaches FINISHED. Preserve first-start evidence and approval history; revised content starts a new round from QC if configured, otherwise Manager. Approval implementation remains owned by this task's assignee; DA-978 only supplies the integration contract. See `docs/feature/content-task-workflow/task-five-state-inline-edit/spec.md`.
+> **BA confirmed 2026-10-18:** [FR3.6.9 v3](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md) and its plan/task/test supersede the former QC/intermediate-state/snapshot proposal for this task. Phase 1 is documentation only, not completed implementation or a Jira status update.
 
-**Assignee:** Phước | **Priority:** 🔴 Critical
+**Assignee in this local plan:** Lộc takes over FR3.6.9 as requested by the user; coordinate the handoff with Phước and the team. Actual Jira assignment and numeric issue key are not verified/updated here. **Priority:** Critical.
 
-**Goal:** Implement the full approval chain with optional QC and optional Client steps. Rejection returns the Task to ASSIGNED; historical approvals are preserved, but revised content must be reviewed again from QC if assigned, otherwise Manager. This replaces the historical skip-passed-steps rule, reconfirmed by the user on 2026-10-14.
+**Goal:** Assigned Creator submits POST from /editor → Manager → any one active Client when required. Five Task states, separate reviewStep, no QC. Keep one current Post, lock content during review; do not implement review snapshots or old-content diffs.
 
 **Acceptance Criteria:**
 
-- [ ] Chain: `Creator submit → [QC review, optional] → Manager review → [Client review, optional if requiresClientApproval] → Completed`
-- [ ] Whether QC runs is determined by `qcAssigneeId` being set at Assign time (DA-E51-04), not a separate toggle
-- [ ] Reject at ANY step → Task returns to `ASSIGNED`; approvals from steps BEFORE the rejected step are preserved, NOT cleared
-- [ ] Resubmission after reject starts a new approval round from QC if assigned, otherwise Manager. Past approvals remain audit records and do not authorize revised content. Example: QC approved → Manager rejected → resubmit → QC_REVIEW again if QC exists.
-- [ ] If QC rejects (the first step), there is no prior approval to preserve — resubmit re-enters `QC_REVIEW` normally
-- [ ] If Client rejects, preserve earlier QC/Manager records; resubmit starts at QC if assigned, otherwise Manager, then Client if required. Never skip directly to Client based on prior-round approvals.
-- [ ] Full chain with no rejects → Task reaches `COMPLETED`
-- [ ] Shortest possible chain (no QC, no Client approval): Creator submit → Manager approve → Completed (2 steps)
-- [ ] Approve/reject called by the wrong actor for the current step returns 403 `WRONG_APPROVAL_STEP`
-- [ ] Approve/reject called on a Task not yet submitted returns 409 `TASK_NOT_SUBMITTED`
-- [ ] `GET /api/v1/workspaces/{id}/tasks/{taskId}/approvals` returns the full approval history log
+- [ ] Existing explicit Start remains TODO→IN_PROGRESS; submit moves IN_REVIEW/MANAGER.
+- [ ] No Client requirement: Manager approve→FINISHED; otherwise wait CLIENT, first valid active Client decision wins.
+- [ ] Missing eligible Client when required blocks submit and prompts Manager to add one. Losing Clients mid-review never skips the step.
+- [ ] Reject requires a reason, returns IN_PROGRESS; resubmit creates a new round from Manager, never reuses prior approvals.
+- [ ] Assigned Creator may withdraw before the Manager decides, not while waiting for Client; resubmit uses a new round.
+- [ ] task_approvals append-only APPROVE/REJECT with round/step/actor/comment/time; at most two decisions per round, one per step.
+- [ ] At most one same-Workspace Post linked per POST Task; reopen the same Post; no fallback draft duplication or brief-as-result content.
+- [ ] Lock linked content while reviewing; preserve content_version for Admin, no review snapshot/version archive; decision history does not reconstruct past content.
+- [ ] Mandatory revision/round/Post-version checks, transactions and unique decisions prevent stale/duplicate approval; preserve first-start lock and cancellation/Campaign guards.
+- [ ] In-app next-reviewer/rejection notifications with scoped recipients, dedup and retry; no email.
+- [ ] Final approval only finishes Task, never auto-publishes; coordinate narrow Editor/Admin integration, leave Yjs and publisher modules owned by their maintainers.
+- [ ] Review UI/history in existing Task popup, vi/en and light/dark, accessible loading/errors; test role/scope/races/regressions before Done.
 
-**Technical Notes:** This is the single most complex state machine in the entire V2 re-scope — implement exactly per `docs/ba/12-state-machines.md` mục 4, write unit tests covering every branch (QC-reject, Manager-reject-with-prior-QC-pass, Client-reject-with-prior-Manager-pass, no-QC-no-Client shortest path) before considering this task done.
+**Technical Notes:** Plan/use cases/data contract at [FR3.6.9](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/plan.md). Giai đoạn 1→6: documentation → DB → backend → POST integration → UI/notifications → verification. No runtime/DB mutation in phase 1; no legacy cleanup/backfill without separately reviewed inventory/allowlist.
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md`, `docs/ba/12-state-machines.md` mục 4
+**Spec Reference:** `docs/feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/{spec,plan,task,test}.md`, `docs/ba/12-state-machines.md` §4.
 
-**Dependencies:** Blocks: [None]. Blocked by: [DA-E51-02, DA-E51-04].
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E51-02, DA-E51-04]; coordinate the POST owner before phase 4.
 
 ---
 

@@ -264,6 +264,45 @@
   }));
   taskSimplification.absentProperties = ['plannedPublishAt'];
   migrationSpecs.push({ file: '2026-10-17-task-structure-simplification.js', collections: [taskSimplification] });
+  const approvalPositiveInt = { bsonType: 'int', minimum: 1 };
+  const approvalLastSubmission = {
+    bsonType: ['object', 'null'], required: ['round', 'submittedBy', 'submittedAt'],
+    properties: {
+      round: approvalPositiveInt, submittedBy: string, submittedAt: date,
+      closedBy: nullableString, closedAt: { bsonType: ['date', 'null'] },
+      outcome: { enum: ['APPROVED', 'REJECTED', 'WITHDRAWN', 'CANCELLED', null] },
+    },
+  };
+  const approvalPosts = collection('posts', schema([], { task_id: { ...nullableString, minLength: 1 } }), [
+    index('uq_posts_task', { task_id: 1 }, { unique: true, partialFilterExpression: { task_id: { $type: 'string' } } }),
+  ]);
+  // This migration preserves the existing Post policy (warn or error); no unrelated tightening.
+  approvalPosts.validationActions = ['warn', 'error'];
+  approvalPosts.optionalProperties = ['task_id'];
+  approvalPosts.exactProperties = ['task_id'];
+  const approvalTasks = collection('tasks', schema([], { lastSubmission: approvalLastSubmission }));
+  approvalTasks.optionalProperties = ['lastSubmission'];
+  approvalTasks.exactProperties = ['lastSubmission'];
+  const approvalOutbox = collection('task_notification_outbox', schema([], {
+      eventType: { enum: ['TASK_ASSIGNED', 'TASK_COMMENTED', 'TASK_REVIEW_REQUESTED', 'TASK_REVIEW_REJECTED', 'TASK_POST_SUBMITTED'] },
+    approvalRound: approvalPositiveInt,
+    reviewStep: { bsonType: ['string', 'null'], enum: ['MANAGER', 'CLIENT', null] },
+    decisionId: nullableString,
+      postId: { ...nullableString, minLength: 1 },
+      postContentVersion: { bsonType: ['long', 'int'], minimum: 1 },
+  }));
+    approvalOutbox.optionalProperties = ['approvalRound', 'reviewStep', 'decisionId', 'postId', 'postContentVersion'];
+    approvalOutbox.exactProperties = ['approvalRound', 'reviewStep', 'decisionId', 'postId', 'postContentVersion'];
+  migrationSpecs.push({ file: '2026-10-18-task-approval-foundation.js', collections: [
+    approvalTasks,
+    approvalPosts,
+    collection('task_approvals', schema(['taskId', 'approvalRound', 'step', 'action', 'actorId', 'createdAt'], {
+      taskId: string, approvalRound: approvalPositiveInt, step: { enum: ['QC', 'MANAGER', 'CLIENT'] },
+      action: { enum: ['APPROVE', 'REJECT'] }, actorId: string, comment: nullableString, createdAt: date,
+    }), [index('uq_task_approvals_round_step', { taskId: 1, approvalRound: 1, step: 1 }, { unique: true }),
+      index('idx_task_approvals_timeline', { taskId: 1, createdAt: -1, _id: -1 })]),
+    approvalOutbox,
+  ] });
   const canonical = value => JSON.stringify(sortObject(value));
   function sortObject(value) {
     if (Array.isArray(value)) return value.map(sortObject);
@@ -313,7 +352,8 @@
       if (!info) return { collection: expected.name, status: 'MISSING', problems: ['collection missing'] };
       const problems = [];
       if ((info.options?.validationLevel ?? 'strict') !== 'strict') problems.push('validationLevel is not strict');
-      if ((info.options?.validationAction ?? 'error') !== 'error') problems.push('validationAction is not error');
+      if (!(expected.validationActions ?? ['error']).includes(info.options?.validationAction ?? 'error'))
+        problems.push('validationAction is not supported for this migration effect');
       compareSchema(expected.validator, info.options?.validator?.$jsonSchema, 'validator.$jsonSchema', problems);
       const checkedProperties = info.options?.validator?.$jsonSchema?.properties ?? {};
       const checkedRequired = info.options?.validator?.$jsonSchema?.required ?? [];
@@ -322,6 +362,13 @@
           problems.push('validator.$jsonSchema.properties.' + field + ': retired field still defined');
         if (checkedRequired.includes(field))
           problems.push('validator.$jsonSchema.required.' + field + ': retired field still required');
+      }
+      for (const field of expected.optionalProperties ?? []) {
+        if (checkedRequired.includes(field)) problems.push('validator.$jsonSchema.required.' + field + ': must stay optional for old writers');
+      }
+      for (const field of expected.exactProperties ?? []) {
+        if (canonical(checkedProperties[field]) !== canonical(expected.validator.properties[field]))
+          problems.push('validator.$jsonSchema.properties.' + field + ': owned definition differs');
       }
       expected.indexes.forEach(wanted => compareIndex(wanted, indexes, problems));
       return { collection: expected.name, status: problems.length ? 'DRIFT' : 'MATCH', problems,
@@ -343,6 +390,11 @@
     summary: Object.fromEntries(['MATCH', 'MISSING', 'DRIFT', 'UNKNOWN'].map(status =>
       [status, results.filter(result => result.status === status).length])),
     schemaChecks: {
+      taskApprovalFoundation: matches('2026-10-18-task-approval-foundation.js')
+        && matches('2026-10-17-task-structure-simplification.js')
+        && matches('2026-10-15-task-five-state-workflow.js')
+        && matches('2026-10-14-task-detail-comments-foundation.js'),
+      taskStructureSimplification: matches('2026-10-17-task-structure-simplification.js'),
       taskFiveState: matches('2026-10-15-task-five-state-workflow.js')
         && matches('2026-10-14-task-detail-comments-foundation.js') && matches('2026-10-14-campaign-closure.js'),
       taskWorkflowFoundation: matches('2026-10-14-task-detail-comments-foundation.js')
@@ -362,6 +414,7 @@
     notes: [
       'MATCH means current metadata matches expected effects, NOT proof that the migration was executed.',
       'No documents are read or validated; no permission/transaction/API readiness guarantee.',
+      'Approval schema readiness is not an implemented approval service or proof of valid Task/Post links; run the new migration DRY_RUN for inventory.',
       'Do not blindly rerun old migrations: they can overwrite newer validators.',
       'If Request V2 is missing, review/apply it BEFORE acceptance, never phase 2 after phase 3.',
       'No create/update/delete/collMod/createIndex/init operations were performed.',
