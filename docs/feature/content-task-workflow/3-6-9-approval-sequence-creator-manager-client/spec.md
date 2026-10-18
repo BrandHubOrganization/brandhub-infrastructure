@@ -1,5 +1,13 @@
 # FR 3.6.9 — Phê duyệt công việc
 
+## UI mới nhất — trang Duyệt bài riêng trong Workspace
+
+Người dùng chốt mục riêng trên menu Workspace, không đặt phần nội dung/decision/history trong Task Detail. Route `/workspaces/:id/task-approvals?task=<id>`; mặc định danh sách POST IN_REVIEW, có tìm kiếm/phân trang/lọc trạng thái để xem bài đang làm/đã kết thúc. Chọn bài mở vùng xem/duyệt cùng trang, không modal chi tiết; mobile có quay về danh sách. Manager/Creator/Client được xem theo ACL hiện có, action vẫn do API quyết định. Task Detail giữ brief/start/comments và liên kết sang trang duyệt/Editor cho POST. Không thêm DB hay thay BA/publisher/Yjs; không giả danh sách là “của tôi” khi API chưa lọc theo người duyệt. Key vi/en song song, semantic light/dark, keyboard/loading/error/empty và giữ note khi đổi bài.
+
+## Quyết định mới nhất — 18/10/2026
+
+Người dùng yêu cầu bỏ hoàn toàn cờ rollout POST integration. Soạn/lưu và gửi/thu hồi/duyệt/từ chối hoạt động theo schema, ACL, trạng thái và revision/version, không phụ thuộc biến môi trường. Worker handoff Admin hoạt động bình thường, chỉ xử lý event riêng. Không thay publish; nguy cơ publish lưu toàn document vẫn bàn giao thành viên phụ trách. Các mô tả gate tắt bên dưới là lịch sử, không còn là hướng dẫn hiện hành.
+
 | Thuộc tính | Giá trị |
 |---|---|
 | FR / Use case / Task | 3.6.9 / UC-47 / DA-E51-03; chưa xác minh mã Jira số |

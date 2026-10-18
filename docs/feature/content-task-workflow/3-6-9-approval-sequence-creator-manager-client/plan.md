@@ -1,5 +1,13 @@
 # Plan — FR 3.6.9 / DA-E51-03
 
+## Tách trang duyệt — triển khai hiện hành
+
+Lazy route và Sidebar/route access/breadcrumb riêng. Feature task-approvals dùng Task list API POST có filter/pagination, Query theo user/Workspace/filter; chỉ tải workflow/review/Post/history của bài được chọn, tái sử dụng TaskApprovalSection trong TaskWorkflowProvider. Guard canLeave khi đổi bài/lọc/phân trang/đóng vùng xem, không mất nhận xét hoặc rời khi mutation pending. Task Detail bỏ section, thay link. Không thay notification/backend trong đợt UI này; link notification cũ tới Task vẫn có đường sang trang duyệt. Kiểm lint/typecheck/bundle và browser fixtures vi/en/mobile/dark; không tạo test trong src.
+
+## Điều chỉnh 18/10 — bỏ cờ tích hợp
+
+Xóa TaskApprovalProperties, dependency/guard cờ trong TaskPostService và TaskApprovalService, bỏ ConditionalOnProperty của TaskPostSubmissionWorker. Không thay transaction/schema/ACL/CAS/state policy, publish hoặc dữ liệu DB. Các nội dung gate phía dưới là thiết kế rollout cũ. Kiểm tra compile và regression bằng Mongo cô lập, không khởi động Spring writer trên Atlas.
+
 Theo [spec v3](spec.md), BA xác nhận 2026-10-18. Đây là thiết kế đích để review/triển khai; **giai đoạn 1 không có thay đổi runtime/DB**. Các tên class/field/API mới bên dưới là đề xuất kỹ thuật đã ghi thành contract, không mô tả code đang tồn tại.
 
 **Checkpoint giai đoạn 2:** metadata/index migration, init và checker đã triển khai trong Infrastructure; [setup/kết quả](../../../database/task-approval-setup.md). 48 offline tests + 79 Mongo assertions Pass. Atlas chỉ đọc, APPLY đang chặn bởi hai active review chưa xác minh.

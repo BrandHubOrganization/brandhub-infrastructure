@@ -1,5 +1,18 @@
 # Checklist — FR 3.6.9 / DA-E51-03
 
+## Tách trang duyệt riêng
+
+- [x] Thêm route/menu/access/breadcrumb và danh sách POST phân trang/lọc/tìm kiếm.
+- [x] Tái sử dụng review/decision/history ở vùng xem riêng; Task Detail chỉ còn link.
+- [x] Giữ guard nhận xét chưa gửi/mutation, trạng thái stale/conflict, scope theo Workspace/user.
+- [x] Key vi/en song song, responsive/light/dark/keyboard; lint phạm vi mới và Vite bundle đạt. Type-check toàn Web còn 12 lỗi baseline; xem test.md.
+
+## Điều chỉnh mới nhất — bỏ cờ tích hợp
+
+- [x] Xóa cấu hình, guard cờ và điều kiện đăng ký worker; giữ guard nghiệp vụ.
+- [x] Maven compile và 230 regression checks save/submit/decision/withdraw trên Mongo cô lập đạt; giữ guard quyền/trạng thái/version/schema.
+- [x] Cập nhật hướng dẫn khởi động không yêu cầu biến môi trường; không sửa publish/DB.
+
 Theo [spec](spec.md) → [plan](plan.md). Ngày 2026-10-18. Tick phản ánh tài liệu/code đã làm, không đồng nghĩa Jira Done.
 
 ## Giai đoạn 1 — BA và contract
