@@ -1,5 +1,7 @@
 # 12 — State Machines (sơ đồ trạng thái chi tiết)
 
+> **Ưu tiên BA 2026-10-18 cho Task:** mục 4 hiện hành và [FR 3.6.9 v3](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md) thay quy tắc QC/trạng thái trung gian của các ghi chú cũ. Một bản POST qua /editor, khóa nội dung khi review; reject/withdraw hợp lệ về IN_PROGRESS, gửi lại lượt mới; FINISHED không tự publish. Giai đoạn 1 là tài liệu, chưa có implementation Approval.
+
 > **BA mới đã chốt 2026-10-15:** Task chỉ còn TODO / IN_PROGRESS / IN_REVIEW / CANCELLED / FINISHED. Giao việc là metadata, không còn bước DETAIL_IDENTIFIED/ASSIGNED. Phải có mô tả + deadline hợp lệ trước giao; Creator được giao bấm bắt đầu mới IN_PROGRESS; sau đó Manager khóa sửa/giao lại. IN_REVIEW giữ QC → Manager → Client khi được cấu hình; reject về IN_PROGRESS, duyệt lại từ QC nếu có. Approval do thành viên khác triển khai. Autosave on-blur và action list chỉ assignment/deadline/start. Ghi chú mới này thay thế vòng đời Task lịch sử bên dưới; xem [spec mới](../feature/content-task-workflow/task-five-state-inline-edit/spec.md).
 
 > [<< Về Overview](00-overview.md)
@@ -98,62 +100,30 @@ cả 2 bên approve
 
 **[CONFIRMED 2026-09-17] Campaign Addendum — bổ sung cho tính immutable:** Campaign gốc sau `APPROVED` vẫn immutable (không sửa trực tiếp), nhưng khi phát sinh khối lượng công việc lớn giữa chiến dịch (không phải 1 task lẻ qua Content Request hay Manager add thủ công), Agency tạo 1 **Campaign Addendum** — bản bổ sung link tới Campaign gốc (`parentCampaignId`), có thể chứa nhiều Task mới, cũng phải qua chu trình duyệt 2 phía riêng (Draft → Approved) như Campaign gốc. Mục đích: Task lớn phát sinh giữa kỳ vẫn truy vết được về đúng Campaign nào sinh ra nó, phục vụ báo cáo/billing — không để lẫn vào Task rời không rõ nguồn gốc như Manual Task đơn lẻ. Xem entity đề xuất tại [11-data-entities-glossary.md](11-data-entities-glossary.md).
 
-## 4. Task — Approval Sequence (chi tiết nhất, có reject-loop)
+## 4. Task — Approval Sequence (hiện hành 2026-10-18)
 
-> **Xác nhận lại 2026-10-14:** giữ quy tắc duyệt lại ở bản 17/09 dưới đây; không bỏ qua bước đã pass ở lượt cũ. Reject → ASSIGNED không tự mở khóa sửa yêu cầu/giao lại của Manager vì Task đã từng bắt đầu. Q8 confirmed: Creator bấm Bắt đầu làm mới chuyển ASSIGNED → IN_PROGRESS, ghi dấu mốc lần đầu và giữ nguyên sau reject; phối hợp chủ E51-03. COMPLETED/CANCELLED vẫn cho bình luận mới theo quyền, không phải transition mở lại Task. Xem [roadmap](../feature/content-task-workflow/task-detail-assignment-comments-roadmap.md).
+Nguồn: [spec FR3.6.9 v3](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md). Thay toàn bộ sơ đồ QC/ASSIGNED/skip-approval cũ cho luồng mới; không tự chuyển đổi/xóa dữ liệu legacy.
 
-```
-[BACKLOG] (chỉ có tên + deadline thô)
-    │
-Manager: Identify Task Detail
-    │
-    ▼
-[DETAIL_IDENTIFIED]
-    │
-Manager: Assign Task to Creator (+ quyết định CÓ/KHÔNG giao QC)
-    │
-    ▼
-[ASSIGNED]
-    │
-Creator thực hiện nội dung
-    │
-    ▼
-[IN_PROGRESS] ──submit──► ┌─────────────────────────────┐
-                           │   Nếu CÓ giao QC:            │
-                           │   [QC_REVIEW]                │
-                           │     │approve      │reject    │
-                           │     ▼             │          │
-                           │  (tiếp Manager)   │          │
-                           │                   ▼          │
-                           │            quay về [ASSIGNED]│
-                           │            (giữ approval QC  │
-                           │             nếu step SAU QC  │
-                           │             bị reject — xem  │
-                           │             quy tắc dưới)    │
-                           └─────────────────────────────┘
-                                      │ (nếu KHÔNG giao QC, hoặc QC approve)
-                                      ▼
-                              [MANAGER_REVIEW]
-                                 │approve         │reject
-                                 ▼                ▼
-                     requiresClientApproval?   quay về [ASSIGNED]
-                        │yes         │no
-                        ▼            ▼
-                 [CLIENT_REVIEW]  [COMPLETED]
-                   │approve   │reject
-                   ▼          ▼
-              [COMPLETED]  quay về [ASSIGNED]
-```
+| Trước | Action hợp lệ | Sau |
+|---|---|---|
+| TODO | Assignee Creator bắt đầu; description + dueDate hợp lệ | IN_PROGRESS, ghi firstStartedAt/By |
+| IN_PROGRESS | Assignee lưu bài POST hợp lệ và submit | IN_REVIEW / MANAGER |
+| IN_REVIEW / MANAGER | Manager approve, không cần Client | FINISHED |
+| IN_REVIEW / MANAGER | Manager approve, cần Client | IN_REVIEW / CLIENT |
+| IN_REVIEW / CLIENT | Một Client active bất kỳ approve | FINISHED |
+| IN_REVIEW / MANAGER hoặc CLIENT | Đúng người duyệt reject có lý do | IN_PROGRESS |
+| IN_REVIEW / MANAGER, chưa decision | Assignee Creator withdraw | IN_PROGRESS |
+| Task chưa kết thúc | Flow cancel được cấp quyền hiện có | CANCELLED |
 
-**Quy tắc reject (SỬA 2026-09-17, override bản 2026-09-15):** dù bị reject ở bước nào (QC, Manager, hay Client), Task luôn **quay về đúng bước `[ASSIGNED]`** để Creator sửa lại nội dung. Các approval đã pass ở step TRƯỚC step bị reject **KHÔNG bị xoá khỏi lịch sử** — record `TaskApproval` của chính step bị reject bị đánh `reject`, các step trước đó giữ nguyên `approve` trong lịch sử (để audit).
-
-**[CONFIRMED 2026-09-17]** Tuy nhiên khi Creator sửa lại và submit lại, Task **luôn đi lại từ `[QC_REVIEW]` (nếu Task có giao QC)**, kể cả khi QC đã approve ở lượt trước và bước bị reject là Manager/Client — không bỏ qua QC lần 2. Lý do: nội dung đã bị sửa nên bản QC duyệt trước không còn đảm bảo đúng với bản mới, cần QC xác nhận lại cho chắc.
-
-Ví dụ: QC đã approve → Manager reject → quay về `[ASSIGNED]` → Creator sửa lại → submit lại → **đi lại từ `[QC_REVIEW]`** (nếu Task này có giao QC) → QC approve lại → mới tới `[MANAGER_REVIEW]`.
-
-> Kỹ thuật: bảng `TaskApproval` phải lưu theo từng step riêng (không chỉ 1 field `status` tổng) để giữ lịch sử approve cũ khi step sau bị reject — xem [11-data-entities-glossary.md](11-data-entities-glossary.md).
-
-Nếu Task loại `post` và đạt `[COMPLETED]` → chuyển tiếp sang hàng đợi Publish (xem mục 5).
+- Không có QC; chỉ năm trạng thái. reviewStep chỉ có MANAGER/CLIENT lúc IN_REVIEW, null ngoài review.
+- Lượt đầu 1, mỗi submit lại thành công sau reject/withdraw tăng lượt; decision cũ append-only nhưng không hiệu lực cho lượt mới. Chỉ APPROVE/REJECT tạo decision, tối đa hai/lượt.
+- Withdraw không được sau Manager decision; race với decision chỉ một bên thắng. Client đầu tiên quyết định hợp lệ kết thúc bước Client; người khác dùng màn hình cũ bị conflict.
+- Thiếu Client active khi được yêu cầu thì chặn submit, báo Manager bổ sung. Hết Client khi đã chờ thì giữ bước/Manager approval, không tự skip. Thay Manager thì Manager active hiện tại được duyệt.
+- POST dùng /editor và một Post hiện tại; khóa sửa khi review, reject/withdraw hợp lệ mới sửa lại. Chưa quản lý snapshot/khôi phục nội dung lượt trước; lịch sử là decision, không phải bản nội dung.
+- First-start evidence giữ nguyên qua reject/withdraw; Manager vẫn khóa sửa brief/deadline/giao lại. Task FINISHED/CANCELLED không reopen; bình luận vẫn theo FR3.6.3.
+- Cancel phải xóa bước chờ/đóng metadata, không xóa decision. Không duyệt sau hủy/hoàn thành Campaign; giữ điều kiện Campaign closure hiện có.
+- FINISHED không tự enqueue Publish. Xuất bản là action/module riêng; Admin moderation không thay decision Task.
+- Đây là contract đích của giai đoạn 1, chưa phải implementation đã chạy. Legacy QC/thiếu reviewStep/round chỉ đọc và inventory riêng, không tự backfill.
 
 ## 5. Task loại Livestream — trạng thái riêng
 
@@ -181,8 +151,9 @@ Nếu Task loại `post` và đạt `[COMPLETED]` → chuyển tiếp sang hàng
 ## 7. Post — trạng thái Publish (sau khi Task hoàn thành)
 
 ```
-[COMPLETED Task] ──► [PENDING publish] ──► [IN_PROGRESS] ──► [DONE] hoặc [FAIL]
+[FINISHED Task] --thao tác xuất bản riêng--> [PENDING publish] ──► [IN_PROGRESS] ──► [DONE] hoặc [FAIL]
 ```
 
 - Tương ứng FR 3.8.8 View Status Tracking: "Pending, In Progress, Done, Fail".
+- BA 2026-10-18: cạnh xuất bản trên là thao tác riêng của module publishing, không phải side-effect tự động của Task approval. Không đổi queue/callback hoặc cơ chế retry của module đó.
 - **[CONFIRMED 2026-09-17]** `FAIL` **có retry tự động, theo config** — số lần retry và backoff không hardcode, đọc từ setting (kế thừa tiền lệ retry 3 lần exponential backoff ở hệ thống cũ làm giá trị mặc định, nhưng phải config được để chỉnh khi cần mà không cần deploy lại code publisher-service).

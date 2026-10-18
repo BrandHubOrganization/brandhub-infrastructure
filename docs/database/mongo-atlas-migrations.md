@@ -1,5 +1,21 @@
 # Update an existing BrandHub MongoDB Atlas database
 
+## FR 3.6.9 — Task Approval foundation (2026-10-18)
+
+Current incremental migration: [2026-10-18-task-approval-foundation.js](migrations/2026-10-18-task-approval-foundation.js).
+Read [setup/inventory/results](task-approval-setup.md) first. It adds optional latest-submission metadata,
+one-Post-per-Task partial uniqueness, per-round/step decision uniqueness and review notification metadata.
+No snapshots, document backfill/cleanup, PostgreSQL changes or Approval API implementation.
+Fresh init and checker include this effect; do not run init or old foundation scripts against existing data.
+
+Defaults to DRY_RUN. APPLY requires clean preflight, operator approval, all shared writers stopped and both
+`TASK_APPROVAL_FOUNDATION_APPLY=true` / `TASK_APPROVAL_WRITERS_PAUSED=true` in the same run, reset in finally.
+**Atlas APPLY completed on 2026-10-18 after the user approved resetting exactly five legacy review Tasks to TODO.**
+Post-APPLY checker confirms Approval foundation and Task structure; the DDL step changed no documents.
+See [operator report](task-approval-preflight-2026-10-18.md). Other deployments must run their own DRY_RUN;
+the five-Task reset is not a general migration/backfill and must not be repeated automatically.
+Application mutation rollout remains disabled pending integration; schema readiness does not enable editing/submission.
+
 ## DA-978 — Task five-state / inline workflow (2026-10-15)
 
 Order: `2026-10-14-campaign-closure.js` →
