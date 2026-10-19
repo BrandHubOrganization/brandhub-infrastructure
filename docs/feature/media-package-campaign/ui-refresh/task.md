@@ -1,5 +1,13 @@
 # UI refresh — task checklist
 
+## Compactness corrections — 2026-10-19
+
+- [x] Compact Package/Campaign headers and empty states, contextual help.
+- [x] Group terms/deliverables, distinct budget/duration and top Change package navigation. Switch remains Client/DRAFT only per existing backend rule; other states browse only.
+- [x] Suggest Campaign end from approved duration; preserve manual values/old drafts (no mount-time date mutation).
+- [x] Remove Task Detail shortcut; fix long approval detail/list scroll through scoped PageWrapper child-height propagation.
+- [x] Parallel locales, 12 offline date checks, 40 browser fixture checks, scoped lint/build; no database edits. Global type-check still has 12 pre-existing errors outside scope.
+
 - [x] Confirm scope, current BA, UI rules and design direction.
 - [x] Write/read spec, plan, task, test before implementation.
 - [x] Package catalogue/detail and grouped create form.
