@@ -1,5 +1,19 @@
 # UI refresh — verification matrix
 
+## Correction matrix — 2026-10-19
+
+Verify package empty/selected/catalogue/detail/proposal modes and top Change package with unchanged API locks; note/error/count/version/approvals remain visible when relevant. Deliverable name/type/quantity/description/acceptance visually distinct, long text wraps. Help opens with keyboard/touch; no placeholder descriptions dominate cards. Campaign has compact stage header and no duplicated partner link; start+8 weeks, leap/month/year boundaries, missing duration, manual end override and unchanged existing drafts. Task Detail has no approval shortcut. Long-media approval page list/detail must have real scrollHeight>clientHeight, wheel reaches bottom actions/history on desktop/mobile, page horizontal overflow absent. Test vi/en/light/dark and error recovery with fixtures, never mutate shared DB.
+
+### Results — 2026-10-19
+
+- 27 main browser checks PASS: Client top Change action above fold, agreed duration (8 weeks) distinct from catalogue (2 weeks), help Enter/Escape, catalogue return, deliberate 409 switch failure retains catalogue, successful selection returns to detail, 375/768/1440 no overflow; Manager Campaign start-date suggestion uses agreement duration, manual end preserved, empty end recalculated; real long detail/list scrolling with 70 caption lines and 8 media fixtures. Campaign test draft discarded through application confirmation, not a DB mutation.
+- 13 additional browser checks PASS: wheel reaches actual bottom at all three widths, approval buttons reachable; dark screenshot each width; browse-only after package lock, English help and labels. Screenshots visually inspected (desktop package groupings and mobile approval bottom). Native date inputs exercised by browser fill; mobile physical-device/touch and all negotiation forms were not fully E2E exercised.
+- 12 date utility checks PASS: start+8 weeks, leap day/month/year rollover, invalid/empty date, absent/zero duration, automatic end update, manual override preservation and clearing start without dropping existing end. Existing campaign dates are never rewritten by a mount effect; no server hard constraint was added.
+- Scoped ESLint and Vite production bundle PASS. Package/Campaign/common vi/en key parity and diff whitespace PASS. Global app type-check still reports the same 12 baseline errors in content-writing/useTaskContentSync, editor/MediaDropzone, workspace/dashboard and AppRoutes unused imports; no new errors in this slice. Do not report full npm build/type-check as passing.
+- Root cause scroll: PageWrapper wraps children in a non-flex body div; previous grid had no bounded height under overflow-hidden Layout. Only task-approvals opts its wrapper body into flex/min-h-0 and a minmax(0,1fr) grid row; shared PageWrapper/Layout unchanged.
+- UI/UX skill used for contextual disclosure, keyboard/touch help and hierarchy; existing tokens/primitives retained. React guidance keeps date calculation event-driven, not a resetting effect. API/media traffic was intercepted in Playwright CLI session compact19 on separate Vite 3012; no backend, SQL/Atlas, publisher/Yjs, seeding or shared data edits. Artifacts under output/playwright/compact19-* are ignored local verification, never src tests. No commit/push.
+- An unrelated dirty Approval migration was observed at final status; preserved untouched and not executed. Scope audit does not claim the entire workspace is clean.
+
 | Case | Expected |
 |---|---|
 | Owner catalogue | Search/filter without mutation; detail/copy/availability actions preserved |

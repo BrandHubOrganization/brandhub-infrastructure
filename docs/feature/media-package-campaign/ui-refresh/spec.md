@@ -1,5 +1,11 @@
 # Media Package, Campaign and Chat — scoped UI refresh
 
+## Current amendment — 2026-10-19
+
+User requests compact Package/Campaign headers, grouped readable Package terms/deliverables with clear value labels, secondary explanations behind keyboard/touch-accessible question-mark help, and a top Change package action exposing the catalogue without scrolling. Preserve selection/approved/Campaign locks and negotiation dirty guards; no new role permissions. Remove redundant Campaign partner link (already in menu), duplicate heading/description and Task Detail approval shortcut. Fix approval page height propagation/independent scrolling with long media without changing shared PageWrapper for other pages.
+
+Campaign end date: user confirmed auto-filled suggestion, still editable by Manager; source is approved agreement durationWeeks, never mutable catalogue. Suggest start + weeks*7 calendar days (not minus one); missing duration keeps manual input. Preserve manually chosen end dates when start changes, unless end is empty or matches the previous calculated suggestion. Reopening existing drafts must not rewrite stored dates. No backend/schema/data edits.
+
 ## Objective / user story
 
 Owner manages Agency packages; Client and Manager review package terms and the
