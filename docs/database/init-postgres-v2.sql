@@ -64,7 +64,7 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE agency_member_role AS ENUM ('OWNER', 'MEMBER');
+    CREATE TYPE agency_member_role AS ENUM ('OWNER', 'MEMBER', 'CLIENT');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -1081,13 +1081,28 @@ VALUES
     ('BASIC', 'Basic', 490000, 3, 200, '["scheduling", "approval_workflow"]'::jsonb, TRUE),
     ('PRO', 'Pro', 990000, 10, 1000, '["scheduling", "approval_workflow", "ai_content", "analytics"]'::jsonb, TRUE),
     ('ENTERPRISE', 'Enterprise', 2990000, -1, 5000, '["all_features", "unlimited_workspaces", "dedicated_support"]'::jsonb, TRUE)
-ON CONFLICT (name) DO UPDATE SET
-    display_name = EXCLUDED.display_name,
-    price_monthly = EXCLUDED.price_monthly,
-    max_workspaces = EXCLUDED.max_workspaces,
-    ai_credits_month = EXCLUDED.ai_credits_month,
-    features = EXCLUDED.features,
-    is_active = EXCLUDED.is_active;
+ON CONFLICT (name) DO NOTHING;
+
+-- ============================================================
+-- Explicit PostgreSQL demo seed run marker
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS seed_runs (
+    dataset          VARCHAR(100) NOT NULL,
+    dataset_version  INTEGER NOT NULL CHECK (dataset_version > 0),
+    run_id           UUID NOT NULL UNIQUE,
+    status           VARCHAR(16) NOT NULL CHECK (status IN ('running', 'complete', 'failed')),
+    last_stage       VARCHAR(64),
+    record_counts    JSONB NOT NULL DEFAULT '{}'::jsonb,
+    manifest         JSONB NOT NULL DEFAULT '{}'::jsonb,
+    failure_summary  VARCHAR(255),
+    started_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+    completed_at     TIMESTAMPTZ,
+    failed_at        TIMESTAMPTZ,
+    PRIMARY KEY (dataset, dataset_version),
+    CHECK ((status = 'complete') = (completed_at IS NOT NULL)),
+    CHECK ((status = 'failed') = (failed_at IS NOT NULL))
+);
 
 -- ============================================================
 -- System Health Monitoring (FR 3.10.3)
