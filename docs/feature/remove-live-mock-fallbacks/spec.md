@@ -1,0 +1,4 @@
+# Remove mock data from implemented web flows
+Scope: implemented notification inbox/read actions and social account status. Inbox uses only /notifications/me, preserves empty responses and shows retryable errors. Read status changes only after successful writes. Social API errors propagate, timestamps/handles are not fabricated; Editor distinguishes unknown status from disconnected. No database writes during verification.
+Excluded: analytics/dashboard endpoints absent; publish dashboard/detail absent; billing service/listPlans still UnsupportedOperationException; workspace client legacy contracts absent; content templates distinct from workspace templates. Existing mocks for unimplemented contracts remain.
+New texts: notifications.loading/loadError/retry/readError; editor.socialStatusError. Add parallel vi/en keys and use existing light/dark tokens. Keyboard retry and mobile layouts retained.

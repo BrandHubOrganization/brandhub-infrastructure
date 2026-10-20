@@ -228,3 +228,16 @@ Figure — Video Studio & Generation Queue (`brandhub-web/src/pages/ai/video/Vid
 - [08-subscription-billing.md](../../../ba/08-subscription-billing.md)
 - [ai-features-spec-alignment-plan.md](../../../plan/ai-features-spec-alignment-plan.md) (PO Decision D08, Section 2.6: Video & Export, Section 7.1)
 - [Google Veo 3.1 API Technical Reference](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/veo/3-1-generate)
+
+> Ghi chú triển khai local theo mốc thời gian dưới đây; phần này ghi lại hiện trạng, không thay thế các yêu cầu target spec ở trên.
+
+06-ai-features.md](../../../BA/06-ai-features.md)
+
+## Bổ sung khi thiết kế kỹ thuật (2026-10-08)
+
+- API: `POST /api/v1/workspaces/{id}/ai/videos` `{prompt, styleKey?, ambassadorId?, aspectRatio}` → 202 `{job, creditsUsed, creditsRemaining}`;
+  `GET /api/v1/workspaces/{id}/ai/videos/{jobId}` (chỉ workspace sở hữu đọc được); `GET /api/v1/workspaces/{id}/ai/videos` (12 gần nhất).
+- Veo 3.1 (AI service, chạy nền, kết quả lên S3). Ambassador preset → ảnh tham chiếu (REFERENCE_TO_VIDEO).
+- **Credit (đã chốt 2026-10-04):** trừ trước khi chạy (`ai.credits.video.base`, mặc định 10, chưa chốt giá); **hoàn đúng 1 lần** khi job FAILED, quá thời gian (`ai.video.timeout-seconds` 600) hoặc AI service mất job (restart). Job quét mỗi phút để hoàn cả khi không ai theo dõi.
+- Lỗi provider/không có key → 502 `AI_SERVICE_UNAVAILABLE`, không trừ. Style/Ambassador sai → 400.
+- UI: trang `/ai-studio/video` (menu "Video AI" trong workspace) + panel video của Trình soạn (Lộc) đi qua API này.
