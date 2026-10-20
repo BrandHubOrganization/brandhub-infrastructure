@@ -1,10 +1,18 @@
 # Migration entry points
 
+- `2026-10-20-credit-dev-seed-source.sql`: permits explicitly identified DEV_SEED grants, without payment/subscription references. No funding is created by the migration. Fresh init includes the constraint. The separate local-only `../seeds/2026-10-20-demo-agency-credit.sql` funds only the confirmed Demo Agency with 100 test credits, idempotently. Do not run this seed on shared/production environments. No public API mints this source; reporting separates development funds from purchases.
+
+- `2026-10-20-credit-ai-execution.sql`: apply after Credit accounting. Adds dispatch state/response/job metadata and indexes to reservations only; prevents duplicate AI dispatch and supports asynchronous video settlement. Included in fresh init. No grants, prices, seed or Task/Post/Mongo changes. Deploy with the matching Business/Web adapters requiring `X-AI-Workspace-Id` and `Idempotency-Key` on AI POSTs. The AI-specific Workspace header is authorized server-side and is separate from Gateway's JWT-derived header.
+
 - Fresh PostgreSQL database: run `../init-postgres-v2.sql` only, then the current seeder if needed. Do not replay historical SQL afterward.
 - Fresh Mongo database: `../init-mongo.js` only. Never init existing Atlas data.
 - Existing databases: inspect current schema and apply only missing, applicable deltas. SQL and Mongo scripts are different entry points; no recursive all-files runner.
 - `old_migration/` is archived history already incorporated into the team's baseline. Do not include it in migration globs or recursively execute it. In particular, the old offering-model SQL reintroduces a retired column.
 - `2026-10-16-remove-media-package-classification.sql` is only for old PostgreSQL databases that still contain package_type/offering_model; new init does not introduce those fields.
 - Mongo metadata checker is read-only and compares schema effects, not proof of historical execution. Run metadata migrations in DRY_RUN first; shared environments need explicit APPLY.
+- `2026-10-19-member-credit-configuration.sql` (revised compact baseline): adds nullable default/revision/change metadata to `agencies`, nullable member override/revision/change metadata to `agency_members`, and the immutable `ai_credit_operation_prices` table. NULL inherits (Agency NULL uses system fallback 10); zero blocks member use. No grant, legacy backfill, price seed or AI enforcement.
 
 See [Media Package baseline](../media-package-classification-removal.md) for rollout and compatibility boundaries.
+
+- `2026-10-20-credit-accounting.sql` (revised compact baseline): adds nullable `agencies.credit_cycle_anchor` and three tables: grants, reservations and allocations. Member usage is derived from reservations, not stored in a summary table. Existing databases need revised 2026-10-19 first. Fresh init includes both; no delta replay needed. No seed, legacy balance import, automatic grant or shared database APPLY.
+- Both revised Credit deltas refuse the former eight-table draft if any retired policy/member-limit/account/usage table exists. They do not drop/copy existing data. Such a DB needs a separately reviewed conversion, not init or manual table deletion. Existing legacy `ai_credit_ledgers`/`ai_credit_creator_limits` are untouched. Business Credit stores have been adapted and retested for the compact baseline; deploy the revised schema and matching code together, not an earlier eight-table build. See `../../feature/subscription-billing/member-credit/compact-schema.md`.
