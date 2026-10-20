@@ -42,7 +42,7 @@
 ### 3.5.1 — Create Media Package
 - Admin tạo sẵn các package mẫu (2 tuần, 3 tuần...) từ trước.
 - Owner có thể **chọn package mẫu có sẵn** hoặc **custom thêm gói truyền thông mới** riêng cho Agency của mình.
-- Khi tạo Workspace, nếu Manager/Owner chưa nhập package template → hệ thống **thông báo cho Manager** để nhắc nhở hoàn thành bước này.
+- Không yêu cầu scheduled reminder chọn Package (xác nhận 2026-10-13); giữ gate/redirect chọn và chốt Package hiện có. Mô tả reminder cũ không còn dùng để triển khai.
 - Template Package cần dễ tùy chỉnh theo ý Client (mức độ dễ nhất để thay đổi).
 - **Thiết kế DB đề xuất từ nguồn**: tạo 2 bảng riêng — 1 bảng cho package do Owner tạo, 1 bảng cho package custom. Cột "chọn media package" trong Workspace chỉ cần lưu **ID tham chiếu** tới 1 trong 2 bảng đó — giảm độ phức tạp và tăng tốc truy vấn (không JOIN nhiều tầng).
 - Role: OWNER/MANAGER.
@@ -67,6 +67,8 @@
 
 ## 3. Media Campaign (FR 3.5.5 – 3.5.6)
 
+> **Xác nhận mới 2026-10-14 — ưu tiên hơn mô tả lịch sử bên dưới:** Task sinh khi chấp nhận Content Request gắn Campaign hiện tại và giữ nguồn Request; hiển thị nhóm đầu việc bổ sung, không sửa sản lượng/kế hoạch đã duyệt. Manager không thể hoàn thành khi còn Task khác COMPLETED/CANCELLED hoặc Request IN_PROGRESS. Manager có thể chọn nhiều Task chưa kết thúc (kể cả chờ QC/Client) và hủy với một lý do chung từ danh sách/Khác, lưu audit từng Task. PENDING vẫn tự hủy khi hoàn thành thành công. Xem [Campaign closure](../feature/media-package-campaign/campaign-closure/spec.md). Quy tắc này thay thế campaignId=null cho Task Request mới và cách hoàn thành chỉ cần lý do khi Task chưa xong.
+
 ### 3.5.5 — Create Media Campaign
 - Dựa trên Media Package đã chọn và thống nhất giữa 2 bên, nhưng **chi tiết hơn** — có nội dung triển khai phù hợp với brand cụ thể của Client.
 - **Quan trọng**: Media Campaign **KHÔNG phải là hợp đồng** — nó là **chiến lược thực hiện** (execution strategy/plan).
@@ -81,6 +83,8 @@
 - Role: OWNER/MANAGER/CLIENT.
 
 ## 4. Content Request — kênh bổ sung riêng (FR 3.5.7 – 3.5.10)
+
+> **Quyết định người dùng 2026-10-14 (cần đồng bộ với team):** chỉ Client thuộc Workspace có Campaign IN_PROGRESS và deployment SUCCEEDED được tạo Request. Client sửa title/description/type/dueDate hoặc hủy khi PENDING. Deadline từ ngày hiện tại, không trước ngày bắt đầu và không sau ngày kết thúc Campaign, theo timezone Workspace. Manager chủ động tiếp nhận để chuyển IN_PROGRESS và khóa sửa/hủy của Client; sau đó ACCEPTED hoặc DENIED. Hủy là CANCELLED, không xóa. Request được chấp nhận sinh đúng một Task BACKLOG, campaignId=null. Khi Manager đánh dấu Campaign COMPLETED, chặn tạo mới và tự hủy PENDING có lịch sử; IN_PROGRESS tiếp tục xử lý. Hết ngày kế hoạch không tự hoàn thành Campaign. Quy tắc này thay thế quyết định 2026-10-13 giữ PENDING sau hoàn thành.
 
 Đây là 1 luồng **bổ sung, độc lập** với luồng Package/Campaign chính — cho phép Client đề xuất thêm 1 bài đăng cụ thể ngoài kế hoạch Campaign đã duyệt.
 

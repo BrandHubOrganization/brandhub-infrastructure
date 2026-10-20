@@ -39,6 +39,6 @@ Admin templates and Agency packages use the same `media_packages` record. Templa
 - Hiding an Agency package affects new selections only; an existing Workspace selection remains readable and negotiable.
 - Do not use the obsolete polymorphic `packageRefType` database model.
 
-## Open decision
+## Confirmed selection notification scope — 2026-10-13
 
-The reminder delay/cadence after workspace creation is unspecified. The reminder should target the Client responsible for selection; whether the Manager is copied is still to be confirmed.
+Scheduled package-selection reminders are not required. Keep the current Package gate: Client accesses Package negotiation and Chat; Manager also retains Workspace settings. Creative features remain gated until the package is approved. No scheduler or configurable X-day cadence is part of DA-943.

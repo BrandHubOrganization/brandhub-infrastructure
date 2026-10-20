@@ -17,8 +17,7 @@ Both parties approve a campaign, then deployment creates one generic Mongo task 
 - Generated tasks contain `workspaceId`, `campaignId`, type, name, due date, and `status=backlog`; they initially have no assignee.
 - Retrying/deploying twice cannot duplicate a task for one campaign work item.
 - Client gives feedback; Manager edits, and both parties approve the revised version.
-- Manager explicitly marks an IN_PROGRESS Campaign completed. Unfinished tasks require
-  a reason; preserve child Task states and their workflow. Record actor/time/reason/summary.
+- Confirmed 2026-10-14: Manager completes only after every linked Task is COMPLETED/CANCELLED and no Request is IN_PROGRESS. No reason bypass. Bulk cancellation is a separate explicit action with per-Task audit and one shared reason; preserve approval/content history. See ../campaign-closure/spec.md.
 
 ## Constraint
 
@@ -58,9 +57,7 @@ See [delivery plan](../campaign-delivery-plan.md) for the remaining decisions.
   can be retried using the same Task identities.
 - PostgreSQL editor content remains stored in its Yjs tables, referenced by Task
   UUID. Mongo is the Task source of truth; no second PostgreSQL Task is created.
-- Manager explicitly marks an `IN_PROGRESS` Campaign complete. When any linked
-  Task is unfinished, a nonblank reason is required. Completion records actor,
-  time, reason and Task summary, without changing any child Task state.
+- Manager explicitly marks an IN_PROGRESS Campaign complete after all planned and supplemental Request Tasks reach COMPLETED/CANCELLED and all received Requests are processed. Preview shows blockers and PENDING cancellation count. Final completion rechecks server state; preserve actor/time/Task summary and durable PENDING cleanup. See ../campaign-closure/spec.md (2026-10-14 confirmation).
 - Existing Task IDs and editor content must be preserved during cutover. Local
   preflight on 2026-10-09 found zero PostgreSQL tasks/operations/snapshots; other
   environments must pass an independent preflight/backfill before switching.

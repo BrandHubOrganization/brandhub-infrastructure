@@ -28,6 +28,7 @@ quyền Workspace; nếu chưa có membership, chủ Agency được quyền qu�
   empty, retry và thông báo lỗi; chưa có Campaign thì không cho gán.
 - AC6: API Workspace kiểm tra Campaign và liên kết đúng scope. Cập nhật từ phiên
   cũ bị 409, không ghi đè âm thầm; dữ liệu đầu vào không hợp lệ bị 400.
+- AC7 (BA 2026-10-13, tích hợp DA-949): chỉ đối tác active được gán mới. Đối tác inactive đã liên kết vẫn hiển thị và được cập nhật hợp tác; gán lặp liên kết cũ giữ idempotency. Ghi dấu lần đầu sử dụng trong cùng transaction tạo liên kết; kiểm thử race với delete/deactivate. Xem [danh bạ](../partner-directory/spec.md).
 
 ## 4. Dữ liệu
 

@@ -33,3 +33,24 @@ Chỉ đăng khi allowed=true; lỗi mạng/không xác minh được → không
 ```
 
 Giới hạn: hàng đợi chỉ có dữ liệu thật khi Tuấn/Phước nối hai endpoint; `PublishJobMessage` hiện chưa mang `contentVersion` nên Phước cần bổ sung.
+
+## Local schema recovery — 2026-10-14
+
+Kịch bản trước khi thực hiện:
+
+- Backup đọc được trước khi áp dụng SQL; đúng DB `brandhub`, schema `public`.
+- Migration lần đầu và chạy lại thành công, không xóa/sửa dữ liệu cũ.
+- Đủ bảng, khóa chính, unique post/version, foreign keys, CHECK và hai index queue/author.
+- Query danh sách PENDING/APPROVED/BLOCKED và bộ đếm thực thi thành công, trả rỗng/0 trên bảng mới.
+- Định nghĩa bảng trong init khớp migration hiện có, không cần bổ sung lần nữa.
+- AdminSecurityTest giữ nguyên kiểm tra 401/403/quyền Admin. Không coi test controller mock là live authenticated smoke.
+
+Kết quả thực tế:
+
+- Backup full PostgreSQL custom-format, kiểm tra `pg_restore --list` thành công. File ngoài Git: `D:/FPT/FA26/SEP490/.local-backups/admin-moderation-20261014/brandhub-before-moderation.dump` (552852 bytes).
+- Chạy migration hiện có trên `brandhub/public` thành công, chạy lại thành công. Có 11 constraints và 4 indexes tổng cộng (2 index tường minh cùng index PK/unique).
+- Trích đúng SQL SELECT của ContentModerationService và thực thi read-only với cả PENDING/APPROVED/BLOCKED: thành công, mỗi trạng thái 0 dòng; tổng/pending/today đều 0. Không seed hoặc tạo quyết định giả.
+- Định nghĩa bảng/index/comment trong init khớp chính xác migration sau chuẩn hóa CRLF, không sửa init hoặc migration cũ.
+- `mvn.cmd -q -Dtest=AdminSecurityTest test`: 15 tests, 0 failures/errors/skips. Controller/security dùng mocks; không coi đây là smoke API có phiên Admin thật.
+- Chỉ cần tải lại `/admin?view=moderation` hoặc bấm tải lại danh sách. Không cần restart vì chỉ bổ sung schema vào PostgreSQL hiện đang dùng.
+- Không thay đổi code Web/Business/Gateway, Mongo, Dashboard hoặc logout trong lần sửa riêng này. Giữ nguyên các thay đổi local từ công việc trước; không commit/push. Chưa xác minh thao tác duyệt/chặn trên dữ liệu thật hoặc Mongo Atlas.
