@@ -1,0 +1,2 @@
+# Implementation
+Extend existing AiGenerationController proxy and aiGenerationService. Add isolated AiHashtagSuggestions component using TanStack Query with explicit generation, cancellation and context-specific keys. Pass caption/platform/user/workspace from Editor. Reuse hashtag normalization and duplicate checks. Update src/i18n/locales/{vi,en}/editor.json. Verify controller contract and browser generation/application/errors.
