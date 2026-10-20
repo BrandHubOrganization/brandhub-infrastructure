@@ -258,3 +258,27 @@ Căn cứ trang Quản trị `/admin/ai/crawl-config`:
 - **Kiến trúc & Service Contract:** `docs/architecture/business-ai-rest-contract.md` (Giao tiếp REST nội bộ, `X-Internal-Api-Key`); `docs/architecture/service-boundaries.md`.
 - **Hiện trạng Codebase:** `brandhub-ai-service/app/api/v1/endpoints/trends.py` (`POST /crawl`, `GET /pipeline-config`), `brandhub-ai-service/app/services/trend_scheduler.py`, `brandhub-ai-service/app/services/trend_service.py`.
 - **Mã thông báo & Quy tắc:** `Section5_Requirement_Appendix.md` (Quy ước mã lỗi `MSG-AI-xx`, quy tắc phân quyền `BR-AI-xx`).
+
+> Ghi chú triển khai local theo mốc thời gian dưới đây; phần này ghi lại hiện trạng, không thay thế các yêu cầu target spec ở trên.
+
+06-ai-features.md](../../../BA/06-ai-features.md)
+
+## Bổ sung khi thiết kế kỹ thuật (2026-10-05)
+
+- Crawler được cấu hình: `CrawlScheduler` trong AI service (nguồn ScrapeCreators TikTok, Apify Facebook groups).
+- `schedule` = `intervalMinutes` (15–10080) **hoặc** `cron` 5 trường theo giờ Việt Nam; chọn loại này thì xoá loại kia.
+- `sourcePages`: tối đa 50 URL https (Apify `startUrls`); `postsPerRun`: 10–1000 (Apify `maxItems` + cắt batch mỗi nguồn).
+- Lưu ở Redis key `trend:crawl-config` của AI service (AI service không có SQL); Business chỉ kiểm quyền, validate, audit `UPDATE AI_CRAWL_CONFIG` (before/after).
+- Đổi lịch → `reschedule_job` cho lần chạy kế tiếp; trang/số bài đọc lại ở đầu mỗi tick → job đang chạy không bị dừng.
+- Người dùng không phải ADMIN → 403 `FORBIDDEN` (JSON trả trực tiếp, không qua `/error`).
+- UI thực tế: `/admin?view=crawl` (tab "Cấu hình crawl" trong Admin).
+- **i18n:** `admin.navigation.crawl`, `admin.crawl.*` song song `vi/admin.json` và `en/admin.json`.
+- **Light/Dark:** token theme và class `dark:` sẵn có.
+
+## Bổ sung 2026-10-05 — nhật ký crawl và nút chạy thử (yêu cầu người dùng)
+
+- Page nguồn được cào qua ScrapeCreators (`/v1/facebook/profile/posts`, `/v1/facebook/group/posts`; 3 bài/lần gọi, 1 credit/lần) khi có `SCRAPE_CREATORS_API_KEY`; không có key thì giao cho Apify như cũ.
+- Mỗi lần crawl ghi nhật ký: trang đã vào, số bài, số lần gọi, lỗi từng trang (kể cả page private), lỗi pipeline, credit còn lại. Giữ 20 lần gần nhất (`trend:crawl-runs`).
+- Nút "Chạy crawl ngay (dev)" chỉ hiện ở môi trường dev; chạy nền, chỉ một lần crawl tại một thời điểm (`CRAWL_ALREADY_RUNNING` 409).
+- API: `GET/POST /api/v1/admin/ai/crawl-runs` (ADMIN), audit `CREATE AI_CRAWL_RUN`.
+- i18n: `admin.crawl.log.*` song song vi/en.
