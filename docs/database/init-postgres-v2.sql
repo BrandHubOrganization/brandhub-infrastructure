@@ -5,7 +5,7 @@
 --
 -- Fresh database bootstrap; existing databases must use docs/database/migrations/.
 -- CREATE IF NOT EXISTS does not upgrade existing table definitions.
--- Synchronized with PostgreSQL migrations through 2026-10-02.
+-- Synchronized with PostgreSQL migrations through 2026-10-14.
 -- Scope: PostgreSQL-owned entities only. MongoDB collections are not mirrored here.
 --
 -- Decisions confirmed 2026-09-16 (docs/database/migration/migration-plan-v1-to-v2.md §0):
@@ -20,15 +20,22 @@
 --   - ai_credit_ledgers: split into ai_credit_ledgers (Agency-wide monthly usage, no user)
 --     + ai_credit_creator_limits (per-Creator cap set by Owner, config only, not usage tracking).
 --
--- PostgreSQL tables (31):
+-- PostgreSQL tables (52):
 --   Monitoring:   monitoring_servers, monitoring_collectors,
 --                 monitoring_health_targets, monitoring_health_results, monitoring_enrollments
---   Identity:     users, user_oauth_providers, user_refresh_tokens, user_system_roles
+--   Identity:     users, user_oauth_providers, user_refresh_tokens, user_system_roles,
+--                 account_activation_tokens, subscription_plan_changes
 --   Organization: agencies, agency_members, agency_invitations, workspaces,
---                 workspace_members, workspace_invitations, workspace_templates, client_profiles
---   Commerce:     media_packages, workspace_media_packages, media_campaigns
---   Content:      tasks, task_content_operations, task_content_snapshots
+--                 workspace_members, workspace_invitations, workspace_templates, client_profiles,
+--                 workspace_hashtags
+--   Commerce:     media_packages, workspace_media_packages, package_negotiation_events,
+--                 media_campaigns, campaign_versions, campaign_review_events, campaign_deployments
+--   Content & Outbox: tasks, task_content_operations, task_content_snapshots,
+--                 content_request_completion_jobs
 --   Collaborator: third_party_collaborators, campaign_collaborators
+--   Mail Sending: mail_attachments, mail_batches, mail_deliveries, mail_send_quota, mail_suppressions
+--   Admin & Mod:  user_strikes, sanction_reviews, admin_account_operations, admin_email_outbox,
+--                 admin_notifications, admin_report_exports, content_moderation_reviews, user_notifications
 --   Billing:      subscription_plans, user_subscriptions, transactions,
 --                 ai_credit_ledgers, ai_credit_creator_limits, audit_logs
 -- ============================================================
@@ -96,11 +103,6 @@ END $$;
 
 DO $$ BEGIN
     CREATE TYPE package_negotiation_status AS ENUM ('DRAFT', 'CLIENT_REQUESTED_CHANGE', 'AGENCY_COUNTERED', 'APPROVED');
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE package_type AS ENUM ('BY_DURATION', 'BY_BUDGET', 'FULL_DELEGATION');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -475,12 +477,9 @@ CREATE TABLE IF NOT EXISTS media_packages (
     agency_id          UUID         CONSTRAINT fk_media_packages_agency REFERENCES agencies(id) ON DELETE RESTRICT,
     source_template_id UUID         CONSTRAINT fk_media_packages_source_template REFERENCES media_packages(id) ON DELETE SET NULL,
     is_available_to_workspaces BOOLEAN NOT NULL DEFAULT TRUE,
-    package_type       package_type NOT NULL,
     duration_weeks     INT,
     budget_amount      DECIMAL(14,2),
     scope_description  TEXT,
-    offering_model     VARCHAR(30) CONSTRAINT chk_media_packages_offering_model
-        CHECK (offering_model IN ('CAMPAIGN', 'RETAINER', 'DELIVERABLE_BUNDLE')),
     offering_details   JSONB,
     created_by         UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     created_at         TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
@@ -527,11 +526,96 @@ CREATE TRIGGER trg_workspace_media_packages_updated_at
 BEFORE UPDATE ON workspace_media_packages
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
+
+CREATE TABLE IF NOT EXISTS package_negotiation_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_media_package_id UUID NOT NULL REFERENCES workspace_media_packages(id) ON DELETE CASCADE,
+    terms_version INTEGER NOT NULL CHECK (terms_version >= 1),
+    action VARCHAR(30) NOT NULL CHECK (action IN ('BASELINE','REQUEST_CHANGE','COUNTER_OFFER')),
+    actor_id UUID,
+    actor_role VARCHAR(20),
+    note VARCHAR(2000),
+    terms_snapshot JSONB NOT NULL CHECK (jsonb_typeof(terms_snapshot) = 'object'),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (workspace_media_package_id, terms_version),
+    CHECK ((action = 'BASELINE' AND actor_id IS NULL AND actor_role IS NULL)
+        OR (action = 'REQUEST_CHANGE' AND actor_id IS NOT NULL AND actor_role = 'CLIENT')
+        OR (action = 'COUNTER_OFFER' AND actor_id IS NOT NULL AND actor_role IN ('OWNER','MANAGER')))
+);
+CREATE INDEX IF NOT EXISTS idx_package_negotiation_history
+    ON package_negotiation_events(workspace_media_package_id, terms_version DESC);
+
+CREATE OR REPLACE FUNCTION guard_package_negotiation_history() RETURNS TRIGGER AS $$
+BEGIN
+    -- Preserve existing parent hard-delete cascades without opening direct event deletion.
+    IF TG_OP = 'DELETE' AND pg_trigger_depth() > 1 THEN RETURN OLD; END IF;
+    RAISE EXCEPTION 'Package negotiation history is append-only' USING ERRCODE = '23514';
+END;
+$$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_package_negotiation_immutable ON package_negotiation_events;
+CREATE TRIGGER trg_package_negotiation_immutable BEFORE UPDATE OR DELETE ON package_negotiation_events
+    FOR EACH ROW EXECUTE FUNCTION guard_package_negotiation_history();
+
 ALTER TABLE workspaces
     DROP CONSTRAINT IF EXISTS fk_workspaces_media_package;
 ALTER TABLE workspaces
     ADD CONSTRAINT fk_workspaces_media_package
     FOREIGN KEY (workspace_media_package_id) REFERENCES workspace_media_packages(id) ON DELETE SET NULL;
+
+-- DA-E50-04: append-only package negotiation history.
+-- Requires the terms-version migration. Run with psql -v ON_ERROR_STOP=1 -1.
+-- Rerunnable: preserve existing history, baseline only non-draft selections
+-- without history. A baseline is current known state, not reconstructed events.
+CREATE TABLE IF NOT EXISTS package_negotiation_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_media_package_id UUID NOT NULL
+        REFERENCES workspace_media_packages(id) ON DELETE CASCADE,
+    terms_version INT NOT NULL CHECK (terms_version > 0),
+    action VARCHAR(30) NOT NULL
+        CHECK (action IN ('BASELINE', 'REQUEST_CHANGE', 'COUNTER_OFFER')),
+    actor_id UUID,
+    actor_role VARCHAR(20),
+    note VARCHAR(2000),
+    terms_snapshot JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_package_negotiation_events_version
+        UNIQUE (workspace_media_package_id, terms_version)
+);
+
+CREATE OR REPLACE FUNCTION protect_package_negotiation_history()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE parent_exists BOOLEAN;
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        -- Permit FK cascade only after the parent selection has been deleted.
+        EXECUTE format('SELECT EXISTS (SELECT 1 FROM %I.workspace_media_packages WHERE id = $1)',
+                       TG_TABLE_SCHEMA)
+            INTO parent_exists USING OLD.workspace_media_package_id;
+        IF NOT parent_exists THEN
+            RETURN OLD;
+        END IF;
+    END IF;
+    RAISE EXCEPTION 'package_negotiation_events is append-only';
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_package_negotiation_events_append_only ON package_negotiation_events;
+CREATE TRIGGER trg_package_negotiation_events_append_only
+BEFORE UPDATE OR DELETE ON package_negotiation_events
+FOR EACH ROW EXECUTE FUNCTION protect_package_negotiation_history();
+
+INSERT INTO package_negotiation_events (
+    workspace_media_package_id, terms_version, action, terms_snapshot
+)
+SELECT p.id, p.terms_version, 'BASELINE', p.final_terms
+FROM workspace_media_packages p
+WHERE p.negotiation_status <> 'DRAFT'
+  AND NOT EXISTS (
+      SELECT 1 FROM package_negotiation_events e
+      WHERE e.workspace_media_package_id = p.id
+  )
+ON CONFLICT (workspace_media_package_id, terms_version) DO NOTHING;
+
 
 CREATE TABLE IF NOT EXISTS media_campaigns (
     id                          UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -565,6 +649,13 @@ CREATE TABLE IF NOT EXISTS media_campaigns (
 
 CREATE INDEX IF NOT EXISTS idx_media_campaigns_wmp_id ON media_campaigns(workspace_media_package_id);
 CREATE UNIQUE INDEX IF NOT EXISTS uq_media_campaigns_agreement ON media_campaigns(workspace_media_package_id);
+
+CREATE TABLE IF NOT EXISTS content_request_completion_jobs (
+    campaign_id UUID PRIMARY KEY REFERENCES media_campaigns(id) ON DELETE CASCADE,
+    workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    actor_id UUID NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 
 CREATE TABLE IF NOT EXISTS campaign_versions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -662,6 +753,10 @@ CREATE TABLE IF NOT EXISTS third_party_collaborators (
     partner_type collaborator_type NOT NULL,
     contact_info JSONB             NOT NULL DEFAULT '{}',
     notes        TEXT,
+    is_active    BOOLEAN           NOT NULL DEFAULT TRUE,
+    first_used_at TIMESTAMPTZ,
+    usage_history_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    version      BIGINT            NOT NULL DEFAULT 0,
     created_by   UUID              NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     created_at   TIMESTAMPTZ       NOT NULL DEFAULT NOW(),
     updated_at   TIMESTAMPTZ       NOT NULL DEFAULT NOW()
@@ -684,7 +779,84 @@ CREATE TABLE IF NOT EXISTS campaign_collaborators (
     UNIQUE (media_campaign_id, collaborator_id)
 );
 
+CREATE OR REPLACE FUNCTION mark_collaborator_usage_on_link()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE active BOOLEAN;
+BEGIN
+    SELECT is_active INTO active
+      FROM third_party_collaborators
+     WHERE id = NEW.collaborator_id
+     FOR UPDATE;
+    IF active IS NULL THEN
+        RAISE EXCEPTION USING ERRCODE = '23503', MESSAGE = 'collaborator does not exist';
+    END IF;
+    IF NOT active THEN
+        RAISE EXCEPTION USING ERRCODE = '23514', MESSAGE = 'collaborator is inactive';
+    END IF;
+    UPDATE third_party_collaborators
+       SET first_used_at = COALESCE(first_used_at, NOW()),
+           version = version + 1
+     WHERE id = NEW.collaborator_id;
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_campaign_collaborator_mark_used ON campaign_collaborators;
+CREATE TRIGGER trg_campaign_collaborator_mark_used
+BEFORE INSERT ON campaign_collaborators
+FOR EACH ROW EXECUTE FUNCTION mark_collaborator_usage_on_link();
+
 -- ============================================================
+-- Workspace hashtags group
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS workspace_hashtags (
+    id             UUID              PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id   UUID              NOT NULL REFERENCES workspaces(id),
+    tag            VARCHAR(100)      NOT NULL,
+    normalized_tag VARCHAR(100)      NOT NULL,
+    purpose        VARCHAR(30)       NOT NULL CHECK (purpose IN ('BRAND','CAMPAIGN','TRENDING','EVENT_SPECIFIC')),
+    added_by       UUID              NOT NULL REFERENCES users(id),
+    added_by_name  VARCHAR(255)      NOT NULL,
+    is_required    BOOLEAN           NOT NULL DEFAULT FALSE,
+    campaign_id    UUID              REFERENCES media_campaigns(id),
+    deleted_at     TIMESTAMPTZ,
+    deleted_by     UUID              REFERENCES users(id),
+    created_at     TIMESTAMPTZ       NOT NULL DEFAULT NOW(),
+    updated_at     TIMESTAMPTZ       NOT NULL DEFAULT NOW(),
+    version        BIGINT            NOT NULL DEFAULT 0
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_workspace_hashtags_active_tag
+    ON workspace_hashtags(workspace_id, normalized_tag) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS ix_workspace_hashtags_list
+    ON workspace_hashtags(workspace_id, created_at DESC, id DESC) WHERE deleted_at IS NULL;
+
+-- ============================================================
+-- Durable usage marker survives Campaign/link deletion; inactive partners cannot gain new links.
+CREATE OR REPLACE FUNCTION guard_campaign_partner_usage() RETURNS TRIGGER AS $$
+DECLARE partner_active BOOLEAN;
+BEGIN
+    IF TG_OP = 'UPDATE' AND NEW.collaborator_id = OLD.collaborator_id THEN
+        RETURN NEW;
+    END IF;
+    SELECT is_active INTO partner_active FROM third_party_collaborators
+    WHERE id = NEW.collaborator_id FOR UPDATE;
+    IF partner_active IS FALSE THEN
+        RAISE EXCEPTION 'Inactive collaborator cannot be assigned' USING ERRCODE = '23514';
+    END IF;
+    UPDATE third_party_collaborators
+    SET first_used_at = CURRENT_TIMESTAMP, version = version + 1
+    WHERE id = NEW.collaborator_id AND first_used_at IS NULL;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_campaign_partner_usage ON campaign_collaborators;
+CREATE TRIGGER trg_campaign_partner_usage
+    BEFORE INSERT OR UPDATE OF collaborator_id ON campaign_collaborators
+    FOR EACH ROW EXECUTE FUNCTION guard_campaign_partner_usage();
+
 -- Billing group
 -- ============================================================
 
@@ -799,6 +971,106 @@ DROP TRIGGER IF EXISTS trg_audit_logs_no_delete ON audit_logs;
 CREATE TRIGGER trg_audit_logs_no_delete
 BEFORE DELETE ON audit_logs
 FOR EACH ROW EXECUTE FUNCTION prevent_audit_log_mutation();
+
+-- ============================================================
+-- Mail sending (FR 3.6.28-3.6.32)
+-- Mirrors docs/database/migrations/2026-10-12-create-mail-sending-tables.sql for fresh databases.
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS mail_attachments (
+    id            UUID PRIMARY KEY,
+    workspace_id  UUID NOT NULL REFERENCES workspaces(id),
+    uploaded_by   UUID NOT NULL REFERENCES users(id),
+    name          VARCHAR(255) NOT NULL,
+    content_type  VARCHAR(100) NOT NULL,
+    size          BIGINT NOT NULL,
+    s3_key        VARCHAR(500) NOT NULL,
+    kind          VARCHAR(16) NOT NULL DEFAULT 'FILE' CHECK (kind IN ('FILE', 'IMAGE')),
+    bound         BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_mail_attachments_workspace
+    ON mail_attachments (workspace_id, bound, created_at);
+
+CREATE TABLE IF NOT EXISTS mail_batches (
+    id               UUID PRIMARY KEY,
+    workspace_id     UUID NOT NULL REFERENCES workspaces(id),
+    workspace_name   VARCHAR(255),
+    template_id      VARCHAR(64) NOT NULL,
+    template_name    VARCHAR(120) NOT NULL,
+    sent_by          UUID NOT NULL REFERENCES users(id),
+    sender_email     VARCHAR(255) NOT NULL,
+    sender_name      VARCHAR(255),
+    kind             VARCHAR(16) NOT NULL DEFAULT 'SEND' CHECK (kind IN ('SEND', 'TEST')),
+    status           VARCHAR(16) NOT NULL
+                     CHECK (status IN ('SCHEDULED', 'QUEUED', 'SENDING', 'COMPLETED', 'CANCELLED', 'FAILED')),
+    subject          VARCHAR(200) NOT NULL,
+    body_html        TEXT NOT NULL,
+    attachments      JSONB,
+    scheduled_at     TIMESTAMPTZ,
+    timezone         VARCHAR(64) NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',
+    total            INT NOT NULL,
+    accepted         INT NOT NULL,
+    rejected_count   INT NOT NULL DEFAULT 0,
+    sent_count       INT NOT NULL DEFAULT 0,
+    failed_count     INT NOT NULL DEFAULT 0,
+    suppressed_count INT NOT NULL DEFAULT 0,
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    completed_at     TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_mail_batches_workspace ON mail_batches (workspace_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_mail_batches_due ON mail_batches (status, scheduled_at);
+
+CREATE TABLE IF NOT EXISTS mail_deliveries (
+    id                  UUID PRIMARY KEY,
+    batch_id            UUID NOT NULL REFERENCES mail_batches(id) ON DELETE CASCADE,
+    recipient           VARCHAR(255) NOT NULL,
+    recipient_name      VARCHAR(255),
+    variables           JSONB,
+    rendered_subject    VARCHAR(255) NOT NULL,
+    rendered_body_html  TEXT NOT NULL,
+    external_audience   BOOLEAN NOT NULL DEFAULT FALSE,
+    status              VARCHAR(16) NOT NULL DEFAULT 'PENDING'
+                        CHECK (status IN ('PENDING', 'SENT', 'FAILED', 'SUPPRESSED')),
+    attempts            INT NOT NULL DEFAULT 0,
+    last_error          VARCHAR(500),
+    next_attempt_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    sent_at             TIMESTAMPTZ,
+    event_key           VARCHAR(300) NOT NULL UNIQUE
+);
+CREATE INDEX IF NOT EXISTS idx_mail_deliveries_due ON mail_deliveries (status, next_attempt_at);
+CREATE INDEX IF NOT EXISTS idx_mail_deliveries_batch ON mail_deliveries (batch_id);
+
+CREATE TABLE IF NOT EXISTS mail_send_quota (
+    day         DATE NOT NULL,
+    scope       VARCHAR(16) NOT NULL CHECK (scope IN ('SYSTEM', 'WORKSPACE')),
+    scope_id    VARCHAR(64) NOT NULL,
+    sent_count  INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (day, scope, scope_id)
+);
+
+CREATE TABLE IF NOT EXISTS mail_suppressions (
+    id            UUID PRIMARY KEY,
+    workspace_id  UUID NOT NULL REFERENCES workspaces(id),
+    email_lower   VARCHAR(255) NOT NULL,
+    reason        VARCHAR(32) NOT NULL DEFAULT 'UNSUBSCRIBED',
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (workspace_id, email_lower)
+);
+
+-- ============================================================
+-- Content request completion outbox (durable SQL queue)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS content_request_completion_jobs (
+    campaign_id  UUID        PRIMARY KEY,
+    workspace_id UUID        NOT NULL,
+    actor_id     UUID        NOT NULL,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_content_req_completion_jobs_created
+    ON content_request_completion_jobs (created_at);
 
 -- ============================================================
 -- Seed subscription plans
@@ -1274,5 +1546,102 @@ CREATE TABLE IF NOT EXISTS ai_video_jobs (
 ALTER TABLE ai_video_jobs ADD COLUMN IF NOT EXISTS s3_key VARCHAR(300);
 CREATE INDEX IF NOT EXISTS idx_ai_video_jobs_workspace ON ai_video_jobs(workspace_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ai_video_jobs_open ON ai_video_jobs(created_at) WHERE status IN ('PENDING','PROCESSING');
+
+COMMIT;
+
+-- ---- 2026-10-12-create-mail-sending-tables.sql ----
+-- ============================================================
+-- BrandHub - PostgreSQL migration: mail sending tables
+-- Date: 2026-10-12
+-- Reason: FR 3.6.28-3.6.32 (DA-1002, DA-1256..DA-1258). Batches, per-recipient
+--         deliveries (outbox), daily quota, suppression list, attachments.
+-- Apply once: psql -X -v ON_ERROR_STOP=1 -f 2026-10-12-create-mail-sending-tables.sql
+-- Statuses are varchar + CHECK (not PG enums) so the JDBC code stays simple.
+-- ============================================================
+BEGIN;
+SET LOCAL lock_timeout = '5s';
+SET LOCAL statement_timeout = '30s';
+SET LOCAL search_path = public;
+
+CREATE TABLE IF NOT EXISTS mail_attachments (
+    id            UUID PRIMARY KEY,
+    workspace_id  UUID NOT NULL REFERENCES workspaces(id),
+    uploaded_by   UUID NOT NULL REFERENCES users(id),
+    name          VARCHAR(255) NOT NULL,
+    content_type  VARCHAR(100) NOT NULL,
+    size          BIGINT NOT NULL,
+    s3_key        VARCHAR(500) NOT NULL,
+    kind          VARCHAR(16) NOT NULL DEFAULT 'FILE' CHECK (kind IN ('FILE', 'IMAGE')),
+    bound         BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_mail_attachments_workspace
+    ON mail_attachments (workspace_id, bound, created_at);
+
+CREATE TABLE IF NOT EXISTS mail_batches (
+    id               UUID PRIMARY KEY,
+    workspace_id     UUID NOT NULL REFERENCES workspaces(id),
+    workspace_name   VARCHAR(255),
+    template_id      VARCHAR(64) NOT NULL,
+    template_name    VARCHAR(120) NOT NULL,
+    sent_by          UUID NOT NULL REFERENCES users(id),
+    sender_email     VARCHAR(255) NOT NULL,
+    sender_name      VARCHAR(255),
+    kind             VARCHAR(16) NOT NULL DEFAULT 'SEND' CHECK (kind IN ('SEND', 'TEST')),
+    status           VARCHAR(16) NOT NULL
+                     CHECK (status IN ('SCHEDULED', 'QUEUED', 'SENDING', 'COMPLETED', 'CANCELLED', 'FAILED')),
+    subject          VARCHAR(200) NOT NULL,
+    body_html        TEXT NOT NULL,
+    attachments      JSONB,
+    scheduled_at     TIMESTAMPTZ,
+    timezone         VARCHAR(64) NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',
+    total            INT NOT NULL,
+    accepted         INT NOT NULL,
+    rejected_count   INT NOT NULL DEFAULT 0,
+    sent_count       INT NOT NULL DEFAULT 0,
+    failed_count     INT NOT NULL DEFAULT 0,
+    suppressed_count INT NOT NULL DEFAULT 0,
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+    completed_at     TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_mail_batches_workspace ON mail_batches (workspace_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_mail_batches_due ON mail_batches (status, scheduled_at);
+
+CREATE TABLE IF NOT EXISTS mail_deliveries (
+    id                  UUID PRIMARY KEY,
+    batch_id            UUID NOT NULL REFERENCES mail_batches(id) ON DELETE CASCADE,
+    recipient           VARCHAR(255) NOT NULL,
+    recipient_name      VARCHAR(255),
+    variables           JSONB,
+    rendered_subject    VARCHAR(255) NOT NULL,
+    rendered_body_html  TEXT NOT NULL,
+    external_audience   BOOLEAN NOT NULL DEFAULT FALSE,
+    status              VARCHAR(16) NOT NULL DEFAULT 'PENDING'
+                        CHECK (status IN ('PENDING', 'SENT', 'FAILED', 'SUPPRESSED')),
+    attempts            INT NOT NULL DEFAULT 0,
+    last_error          VARCHAR(500),
+    next_attempt_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    sent_at             TIMESTAMPTZ,
+    event_key           VARCHAR(300) NOT NULL UNIQUE
+);
+CREATE INDEX IF NOT EXISTS idx_mail_deliveries_due ON mail_deliveries (status, next_attempt_at);
+CREATE INDEX IF NOT EXISTS idx_mail_deliveries_batch ON mail_deliveries (batch_id);
+
+CREATE TABLE IF NOT EXISTS mail_send_quota (
+    day         DATE NOT NULL,
+    scope       VARCHAR(16) NOT NULL CHECK (scope IN ('SYSTEM', 'WORKSPACE')),
+    scope_id    VARCHAR(64) NOT NULL,
+    sent_count  INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (day, scope, scope_id)
+);
+
+CREATE TABLE IF NOT EXISTS mail_suppressions (
+    id            UUID PRIMARY KEY,
+    workspace_id  UUID NOT NULL REFERENCES workspaces(id),
+    email_lower   VARCHAR(255) NOT NULL,
+    reason        VARCHAR(32) NOT NULL DEFAULT 'UNSUBSCRIBED',
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (workspace_id, email_lower)
+);
 
 COMMIT;

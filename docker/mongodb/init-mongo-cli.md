@@ -16,7 +16,7 @@ docker run --rm -it `
 ## 2. Initialize
 
 ```javascript
-load("/scripts/init-mongo.js");
+load("/database/init-mongo.js");
 ```
 
 ## 3. List collections

@@ -15,6 +15,9 @@
    source values and statuses remain unchanged.
 10. UI allows individual member choices, confirms them, and does not expose a
     working resource-copy option; check light/dark and narrow viewport.
+11. Timezone consistency fix: source JSON timezone differs from timezone_config;
+    copyTimezone=true must copy canonical column/API/deadline timezone. Missing JSON also works,
+    false keeps default. Source settings/canonical column remain unchanged by duplicate.
 
 Review 2026-10-10: seven WorkspaceDuplicationServiceImpl unit tests passed;
 the full Business Service suite and frontend lint/type-check/production build

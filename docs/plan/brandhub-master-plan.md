@@ -748,6 +748,27 @@
 | [DA-AI11-05](#da-ai11-05-record-ai-feature-demo-video-showcase-all-7-ai-features-working-end-to-end)              | Record AI feature demo video (showcase all 7 AI features working in practice)                                         | All (Team)        | 🔴 Critical |
 | [DA-AI11-06](#da-ai11-06-present-ai-results-to-mentor-live-demo-qa-collect-feedback-for-final-report)             | Present AI results to mentor (live demo + Q&A, collect feedback)                                                      | All (Team)        | 🔴 Critical |
 
+### EPIC AI-12 — AI Livestream Script Generation (FR 3.7.11)
+
+| Task ID | Description | Assignee | Priority |
+| :--- | :--- | :--- | :--- |
+| [DA-AI12-01](#da-ai12-01--prompt-engineering--timeline-mathematics-post-processor-for-livestream-script) | Prompt Engineering & Timeline Mathematics Post-processor for Livestream Script | Ân (AI) | 🔴 Critical |
+| [DA-AI12-02](#da-ai12-02--pydantic-schemas--fastapi-endpoints-for-livestream-script-generation--regeneration) | Pydantic Schemas & FastAPI Endpoints for Livestream Script Generation & Regeneration | Lộc (AI Sub-lead) | 🔴 Critical |
+| [DA-AI12-03](#da-ai12-03--business-service-livestream-script-orchestration--task-content-version-integration) | Business Service Livestream Script Orchestration & Task Content Version Integration (FR 3.6.23) | Trung (Leader) | 🔴 Critical |
+| [DA-AI12-04](#da-ai12-04--livestream-script-studio--interactive-timeline-segment-editor-ui) | Livestream Script Studio & Interactive Timeline Segment Editor UI | Phước (Publisher) | 🟡 High |
+| [DA-AI12-05](#da-ai12-05--anti-hallucination-evaluation--empirical-benchmark-for-livestream-script) | Anti-Hallucination Evaluation & Empirical Benchmark for Livestream Script (Product & Deal Integrity) | Tuấn (AI) | 🟡 High |
+
+### EPIC AI-13 — AI Collaborator & Media Partner Recommendation (FR 3.7.12)
+
+| Task ID | Description | Assignee | Priority |
+| :--- | :--- | :--- | :--- |
+| [DA-AI13-01](#da-ai13-01--system-collaborator-catalog-schema--vietnam-media-seed-dataset) | System Collaborator Catalog Schema & Vietnam Media Seed Dataset (Tier 1-3, Benchmarks) | Tuấn (AI) | 🔴 Critical |
+| [DA-AI13-02](#da-ai13-02--hybrid-budget-gated-collaborator-ranking-algorithm--no-match-diagnostic-engine) | Hybrid Budget-Gated Collaborator Ranking Algorithm & No-Match Diagnostic Engine | Ân (AI) | 🔴 Critical |
+| [DA-AI13-03](#da-ai13-03--pydantic-schemas--fastapi-collaborator-recommendation-endpoints) | Pydantic Schemas & FastAPI Collaborator Recommendation Endpoints (POST /ai/collaborator/recommend) | Lộc (AI Sub-lead) | 🔴 Critical |
+| [DA-AI13-04](#da-ai13-04--business-service-collaborator-orchestration--dual-branch-linking) | Business Service Collaborator Orchestration & Dual-Branch Linking (Agency vs Campaign) | Lộc (AI Sub-lead) | 🔴 Critical |
+| [DA-AI13-05](#da-ai13-05--campaign-collaborator-recommendation-screen--tiered-partner-cards-ui) | Campaign Collaborator Recommendation Screen & Tiered Partner Cards UI | Phước (Publisher) | 🟡 High |
+| [DA-AI13-06](#da-ai13-06--collaborator-recommendation-quality-evaluation--no-match-benchmarking) | Collaborator Recommendation Quality Evaluation & No-Match Scenario Benchmarking | Tuấn (AI) | 🟡 High |
+
 ---
 
 ## PHASE 5 — Content Workflow & Publishing
@@ -1151,8 +1172,9 @@
 |---|---|---|---|---|
 | DA-E51-01 | Collection `tasks` (generic 3 loại: post/livestream/survey, discriminator `type`) | Lộc | C | `docs/ba/05-content-task-workflow.md`, `docs/feature/content-task-workflow/3-6-1-identify-task-detail/spec.md`, `docs/ba/11-data-entities-glossary.md` |
 | DA-E51-02 | Collection `task_approvals` (tách riêng khỏi tasks, giữ approval cũ khi step sau reject) | Lộc | C | `docs/ba/12-state-machines.md` mục 4 "Task — Approval Sequence", `docs/ba/11-data-entities-glossary.md` |
-| DA-E51-03 | Implement Approval Sequence 4-bước (Creator→Manager→Client) | Phước | C | `docs/feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md`, `docs/ba/12-state-machines.md` mục 4 |
+| DA-E51-03 | Task Approval: Creator→Manager→Client tùy chọn, không QC; POST trước (BA 18/10) | Lộc (tiếp nhận theo người dùng; Jira cần đồng bộ) | C | `docs/feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/{spec,plan,task,test}.md`, `docs/ba/12-state-machines.md` mục 4 |
 | DA-E51-04 | Implement Task backlog + assign (Manager assign cho Creator) | Lộc | M | `docs/feature/content-task-workflow/3-6-2-assign-task-to-creator/spec.md` |
+| DA-E51-04b (Jira DA-1236) | Add Comments On Task (FR 3.6.3), mentions and image references | Lộc | M | `docs/feature/content-task-workflow/3-6-3-add-comments-on-task/spec.md` |
 | DA-E51-05 | Implement Task views: List, Calendar, Gantt/Timeline, Kanban board, Filter | Phước | M | `docs/feature/content-task-workflow/3-6-4-list-task-view/spec.md`, `3-6-5-calendar-task-view`, `3-6-6-grantt-timeline-task-view`, `3-6-7-kanban-board-task-view`, `3-6-8-view-task-filter` (cùng thư mục `docs/feature/content-task-workflow/`) |
 | DA-E51-06 | Collection `material_repository` + View Material (FR 3.6.11) | Tuấn | M | `docs/feature/content-task-workflow/3-6-11-view-material-repository/spec.md` |
 | DA-E51-06b | Add Material to Repository (FR 3.6.12) | Tuấn | S | `docs/feature/content-task-workflow/3-6-12-add-material-repository/spec.md` |
@@ -1161,11 +1183,11 @@
 | DA-E51-06e | Apply Watermark to Material (FR 3.6.15) | Trung | M | `docs/feature/content-task-workflow/3-6-15-apply-watermark/spec.md` |
 | DA-E51-06f | Download Material (FR 3.6.16) | Tuấn | S | `docs/feature/content-task-workflow/3-6-16-download-material/spec.md` |
 | DA-E51-06g | Entity/Endpoint `brand_collections` (Client-supplied reference assets) | Tuấn | M | `docs/ba/05-content-task-workflow.md` |
-| DA-E51-07 | Apply Hashtag to Task (FR 3.6.17) | Tuấn | S | `docs/feature/content-task-workflow/3-6-17-apply-hastag/spec.md` |
-| DA-E51-07b | Collection `hashtag_collections` + View Collection (FR 3.6.18) | Tuấn | S | `docs/feature/content-task-workflow/3-6-18-view-hastag-collection/spec.md` |
-| DA-E51-07c | Add Hashtag to Collection (FR 3.6.19) | Tuấn | S | `docs/feature/content-task-workflow/3-6-19-add-hastag-collection/spec.md` |
+| DA-E51-07 | Apply Hashtag to Post Draft (FR 3.6.17) | Tuấn | S | `docs/feature/apply-hashtag-to-post/spec.md` |
+| DA-E51-07b | Workspace hashtag collection `workspace_hashtags` + View (FR 3.6.18) | Tuấn | S | `docs/feature/view-hashtag-collection/spec.md` |
+| DA-E51-07c | Add Hashtag to Collection (FR 3.6.19) | Tuấn | S | `docs/feature/add-hashtag-collection/spec.md` |
 | DA-E51-07d | Update Hashtag in Collection (FR 3.6.20) | Tuấn | S | `docs/feature/content-task-workflow/3-6-20-update-hastag-collection/spec.md` |
-| DA-E51-07e | Remove Hashtag from Collection (FR 3.6.21) | Tuấn | S | `docs/feature/content-task-workflow/3-6-21-remove-hastag-collection/spec.md` |
+| DA-E51-07e | Remove Hashtag from Collection (FR 3.6.21) | Tuấn | S | `docs/feature/remove-hashtag-collection/spec.md` |
 | DA-E51-08 | Write Livestream Idea (FR 3.6.22) | Phước | S | `docs/feature/content-task-workflow/3-6-22-write-livestream-idea/spec.md` |
 | DA-E51-08b | Write Livestream Script (FR 3.6.23) | Phước | S | `docs/feature/content-task-workflow/3-6-23-write-livestream-script/spec.md` |
 | DA-E51-08c | Track Livestream Status (FR 3.6.24) | Phước | M | `docs/feature/content-task-workflow/3-6-24-track-livestream-status/spec.md`, `docs/ba/12-state-machines.md` mục 5 |
@@ -9274,6 +9296,278 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 ---
 
+### DA-AI12-01 — Prompt Engineering & Timeline Mathematics Post-processor for Livestream Script
+
+**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng hệ thống prompt Jinja2 chuyên biệt cho LLM (Llama 3.3 70B / Claude 3.5 Sonnet / Gemini 1.5 Pro) và bộ lọc toán học hậu xử lý (Timeline Mathematics Post-processor) để sinh kịch bản livestream có cấu trúc 4 giai đoạn chuẩn (Intro/Hook → Product Pitch & Deal → Minigame/Q&A → Closing/Recap) theo định dạng JSON Schema nghiêm ngặt.
+
+**Acceptance Criteria:**
+
+- [ ] Xây dựng prompt template tiếp nhận form đầu vào: `topic`, `goal`, `targetAudience`, `durationMinutes` (15, 30, 45, 60), `platform`, `products` (danh sách SKU, giá gốc, giá deal), `offers`, `tone` và `hostStyleNotes`.
+- [ ] Ép buộc system prompt chống ảo giác: Chỉ sử dụng thông tin sản phẩm và ưu đãi được cung cấp trong prompt; tuyệt đối không tự bịa đặt chương trình khuyến mãi, voucher hoặc giá bán.
+- [ ] Bộ hậu xử lý toán học `TimelineValidator`:
+  - Đảm bảo `segments[0].startSecond == 0`.
+  - Đảm bảo các phân đoạn liên tục tuyệt đối: `segments[i].startSecond == segments[i-1].endSecond`.
+  - Đảm bảo tổng thời lượng các phân đoạn khớp chính xác 100% với `durationMinutes * 60`.
+  - Tự động chuẩn hóa chuỗi hiển thị thời gian `timeDisplay` dạng `MM:SS - MM:SS`.
+- [ ] Hỗ trợ sinh đầy đủ 4 trường nội dung trong mỗi phân đoạn: `sectionTitle`, `hostScript` (lời thoại MC), `visualCues` (hướng dẫn góc máy/thao tác giơ sản phẩm), `interactionCue` (kêu gọi thả tim/comment cú pháp).
+
+**Technical Notes:**
+
+- Location: `brandhub-ai-service/app/services/prompt/livestream_prompt_builder.py` và `app/services/validators/timeline_validator.py`.
+- Form schema đồng bộ với Mục 2.8 của `docs/plan/ai-features-spec-alignment-plan.md`.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-11-generate-livestream-script/spec.md`
+
+**Dependencies:** Blocks: [DA-AI12-02]. Blocked by: [DA-AI04-01].
+
+---
+
+### DA-AI12-02 — Pydantic Schemas & FastAPI Endpoints for Livestream Script Generation & Regeneration
+
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Phát triển các REST API endpoints trong `brandhub-ai-service` phục vụ sinh mới kịch bản livestream và tạo lại kịch bản dựa trên phản hồi góp ý của Creator (Regenerate with Feedback).
+
+**Acceptance Criteria:**
+
+- [ ] Khai báo Pydantic schemas: `GenerateLivestreamScriptRequest`, `RegenerateLivestreamScriptRequest`, `LivestreamScriptResponseDto`.
+- [ ] Endpoint `POST /api/v1/ai/content/livestream-script/generate` tiếp nhận request, gọi pipeline prompt, kiểm tra timeline và trả về kịch bản hoàn chỉnh kèm metadata `totalDurationMinutes`, `segments[]`.
+- [ ] Endpoint `POST /api/v1/ai/content/livestream-script/regenerate` nhận kịch bản trước đó kèm `userFeedback` (ví dụ: "tăng thời lượng minigame", "nói nhiều hơn về chất kem"), bảo toàn brand grounding và sinh phiên bản tinh chỉnh.
+- [ ] Tích hợp cơ chế Fallback Circuit Breaker: nếu Groq Llama 3.3 gặp lỗi hoặc quá tải (429/503), tự động failover sang Claude API / Gemini API.
+
+**Technical Notes:**
+
+- Location: `brandhub-ai-service/app/api/v1/endpoints/livestream.py`.
+- Response latency mục tiêu: P95 < 12s cho kịch bản 30-60 phút.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-11-generate-livestream-script/spec.md`
+
+**Dependencies:** Blocks: [DA-AI12-03]. Blocked by: [DA-AI12-01].
+
+---
+
+### DA-AI12-03 — Business Service Livestream Script Orchestration & Task Content Version Integration
+
+**Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
+
+**Goal:** Hiện thực hóa luồng điều phối nghiệp vụ tại `brandhub-business-service`: quản lý hạn ngạch tín dụng AI Credit (10 credits/lần), ủy quyền truy cập Workspace/Task, và cơ chế "Apply to Task" lưu kết quả vào Task dưới dạng `ContentVersion` mới (FR 3.6.23) mà không ghi đè ngầm dữ liệu đang có.
+
+**Acceptance Criteria:**
+
+- [ ] Endpoint `POST /api/v1/workspaces/{workspaceId}/ai/livestream-scripts/generate`:
+  - Kiểm tra quyền thành viên Workspace (role `CREATOR`, `MANAGER`, `OWNER`).
+  - Reserve nguyên tử 10 AI credits từ `AiCreditLedger` (theo Agency của user).
+  - Gọi internal endpoint của `brandhub-ai-service`.
+  - Nếu sinh thành công: Settle 10 credits. Nếu lỗi/timeout: Release quota hoàn toàn.
+- [ ] Endpoint `POST /api/v1/workspaces/{workspaceId}/ai/livestream-scripts/{scriptId}/apply-to-task`:
+  - Tiếp nhận `taskId` và chiến lược ghi đè `overwriteStrategy` (`NEW_VERSION` hoặc `OVERWRITE_CURRENT`).
+  - Mặc định lưu thành một bản ghi `ContentVersion` mới thuộc Task tương ứng (liên kết trực tiếp với FR 3.6.23 Write Livestream Script), bảo toàn lịch sử biên tập cũ.
+
+**Technical Notes:**
+
+- Location: `brandhub-business-service/src/main/java/com/brandhub/service/ai/LivestreamScriptService.java` và `TaskController.java`.
+- Áp dụng nguyên tắc idempotency: Retry cùng mã request ID không bị trừ phí credit lần 2.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-11-generate-livestream-script/spec.md`, `docs/feature/content-task-workflow/3-6-23-write-livestream-script/spec.md`
+
+**Dependencies:** Blocks: [DA-AI12-04]. Blocked by: [DA-AI12-02, DA-E17-07, DA-E51-01].
+
+---
+
+### DA-AI12-04 — Livestream Script Studio & Interactive Timeline Segment Editor UI
+
+**Assignee:** Phước (Publisher) | **Priority:** 🟡 High
+
+**Goal:** Xây dựng giao diện Studio sinh kịch bản Livestream trực quan trên Web Dashboard, tích hợp form cấu hình thông minh và bảng điều khiển Timeline Segment cho phép xem trước, nghe đọc thử kịch bản, chỉnh sửa nhanh và áp dụng vào Task.
+
+**Acceptance Criteria:**
+
+- [ ] Form nhập liệu Livestream: Input Topic có nút "Load from Task Idea (FR 3.6.22)", chip chọn mục tiêu (Sales, Brand Awareness, Launch...), radio chọn thời lượng (15, 30, 45, 60m), danh sách repeater SKU sản phẩm và ô nhập ưu đãi.
+- [ ] Trình hiển thị Timeline Segment tương tác: Phân chia 4 thẻ màu rõ ràng (Intro tím, Deal xanh lá, Minigame cam, Closing xanh dương). Mỗi thẻ hiển thị badge thời gian, lời thoại MC, hướng dẫn trực quan (visual cues) và tương tác khán giả.
+- [ ] Thanh hành động dưới chân trang: Nút "Regenerate with Feedback" mở Drawer nhập yêu cầu tinh chỉnh, nút "Download (.TXT/.PDF)", và nút nổi bật "Apply to Task Script (FR 3.6.23)" kích hoạt modal xác nhận version.
+
+**Technical Notes:**
+
+- Location: `brandhub-web/src/pages/ai/livestream/LivestreamScriptPage.tsx` và `components/ai/timeline/TimelineSegmentCard.tsx`.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-11-generate-livestream-script/spec.md`
+
+**Dependencies:** Blocks: [DA-AI12-05]. Blocked by: [DA-AI12-03].
+
+---
+
+### DA-AI12-05 — Anti-Hallucination Evaluation & Empirical Benchmark for Livestream Script
+
+**Assignee:** Tuấn (AI) | **Priority:** 🟡 High
+
+**Goal:** Kiểm thử đánh giá chống ảo giác trên 20 kịch bản livestream mẫu, đối chiếu tính toàn vẹn của danh sách SKU, mức giá ưu đãi và tính toán thời lượng timeline.
+
+**Acceptance Criteria:**
+
+- [ ] Thực thi bộ test tự động với 20 bộ dữ liệu sản phẩm phức tạp (giá khuyến mãi, điều kiện áp dụng voucher).
+- [ ] Đạt 100% tỷ lệ không bịa đặt sản phẩm, giá bán hoặc chương trình ưu đãi ngoài dữ liệu đầu vào.
+- [ ] Kiểm chứng độ lệch thời lượng: Tổng thời gian các segment khớp 100% với `durationMinutes` yêu cầu (độ lệch 0 giây).
+- [ ] Lập báo cáo Benchmark đánh giá độ trễ sinh kịch bản và chất lượng văn phong theo 7 tone giọng khác nhau.
+
+**Technical Notes:**
+
+- Location: `brandhub-ai-service/tests/benchmarks/test_livestream_anti_hallucination.py`.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-11-generate-livestream-script/spec.md`
+
+**Dependencies:** Blocks: None. Blocked by: [DA-AI12-04].
+
+---
+
+### DA-AI13-01 — System Collaborator Catalog Schema & Vietnam Media Seed Dataset
+
+**Assignee:** Tuấn (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Thiết kế cấu trúc dữ liệu cho danh mục đối tác hệ thống (`system_collaborator_catalog`), chuẩn bị tập dữ liệu hạt giống (seed data) gồm các đơn vị truyền thông uy tín tại Việt Nam (VnExpress, Dân Trí, Kênh 14, Tinh Tế, mạng banner Admicro, OOH), và xây dựng schema định giá tham chiếu theo Tier.
+
+**Acceptance Criteria:**
+
+- [ ] Xây dựng schema lưu trữ đối tác: `catalogCollaboratorId`, `name`, `mediaType` (ONLINE_NEWSPAPER, TECH_PORTAL, BANNER_NETWORK, TV_RADIO, OOH), `targetAudienceTags`, `supportedIndustries`, `reachMetrics`, `benchmarkCostMinVnd`, `benchmarkCostMaxVnd`, `tier` (TIER_1, TIER_2, TIER_3).
+- [ ] Seed dữ liệu chuẩn tối thiểu 20 đối tác truyền thông phổ biến tại Việt Nam kèm bảng giá tham khảo thực tế.
+- [ ] Quy định phân tầng Tier chuẩn hóa: Tier 1 (National/Top Reach), Tier 2 (Targeted/Category Leader), Tier 3 (Niche/Cost-Effective).
+
+**Technical Notes:**
+
+- Location: `brandhub-ai-service/app/data/system_collaborator_catalog.json`.
+- Multi-tenant isolation rule: Tuyệt đối không truy vấn chéo dữ liệu danh bạ nội bộ của Agency khác.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`
+
+**Dependencies:** Blocks: [DA-AI13-02]. Blocked by: [DA-AI02-01].
+
+---
+
+### DA-AI13-02 — Hybrid Budget-Gated Collaborator Ranking Algorithm & No-Match Diagnostic Engine
+
+**Assignee:** Ân (AI) | **Priority:** 🔴 Critical
+
+**Goal:** Xây dựng thuật toán lọc ngân sách và xếp hạng lai (Hybrid Ranking: ngành hàng, đối tượng mục tiêu, điểm phù hợp matchScore 0–100%) kết hợp cơ chế chẩn đoán nguyên nhân No-Match (Zero-Hallucination).
+
+**Acceptance Criteria:**
+
+- [ ] Thuật toán lọc và xếp hạng:
+  - Khớp ngành hàng (`industry`) và đối tượng mục tiêu (`targetAudience`).
+  - Rào chắn ngân sách: Loại trừ các đối tác có chi phí tối thiểu vượt quá ngân sách tối đa (`benchmarkCostMinVnd > maxBudgetVnd`).
+  - Tính điểm độ phù hợp `matchScore` (0–100%) và tự động tổng hợp lý do gợi ý khách quan (`rationale`).
+- [ ] Xử lý kịch bản Không có kết quả phù hợp (No-Match Defense):
+  - Khi ngân sách quá thấp (< min chi phí catalog) hoặc ngành hàng không có đối tác: trả về danh sách rỗng `recommendations: []` kèm mã nguyên nhân `noMatchReason` (`BUDGET_BELOW_MINIMUM`, `UNSUPPORTED_INDUSTRY`, `NO_MATCHING_CRITERIA`) và lời khuyên hướng dẫn `suggestedAdvice`.
+  - Tuyệt đối không để LLM tự bịa đặt tòa soạn, kênh truyền thông ảo hoặc giá giả mạo nhằm lấp đầy danh sách.
+
+**Technical Notes:**
+
+- Location: `brandhub-ai-service/app/services/recommendation/collaborator_engine.py`.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`
+
+**Dependencies:** Blocks: [DA-AI13-03]. Blocked by: [DA-AI13-01].
+
+---
+
+### DA-AI13-03 — Pydantic Schemas & FastAPI Collaborator Recommendation Endpoints
+
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Khai báo Pydantic schemas và xây dựng endpoint `POST /api/v1/ai/collaborators/recommend` trên FastAPI để phục vụ gợi ý đối tác theo ngân sách và tiêu chí chiến dịch.
+
+**Acceptance Criteria:**
+
+- [ ] Định nghĩa Pydantic schema: `RecommendCollaboratorRequest`, `CollaboratorRecommendationResponseDto`.
+- [ ] Endpoint `POST /api/v1/ai/collaborators/recommend` validate chặt chẽ: `minBudgetVnd >= 0`, `maxBudgetVnd >= minBudgetVnd`, danh sách ngành hàng hợp lệ.
+- [ ] Trả về danh sách đối tác được gom nhóm theo phân tầng Tier 1 / Tier 2 / Tier 3 kèm `matchScore`, `estimatedReach`, `rationale` và `benchmarkPackages`.
+- [ ] Đảm bảo response time < 500ms cho các truy vấn xếp hạng từ Catalog.
+
+**Technical Notes:**
+
+- Location: `brandhub-ai-service/app/api/v1/endpoints/collaborator.py`.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`
+
+**Dependencies:** Blocks: [DA-AI13-04]. Blocked by: [DA-AI13-02].
+
+---
+
+### DA-AI13-04 — Business Service Collaborator Orchestration, Dual-Branch Linking & Strict Advisory Policy
+
+**Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
+
+**Goal:** Triển khai nghiệp vụ trung gian trên `brandhub-business-service`: quản lý trừ phí 5 AI credits, điều phối gọi AI Service, thực thi quy tắc tư vấn cố vấn thuần túy (Advisory Only) và hỗ trợ 2 nhánh lưu tách biệt: Lưu danh bạ Agency (`ThirdPartyCollaborator`) và Ghép nối Chiến dịch (`CampaignCollaborator`).
+
+**Acceptance Criteria:**
+
+- [ ] Endpoint `POST /api/v1/workspaces/{workspaceId}/campaigns/{campaignId}/ai/recommend-collaborators`:
+  - Xác thực quyền sở hữu Campaign và Workspace của user.
+  - Khấu trừ an toàn 5 AI credits qua `AiCreditLedger` (chỉ settle khi API thành công).
+- [ ] Quy tắc Trạng thái Hợp tác nghiêm ngặt (Strict Advisory Policy):
+  - Gợi ý AI chỉ mang tính tham khảo; hệ thống tuyệt đối không tự động chuyển trạng thái đối tác sang `CONTACTED` hoặc gửi email tự động khi bấm gợi ý.
+- [ ] Hỗ trợ 2 nhánh lưu dữ liệu độc lập:
+  - **Nhánh A (Agency Directory):** Lưu đối tác vào bảng `ThirdPartyCollaborator` (DA-E50-08) của Agency để tái sử dụng lâu dài.
+  - **Nhánh B (Campaign Linking):** Gắn đối tác vào bảng liên kết `CampaignCollaborator` (DA-E50-09) của chiến dịch với trạng thái khởi tạo bắt buộc là `PROPOSED` (hoặc `CONSIDERING`).
+
+**Technical Notes:**
+
+- Location: `brandhub-business-service/src/main/java/com/brandhub/service/ai/CollaboratorRecommendationService.java` và `CampaignCollaboratorController.java`.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`, `docs/ba/07-publishing-social-collaborator.md`, `docs/ba/12-state-machines.md` mục 6
+
+**Dependencies:** Blocks: [DA-AI13-05]. Blocked by: [DA-AI13-03, DA-E50-08, DA-E50-09, DA-E17-07].
+
+---
+
+### DA-AI13-05 — Campaign Collaborator Recommendation Screen & Tiered Partner Cards UI
+
+**Assignee:** Phước (Publisher) | **Priority:** 🟡 High
+
+**Goal:** Xây dựng màn hình tìm kiếm và gợi ý đối tác truyền thông bên thứ 3 trong Module Quản lý Chiến dịch (Campaign Planning), hiển thị các thẻ đối tác phân cấp theo Tier, chỉ số người xem/lượng truy cập và menu hành động lưu 2 nhánh.
+
+**Acceptance Criteria:**
+
+- [ ] Giao diện form tìm kiếm: Bộ lọc ngành hàng, thanh trượt khoảng ngân sách (Min – Max VND), chọn kênh truyền thông mong muốn (Báo mạng, Banner, TV/Radio, OOH).
+- [ ] Hiển thị kết quả dạng lưới nhóm theo phân tầng Tier 1 / Tier 2 / Tier 3; mỗi thẻ hiển thị logo, chỉ số traffic đã kiểm chứng, điểm match (%), lý do gợi ý và gói booking đề xuất.
+- [ ] Menu thao tác trên mỗi thẻ:
+  - Nút "Thêm vào chiến dịch" mở Modal nhập hạn mức phân bổ và chuyển sang `CampaignCollaborator` trạng thái `PROPOSED`.
+  - Nút "Lưu vào danh bạ Agency" lưu sang `ThirdPartyCollaborator`.
+- [ ] Trạng thái Empty/No-Match thân thiện: Khi ngân sách không đủ hoặc không có đối tác, hiển thị hộp thoại chẩn đoán lý do và gợi ý điều chỉnh bộ lọc thay vì màn hình trống.
+
+**Technical Notes:**
+
+- Location: `brandhub-web/src/pages/campaigns/CollaboratorRecommendationPage.tsx` và `components/collaborator/CollaboratorTierCard.tsx`.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`
+
+**Dependencies:** Blocks: [DA-AI13-06]. Blocked by: [DA-AI13-04].
+
+---
+
+### DA-AI13-06 — Collaborator Recommendation Quality Evaluation & No-Match Scenario Benchmarking
+
+**Assignee:** Tuấn (AI) | **Priority:** 🟡 High
+
+**Goal:** Kiểm thử chất lượng xếp hạng trên 10 kịch bản chiến dịch với các mức ngân sách khác nhau (thấp, trung bình, cao); xác nhận cơ chế Zero-Hallucination hoạt động hoàn hảo khi dữ liệu đầu vào không thỏa mãn.
+
+**Acceptance Criteria:**
+
+- [ ] Chạy bộ kiểm thử tự động trên 10 kịch bản chiến dịch đa dạng ngành hàng (Tech, F&B, Thời trang, Bất động sản).
+- [ ] Kiểm chứng rào chắn ngân sách: 100% đối tác được gợi ý có `minCost <= maxBudget`.
+- [ ] Kiểm thử kịch bản biên No-Match: Khi ngân sách dưới 5.000.000 VND (thấp hơn sàn catalog), hệ thống trả về chính xác lý do `BUDGET_BELOW_MINIMUM` mà không sinh đối tác ảo.
+- [ ] Lập báo cáo đối chuẩn độ chính xác và độ hài lòng của thuật toán ranking.
+
+**Technical Notes:**
+
+- Location: `brandhub-ai-service/tests/benchmarks/test_collaborator_recommendation.py`.
+
+**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`
+
+**Dependencies:** Blocks: None. Blocked by: [DA-AI13-05].
+
+---
+
 ### DA-E21-01 — Initialize brandhub-publisher-service project (Spring Boot 3, RabbitMQ consumer bean setup)
 
 **Assignee:** Phước (Publisher) | **Priority:** 🔴 Critical
@@ -9514,8 +9808,8 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 - [ ] `POST /api/v1/workspaces/{id}/media-package` accepts `{packageId}`, returns 201 with `workspaceMediaPackageId`
 - [ ] Client can select only `is_template=false`, available packages belonging to the Workspace's Agency
-- [ ] If no package is selected, the Workspace dashboard displays a prominent non-blocking prompt; Client can navigate directly to package selection
-- [ ] If no package selected within X days of Workspace creation, a reminder notification is sent to the Client (does not block Workspace access)
+- [ ] Before Package approval, the Workspace dashboard redirects to package negotiation/selection; creative features are gated while Package/Chat and Manager settings remain accessible.
+- [ ] Preserve the current Package gate and negotiation redirect (Client: Package/Chat; Manager additionally retains settings). Scheduled X-day reminders are removed by confirmed BA on 2026-10-13; no scheduler is required.
 - [ ] Package can be freely changed BEFORE the Client starts negotiating (DA-E50-04); once negotiation has started, switching to a different package entirely is blocked — only continued negotiation on the current package is allowed
 
 **Spec Reference:** `docs/feature/media-package-campaign/3-5-1-create-media-package/spec.md`, `docs/ba/04-media-package-campaign.md` mục 1
@@ -9624,7 +9918,7 @@ awaits its own module. This replaces the multiple-cooperation-round proposal. Se
 - [ ] Generated Tasks are minimal: name + deadline only — no assignee or detailed requirements yet (those come from Identify Task Detail, DA-E51-04-equivalent FR 3.6.1); each carries its stable `campaignWorkItemId` for idempotency
 - [ ] Campaign transitions to `IN_PROGRESS` only after durable deployment confirms all work items have corresponding Tasks; partial failures remain retryable
 - [ ] Calling deploy twice (double-click) does not create duplicate Tasks — idempotency required
-- [ ] Manager explicitly completes an `IN_PROGRESS` Campaign; unfinished Tasks require a nonblank reason. Record actor/time and preserve every child Task's state and workflow
+- [ ] Confirmed 2026-10-14: Manager completes IN_PROGRESS only when every linked Task is COMPLETED/CANCELLED and no Request is IN_PROGRESS. Preview blockers; optional explicit bulk cancellation uses one shared preset/OTHER reason and per-Task audit, preserving approval/content history. PENDING Requests auto-cancel after completion. See docs/feature/media-package-campaign/campaign-closure/spec.md; replaces reason-only bypass.
 
 **Confirmed design (2026-10-08):** See `docs/feature/media-package-campaign/phase-1-design/plan.md` for versioned approval, total quantities, deployment recovery and Mongo Task/editor integration. Design completion is not implementation completion.
 
@@ -9646,6 +9940,7 @@ awaits its own module. This replaces the multiple-cooperation-round proposal. Se
 
 - [ ] `ThirdPartyCollaborator` table scoped to `agencyId`: `name`, `type` (newspaper/banner/TV/other), `contactInfo`
 - [ ] Basic CRUD endpoints under `/api/v1/agencies/{id}/collaborators`
+- [ ] Confirmed BA 2026-10-13: Agency Owner alone manages the directory. Unused partners may be deleted; previously used partners may only be deactivated, never newly assigned while inactive. Existing Campaign links remain readable/updateable. See `docs/feature/media-package-campaign/partner-directory/spec.md` (DA-949).
 
 **Spec Reference:** `docs/ba/07-publishing-social-collaborator.md`, `docs/ba/12-state-machines.md` mục 6 "Third-party Collaborator"
 
@@ -9689,13 +9984,23 @@ E50-08 directory CRUD is not implemented by this task. Details and verification:
 
 - [ ] `POST /api/v1/workspaces/{id}/content-requests` accepts `{title, description, type, dueDate}` — CLIENT role only; Owner/Manager can view but not self-create (per BA confirmation 2026-09-14)
 - [ ] Initial status `pending`
+- [ ] Creation only while Workspace Campaign is IN_PROGRESS and deployment SUCCEEDED. Confirmed 2026-10-14: IN_PROGRESS Requests block completion until processed; PENDING auto-cancel with audit after successful completion. Deadline within Campaign dates and today-or-later in Workspace timezone.
 - [ ] FSM: `PENDING → IN_PROGRESS → ACCEPTED/DENIED`; `DENIED` and `CANCELLED` are terminal (cannot transition further)
-- [ ] `PUT` update allowed only while `status=pending` (DA-E50 track-status/update, FR 3.5.8/3.5.9)
+- [ ] Manager explicitly receives the request to enter `IN_PROGRESS` (UI: Đang xem xét); simply viewing never changes status. Accept/deny only from `IN_PROGRESS`.
+- [ ] `PATCH` update of title/description/type/dueDate allowed only to the requesting Client while `status=pending`; receipt locks editing/cancellation (BA 2026-10-13).
 - [ ] `DELETE` (cancel) allowed only while `status=pending`; after Manager changes status, Client can no longer cancel — returns 409 `REQUEST_NOT_CANCELLABLE`
 - [ ] Cancel is a soft-delete (`status=cancelled`), consistent with the soft-delete convention used elsewhere in V2
 - [ ] Non-Client attempting to create, or non-owner-of-request attempting to cancel, returns 403
+- [ ] Confirmed 2026-10-14: acceptance creates exactly one generic Mongo Task BACKLOG with current Campaign ID, campaignWorkItemId=null, sourceType=CONTENT_REQUEST/sourceRefId=requestId, and links generatedTaskId. Serialize with Campaign closure; retries cannot duplicate it. Supplemental group does not change approved plan/package quantities. Legacy unlinked Tasks need explicit reconciliation, not silent reassignment.
+- [ ] Align legacy Request UI/mock states and Atlas schema through new migrations plus init parity; no Atlas reinitialisation or guessed legacy mappings. See `docs/feature/media-package-campaign/remaining-work/spec.md` for decisions (DA-951).
 
 **Spec Reference:** `docs/feature/media-package-campaign/3-5-7-create-content-request/spec.md`, `docs/feature/media-package-campaign/3-5-8-track-request-status/spec.md`, `docs/feature/media-package-campaign/3-5-9-update-request/spec.md`, `docs/feature/media-package-campaign/3-5-10-cancel-request/spec.md`, `docs/ba/12-state-machines.md` mục 1 "Content Request"
+
+**Implementation checkpoint 2026-10-13 (DA-951):** Giai đoạn 2–3 đã có API/UI create/read/edit/cancel,
+Manager receive/accept/deny, transaction Request/Task/audit và source uniqueness. Unit/MockMvc,
+transaction/race/rollback trên Mongo local cô lập và UI fixtures đã chạy. Atlas chỉ inventory/hello
+read-only; hai migration chưa apply, chưa live smoke qua Gateway hoặc đánh dấu task Done.
+Evidence: `docs/feature/media-package-campaign/remaining-work/test.md`.
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E15-01].
 
@@ -9716,7 +10021,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Acceptance Criteria:**
 
-- [ ] `tasks` collection: `id`, `workspaceId`, `campaignId` (nullable — some Tasks come from Content Request, not Campaign), `campaignWorkItemId` (nullable), `sourceType`/`sourceRefId` (nullable), `type` (post/livestream/survey), `name`, `dueDate`, `status` (backlog/detail_identified/assigned/...), `assigneeId`, `qcAssigneeId`, `requiresClientApproval`, `description`, type-specific sub-fields
+- [ ] `tasks` collection: `id`, `workspaceId`, `campaignId` (nullable for manual/legacy Tasks; new accepted Content Request Tasks link current Campaign, confirmed 2026-10-14), `campaignWorkItemId` (nullable for supplemental Tasks), `sourceType`/`sourceRefId` (nullable), `type` (post/livestream/survey), `name`, `dueDate`, `status` (backlog/detail_identified/assigned/...; CANCELLED terminal added for explicit Manager cancellation), `assigneeId`, `qcAssigneeId`, `requiresClientApproval`, `description`, type-specific sub-fields. Task workflow team must preserve cancellation audit and never reopen CANCELLED through normal transitions.
 - [ ] Task starts in `backlog` status when auto-generated from Campaign deploy (DA-E50-07) or Content Request acceptance
 
 **Spec Reference:** `docs/ba/05-content-task-workflow.md`, `docs/ba/11-data-entities-glossary.md`
@@ -9739,59 +10044,93 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Technical Notes:** Do not model this as a single embedded array on the Task document that gets overwritten — that was the exact anti-pattern flagged as a top project risk in `docs/plan/document-plan.md` R2 §1.3 ("reject-giữ-approval-cũ tính sai trong code"). A separate, append-only collection makes "what got preserved" queryable and auditable.
 
+**Amendment 2026-10-18:** new decisions only MANAGER/CLIENT, action APPROVE/REJECT, grouped by approvalRound; keep comment as review feedback, separate from task_comments. Target unique(Task,round,step); retain legacy QC history without generating new QC decisions. Submit/withdraw do not create decision rows; no review snapshot/round collection. See FR3.6.9 v3; schema/runtime implementation is not marked done by this documentation.
+
 **Spec Reference:** `docs/ba/12-state-machines.md` mục 4 "Task — Approval Sequence", `docs/ba/11-data-entities-glossary.md`
 
 **Dependencies:** Blocks: [DA-E51-03]. Blocked by: [DA-E51-01].
 
 ---
 
-### DA-E51-03 — Implement Approval Sequence State Machine (Creator → [QC] → Manager → [Client])
+### DA-E51-03 — Implement Task Approval (Creator → Manager → optional Client)
 
-**Assignee:** Phước | **Priority:** 🔴 Critical
+> **BA confirmed 2026-10-18:** [FR3.6.9 v3](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md) and its plan/task/test supersede the former QC/intermediate-state/snapshot proposal for this task. Phase 1 is documentation only, not completed implementation or a Jira status update.
 
-**Goal:** Implement the full approval chain with optional QC and optional Client steps, where a reject at ANY step always returns the Task to `ASSIGNED` for the Creator to fix, but resubmission skips back only to the step immediately AFTER the last-passed step — never redoing already-approved steps automatically.
+**Assignee in this local plan:** Lộc takes over FR3.6.9 as requested by the user; coordinate the handoff with Phước and the team. Actual Jira assignment and numeric issue key are not verified/updated here. **Priority:** Critical.
+
+**Goal:** Assigned Creator submits POST from /editor → Manager → any one active Client when required. Five Task states, separate reviewStep, no QC. Keep one current Post, lock content during review; do not implement review snapshots or old-content diffs.
 
 **Acceptance Criteria:**
 
-- [ ] Chain: `Creator submit → [QC review, optional] → Manager review → [Client review, optional if requiresClientApproval] → Completed`
-- [ ] Whether QC runs is determined by `qcAssigneeId` being set at Assign time (DA-E51-04), not a separate toggle
-- [ ] Reject at ANY step → Task returns to `ASSIGNED`; approvals from steps BEFORE the rejected step are preserved, NOT cleared
-- [ ] Resubmission after reject skips directly to the step after the last-passed one (e.g. QC approved → Manager rejected → resubmit → goes straight to `MANAGER_REVIEW`, does NOT re-enter `QC_REVIEW`) — Manager may manually re-request QC if desired, but it is never automatic
-- [ ] If QC rejects (the first step), there is no prior approval to preserve — resubmit re-enters `QC_REVIEW` normally
-- [ ] If Client rejects (the last step), Manager's earlier approval is preserved — resubmit goes straight back to `CLIENT_REVIEW`, not `MANAGER_REVIEW`
-- [ ] Full chain with no rejects → Task reaches `COMPLETED`
-- [ ] Shortest possible chain (no QC, no Client approval): Creator submit → Manager approve → Completed (2 steps)
-- [ ] Approve/reject called by the wrong actor for the current step returns 403 `WRONG_APPROVAL_STEP`
-- [ ] Approve/reject called on a Task not yet submitted returns 409 `TASK_NOT_SUBMITTED`
-- [ ] `GET /api/v1/workspaces/{id}/tasks/{taskId}/approvals` returns the full approval history log
+- [ ] Existing explicit Start remains TODO→IN_PROGRESS; submit moves IN_REVIEW/MANAGER.
+- [ ] No Client requirement: Manager approve→FINISHED; otherwise wait CLIENT, first valid active Client decision wins.
+- [ ] Missing eligible Client when required blocks submit and prompts Manager to add one. Losing Clients mid-review never skips the step.
+- [ ] Reject requires a reason, returns IN_PROGRESS; resubmit creates a new round from Manager, never reuses prior approvals.
+- [ ] Assigned Creator may withdraw before the Manager decides, not while waiting for Client; resubmit uses a new round.
+- [ ] task_approvals append-only APPROVE/REJECT with round/step/actor/comment/time; at most two decisions per round, one per step.
+- [ ] At most one same-Workspace Post linked per POST Task; reopen the same Post; no fallback draft duplication or brief-as-result content.
+- [ ] Lock linked content while reviewing; preserve content_version for Admin, no review snapshot/version archive; decision history does not reconstruct past content.
+- [ ] Mandatory revision/round/Post-version checks, transactions and unique decisions prevent stale/duplicate approval; preserve first-start lock and cancellation/Campaign guards.
+- [ ] In-app next-reviewer/rejection notifications with scoped recipients, dedup and retry; no email.
+- [ ] Final approval only finishes Task, never auto-publishes; coordinate narrow Editor/Admin integration, leave Yjs and publisher modules owned by their maintainers.
+- [ ] Review UI/history in existing Task popup, vi/en and light/dark, accessible loading/errors; test role/scope/races/regressions before Done.
 
-**Technical Notes:** This is the single most complex state machine in the entire V2 re-scope — implement exactly per `docs/ba/12-state-machines.md` mục 4, write unit tests covering every branch (QC-reject, Manager-reject-with-prior-QC-pass, Client-reject-with-prior-Manager-pass, no-QC-no-Client shortest path) before considering this task done.
+**Technical Notes:** Plan/use cases/data contract at [FR3.6.9](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/plan.md). Giai đoạn 1→6: documentation → DB → backend → POST integration → UI/notifications → verification. No runtime/DB mutation in phase 1; no legacy cleanup/backfill without separately reviewed inventory/allowlist.
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md`, `docs/ba/12-state-machines.md` mục 4
+**Spec Reference:** `docs/feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/{spec,plan,task,test}.md`, `docs/ba/12-state-machines.md` §4.
 
-**Dependencies:** Blocks: [None]. Blocked by: [DA-E51-02, DA-E51-04].
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E51-02, DA-E51-04]; coordinate the POST owner before phase 4.
 
 ---
 
 ### DA-E51-04 — Implement Task Backlog, Identify Detail + Assign to Creator
 
+> **Latest confirmed BA, 2026-10-15 (Jira DA-978):** detail preparation and assignment remain TODO; remove DETAIL_IDENTIFIED/ASSIGNED as business states and remove the intermediate-step prerequisite. Assignment/start require a nonblank description and a valid deadline. The assigned Creator explicitly starts TODO → IN_PROGRESS; Manager edits/reassignment remain locked after first start, including rejection. Detail autosaves on blur/selection. List actions are Manager assignee/deadline and assigned Creator Start only. Mandatory expectedRevision/CAS applies. This amendment supersedes the historical acceptance criteria below; see `docs/feature/content-task-workflow/task-five-state-inline-edit/spec.md`. FR 3.6.3 is still planned, not implemented.
+
 **Assignee:** Lộc | **Priority:** 🟡 High
 
 **Goal:** Let Manager fill in full detail for a raw backlog Task (name + rough deadline only from Campaign deploy) and then assign it to a Creator, optionally with a QC reviewer and a Client-approval requirement.
 
+**Q13 confirmed 2026-10-14 (DA-978/DA-1236), superseding Task visibility rules and Q12:** Active Clients may read/comment every Task in their Workspace, including Manager-created manual and legacy Tasks. No internal/public classification, visibility field/filter/default or Q12 validation. requiresClientApproval configures result approval only. Preserve role-based management/editor permissions, Workspace isolation, draft-upload ownership and Q11 notification recipients.
+
+**Amendment confirmed 2026-10-14 (Jira DA-978):** Separate Task dueDate from POST planned publication time; no automatic scheduling. Common brief/input scope covers all five current Task types without implementing specialist authoring modules. Manager may edit/reassign only before the Creator first starts, including initial ASSIGNED; reject returning to ASSIGNED must not reopen these controls. Under the latest Q13, active Clients can read/comment every Task in their Workspace, regardless of source or legacy start/revision fields. Missing first-start evidence gates management mutations only. Campaign Task deadlines fall within max(today,start)..end in Workspace timezone; POST planned publication is not before dueDate and stays within Campaign. Manual Tasks without Campaign have deadlines from today onward. Q8 confirmed: the assignee explicitly clicks Start to transition ASSIGNED to IN_PROGRESS; opening a page/editor does not start work. Preserve first-start evidence across rejects. Coordinate lifecycle/revision changes with the E51-03 owner; see `docs/feature/content-task-workflow/task-detail-assignment-comments-roadmap.md`.
+
 **Acceptance Criteria:**
 
-- [ ] `PATCH /api/v1/workspaces/{id}/tasks/{taskId}/detail` accepts `{description, dueDate, typeSpecificFields}`, only allowed while `status=backlog`; transitions to `DETAIL_IDENTIFIED`
-- [ ] Calling detail-fill on a non-backlog Task returns 409 `TASK_NOT_IN_BACKLOG`
-- [ ] `POST /api/v1/workspaces/{id}/tasks/{taskId}/assign` accepts `{assigneeId, qcAssigneeId?, requiresClientApproval}`, only allowed after `DETAIL_IDENTIFIED`; transitions to `ASSIGNED`
-- [ ] `assigneeId` must be a Workspace Member with role MEMBER/CREATOR; invalid target returns 400 `INVALID_ASSIGNEE`
+- [ ] Initial detail-fill transitions BACKLOG → DETAIL_IDENTIFIED. Common requirements/deadline/input references and separate POST planned publication time are saved without replacing specialist content. Exact payload/revision contract follows the confirmed FR plan.
+- [ ] Subsequent edits preserve DETAIL_IDENTIFIED/ASSIGNED and are permitted only before first start. Started/reviewing/terminal Tasks reject edits with 409; the old blanket “non-backlog always rejects” rule is superseded.
+- [ ] Initial `POST /api/v1/workspaces/{id}/tasks/{taskId}/assign` accepts `{assigneeId, qcAssigneeId?, requiresClientApproval}` plus a revision guard, requires DETAIL_IDENTIFIED and transitions to ASSIGNED. Later reassignment follows the before-first-start amendment above.
+- [ ] `assigneeId` must resolve to an active User membership with role CREATOR in the same Workspace; invalid target returns 400 `INVALID_ASSIGNEE`. QC must also be an active Creator in that Workspace.
 - [ ] `qcAssigneeId` cannot equal `assigneeId` — returns 400 `QC_CANNOT_BE_SAME_AS_ASSIGNEE`
 - [ ] Assigning before detail is identified returns 409 `TASK_DETAIL_NOT_IDENTIFIED`
 - [ ] Creator receives a notification upon assignment
+- [ ] Manager can reassign before first start, preserving ASSIGNED; after first start/approval/terminal status this operation is locked. Preserve Task identity, source linkage, cancellation audit and approval history.
 
 **Spec Reference:** `docs/feature/content-task-workflow/3-6-1-identify-task-detail/spec.md`, `docs/feature/content-task-workflow/3-6-2-assign-task-to-creator/spec.md`
 
 **Dependencies:** Blocks: [DA-E51-03]. Blocked by: [DA-E51-01, DA-E50-07].
+
+---
+
+### DA-E51-04b — Add Comments On Task (FR 3.6.3)
+
+**Jira:** DA-1236 (already exists; do not create a duplicate) | **Assignee:** Lộc | **Priority:** Not confirmed here
+
+**Goal:** Provide a Task-scoped discussion timeline for authorized Manager, Creator and Client users, separate from Workspace chat.
+
+**Acceptance Criteria — confirmed scope 2026-10-14:**
+
+- [ ] GET/POST `/api/v1/workspaces/{id}/tasks/{taskId}/comments` support scoped reading and creation with stable pagination and retry deduplication.
+- [ ] Show content, author name/role and timestamp; support valid Workspace mentions and image/reference links.
+- [ ] Support JPEG/PNG/WebP, at most five images per comment and 5 MB per image, with server-side type/size/ownership/access checks.
+- [ ] COMPLETED and CANCELLED Tasks still allow new comments for users who retain access, without reopening the Task or Campaign.
+- [ ] Active Clients may read/comment all manual/Campaign/Request/legacy Tasks in their Workspace, including comment history and ATTACHED images. No internal/public classification. Read/comment access is independent of requiresClientApproval; outsiders/removed members and other users' DRAFT uploads remain unauthorized.
+- [ ] Send in-app comment notifications to mentions, assignee, QC and Workspace Managers; deduplicate, exclude the author and recipients without current Task access. Clients receive notifications only when mentioned (Q11 confirmed). No comment edit/delete in this scope.
+- [ ] Parallel vi/en, semantic light/dark, keyboard access, mobile layout and API authorization tests.
+
+**Spec Reference:** `docs/feature/content-task-workflow/3-6-3-add-comments-on-task/spec.md`; planning decisions in `docs/feature/content-task-workflow/task-detail-assignment-comments-roadmap.md`.
+
+**Dependencies:** Uses DA-E51-01 Task identity and the shared Task detail/access integration from DA-E51-04. Comments do not require the Task to be assigned or the Client-approval flag to be enabled. No runtime/database implementation has been added by this plan update.
 
 ---
 
@@ -9942,38 +10281,40 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 ---
 
-### DA-E51-07 — Apply Hashtag to Task (FR 3.6.17)
+### DA-E51-07 — Apply Hashtag to Post Draft (FR 3.6.17)
 
 **Assignee:** Tuấn | **Priority:** 🟢 Medium
 
-**Goal:** Let a Creator attach one or more hashtags (from the Workspace's Hashtag Collection, or free-typed) to a Post-type Task.
+**Goal:** Let a Creator apply active workspace collection hashtags to the existing Post draft editor and persist display-text snapshots through the existing Post API.
 
 **Acceptance Criteria:**
 
-- [ ] `PATCH /api/v1/workspaces/{id}/tasks/{taskId}/hashtags` attaches one or more hashtags to a Post-type Task
-- [ ] A hashtag not yet in the Collection when applied is auto-created into the Collection (per BA edge case)
-- [ ] Hashtag not belonging to this Workspace returns 400 `INVALID_HASHTAG`
+- [ ] The editor loads and selects active hashtags from its workspace collection; selected entries appear in Post preview.
+- [ ] New typed hashtags require a purpose and are added to the collection before being applied to editor state.
+- [ ] The existing Post draft create/update API saves hashtag display strings as a Post snapshot.
+- [ ] “Apply to Post” from the collection opens a new draft editor with the chosen hashtag prefilled.
+- [ ] Campaign-required hashtags cannot be applied to a draft without a campaign association.
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-17-apply-hastag/spec.md`
+**Spec Reference:** `docs/feature/apply-hashtag-to-post/spec.md`
 
-**Dependencies:** Blocks: [None]. Blocked by: [DA-E51-07b].
+**Dependencies:** Blocks: [None]. Blocked by: [DA-E51-07b, DA-E51-07c].
 
 ---
 
-### DA-E51-07b — Collection `hashtag_collections` + View Collection (FR 3.6.18)
+### DA-E51-07b — Workspace Hashtag Collection + View Collection (FR 3.6.18)
 
 **Assignee:** Tuấn | **Priority:** 🟢 Medium
 
-**Goal:** Provide the Workspace-scoped Hashtag Collection store and its read endpoint — Creator can browse existing tags, AI can later recommend from this pool.
+**Goal:** Provide the workspace-scoped hashtag store and paged read endpoint for active tags.
 
 **Acceptance Criteria:**
 
-- [ ] `hashtag_collections` collection: `id`, `workspaceId`, `tag`, `usageCount`
-- [ ] `GET /api/v1/workspaces/{id}/hashtag-collection` lists all tags with usage count
+- [x] `workspace_hashtags` table stores purpose, ownership, required campaign scope and soft-delete audit fields.
+- [x] `GET /api/v1/workspaces/{workspaceId}/hashtags` returns filtered, paged active entries with version for safe removal.
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-18-view-hastag-collection/spec.md`
+**Spec Reference:** `docs/feature/view-hashtag-collection/spec.md`
 
-**Dependencies:** Blocks: [DA-E51-07, DA-E51-07c, DA-E51-07d, DA-E51-07e]. Blocked by: [DA-E15-01].
+**Dependencies:** Blocks: [DA-E51-07, DA-E51-07c, DA-E51-07d, DA-E51-07e].
 
 ---
 
@@ -9981,14 +10322,14 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Assignee:** Tuấn | **Priority:** 🟢 Medium
 
-**Goal:** Let Creator/Client explicitly add a new hashtag into the Collection with a classification of its purpose (per BA note: Client-added tags are event-specific and mandatory).
+**Goal:** Let authorized Creator, Client or Manager members add a reusable workspace hashtag; Client event-specific tags are required and scoped to a campaign in that workspace.
 
 **Acceptance Criteria:**
 
-- [ ] `POST /api/v1/workspaces/{id}/hashtag-collection` accepts `{tag, purpose?}`, returns 201
-- [ ] Duplicate tag within the same Workspace returns 409 `HASHTAG_ALREADY_EXISTS`
+- [x] `POST /api/v1/workspaces/{workspaceId}/hashtags` accepts tag, purpose and scoped required-tag fields; returns 201.
+- [x] Workspace duplicate tag returns 409 `HASHTAG_ALREADY_EXISTS`.
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-19-add-hastag-collection/spec.md`
+**Spec Reference:** `docs/feature/add-hashtag-collection/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-07b].
 
@@ -9998,11 +10339,11 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Assignee:** Tuấn | **Priority:** 🟢 Medium
 
-**Goal:** Let Creator/Manager correct a hashtag's text or purpose classification without losing its accumulated `usageCount`.
+**Goal:** Follow the FR 3.6.20 draft for editing active hashtag metadata while preserving existing post snapshots; finalize proposed permissions and scope/version details before implementation.
 
 **Acceptance Criteria:**
 
-- [ ] `PATCH /api/v1/workspaces/{id}/hashtag-collection/{id}` accepts `{tag?, purpose?}`, preserves `usageCount`
+- [ ] `PATCH /api/v1/workspaces/{workspaceId}/hashtags/{hashtagId}` accepts allowed metadata fields; scope and version rules remain design gates.
 - [ ] Renaming to a tag that already exists returns 409 `HASHTAG_ALREADY_EXISTS`
 
 **Spec Reference:** `docs/feature/content-task-workflow/3-6-20-update-hastag-collection/spec.md`
@@ -10015,14 +10356,14 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Assignee:** Tuấn | **Priority:** 🟢 Medium
 
-**Goal:** Let Creator/Manager remove an obsolete hashtag from the Collection without breaking Tasks that already used it (soft-delete).
+**Goal:** Let authorized members remove an obsolete hashtag without changing posts that already used it (soft-delete).
 
 **Acceptance Criteria:**
 
-- [ ] `DELETE /api/v1/workspaces/{id}/hashtag-collection/{id}` soft-deletes — removed tag no longer appears when browsing/adding, but Tasks that already applied it keep the reference
-- [ ] Deleting a non-existent hashtag returns 404
+- [x] `DELETE /api/v1/workspaces/{workspaceId}/hashtags/{hashtagId}` soft-deletes and leaves existing post snapshots unchanged.
+- [x] A stale version requires review of the current entry before reconfirmation; repeated removal is rejected.
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-21-remove-hastag-collection/spec.md`
+**Spec Reference:** `docs/feature/remove-hashtag-collection/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-07b].
 
