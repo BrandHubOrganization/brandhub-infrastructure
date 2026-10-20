@@ -1,5 +1,13 @@
 # UI refresh — implementation plan
 
+## Implementation amendment — 2026-10-19
+
+1. Reuse compact PageWrapper per-page only; small accessible HelpHint disclosure replaces secondary copy. Group OfferingSummary per deliverable with labelled description/acceptance and quantity; show budget/duration separately, not huge fallback text.
+2. Workspace Package: selected summary visible by default; top Change package switches to catalogue in-page with Back action, preserved existing select handlers/error/approval guards; no duplicate always-visible catalogue below detail.
+3. Campaign: compact wrapper/stage row, remove duplicate partner navigation/heading; contextual help for milestones/work items and policy hints. Date utility uses date-fns calendar-day arithmetic, date-only strings and approved duration; manual dates remain editable/preserved.
+4. Remove Task Detail approval shortcut. Scope PageWrapper child-height override to task-approvals so its body flexes and long preview scrolls independently; no global CSS/primitive change.
+5. Parallel vi/en Package/Campaign labels, lint/typecheck/Vite and browser fixtures with very long terms/media, 375/768/1440 light/dark. No src tests or shared DB mutations, commit/push only if requested.
+
 1. Use existing Inter/type scale, semantic background/card/foreground/border and
    brand-orange tokens. Quiet panels, left-aligned content, one primary action per
    section; no new font, global style or library. Desktop negotiation uses a wide
