@@ -1,0 +1,72 @@
+@startuml 3.5.8 - Track Content Request Status
+title Sequence Diagram — 3.5.8 - Track Content Request Status
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "TaskRepository" as taskrepository
+entity "ContentRequestRepository" as contentrequestreposi
+control "ContentRequestService" as contentrequestservic
+boundary "ContentRequestPage (UI)" as contentrequestpageui
+boundary "ContentRequestController" as contentrequestcontro
+actor "Mânger" as mnger
+
+' === Flow ===
+mnger -> contentrequestpageui: navigates to Content Requests board / list
+contentrequestcontro -> contentrequestservic: getContentRequests(workspaceId, userId, queryParams)
+else transition: PENDING or IN_PROGRESS to ACCEPTED (Idempotent Task Creation)
+  contentrequestservic -> contentrequestservic: claimAcceptanceAtomic(workspaceId, requestId)
+end
+
+contentrequestpageui -> contentrequestcontro: GET /api/v1/workspaces/{workspaceId}/content-requests (queryParams: page, limit, status, headers: Bearer accessToken)
+contentrequestservic -> contentrequestreposi: findByWorkspaceId(workspaceId, queryParams)
+contentrequestreposi --> contentrequestservic: requestPage
+contentrequestservic --> contentrequestcontro: ContentRequestPageResponse
+contentrequestpageui --> mnger: render requests list with status badges (PENDING, IN_PROGRESS, ACCEPTED, DENIED)
+contentrequestcontro --> contentrequestpageui: 200 OK (ContentRequestPageResponse)
+mnger ->> contentrequestpageui: selects request & clicks "Update Status" (e.g. IN_PROGRESS or ACCEPTED)
+contentrequestcontro ->> contentrequestservic: updateContentRequestStatus(workspaceId, requestId, userId, payload)
+contentrequestpageui ->> contentrequestcontro: PATCH /api/v1/workspaces/{workspaceId}/content-requests/{requestId}/status (UpdateStatusPayload(targetStatus, note), headers: Bearer accessToken)
+contentrequestservic -> contentrequestservic: validateManagerRole(workspaceId, userId)
+
+alt caller is not authorized Manager
+  contentrequestservic --> contentrequestcontro: throw AccessDeniedException (403 Forbidden)
+  contentrequestcontro --> contentrequestpageui: 403 Forbidden (MANAGER_ROLE_REQUIRED)
+  contentrequestpageui --> mnger: show error toast ('Only agency managers can update request status')
+else authorized Manager
+  contentrequestservic ->> contentrequestreposi: findByWorkspaceIdAndId(workspaceId, requestId)
+  contentrequestreposi --> contentrequestservic: request
+end
+
+
+alt request not found
+  contentrequestservic --> contentrequestcontro: throw ResourceNotFoundException (404 Not Found)
+  contentrequestcontro --> contentrequestpageui: 404 Not Found (REQUEST_NOT_FOUND)
+  contentrequestpageui --> mnger: show error toast ('Content request not found')
+else terminal state reached (status is ACCEPTED, DENIED, or CANCELLED)
+  contentrequestservic --> contentrequestcontro: throw IllegalStateException (409 Conflict)
+  contentrequestcontro --> contentrequestpageui: 409 Conflict (TERMINAL_STATE_CANNOT_BE_REOPENED)
+  contentrequestpageui --> mnger: show error modal ('Terminal state cannot be reopened')
+else transition: PENDING to IN_PROGRESS
+  contentrequestservic ->> contentrequestreposi: updateStatus(workspaceId, requestId, IN_PROGRESS, note)
+  contentrequestreposi --> contentrequestservic: updatedRequest
+  contentrequestservic --> contentrequestcontro: ContentRequestResponse (status=IN_PROGRESS)
+  contentrequestcontro --> contentrequestpageui: 200 OK (ContentRequestResponse)
+  contentrequestpageui --> mnger: update badge to IN_PROGRESS & show success toast
+else transition: PENDING or IN_PROGRESS to ACCEPTED (Idempotent Task Creation)
+  contentrequestservic ->> contentrequestreposi: updateStatus(workspaceId, requestId, ACCEPTED)
+  contentrequestreposi --> contentrequestservic: acceptedRequest
+  contentrequestservic ->> taskrepository: createBacklogTask(workspaceId, campaignId=null, title, description, type, dueDate, sourceType=CONTENT_REQUEST, sourceRefId=requestId)
+  taskrepository --> contentrequestservic: createdTask
+  contentrequestservic ->> contentrequestreposi: setGeneratedTaskId(requestId, createdTask.id)
+  contentrequestreposi --> contentrequestservic: finalizedRequest
+  contentrequestservic --> contentrequestcontro: ContentRequestResponse (status=ACCEPTED, generatedTaskId=createdTask.id)
+  contentrequestcontro --> contentrequestpageui: 200 OK (ContentRequestResponse)
+  contentrequestpageui --> mnger: update badge to ACCEPTED, display linked task link & show success toast
+end
+
+@enduml

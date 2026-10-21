@@ -1,0 +1,31 @@
+@startuml 3.6.6 - Gantt Timeline Task View
+title Sequence Diagram — 3.6.6 - Gantt Timeline Task View
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Creator / Client / Manager" as creatorclientmanager
+entity "TaskListResponse" as tasklistresponse
+entity "TaskRepository" as taskrepository
+control "TaskServiceImpl" as taskserviceimpl
+boundary "TaskController" as taskcontroller
+boundary "TaskListPage (UI)" as tasklistpageui
+
+' === Flow ===
+creatorclientmanager -> tasklistpageui: Select "Timeline / Gantt" tab (optional filter: campaignId)
+tasklistpageui -> taskcontroller: Request tasks timeline view (campaignId)
+taskcontroller -> taskserviceimpl: getTasksGanttTimeline(campaignId)
+taskserviceimpl -> taskrepository: findTasksByCampaign(campaignId)
+taskrepository --> taskserviceimpl: 5: return List<Task>
+taskserviceimpl -> taskserviceimpl: calculateTaskProgressAndDependencies(tasks)
+taskserviceimpl -> tasklistresponse: mapToGanttResponse(timelineItems)
+tasklistresponse --> taskserviceimpl: return ganttData
+taskserviceimpl --> taskcontroller: return ganttData
+taskcontroller --> tasklistpageui: return 200 OK (Timeline bars, dependencies, milestone dates)
+tasklistpageui --> creatorclientmanager: Render interactive horizontal Gantt chart bars & milestones
+
+@enduml

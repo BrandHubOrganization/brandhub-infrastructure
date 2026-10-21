@@ -1,0 +1,40 @@
+@startuml 3.10.4 - Content moderation
+title Sequence Diagram — 3.10.4 - Content moderation
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Admin" as admin
+boundary "AdminModerationPage (UI)" as adminmoderationpageu
+boundary "ModerationController" as moderationcontroller
+control "ModerationService" as moderationservice
+entity "ContentRepository" as contentrepository
+control "NotificationService" as notificationservice
+
+' === Flow ===
+admin -> adminmoderationpageu: views flagged content list, selects item & action (APPROVE / REMOVE)
+adminmoderationpageu -> moderationcontroller: PATCH /api/v1/admin/moderation/{contentId} (ModerationDecisionRequest)
+moderationcontroller -> moderationservice: moderateContent(adminId, contentId, decision)
+moderationservice -> contentrepository: findById(contentId)
+
+alt content not found
+  contentrepository --> moderationservice: Optional.empty()
+  moderationservice --> moderationcontroller: 404 Not Found (CONTENT_NOT_FOUND)
+  moderationcontroller --> adminmoderationpageu: 404 Not Found
+  adminmoderationpageu --> admin: Show error "Content not found"
+else content found
+  contentrepository --> moderationservice: Optional<Content>
+  moderationservice -> contentrepository: update(content, status=APPROVED / REMOVED)
+  contentrepository --> moderationservice: updatedContent
+  moderationservice -> notificationservice: notifyUser(content.ownerId, decision)
+  notificationservice --> moderationservice: ok
+  moderationservice --> moderationcontroller: 200 OK (ModerationResponse)
+  moderationcontroller --> adminmoderationpageu: 200 OK
+  adminmoderationpageu --> admin: "Moderation action applied"
+end
+
+@enduml

@@ -1,0 +1,47 @@
+@startuml 3.6.20 - Update Hashtag Collection
+title Sequence Diagram — 3.6.20 - Update Hashtag Collection
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "HashtagController" as hashtagcontroller
+control "HashtagService" as hashtagservice
+entity "WorkspaceRepository" as workspacerepository
+entity "HashtagRepository" as hashtagrepository
+actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
+
+' === Flow ===
+hashtagservice -> hashtagservice: Validate rights, scope, uniqueness and expectedVersion
+creatorclientmanager -> webdashboard: Save hashtag changes
+webdashboard -> hashtagcontroller: PATCH /api/v1/workspaces/{workspaceId}/hashtags/{hashtagId}
+hashtagcontroller -> hashtagservice: updateHashtag(user, command)
+hashtagservice -> workspacerepository: Load workspace access
+workspacerepository --> hashtagservice: Workspace
+hashtagservice -> hashtagrepository: Load hashtag and version
+hashtagrepository --> hashtagservice: Hashtag
+
+loop invalid access / duplicate / stale version
+  hashtagservice --> hashtagcontroller: 400 Bad Request / 403 Forbidden / 409 Conflict
+  hashtagcontroller --> webdashboard: 400 Bad Request / 403 Forbidden / 409 Conflict
+  webdashboard --> creatorclientmanager: Display validation or reload conflict
+end
+
+hashtagservice -> hashtagrepository: Save hashtag changes with version check
+hashtagrepository --> hashtagservice: writeOutcome
+
+alt writeOutcome committed
+  hashtagservice --> hashtagcontroller: 200 OK
+  hashtagcontroller --> webdashboard: 200 OK
+  webdashboard --> creatorclientmanager: Display updated collection entry
+else write failed or version conflict
+  hashtagservice --> hashtagcontroller: 409 Conflict / 500 Internal Server Error
+  hashtagcontroller --> webdashboard: 409 Conflict / 500 Internal Server Error
+  webdashboard --> creatorclientmanager: Display save error; retain previous values
+end
+
+@enduml

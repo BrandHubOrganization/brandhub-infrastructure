@@ -1,0 +1,46 @@
+@startuml 3.10.12 - Create, download and expire PDF report
+title Sequence Diagram — 3.10.12 - Create, download and expire PDF report
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Admin" as admin
+boundary "AdminReportPage (UI)" as adminreportpageui
+boundary "ReportController" as reportcontroller
+control "ReportService" as reportservice
+entity "ReportRepository" as reportrepository
+control "PdfGeneratorService" as pdfgeneratorservice
+
+' === Flow ===
+admin -> adminreportpageui: configures report parameters, clicks "Generate Report"
+adminreportpageui -> reportcontroller: POST /api/v1/admin/reports/generate (GenerateReportRequest)
+reportcontroller -> reportservice: generateReport(adminId, request)
+reportservice -> pdfgeneratorservice: generate(reportData)
+pdfgeneratorservice --> reportservice: pdfBytes
+reportservice -> reportrepository: save(reportRecord with expiresAt=NOW()+7days)
+reportrepository --> reportservice: savedReport(reportId, downloadUrl)
+reportservice --> reportcontroller: 201 Created (ReportResponse)
+reportcontroller --> adminreportpageui: 201 Created (downloadUrl)
+adminreportpageui --> admin: Display download link
+admin -> adminreportpageui: clicks "Download PDF"
+adminreportpageui -> reportcontroller: GET /api/v1/admin/reports/{reportId}/download
+reportcontroller -> reportservice: downloadReport(reportId)
+reportservice -> reportrepository: findById(reportId)
+
+alt report expired or not found
+  reportrepository --> reportservice: null / expired
+  reportservice --> reportcontroller: 404 Not Found (REPORT_EXPIRED)
+  reportcontroller --> adminreportpageui: 404 Not Found
+  adminreportpageui --> admin: Show error "Report expired or not found"
+else report valid
+  reportrepository --> reportservice: reportRecord
+  reportservice --> reportcontroller: 200 OK (pdfStream)
+  reportcontroller --> adminreportpageui: 200 OK (Content-Disposition: attachment)
+  adminreportpageui --> admin: PDF downloaded
+end
+
+@enduml

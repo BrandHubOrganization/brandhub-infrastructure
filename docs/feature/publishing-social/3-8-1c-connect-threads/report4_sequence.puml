@@ -1,0 +1,48 @@
+@startuml 3.8.1c - Connect Threads Account (OAuth Flow)
+title Sequence Diagram — 3.8.1c - Connect Threads Account (OAuth Flow)
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+
+' === Participants ===
+actor "User" as user
+boundary "SocialAccountsPage (UI)" as ui
+boundary "SocialOAuthController" as ctrl
+control "ThreadsOAuthService" as oauthSvc
+entity "SocialAccountService" as accountSvc
+entity "Threads API" as threadsApi
+
+' === Flow ===
+user -> ui: clicks "Connect Threads"
+ui -> ctrl: GET /api/v1/oauth/social/connect?platform=THREADS
+ctrl -> oauthSvc: buildAuthorizationUrl()
+oauthSvc --> ctrl: authUrl
+ctrl --> ui: 302 Redirect to authUrl
+ui --> user: Threads Authorization Screen
+
+user -> threadsApi: authorizes permissions (threads_basic, threads_content_publish)
+threadsApi --> ui: callback with code & state
+
+ui -> ctrl: GET /api/v1/oauth/social/callback?code=...&state=...
+ctrl -> oauthSvc: exchangeToken(authCode)
+oauthSvc -> threadsApi: exchange short-lived token
+threadsApi --> oauthSvc: short-lived token
+oauthSvc -> threadsApi: exchange long-lived token (60 days)
+threadsApi --> oauthSvc: long-lived token
+oauthSvc -> threadsApi: fetch Threads user profile
+threadsApi --> oauthSvc: userInfo(username, profilePictureUrl)
+
+alt connection failed
+  oauthSvc --> ctrl: 302 Redirect with error status
+  ctrl --> ui: error redirect
+  ui --> user: Show error "Threads connection cancelled or failed"
+else connection success
+  oauthSvc -> accountSvc: syncSocialAccount(userId, userInfo, encryptedToken)
+  accountSvc --> oauthSvc: savedAccount
+  oauthSvc --> ctrl: 302 Redirect with success status
+  ctrl --> ui: redirect to SocialAccountsPage
+  ui --> user: Show Threads channel card as connected
+end
+
+@enduml

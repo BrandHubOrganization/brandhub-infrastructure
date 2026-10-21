@@ -4,104 +4,53 @@ title Sequence Diagram — 3.3.2 - Update Profile
 autonumber
 skinparam shadowing false
 skinparam sequenceMessageAlign center
-skinparam BoxPadding 10
-skinparam ParticipantPadding 10
 
 ' === Participants ===
 actor "User" as user
-boundary "ProfilePage (UI)" as profilepage_ui
-boundary "UserController" as usercontroller
-control "UserServiceImpl" as userserviceimpl
-entity "UserRepository" as userrepository
-entity "User" as user_1
-entity "UserSystemRoleRepository" as usersystemrolerepository
-entity "UserSystemRole" as usersystemrole
-entity "WorkspaceMemberRepository" as workspacememberrepository
-entity "UserProfileResponse" as userprofileresponse
-participant "FileStorageService" as filestorageservice
+boundary "ProfilePage (UI)" as ui
+boundary "UserController" as ctrl
+control "UserService" as svc
+entity "UserRepository" as userRepo
+entity "FileStorageService" as storage
 
-alt saves profile
-  user -> profilepage_ui: submits profile form
-  profilepage_ui -> usercontroller: PUT /api/v1/users/me
-  usercontroller -> userserviceimpl: updateUserProfile(currentUser, request)
-  alt !user.present
-    userserviceimpl -> userrepository: findById(currentUser.getId())
-    userrepository --> userserviceimpl: Optional.empty()
-    userserviceimpl --> usercontroller: throw 404 USER_NOT_FOUND
-    usercontroller --> profilepage_ui: 404 Not Found
-    profilepage_ui --> user: shows 404 toast
-  else user.present
-    userserviceimpl -> userrepository: findById(currentUser.getId())
-    userrepository --> userserviceimpl: Optional<User>
-    userserviceimpl -> user_1: updateProfileFields(request)
-    user_1 --> userserviceimpl: User
-    userserviceimpl -> userserviceimpl: serialize(portfolioUrls)
-    opt hasPortfolioUrls
-      userserviceimpl -> userserviceimpl: mergePreferences(user, request)
-      userserviceimpl -> userserviceimpl: serialize(preferences)
-      userserviceimpl -> userrepository: save(user)
-    end
-    userrepository --> userserviceimpl: User
-    userserviceimpl -> usersystemrolerepository: findByUserId(user.getId())
-    usersystemrolerepository --> userserviceimpl: Optional<UserSystemRole>
-    userserviceimpl -> usersystemrole: getRole()
-    usersystemrole --> userserviceimpl: role
-    opt workspaceId == null
-      userserviceimpl -> workspacememberrepository: findFirstByUserIdAndIsActiveTrue(user.getId())
-      workspacememberrepository --> userserviceimpl: Optional<WorkspaceMember>
-    end
-    userserviceimpl -> userprofileresponse: new UserProfileResponse(...)
-    userprofileresponse --> userserviceimpl: UserProfileResponse
-    userserviceimpl --> usercontroller: UserProfileResponse
-    usercontroller --> profilepage_ui: 200 OK UserProfileResponse
-    profilepage_ui --> user: shows 200 toast
-  end
-else uploads avatar
-  user -> profilepage_ui: uploads avatar file
-  profilepage_ui -> usercontroller: POST /api/v1/users/me/avatar
-  usercontroller -> userserviceimpl: updateAvatar(currentUser, file)
-  alt !file || file.empty
-    userserviceimpl -> userserviceimpl: validateImage(file)
-    userserviceimpl --> usercontroller: throw 400 NO_FILE_PROVIDED
-    usercontroller --> profilepage_ui: 400 Bad Request
-    profilepage_ui --> user: shows 400 toast
-  else !file.isImage
-    userserviceimpl -> userserviceimpl: validateImage(file)
-    userserviceimpl --> usercontroller: throw 400 INVALID_FILE_TYPE
-    usercontroller --> profilepage_ui: 400 Bad Request
-    profilepage_ui --> user: shows 400 toast
-  else file.size > 5MB
-    userserviceimpl -> userserviceimpl: validateImage(file)
-    userserviceimpl --> usercontroller: throw 400 FILE_TOO_LARGE
-    usercontroller --> profilepage_ui: 400 Bad Request
-    profilepage_ui --> user: shows 400 toast
-  else valid(file)
-    userserviceimpl -> userrepository: findById(currentUser.getId())
-    userrepository --> userserviceimpl: Optional<User>
-    userserviceimpl -> user_1: getAvatarUrl()
-    user_1 --> userserviceimpl: oldAvatarUrl
-    userserviceimpl -> userserviceimpl: getBytes(file)
-    userserviceimpl -> filestorageservice: uploadAvatar(file)
-    filestorageservice --> userserviceimpl: newAvatarUrl
-    opt hasOldAvatar
-      userserviceimpl -> filestorageservice: deleteFile(oldAvatarUrl)
-    end
-    userserviceimpl -> userrepository: save(user)
-    userrepository --> userserviceimpl: User
-    userserviceimpl -> usersystemrolerepository: findByUserId(user.getId())
-    usersystemrolerepository --> userserviceimpl: Optional<UserSystemRole>
-    userserviceimpl -> usersystemrole: getRole()
-    usersystemrole --> userserviceimpl: role
-    opt workspaceId == null
-      userserviceimpl -> workspacememberrepository: findFirstByUserIdAndIsActiveTrue(user.getId())
-      workspacememberrepository --> userserviceimpl: Optional<WorkspaceMember>
-    end
-    userserviceimpl -> userprofileresponse: new UserProfileResponse(...)
-    userprofileresponse --> userserviceimpl: UserProfileResponse
-    userserviceimpl --> usercontroller: UserProfileResponse
-    usercontroller --> profilepage_ui: 200 OK UserProfileResponse
-    profilepage_ui --> user: shows 200 toast
-  end
+' === Flow: Update profile info ===
+user -> ui: edits display name, bio, portfolio URLs & preferences,\nclicks "Save Changes"
+ui -> ctrl: PUT /api/v1/users/me (UpdateProfileRequest, headers: Bearer accessToken)
+ctrl -> svc: updateUserProfile(userId, request)
+svc -> userRepo: findById(userId)
+
+alt user not found
+  userRepo --> svc: Optional.empty()
+  svc --> ctrl: 404 Not Found (USER_NOT_FOUND)
+  ctrl --> ui: 404 Not Found
+  ui --> user: Show error toast "User not found"
+else user found
+  userRepo --> svc: Optional<User>
+  svc -> userRepo: save(updatedUser)
+  userRepo --> svc: savedUser
+  svc --> ctrl: 200 OK (UserProfileResponse)
+  ctrl --> ui: 200 OK
+  ui --> user: Show success toast "Profile updated"
+end
+
+' === Flow: Upload avatar ===
+user -> ui: selects avatar image, clicks "Upload"
+ui -> ctrl: POST /api/v1/users/me/avatar (file, headers: Bearer accessToken)
+ctrl -> svc: updateAvatar(userId, file)
+svc -> svc: validateImage(file)
+
+alt invalid file (empty / wrong type / > 5MB)
+  svc --> ctrl: 400 Bad Request (INVALID_FILE / FILE_TOO_LARGE)
+  ctrl --> ui: 400 Bad Request
+  ui --> user: Show error toast "Invalid image file"
+else valid file
+  svc -> storage: uploadAvatar(file)
+  storage --> svc: newAvatarUrl
+  svc -> userRepo: save(user with newAvatarUrl)
+  userRepo --> svc: ok
+  svc --> ctrl: 200 OK (UserProfileResponse)
+  ctrl --> ui: 200 OK
+  ui --> user: Show new avatar preview
 end
 
 @enduml

@@ -1,0 +1,60 @@
+@startuml 3.6.27 - Generate Meeting Link
+title Sequence Diagram — 3.6.27 - Generate Meeting Link
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Creator" as creator
+entity "MeetingLinkResponse" as meetinglinkresponse
+entity "TaskRepository" as taskrepository
+entity "GoogleCalendarClient" as googlecalendarclient
+entity "Google Calendar / Meet API" as googlecalendarmeetap
+control "TaskServiceImpl" as taskserviceimpl
+boundary "TaskController" as taskcontroller
+boundary "TaskDetailPage (UI)" as taskdetailpageui
+
+' === Flow ===
+googlecalendarmeetap --> googlecalendarclient: return 401 Unauthorized / 503 Service Unavailable
+creator -> taskdetailpageui: Click "Generate Google Meet Link"
+else Google Meet Successfully Provisioned
+  taskserviceimpl -> taskserviceimpl: attachMeetingLink(task, meetingUrl)
+end
+
+taskdetailpageui -> taskcontroller: Request generate meeting link
+taskcontroller -> taskserviceimpl: generateMeetingLink(taskId)
+taskserviceimpl -> taskrepository: findTask(taskId)
+taskrepository --> taskserviceimpl: return Optional<Task>
+
+alt Task Not Found (Optional is empty)
+  taskserviceimpl --> taskcontroller: throw TASK_NOT_FOUND
+  taskcontroller --> taskdetailpageui: return 404 Not Found (Task not found in workspace)
+  taskdetailpageui --> creator: Display error message: "Task not found in workspace"
+else Task Found
+  taskserviceimpl -> googlecalendarclient: createCalendarEventWithMeet(task)
+  googlecalendarclient -> googlecalendarmeetap: Call Google Calendar / Meet API
+end
+
+
+alt Google API Error / Token Expired
+  googlecalendarmeetap --> googlecalendarclient: return 401 / 503 error
+  googlecalendarclient --> taskserviceimpl: throw GoogleApiException
+  taskcontroller --> taskdetailpageui: return 502 Bad Gateway (Google Meet service unavailable)
+  taskserviceimpl --> taskcontroller: throw ServiceUnavailableException
+  taskdetailpageui --> creator: Display alert: "Failed to generate Google Meet link"
+else Google Meet Successfully Provisioned
+  googlecalendarmeetap --> googlecalendarclient: return Meet event (hangoutLink)
+  googlecalendarclient --> taskserviceimpl: return meetingUrl
+  taskserviceimpl -> taskrepository: save(task)
+  taskrepository --> taskserviceimpl: return savedTask
+  taskserviceimpl -> meetinglinkresponse: mapToResponse(savedTask)
+  meetinglinkresponse --> taskserviceimpl: return meetingLinkResponse
+  taskserviceimpl --> taskcontroller: return meetingLinkResponse
+  taskcontroller --> taskdetailpageui: return 201 Created (Generated Google Meet link, task details)
+  taskdetailpageui --> creator: Display Meet Link badge with "Copy Link" & "Join Now" buttons
+end
+
+@enduml

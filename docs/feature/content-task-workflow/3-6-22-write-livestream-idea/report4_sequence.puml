@@ -1,0 +1,48 @@
+@startuml 3.6.22 - Write Livestream Idea
+title Sequence Diagram — 3.6.22 - Write Livestream Idea
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Manager / Creator" as managercreator
+entity "TaskRepository" as taskrepository
+control "LivestreamTaskServiceImpl" as livestreamtaskservic
+entity "LivestreamIdeaResponse" as livestreamidearespon
+boundary "LivestreamTaskController" as livestreamtaskcontro
+boundary "TaskDetailPage (UI)" as taskdetailpageui
+
+' === Flow ===
+managercreator -> taskdetailpageui: Fill in Livestream Idea & Target Goal, click "Save Idea"
+taskdetailpageui -> livestreamtaskcontro: PATCH /api/v1/workspaces/{wId}/tasks/{taskId}/livestream/idea { "idea": "...", "goal": "..." }
+livestreamtaskcontro -> livestreamtaskservic: saveLivestreamIdea(workspaceId, taskId, ideaRequest, currentUser)
+livestreamtaskservic -> taskrepository: findByIdAndWorkspaceId(taskId, workspaceId)
+taskrepository --> livestreamtaskservic: return Optional<Task>
+
+alt Task Not Found (Optional is empty)
+  livestreamtaskservic --> livestreamtaskcontro: throw TASK_NOT_FOUND (404 Not Found)
+  livestreamtaskcontro --> taskdetailpageui: return 404 Not Found (Task not found in workspace)
+  taskdetailpageui --> managercreator: Display error: "Task not found in workspace"
+else Task is not LIVESTREAM type (task.getType() != 'LIVESTREAM')
+  livestreamtaskservic --> livestreamtaskcontro: throw INVALID_TASK_TYPE (400 Bad Request)
+  livestreamtaskcontro --> taskdetailpageui: return 400 Bad Request (Task must be of type Livestream)
+  taskdetailpageui --> managercreator: Display error message: "Task must be of type Livestream"
+else Blank Idea & Goal
+  livestreamtaskservic --> livestreamtaskcontro: throw INVALID_PAYLOAD (400 Bad Request)
+  livestreamtaskcontro --> taskdetailpageui: return 400 Bad Request (Idea description or goal cannot be blank)
+  taskdetailpageui --> managercreator: Display validation message: "Idea description or goal cannot be blank"
+else Valid Livestream Task & Payload
+  livestreamtaskservic -> livestreamtaskservic: updateLivestreamIdea(task, ideaRequest.getIdea(), ideaRequest.getGoal())
+  livestreamtaskservic -> taskrepository: save(task)
+  taskrepository --> livestreamtaskservic: return savedTask
+  livestreamtaskservic -> livestreamidearespon: toLivestreamIdeaResponse(savedTask)
+  livestreamidearespon --> livestreamtaskservic: return ideaResponse
+  livestreamtaskservic --> livestreamtaskcontro: return ideaResponse
+  livestreamtaskcontro --> taskdetailpageui: return 200 OK (Updated idea, goal, and task status)
+  taskdetailpageui --> managercreator: Display notification: "Livestream idea saved successfully" & enable Script tab
+end
+
+@enduml

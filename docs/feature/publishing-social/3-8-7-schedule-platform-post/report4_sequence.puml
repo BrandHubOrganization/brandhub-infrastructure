@@ -1,0 +1,31 @@
+@startuml 3.8.7 - Track Post Status
+title Sequence Diagram — 3.8.7 - Track Post Status
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Creator / Manager" as creatormanager
+entity "PostStatusTrackingResponse" as poststatustrackingre
+entity "PostMongoRepository" as postmongorepository
+control "PostServiceImpl" as postserviceimpl
+boundary "PostController" as postcontroller
+boundary "PostStatusBadge / TrackingModal (UI)" as poststatusbadgetrack
+
+' === Flow ===
+creatormanager -> poststatusbadgetrack: Click "View Publishing Status" on Post card
+poststatusbadgetrack -> postcontroller: GET /api/v1/workspaces/{workspaceId}/posts/{postId}/status
+postcontroller -> postserviceimpl: getPostPublishStatus(workspaceId, postId)
+postserviceimpl -> postmongorepository: findByIdAndWorkspaceId(postId, workspaceId)
+postmongorepository --> postserviceimpl: return PostDocument (status, failReason, updatedAt, targetPlatforms)
+postserviceimpl -> postserviceimpl: mapToStepperProgress(postDoc.getStatus())
+postserviceimpl -> poststatustrackingre: new PostStatusTrackingResponse(status, currentStep, failReason, targetPlatforms, updatedAt)
+poststatustrackingre --> postserviceimpl: return trackingData
+postserviceimpl --> postcontroller: return trackingData
+postcontroller --> poststatusbadgetrack: return 200 OK (ApiResponse { data: trackingData })
+poststatusbadgetrack --> creatormanager: Render status stepper badge (Pending → In Progress → Done / Fail)
+
+@enduml

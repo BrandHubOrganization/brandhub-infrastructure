@@ -1,0 +1,63 @@
+@startuml 3.6.19 - Add Hashtag Collection
+title Sequence Diagram — 3.6.19 - Add Hashtag Collection
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "HashtagController" as hashtagcontroller
+control "HashtagService" as hashtagservice
+entity "WorkspaceRepository" as workspacerepository
+entity "WorkspaceMemberRepository" as workspacememberrepos
+entity "AgencyRepository" as agencyrepository
+entity "HashtagRepository" as hashtagrepository
+actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
+
+' === Flow ===
+hashtagservice -> hashtagservice: Validate purpose and Client-owned required scope
+hashtagservice -> hashtagservice: Normalize submitted tag
+hashtagservice -> hashtagservice: Check session, scope and add permission
+hashtagservice -> hashtagservice: Commit / rollback
+creatorclientmanager -> webdashboard: Submit tag, purpose and optional required scope
+webdashboard -> hashtagcontroller: POST /api/v1/workspaces/{workspaceId}/hashtags
+hashtagcontroller -> hashtagservice: createHashtag(user, command)
+hashtagservice -> workspacerepository: Load workspace
+workspacerepository --> hashtagservice: Workspace
+hashtagservice -> workspacememberrepos: Load membership
+workspacememberrepos --> hashtagservice: WorkspaceMember
+hashtagservice -> agencyrepository: Load agency
+agencyrepository --> hashtagservice: Agency
+hashtagservice -> hashtagrepository: Find normalized-tag match
+hashtagrepository --> hashtagservice: Hashtag
+
+loop invalid session / forbidden / unavailable resource
+  hashtagservice --> hashtagcontroller: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  hashtagcontroller --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  webdashboard --> creatorclientmanager: Display access or resource error
+end
+
+
+loop invalid input / duplicate tag
+  hashtagservice --> hashtagcontroller: 400 Bad Request / 409 Conflict
+  hashtagcontroller --> webdashboard: 400 Bad Request / 409 Conflict
+  webdashboard --> creatorclientmanager: Display validation error / HASHTAG_ALREADY_EXISTS
+end
+
+hashtagservice -> hashtagrepository: Insert unique tag and creator/time
+hashtagrepository --> hashtagservice: writeOutcome
+
+alt writeOutcome committed
+  hashtagservice --> hashtagcontroller: 201 Created
+  hashtagcontroller --> webdashboard: 201 Created
+  webdashboard --> creatorclientmanager: Display new collection entry
+else write failed or version conflict
+  webdashboard --> creatorclientmanager: Display duplicate conflict or save error
+  hashtagservice --> hashtagcontroller: 409 Conflict / 500 Internal Server Error
+  hashtagcontroller --> webdashboard: 409 Conflict / 500 Internal Server Error
+end
+
+@enduml

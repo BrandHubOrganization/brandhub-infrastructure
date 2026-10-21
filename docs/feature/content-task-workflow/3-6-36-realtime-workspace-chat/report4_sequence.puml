@@ -1,0 +1,66 @@
+@startuml 3.6.36 - Chat Realtime
+title Sequence Diagram — 3.6.36 - Chat Realtime
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "WorkspaceMember" as workspacemember
+control "ChatService" as chatservice
+entity "SimpMessagingTemplate" as simpmessagingtemplat
+entity "ChatMessageRepository" as chatmessagerepositor
+boundary "WorkspaceChatUI" as workspacechatui
+boundary "ChatController" as chatcontroller
+
+' === Flow ===
+workspacemember -> workspacechatui: navigates to workspace chat page (/workspaces/:id/chat)
+workspacechatui -> chatcontroller: GET /api/v1/workspaces/{workspaceId}/chat/messages?before=&limit=30
+chatcontroller -> chatservice: getHistory(workspaceId, userId, before, limit=30)
+chatservice -> chatmessagerepositor: findHistory(workspaceId, before, limit)
+chatmessagerepositor --> chatservice: chatSlice
+chatservice --> chatcontroller: ChatHistoryResponse
+chatcontroller --> workspacechatui: 200 OK (ChatHistoryResponse)
+workspacechatui --> workspacemember: render message history list with context chips & sender alignment
+workspacemember ->> workspacechatui: types message (content, optional context), presses Enter
+workspacechatui ->> chatcontroller: STOMP SEND /app/workspaces/{workspaceId}/chat.send (ChatSendRequest: clientMessageId, content, contextType, contextId)
+chatcontroller ->> chatservice: send(workspaceId, userId, request)
+
+alt caller is not active member in workspace
+  chatservice --> chatcontroller: throw BusinessException (403 WORKSPACE_ACCESS_DENIED)
+  workspacechatui --> workspacemember: show error toast ("Access denied to workspace chat")
+  chatcontroller --> workspacechatui: STOMP @SendToUser(/queue/chat-errors) ChatErrorResponse
+else duplicate clientMessageId detected (retry idempotency)
+  chatservice ->> chatmessagerepositor: findByWorkspaceIdAndSenderUserIdAndClientMessageId(...)
+  chatmessagerepositor --> chatservice: existingMessage
+  chatservice --> chatcontroller: ChatMessageResponse (existing)
+  chatcontroller ->> simpmessagingtemplat: convertAndSend(/topic/workspaces/{workspaceId}/chat, ChatEventResponse)
+  simpmessagingtemplat --> chatcontroller: broadcast ChatEventResponse to workspace subscribers
+  workspacechatui --> workspacemember: keep message state updated
+  chatcontroller --> workspacechatui: acknowledge
+else invalid message content or context
+  chatservice --> chatcontroller: throw BusinessException (400 CHAT_MESSAGE_INVALID)
+  chatcontroller --> workspacechatui: STOMP @SendToUser(/queue/chat-errors) ChatErrorResponse
+  workspacechatui --> workspacemember: show validation error toast
+else valid new message
+  chatmessagerepositor --> chatservice: existingMessage
+  chatservice ->> chatmessagerepositor: save(chatMessageDocument)
+  chatservice --> chatcontroller: ChatMessageResponse
+  chatcontroller ->> simpmessagingtemplat: convertAndSend(/topic/workspaces/{workspaceId}/chat, ChatEventResponse)
+  simpmessagingtemplat --> chatcontroller: broadcast ChatEventResponse to workspace subscribers
+  chatcontroller --> workspacechatui: acknowledge
+  workspacechatui --> workspacemember: keep message state updated
+end
+
+workspacemember ->> workspacechatui: views unread messages in chat viewport
+workspacechatui ->> chatcontroller: PUT /api/v1/workspaces/{workspaceId}/chat/read (MarkChatReadRequest: lastReadMessageId)
+chatcontroller ->> chatservice: markRead(workspaceId, userId, lastReadMessageId)
+chatservice ->> chatmessagerepositor: updateLastReadState(workspaceId, userId, lastReadMessageId)
+chatmessagerepositor --> chatservice: updatedState
+chatservice --> chatcontroller: void
+chatcontroller --> workspacechatui: 200 OK
+workspacechatui --> workspacemember: update unread counter badge to 0
+
+@enduml

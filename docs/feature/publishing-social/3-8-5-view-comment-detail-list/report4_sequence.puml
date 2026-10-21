@@ -1,0 +1,31 @@
+@startuml 3.8.5 - Preview Post
+title Sequence Diagram — 3.8.5 - Preview Post
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Creator / Manager" as creatormanager
+boundary "PostController" as postcontroller
+boundary "PostEditorPage (Preview Panel)" as posteditorpageprevie
+entity "PostPreviewResponse" as postpreviewresponse
+entity "PostMongoRepository" as postmongorepository
+control "PostServiceImpl" as postserviceimpl
+
+' === Flow ===
+creatormanager -> posteditorpageprevie: Select platform tab (e.g., THREADS / INSTAGRAM / TIKTOK / FB)
+posteditorpageprevie -> postcontroller: GET /api/v1/workspaces/{workspaceId}/posts/{postId}/preview?platform=?
+postcontroller -> postserviceimpl: generatePlatformPreview(workspaceId, postId, platform)
+postserviceimpl -> postmongorepository: findByIdAndWorkspaceId(postId, workspaceId)
+postmongorepository --> postserviceimpl: return PostDocument (contentText, media, hashtags)
+postserviceimpl -> postserviceimpl: validateAndTransformLayout(postDoc, platform)
+postserviceimpl -> postpreviewresponse: new PostPreviewResponse(formattedText, mediaUrls, platformLayoutRules, warnings)
+postpreviewresponse --> postserviceimpl: return previewResponse
+postserviceimpl --> postcontroller: return previewResponse
+postcontroller --> posteditorpageprevie: return 200 OK (ApiResponse { data: previewResponse })
+posteditorpageprevie --> creatormanager: Render mockup layout
+
+@enduml

@@ -1,0 +1,53 @@
+@startuml 3.2.6 - OTP Verification
+title Sequence Diagram — 3.2.6 - OTP Verification
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "ProfilePage (UI)" as profilepageui
+boundary "AuthController" as authcontroller
+control "AuthService" as authservice
+entity "UserRepository" as userrepository
+entity "RedisCache" as rediscache
+control "MailService" as mailservice
+
+' === Flow ===
+user -> profilepageui: clicks "Verify Phone / Email via OTP"
+profilepageui -> authcontroller: POST /api/v1/auth/otp/send (OtpRequest, headers: Bearer accessToken)
+authcontroller -> authservice: sendOtp(userId, target)
+authservice -> userrepository: findById(userId)
+userrepository --> authservice: Optional<User>
+authservice -> rediscache: set("otp:" + userId, otp, 5 min)
+rediscache --> authservice: ok
+authservice -> mailservice: sendOtpEmail(email, otp)
+mailservice --> authservice: ok
+authservice --> authcontroller: 200 OK
+authcontroller --> profilepageui: 200 OK
+profilepageui --> user: "OTP sent — enter it below"
+user -> profilepageui: enters OTP, clicks "Verify"
+profilepageui -> authcontroller: POST /api/v1/auth/otp/verify (OtpVerifyRequest, headers: Bearer accessToken)
+authcontroller -> authservice: verifyOtp(userId, otp)
+authservice -> rediscache: get("otp:" + userId)
+
+alt OTP invalid or expired
+  rediscache --> authservice: null / mismatch
+  authservice --> authcontroller: 400 Bad Request (OTP_INVALID)
+  authcontroller --> profilepageui: 400 Bad Request
+  profilepageui --> user: Show error "Invalid or expired OTP"
+else OTP valid
+  rediscache --> authservice: storedOtp (match)
+  authservice -> rediscache: delete("otp:" + userId)
+  rediscache --> authservice: ok
+  authservice -> userrepository: save(user with verified flag)
+  userrepository --> authservice: ok
+  authservice --> authcontroller: 200 OK
+  authcontroller --> profilepageui: 200 OK
+  profilepageui --> user: "Verified successfully"
+end
+
+@enduml

@@ -1,0 +1,62 @@
+@startuml 3.2.4 - Reset Password
+title Sequence Diagram — 3.2.4 - Reset Password
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "ForgotPasswordPage (UI)" as forgotpasswordpageui
+boundary "AuthController" as authcontroller
+control "AuthService" as authservice
+entity "UserRepository" as userrepository
+control "MailService" as mailservice
+entity "RedisCache" as rediscache
+
+' === Flow ===
+user -> forgotpasswordpageui: enters email, clicks "Send Reset Link"
+forgotpasswordpageui -> authcontroller: POST /api/v1/auth/forgot-password (email)
+authcontroller -> authservice: forgotPassword(email)
+authservice -> userrepository: findByEmail(email)
+
+alt user not found
+  userrepository --> authservice: Optional.empty()
+  authservice --> authcontroller: 200 OK (generic — no email leak)
+  authcontroller --> forgotpasswordpageui: 200 OK
+  forgotpasswordpageui --> user: "If this email exists, a reset link was sent"
+else user found
+  userrepository --> authservice: Optional<User>
+  authservice -> rediscache: set("pwd:reset:" + token, userId, 15 min)
+  rediscache --> authservice: ok
+  authservice -> mailservice: sendResetPasswordEmail(email, resetLink)
+  mailservice --> authservice: ok
+  authservice --> authcontroller: 200 OK
+  authcontroller --> forgotpasswordpageui: 200 OK
+  forgotpasswordpageui --> user: "Check your email for the reset link"
+end
+
+user -> forgotpasswordpageui: opens reset link, enters new password, clicks "Reset Password"
+forgotpasswordpageui -> authcontroller: POST /api/v1/auth/reset-password (ResetPasswordRequest)
+authcontroller -> authservice: resetPassword(token, newPassword)
+authservice -> rediscache: get("pwd:reset:" + token)
+
+alt token invalid or expired
+  rediscache --> authservice: null
+  authservice --> authcontroller: 400 Bad Request (RESET_TOKEN_INVALID)
+  authcontroller --> forgotpasswordpageui: 400 Bad Request
+  forgotpasswordpageui --> user: Show error "Reset link is invalid or expired"
+else token valid
+  rediscache --> authservice: userId
+  authservice -> userrepository: save(user with encodedNewPassword)
+  userrepository --> authservice: ok
+  authservice -> rediscache: delete("pwd:reset:" + token)
+  rediscache --> authservice: ok
+  authservice --> authcontroller: 200 OK
+  authcontroller --> forgotpasswordpageui: 200 OK
+  forgotpasswordpageui --> user: "Password reset successfully — please sign in"
+end
+
+@enduml

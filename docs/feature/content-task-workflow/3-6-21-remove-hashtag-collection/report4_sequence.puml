@@ -1,0 +1,49 @@
+@startuml 3.6.21 - Remove Hashtag Collection
+title Sequence Diagram — 3.6.21 - Remove Hashtag Collection
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "HashtagController" as hashtagcontroller
+control "HashtagService" as hashtagservice
+entity "WorkspaceRepository" as workspacerepository
+entity "HashtagRepository" as hashtagrepository
+actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
+
+' === Flow ===
+hashtagservice -> hashtagservice: Check removal rights, version and required-tag policy
+creatorclientmanager -> webdashboard: Select Remove hashtag
+webdashboard --> creatorclientmanager: Display warning and current scope
+creatorclientmanager -> webdashboard: Confirm removal
+webdashboard -> hashtagcontroller: DELETE /api/v1/workspaces/{workspaceId}/hashtags/{hashtagId}
+hashtagcontroller -> hashtagservice: removeHashtag(user, command)
+hashtagservice -> workspacerepository: Load workspace access
+workspacerepository --> hashtagservice: Workspace
+hashtagservice -> hashtagrepository: Load hashtag and required scope
+hashtagrepository --> hashtagservice: Hashtag
+
+loop invalid access / policy violation / conflict
+  hashtagservice --> hashtagcontroller: 403 Forbidden / 404 Not Found / 409 Conflict
+  hashtagcontroller --> webdashboard: 403 Forbidden / 404 Not Found / 409 Conflict
+  webdashboard --> creatorclientmanager: Display access or conflict error
+end
+
+hashtagservice -> hashtagrepository: Soft-remove hashtag entry
+hashtagrepository --> hashtagservice: writeOutcome
+
+alt writeOutcome committed
+  hashtagservice --> hashtagcontroller: 204 No Content
+  hashtagcontroller --> webdashboard: 204 No Content
+  webdashboard --> creatorclientmanager: Display entry removed from collection
+else write failed or version conflict
+  hashtagservice --> hashtagcontroller: 409 Conflict / 500 Internal Server Error
+  hashtagcontroller --> webdashboard: 409 Conflict / 500 Internal Server Error
+  webdashboard --> creatorclientmanager: Display save error; retain previous values
+end
+
+@enduml

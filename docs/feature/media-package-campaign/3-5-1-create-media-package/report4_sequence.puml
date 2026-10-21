@@ -1,0 +1,63 @@
+@startuml 3.5.1 - Create Media Package
+title Sequence Diagram — 3.5.1 - Create Media Package
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "AgencyOwner" as agencyowner
+entity "AgencyRepository" as agencyrepository
+entity "MediaPackageRepository" as mediapackagereposito
+control "MediaPackageService" as mediapackageservice
+boundary "MediaPackageController" as mediapackagecontroll
+boundary "MediaPackageUI" as mediapackageui
+
+' === Flow ===
+agencyowner -> mediapackageui: clicks "Browse Templates" or opens package catalog
+mediapackageui -> mediapackagecontroll: GET /api/v1/media-package-templates
+mediapackagecontroll -> mediapackageservice: listTemplates()
+mediapackageservice -> mediapackagereposito: findAllByIsTemplateTrueOrderByCreatedAtAsc()
+mediapackagereposito --> mediapackageservice: templatePackages
+mediapackageservice --> mediapackagecontroll: List<MediaPackageResponse>
+mediapackagecontroll --> mediapackageui: 200 OK (templatePackages)
+mediapackageui --> agencyowner: render global template cards
+agencyowner ->> mediapackageui: fills package form (name, type, durationWeeks/budget, scope, optional sourceTemplateId) & submits
+mediapackageui ->> mediapackagecontroll: POST /api/v1/agencies/{agencyId}/media-package-custom (CreateCustomMediaPackageRequest)
+mediapackagecontroll ->> mediapackageservice: createCustomPackage(agencyId, currentUser, request)
+mediapackageservice ->> agencyrepository: findById(agencyId)
+agencyrepository ->> mediapackageservice: agency
+
+alt caller is not agency owner and not authorized manager
+  mediapackageservice --> mediapackagecontroll: throw BusinessException (403 NOT_AGENCY_OWNER)
+  mediapackagecontroll --> mediapackageui: 403 Forbidden (NOT_AGENCY_OWNER)
+  mediapackageui --> agencyowner: show error toast ('Access denied: Agency Owner role required')
+else source template not a system template
+  mediapackageservice ->> mediapackagereposito: findById(sourceTemplateId)
+  mediapackagereposito --> mediapackageservice: nonTemplatePackage (isTemplate=false)
+  mediapackageservice --> mediapackagecontroll: throw BusinessException (400 MEDIA_PACKAGE_TEMPLATE_REQUIRED)
+  mediapackagecontroll --> mediapackageui: 400 Bad Request (MEDIA_PACKAGE_TEMPLATE_REQUIRED)
+  mediapackageui --> agencyowner: show validation error ('Source package must be a system template')
+else invalid definition (missing required duration or budget)
+  mediapackageservice --> mediapackagecontroll: throw BusinessException (400 INVALID_MEDIA_PACKAGE_CONFIGURATION)
+  mediapackagecontroll --> mediapackageui: 400 Bad Request (INVALID_MEDIA_PACKAGE_CONFIGURATION)
+  mediapackageui --> agencyowner: show validation error ('Duration or budget is required based on type')
+end
+
+
+opt sourceTemplateId is present
+  mediapackageservice ->> mediapackagereposito: findById(sourceTemplateId)
+  mediapackagereposito --> mediapackageservice: sourceTemplate (isTemplate=true)
+end
+
+else valid custom package definition
+  mediapackageservice ->> mediapackagereposito: save(mediaPackage)
+  mediapackagereposito --> mediapackageservice: savedMediaPackage
+  mediapackageservice --> mediapackagecontroll: MediaPackageResponse
+  mediapackagecontroll --> mediapackageui: 201 Created (MediaPackageResponse)
+  mediapackageui --> agencyowner: show success toast & display new package in Agency catalogue
+end
+
+@enduml

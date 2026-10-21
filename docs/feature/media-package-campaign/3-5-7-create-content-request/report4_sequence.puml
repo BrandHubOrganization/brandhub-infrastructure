@@ -1,0 +1,43 @@
+@startuml 3.5.7 - Create Content Request
+title Sequence Diagram — 3.5.7 - Create Content Request
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "ContentRequestRepository" as contentrequestreposi
+control "ContentRequestService" as contentrequestservic
+boundary "ContentRequestController" as contentrequestcontro
+boundary "CreateContentRequestModal (UI)" as createcontentrequest
+actor "Client" as client
+
+' === Flow ===
+client -> createcontentrequest: enters title, description, type (POST|LIVESTREAM|SURVEY), dueDate & clicks "Submit Request"
+createcontentrequest -> contentrequestcontro: POST /api/v1/workspaces/{workspaceId}/content-requests (CreateContentRequestPayload, headers: Bearer accessToken)
+contentrequestservic -> contentrequestservic: validateWorkspaceClient(workspaceId, userId)
+else payload valid & client authorized
+  contentrequestservic -> contentrequestservic: buildContentRequest(workspaceId, userId, payload)
+end
+
+contentrequestcontro -> contentrequestservic: createContentRequest(workspaceId, userId, payload)
+
+alt caller is not authorized workspace Client
+  contentrequestservic --> contentrequestcontro: throw AccessDeniedException (403 Forbidden)
+  contentrequestcontro --> createcontentrequest: 403 Forbidden (WORKSPACE_ACCESS_DENIED)
+  createcontentrequest --> client: show error toast ('Access denied: Only workspace clients can create content requests')
+else payload validation failed (missing title, invalid type, or past due date)
+  contentrequestservic --> contentrequestcontro: throw ValidationException (400 Bad Request)
+  contentrequestcontro --> createcontentrequest: 400 Bad Request (INVALID_CONTENT_REQUEST_PAYLOAD)
+  createcontentrequest --> client: display field error messages ('Invalid payload: check required fields and due date')
+else payload valid & client authorized
+  contentrequestservic ->> contentrequestreposi: save(contentRequest)
+  contentrequestreposi --> contentrequestservic: savedRequest
+  contentrequestservic --> contentrequestcontro: ContentRequestResponse (id, workspaceId, title, type, dueDate, status=PENDING, createdAt)
+  contentrequestcontro --> createcontentrequest: 201 Created (ContentRequestResponse)
+  createcontentrequest --> client: show success toast ('Content request submitted as PENDING') & refresh request list
+end
+
+@enduml

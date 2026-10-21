@@ -1,0 +1,35 @@
+@startuml 3.8.3 - View Post Dashboard
+title Sequence Diagram — 3.8.3 - View Post Dashboard
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+boundary "PostDashboardResponse" as postdashboardrespons
+entity "PostMongoRepository" as postmongorepository
+control "PostServiceImpl" as postserviceimpl
+boundary "PostController" as postcontroller
+boundary "PostDashboardPage (UI)" as postdashboardpageui
+actor "«Actor»
+Member / Manager" as actormembermanager
+
+' === Flow ===
+actormembermanager -> postdashboardpageui: Navigate to "Post Dashboard" menu
+postdashboardpageui -> postcontroller: GET /api/v1/workspaces/{workspaceId}/posts/dashboard
+postcontroller -> postserviceimpl: 3: getDashboardMetrics(workspaceId)
+postserviceimpl -> postmongorepository: countByWorkspaceIdAndStatus(workspaceId, 'PUBLISHED')
+postmongorepository --> postserviceimpl: return totalPublishedCount
+postserviceimpl -> postmongorepository: aggregateByPlatform(workspaceId)
+postmongorepository --> postserviceimpl: return platformBreakdownMap
+postserviceimpl -> postmongorepository: calculatePublishSuccessRate(workspaceId)
+postmongorepository --> postserviceimpl: return successRatePercentage
+postserviceimpl -> postdashboardrespons: new PostDashboardResponse(totalPublishedCount, platformBreakdownMap, successRatePercentage)
+postdashboardrespons --> postserviceimpl: return dashboardData
+postserviceimpl --> postcontroller: return dashboardData
+postcontroller --> postdashboardpageui: return 200 OK (ApiResponse { data: dashboardData })
+postdashboardpageui --> actormembermanager: Render overview KPI cards, charts, and platform breakdown
+
+@enduml

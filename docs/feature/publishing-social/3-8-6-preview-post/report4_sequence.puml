@@ -1,0 +1,40 @@
+@startuml 3.8.6 - Schedule Platform Post
+title Sequence Diagram — 3.8.6 - Schedule Platform Post
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Creator / Manager" as creatormanager
+entity "PostScheduleResponse" as postscheduleresponse
+control "PostServiceImpl" as postserviceimpl
+boundary "PostController" as postcontroller
+entity "PostMongoRepository" as postmongorepository
+boundary "SchedulePostModal / Calendar (UI)" as schedulepostmodalcal
+
+' === Flow ===
+creatormanager -> schedulepostmodalcal: Select channels & set scheduledAt
+schedulepostmodalcal -> postcontroller: POST /api/v1/workspaces/{workspaceId}/posts/{postId}/schedule (targetPlatforms, scheduledAt)
+postcontroller -> postserviceimpl: schedulePost(workspaceId, postId, targetPlatforms, scheduledAt)
+postserviceimpl -> postmongorepository: findByIdAndWorkspaceId(postId, workspaceId)
+postmongorepository --> postserviceimpl: return PostDocument
+
+alt ScheduledAt is in the past / invalid
+  postserviceimpl --> postcontroller: throw BusinessException (SCHEDULE_IN_PAST / 400)
+  postcontroller --> schedulepostmodalcal: return 400 Bad Request
+  schedulepostmodalcal --> creatormanager: return Error Response (HTTP 400/401/Timeout)
+else Valid Schedule Parameters
+  postserviceimpl -> postserviceimpl: postDoc.setStatus('SCHEDULED') postDoc.setScheduledAt(scheduledAt) postDoc.setTargetPlatforms(targetPlatforms)
+  postserviceimpl -> postmongorepository: save(postDoc)
+  postmongorepository --> postserviceimpl: return savedPostDoc
+  postserviceimpl -> postscheduleresponse: new PostScheduleResponse(savedPostDoc)
+  postscheduleresponse --> postserviceimpl: return scheduleResponse
+  postserviceimpl --> postcontroller: return scheduleResponse
+  postcontroller --> schedulepostmodalcal: return 200 OK (ApiResponse { data: scheduleResponse })
+  schedulepostmodalcal -> creatormanager: Display scheduled post badge on Calendar View
+end
+
+@enduml

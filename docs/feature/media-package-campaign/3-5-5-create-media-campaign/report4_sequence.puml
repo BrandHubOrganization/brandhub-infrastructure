@@ -1,0 +1,69 @@
+@startuml 3.5.5 - Create Media Campaign
+title Sequence Diagram — 3.5.5 - Create Media Campaign
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "MediaPackageRepository" as mediapackagereposito
+entity "WorkspaceMediaPackageRepository" as workspacemediapackag
+control "MediaPackageService" as mediapackageservice
+boundary "MediaCampaignController" as mediacampaigncontrol
+boundary "MediaCampaignUI" as mediacampaignui
+actor "Manager" as manager
+
+' === Flow ===
+else valid draft campaign payload
+  mediapackageservice -> mediapackageservice: initCampaign(status: DRAFT, contentVersion: 1, workItems)
+end
+
+manager -> mediacampaignui: fills campaign form (name, strategyDetail, brandGuideline, timeline, workItems JSONB) & submits
+mediacampaignui -> mediacampaigncontrol: POST /api/v1/media-campaigns (CreateMediaCampaignRequest)
+mediapackageservice -> workspacemediapackag: findById(request.workspaceMediaPackageId)
+workspacemediapackag --> mediapackageservice: workspacePackage
+mediacampaigncontrol -> mediapackageservice: createCampaign(currentUser, request)
+
+alt workspace package not found
+  mediapackageservice --> mediacampaigncontrol: throw BusinessException (404 WORKSPACE_PACKAGE_NOT_FOUND)
+  mediacampaigncontrol --> mediacampaignui: 404 Not Found (WORKSPACE_PACKAGE_NOT_FOUND)
+  mediacampaignui --> manager: show error toast ('Workspace package not found')
+else package negotiation status != APPROVED
+  mediapackageservice --> mediacampaigncontrol: throw BusinessException (400 PACKAGE_NOT_APPROVED)
+  mediacampaigncontrol --> mediacampaignui: 400 Bad Request (PACKAGE_NOT_APPROVED)
+  mediacampaignui --> manager: show error toast ('Cannot create campaign from unapproved package')
+else caller lacks Agency Manager or Owner role in workspace
+  mediapackageservice --> mediacampaigncontrol: throw BusinessException (403 WORKSPACE_ACCESS_DENIED)
+  mediacampaigncontrol --> mediacampaignui: 403 Forbidden (WORKSPACE_ACCESS_DENIED)
+  mediacampaignui --> manager: show error toast ('Access denied: Manager or Owner role required')
+else invalid workItems structure (missing stable id, type, name, or dueDate)
+  mediapackageservice --> mediacampaigncontrol: throw BusinessException (400 INVALID_WORK_ITEMS)
+  mediacampaigncontrol --> mediacampaignui: 400 Bad Request (INVALID_WORK_ITEMS)
+  mediacampaignui --> manager: show validation error ('Each work item must contain id, name, type POST|LIVESTREAM|SURVEY, and dueDate')
+else valid draft campaign payload
+  mediapackageservice ->> mediapackagereposito: save(mediaCampaign)
+  mediapackagereposito --> mediapackageservice: savedCampaign
+  mediapackageservice --> mediacampaigncontrol: MediaCampaignResponse
+  mediacampaigncontrol --> mediacampaignui: 201 Created (MediaCampaignResponse)
+  mediacampaignui --> manager: show success toast & display new Campaign in workspace list
+end
+
+manager ->> mediacampaignui: clicks campaign card or opens campaign detail view
+mediacampaignui ->> mediacampaigncontrol: GET /api/v1/media-campaigns/{campaignId}
+mediacampaigncontrol ->> mediapackageservice: getCampaign(campaignId)
+mediapackageservice ->> mediapackagereposito: findById(campaignId)
+mediapackagereposito --> mediapackageservice: mediaCampaign
+
+alt campaign not found
+  mediapackageservice --> mediacampaigncontrol: throw BusinessException (404 CAMPAIGN_NOT_FOUND)
+  mediacampaigncontrol --> mediacampaignui: 404 Not Found (CAMPAIGN_NOT_FOUND)
+  mediacampaignui --> manager: show error toast ('Campaign not found')
+else campaign found
+  mediapackageservice --> mediacampaigncontrol: MediaCampaignResponse
+  mediacampaigncontrol --> mediacampaignui: 200 OK (MediaCampaignResponse)
+  mediacampaignui --> manager: render campaign overview, workItems timeline & approval status
+end
+
+@enduml

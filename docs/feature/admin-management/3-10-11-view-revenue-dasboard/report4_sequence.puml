@@ -1,0 +1,31 @@
+@startuml 3.10.11 - View revenue metrics and receipts
+title Sequence Diagram — 3.10.11 - View revenue metrics and receipts
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Admin" as admin
+boundary "AdminRevenuePanel (UI)" as adminrevenuepanelui
+boundary "AdminRevenueController" as adminrevenuecontroll
+control "AdminRevenueService" as adminrevenueservice
+control "AdminAccountService" as adminaccountservice
+entity "RevenueTransactionRepository" as revenuetransactionre
+
+' === Flow ===
+admin -> adminrevenuepanelui: Select reporting period and filters
+adminrevenuepanelui -> adminrevenuecontroll: GET /api/v1/admin/revenue(period, timezone)
+adminrevenuecontroll -> adminaccountservice: requireAdmin(actorId)
+adminaccountservice --> adminrevenuecontroll: 200 OK (ADMIN verified)
+adminrevenuecontroll -> adminrevenueservice: getRevenueMetrics(period, timezone)
+adminrevenueservice -> revenuetransactionre: findRevenueTransactions(period)
+revenuetransactionre --> adminrevenueservice: return transactionsList
+adminrevenueservice -> adminrevenueservice: calculateRevenueKPIs(transactionsList)
+adminrevenueservice --> adminrevenuecontroll: return RevenueMetricsResponse
+adminrevenuecontroll --> adminrevenuepanelui: 200 OK (RevenueMetricsResponse)
+adminrevenuepanelui --> admin: Display revenue KPIs, charts and ledger
+
+@enduml

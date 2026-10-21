@@ -1,0 +1,38 @@
+@startuml 3.7.2 - Generate captions with AI
+title Sequence Diagram — 3.7.2 - Generate captions with AI
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "ContentEditorPage (UI)" as contenteditorpageui
+boundary "AiFeatureController" as aifeaturecontroller
+control "AiCaptionService" as aicaptionservice
+entity "PostRepository" as postrepository
+control "AiServiceClient" as aiserviceclient
+
+' === Flow ===
+user -> contenteditorpageui: selects post, clicks "Generate Caption with AI"
+contenteditorpageui -> aifeaturecontroller: POST /api/v1/ai/captions/generate (GenerateCaptionRequest)
+aifeaturecontroller -> aicaptionservice: generateCaption(userId, request)
+aicaptionservice -> postrepository: findById(postId)
+
+alt post not found
+  postrepository --> aicaptionservice: Optional.empty()
+  aicaptionservice --> aifeaturecontroller: 404 Not Found (POST_NOT_FOUND)
+  aifeaturecontroller --> contenteditorpageui: 404 Not Found
+  contenteditorpageui --> user: Show error "Post not found"
+else post found
+  postrepository --> aicaptionservice: Optional<Post>
+  aicaptionservice -> aiserviceclient: POST /ai/generate-caption (topic, tone, platform)
+  aiserviceclient --> aicaptionservice: GeneratedCaption(text, hashtags)
+  aicaptionservice --> aifeaturecontroller: AiCaptionResponse(caption, hashtags)
+  aifeaturecontroller --> contenteditorpageui: 200 OK (AiCaptionResponse)
+  contenteditorpageui --> user: Display AI-generated caption with hashtags
+end
+
+@enduml

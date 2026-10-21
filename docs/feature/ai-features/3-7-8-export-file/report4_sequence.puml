@@ -1,0 +1,48 @@
+@startuml 3.7.8 - Export File
+title Sequence Diagram — 3.7.8 - Export File
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "AiAssetController" as aiassetcontroller
+control "AiAssetService" as aiassetservice
+entity "WorkspaceRepository" as workspacerepository
+entity "GeneratedAssetRepository" as generatedassetreposi
+entity "S3 storage + converter" as s3storageconverter
+actor "CREATOR" as creator
+
+' === Flow ===
+aiassetservice -> aiassetservice: Validate access, permissions and format compatibility
+creator -> webdashboard: Choose asset and export format
+webdashboard -> aiassetcontroller: GET /api/v1/ai/assets/{assetId}/export?format={format}
+aiassetcontroller -> aiassetservice: exportAsset(user, command)
+aiassetservice -> workspacerepository: Load workspace access
+workspacerepository --> aiassetservice: Workspace
+aiassetservice -> generatedassetreposi: Load asset metadata
+generatedassetreposi --> aiassetservice: GeneratedAsset
+
+loop invalid access / incompatible format / unavailable resource
+  aiassetservice --> aiassetcontroller: 400 Bad Request / 403 Forbidden / 404 Not Found
+  aiassetcontroller --> webdashboard: 400 Bad Request / 403 Forbidden / 404 Not Found
+  webdashboard --> creator: Display access or format error
+end
+
+aiassetservice -> s3storageconverter: Read source bytes and convert format
+s3storageconverter --> aiassetservice: exportOutcome
+
+alt export or conversion failed
+  aiassetservice --> aiassetcontroller: 503 Service Unavailable
+  aiassetcontroller --> webdashboard: 503 Service Unavailable
+  webdashboard --> creator: Display export error
+else export completed
+  aiassetservice --> aiassetcontroller: 200 OK
+  aiassetcontroller --> webdashboard: 200 OK
+  webdashboard --> creator: Display export download started
+end
+
+@enduml

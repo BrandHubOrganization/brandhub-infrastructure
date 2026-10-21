@@ -1,0 +1,66 @@
+@startuml 3.6.33 - Check Compliance Content
+title Sequence Diagram — 3.6.33 - Check Compliance Content
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "ContentCheckController" as contentcheckcontroll
+control "ContentCheckService" as contentcheckservice
+entity "WorkspaceRepository" as workspacerepository
+entity "WorkspaceMemberRepository" as workspacememberrepos
+entity "AgencyRepository" as agencyrepository
+entity "Hive API" as hiveapi
+entity "ContentCheckResultRepository" as contentcheckresultre
+actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
+
+' === Flow ===
+contentcheckservice -> contentcheckservice: Check content / conditional AI access
+contentcheckservice -> contentcheckservice: Check input and provider coverage
+creatorclientmanager -> webdashboard: Check Compliance for selected content version
+webdashboard -> contentcheckcontroll: POST /api/v1/workspaces/{workspaceId}/tasks/{taskId}/compliance-check
+contentcheckcontroll -> contentcheckservice: checkCompliance(user, command)
+contentcheckservice -> workspacerepository: Load workspace
+workspacerepository --> contentcheckservice: Workspace
+contentcheckservice -> workspacememberrepos: Load membership
+workspacememberrepos --> contentcheckservice: WorkspaceMember
+contentcheckservice -> agencyrepository: Load agency
+agencyrepository --> contentcheckservice: Agency
+
+loop invalid session / forbidden / unavailable resource
+  contentcheckservice --> contentcheckcontroll: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  contentcheckcontroll --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  webdashboard --> creatorclientmanager: Display access or resource error
+end
+
+
+loop no supported input / integration not configured
+  contentcheckservice --> contentcheckcontroll: 400 Bad Request / 503 Service Unavailable
+  contentcheckcontroll --> webdashboard: 400 Bad Request / 503 Service Unavailable
+  webdashboard --> creatorclientmanager: Display unavailable or unsupported check
+end
+
+contentcheckservice -> hiveapi: Check supported text/images [provider proposed]
+hiveapi --> contentcheckservice: per-part issues, coverage or errors
+
+opt Evidence retention approved
+  contentcheckservice -> contentcheckresultre: Save versioned check evidence
+  contentcheckresultre --> contentcheckservice: checkTrace
+end
+
+
+alt provider failure or incomplete coverage
+  contentcheckservice --> contentcheckcontroll: 503 Service Unavailable
+  contentcheckcontroll --> webdashboard: 503 Service Unavailable
+  webdashboard --> creatorclientmanager: Display partial / unavailable report; Retry
+else completed check
+  contentcheckservice --> contentcheckcontroll: 200 OK
+  contentcheckcontroll --> webdashboard: 200 OK
+  webdashboard --> creatorclientmanager: Display versioned compliance report
+end
+
+@enduml

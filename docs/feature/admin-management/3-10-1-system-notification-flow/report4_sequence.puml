@@ -1,0 +1,37 @@
+@startuml 3.10.1 - System notification flow
+title Sequence Diagram — 3.10.1 - System notification flow
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "System/Event" as systemevent
+boundary "NotificationController" as notificationcontroll
+control "NotificationService" as notificationservice
+entity "NotificationRepository" as notificationreposito
+entity "UserRepository" as userrepository
+control "WebSocketService" as websocketservice
+
+' === Flow ===
+systemevent -> notificationcontroll: POST /api/v1/notifications/send (NotificationRequest)
+notificationcontroll -> notificationservice: sendNotification(request)
+notificationservice -> userrepository: findById(targetUserId)
+
+alt user not found
+  userrepository --> notificationservice: Optional.empty()
+  notificationservice --> notificationcontroll: 404 Not Found (USER_NOT_FOUND)
+  notificationcontroll --> systemevent: 404 Not Found
+else user found
+  userrepository --> notificationservice: Optional<User>
+  notificationservice -> notificationreposito: save(newNotification)
+  notificationreposito --> notificationservice: savedNotification
+  notificationservice -> websocketservice: push(targetUserId, notificationPayload)
+  websocketservice --> notificationservice: delivered
+  notificationservice --> notificationcontroll: 200 OK (NotificationResponse)
+  notificationcontroll --> systemevent: 200 OK
+end
+
+@enduml

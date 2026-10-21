@@ -1,0 +1,54 @@
+@startuml 3.6.16 - Download Material
+title Sequence Diagram — 3.6.16 - Download Material
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "MaterialController" as materialcontroller
+control "MaterialService" as materialservice
+entity "WorkspaceRepository" as workspacerepository
+entity "WorkspaceMemberRepository" as workspacememberrepos
+entity "AgencyRepository" as agencyrepository
+entity "MaterialRepository" as materialrepository
+entity "S3 storage" as s3storage
+actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
+
+' === Flow ===
+materialservice -> materialservice: Check session, scope and workspace download permission
+creatorclientmanager -> webdashboard: Download selected material
+webdashboard -> materialcontroller: GET /api/v1/workspaces/{workspaceId}/materials/{materialId}/download
+materialcontroller -> materialservice: downloadMaterial(user, command)
+materialservice -> workspacerepository: Load workspace
+workspacerepository --> materialservice: Workspace
+materialservice -> workspacememberrepos: Load membership
+workspacememberrepos --> materialservice: WorkspaceMember
+materialservice -> agencyrepository: Load agency
+agencyrepository --> materialservice: Agency
+materialservice -> materialrepository: Load READY, non-deleted material
+materialrepository --> materialservice: Material
+
+loop invalid session / forbidden / unavailable resource
+  materialservice --> materialcontroller: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  materialcontroller --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  webdashboard --> creatorclientmanager: Display access or resource error
+end
+
+materialservice -> s3storage: Read exact selected object from S3
+s3storage --> materialservice: file stream / storage error
+
+alt storage unavailable
+  materialservice --> materialcontroller: 503 Service Unavailable
+  materialcontroller --> webdashboard: 503 Service Unavailable
+  webdashboard --> creatorclientmanager: Display download error; retry
+else file available
+  materialservice --> materialcontroller: 200 OK
+  materialcontroller --> webdashboard: 200 OK
+  webdashboard --> creatorclientmanager: Display download started; browser receives selected file
+end
+
+@enduml

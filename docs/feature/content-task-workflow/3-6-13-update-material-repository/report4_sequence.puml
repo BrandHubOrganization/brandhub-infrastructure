@@ -1,0 +1,47 @@
+@startuml 3.6.13 - Update Material Repository
+title Sequence Diagram — 3.6.13 - Update Material Repository
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "MaterialController" as materialcontroller
+control "MaterialService" as materialservice
+entity "WorkspaceRepository" as workspacerepository
+entity "MaterialRepository" as materialrepository
+actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
+
+' === Flow ===
+materialservice -> materialservice: Validate session, rights, allowed fields and expectedVersion
+creatorclientmanager -> webdashboard: Save edited type/note
+webdashboard -> materialcontroller: PATCH /api/v1/workspaces/{workspaceId}/materials/{materialId}
+materialcontroller -> materialservice: updateMaterial(user, command)
+materialservice -> workspacerepository: Load workspace access
+workspacerepository --> materialservice: Workspace
+materialservice -> materialrepository: Load material and version
+materialrepository --> materialservice: Material
+
+loop invalid access / validation error / conflict
+  materialservice --> materialcontroller: 400 Bad Request / 403 Forbidden / 409 Conflict
+  materialcontroller --> webdashboard: 400 Bad Request / 403 Forbidden / 409 Conflict
+  webdashboard --> creatorclientmanager: Display save error; retain previous values
+end
+
+materialservice -> materialrepository: Save edited metadata with version check
+materialrepository --> materialservice: writeOutcome
+
+alt writeOutcome committed
+  materialservice --> materialcontroller: 200 OK
+  materialcontroller --> webdashboard: 200 OK
+  webdashboard --> creatorclientmanager: Display updated material
+else write failed or version conflict
+  materialservice --> materialcontroller: 409 Conflict / 500 Internal Server Error
+  materialcontroller --> webdashboard: 409 Conflict / 500 Internal Server Error
+  webdashboard --> creatorclientmanager: Display validation or conflict error
+end
+
+@enduml

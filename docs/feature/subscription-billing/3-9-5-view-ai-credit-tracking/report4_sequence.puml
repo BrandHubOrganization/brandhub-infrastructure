@@ -1,0 +1,69 @@
+@startuml 3.9.5 - View AI Credit Tracking
+title Sequence Diagram — 3.9.5 - View AI Credit Tracking
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "BillingController" as billingcontroller
+control "BillingService" as billingservice
+entity "AgencyRepository" as agencyrepository
+entity "WorkspaceMemberRepository" as workspacememberrepos
+entity "AiCreditEntryRepository" as aicreditentryreposit
+entity "AiCreditWorkspaceLimitRepository" as aicreditworkspacelim
+entity "AiCreditAccountRepository" as aicreditaccountrepos
+actor "USER (self) / OWNER (managed
+Agency)" as userselfownermanaged
+
+' === Flow ===
+billingservice -> billingservice: Check session, scope and self scope / Agency OWNER
+billingservice -> billingservice: Validate period and permitted Workspace/Creator filters
+billingservice -> billingservice: Resolve authenticated self scope
+billingservice -> billingservice: Build usageOutcome
+userselfownermanaged -> webdashboard: Select month and permitted usage scope
+webdashboard -> billingcontroller: GET /api/v1/billing/credits/usage
+billingcontroller -> billingservice: getCreditUsage(user, query)
+
+opt Agency / workspace scope
+  billingservice -> agencyrepository: Load owned agency
+  agencyrepository --> billingservice: Agency
+  billingservice -> workspacememberrepos: Load scoped membership
+  workspacememberrepos --> billingservice: WorkspaceMember
+end
+
+
+loop invalid session / forbidden / unavailable resource
+  billingservice --> billingcontroller: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  billingcontroller --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  webdashboard --> userselfownermanaged: Display access or resource error
+end
+
+
+loop invalid period / unauthorized filter
+  billingservice --> billingcontroller: 400 Bad Request / 403 Forbidden
+  billingcontroller --> webdashboard: 400 Bad Request / 403 Forbidden
+  webdashboard --> userselfownermanaged: Display validation or scope error
+end
+
+billingservice -> aicreditentryreposit: Aggregate committed usage
+aicreditentryreposit --> billingservice: usage
+billingservice -> aicreditworkspacelim: Load workspace limit
+aicreditworkspacelim --> billingservice: limit
+billingservice -> aicreditaccountrepos: Load balance and reservations
+aicreditaccountrepos --> billingservice: balance / reserved
+
+alt query failed
+  billingservice --> billingcontroller: 500 Internal Server Error
+  billingcontroller --> webdashboard: 500 Internal Server Error
+  webdashboard --> userselfownermanaged: Display load error; do not show zero usage
+else query succeeded
+  billingservice --> billingcontroller: 200 OK
+  billingcontroller --> webdashboard: 200 OK
+  webdashboard --> userselfownermanaged: Display usage, limit, balance and reserved
+end
+
+@enduml

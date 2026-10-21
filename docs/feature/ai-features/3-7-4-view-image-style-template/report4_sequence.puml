@@ -1,0 +1,52 @@
+@startuml 3.7.4 - View Image Style Template
+title Sequence Diagram — 3.7.4 - View Image Style Template
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+control "AiServiceClient" as aiserviceclient
+entity "AiMicroservice" as aimicroservice
+boundary "AiGenerationController" as aigenerationcontroll
+boundary "ImageGeneratorUI" as imagegeneratorui
+actor "Creator" as creator
+
+' === Flow ===
+imagegeneratorui -> aigenerationcontroll: GET /api/v1/ai/image-style-templates?category={category}
+creator -> imagegeneratorui: opens generator studio & browses style gallery (filters by category: food, cosmetics, fashion, tech, living)
+aigenerationcontroll -> aiserviceclient: get("/api/v1/ai/templates?category=" + category)
+aiserviceclient -> aimicroservice: GET /api/v1/ai/templates?category={category} (header: X-Internal-Key)
+
+alt templates retrieved successfully
+  aimicroservice --> aiserviceclient: 200 OK (TemplateListResponse: master templates catalog, thumbnails, presets)
+  aiserviceclient --> aigenerationcontroll: JsonNode (templates)
+  aigenerationcontroll --> imagegeneratorui: 200 OK (List<ImageStyleTemplateResponse>)
+  imagegeneratorui --> creator: render style template cards (thumbnail preview, category badge, sample prompt, aspect ratio)
+else AI microservice unavailable or timeout
+  aimicroservice --> aiserviceclient: 503 Service Unavailable / Connection Timeout
+  aiserviceclient --> aigenerationcontroll: throw AiServiceException (503 SERVICE_UNAVAILABLE)
+  aigenerationcontroll --> imagegeneratorui: 503 Service Unavailable (AI_SERVICE_UNAVAILABLE)
+  imagegeneratorui --> creator: show error toast ('Unable to load style templates, please retry')
+end
+
+creator ->> imagegeneratorui: selects template card (e.g. 'Traditional Vietnamese Iced Coffee')
+aigenerationcontroll ->> aiserviceclient: get("/api/v1/ai/templates/" + templateId)
+imagegeneratorui ->> aigenerationcontroll: GET /api/v1/ai/image-style-templates/{templateId}
+aiserviceclient ->> aimicroservice: GET /api/v1/ai/templates/{templateId} (header: X-Internal-Key)
+
+alt template found
+  aimicroservice --> aiserviceclient: 200 OK (PromptTemplate: style tokens, recommended CFG, steps, aspect ratio)
+  aiserviceclient --> aigenerationcontroll: JsonNode (template detail)
+  aigenerationcontroll --> imagegeneratorui: 200 OK (ImageStyleTemplateDetailResponse)
+  imagegeneratorui --> creator: apply template settings to form (base prompt, style preset, recommended aspect ratio & camera angle)
+else template not found
+  aimicroservice --> aiserviceclient: 404 Not Found (detail: 'Template not found')
+  aiserviceclient --> aigenerationcontroll: throw AiServiceException (404 NOT_FOUND)
+  aigenerationcontroll --> imagegeneratorui: 404 Not Found (TEMPLATE_NOT_FOUND)
+  imagegeneratorui --> creator: show error toast ('Style template not found')
+end
+
+@enduml

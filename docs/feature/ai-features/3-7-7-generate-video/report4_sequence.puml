@@ -1,0 +1,41 @@
+@startuml 3.7.7 - Generate video with AI
+title Sequence Diagram — 3.7.7 - Generate video with AI
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "ContentEditorPage (UI)" as contenteditorpageui
+boundary "AiFeatureController" as aifeaturecontroller
+control "AiVideoService" as aivideoservice
+entity "PostRepository" as postrepository
+control "AiServiceClient" as aiserviceclient
+control "MediaStorageService" as mediastorageservice
+
+' === Flow ===
+user -> contenteditorpageui: configures video prompt & settings, clicks "Generate Video"
+contenteditorpageui -> aifeaturecontroller: POST /api/v1/ai/videos/generate (GenerateVideoRequest)
+aifeaturecontroller -> aivideoservice: generateVideo(userId, request)
+aivideoservice -> postrepository: findById(postId)
+
+alt post not found
+  postrepository --> aivideoservice: Optional.empty()
+  aivideoservice --> aifeaturecontroller: 404 Not Found (POST_NOT_FOUND)
+  aifeaturecontroller --> contenteditorpageui: 404 Not Found
+  contenteditorpageui --> user: Show error "Post not found"
+else post found
+  postrepository --> aivideoservice: Optional<Post>
+  aivideoservice -> aiserviceclient: POST /ai/generate-video (prompt, duration, style)
+  aiserviceclient --> aivideoservice: GeneratedVideoResult(videoUrl, durationSecs)
+  aivideoservice -> mediastorageservice: storeGeneratedAsset(videoUrl, userId)
+  mediastorageservice --> aivideoservice: assetId
+  aivideoservice --> aifeaturecontroller: AiVideoResponse(assetId, previewUrl)
+  aifeaturecontroller --> contenteditorpageui: 200 OK (AiVideoResponse)
+  contenteditorpageui --> user: Display video preview, option to attach to post
+end
+
+@enduml

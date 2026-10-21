@@ -1,0 +1,55 @@
+@startuml 3.2.9 - Deactivate Account
+title Sequence Diagram — 3.2.9 - Deactivate Account
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "RedisCache" as rediscache
+entity "AgencyRepository" as agencyrepository
+entity "UserRepository" as userrepository
+control "AuthService" as authservice
+boundary "AuthController" as authcontroller
+boundary "DangerZoneModal (UI)" as dangerzonemodalui
+actor "Guest" as guest
+
+' === Flow ===
+guest -> dangerzonemodalui: enters password/OTP & clicks "Confirm Deactivation"
+else no active agency owned
+  authcontroller -> authcontroller: clearCookie("refreshToken", path="/api/v1/auth")
+  dangerzonemodalui -> dangerzonemodalui: clearClientSession()
+end
+
+dangerzonemodalui -> authcontroller: POST /api/v1/auth/deactivate (DeactivateRequest(password, otpCode), headers: Bearer token, Cookie: refreshToken)
+authcontroller -> authservice: deactivate(password, otpCode, accessToken, refreshToken)
+authservice -> userrepository: findById(userId)
+userrepository --> authservice: user
+
+alt wrong password or invalid/expired OTP
+  authservice --> authcontroller: throw BusinessException (400 Bad Request)
+  authcontroller --> dangerzonemodalui: 400 Bad Request (WRONG_CURRENT_PASSWORD / OTP_INVALID)
+  dangerzonemodalui --> guest: show error toast ('Verification failed: invalid credentials or OTP')
+else verification successful
+  authservice ->> agencyrepository: findByOwnerId(userId)
+  agencyrepository --> authservice: agencies
+end
+
+
+alt owns active agency (BR-23 Active Agency Guard)
+  authservice --> authcontroller: throw AGENCY_OWNERSHIP_ACTIVE (409)
+  authcontroller --> dangerzonemodalui: 409 Conflict (AGENCY_OWNERSHIP_ACTIVE)
+  dangerzonemodalui --> guest: show error modal ('Cannot deactivate: transfer active agency ownership first')
+else no active agency owned
+  authservice ->> userrepository: updateStatus(userId, DEACTIVATED)
+  userrepository --> authservice: updatedUser
+  authservice ->> rediscache: blacklistTokens(accessToken, refreshToken)
+  rediscache --> authservice: ok
+  authservice --> authcontroller: void
+  authcontroller --> dangerzonemodalui: 200 OK
+  dangerzonemodalui --> guest: redirectToLoginPage ('Account deactivated successfully')
+end
+
+@enduml

@@ -1,0 +1,55 @@
+@startuml 3.7.5 - Generate Image
+title Sequence Diagram — 3.7.5 - Generate Image
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "AiCreditLedgerRepository" as aicreditledgerreposi
+boundary "AiGenerationController" as aigenerationcontroll
+boundary "ImageGeneratorUI" as imagegeneratorui
+entity "AiMicroservice" as aimicroservice
+control "AiServiceClient" as aiserviceclient
+actor "Creator" as creator
+
+' === Flow ===
+creator -> imagegeneratorui: configures prompt, selects Ambassador model (FR 3.7.3), reference assets, style template (FR 3.7.4) & clicks "Generate Image"
+imagegeneratorui -> aigenerationcontroll: POST /api/v1/ai/generate-image (prompt, ambassadorId, referenceAssetIds, styleTemplateId, aspectRatio)
+aigenerationcontroll -> aicreditledgerreposi: findByAgencyIdAndMonth(agencyId, currentMonth)
+aicreditledgerreposi --> aigenerationcontroll: creditLedger (usedAmount, monthlyLimit)
+
+alt insufficient credits (usedAmount >= monthlyLimit)
+  aigenerationcontroll --> imagegeneratorui: 402 Payment Required (INSUFFICIENT_AI_CREDIT)
+  imagegeneratorui --> creator: show error dialog ('Insufficient AI credits, please contact Agency Manager')
+else credits available (usedAmount < monthlyLimit)
+  aiserviceclient ->> aimicroservice: POST /api/v2/ai/image/commercial/generate (prompt, ambassador, referenceImages, stylePreset, LoRA, tenantContext)
+  aigenerationcontroll ->> aiserviceclient: post("/api/v2/ai/image/commercial/generate", enrichedRequest)
+end
+
+
+alt prompt policy violation (sensitive / restricted keywords)
+  aimicroservice --> aiserviceclient: 400 Bad Request (PROMPT_REJECTED: policy violation)
+  aiserviceclient --> aigenerationcontroll: throw AiServiceException (400 PROMPT_REJECTED)
+  aigenerationcontroll --> imagegeneratorui: 400 Bad Request (PROMPT_REJECTED)
+  imagegeneratorui --> creator: show error toast ('Prompt rejected: content violates safety policy')
+end
+
+
+alt GPU inference engine unavailable or timeout
+  aimicroservice --> aiserviceclient: 503 Service Unavailable / GPU Out of Memory
+  aiserviceclient --> aigenerationcontroll: throw AiServiceException (503 SERVICE_UNAVAILABLE)
+  aigenerationcontroll --> imagegeneratorui: 503 Service Unavailable (GPU_ENGINE_UNAVAILABLE)
+  imagegeneratorui --> creator: show error toast ('AI generation service temporarily unavailable, 0 credits billed')
+else image generated successfully
+  aimicroservice --> aiserviceclient: 200 OK (CommercialGenerateResponse: imageUrl, s3Key, seedUsed, inferenceTimeMs)
+  aiserviceclient --> aigenerationcontroll: JsonNode (generationResult)
+  aigenerationcontroll ->> aicreditledgerreposi: save(creditLedger with usedAmount = usedAmount + 1)
+  aicreditledgerreposi --> aigenerationcontroll: savedLedger
+  aigenerationcontroll --> imagegeneratorui: 200 OK (imageUrl, creditsUsed=1, remainingCredits)
+  imagegeneratorui --> creator: display generated commercial image preview with LoRA details & update credit counter
+end
+
+@enduml

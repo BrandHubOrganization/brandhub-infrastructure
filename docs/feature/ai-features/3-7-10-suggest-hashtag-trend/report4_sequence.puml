@@ -1,0 +1,46 @@
+@startuml 3.7.10 - Suggest Hashtag Trend
+title Sequence Diagram — 3.7.10 - Suggest Hashtag Trend
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "AiHashtagController" as aihashtagcontroller
+control "AiHashtagService" as aihashtagservice
+entity "WorkspaceRepository" as workspacerepository
+entity "AI service
+Internal API" as aiserviceinternalapi
+actor "OWNER / MANAGER / CREATOR" as ownermanagercreator
+
+' === Flow ===
+aihashtagservice -> aihashtagservice: Validate topic, AI access and quota
+ownermanagercreator -> webdashboard: Request suggestions for content/topic
+webdashboard -> aihashtagcontroller: POST /api/v1/ai/suggest-hashtags
+aihashtagcontroller -> aihashtagservice: suggestHashtags(user, command)
+aihashtagservice -> workspacerepository: Load workspace access
+workspacerepository --> aihashtagservice: Workspace
+
+loop invalid access / validation error / insufficient quota
+  aihashtagservice --> aihashtagcontroller: 400 Bad Request / 401 Unauthorized / 403 Forbidden
+  aihashtagcontroller --> webdashboard: 400 Bad Request / 401 Unauthorized / 403 Forbidden
+  webdashboard --> ownermanagercreator: Display access or validation error
+end
+
+aihashtagservice -> aiserviceinternalapi: Request hashtag suggestions
+aiserviceinternalapi --> aihashtagservice: suggestionsOutcome
+
+alt AI service unavailable or failed
+  aihashtagservice --> aihashtagcontroller: 503 Service Unavailable
+  aihashtagcontroller --> webdashboard: 503 Service Unavailable
+  webdashboard --> ownermanagercreator: Display suggestion failure
+else suggestions available
+  aihashtagservice --> aihashtagcontroller: 200 OK
+  aihashtagcontroller --> webdashboard: 200 OK
+  webdashboard --> ownermanagercreator: Display suggestions with trend evidence
+end
+
+@enduml

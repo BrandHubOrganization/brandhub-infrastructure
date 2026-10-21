@@ -1,0 +1,40 @@
+@startuml 3.2.1 - Sign Up
+title Sequence Diagram — 3.2.1 - Sign Up
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "RegisterPage (UI)" as registerpageui
+boundary "AuthController" as authcontroller
+control "AuthService" as authservice
+entity "UserRepository" as userrepository
+control "MailService" as mailservice
+
+' === Flow ===
+user -> registerpageui: fills in full name, email & password, clicks "Create Account"
+registerpageui -> authcontroller: POST /api/v1/auth/register (RegisterRequest)
+authcontroller -> authservice: register(request)
+authservice -> userrepository: existsByEmail(email)
+
+alt email already registered
+  userrepository --> authservice: true
+  authservice --> authcontroller: 409 Conflict (EMAIL_ALREADY_IN_USE)
+  authcontroller --> registerpageui: 409 Conflict (EMAIL_ALREADY_IN_USE)
+  registerpageui --> user: Show error "Email already in use"
+else email available
+  userrepository --> authservice: false
+  authservice -> userrepository: save(newUser)
+  userrepository --> authservice: savedUser
+  authservice -> mailservice: sendVerificationEmail(email, verifyToken)
+  mailservice --> authservice: ok
+  authservice --> authcontroller: RegisterResponse(userId, email)
+  authcontroller --> registerpageui: 201 Created (RegisterResponse)
+  registerpageui --> user: "Account created — check your email to verify"
+end
+
+@enduml
