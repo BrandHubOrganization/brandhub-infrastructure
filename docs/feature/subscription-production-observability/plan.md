@@ -1,0 +1,9 @@
+# Plan
+
+Gateway WebFilter owns correlation before route/auth; correct existing LoggingGlobalFilter userid/requestid mixup and preserve sanitized error response header. Business OncePerRequestFilter wraps normalized request header, scopes MDC with cleanup, records bounded route/status metrics and safe logs. Use existing service version config and expose X-Request-Id through CORS. Instrument committed billing outcomes with transaction synchronization, preserving constructor/test compatibility.
+
+Add expand-only versioned SQL migration: subscription operational issues, job lease/cursor, provider-check timestamps; indexes and constraints. All data is observability state, not financial source of truth. Default background enabled=false until migration/config rollout. Properties centralize interval/batch/grace/provider limits. Store findings and resolve per successfully checked subject, never globally from a partial scan. Use prepared JDBC, stable fingerprint and typed DTO records. Read local financial snapshot in REPEATABLE_READ; lease guards concurrent jobs without holding a connection across provider calls. Existing SePayTransactionClient handles account/code/time filtering; no new provider write API.
+
+Separate issue store, local reconciliation reader, provider reconciler, coordinator/job, admin controller. Reuse fresh-admin authorization service. SePay reads limited and outside transaction; last-check order keeps fairness, failure/backoff leaves findings untouched. Emit safe logs and bounded metrics. Collector opt-in subscriptionCritical target flag; track failures/recovery independently of ingestion. Node remains existing monitoring runtime; payment code/tests stay Java.
+
+Docs/migration/config examples in infrastructure feature and affected repos. No public UI, real Slack/email delivery, live migrations/deployment or Git commit.
