@@ -17,7 +17,7 @@ Nguồn chuẩn là file Word `khongpush_gihub_MCP/Report/FR_3.10_Admin_Manageme
 | 3.10.11 | Doanh thu | MRR/ARR chuẩn hóa thuê bao; tách thu gộp/hoàn/ròng; AI Credit không vào MRR; UTC/VN. |
 | 3.10.12 | PDF | Đồng bộ strike, trạng thái, công thức tiền và múi giờ; giữ A4, link 24 giờ và audit. |
 
-FR **3.10.3 System Health Monitoring** thuộc Tuấn, không sửa Word section, ba file feature hay `docs/feature/system-health`. FR 3.10.10 vốn không có trong tài liệu, không thêm hoặc đánh lại số. Giữ cấu trúc 8 phần của Report 3, mẫu UC của spec và checklist của task.md.
+FR **3.10.3 System Health Monitoring** thuộc Tuấn, không sửa Word section, ba file feature hay `docs/feature/admin-management/system-health`. FR 3.10.10 vốn không có trong tài liệu, không thêm hoặc đánh lại số. Giữ cấu trúc 8 phần của Report 3, mẫu UC của spec và checklist của task.md.
 
 ## Quyết định dùng chung
 

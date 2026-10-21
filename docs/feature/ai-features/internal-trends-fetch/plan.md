@@ -31,7 +31,7 @@ GET redis  trends:{platform}:{region}
 | `brandhub-ai-service/app/api/v1/endpoints/internal_trends.py` | **Tạo mới** — router + logic endpoint |
 | `brandhub-ai-service/app/main.py` | Thêm 1 dòng `app.include_router(internal_trends.router, prefix="/internal/ai/trends", ...)` |
 | `brandhub-ai-service/tests/unit/api/test_internal_trends_fetch.py` | **Tạo mới** — pytest |
-| `brandhub-infrastructure/docs/feature/internal-trends-fetch/*` | 4 doc |
+| `brandhub-infrastructure/docs/feature/ai-features/internal-trends-fetch/*` | 4 doc |
 
 **Không sửa**: `config.py`, `clients.py`, `security.py`, `router.py` — tái dùng nguyên trạng.
 
