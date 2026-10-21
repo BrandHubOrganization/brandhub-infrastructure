@@ -1,0 +1,3 @@
+Kiểm chứng static duplicate menu; revenue hiển thị InvoiceHistory admin gồm agency filter và drawer; invoice vẫn hiển thị khi KPI lỗi; old URL redirect; owner route giữ nguyên. Chạy tsc/eslint/build; không tạo test trong src theo AGENTS. Reuse primitives/theme và khóa dịch hiện tại nên không thêm i18n.
+
+Kết quả 21/10/2026: type-check PASS; ESLint 4 file thay đổi PASS không warnings; build PASS (cảnh báo bundle/import có sẵn); diff-check PASS. Browser thật đã xác nhận sidebar không còn history, /admin?view=revenue hiển thị invoice từ API, Chi tiết mở drawer đơn completed và biên nhận. Legacy /admin/invoices redirect về revenue. Không đổi owner/API, không commit. Bộ lọc thống kê doanh thu và bộ lọc invoice là độc lập, dùng API hiện có.
