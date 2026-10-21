@@ -258,3 +258,17 @@ Căn cứ trang `/workspaces/:workspaceId/ai/trends`:
 - **Kiến trúc & Service Contract:** `docs/architecture/business-ai-rest-contract.md` (Endpoint `GET /internal/ai/trending`); `docs/architecture/service-boundaries.md`.
 - **Hiện trạng Codebase:** `brandhub-ai-service/app/api/v1/endpoints/trends.py` (`GET /api/v1/ai/trends`), `brandhub-ai-service/app/services/trend_cache_service.py` (Redis ZSET Caching `trends:vn:*`), `brandhub-ai-service/app/services/trend_pipeline.py` (Pipeline steps T1–T7), `brandhub-ai-service/app/services/pipeline/steps/t6_graph_step.py`, `brandhub-ai-service/app/services/pipeline/steps/t7_fusion_step.py`.
 - **Mã thông báo & Quy tắc:** `Section5_Requirement_Appendix.md` (Quy ước mã lỗi `MSG-AI-xx`, quy tắc phân quyền `BR-AI-xx`).
+
+> Ghi chú triển khai local theo mốc thời gian dưới đây; phần này ghi lại hiện trạng, không thay thế các yêu cầu target spec ở trên.
+
+06-ai-features.md](../../../BA/06-ai-features.md)
+
+## Bổ sung khi thiết kế kỹ thuật (2026-10-05)
+
+- API thực tế: `GET /api/v1/ai/trending-topics?period=6h|24h|7d&topic=&limit=1..100` →
+  `{ items: [{ id, rank, keyword, score, virality, dailyCounts, topic, status, mood, emotion, brandRisk, crossTopic, keywords, sources, samplePosts }], topics: [..], crawl: { intervalMinutes, cron, pageCount, sources, nextRunAt } | null }`.
+  Dữ liệu từ Redis ZSET do pipeline AI-05 (T0→T7) ghi; cache rỗng → `items: []` (empty state, không lỗi).
+- Filter lĩnh vực = `topic` (T3) có trong dữ liệu; nguồn crawl hiển thị từ cấu hình FR 3.7.9 (`crawl`), vì T7 không điền `source_distribution`.
+- Route thực tế: `/ai-studio/trends` (AI Studio cấp agency, quyền MANAGER/CREATOR theo `routes/access.ts`).
+- **i18n:** namespace `aiStudio.trends.*` (period, topicFilter, allTopics, refresh, empty, emptyHint, score, virality, risk.*, mood.*, status.*, superTrend, dailyPosts, copyKeyword, copied, copyError, crawl.*) — thêm song song `vi/aiStudio.json` và `en/aiStudio.json`.
+- **Light/Dark:** chỉ dùng token theme (`bg-card`, `text-muted-foreground`, `bg-brand-orange`) và màu trạng thái có biến thể `dark:`.
