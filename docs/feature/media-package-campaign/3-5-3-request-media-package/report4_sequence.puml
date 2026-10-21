@@ -1,0 +1,40 @@
+@startuml 3.5.3 - Request Media Package
+title Sequence Diagram — 3.5.3 - Request Media Package
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "MediaPackagePage (UI)" as mediapackagepageui
+boundary "MediaPackageController" as mediapackagecontroll
+control "MediaPackageService" as mediapackageservice
+entity "MediaPackageRepository" as mediapackagereposito
+entity "CampaignRepository" as campaignrepository
+
+' === Flow ===
+user -> mediapackagepageui: selects campaign & media package, clicks "Request"
+mediapackagepageui -> mediapackagecontroll: POST /api/v1/media-packages/request (RequestMediaPackageRequest)
+mediapackagecontroll -> mediapackageservice: requestMediaPackage(userId, request)
+mediapackageservice -> campaignrepository: findById(campaignId)
+
+alt campaign not found
+  campaignrepository --> mediapackageservice: Optional.empty()
+  mediapackageservice --> mediapackagecontroll: 404 Not Found (CAMPAIGN_NOT_FOUND)
+  mediapackagecontroll --> mediapackagepageui: 404 Not Found
+  mediapackagepageui --> user: Show error "Campaign not found"
+else campaign found
+  campaignrepository --> mediapackageservice: Optional<Campaign>
+  mediapackageservice -> mediapackagereposito: existsByUserIdAndCampaignIdAndStatus(userId, campaignId, PENDING)
+  mediapackagereposito --> mediapackageservice: false
+  mediapackageservice -> mediapackagereposito: save(newMediaPackageRequest)
+  mediapackagereposito --> mediapackageservice: savedRequest
+  mediapackageservice --> mediapackagecontroll: MediaPackageResponse(requestId, status=PENDING)
+  mediapackagecontroll --> mediapackagepageui: 201 Created (MediaPackageResponse)
+  mediapackagepageui --> user: "Media package requested — awaiting approval"
+end
+
+@enduml

@@ -1,0 +1,57 @@
+@startuml 3.6.1 - Identify Task Detail
+title Sequence Diagram — 3.6.1 - Identify Task Detail
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+control "TaskService" as taskservice
+boundary "TaskController" as taskcontroller
+boundary "TaskDetailUI" as taskdetailui
+entity "TaskRepository" as taskrepository
+actor "Manager" as manager
+
+' === Flow ===
+manager -> taskdetailui: navigates to task detail page (/workspaces/:id/tasks/:taskId/detail)
+taskdetailui -> taskcontroller: GET /api/v1/workspaces/{workspaceId}/tasks/{taskId}
+
+opt task originated from Campaign or Content Request
+  taskservice -> taskservice: preserve or append original request context
+end
+
+taskcontroller -> taskservice: getTask(workspaceId, taskId)
+taskservice -> taskrepository: findByIdAndWorkspaceId(taskId, workspaceId)
+taskrepository --> taskservice: task
+taskservice --> taskcontroller: TaskResponse
+taskcontroller --> taskdetailui: 200 OK (TaskResponse)
+taskdetailui --> manager: render task form (fields based on task.type: Post/Livestream/Survey)
+manager ->> taskdetailui: fills description, dueDate, typeSpecificFields & clicks "Save Details"
+taskdetailui ->> taskcontroller: PATCH /api/v1/workspaces/{workspaceId}/tasks/{taskId}/detail (IdentifyTaskDetailRequest)
+taskcontroller ->> taskservice: identifyTaskDetail(workspaceId, taskId, currentUser, request)
+taskservice ->> taskrepository: findByIdAndWorkspaceId(taskId, workspaceId)
+taskrepository --> taskservice: task
+
+alt caller is not manager of workspace
+  taskservice --> taskcontroller: throw BusinessException (403 FORBIDDEN)
+  taskcontroller --> taskdetailui: 403 Forbidden
+  taskdetailui --> manager: show access denied error toast
+else task not in BACKLOG status
+  taskservice --> taskcontroller: throw BusinessException (409 TASK_NOT_IN_BACKLOG)
+  taskcontroller --> taskdetailui: 409 Conflict
+  taskdetailui --> manager: show error alert ("Task must be in BACKLOG status")
+else invalid detail input (missing dueDate or required type fields)
+  taskservice --> taskcontroller: throw BusinessException (400 BAD_REQUEST)
+  taskcontroller --> taskdetailui: 400 Bad Request
+  taskdetailui --> manager: display form validation errors
+else valid task detail update
+  taskservice ->> taskrepository: save(task with updated details and status=DETAIL_IDENTIFIED)
+  taskrepository --> taskservice: updatedTask
+  taskservice --> taskcontroller: TaskResponse (status=DETAIL_IDENTIFIED)
+  taskcontroller --> taskdetailui: 200 OK (TaskResponse)
+  taskdetailui --> manager: show success toast & update status badge to DETAIL_IDENTIFIED
+end
+
+@enduml

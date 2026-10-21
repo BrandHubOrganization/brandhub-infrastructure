@@ -1,0 +1,129 @@
+@startuml 3.6.9 - Approval Sequence (Creator -> Manager -> Client)
+title Sequence Diagram — 3.6.9 - Approval Sequence (Creator -> Manager -> Client)
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Creator (Author)" as creatorauthor
+entity "TaskRepository" as taskrepository
+control "TaskApprovalServiceImpl" as taskapprovalservicei
+boundary "TaskApprovalController" as taskapprovalcontroll
+boundary "TaskDetailPage (UI)" as taskdetailpageui
+actor "Creator (QC Reviewer)" as creatorqcreviewer
+actor "Manager (Agency)" as manageragency
+entity "TaskApprovalRepository" as taskapprovalreposito
+actor "Client (Brand)" as clientbrand
+
+' --- Section: 3.6.9.1 - Creator Submit for Review ---
+creatorauthor -> taskdetailpageui: Click "Submit for Review"
+taskdetailpageui -> taskapprovalcontroll: Request submit task for review
+taskapprovalcontroll -> taskapprovalservicei: submitTask(workspaceId, taskId, creatorUser)
+taskapprovalservicei -> taskrepository: findTask(taskId)
+taskrepository --> taskapprovalservicei: return Optional<Task>
+
+alt Task Not Found
+  taskapprovalservicei --> taskapprovalcontroll: throw TASK_NOT_FOUND (404 Not Found)
+  taskapprovalcontroll --> taskdetailpageui: return 404 Not Found (Task not found in workspace)
+  taskdetailpageui --> creatorauthor: Display error: "Task not found"
+else Task Found
+  taskapprovalservicei -> taskapprovalservicei: determineFirstReviewStep(task)
+  taskapprovalservicei -> taskrepository: updateStatus(taskId, nextStatus)
+  taskrepository --> taskapprovalservicei: return OK
+  taskapprovalservicei --> taskapprovalcontroll: return OK
+  taskapprovalcontroll --> taskdetailpageui: 200 OK (status=nextStatus)
+  taskdetailpageui --> creatorauthor: Update Stepper: Wait to change for accept by QC or Manager
+end
+
+' --- Section: 3.6.9.2 - QC Review ---
+
+alt QC Rejects Work (Quality criteria not met)
+  creatorqcreviewer -> taskdetailpageui: Click "Reject" & enter feedback
+  taskdetailpageui -> taskapprovalcontroll: Request reject review (reason)
+  taskapprovalcontroll -> taskapprovalservicei: rejectStep(taskId, "QC", reason)
+  taskapprovalservicei -> taskapprovalreposito: recordApprovalAction(taskId, "QC", "REJECTED", reason)
+  taskapprovalreposito --> taskapprovalservicei: return OK
+  taskapprovalservicei -> taskrepository: updateStatus(taskId, 'ASSIGNED')
+  taskrepository --> taskapprovalservicei: return 200 OK
+  taskapprovalservicei --> taskapprovalcontroll: return taskResponse
+  taskapprovalcontroll --> taskdetailpageui: return 200 OK (Task reverted to ASSIGNED for revision)
+  taskdetailpageui --> creatorauthor: Notify Creator: QC rejected, revisions required
+else QC Approves Work (Initial quality standards met)
+  creatorqcreviewer -> taskdetailpageui: Click "Approve Quality Check"
+  taskdetailpageui -> taskapprovalcontroll: Request approve review ("QC")
+  taskapprovalcontroll -> taskapprovalservicei: return taskResponse
+  taskapprovalservicei -> taskapprovalreposito: recordApprovalAction(taskId, "QC", "APPROVED")
+  taskapprovalreposito --> taskapprovalservicei: return OK
+  taskapprovalservicei -> taskrepository: updateStatus(taskId, 'MANAGER_REVIEW')
+  taskrepository --> taskapprovalservicei: return 200 OK
+  taskapprovalservicei --> taskapprovalcontroll: return taskResponse
+  taskapprovalcontroll --> taskdetailpageui: return 200 OK (QC passed, moved to MANAGER_REVIEW)
+  taskdetailpageui --> manageragency: Update stepper: Pending Manager review
+end
+
+' --- Section: 3.6.9.3 - Manager Review ---
+
+alt Manager Rejects Task (Content rejection)
+  manageragency -> taskdetailpageui: Click "Reject" & enter reason ("Brand alignment mismatch")
+  taskdetailpageui -> taskapprovalcontroll: Request reject review (reason)
+  taskapprovalcontroll -> taskapprovalservicei: rejectStep(taskId, "MANAGER", reason)
+  taskapprovalservicei -> taskapprovalreposito: recordApprovalAction(taskId, "MANAGER", "REJECTED", reason)
+  taskapprovalreposito --> taskapprovalservicei: return 200 OK
+  taskapprovalservicei -> taskrepository: updateStatus(taskId, 'ASSIGNED')
+  taskrepository --> taskapprovalservicei: return OK
+  taskapprovalservicei --> taskapprovalcontroll: return taskResponse
+  taskapprovalcontroll --> taskdetailpageui: return 200 OK (Task reverted to ASSIGNED for revision)
+  taskdetailpageui --> creatorauthor: Notify Creator: Manager rejected, reverted to ASSIGNED
+else Manager Approves Task (Content approved)
+  manageragency -> taskdetailpageui: Click "Approve Task"
+  taskdetailpageui -> taskapprovalcontroll: Request approve review ("MANAGER")
+  taskapprovalcontroll -> taskapprovalservicei: approveStep(taskId, "MANAGER")
+  taskapprovalservicei -> taskapprovalreposito: recordApprovalAction(taskId, "MANAGER", "APPROVED")
+  taskapprovalreposito --> taskapprovalservicei: return 200 OK
+end
+
+
+alt Client Approval Required (requiresClientApproval = true)
+  taskapprovalservicei -> taskrepository: updateStatus(taskId, 'CLIENT_REVIEW')
+  taskrepository --> taskapprovalservicei: return OK
+  taskapprovalservicei --> taskapprovalcontroll: return taskResponse
+  taskapprovalcontroll --> taskdetailpageui: return 200 OK (Manager approved, moved to CLIENT_REVIEW)
+  taskdetailpageui --> clientbrand: Notify Client: Pending Client approval
+else Direct Completion (requiresClientApproval = false)
+  taskapprovalservicei -> taskrepository: updateStatus(taskId, 'COMPLETED')
+  taskrepository --> taskapprovalservicei: return OK
+  taskapprovalservicei --> taskapprovalcontroll: return taskResponse
+  taskapprovalcontroll --> taskdetailpageui: return 200 OK (Task completed, ready for publishing)
+  taskdetailpageui --> manageragency: Stepper displays: "Completed - Ready for Publishing"
+end
+
+' --- Section: 3.6.9.4 - Client Review ---
+
+alt Click \
+  clientbrand -> taskdetailpageui: Click "Reject" & enter client feedback
+  taskdetailpageui -> taskapprovalcontroll: Request reject review (reason)
+  taskapprovalcontroll -> taskapprovalservicei: rejectStep(taskId, "CLIENT", reason)
+  taskapprovalservicei -> taskapprovalreposito: recordApprovalAction(taskId, "CLIENT", "REJECTED", reason)
+  taskapprovalreposito --> taskapprovalservicei: return OK
+  taskapprovalservicei -> taskrepository: updateStatus(taskId, 'ASSIGNED')
+  taskrepository --> taskapprovalservicei: return 200 OK
+  taskapprovalservicei --> taskapprovalcontroll: return taskResponse
+  taskapprovalcontroll --> taskdetailpageui: return 200 OK (Task reverted to ASSIGNED for revision)
+  taskdetailpageui --> creatorauthor: Notify Creator: Client rejected, task reverted to ASSIGNED
+else Client Approves Task (Final client acceptance)
+  clientbrand -> taskdetailpageui: Click "Final Approve"
+  taskdetailpageui -> taskapprovalcontroll: Request approve review ("CLIENT")
+  taskapprovalcontroll -> taskapprovalservicei: approveStep(taskId, "CLIENT")
+  taskapprovalservicei -> taskapprovalreposito: recordApprovalAction(taskId, "CLIENT", "APPROVED")
+  taskapprovalreposito --> taskapprovalservicei: return 200 OK
+  taskapprovalservicei -> taskrepository: updateStatus(taskId, 'COMPLETED')
+  taskrepository --> taskapprovalservicei: return OK
+  taskapprovalservicei --> taskapprovalcontroll: return taskResponse
+  taskapprovalcontroll --> taskdetailpageui: return 200 OK (Final approval granted, task COMPLETED)
+  taskdetailpageui --> clientbrand: Stepper displays: "Completed - Ready for Publishing"
+end
+
+@enduml

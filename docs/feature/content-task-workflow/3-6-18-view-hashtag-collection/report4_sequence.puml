@@ -1,0 +1,51 @@
+@startuml 3.6.18 - View Hashtag Collection
+title Sequence Diagram — 3.6.18 - View Hashtag Collection
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "HashtagController" as hashtagcontroller
+control "HashtagService" as hashtagservice
+entity "WorkspaceRepository" as workspacerepository
+entity "WorkspaceMemberRepository" as workspacememberrepos
+entity "AgencyRepository" as agencyrepository
+entity "HashtagRepository" as hashtagrepository
+actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
+
+' === Flow ===
+hashtagservice -> hashtagservice: Check session, scope and collection view permission
+creatorclientmanager -> webdashboard: Open Hashtag Collection / change filters
+webdashboard -> hashtagcontroller: GET /api/v1/workspaces/{workspaceId}/hashtags
+hashtagcontroller -> hashtagservice: listHashtags(user, query)
+hashtagservice -> workspacerepository: Load workspace
+workspacerepository --> hashtagservice: Workspace
+hashtagservice -> workspacememberrepos: Load membership
+workspacememberrepos --> hashtagservice: WorkspaceMember
+hashtagservice -> agencyrepository: Load agency
+agencyrepository --> hashtagservice: Agency
+
+loop invalid session / forbidden / unavailable resource
+  hashtagservice --> hashtagcontroller: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  hashtagcontroller --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  webdashboard --> creatorclientmanager: Display access or resource error
+end
+
+hashtagservice -> hashtagrepository: Query active tags with paging/search
+hashtagrepository --> hashtagservice: entries
+
+alt query failed
+  hashtagservice --> hashtagcontroller: 500 Internal Server Error
+  hashtagcontroller --> webdashboard: 500 Internal Server Error
+  webdashboard --> creatorclientmanager: Display load error with Retry
+else query succeeded
+  hashtagservice --> hashtagcontroller: 200 OK
+  hashtagcontroller --> webdashboard: 200 OK
+  webdashboard --> creatorclientmanager: Display tag details / empty list
+end
+
+@enduml

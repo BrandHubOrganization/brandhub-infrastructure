@@ -1,0 +1,43 @@
+@startuml 3.6.26 - View Survey Analysis
+title Sequence Diagram — 3.6.26 - View Survey Analysis
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Creator / Client / Manager" as creatorclientmanager
+entity "SurveyResponseRepository" as surveyresponsereposi
+control "SurveyTaskServiceImpl" as surveytaskserviceimp
+entity "SurveyAnalysisResponse" as surveyanalysisrespon
+entity "SurveyRepository" as surveyrepository
+boundary "SurveyTaskController" as surveytaskcontroller
+boundary "SurveyAnalysisDashboard (UI)" as surveyanalysisdashbo
+
+' === Flow ===
+creatorclientmanager -> surveyanalysisdashbo: Select "Survey Analysis" tab on Task Details
+surveyanalysisdashbo -> surveytaskcontroller: GET /api/v1/workspaces/{wId}/tasks/{taskId}/survey/analysis
+surveytaskcontroller -> surveytaskserviceimp: getSurveyAnalysis(workspaceId, taskId)
+surveytaskserviceimp -> surveyrepository: findByTaskId(taskId)
+surveyrepository --> surveytaskserviceimp: return Survey
+surveytaskserviceimp -> surveyresponsereposi: findBySurveyId(survey.getId())
+surveyresponsereposi --> surveytaskserviceimp: return List Survey
+
+alt No Responses Submitted Yet 
+  surveytaskserviceimp -> surveyanalysisrespon: toEmptyAnalysisResponse(survey)
+  surveyanalysisrespon --> surveytaskserviceimp: return emptyAnalysis
+  surveytaskserviceimp --> surveytaskcontroller: return emptyAnalysis
+  surveytaskcontroller --> surveyanalysisdashbo: return 200 OK (Empty count, zero statistics)
+  surveyanalysisdashbo --> creatorclientmanager: Display empty state ("No survey responses collected yet") with public link CTA
+else Responses Present
+  surveytaskserviceimp -> surveytaskserviceimp: aggregateMetrics(survey.getQuestions(), responses)
+  surveytaskserviceimp -> surveyanalysisrespon: toSurveyAnalysisResponse(survey, aggregatedMetrics)
+  surveyanalysisrespon --> surveytaskserviceimp: return analysisResponse
+  surveytaskserviceimp --> surveytaskcontroller: return analysisResponse
+  surveytaskcontroller --> surveyanalysisdashbo: return 200 OK (Aggregated metrics, question breakdowns, chart datasets)
+  surveyanalysisdashbo --> creatorclientmanager: Render visual charts (Bar/Pie charts, average ratings, response volume summary)
+end
+
+@enduml

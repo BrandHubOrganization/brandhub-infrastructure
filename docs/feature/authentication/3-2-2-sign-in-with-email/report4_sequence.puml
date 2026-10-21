@@ -1,0 +1,38 @@
+@startuml 3.2.2 - Sign In With Email
+title Sequence Diagram — 3.2.2 - Sign In With Email
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "LoginPage (UI)" as loginpageui
+boundary "AuthController" as authcontroller
+control "AuthService" as authservice
+entity "UserRepository" as userrepository
+entity "RedisCache" as rediscache
+
+' === Flow ===
+user -> loginpageui: enters email & password, clicks "Sign In"
+loginpageui -> authcontroller: POST /api/v1/auth/login (LoginRequest)
+authcontroller -> authservice: login(request)
+authservice -> userrepository: findByEmail(email)
+
+alt user not found or wrong password
+  userrepository --> authservice: Optional.empty() / password mismatch
+  authservice --> authcontroller: 401 Unauthorized (INVALID_CREDENTIALS)
+  authcontroller --> loginpageui: 401 Unauthorized
+  loginpageui --> user: Show error "Invalid email or password"
+else credentials valid
+  userrepository --> authservice: Optional<User>
+  authservice -> rediscache: set("refresh:" + userId, refreshToken, TTL)
+  rediscache --> authservice: ok
+  authservice --> authcontroller: LoginResponse(accessToken, refreshToken)
+  authcontroller --> loginpageui: 200 OK (LoginResponse)
+  loginpageui --> user: redirect to Dashboard
+end
+
+@enduml

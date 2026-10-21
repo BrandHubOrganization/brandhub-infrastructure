@@ -1,0 +1,77 @@
+@startuml 3.8.8 - Publish Facebook Post
+title Sequence Diagram — 3.8.8 - Publish Facebook Post
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+control "FacebookPublishAdapter (Publisher Service)" as facebookpublishadapt
+entity "RabbitMQ (brandhub.publishing)" as rabbitmqbrandhubpubl
+control "PublishCallbackConsumer (Business Service)" as publishcallbackconsu
+entity "Meta Graph API (Facebook)" as metagraphapifacebook
+control "FacebookPublishServiceImpl (Publisher Service)" as facebookpublishservi
+control "PublishJobConsumer (Publisher Service)" as publishjobconsumerpu
+control "PostMongoRepository (Business Service)" as postmongorepositoryb
+control "SchedulerServiceImpl (Business Service)" as schedulerserviceimpl
+actor "Scheduler (Job)" as schedulerjob
+
+' === Flow ===
+schedulerjob -> schedulerserviceimpl: triggerEveryMinute()
+schedulerserviceimpl -> postmongorepositoryb: findScheduledPosts(scheduledAt <= NOW(), status='SCHEDULED')
+postmongorepositoryb --> schedulerserviceimpl: return List<PostDocument>
+
+break For each scheduled Post
+  schedulerserviceimpl -> postmongorepositoryb: updateStatus(postId, 'IN_PROGRESS')
+  postmongorepositoryb --> schedulerserviceimpl: return 200 OK
+  schedulerserviceimpl -> rabbitmqbrandhubpubl: publish("brandhub.publishing", "publish.job", PublishJobMessage)
+  rabbitmqbrandhubpubl --> schedulerserviceimpl: return Acknowledgement
+end
+
+rabbitmqbrandhubpubl -> publishjobconsumerpu: consume("publisher.job.queue", message)
+publishjobconsumerpu -> publishjobconsumerpu: checkRedisLockSETNX("processingPostIds:" + postId, ttl=30m)
+publishjobconsumerpu -> facebookpublishadapt: publish(jobMessage)
+facebookpublishadapt -> facebookpublishservi: publish(jobMessage)
+facebookpublishservi -> facebookpublishservi: rateLimiter.acquire() & decryptToken(encryptedToken)
+
+alt Post with Video
+  facebookpublishservi -> metagraphapifacebook: POST https://graph-video.facebook.com/v26.0/{pageId}/videos (file_url, description)
+else Post with Photo
+  facebookpublishservi -> metagraphapifacebook: POST https://graph.facebook.com/v26.0/{pageId}/photos (url, message, published=true)
+else Text Only Post
+  facebookpublishservi -> metagraphapifacebook: POST https://graph.facebook.com/v26.0/{pageId}/feed (message)
+end
+
+
+alt Facebook API Success (HTTP 200)
+  metagraphapifacebook --> facebookpublishservi: return FacebookResponse { id: "fb_post_123" }
+  facebookpublishservi --> facebookpublishadapt: return PublishResult (status='SUCCESS', platformPostId='fb_post_123')
+  facebookpublishadapt --> publishjobconsumerpu: return PublishResult
+  publishjobconsumerpu -> rabbitmqbrandhubpubl: channel.basicAck(deliveryTag)
+  publishjobconsumerpu -> rabbitmqbrandhubpubl: publish("brandhub.publishing", "publish.callback", CallbackMessage {status='SUCCESS', platformPostId='fb_post_123'})
+  rabbitmqbrandhubpubl --> publishjobconsumerpu: return ack
+else Facebook API Error (Rate Limit / Expired Token / 5xx)
+  metagraphapifacebook --> facebookpublishservi: return Error Response (HTTP 429/401/500)
+  facebookpublishservi --> facebookpublishadapt: return PublishResult (status='FAILED', errorCode, errorMessage)
+  facebookpublishadapt --> publishjobconsumerpu: return throw Exception
+  publishjobconsumerpu -> rabbitmqbrandhubpubl: basicNack -> Route to Dead Letter Queue ("publisher.job.dlq")
+  rabbitmqbrandhubpubl --> publishjobconsumerpu: return ack
+  publishjobconsumerpu -> rabbitmqbrandhubpubl: publish("brandhub.publishing", "publish.callback", CallbackMessage {status='FAILED', error})
+  rabbitmqbrandhubpubl --> publishjobconsumerpu: return ack
+end
+
+rabbitmqbrandhubpubl -> publishcallbackconsu: consume("business.publish_callback.queue", callbackMessage)
+
+alt Status == 'SUCCESS'
+  publishcallbackconsu -> postmongorepositoryb: updateStatus(postId, 'PUBLISHED', platformPostId)
+  postmongorepositoryb --> publishcallbackconsu: return 200 OK
+else Status == 'FAILED'
+  publishcallbackconsu -> postmongorepositoryb: updateStatus(postId, 'FAILED', errorMessage)
+  postmongorepositoryb --> publishcallbackconsu: return 200 OK
+end
+
+publishcallbackconsu -> rabbitmqbrandhubpubl: channel.basicAck(deliveryTag)
+
+@enduml

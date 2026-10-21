@@ -1,0 +1,50 @@
+@startuml 3.7.1 - View trending topics
+title Sequence Diagram — 3.7.1 - View trending topics
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Creator / Manager" as creatormanager
+boundary "TrendsPage (UI)" as trendspageui
+boundary "AiTrendController" as aitrendcontroller
+control "AI Service (trends API)" as aiservicetrendsapi
+entity "Redis" as redis
+
+' === Flow ===
+aitrendcontroller -> aitrendcontroller: Validate period and limit
+creatormanager -> trendspageui: Open trends; choose period and topic
+trendspageui -> aitrendcontroller: GET /api/v1/ai/trending-topics
+
+alt Invalid filters
+  aitrendcontroller --> trendspageui: 400 — invalid filters
+  trendspageui --> creatormanager: Show error; keep filters
+else Valid filters
+  aitrendcontroller -> aiservicetrendsapi: GET /api/v1/ai/trends?period&limit=100
+  aiservicetrendsapi -> redis: ZREVRANGE trendKey 0 99 WITHSCORES HGET trendKey:data trendId
+  redis --> aiservicetrendsapi: Cached trends, possibly empty
+  aiservicetrendsapi --> aitrendcontroller: Trend data / upstream error
+end
+
+
+alt AI request failed
+  aitrendcontroller --> trendspageui: 502 / 503 — trends unavailable
+  trendspageui --> creatormanager: Show error and retry
+else Trend data loaded
+  aitrendcontroller -> aitrendcontroller: Filter topics; rank and deduplicate trends
+  aitrendcontroller -> aiservicetrendsapi: GET /api/v1/ai/trends/crawl-config
+  aiservicetrendsapi --> aitrendcontroller: Crawl summary / null on failure
+  aitrendcontroller --> trendspageui: 200 OK — ApiResponse<ObjectNode>
+  trendspageui --> creatormanager: Show trends, topic chart and crawl summary
+end
+
+
+opt Trends loaded; user selects a trend
+  creatormanager -> trendspageui: Hover or open a trend
+  trendspageui --> creatormanager: Show sample posts and growth chart
+end
+
+@enduml

@@ -1,0 +1,42 @@
+@startuml 3.9.4 - View Invoice History
+title Sequence Diagram — 3.9.4 - View Invoice History
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "BillingController" as billingcontroller
+control "BillingService" as billingservice
+entity "TransactionRepository" as transactionrepositor
+actor "USER (own account)" as userownaccount
+
+' === Flow ===
+billingservice -> billingservice: Check session, filters and dates
+userownaccount -> webdashboard: Open transaction history / details
+webdashboard -> billingcontroller: GET /api/v1/billing/transactions[/{transactionId}]
+billingcontroller -> billingservice: listTransactions() / getTransaction()
+
+loop invalid session / filters
+  billingservice --> billingcontroller: 401 Unauthorized / 400 Bad Request
+  billingcontroller --> webdashboard: 401 Unauthorized / 400 Bad Request
+  webdashboard --> userownaccount: Display authentication or validation error
+end
+
+billingservice -> transactionrepositor: Query owned page / detail
+transactionrepositor --> billingservice: historyOutcome
+
+alt query failed / detail not owned
+  billingservice --> billingcontroller: 403 Forbidden / 500 Internal Server Error
+  billingcontroller --> webdashboard: 403 Forbidden / 500 Internal Server Error
+  webdashboard --> userownaccount: Display load/access error; Retry where allowed
+else query succeeded
+  billingservice --> billingcontroller: 200 OK
+  billingcontroller --> webdashboard: 200 OK
+  webdashboard --> userownaccount: Display transaction details / empty history
+end
+
+@enduml

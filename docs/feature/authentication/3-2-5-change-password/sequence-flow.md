@@ -1,52 +1,53 @@
 # Sequence Flow — Change Password
 
-> Companion to `spec.md` (3.2.5). Lists each actor → action → system step in enough detail to draw the sequence diagram directly; the business description lives in `spec.md`.
+> Supplements `spec.md` (FR 3.2.5). This file lists each step as actor → action → system, in enough detail to draw the sequence diagram directly — it does not restate business rules (see spec.md for those).
 
 ## Actors
 
-- **User/Browser** — already signed in; the change-password page in `brandhub-web-dashboard`.
-- **AuthController** — `POST /api/v1/auth/change-password`.
-- **AuthServiceImpl** — `changePassword(accessToken, request)`.
-- **UserRepository** — persistence for the `User` entity (`passwordHash`, `lastPasswordChange`).
+- **Guest** — actor tương tác chính trong quy trình.
+- **Client** — giao diện người dùng `SecuritySettingsPage (UI)`.
+- **System** — `AuthController` / `AuthService`.
 
 ---
 
-## Flow A — Successful password change
+## Flow A — Luồng thực thi chính: Change Password
 
-1. User/Browser: enters the current password, the new password and the confirmation on the Settings > Security form; the client checks the confirmation matches before submitting.
-2. User/Browser → AuthController: `POST /change-password` with `Authorization: Bearer <accessToken>` and body `{currentPassword, newPassword}`.
-3. AuthController: checks the header is present and starts with `Bearer `; missing/malformed → 401 `INVALID_CREDENTIALS`, returned immediately without calling the service.
-4. AuthController → AuthServiceImpl: `changePassword(accessToken, request)`.
-5. AuthServiceImpl: parses the access token's JWT subject to get `userId`.
-6. AuthServiceImpl → UserRepository: `findById(userId)`; not found → 404 `USER_NOT_FOUND`.
-7. AuthServiceImpl: `passwordEncoder.matches(currentPassword, user.passwordHash)`; false → 400 `WRONG_CURRENT_PASSWORD`.
-8. AuthServiceImpl: `passwordEncoder.matches(newPassword, user.passwordHash)`; true (same as current) → 400 `SAME_AS_CURRENT_PASSWORD`. Reached only after step 7 passes.
-9. AuthServiceImpl: sets `user.passwordHash = encode(newPassword)` and `user.lastPasswordChange = now()`.
-10. AuthServiceImpl → UserRepository: `save(user)`.
-11. AuthServiceImpl: writes an `AuditLog` row with `action = AuditAction.PASSWORD_RESET` (the same audit action reused from Reset Password, 3.2.4 — there is no separate "password changed" action in code).
-12. AuthServiceImpl → AuthController → User/Browser: 200 `ApiResponse<Void>`, no data.
-13. User/Browser: shows a success toast and stays signed in; the current access token keeps working. Every refresh token issued before step 9 is rejected on its next use (401 `REFRESH_TOKEN_INVALID`), per BR-12.
+1. authservice -> authservice: `parseToken(accessToken) -> userId`
+2. authservice -> authservice: `verifyPassword(request.currentPassword(), user.getPasswordHash())`
+3. authservice -> authservice: `checkSamePassword(request.newPassword(), user.getPasswordHash())`
+4. authservice -> authservice: `encodePassword(request.newPassword())`
+5. authservice -> authservice: `updatePassword(user, newPasswordHash)`
+6. authservice -> authservice: `recordAuditLog(userId, PASSWORD_RESET)`
+7. guest -> securitysettingspage: `enters current password, new password & clicks "Update password"`
+8. securitysettingspage -> authcontroller: `POST /api/v1/auth/change-password (ChangePasswordRequest, headers: Bearer accessToken)`
+9. authcontroller --> securitysettingspage: `401 Unauthorized (INVALID_CREDENTIALS)`
+10. securitysettingspage --> guest: `show error toast ('Authentication session invalid, please sign in again')`
+11. authcontroller ->> authservice: `changePassword(accessToken, request)`
+12. authservice ->> userrepository: `findById(userId)`
+13. userrepository --> authservice: `Optional.empty()`
+14. authservice --> authcontroller: `throw BusinessException(USER_NOT_FOUND)`
+15. authcontroller --> securitysettingspage: `404 Not Found (USER_NOT_FOUND)`
+16. securitysettingspage --> guest: `show error toast ('User account not found')`
+17. userrepository --> authservice: `user`
+18. authservice --> authcontroller: `throw BusinessException(WRONG_CURRENT_PASSWORD)`
+19. authcontroller --> securitysettingspage: `400 Bad Request (WRONG_CURRENT_PASSWORD)`
+20. securitysettingspage --> guest: `show error inline MSG19 ('Current password is incorrect.')`
+21. authservice --> authcontroller: `throw BusinessException(SAME_AS_CURRENT_PASSWORD)`
+22. authcontroller --> securitysettingspage: `400 Bad Request (SAME_AS_CURRENT_PASSWORD)`
+23. securitysettingspage --> guest: `show error inline MSG90 ('New password cannot be the same as your current password.')`
+24. authservice ->> userrepository: `save(user)`
+25. userrepository --> authservice: `savedUser`
+26. authservice --> authcontroller: `void`
+27. authcontroller --> securitysettingspage: `200 OK (ApiResponse)`
+28. securitysettingspage --> guest: `show success toast MSG18 ('Password updated successfully.') & clear form fields`
 
 ---
 
-## Related endpoint (context only): Set Password
+## Error paths
 
-`POST /api/v1/auth/set-password` follows the same Bearer-auth shape via `AuthController.requireUserId` (invalid/missing token → 401 `INVALID_CREDENTIALS`) and calls `AuthServiceImpl.setPassword(userId, password)`. It has no "current password" to check — it exists for OAuth-only accounts that have never set one — and instead checks `user.passwordHash != null` → 400 `PASSWORD_ALREADY_SET` before hashing and saving the new password with `lastPasswordChange = now()`. It is a distinct, adjacent FR and is not detailed further here.
-
----
-
-## Error paths summary (for "alt"/"opt" fragments)
-
-| Step | Failure condition | HTTP | Error code |
+| Step | Failure condition | HTTP | ErrorCode |
 |---|---|---|---|
-| AuthController | Missing or malformed `Authorization: Bearer` header | 401 | `INVALID_CREDENTIALS` |
-| AuthServiceImpl | The account no longer exists, even with a valid token | 404 | `USER_NOT_FOUND` |
-| AuthServiceImpl | `currentPassword` does not match the stored hash | 400 | `WRONG_CURRENT_PASSWORD` |
-| AuthServiceImpl | `newPassword` equals `currentPassword`, checked only after the above passes | 400 | `SAME_AS_CURRENT_PASSWORD` |
-| Request validation | `newPassword` fails the password policy (BR-02) | 400 | `VALIDATION_ERROR` |
-
-## Notes
-
-- Check order matters: `WRONG_CURRENT_PASSWORD` is always evaluated before `SAME_AS_CURRENT_PASSWORD` — a wrong current password never falls through to the "same password" case.
-- The session that made the change keeps its access token; every refresh token — on this device or any other — is invalidated by the `lastPasswordChange` bump (BR-12).
-- `set-password` is mentioned only as a related/adjacent endpoint; it is out of scope for this FR's detailed flow.
+| Xác thực | Token thiếu, hết hạn hoặc không hợp lệ | 401 | `UNAUTHORIZED` |
+| Phân quyền | Vai trò người dùng không có quyền truy cập tính năng | 403 | `FORBIDDEN` |
+| Kiểm tra dữ liệu | Dữ liệu đầu vào không hợp lệ hoặc xung đột trạng thái | 400 | `BAD_REQUEST` |
+| Truy vấn | Không tìm thấy bản ghi đối tượng tương ứng | 404 | `NOT_FOUND` |

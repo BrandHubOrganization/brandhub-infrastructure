@@ -1,0 +1,43 @@
+@startuml 3.2.3 - Sign In With Google OAuth
+title Sequence Diagram — 3.2.3 - Sign In With Google OAuth
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "LoginPage (UI)" as loginpageui
+boundary "AuthController" as authcontroller
+control "AuthService" as authservice
+control "GoogleOAuthService" as googleoauthservice
+entity "UserRepository" as userrepository
+
+' === Flow ===
+user -> loginpageui: clicks "Sign In with Google"
+loginpageui -> authcontroller: GET /api/v1/auth/oauth2/google
+authcontroller --> loginpageui: redirect to Google OAuth consent URL
+loginpageui --> user: Google login screen
+user -> googleoauthservice: grants permission
+googleoauthservice --> loginpageui: callback with authCode
+loginpageui -> authcontroller: GET /api/v1/auth/oauth2/callback?code=authCode
+authcontroller -> authservice: loginWithGoogle(authCode)
+authservice -> googleoauthservice: exchangeCode(authCode)
+googleoauthservice --> authservice: GoogleUserInfo(email, name, googleId)
+authservice -> userrepository: findByEmail(email)
+
+alt new user (first OAuth login)
+  userrepository --> authservice: Optional.empty()
+  authservice -> userrepository: save(newUserFromGoogle)
+  userrepository --> authservice: savedUser
+else existing user
+  userrepository --> authservice: Optional<User>
+end
+
+authservice --> authcontroller: LoginResponse(accessToken, refreshToken)
+authcontroller --> loginpageui: 200 OK (LoginResponse)
+loginpageui --> user: redirect to Dashboard
+
+@enduml

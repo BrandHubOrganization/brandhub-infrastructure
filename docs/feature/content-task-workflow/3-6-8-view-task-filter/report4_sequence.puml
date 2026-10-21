@@ -1,0 +1,38 @@
+@startuml 3.6.8 - View Task Filter, Sort & Full-Text Search
+title Sequence Diagram — 3.6.8 - View Task Filter, Sort & Full-Text Search
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Creator / Client / Manager" as creatorclientmanager
+entity "TaskFilterResultResponse" as taskfilterresultresp
+entity "TaskRepository" as taskrepository
+control "TaskServiceImpl" as taskserviceimpl
+boundary "TaskController" as taskcontroller
+boundary "TaskFilterBar / TaskViews (UI)" as taskfilterbartaskvie
+
+' === Flow ===
+creatorclientmanager -> taskfilterbartaskvie: Enter search keyword & select filter criteria (type, status, assignee, dueDate)
+taskfilterbartaskvie -> taskcontroller: Request search & filter tasks (criteria, sortBy)
+taskcontroller -> taskserviceimpl: searchAndFilterTasks(criteria, pageable)
+taskserviceimpl -> taskserviceimpl: buildSpecification(criteria)
+taskserviceimpl -> taskrepository: findFilteredTasks(specification, pageable)
+taskrepository --> taskserviceimpl: return Page<Task>
+
+alt Tasks Match Criteria (Page contains items)
+  taskserviceimpl -> taskfilterresultresp: mapToSummaryList(filteredPage)
+  taskfilterresultresp --> taskserviceimpl: return filterResults
+  taskserviceimpl --> taskcontroller: return pagedResults
+  taskcontroller --> taskfilterbartaskvie: return 200 OK (Filtered tasks list, total count, pagination metadata)
+  taskfilterbartaskvie --> creatorclientmanager: Dynamically refresh active view (List / Calendar / Gantt / Kanban) with filtered tasks
+else No Tasks Matched (Empty Page)
+  taskserviceimpl --> taskcontroller: return emptyPagedResult
+  taskcontroller --> taskfilterbartaskvie: return 200 OK (Zero matching tasks, empty results)
+  taskfilterbartaskvie --> creatorclientmanager: Display "No matching tasks found" & show "Reset Filters" action
+end
+
+@enduml

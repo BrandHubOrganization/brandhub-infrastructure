@@ -1,0 +1,50 @@
+@startuml 3.6.5 - Calendar Task View
+title Sequence Diagram — 3.6.5 - Calendar Task View
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Creator / Client / Manager" as creatorclientmanager
+entity "TaskCalendarResponse" as taskcalendarresponse
+entity "TaskRepository" as taskrepository
+control "TaskServiceImpl" as taskserviceimpl
+boundary "TaskController" as taskcontroller
+boundary "TaskCalendarPage (UI)" as taskcalendarpageui
+
+' === Flow ===
+creatorclientmanager -> taskcalendarpageui: Select "Calendar View" tab (e.g., month = 2026-10)
+taskcalendarpageui -> taskcontroller: Request tasks calendar view (month)
+taskcontroller -> taskserviceimpl: getTasksCalendarView(month)
+taskserviceimpl -> taskrepository: findTasksByMonth(startOfMonth, endOfMonth)
+taskrepository --> taskserviceimpl: return List<Task>
+taskserviceimpl -> taskcalendarresponse: mapToCalendarEvents(tasks)
+taskcalendarresponse --> taskserviceimpl: return calendarEvents
+taskserviceimpl --> taskcontroller: return calendarEvents
+taskcontroller --> taskcalendarpageui: return 200 OK (Calendar events, due dates)
+taskcalendarpageui --> creatorclientmanager: Render interactive calendar grid with task chips
+
+opt Drag & Drop to Reschedule (Creator / Manager only)
+  creatorclientmanager -> taskcalendarpageui: Drag task chip from Oct 10 to Oct 15
+end
+
+
+alt User is Client (View-only)
+  taskcalendarpageui --> creatorclientmanager: Disable drag-and-drop / show tooltip ("Read-only permission")
+else User is Creator or Manager
+  taskcalendarpageui -> taskcontroller: Request reschedule task (newDueDate)
+  taskcontroller -> taskserviceimpl: rescheduleTask(taskId, newDueDate)
+  taskserviceimpl -> taskrepository: findTask(taskId)
+  taskrepository --> taskserviceimpl: return Optional<Task>
+  taskserviceimpl -> taskserviceimpl: updateDueDate(task, newDueDate)
+  taskserviceimpl -> taskrepository: save(task)
+  taskrepository --> taskserviceimpl: return updatedTask
+  taskserviceimpl --> taskcontroller: return TaskResponse(updatedTask)
+  taskcontroller --> taskcalendarpageui: return 200 OK (Updated task with new due date)
+  taskcalendarpageui --> creatorclientmanager: Update calendar chip position & display success toast
+end
+
+@enduml

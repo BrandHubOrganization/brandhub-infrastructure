@@ -1,0 +1,29 @@
+@startuml 3.10.3a - System Monitor - Servers Feed
+title Sequence Diagram — 3.10.3a - System Monitor - Servers Feed
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+
+' === Participants ===
+actor "Admin" as admin
+boundary "SystemHealthDashboard (UI)" as ui
+boundary "MonitoringServerController" as ctrl
+control "ServerMonitoringService" as svc
+control "AdminAccountService" as authSvc
+entity "ServerMetricsRepository" as repo
+
+' === Flow ===
+admin -> ui: Open /admin/system-health (Servers tab)
+ui -> ctrl: GET /api/monitoring/servers(page, size, filters)
+ctrl -> authSvc: requireAdmin(actorId)
+authSvc --> ctrl: 200 OK (ADMIN verified)
+ctrl -> svc: listServers(principal, page, size, filters)
+svc -> repo: findServerMetrics(filters, pageable)
+repo --> svc: return serverMetricsPage
+svc -> svc: calculateHealthStatus(serverMetricsPage)
+svc --> ctrl: return ServerMonitoringResponse
+ctrl --> ui: 200 OK (ServerMonitoringResponse)
+ui --> admin: Render server status feed & resource gauges
+
+@enduml

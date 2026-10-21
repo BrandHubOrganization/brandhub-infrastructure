@@ -1,0 +1,40 @@
+@startuml 3.10.7 - Provision user and complete activation
+title Sequence Diagram — 3.10.7 - Provision user and complete activation
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Admin" as admin
+boundary "AdminUserManagementPage (UI)" as adminusermanagementp
+boundary "AdminUserController" as adminusercontroller
+control "AdminUserService" as adminuserservice
+entity "UserRepository" as userrepository
+control "MailService" as mailservice
+
+' === Flow ===
+admin -> adminusermanagementp: fills user details (name, email, role), clicks "Provision User"
+adminusermanagementp -> adminusercontroller: POST /api/v1/admin/users/provision (ProvisionUserRequest)
+adminusercontroller -> adminuserservice: provisionUser(adminId, request)
+adminuserservice -> userrepository: existsByEmail(email)
+
+alt email already exists
+  userrepository --> adminuserservice: true
+  adminuserservice --> adminusercontroller: 409 Conflict (EMAIL_ALREADY_IN_USE)
+  adminusercontroller --> adminusermanagementp: 409 Conflict
+  adminusermanagementp --> admin: Show error "Email already in use"
+else email available
+  userrepository --> adminuserservice: false
+  adminuserservice -> userrepository: save(newUser with status=PENDING_ACTIVATION)
+  userrepository --> adminuserservice: savedUser
+  adminuserservice -> mailservice: sendActivationEmail(email, activationToken)
+  mailservice --> adminuserservice: ok
+  adminuserservice --> adminusercontroller: 201 Created (UserProvisionResponse)
+  adminusercontroller --> adminusermanagementp: 201 Created
+  adminusermanagementp --> admin: "User provisioned — activation email sent"
+end
+
+@enduml

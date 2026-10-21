@@ -1,0 +1,57 @@
+@startuml 3.7.3 - Generate Ambassador
+title Sequence Diagram — 3.7.3 - Generate Ambassador
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "AiAssetController" as aiassetcontroller
+control "AiAssetService" as aiassetservice
+entity "WorkspaceRepository" as workspacerepository
+entity "AI service + S3" as aiservices3
+entity "GeneratedAssetRepository" as generatedassetreposi
+entity "AiCreditAccountRepository" as aicreditaccountrepos
+actor "OWNER / MANAGER / CREATOR" as ownermanagercreator
+
+' === Flow ===
+ownermanagercreator -> webdashboard: Generate ambassador from description/style
+aiassetservice -> aiassetservice: Validate input, AI rights and available credits
+webdashboard -> aiassetcontroller: POST /api/v1/ai/generate-ambassador
+aiassetcontroller -> aiassetservice: generateAmbassador(user, command)
+aiassetservice -> workspacerepository: Load workspace access
+workspacerepository --> aiassetservice: Workspace
+aiassetservice -> aicreditaccountrepos: Load credit account and limit
+aicreditaccountrepos --> aiassetservice: AiCreditAccount
+
+loop invalid access / validation error / insufficient credits
+  aiassetservice --> aiassetcontroller: 400 Bad Request / 402 Payment Required / 403 Forbidden
+  aiassetcontroller --> webdashboard: 400 Bad Request / 402 Payment Required / 403 Forbidden
+  webdashboard --> ownermanagercreator: Display validation or credit error
+end
+
+aiassetservice -> aicreditaccountrepos: Reserve generation credits
+aicreditaccountrepos --> aiassetservice: reservationOutcome
+aiassetservice -> aiservices3: Generate and store image in S3
+aiservices3 --> aiassetservice: generationOutcome
+
+alt generation failed
+  aiassetservice -> aicreditaccountrepos: Release reserved credits
+  aicreditaccountrepos --> aiassetservice: releaseOutcome
+  aiassetservice --> aiassetcontroller: 500 Internal Server Error
+  aiassetcontroller --> webdashboard: 500 Internal Server Error
+  webdashboard --> ownermanagercreator: Display generation failed; Retry
+else usable image stored
+  aiassetservice -> generatedassetreposi: Save READY ambassador asset
+  generatedassetreposi --> aiassetservice: assetOutcome
+  aiassetservice -> aicreditaccountrepos: Settle generation credits
+  aicreditaccountrepos --> aiassetservice: settlementOutcome
+  aiassetcontroller --> webdashboard: 201 Created
+  aiassetservice --> aiassetcontroller: 201 Created
+  webdashboard --> ownermanagercreator: Display ambassador preview and credit usage
+end
+
+@enduml

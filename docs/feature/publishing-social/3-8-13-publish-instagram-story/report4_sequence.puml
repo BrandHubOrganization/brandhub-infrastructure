@@ -1,0 +1,40 @@
+@startuml 3.8.13 - Publish Instagram Story (Photo / Video Story)
+title Sequence Diagram — 3.8.13 - Publish Instagram Story (Photo / Video Story)
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Scheduler (Job)" as schedulerjob
+control "SchedulerService" as schedulerservice
+entity "RabbitMQ" as rabbitmq
+entity "PublishJobConsumer" as publishjobconsumer
+control "InstagramStoryPublishService" as instagramstorypublis
+entity "Meta Graph API" as metagraphapi
+entity "PostRepository" as postrepository
+
+' === Flow ===
+schedulerjob -> schedulerservice: trigger scheduled publish job
+schedulerservice -> postrepository: findScheduledPosts(scheduledAt <= NOW(), platform=INSTAGRAM, type=STORY)
+postrepository --> schedulerservice: List<Post>
+schedulerservice -> rabbitmq: publish("publisher.job.queue", PublishJobMessage{platform=INSTAGRAM, type=STORY, ...})
+rabbitmq --> publishjobconsumer: consume(PublishJobMessage)
+publishjobconsumer -> instagramstorypublis: publishPost(jobMessage)
+
+alt photo story
+  instagramstorypublis -> metagraphapi: POST /{igUserId}/media (media_type="STORIES", image_url)
+else video story
+  instagramstorypublis -> metagraphapi: POST /{igUserId}/media (media_type="STORIES", video_url)
+end
+
+metagraphapi --> instagramstorypublis: {id: containerId}
+instagramstorypublis -> metagraphapi: POST /{igUserId}/media_publish (creation_id=containerId)
+metagraphapi --> instagramstorypublis: {id: platformPostId}
+instagramstorypublis --> publishjobconsumer: SUCCESS (platformPostId)
+publishjobconsumer -> postrepository: update(post, status=PUBLISHED, platformPostId)
+postrepository --> publishjobconsumer: ok
+
+@enduml

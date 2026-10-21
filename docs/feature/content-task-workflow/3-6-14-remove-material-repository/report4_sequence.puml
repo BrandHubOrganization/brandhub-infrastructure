@@ -1,0 +1,66 @@
+@startuml 3.6.14 - Remove Material Repository
+title Sequence Diagram — 3.6.14 - Remove Material Repository
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "MaterialController" as materialcontroller
+control "MaterialService" as materialservice
+entity "WorkspaceRepository" as workspacerepository
+entity "WorkspaceMemberRepository" as workspacememberrepos
+entity "AgencyRepository" as agencyrepository
+entity "MaterialRepository" as materialrepository
+actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
+
+' === Flow ===
+materialservice -> materialservice: Check session, scope and removal rights
+else active material
+  materialservice -> materialservice: Block new material links
+  materialservice -> materialservice: Commit / rollback
+end
+
+creatorclientmanager -> webdashboard: Confirm removal (Cancel sends no request)
+webdashboard -> materialcontroller: DELETE /api/v1/workspaces/{workspaceId}/materials/{materialId}
+materialcontroller -> materialservice: removeMaterial(user, command)
+materialservice -> workspacerepository: Load workspace
+workspacerepository --> materialservice: Workspace
+materialservice -> workspacememberrepos: Load membership
+workspacememberrepos --> materialservice: WorkspaceMember
+materialservice -> agencyrepository: Load agency
+agencyrepository --> materialservice: Agency
+materialservice -> materialrepository: Load material and deletion state
+materialrepository --> materialservice: Material
+
+loop invalid session / forbidden / unavailable resource
+  materialservice --> materialcontroller: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  materialcontroller --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  webdashboard --> creatorclientmanager: Display access or resource error
+end
+
+
+alt already removed
+  materialservice --> materialcontroller: 409 Conflict
+  materialcontroller --> webdashboard: 409 Conflict
+  webdashboard --> creatorclientmanager: Display already removed
+else active material
+  materialservice -> materialrepository: Soft-delete with user/time
+  materialrepository --> materialservice: writeOutcome
+end
+
+
+alt writeOutcome committed
+  materialservice --> materialcontroller: 204 No Content
+  materialcontroller --> webdashboard: 204 No Content
+  webdashboard --> creatorclientmanager: Display material removed from repository
+else write failed or version conflict
+  materialservice --> materialcontroller: 409 Conflict / 500 Internal Server Error
+  materialcontroller --> webdashboard: 409 Conflict / 500 Internal Server Error
+  webdashboard --> creatorclientmanager: Display save error; retain previous values
+end
+
+@enduml

@@ -1,0 +1,46 @@
+@startuml 3.8.1b - Connect TikTok Account (PKCE Flow)
+title Sequence Diagram — 3.8.1b - Connect TikTok Account (PKCE Flow)
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+
+' === Participants ===
+actor "User" as user
+boundary "SocialAccountsPage (UI)" as ui
+boundary "SocialOAuthController" as ctrl
+control "TikTokOAuthService" as oauthSvc
+entity "SocialAccountService" as accountSvc
+entity "TikTok Open API" as tiktokApi
+
+' === Flow ===
+user -> ui: clicks "Connect TikTok"
+ui -> ctrl: GET /api/v1/oauth/social/connect?platform=TIKTOK
+ctrl -> oauthSvc: buildAuthorizationUrl()
+oauthSvc --> ctrl: authUrl (with PKCE code_challenge)
+ctrl --> ui: 302 Redirect to authUrl
+ui --> user: TikTok Authorization Screen
+
+user -> tiktokApi: authorizes permissions
+tiktokApi --> ui: callback with authCode & state
+
+ui -> ctrl: GET /api/v1/oauth/social/callback?code=authCode&state=...
+ctrl -> oauthSvc: exchangeToken(authCode, codeVerifier)
+oauthSvc -> tiktokApi: exchange token with code verifier
+tiktokApi --> oauthSvc: accessToken + refreshToken
+oauthSvc -> tiktokApi: fetch TikTok profile info
+tiktokApi --> oauthSvc: userInfo(displayName, avatarUrl)
+
+alt connection failed
+  oauthSvc --> ctrl: 302 Redirect with error status
+  ctrl --> ui: error redirect
+  ui --> user: Show error "TikTok connection cancelled or failed"
+else connection success
+  oauthSvc -> accountSvc: syncSocialAccount(userId, userInfo, encryptedToken)
+  accountSvc --> oauthSvc: savedAccount
+  oauthSvc --> ctrl: 302 Redirect with success status
+  ctrl --> ui: redirect to SocialAccountsPage
+  ui --> user: Show TikTok channel card as connected
+end
+
+@enduml

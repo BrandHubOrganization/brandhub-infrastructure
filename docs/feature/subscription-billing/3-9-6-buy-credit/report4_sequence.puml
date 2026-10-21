@@ -1,0 +1,49 @@
+@startuml 3.9.6 - Buy Credit
+title Sequence Diagram — 3.9.6 - Buy Credit
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "BillingController" as billingcontroller
+control "BillingService" as billingservice
+entity "AiCreditAccountRepository" as aicreditaccountrepos
+entity "UserSubscriptionRepository" as usersubscriptionrepo
+entity "SubscriptionPlanRepository" as subscriptionplanrepo
+actor "USER (owned budget)" as userownedbudget
+
+' === Flow ===
+userownedbudget -> webdashboard: Select credit quantity and confirm quote
+billingservice -> billingservice: Check budget owner and eligible plan
+billingservice -> billingservice: Validate quantity; price purchase
+webdashboard -> billingcontroller: POST /api/v1/billing/credits/buy
+billingcontroller -> billingservice: buyCredit(user, request)
+billingservice -> aicreditaccountrepos: Load owned budget
+aicreditaccountrepos --> billingservice: AiCreditAccount
+billingservice -> usersubscriptionrepo: Load owned subscription
+usersubscriptionrepo --> billingservice: UserSubscription
+billingservice -> subscriptionplanrepo: Load plan catalog
+subscriptionplanrepo --> billingservice: SubscriptionPlan
+
+loop invalid session / forbidden / unavailable resource
+  billingservice --> billingcontroller: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  billingcontroller --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  webdashboard --> userownedbudget: Display access or resource error
+end
+
+
+loop ineligible plan / invalid quantity / stale quote
+  billingservice --> billingcontroller: 400 Bad Request / 409 Conflict
+  billingcontroller --> webdashboard: 400 Bad Request / 409 Conflict
+  webdashboard --> userownedbudget: Display purchase validation error
+end
+
+billingservice --> billingcontroller: 200 OK
+billingcontroller --> webdashboard: 200 OK
+webdashboard --> userownedbudget: Display checkout / processing; reload balance and history after provisioning
+
+@enduml

@@ -1,0 +1,31 @@
+@startuml 3.10.2 - Platform statistics
+title Sequence Diagram — 3.10.2 - Platform statistics
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Admin" as admin
+boundary "AdminOverviewPanel (UI)" as adminoverviewpanelui
+boundary "AdminStatisticsController" as adminstatisticscontr
+control "AdminStatisticsService" as adminstatisticsservi
+control "AdminAccountService" as adminaccountservice
+entity "PlatformStatsRepository" as platformstatsreposit
+
+' === Flow ===
+admin -> adminoverviewpanelui: Open overview; choose period & timezone
+adminoverviewpanelui -> adminstatisticscontr: GET /api/v1/admin/statistics(days, tz)
+adminstatisticscontr -> adminaccountservice: requireAdmin(actorId)
+adminaccountservice --> adminstatisticscontr: 200 OK (ADMIN verified)
+adminstatisticscontr -> adminstatisticsservi: getPlatformOverview(days, tz)
+adminstatisticsservi -> platformstatsreposit: fetchPlatformMetrics(days)
+platformstatsreposit --> adminstatisticsservi: return platformMetrics
+adminstatisticsservi -> adminstatisticsservi: aggregatePlatformStatistics(platformMetrics)
+adminstatisticsservi --> adminstatisticscontr: return PlatformStatsResponse
+adminstatisticscontr --> adminoverviewpanelui: 200 OK (PlatformStatsResponse)
+adminoverviewpanelui --> admin: Render overview stats, user growth & activity
+
+@enduml

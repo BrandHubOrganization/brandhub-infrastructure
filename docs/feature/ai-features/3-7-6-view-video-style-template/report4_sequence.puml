@@ -1,0 +1,48 @@
+@startuml 3.7.6 - View video style templates
+title Sequence Diagram — 3.7.6 - View video style templates
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Creator / Manager" as creatormanager
+boundary "VideoStudioPage (UI)" as videostudiopageui
+boundary "AiVideoController" as aivideocontroller
+control "AiVideoService" as aivideoservice
+control "AI Service (video API)" as aiservicevideoapi
+
+' === Flow ===
+creatormanager -> videostudiopageui: Open Video AI
+videostudiopageui -> aivideocontroller: GET /workspaces/{id}/ai/video-styles
+aivideocontroller -> aivideocontroller: Check workspace access (@RequireRole)
+
+alt Access denied
+  aivideocontroller --> videostudiopageui: 403 — access denied
+  videostudiopageui --> creatormanager: Show access error
+else Access granted
+  aivideocontroller -> aivideoservice: styles()
+  aivideoservice -> aiservicevideoapi: GET /api/v1/ai/video/styles
+  aiservicevideoapi --> aivideoservice: Style catalog / upstream error
+end
+
+
+alt AI route or service unavailable
+  aivideoservice --> aivideocontroller: AiServiceException
+  aivideocontroller --> videostudiopageui: 502 / 503 — styles unavailable
+  videostudiopageui --> creatormanager: Show error and retry
+else Catalog loaded
+  aivideoservice --> aivideocontroller: JsonNode — video styles
+  aivideocontroller --> videostudiopageui: 200 OK — style catalog
+  videostudiopageui --> creatormanager: Show video style gallery
+end
+
+
+opt Catalog loaded; user selects a style
+  creatormanager -> videostudiopageui: Select or clear a video style
+  videostudiopageui --> creatormanager: Highlight selection; set suggested aspect ratio
+end
+
+@enduml

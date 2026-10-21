@@ -1,0 +1,46 @@
+@startuml 3.9.1 - Upgrade Plan
+title Sequence Diagram — 3.9.1 - Upgrade Plan
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "SubscriptionController" as subscriptioncontroll
+control "SubscriptionService" as subscriptionservice
+entity "UserSubscriptionRepository" as usersubscriptionrepo
+entity "SubscriptionPlanRepository" as subscriptionplanrepo
+actor "USER (own account)" as userownaccount
+
+' === Flow ===
+subscriptionservice -> subscriptionservice: Check session, scope and account ownership
+subscriptionservice -> subscriptionservice: Check higher destination, current version and server quote
+userownaccount -> webdashboard: Compare plans and confirm higher plan
+webdashboard -> subscriptioncontroll: POST /api/v1/subscription
+subscriptioncontroll -> subscriptionservice: subscribe(user, command)
+subscriptionservice -> usersubscriptionrepo: Load owned subscription
+usersubscriptionrepo --> subscriptionservice: UserSubscription
+subscriptionservice -> subscriptionplanrepo: Load plan catalog
+subscriptionplanrepo --> subscriptionservice: SubscriptionPlan
+
+loop invalid session / forbidden / unavailable resource
+  subscriptionservice --> subscriptioncontroll: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  subscriptioncontroll --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  webdashboard --> userownaccount: Display access or resource error
+end
+
+
+loop Enterprise / invalid destination / stale quote
+  subscriptionservice --> subscriptioncontroll: 400 Bad Request / 409 Conflict
+  subscriptioncontroll --> webdashboard: 400 Bad Request / 409 Conflict
+  webdashboard --> userownaccount: Display ALREADY_AT_HIGHEST_PLAN or invalid upgrade
+end
+
+subscriptionservice --> subscriptioncontroll: 200 OK
+subscriptioncontroll --> webdashboard: 200 OK
+webdashboard --> userownaccount: Display checkout / payment processing; retain current plan until provisioned
+
+@enduml

@@ -1,0 +1,43 @@
+@startuml 3.8.11 - Publish Instagram Post
+title Sequence Diagram — 3.8.11 - Publish Instagram Post
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Scheduler (Job)" as schedulerjob
+control "SchedulerService" as schedulerservice
+entity "RabbitMQ" as rabbitmq
+entity "PublishJobConsumer" as publishjobconsumer
+control "InstagramPublishService" as instagrampublishserv
+entity "Meta Graph API" as metagraphapi
+entity "PostRepository" as postrepository
+
+' === Flow ===
+schedulerjob -> schedulerservice: trigger scheduled publish job
+schedulerservice -> postrepository: findScheduledPosts(scheduledAt <= NOW(), platform=INSTAGRAM, type=POST)
+postrepository --> schedulerservice: List<Post>
+schedulerservice -> rabbitmq: publish("publisher.job.queue", PublishJobMessage{platform=INSTAGRAM, type=POST, ...})
+rabbitmq --> publishjobconsumer: consume(PublishJobMessage)
+publishjobconsumer -> instagrampublishserv: publishPost(jobMessage)
+instagrampublishserv -> metagraphapi: POST /{igUserId}/media (image_url/video_url, caption)
+metagraphapi --> instagrampublishserv: {id: containerId}
+instagrampublishserv -> metagraphapi: POST /{igUserId}/media_publish (creation_id=containerId)
+metagraphapi --> instagrampublishserv: {id: platformPostId}
+
+alt publish failed
+  instagrampublishserv --> publishjobconsumer: FAILED (error)
+  publishjobconsumer -> rabbitmq: basicNack -> Route to DLQ
+  publishjobconsumer -> postrepository: update(post, status=FAILED)
+  postrepository --> publishjobconsumer: ok
+else publish success
+  instagrampublishserv --> publishjobconsumer: SUCCESS (platformPostId)
+  publishjobconsumer -> postrepository: update(post, status=PUBLISHED, platformPostId)
+  postrepository --> publishjobconsumer: ok
+  publishjobconsumer -> rabbitmq: publish("business.publish_callback.queue", CallbackMessage{status=SUCCESS})
+end
+
+@enduml

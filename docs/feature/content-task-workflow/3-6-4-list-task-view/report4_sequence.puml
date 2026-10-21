@@ -1,0 +1,37 @@
+@startuml 3.6.4 - List Task View
+title Sequence Diagram — 3.6.4 - List Task View
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Creator / Client / Manager" as creatorclientmanager
+entity "TaskListResponse" as tasklistresponse
+entity "TaskRepository" as taskrepository
+control "TaskServiceImpl" as taskserviceimpl
+boundary "TaskController" as taskcontroller
+boundary "TaskListPage (UI)" as tasklistpageui
+
+' === Flow ===
+creatorclientmanager -> tasklistpageui: Select "List View" tab on Tasks board
+tasklistpageui -> taskcontroller: Request tasks list view (page, size, sortBy)
+taskcontroller -> taskserviceimpl: getTasksListView(pageable)
+taskserviceimpl -> taskrepository: findTasks(pageable)
+taskrepository --> taskserviceimpl: return Page<Task>
+
+alt Tasks Exist (Page contains items)
+  taskserviceimpl -> tasklistresponse: mapToSummaryList(pageTasks)
+  tasklistresponse --> taskserviceimpl: return taskItems
+  taskserviceimpl --> taskcontroller: return pagedTasks
+  taskcontroller --> tasklistpageui: return 200 OK (Task list items, pagination metadata)
+  tasklistpageui --> creatorclientmanager: Render task table with columns & Pagination controls
+else Empty Workspace (No tasks found)
+  taskserviceimpl --> taskcontroller: return emptyPagedResult
+  taskcontroller --> tasklistpageui: return 200 OK (Empty task list, zero pagination)
+  tasklistpageui --> creatorclientmanager: Display Empty State with CTA ("Create first Campaign or Content Request")
+end
+
+@enduml

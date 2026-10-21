@@ -1,0 +1,50 @@
+@startuml 3.2.7 - Two Factor Authentication
+title Sequence Diagram — 3.2.7 - Two Factor Authentication
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "SecuritySettingsPage (UI)" as securitysettingspage
+boundary "AuthController" as authcontroller
+control "AuthService" as authservice
+entity "UserRepository" as userrepository
+entity "AuthenticatorApp" as authenticatorapp
+entity "RedisCache" as rediscache
+
+' === Flow ===
+user -> securitysettingspage: clicks "Enable 2FA"
+securitysettingspage -> authcontroller: POST /api/v1/auth/2fa/setup (headers: Bearer accessToken)
+authcontroller -> authservice: setup2FA(userId)
+authservice -> authenticatorapp: generateSecret() -> otpAuthUrl
+authenticatorapp --> authservice: otpAuthUrl (QR code URL)
+authservice -> rediscache: set("2fa:pending:" + userId, secret, 10 min)
+rediscache --> authservice: ok
+authservice --> authcontroller: 200 OK (otpAuthUrl)
+authcontroller --> securitysettingspage: 200 OK (otpAuthUrl)
+securitysettingspage --> user: Display QR code to scan in Authenticator App
+user -> securitysettingspage: scans QR, enters TOTP code, clicks "Confirm"
+securitysettingspage -> authcontroller: POST /api/v1/auth/2fa/confirm (code, headers: Bearer accessToken)
+authcontroller -> authservice: confirm2FA(userId, code)
+authservice -> rediscache: get("2fa:pending:" + userId)
+rediscache --> authservice: pendingSecret
+
+alt code invalid
+  authservice --> authcontroller: 400 Bad Request (TWO_FA_CODE_INVALID)
+  authcontroller --> securitysettingspage: 400 Bad Request
+  securitysettingspage --> user: Show error "Invalid TOTP code"
+else code valid
+  authservice -> userrepository: save(user with twoFaEnabled=true, twoFaSecret)
+  userrepository --> authservice: ok
+  authservice -> rediscache: delete("2fa:pending:" + userId)
+  rediscache --> authservice: ok
+  authservice --> authcontroller: 200 OK
+  authcontroller --> securitysettingspage: 200 OK
+  securitysettingspage --> user: "Two-factor authentication enabled"
+end
+
+@enduml

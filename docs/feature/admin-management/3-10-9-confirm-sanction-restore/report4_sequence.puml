@@ -1,0 +1,49 @@
+@startuml 3.10.9 - Confirm sanction and restore account
+title Sequence Diagram — 3.10.9 - Confirm sanction and restore account
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Admin" as admin
+boundary "AdminUserManagementPage (UI)" as adminusermanagementp
+boundary "AdminUserController" as adminusercontroller
+control "AdminUserService" as adminuserservice
+entity "UserRepository" as userrepository
+control "NotificationService" as notificationservice
+
+' === Flow ===
+admin -> adminusermanagementp: selects user, chooses action (SUSPEND / RESTORE), confirms
+adminusermanagementp -> adminusercontroller: PATCH /api/v1/admin/users/{userId}/status (UpdateUserStatusRequest)
+adminusercontroller -> adminuserservice: updateUserStatus(adminId, userId, action)
+adminuserservice -> userrepository: findById(userId)
+
+alt user not found
+  userrepository --> adminuserservice: Optional.empty()
+  adminuserservice --> adminusercontroller: 404 Not Found (USER_NOT_FOUND)
+  adminusercontroller --> adminusermanagementp: 404 Not Found
+  adminusermanagementp --> admin: Show error "User not found"
+else applying sanction (SUSPEND)
+  userrepository --> adminuserservice: Optional<User>
+  adminuserservice -> userrepository: update(user, status=SUSPENDED)
+  userrepository --> adminuserservice: ok
+  adminuserservice -> notificationservice: notifyUser(userId, ACCOUNT_SUSPENDED)
+  notificationservice --> adminuserservice: ok
+  adminuserservice --> adminusercontroller: 200 OK
+  adminusercontroller --> adminusermanagementp: 200 OK
+  adminusermanagementp --> admin: "User account suspended"
+else restoring account (RESTORE)
+  userrepository --> adminuserservice: Optional<User>
+  adminuserservice -> userrepository: update(user, status=ACTIVE)
+  userrepository --> adminuserservice: ok
+  adminuserservice -> notificationservice: notifyUser(userId, ACCOUNT_RESTORED)
+  notificationservice --> adminuserservice: ok
+  adminuserservice --> adminusercontroller: 200 OK
+  adminusercontroller --> adminusermanagementp: 200 OK
+  adminusermanagementp --> admin: "User account restored"
+end
+
+@enduml

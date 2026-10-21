@@ -1,0 +1,108 @@
+@startuml 3.8.1 - Connect Social Account
+title Sequence Diagram — 3.8.1 - Connect Social Account
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "SocialAccountsPage (UI)" as socialaccountspageui
+boundary "SocialOAuthController" as socialoauthcontrolle
+control "MetaOAuthService" as metaoauthservice
+control "SocialAccountService" as socialaccountservice
+entity "Meta Graph API" as metagraphapi
+control "TikTokOAuthService" as tiktokoauthservice
+entity "TikTok Open API" as tiktokopenapi
+control "ThreadsOAuthService" as threadsoauthservice
+entity "Threads API" as threadsapi
+
+' --- Section: 3.8.1a - Connect Facebook & Instagram Account ---
+user -> socialaccountspageui: clicks "Connect Facebook / Instagram"
+socialaccountspageui -> socialoauthcontrolle: GET /api/v1/oauth/social/connect?platform=META
+socialoauthcontrolle -> metaoauthservice: buildAuthorizationUrl(platform)
+metaoauthservice --> socialoauthcontrolle: authUrl
+socialoauthcontrolle --> socialaccountspageui: 302 Redirect to authUrl
+socialaccountspageui --> user: Meta OAuth Consent Screen
+user -> metagraphapi: authorizes permissions
+metagraphapi --> socialaccountspageui: callback with authCode & state
+socialaccountspageui -> socialoauthcontrolle: GET /api/v1/oauth/social/callback?code=authCode&state=...
+socialoauthcontrolle -> metaoauthservice: exchangeToken(authCode)
+metaoauthservice -> metagraphapi: exchange short-lived token
+metagraphapi --> metaoauthservice: long-lived token (60 days)
+metaoauthservice -> metagraphapi: fetch linked Pages & Instagram accounts
+metagraphapi --> metaoauthservice: accountInfo
+
+alt connection failed
+  metaoauthservice --> socialoauthcontrolle: 302 Redirect with error status
+  socialoauthcontrolle --> socialaccountspageui: error redirect
+  socialaccountspageui --> user: Show error "Connection cancelled or failed"
+else connection success
+  metaoauthservice -> socialaccountservice: syncSocialAccount(userId, accountInfo, encryptedToken)
+  socialaccountservice --> metaoauthservice: savedAccount
+  metaoauthservice --> socialoauthcontrolle: 302 Redirect with success status
+  socialoauthcontrolle --> socialaccountspageui: redirect to SocialAccountsPage
+  socialaccountspageui --> user: Show Facebook/Instagram channel card as connected
+end
+
+' --- Section: 3.8.1b - Connect TikTok Account (PKCE Flow) ---
+user -> socialaccountspageui: clicks "Connect TikTok"
+socialaccountspageui -> socialoauthcontrolle: GET /api/v1/oauth/social/connect?platform=TIKTOK
+socialoauthcontrolle -> tiktokoauthservice: buildAuthorizationUrl()
+tiktokoauthservice --> socialoauthcontrolle: authUrl (with PKCE code_challenge)
+socialoauthcontrolle --> socialaccountspageui: 302 Redirect to authUrl
+socialaccountspageui --> user: TikTok Authorization Screen
+user -> tiktokopenapi: authorizes permissions
+tiktokopenapi --> socialaccountspageui: callback with authCode & state
+socialaccountspageui -> socialoauthcontrolle: GET /api/v1/oauth/social/callback?code=authCode&state=...
+socialoauthcontrolle -> tiktokoauthservice: exchangeToken(authCode, codeVerifier)
+tiktokoauthservice -> tiktokopenapi: exchange token with code verifier
+tiktokopenapi --> tiktokoauthservice: accessToken + refreshToken
+tiktokoauthservice -> tiktokopenapi: fetch TikTok profile info
+tiktokopenapi --> tiktokoauthservice: userInfo(displayName, avatarUrl)
+
+alt connection failed
+  tiktokoauthservice --> socialoauthcontrolle: 302 Redirect with error status
+  socialoauthcontrolle --> socialaccountspageui: error redirect
+  socialaccountspageui --> user: Show error "TikTok connection cancelled or failed"
+else connection success
+  tiktokoauthservice -> socialaccountservice: syncSocialAccount(userId, userInfo, encryptedToken)
+  socialaccountservice --> tiktokoauthservice: savedAccount
+  tiktokoauthservice --> socialoauthcontrolle: 302 Redirect with success status
+  socialoauthcontrolle --> socialaccountspageui: redirect to SocialAccountsPage
+  socialaccountspageui --> user: Show TikTok channel card as connected
+end
+
+' --- Section: 3.8.1c - Connect Threads Account (OAuth Flow) ---
+user -> socialaccountspageui: clicks "Connect Threads"
+socialaccountspageui -> socialoauthcontrolle: GET /api/v1/oauth/social/connect?platform=THREADS
+socialoauthcontrolle -> threadsoauthservice: buildAuthorizationUrl()
+threadsoauthservice --> socialoauthcontrolle: authUrl
+socialoauthcontrolle --> socialaccountspageui: 302 Redirect to authUrl
+socialaccountspageui --> user: Threads Authorization Screen
+user -> threadsapi: authorizes permissions (threads_basic, threads_content_publish)
+threadsapi --> socialaccountspageui: callback with code & state
+socialaccountspageui -> socialoauthcontrolle: GET /api/v1/oauth/social/callback?code=...&state=...
+socialoauthcontrolle -> threadsoauthservice: exchangeToken(authCode)
+threadsoauthservice -> threadsapi: exchange short-lived token
+threadsapi --> threadsoauthservice: short-lived token
+threadsoauthservice -> threadsapi: exchange long-lived token (60 days)
+threadsapi --> threadsoauthservice: long-lived token
+threadsoauthservice -> threadsapi: fetch Threads user profile
+threadsapi --> threadsoauthservice: userInfo(username, profilePictureUrl)
+
+alt connection failed
+  threadsoauthservice --> socialoauthcontrolle: 302 Redirect with error status
+  socialoauthcontrolle --> socialaccountspageui: error redirect
+  socialaccountspageui --> user: Show error "Threads connection cancelled or failed"
+else connection success
+  threadsoauthservice -> socialaccountservice: syncSocialAccount(userId, userInfo, encryptedToken)
+  socialaccountservice --> threadsoauthservice: savedAccount
+  threadsoauthservice --> socialoauthcontrolle: 302 Redirect with success status
+  socialoauthcontrolle --> socialaccountspageui: redirect to SocialAccountsPage
+  socialaccountspageui --> user: Show Threads channel card as connected
+end
+
+@enduml

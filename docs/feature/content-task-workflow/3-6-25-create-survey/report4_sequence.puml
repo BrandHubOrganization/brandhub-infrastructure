@@ -1,0 +1,51 @@
+@startuml 3.6.25 - Create Survey
+title Sequence Diagram — 3.6.25 - Create Survey
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Manager / Creator" as managercreator
+entity "LivestreamIdeaResponse" as livestreamidearespon
+entity "TaskRepository" as taskrepository
+control "LivestreamTaskServiceImpl" as livestreamtaskservic
+boundary "LivestreamTaskController" as livestreamtaskcontro
+boundary "TaskDetailPage (UI)" as taskdetailpageui
+entity "SurveyRepository" as surveyrepository
+
+' === Flow ===
+managercreator -> taskdetailpageui: Configure questions (type, label, options, timeSlot), title, and click "Create Survey"
+taskdetailpageui -> livestreamtaskcontro: POST /api/v1/workspaces/{wId}/tasks/{taskId}/survey { "title": "...", "questions": [...] }
+livestreamtaskcontro -> livestreamtaskservic: createSurvey(workspaceId, taskId, createSurveyRequest, currentUser)
+livestreamtaskservic -> taskrepository: findByIdAndWorkspaceId(taskId, workspaceId)
+taskrepository --> livestreamtaskservic: return Optional<Task>
+
+alt Task Not Found (Optional is empty)
+  livestreamtaskservic --> livestreamtaskcontro: throw TASK_NOT_FOUND (404 Not Found)
+  livestreamtaskcontro --> taskdetailpageui: return 404 Not Found (Task not found in workspace)
+  taskdetailpageui --> managercreator: Display error message: "Task not found in workspace"
+else Task is not SURVEY type (task.getType() != 'SURVEY')
+  livestreamtaskservic --> livestreamtaskcontro: throw INVALID_TASK_TYPE (400 Bad Request)
+  livestreamtaskcontro --> taskdetailpageui: return 400 Bad Request (Task must be of type Survey)
+  taskdetailpageui --> managercreator: Display error message: "Task must be of type Livestream"
+else Empty Question List (questions is empty)
+  livestreamtaskservic --> livestreamtaskcontro: throw SURVEY_MUST_HAVE_QUESTIONS
+  livestreamtaskcontro --> taskdetailpageui: return 400 Bad Request (Survey must contain at least one question)
+  taskdetailpageui --> managercreator: Display error: "Cannot transition from current status to requested status"
+else Valid Request
+  livestreamtaskservic -> livestreamtaskservic: buildSurveyEntity(task, createSurveyRequest)
+  livestreamtaskservic -> surveyrepository: save(newSurvey)
+  surveyrepository --> livestreamtaskservic: return savedSurvey
+  livestreamtaskservic -> taskrepository: linkSurvey(taskId, savedSurvey.getId())
+  taskrepository --> livestreamtaskservic: return savedTask
+  livestreamtaskservic -> livestreamidearespon: toLivestreamStatusResponse(savedTask)
+  livestreamidearespon --> livestreamtaskservic: return statusResponse
+  livestreamtaskservic --> livestreamtaskcontro: return statusResponse
+  livestreamtaskcontro --> taskdetailpageui: return 200 OK (Updated livestream status)
+  taskdetailpageui --> managercreator: Update Stepper badge, refresh active state controls (e.g. enable Submit for Approval if DONE)
+end
+
+@enduml

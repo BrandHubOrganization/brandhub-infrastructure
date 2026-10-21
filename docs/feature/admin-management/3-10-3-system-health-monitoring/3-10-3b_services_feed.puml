@@ -1,0 +1,29 @@
+@startuml 3.10.3b - System Monitor - Services & Dependencies Feed
+title Sequence Diagram — 3.10.3b - System Monitor - Services & Dependencies Feed
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+
+' === Participants ===
+actor "Admin" as admin
+boundary "SystemHealthDashboard (UI)" as ui
+boundary "MonitoringHealthController" as ctrl
+control "HealthQueryService" as svc
+control "AdminAccountService" as authSvc
+entity "ServiceHealthRepository" as repo
+
+' === Flow ===
+admin -> ui: Open /admin/system-health (Services tab)
+ui -> ctrl: GET /api/monitoring/health-targets(page, size, filters)
+ctrl -> authSvc: requireAdmin(actorId)
+authSvc --> ctrl: 200 OK (ADMIN verified)
+ctrl -> svc: listHealthTargets(principal, filters, pageable)
+svc -> repo: findHealthTargets(filters, pageable)
+repo --> svc: return targetHealthList
+svc -> svc: evaluateDependencyUptime(targetHealthList)
+svc --> ctrl: return HealthTargetsResponse
+ctrl --> ui: 200 OK (HealthTargetsResponse)
+ui --> admin: Render services status & dependency tree
+
+@enduml

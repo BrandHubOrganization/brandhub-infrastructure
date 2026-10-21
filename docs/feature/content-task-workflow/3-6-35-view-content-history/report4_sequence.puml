@@ -1,0 +1,68 @@
+@startuml 3.6.35 - View Content History
+title Sequence Diagram — 3.6.35 - View Content History
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+entity "WorkspaceRepository" as workspacerepository
+boundary "ContentHistoryController" as contenthistorycontro
+control "ContentHistoryService" as contenthistoryservic
+entity "ContentHistoryRepository" as contenthistoryreposi
+entity "ContentReuseRepository" as contentreusereposito
+actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
+
+' === Flow ===
+contenthistoryservic -> contenthistoryservic: Check session, scope and history view permission
+creatorclientmanager -> webdashboard: Open content history and filters
+webdashboard -> contenthistorycontro: GET /api/v1/workspaces/{workspaceId}/content-history
+contenthistorycontro -> contenthistoryservic: listContentHistory(user, query)
+contenthistoryservic -> workspacerepository: Load workspace access
+workspacerepository --> contenthistoryservic: Workspace
+
+loop invalid session / forbidden / unavailable resource
+  contenthistoryservic --> contenthistorycontro: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  contenthistorycontro --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  webdashboard --> creatorclientmanager: Display access or resource error
+end
+
+contenthistoryservic -> contenthistoryreposi: Query scoped history with paging
+contenthistoryreposi --> contenthistoryservic: history
+
+alt query failed
+  contenthistoryservic --> contenthistorycontro: 500 Internal Server Error
+  contenthistorycontro --> webdashboard: 500 Internal Server Error
+  webdashboard --> creatorclientmanager: Display load error with Retry
+else query succeeded
+  contenthistoryservic --> contenthistorycontro: 200 OK
+  contenthistorycontro --> webdashboard: 200 OK
+  webdashboard --> creatorclientmanager: Display history / empty list
+end
+
+
+opt user explicitly chooses Reuse
+  creatorclientmanager -> webdashboard: Reuse selected version in destination Task
+  webdashboard -> contenthistorycontro: POST /api/v1/workspaces/{workspaceId}/content-reuse
+  contenthistorycontro -> contenthistoryservic: reuseContent(user, command)
+  contenthistoryservic -> contenthistoryreposi: Load content history entry
+  contenthistoryreposi --> contenthistoryservic: ContentHistoryEntry
+  contenthistoryservic -> contentreusereposito: Save unique reuse trace
+  contentreusereposito --> contenthistoryservic: reuseOutcome
+end
+
+
+alt writeOutcome committed
+  contenthistoryservic --> contenthistorycontro: 200 OK
+  contenthistorycontro --> webdashboard: 200 OK
+  webdashboard --> creatorclientmanager: Display reused content
+else write failed
+  contenthistoryservic --> contenthistorycontro: 500 Internal Server Error
+  contenthistorycontro --> webdashboard: 500 Internal Server Error
+  webdashboard --> creatorclientmanager: Display reuse failure
+end
+
+@enduml

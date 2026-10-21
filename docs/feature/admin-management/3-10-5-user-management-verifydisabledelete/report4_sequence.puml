@@ -1,0 +1,83 @@
+@startuml 3.10.5 - Account status and strike management
+title Sequence Diagram — 3.10.5 - Account status and strike management
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "System Administrator" as systemadministrator
+boundary "AdminStrikeDialog (UI)" as adminstrikedialogui
+boundary "AdminController" as admincontroller
+control "AdminAccountService" as adminaccountservice
+entity "UserSystemRoleRepository" as usersystemrolereposi
+entity "UserRepository" as userrepository
+entity "UserStrikeRepository" as userstrikerepository
+entity "SanctionReviewRepository" as sanctionreviewreposi
+entity "User / UserStrike" as useruserstrike
+entity "ApiResponse<Void>" as apiresponsevoid
+
+' === Flow ===
+systemadministrator -> adminstrikedialogui: Add/remove a strike or unflag an account
+adminstrikedialogui -> admincontroller: POST /api/v1/admin/users/{id}/violations OR PATCH /users/{id}/status
+admincontroller -> adminaccountservice: record(actor, target, request) / unflag(actor, target, reason)
+adminaccountservice -> usersystemrolereposi: findByUserId(actor)
+usersystemrolereposi --> adminaccountservice: Optional<UserSystemRole>
+
+alt Actor is not ADMIN
+  adminaccountservice --> admincontroller: BusinessException(FORBIDDEN)
+  admincontroller --> adminstrikedialogui: 403 Forbidden
+  adminstrikedialogui --> systemadministrator: Show access denied
+else ADMIN permission granted
+  adminaccountservice -> userrepository: lockById(target)
+  userrepository --> adminaccountservice: Optional<User>
+end
+
+
+opt Target account exists
+  adminaccountservice -> usersystemrolereposi: findByUserId(target)
+  usersystemrolereposi --> adminaccountservice: Target system role
+  adminaccountservice -> userstrikerepository: findByUserIdAndRemovedAtIsNullAndExpiresAtAfter (target, now)
+  userstrikerepository --> adminaccountservice: Live strikes
+end
+
+else ADMIN permission granted
+  adminaccountservice -> adminaccountservice: Validate protected account, reason, action and strike eligibility
+end
+
+
+alt Operation rejected
+  adminaccountservice --> admincontroller: BusinessException(errorCode)
+  admincontroller --> adminstrikedialogui: 400 / 403 / 404 / 409 — request rejected
+  adminstrikedialogui --> systemadministrator: Show the reason; keep the form
+else Eligible operation
+  adminaccountservice -> useruserstrike: Read account status and existing strike fields, if any
+  useruserstrike --> adminaccountservice: Account/strike data
+  adminaccountservice -> adminaccountservice: Apply ADD/REMOVE/UNFLAG policy; skip already-applied action
+end
+
+
+opt ADD or REMOVE strike not previously applied
+  adminaccountservice -> userstrikerepository: saveAll(live) / save(strike)
+  userstrikerepository --> adminaccountservice: Saved strikes
+end
+
+
+opt ADD or UNFLAG changes account status and action not previously applied
+  adminaccountservice -> userrepository: save(user)
+  userrepository --> adminaccountservice: Saved User
+end
+
+else Eligible operation
+  adminaccountservice -> sanctionreviewreposi: findByUserIdAndStatus(target, "PENDING"); save(review) if threshold changes
+  sanctionreviewreposi --> adminaccountservice: Current/saved sanction review
+  adminaccountservice --> admincontroller: Operation completed (void)
+  admincontroller --> adminstrikedialogui: 200 OK — changes saved
+  adminstrikedialogui --> systemadministrator: Refresh account status, counters and history
+  admincontroller -> apiresponsevoid: ok(null, requestId)
+  apiresponsevoid --> admincontroller: ApiResponse<Void>
+end
+
+@enduml

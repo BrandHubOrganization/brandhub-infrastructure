@@ -1,0 +1,74 @@
+@startuml 3.8.14 - Publish to TikTok (Video Post)
+title Sequence Diagram — 3.8.14 - Publish to TikTok (Video Post)
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Tik Tok API" as tiktokapi
+control "PublishJobConsumer (Publisher Service)" as publishjobconsumerpu
+entity "S3 Media Storage" as s3mediastorage
+control "PublishCallbackConsumer (Business Service)" as publishcallbackconsu
+control "TikTokReelsPublishService (Publisher Service)" as tiktokreelspublishse
+control "TikTokPublishAdapter (Publisher Service)" as tiktokpublishadapter
+entity "RabbitMQ (brandhub.publishing)" as rabbitmqbrandhubpubl
+control "PostMongoRepository (Business Service)" as postmongorepositoryb
+control "SchedulerServiceImpl (Business Service)" as schedulerserviceimpl
+actor "Scheduler (Job)" as schedulerjob
+
+' === Flow ===
+schedulerjob -> schedulerserviceimpl: triggerEveryMinute()
+schedulerserviceimpl -> postmongorepositoryb: findScheduledPosts(scheduledAt <= NOW(), status='SCHEDULED', platform='TIKTOK')
+postmongorepositoryb --> schedulerserviceimpl: return List<PostDocument>
+
+break For each scheduled Post
+  schedulerserviceimpl -> postmongorepositoryb: updateStatus(postId, 'IN_PROGRESS')
+  postmongorepositoryb --> schedulerserviceimpl: return 200 OK
+  schedulerserviceimpl -> rabbitmqbrandhubpubl: publish("brandhub.publishing", "publish.job", PublishJobMessage {platform='TIKTOK', ...})
+  rabbitmqbrandhubpubl --> schedulerserviceimpl: return Acknowledgement
+end
+
+rabbitmqbrandhubpubl -> publishjobconsumerpu: consume("publisher.job.queue", message)
+publishjobconsumerpu -> publishjobconsumerpu: checkRedisLockSETNX("processingPostIds:" + postId, ttl=30m)
+publishjobconsumerpu -> tiktokpublishadapter: publish(jobMessage)
+tiktokpublishadapter -> tiktokreelspublishse: publish(jobMessage)
+tiktokreelspublishse -> tiktokreelspublishse: rateLimiter.acquire() & decryptToken(encryptedToken)
+tiktokreelspublishse -> s3mediastorage: GET videoUrl (download video bytes)
+s3mediastorage --> tiktokreelspublishse: return videoBytes (byte[])
+tiktokreelspublishse -> tiktokapi: POST https://open.tiktokapis.com/v2/post/publish/video/init/ (post_info: caption, source_info: FILE_UPLOAD)
+
+alt Container Created Successfully
+  tiktokapi --> tiktokreelspublishse: return { publish_id: "tiktok_pub_888", upload_url: "https://..." }
+  tiktokreelspublishse -> tiktokapi: PUT upload_url (videoBytes, Content-Type: video/mp4)
+  tiktokapi --> tiktokreelspublishse: return 200 OK (Uploaded)
+  tiktokreelspublishse --> tiktokpublishadapter: return PublishResult (status='SUCCESS', platformPostId='tiktok_pub_888')
+  tiktokpublishadapter --> publishjobconsumerpu: return PublishResult
+  publishjobconsumerpu -> rabbitmqbrandhubpubl: channel.basicAck(deliveryTag)
+  publishjobconsumerpu -> rabbitmqbrandhubpubl: publish("brandhub.publishing", "publish.callback", CallbackMessage {status='SUCCESS', platformPostId='tiktok_pub_888'})
+  rabbitmqbrandhubpubl --> publishjobconsumerpu: return ack
+else Container Creation Failed / Invalid Aspect Ratio
+  tiktokapi --> tiktokreelspublishse: return Error Response (Invalid token / Video spec error)
+  tiktokreelspublishse --> tiktokpublishadapter: return PublishResult (status='FAILED', errorCode, errorMessage)
+  tiktokpublishadapter --> publishjobconsumerpu: return throw Exception
+  publishjobconsumerpu -> rabbitmqbrandhubpubl: basicNack -> Route to Dead Letter Queue ("publisher.job.dlq")
+  rabbitmqbrandhubpubl --> publishjobconsumerpu: return ack
+  publishjobconsumerpu -> rabbitmqbrandhubpubl: publish("brandhub.publishing", "publish.callback", CallbackMessage {status='FAILED', error})
+  rabbitmqbrandhubpubl --> publishjobconsumerpu: return ack
+end
+
+rabbitmqbrandhubpubl -> publishcallbackconsu: consume("business.publish_callback.queue", callbackMessage)
+
+alt Status == 'SUCCESS'
+  publishcallbackconsu -> postmongorepositoryb: updateStatus(postId, 'PUBLISHED', platformPostId)
+  postmongorepositoryb --> publishcallbackconsu: return 200 OK
+else Status == 'FAILED'
+  publishcallbackconsu -> postmongorepositoryb: updateStatus(postId, 'FAILED', errorMessage)
+  postmongorepositoryb --> publishcallbackconsu: return 200 OK
+end
+
+publishcallbackconsu -> rabbitmqbrandhubpubl: channel.basicAck(deliveryTag)
+
+@enduml

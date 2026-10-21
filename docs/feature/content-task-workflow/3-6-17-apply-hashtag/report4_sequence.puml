@@ -1,0 +1,64 @@
+@startuml 3.6.17 - Apply Hashtag
+title Sequence Diagram — 3.6.17 - Apply Hashtag
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "HashtagController" as hashtagcontroller
+control "HashtagService" as hashtagservice
+entity "WorkspaceRepository" as workspacerepository
+entity "WorkspaceMemberRepository" as workspacememberrepos
+entity "AgencyRepository" as agencyrepository
+entity "HashtagRepository" as hashtagrepository
+entity "TaskHashtagRepository" as taskhashtagrepositor
+actor "CREATOR" as creator
+
+' === Flow ===
+hashtagservice -> hashtagservice: Check active tags, version and required scope
+hashtagservice -> hashtagservice: Check CREATOR and destination rights
+hashtagservice -> hashtagservice: Merge tags; keep snapshots
+hashtagservice -> hashtagservice: Resolve coordinated writeOutcome
+creator -> webdashboard: Select hashtags and Apply to Post
+webdashboard -> hashtagcontroller: PATCH /api/v1/workspaces/{workspaceId}/tasks/{taskId}/hashtags
+hashtagcontroller -> hashtagservice: applyHashtags(user, command)
+hashtagservice -> workspacerepository: Load workspace
+workspacerepository --> hashtagservice: Workspace
+hashtagservice -> workspacememberrepos: Load membership
+workspacememberrepos --> hashtagservice: WorkspaceMember
+hashtagservice -> agencyrepository: Load agency
+agencyrepository --> hashtagservice: Agency
+hashtagservice -> hashtagrepository: Load selected tags and required scope
+hashtagrepository --> hashtagservice: Hashtag
+
+loop invalid session / forbidden / unavailable resource
+  hashtagservice --> hashtagcontroller: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  hashtagcontroller --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  webdashboard --> creator: Display access or resource error
+end
+
+
+loop invalid selection / stale Post / contract unavailable
+  hashtagservice --> hashtagcontroller: 400 Bad Request / 409 Conflict
+  hashtagcontroller --> webdashboard: 400 Bad Request / 409 Conflict
+  webdashboard --> creator: Display apply rejected; no partial save
+end
+
+hashtagservice -> taskhashtagrepositor: Save usage snapshots (proposed)
+taskhashtagrepositor --> hashtagservice: snapshotOutcome
+
+alt writeOutcome committed
+  hashtagservice --> hashtagcontroller: 200 OK
+  hashtagcontroller --> webdashboard: 200 OK
+  webdashboard --> creator: Display updated Post hashtag preview
+else write failed or version conflict
+  hashtagservice --> hashtagcontroller: 409 Conflict / 500 Internal Server Error
+  hashtagcontroller --> webdashboard: 409 Conflict / 500 Internal Server Error
+  webdashboard --> creator: Display Apply failure; retain previous selection
+end
+
+@enduml

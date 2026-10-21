@@ -1,0 +1,67 @@
+@startuml 3.5.4 - Approve Media Package
+title Sequence Diagram — 3.5.4 - Approve Media Package
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "MediaPackageRepository" as mediapackagereposito
+entity "WorkspaceMediaPackageRepository" as workspacemediapackag
+control "MediaPackageService" as mediapackageservice
+boundary "MediaPackageController" as mediapackagecontroll
+actor "nUser (Client / Agency)" as nuserclientagency
+boundary "WorkspacePackageUI" as workspacepackageui
+
+' === Flow ===
+nuserclientagency -> workspacepackageui: reviews negotiated terms and clicks "Approve Package"
+workspacepackageui -> mediapackagecontroll: POST /api/v1/workspaces/{workspaceId}/media-package/approve
+else both Agency and Client approved same terms version
+  mediapackageservice -> mediapackageservice: set negotiationStatus = APPROVED
+end
+
+else caller is Agency (Owner / Manager)
+  mediapackageservice -> mediapackageservice: set approvedByAgencyAt = now
+
+alt caller is Client
+  mediapackageservice -> mediapackageservice: set approvedByClientAt = now
+end
+
+mediapackagecontroll -> mediapackageservice: approvePackage(workspaceId, currentUser)
+mediapackageservice -> workspacemediapackag: findByWorkspaceIdForUpdate(workspaceId)
+workspacemediapackag --> mediapackageservice: workspacePackage
+
+alt package already in APPROVED status
+  workspacemediapackag -> mediapackagereposito: findById(packageId)
+  mediapackagereposito --> workspacemediapackag: mediaPackage
+  workspacemediapackag --> mediapackageservice: WorkspaceMediaPackageResponse (status: APPROVED)
+  mediapackageservice --> mediapackagecontroll: 200 OK (already approved)
+  mediapackagecontroll --> workspacepackageui: show notice ('Package is already fully approved')
+else caller is unauthorized
+  mediapackageservice --> mediapackagecontroll: throw BusinessException (403 WORKSPACE_ACCESS_DENIED)
+  mediapackagecontroll --> workspacepackageui: 403 Forbidden (WORKSPACE_ACCESS_DENIED)
+  workspacepackageui --> nuserclientagency: show error toast ('Access denied')
+end
+
+
+alt single party approved (pending other party)
+  mediapackageservice ->> workspacemediapackag: save(workspacePackage)
+  workspacemediapackag --> mediapackageservice: savedPackage
+  mediapackageservice ->> mediapackagereposito: findById(packageId)
+  mediapackagereposito --> mediapackageservice: mediaPackage
+  mediapackageservice --> mediapackagecontroll: WorkspaceMediaPackageResponse (one approval timestamp set)
+  mediapackagecontroll --> workspacepackageui: 200 OK (one approval timestamp recorded)
+  workspacepackageui --> nuserclientagency: show toast ('Approved terms version. Awaiting second party confirmation')
+else both Agency and Client approved same terms version
+  mediapackageservice ->> workspacemediapackag: save(workspacePackage)
+  workspacemediapackag --> mediapackageservice: savedPackage
+  mediapackageservice ->> mediapackagereposito: findById(packageId)
+  mediapackagereposito --> mediapackageservice: mediaPackage
+  mediapackageservice --> mediapackagecontroll: WorkspaceMediaPackageResponse (status: APPROVED)
+  mediapackagecontroll --> workspacepackageui: 200 OK (status: APPROVED)
+  workspacepackageui --> nuserclientagency: show success modal ('Media Package fully approved! Ready to create Campaign')
+end
+
+@enduml

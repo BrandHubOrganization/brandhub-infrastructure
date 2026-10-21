@@ -1,0 +1,50 @@
+@startuml 3.8.4 - View Post Track Detail & Real-time Metrics
+title Sequence Diagram — 3.8.4 - View Post Track Detail & Real-time Metrics
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Member / Manager" as membermanager
+boundary "PostController" as postcontroller
+control "PostServiceImpl" as postserviceimpl
+entity "PostTrackDetailResponse" as posttrackdetailrespo
+entity "Social Platform Graph API" as socialplatformgrapha
+control "SocialMetricsServiceImpl" as socialmetricsservice
+boundary "SocialMetricsController" as socialmetricscontrol
+entity "Redis (Metrics Cache)" as redismetricscache
+entity "PostMongoRepository" as postmongorepository
+boundary "PostDetailPage (UI)" as postdetailpageui
+
+' === Flow ===
+membermanager -> postdetailpageui: Click on published post in list / calendar
+postdetailpageui -> postcontroller: GET /api/v1/workspaces/{workspaceId}/posts/{postId}
+postcontroller -> postserviceimpl: getPostTrackDetail(workspaceId, postId)
+postserviceimpl -> postmongorepository: findByIdAndWorkspaceId(postId, workspaceId)
+postmongorepository --> postserviceimpl: return PostDocument (platform, platformPostId, platformPostUrl)
+postserviceimpl -> redismetricscache: get("post:metrics:" + postId)
+
+alt Cache Hit (TTL < 15 mins)
+  redismetricscache --> postserviceimpl: return cachedMetricsJson
+else Cache Miss or Expired
+  redismetricscache --> postserviceimpl: return null
+  socialmetricscontrol -> socialmetricsservice: fetchPostMetrics(platform, platformPostId)
+  postserviceimpl -> socialmetricscontrol: GET /api/v1/social/metrics?platform={p}&platformPostId={extId}
+  socialmetricsservice -> socialplatformgrapha: GET /{platformPostId}?fields=reactions.summary(true),shares,comments.summary(true)
+  socialplatformgrapha --> socialmetricsservice: return rawMetricsResponse (reactionCount, shareCount, commentCount)
+  socialmetricsservice --> socialmetricscontrol: return metricsPayload
+  socialmetricscontrol --> postserviceimpl: return 200 OK (metricsPayload)
+  postserviceimpl -> redismetricscache: set("post:metrics:" + postId, metricsPayload, ttl=15m)
+  redismetricscache --> postserviceimpl: return OK
+end
+
+postserviceimpl -> posttrackdetailrespo: new PostTrackDetailResponse(postDoc, metrics, platformPostUrl)
+postserviceimpl --> postcontroller: return trackDetailResponse
+posttrackdetailrespo --> postserviceimpl: return trackDetailResponse
+postcontroller --> postdetailpageui: return 200 OK (ApiResponse { data: trackDetailResponse })
+postdetailpageui --> membermanager: Render post preview, engagement counts & original platform link
+
+@enduml

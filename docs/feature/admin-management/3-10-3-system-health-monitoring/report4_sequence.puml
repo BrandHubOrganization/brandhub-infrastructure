@@ -1,0 +1,105 @@
+@startuml 3.10.3 - System Health Monitoring
+title Sequence Diagram — 3.10.3 - System Health Monitoring
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "MonitoringServer" as monitoringserver
+boundary "Admin Dashboard" as admindashboard
+boundary "MonitoringHealthController" as monitoringhealthcont
+control "HealthQueryService" as healthqueryservice
+entity "UserSystemRole" as usersystemrole
+entity "Monitoring repositories" as monitoringrepositori
+actor "ADMIN" as admin
+boundary "SystemHealthDashboard (UI)" as systemhealthdashboar
+boundary "MonitoringServerController" as monitoringservercont
+control "ServerMonitoringService" as servermonitoringserv
+control "AdminAccountService" as adminaccountservice
+entity "ServerMetricsRepository" as servermetricsreposit
+control "ServiceHealthRepository" as servicehealthreposit
+
+' --- Section: 3.10.3 - System Monitor Health ---
+
+break while mounted and authorized
+  healthqueryservice -> healthqueryservice: Require current ADMIN; validate query
+end
+
+
+alt invalid session / not ADMIN
+  admindashboard -> admindashboard: Stop feeds; clear auth on 401
+end
+
+else source read succeeded
+  admindashboard -> admindashboard: Replace source snapshot
+end
+
+admin -> admindashboard: Access System Monitoring
+
+break while mounted and authorized
+  admindashboard -> monitoringhealthcont: GET /api/monitoring/health-targets
+  monitoringhealthcont -> healthqueryservice: list(principal, MonitoringFilter)
+  monitoringrepositori -> usersystemrole: Read current system role
+  healthqueryservice -> monitoringrepositori: Read current system role
+  usersystemrole --> monitoringrepositori: role
+end
+
+
+alt invalid session / not ADMIN
+  healthqueryservice --> monitoringhealthcont: access denied
+  monitoringhealthcont --> admindashboard: Return 401 / 403
+else invalid query
+  healthqueryservice --> monitoringhealthcont: INVALID_REQUEST
+  monitoringhealthcont --> admindashboard: 400; display invalid parameters
+else authorized valid query
+  monitoringrepositori -> monitoringserver: Query hosts and heartbeats
+  healthqueryservice -> monitoringrepositori: Load host pages and heartbeats
+  monitoringserver --> monitoringrepositori: sourceOutcome
+end
+
+
+alt source read failed
+  healthqueryservice --> monitoringhealthcont: source failure
+  monitoringhealthcont --> admindashboard: Load error; retain prior authorized snapshot
+else source read succeeded
+  healthqueryservice -> healthqueryservice: Map freshness; apply status filter
+  healthqueryservice --> monitoringhealthcont: rows, serverTime, totalPages
+  monitoringhealthcont --> admindashboard: Source page
+  admindashboard --> admin: Display source status, filters and details
+end
+
+
+break while mounted and authorized
+  admindashboard -> admindashboard: Poll again 5s after completion if authorized; HTTP timeout 5s
+end
+
+' --- Section: 3.10.3a - System Monitor - Servers Feed ---
+admin -> systemhealthdashboar: Open /admin/system-health (Servers tab)
+systemhealthdashboar -> monitoringservercont: GET /api/monitoring/servers(page, size, filters)
+monitoringservercont -> adminaccountservice: requireAdmin(actorId)
+adminaccountservice --> monitoringservercont: 200 OK (ADMIN verified)
+monitoringservercont -> servermonitoringserv: listServers(principal, page, size, filters)
+servermonitoringserv -> servermetricsreposit: findServerMetrics(filters, pageable)
+servermetricsreposit --> servermonitoringserv: return serverMetricsPage
+servermonitoringserv -> servermonitoringserv: calculateHealthStatus(serverMetricsPage)
+servermonitoringserv --> monitoringservercont: return ServerMonitoringResponse
+monitoringservercont --> systemhealthdashboar: 200 OK (ServerMonitoringResponse)
+systemhealthdashboar --> admin: Render server status feed & resource gauges
+
+' --- Section: 3.10.3b - System Monitor - Services & Dependencies Feed ---
+admin -> systemhealthdashboar: Open /admin/system-health (Services tab)
+systemhealthdashboar -> monitoringhealthcont: GET /api/monitoring/health-targets(page, size, filters)
+monitoringhealthcont -> adminaccountservice: requireAdmin(actorId)
+adminaccountservice --> monitoringhealthcont: 200 OK (ADMIN verified)
+monitoringhealthcont -> healthqueryservice: listHealthTargets(principal, filters, pageable)
+healthqueryservice -> servicehealthreposit: findHealthTargets(filters, pageable)
+servicehealthreposit --> healthqueryservice: return targetHealthList
+healthqueryservice -> healthqueryservice: evaluateDependencyUptime(targetHealthList)
+healthqueryservice --> monitoringhealthcont: return HealthTargetsResponse
+monitoringhealthcont --> systemhealthdashboar: 200 OK (HealthTargetsResponse)
+systemhealthdashboar --> admin: Render services status & dependency tree
+
+@enduml
