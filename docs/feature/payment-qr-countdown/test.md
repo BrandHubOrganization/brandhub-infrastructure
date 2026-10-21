@@ -1,0 +1,3 @@
+Verify countdown decreases, clamps at zero, hides QR and offers new order; fulfilled order removes timer. Reopen derives from same absolute expiry. VI/EN labels remain parallel; semantic muted foreground supports both themes.
+Verified: TypeScript and ESLint pass. Playwright Chromium countdown test passes (00:35 → 00:25 → 00:00), QR removed, create-order shown, status remains server-controlled. Theme uses existing tokens; expired placeholder uses bg-card.
+Verify backend compiles and AgencyBillingServiceTest passes; inspect order insert uses now.plusMinutes(15). Existing orders retain old expires_at.
