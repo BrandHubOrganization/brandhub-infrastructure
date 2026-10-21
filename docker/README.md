@@ -22,7 +22,7 @@ Append config to validate without starting containers, or down to stop and remov
 
 These are alternative modes of the same brandhub project, with existing container, network, volume names and host ports preserved. Run one mode at a time. Starting another mode uses --remove-orphans to remove services outside that mode; volumes are retained. This is not isolation between local development and a live production deployment.
 
-Production follows the S3/CloudFront frontend architecture: no frontend container or pgAdmin. Only Nginx publishes ports 80/443; backend and database ports stay internal. TLS certificates are required before startup. See [production setup](compose/production/README.md). MongoDB remains external via MONGODB_URI. PostgreSQL initialization SQL resolves to infrastructure/scripts/init-postgres-v2.sql and runs only on an empty database volume.
+Production follows the S3/CloudFront frontend architecture: no frontend container or pgAdmin. Only Nginx publishes ports 80/443; backend and database ports stay internal. TLS certificates are required before startup. See [production setup](compose/production/README.md). MongoDB remains external via MONGODB_URI. PostgreSQL initialization SQL resolves to infrastructure/docs/database/init-postgres-v2.sql and runs only on an empty database volume.
 
 For direct CLI access from docker/:
 

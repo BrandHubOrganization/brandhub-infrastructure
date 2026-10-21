@@ -1479,6 +1479,91 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_plan_change_pending
 
 COMMIT;
 
+-- ---- 2026-10-08-ai-credit-usages.sql ----
+-- FR 3.7.2 (and 3.7.7): per-use AI credit record so the agency monthly ledger (ai_credit_ledgers) and the
+-- Owner's hard per-Creator limit (ai_credit_creator_limits, FR 3.9.7) can both be enforced, and a failed
+-- AI job can be refunded. FR 3.9.5 (credit tracking) can read this table.
+-- Additive and idempotent.
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS ai_credit_usages (
+    id           UUID         PRIMARY KEY,
+    agency_id    UUID         NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
+    user_id      UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    workspace_id UUID         REFERENCES workspaces(id) ON DELETE SET NULL,
+    feature      VARCHAR(40)  NOT NULL,
+    credits      INT          NOT NULL CHECK (credits >= 0),
+    month        VARCHAR(7)   NOT NULL,
+    reference    VARCHAR(120),
+    refunded_at  TIMESTAMPTZ,
+    created_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_ai_credit_usages_agency_month ON ai_credit_usages(agency_id, month);
+CREATE INDEX IF NOT EXISTS idx_ai_credit_usages_user_month ON ai_credit_usages(user_id, agency_id, month)
+    WHERE refunded_at IS NULL;
+
+COMMIT;
+
+-- ---- 2026-10-08-ai-caption-generations.sql ----
+-- FR 3.7.2: every caption generation, which option the Creator picked and what they finally kept.
+-- Used for (1) history of AI-written content per task, (2) choosing better few-shot examples and a
+-- dataset for the content LoRA later. Additive and idempotent.
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS ai_caption_generations (
+    id            UUID         PRIMARY KEY,
+    workspace_id  UUID         NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    user_id       UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    task_id       UUID,
+    request       JSONB        NOT NULL,
+    variants      JSONB        NOT NULL,
+    context       JSONB        NOT NULL DEFAULT '{}',
+    credits       INT          NOT NULL DEFAULT 0,
+    chosen_type   VARCHAR(20),
+    chosen_action VARCHAR(10)  CHECK (chosen_action IN ('INSERT','REPLACE')),
+    final_text    TEXT,
+    chosen_at     TIMESTAMPTZ,
+    created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_ai_caption_generations_workspace ON ai_caption_generations(workspace_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_caption_generations_task ON ai_caption_generations(task_id) WHERE task_id IS NOT NULL;
+
+COMMIT;
+
+-- ---- 2026-10-08-ai-video-jobs.sql ----
+-- FR 3.7.6 / 3.7.7: one row per AI video job. The AI service keeps the live job in Redis (24h); this row
+-- ties the job to its workspace/user (only they can read it), keeps the result after Redis expiry, and
+-- links the AI credit charge so a failed or timed-out job is refunded exactly once.
+-- Additive and idempotent.
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS ai_video_jobs (
+    id             VARCHAR(64)  PRIMARY KEY,
+    workspace_id   UUID         NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    user_id        UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    usage_id       UUID         REFERENCES ai_credit_usages(id) ON DELETE SET NULL,
+    prompt         TEXT         NOT NULL,
+    style_key      VARCHAR(40),
+    ambassador_id  VARCHAR(80),
+    aspect_ratio   VARCHAR(5)   NOT NULL,
+    status         VARCHAR(12)  NOT NULL DEFAULT 'PENDING'
+                   CHECK (status IN ('PENDING','PROCESSING','COMPLETED','FAILED')),
+    video_url      TEXT,
+    error_code     VARCHAR(60),
+    refunded_at    TIMESTAMPTZ,
+    created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    finished_at    TIMESTAMPTZ
+);
+-- S3 key of the stored MP4: the Content Studio attaches it to a post as media.
+ALTER TABLE ai_video_jobs ADD COLUMN IF NOT EXISTS s3_key VARCHAR(300);
+CREATE INDEX IF NOT EXISTS idx_ai_video_jobs_workspace ON ai_video_jobs(workspace_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_video_jobs_open ON ai_video_jobs(created_at) WHERE status IN ('PENDING','PROCESSING');
+
+COMMIT;
+
 -- ---- 2026-10-12-create-mail-sending-tables.sql ----
 -- ============================================================
 -- BrandHub - PostgreSQL migration: mail sending tables
