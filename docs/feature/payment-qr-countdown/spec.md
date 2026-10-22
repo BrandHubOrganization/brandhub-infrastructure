@@ -1,0 +1,2 @@
+QR expiry uses server expiresAt and a live mm:ss countdown. Never reset deadline on reopen. At zero hide QR, offer new order, keep backend polling authoritative. VI/EN countdown and expired keys; semantic theme colors in light/dark. No API/DB changes.
+New subscription checkout orders expire 15 minutes after creation. Existing orders preserve their persisted expiry; no retroactive truncation of payment windows.
