@@ -1,0 +1,10 @@
+# Implementation plan
+
+1. Add `src/pages/editor/components/AiContentPopover.tsx`, using the shared Button, a floating dialog region rendered through React's standard portal, and existing ContentCreatorAiPanel. Keep the panel mounted while hidden so active video/image generation and form state survive closing. Register outside-click, Escape and viewport positioning listeners only while open. A short assistant greeting introduces the existing forms. A native top-layer popover would cover the existing portal-based result dialogs; a persistent Radix focus scope would affect hidden keyboard handling, so neither is used here.
+2. Mount the button beside autosave in `src/pages/editor/index.tsx`; remove the AI sidebar, its collapse controls and its resize state. Retain Live Preview resizing and current form callbacks/read-only behavior. Use the 1024px `lg` breakpoint consistently for the two-column grid, preview positioning, collapsed rail and resize handler.
+3. Add matching labels in `src/i18n/locales/vi/editor.json` and `src/i18n/locales/en/editor.json`. In `src/i18n/index.ts`, accept updates to these two locale modules and refresh the existing i18next resource bundles and visible labels, preserving editor state.
+4. Verify hover, pointer/click, keyboard, outside dismissal, preserved prompt, existing tabs, nested caption dialog and result application in an isolated browser. Check light/dark and 375/768/1024/1100/1280/1440/1713px viewports, including right-side preview coordinates and live translation updates without draft loss. Record local evidence under `.tmp/editor-ai-content-20261021`.
+
+No new dependencies or API/database changes. Preserve unrelated working changes and do not commit or push.
+
+Preview platform follow-up: in `StudioPreviewPanel.tsx`, enumerate all existing platform icons for preview buttons instead of filtering them through publishing targets. Keep the current publishing targets in preview data and the existing default platform. Let buttons wrap in the narrow column and expose the active choice with `aria-pressed`; reuse all four existing mockup components.
