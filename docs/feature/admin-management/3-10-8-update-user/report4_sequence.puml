@@ -1,0 +1,55 @@
+@startuml 3.10.8 - Update user profile and next-period plan request
+title Sequence Diagram — 3.10.8 - Update user profile and next-period plan request
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Admin" as admin
+boundary "EditUserDialog (UI)" as edituserdialogui
+boundary "AdminUserController" as adminusercontroller
+control "AdminUserProvisioningService" as adminuserprovisionin
+control "AdminAccountService" as adminaccountservice
+entity "UserRepository" as userrepository
+
+' === Flow ===
+admin -> edituserdialogui: Submit profile / plan update request
+activate edituserdialogui
+edituserdialogui -> adminusercontroller: PATCH /api/v1/admin/users/{id}(request)
+activate adminusercontroller
+adminusercontroller -> adminaccountservice: requireAdmin(actorId)
+activate adminaccountservice
+adminaccountservice --> adminusercontroller: 200 OK (ADMIN verified)
+deactivate adminaccountservice
+adminusercontroller -> adminuserprovisionin: updateUserProfileAndPlan(userId, request)
+activate adminuserprovisionin
+adminuserprovisionin -> userrepository: findById(userId)
+activate userrepository
+userrepository --> adminuserprovisionin: return Optional<UserEntity>
+deactivate userrepository
+
+alt User exists
+  adminuserprovisionin -> userrepository: save(updatedUser)
+  activate userrepository
+  userrepository --> adminuserprovisionin: return savedUser
+  deactivate userrepository
+  adminuserprovisionin --> adminusercontroller: return UserUpdateResponse
+  deactivate adminuserprovisionin
+  adminusercontroller --> edituserdialogui: 200 OK (UserUpdateResponse)
+  deactivate adminusercontroller
+  edituserdialogui --> admin: Display success notification
+else User not found
+  activate adminuserprovisionin
+  activate adminusercontroller
+  adminuserprovisionin --> adminusercontroller: 404 Not Found (UserNotFoundException)
+  deactivate adminuserprovisionin
+  adminusercontroller --> edituserdialogui: 404 Not Found (ErrorResponse)
+  deactivate adminusercontroller
+  edituserdialogui --> admin: Show error notification
+  deactivate edituserdialogui
+end
+
+@enduml

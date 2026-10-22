@@ -1,0 +1,68 @@
+@startuml 3.8.12 - Publish Instagram Reels (Short/Long Video)
+title Sequence Diagram — 3.8.12 - Publish Instagram Reels (Short/Long Video)
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Scheduler (Job)" as schedulerjob
+control "SchedulerService" as schedulerservice
+entity "RabbitMQ" as rabbitmq
+entity "PublishJobConsumer" as publishjobconsumer
+control "InstagramReelsPublishService" as instagramreelspublis
+entity "Meta Graph API" as metagraphapi
+entity "PostRepository" as postrepository
+
+' === Flow ===
+schedulerjob -> schedulerservice: trigger scheduled publish job
+activate schedulerservice
+schedulerservice -> postrepository: findScheduledPosts(scheduledAt <= NOW(), platform=INSTAGRAM, type=REELS)
+activate postrepository
+postrepository --> schedulerservice: List<Post>
+deactivate postrepository
+schedulerservice -> rabbitmq: publish("publisher.job.queue", PublishJobMessage{platform=INSTAGRAM, type=REELS, ...})
+activate rabbitmq
+rabbitmq --> publishjobconsumer: consume(PublishJobMessage)
+deactivate rabbitmq
+activate publishjobconsumer
+publishjobconsumer -> instagramreelspublis: publishPost(jobMessage)
+activate instagramreelspublis
+instagramreelspublis -> metagraphapi: POST /{igUserId}/media (media_type="REELS", video_url, caption, share_to_feed=true)
+activate metagraphapi
+metagraphapi --> instagramreelspublis: {id: containerId}
+deactivate metagraphapi
+instagramreelspublis -> metagraphapi: GET /{containerId}?fields=status_code (poll until FINISHED)
+activate metagraphapi
+metagraphapi --> instagramreelspublis: {status_code: FINISHED}
+deactivate metagraphapi
+instagramreelspublis -> metagraphapi: POST /{igUserId}/media_publish (creation_id=containerId)
+activate metagraphapi
+metagraphapi --> instagramreelspublis: {id: platformPostId}
+deactivate metagraphapi
+
+alt publish failed
+  instagramreelspublis --> publishjobconsumer: FAILED (error)
+  deactivate instagramreelspublis
+  publishjobconsumer -> rabbitmq: basicNack -> Route to DLQ
+  activate rabbitmq
+  publishjobconsumer -> postrepository: update(post, status=FAILED)
+  activate postrepository
+  postrepository --> publishjobconsumer: ok
+  deactivate postrepository
+else publish success
+  activate instagramreelspublis
+  instagramreelspublis --> publishjobconsumer: SUCCESS (platformPostId)
+  deactivate instagramreelspublis
+  publishjobconsumer -> postrepository: update(post, status=PUBLISHED, platformPostId)
+  activate postrepository
+  postrepository --> publishjobconsumer: ok
+  deactivate postrepository
+end
+
+deactivate rabbitmq
+deactivate schedulerservice
+deactivate publishjobconsumer
+@enduml

@@ -1,0 +1,68 @@
+@startuml 3.7.8 - Export File
+title Sequence Diagram — 3.7.8 - Export File
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "AiAssetController" as aiassetcontroller
+control "AiAssetService" as aiassetservice
+entity "WorkspaceRepository" as workspacerepository
+entity "GeneratedAssetRepository" as generatedassetreposi
+entity "S3 storage + converter" as s3storageconverter
+actor "CREATOR" as creator
+
+' === Flow ===
+aiassetservice -> aiassetservice: Validate access, permissions and format compatibility
+creator -> webdashboard: Choose asset and export format
+activate webdashboard
+webdashboard -> aiassetcontroller: GET /api/v1/ai/assets/{assetId}/export?format={format}
+activate aiassetcontroller
+aiassetcontroller -> aiassetservice: exportAsset(user, command)
+activate aiassetservice
+aiassetservice -> workspacerepository: Load workspace access
+activate workspacerepository
+workspacerepository --> aiassetservice: Workspace
+deactivate workspacerepository
+aiassetservice -> generatedassetreposi: Load asset metadata
+activate generatedassetreposi
+generatedassetreposi --> aiassetservice: GeneratedAsset
+deactivate generatedassetreposi
+
+loop invalid access / incompatible format / unavailable resource
+  aiassetservice --> aiassetcontroller: 400 Bad Request / 403 Forbidden / 404 Not Found
+  deactivate aiassetservice
+  aiassetcontroller --> webdashboard: 400 Bad Request / 403 Forbidden / 404 Not Found
+  deactivate aiassetcontroller
+  webdashboard --> creator: Display access or format error
+end
+activate aiassetservice
+activate aiassetcontroller
+
+aiassetservice -> s3storageconverter: Read source bytes and convert format
+activate s3storageconverter
+s3storageconverter --> aiassetservice: exportOutcome
+deactivate s3storageconverter
+
+alt export or conversion failed
+  aiassetservice --> aiassetcontroller: 503 Service Unavailable
+  deactivate aiassetservice
+  aiassetcontroller --> webdashboard: 503 Service Unavailable
+  deactivate aiassetcontroller
+  webdashboard --> creator: Display export error
+else export completed
+  activate aiassetservice
+  activate aiassetcontroller
+  aiassetservice --> aiassetcontroller: 200 OK
+  deactivate aiassetservice
+  aiassetcontroller --> webdashboard: 200 OK
+  deactivate aiassetcontroller
+  webdashboard --> creator: Display export download started
+  deactivate webdashboard
+end
+
+@enduml

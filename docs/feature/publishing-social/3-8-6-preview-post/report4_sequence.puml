@@ -1,0 +1,56 @@
+@startuml 3.8.6 - Schedule Platform Post
+title Sequence Diagram — 3.8.6 - Schedule Platform Post
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Creator / Manager" as creatormanager
+entity "PostScheduleResponse" as postscheduleresponse
+control "PostServiceImpl" as postserviceimpl
+boundary "PostController" as postcontroller
+entity "PostMongoRepository" as postmongorepository
+boundary "SchedulePostModal / Calendar (UI)" as schedulepostmodalcal
+
+' === Flow ===
+creatormanager -> schedulepostmodalcal: Select channels & set scheduledAt
+activate schedulepostmodalcal
+schedulepostmodalcal -> postcontroller: POST /api/v1/workspaces/{workspaceId}/posts/{postId}/schedule (targetPlatforms, scheduledAt)
+activate postcontroller
+postcontroller -> postserviceimpl: schedulePost(workspaceId, postId, targetPlatforms, scheduledAt)
+activate postserviceimpl
+postserviceimpl -> postmongorepository: findByIdAndWorkspaceId(postId, workspaceId)
+activate postmongorepository
+postmongorepository --> postserviceimpl: return PostDocument
+deactivate postmongorepository
+
+alt ScheduledAt is in the past / invalid
+  postserviceimpl --> postcontroller: throw BusinessException (SCHEDULE_IN_PAST / 400)
+  deactivate postserviceimpl
+  postcontroller --> schedulepostmodalcal: return 400 Bad Request
+  deactivate postcontroller
+  schedulepostmodalcal --> creatormanager: return Error Response (HTTP 400/401/Timeout)
+else Valid Schedule Parameters
+  activate postcontroller
+  activate postserviceimpl
+  postserviceimpl -> postserviceimpl: postDoc.setStatus('SCHEDULED') postDoc.setScheduledAt(scheduledAt) postDoc.setTargetPlatforms(targetPlatforms)
+  postserviceimpl -> postmongorepository: save(postDoc)
+  activate postmongorepository
+  postmongorepository --> postserviceimpl: return savedPostDoc
+  deactivate postmongorepository
+  postserviceimpl -> postscheduleresponse: new PostScheduleResponse(savedPostDoc)
+  activate postscheduleresponse
+  postscheduleresponse --> postserviceimpl: return scheduleResponse
+  deactivate postscheduleresponse
+  postserviceimpl --> postcontroller: return scheduleResponse
+  deactivate postserviceimpl
+  postcontroller --> schedulepostmodalcal: return 200 OK (ApiResponse { data: scheduleResponse })
+  deactivate postcontroller
+  schedulepostmodalcal -> creatormanager: Display scheduled post badge on Calendar View
+end
+
+deactivate schedulepostmodalcal
+@enduml

@@ -19,27 +19,47 @@ entity "WorkspaceTemplateResponse" as workspacetemplateresponse
 
 ' === Flow: Save Workspace Template ===
 agency_member_owner -> workspacedetailpage_ui: submits form
+activate workspacedetailpage_ui
 workspacedetailpage_ui -> workspacetemplatecontroller: POST /api/v1/workspace-templates
+activate workspacetemplatecontroller
 opt !valid(form)
   workspacetemplatecontroller --> workspacedetailpage_ui: 400 Validation Error response
+  deactivate workspacetemplatecontroller
   workspacedetailpage_ui --> agency_member_owner: shows 400 toast
 end
+activate workspacetemplatecontroller
 workspacetemplatecontroller -> workspacetemplateserviceimpl: saveTemplate(currentUser, request)
+activate workspacetemplateserviceimpl
 workspacetemplateserviceimpl -> agencyrepository: findByOwnerIdAndStatusNot(userId, SOFT_DELETED)
+activate agencyrepository
 agencyrepository --> workspacetemplateserviceimpl: Optional<Agency>
+deactivate agencyrepository
 opt !agency.present
   workspacetemplateserviceimpl --> workspacetemplatecontroller: throw 404 AGENCY_NOT_FOUND
+  deactivate workspacetemplateserviceimpl
   workspacetemplatecontroller --> workspacedetailpage_ui: 404 Error response
+  deactivate workspacetemplatecontroller
   workspacedetailpage_ui --> agency_member_owner: shows 404 toast
 end
+activate workspacetemplatecontroller
+activate workspacetemplateserviceimpl
 workspacetemplateserviceimpl -> workspacetemplate: new WorkspaceTemplate(...)
+activate workspacetemplate
 workspacetemplate --> workspacetemplateserviceimpl: WorkspaceTemplate
+deactivate workspacetemplate
 workspacetemplateserviceimpl -> workspacetemplaterepository: save(template)
+activate workspacetemplaterepository
 workspacetemplaterepository --> workspacetemplateserviceimpl: WorkspaceTemplate
+deactivate workspacetemplaterepository
 workspacetemplateserviceimpl -> workspacetemplateresponse: toResponse(template)
+activate workspacetemplateresponse
 workspacetemplateresponse --> workspacetemplateserviceimpl: WorkspaceTemplateResponse
+deactivate workspacetemplateresponse
 workspacetemplateserviceimpl --> workspacetemplatecontroller: WorkspaceTemplateResponse
+deactivate workspacetemplateserviceimpl
 workspacetemplatecontroller --> workspacedetailpage_ui: 200 OK WorkspaceTemplateResponse
+deactivate workspacetemplatecontroller
 workspacedetailpage_ui --> agency_member_owner: shows 201 toast
+deactivate workspacedetailpage_ui
 
 @enduml

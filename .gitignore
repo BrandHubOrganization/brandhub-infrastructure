@@ -23,6 +23,10 @@ Thumbs.db
 *.log
 logs/
 
+# Machine-specific repairs, funding scripts, inventories and verification artifacts.
+# These are not shared migrations or application setup.
+keep-local-only/
+
 # ── Docker volumes (local data) ──────────────────────────────
 postgres-data/
 mongo-data/

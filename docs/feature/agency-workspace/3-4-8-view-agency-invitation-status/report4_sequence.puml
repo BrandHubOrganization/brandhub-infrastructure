@@ -20,57 +20,101 @@ entity "AgencyInvitationResponse" as agencyinvitationresponse
 
 alt views pending invitations
   owner -> agencyinvitationspage_ui: selects pending invitations tab
+  activate agencyinvitationspage_ui
   agencyinvitationspage_ui -> agencycontroller: GET /api/v1/agencies/{agencyId}/invitations
+  activate agencycontroller
   agencycontroller -> agencyserviceimpl: listInvitations(currentUser, agencyId)
+  activate agencyserviceimpl
   agencyserviceimpl -> agencyrepository: findById(agencyId)
+  activate agencyrepository
   agencyrepository --> agencyserviceimpl: Optional<Agency>
+  deactivate agencyrepository
   opt caller != OWNER
     agencyserviceimpl --> agencycontroller: throw 403 NOT_AGENCY_OWNER
+    deactivate agencyserviceimpl
     agencycontroller --> agencyinvitationspage_ui: 403 Forbidden
+    deactivate agencycontroller
     agencyinvitationspage_ui --> owner: shows 403 toast
   end
+  activate agencyserviceimpl
+  activate agencycontroller
   agencyserviceimpl -> agencyinvitationrepository: findByAgencyId(agencyId)
+  activate agencyinvitationrepository
   agencyinvitationrepository --> agencyserviceimpl: List<AgencyInvitation>
+  deactivate agencyinvitationrepository
   agencyserviceimpl -> workspacerepository: findAllById(workspaceIds)
+  activate workspacerepository
   workspacerepository --> agencyserviceimpl: Map<UUID, Workspace>
+  deactivate workspacerepository
   agencyserviceimpl -> agencyserviceimpl: calculateEffectiveStatus(inv)
   agencyserviceimpl -> agencyinvitation: getStatus()
+  activate agencyinvitation
   agencyinvitation --> agencyserviceimpl: status
+  deactivate agencyinvitation
   agencyserviceimpl -> agencyinvitationresponse: toInvitationResponse(effective)
+  activate agencyinvitationresponse
   agencyinvitationresponse --> agencyserviceimpl: AgencyInvitationResponse
+  deactivate agencyinvitationresponse
   agencyserviceimpl --> agencycontroller: List<AgencyInvitationResponse>
+  deactivate agencyserviceimpl
   agencycontroller --> agencyinvitationspage_ui: 200 OK List<AgencyInvitationResponse>
+  deactivate agencycontroller
   agencyinvitationspage_ui --> owner: renders invitations list
 else clicks Cancel on invitation
   owner -> agencyinvitationspage_ui: clicks Cancel on invitation
   agencyinvitationspage_ui -> agencycontroller: DELETE /api/v1/agencies/{agencyId}/invitations/{invitationId}
+  activate agencycontroller
   agencycontroller -> agencyserviceimpl: cancelInvitation(agencyId, invitationId)
+  activate agencyserviceimpl
   agencyserviceimpl -> agencyrepository: findById(agencyId)
+  activate agencyrepository
   agencyrepository --> agencyserviceimpl: Optional<Agency>
+  deactivate agencyrepository
   opt caller != OWNER
     agencyserviceimpl --> agencycontroller: throw 403 NOT_AGENCY_OWNER
+    deactivate agencyserviceimpl
     agencycontroller --> agencyinvitationspage_ui: 403 Forbidden
+    deactivate agencycontroller
     agencyinvitationspage_ui --> owner: shows 403 toast
   end
+  activate agencyserviceimpl
+  activate agencycontroller
   agencyserviceimpl -> agencyinvitationrepository: findById(invitationId)
+  activate agencyinvitationrepository
   agencyinvitationrepository --> agencyserviceimpl: Optional<AgencyInvitation>
+  deactivate agencyinvitationrepository
   opt !inv.present || wrongAgency
     agencyserviceimpl --> agencycontroller: throw 404 INVITATION_NOT_FOUND
+    deactivate agencyserviceimpl
     agencycontroller --> agencyinvitationspage_ui: 404 Not Found
+    deactivate agencycontroller
     agencyinvitationspage_ui --> owner: shows 404 toast
   end
+  activate agencyserviceimpl
+  activate agencycontroller
   opt status != PENDING
     agencyserviceimpl --> agencycontroller: throw 400 INVALID_INVITATION
+    deactivate agencyserviceimpl
     agencycontroller --> agencyinvitationspage_ui: 400 Bad Request
+    deactivate agencycontroller
     agencyinvitationspage_ui --> owner: shows 400 toast
   end
+  activate agencyserviceimpl
+  activate agencycontroller
   agencyserviceimpl -> agencyinvitation: setStatus(REVOKED)
+  activate agencyinvitation
   agencyinvitation --> agencyserviceimpl: AgencyInvitation
+  deactivate agencyinvitation
   agencyserviceimpl -> agencyinvitationrepository: save(invitation)
+  activate agencyinvitationrepository
   agencyinvitationrepository --> agencyserviceimpl: AgencyInvitation
+  deactivate agencyinvitationrepository
   agencyserviceimpl --> agencycontroller: 200 OK
+  deactivate agencyserviceimpl
   agencycontroller --> agencyinvitationspage_ui: 200 OK
+  deactivate agencycontroller
   agencyinvitationspage_ui --> owner: shows 200 toast
+  deactivate agencyinvitationspage_ui
 end
 
 @enduml

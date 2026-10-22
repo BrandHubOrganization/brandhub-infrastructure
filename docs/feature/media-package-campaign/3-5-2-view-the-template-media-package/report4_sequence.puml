@@ -1,0 +1,68 @@
+@startuml 3.5.2 - View Media Package
+title Sequence Diagram — 3.5.2 - View Media Package
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "WorkspaceMember" as workspacemember
+entity "MediaPackageRepository" as mediapackagereposito
+entity "WorkspaceMediaPackageRepository" as workspacemediapackag
+control "MediaPackageService" as mediapackageservice
+boundary "MediaPackageController" as mediapackagecontroll
+boundary "WorkspacePackageUI" as workspacepackageui
+
+' === Flow ===
+workspacepackageui -> mediapackagecontroll: GET /api/v1/workspaces/{workspaceId}/media-packages
+activate mediapackagecontroll
+workspacemember -> workspacepackageui: navigates to workspace media package tab
+activate workspacepackageui
+mediapackagecontroll -> mediapackageservice: listAvailablePackages(workspaceId)
+activate mediapackageservice
+mediapackageservice -> mediapackagereposito: findAllByAgencyIdAndIsTemplateFalseAndAvailableToWorkspacesTrueOrderByCreatedAtDesc(agencyId)
+activate mediapackagereposito
+mediapackagereposito --> mediapackageservice: availablePackages
+deactivate mediapackagereposito
+mediapackageservice --> mediapackagecontroll: List<MediaPackageResponse>
+deactivate mediapackageservice
+mediapackagecontroll --> workspacepackageui: 200 OK (availablePackages)
+deactivate mediapackagecontroll
+workspacepackageui --> workspacemember: render available agency packages catalog
+workspacepackageui ->> mediapackagecontroll: GET /api/v1/workspaces/{workspaceId}/media-package
+activate mediapackagecontroll
+workspacemember ->> workspacepackageui: views selected package details
+mediapackagecontroll ->> mediapackageservice: getWorkspacePackage(workspaceId)
+activate mediapackageservice
+mediapackageservice ->> workspacemediapackag: findByWorkspaceId(workspaceId)
+activate workspacemediapackag
+
+alt no package selected yet for this workspace
+  workspacemediapackag --> mediapackageservice: Optional.empty()
+  deactivate workspacemediapackag
+  mediapackageservice --> mediapackagecontroll: null
+  deactivate mediapackageservice
+  mediapackagecontroll --> workspacepackageui: 200 OK (data: null)
+  deactivate mediapackagecontroll
+  workspacepackageui --> workspacemember: show informative empty state ('No package selected yet') & prompt Client action
+else package already selected
+  activate mediapackagecontroll
+  activate workspacemediapackag
+  activate mediapackageservice
+  workspacemediapackag --> mediapackageservice: workspacePackage
+  deactivate workspacemediapackag
+  mediapackageservice ->> mediapackagereposito: findById(packageId)
+  activate mediapackagereposito
+  mediapackagereposito --> mediapackageservice: mediaPackage
+  deactivate mediapackagereposito
+  mediapackageservice --> mediapackagecontroll: WorkspaceMediaPackageResponse (status, finalTerms, termsVersion, approvals)
+  deactivate mediapackageservice
+  mediapackagecontroll --> workspacepackageui: 200 OK (WorkspaceMediaPackageResponse)
+  deactivate mediapackagecontroll
+  workspacepackageui --> workspacemember: render package summary (type, budget/duration, terms version, negotiation status)
+  deactivate workspacepackageui
+end
+
+@enduml

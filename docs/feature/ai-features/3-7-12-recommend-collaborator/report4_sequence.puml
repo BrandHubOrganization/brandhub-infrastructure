@@ -22,42 +22,74 @@ entity "CampaignCollaboratorResponse" as campaigncollaboratorresponse
 
 ' === Flow ===
 user -> recommend_ui: enters target audience & budget, clicks "Get Recommendations"
+activate recommend_ui
 recommend_ui -> collaboratorcontroller: GET /api/v1/collaborators/agencies/{agencyId}
+activate collaboratorcontroller
 collaboratorcontroller -> collaboratorserviceimpl: listByAgency(agencyId)
+activate collaboratorserviceimpl
 collaboratorserviceimpl -> thirdpartycollaboratorrepository: findByAgencyId(agencyId)
+activate thirdpartycollaboratorrepository
 thirdpartycollaboratorrepository --> collaboratorserviceimpl: Optional<List<Row>>
+deactivate thirdpartycollaboratorrepository
 collaboratorserviceimpl -> thirdpartycollaborator: map rows -> List<ThirdPartyCollaborator>
+activate thirdpartycollaborator
 thirdpartycollaborator --> collaboratorserviceimpl: List<ThirdPartyCollaborator>
+deactivate thirdpartycollaborator
 collaboratorserviceimpl -> aiserviceclient: post("/api/v1/ai/collaborators/recommend", requestNode)
+activate aiserviceclient
 aiserviceclient --> collaboratorserviceimpl: JsonNode recommendations
+deactivate aiserviceclient
 loop for each recommendation item
   collaboratorserviceimpl -> collaboratorresponse: new CollaboratorResponse(id, agencyId, partnerName, partnerType, contactInfo, notes, ...)
+  activate collaboratorresponse
   collaboratorresponse --> collaboratorserviceimpl: CollaboratorResponse
+  deactivate collaboratorresponse
 end
 collaboratorserviceimpl --> collaboratorcontroller: List<CollaboratorResponse>
+deactivate collaboratorserviceimpl
 collaboratorcontroller --> recommend_ui: 200 OK List<CollaboratorResponse>
+deactivate collaboratorcontroller
 recommend_ui --> user: renders ranked media partners
 
 user -> recommend_ui: selects partner & clicks "Assign to Campaign"
 recommend_ui -> collaboratorcontroller: POST /api/v1/collaborators/assign
+activate collaboratorcontroller
 collaboratorcontroller -> collaboratorserviceimpl: assign(currentUser, request)
+activate collaboratorserviceimpl
 collaboratorserviceimpl -> thirdpartycollaboratorrepository: findById(request.collaboratorId())
+activate thirdpartycollaboratorrepository
 thirdpartycollaboratorrepository --> collaboratorserviceimpl: Optional<ThirdPartyCollaborator>
+deactivate thirdpartycollaboratorrepository
 opt !collaboratorOpt.isPresent()
   collaboratorserviceimpl --> collaboratorcontroller: throw 404 NOT_FOUND
+  deactivate collaboratorserviceimpl
   collaboratorcontroller --> recommend_ui: 404 Not Found
+  deactivate collaboratorcontroller
   recommend_ui --> user: shows collaborator not found error
 end
+activate collaboratorserviceimpl
+activate collaboratorcontroller
 collaboratorserviceimpl -> thirdpartycollaborator: map row -> collaborator
+activate thirdpartycollaborator
 thirdpartycollaborator --> collaboratorserviceimpl: collaborator
+deactivate thirdpartycollaborator
 collaboratorserviceimpl -> campaigncollaborator: new CampaignCollaborator(mediaCampaignId, collaboratorId, CONTACTED)
+activate campaigncollaborator
 campaigncollaborator --> collaboratorserviceimpl: newCampaignCollaborator
+deactivate campaigncollaborator
 collaboratorserviceimpl -> campaigncollaboratorrepository: save(newCampaignCollaborator)
+activate campaigncollaboratorrepository
 campaigncollaboratorrepository --> collaboratorserviceimpl: savedAssignment
+deactivate campaigncollaboratorrepository
 collaboratorserviceimpl -> campaigncollaboratorresponse: new CampaignCollaboratorResponse(savedAssignment)
+activate campaigncollaboratorresponse
 campaigncollaboratorresponse --> collaboratorserviceimpl: campaignCollaboratorResponse
+deactivate campaigncollaboratorresponse
 collaboratorserviceimpl --> collaboratorcontroller: campaignCollaboratorResponse
+deactivate collaboratorserviceimpl
 collaboratorcontroller --> recommend_ui: 200 OK CampaignCollaboratorResponse
+deactivate collaboratorcontroller
 recommend_ui --> user: shows partner linked to campaign toast
+deactivate recommend_ui
 
 @enduml

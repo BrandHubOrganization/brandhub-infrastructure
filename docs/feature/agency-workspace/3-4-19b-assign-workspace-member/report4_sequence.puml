@@ -19,32 +19,56 @@ entity "AssignMembersResponse" as assignmembersresponse
 
 ' === Flow ===
 workspace_manager -> workspacememberspage_ui: submits assignments
+activate workspacememberspage_ui
 workspacememberspage_ui -> workspacecontroller: POST /api/v1/workspaces/{id}/members/assign
+activate workspacecontroller
 opt caller != MANAGER
   workspacecontroller --> workspacememberspage_ui: 403 Forbidden
+  deactivate workspacecontroller
   workspacememberspage_ui --> workspace_manager: shows 403 toast
 end
+activate workspacecontroller
 workspacecontroller -> workspaceserviceimpl: assignMembers(currentUser, workspaceId, request)
+activate workspaceserviceimpl
 workspaceserviceimpl -> workspacerepository: findById(workspaceId)
+activate workspacerepository
 workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+deactivate workspacerepository
 opt !workspace.present
   workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+  deactivate workspaceserviceimpl
   workspacecontroller --> workspacememberspage_ui: 404 Not Found
+  deactivate workspacecontroller
   workspacememberspage_ui --> workspace_manager: shows 404 toast
 end
+activate workspacecontroller
+activate workspaceserviceimpl
 workspaceserviceimpl -> agencymemberrepository: findByAgencyIdAndUserIds(agencyId, userIds)
+activate agencymemberrepository
 agencymemberrepository --> workspaceserviceimpl: List<AgencyMember>
+deactivate agencymemberrepository
 opt !allInAgency(userIds)
   workspaceserviceimpl --> workspacecontroller: throw 400 MEMBER_NOT_IN_AGENCY
+  deactivate workspaceserviceimpl
   workspacecontroller --> workspacememberspage_ui: 400 Bad Request
+  deactivate workspacecontroller
   workspacememberspage_ui --> workspace_manager: shows 400 toast
 end
+activate workspacecontroller
+activate workspaceserviceimpl
 workspaceserviceimpl -> workspacememberrepository: saveAll(newMembers)
+activate workspacememberrepository
 workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+deactivate workspacememberrepository
 workspaceserviceimpl -> assignmembersresponse: new AssignMembersResponse(...)
+activate assignmembersresponse
 assignmembersresponse --> workspaceserviceimpl: AssignMembersResponse
+deactivate assignmembersresponse
 workspaceserviceimpl --> workspacecontroller: AssignMembersResponse
+deactivate workspaceserviceimpl
 workspacecontroller --> workspacememberspage_ui: 200 OK AssignMembersResponse
+deactivate workspacecontroller
 workspacememberspage_ui --> workspace_manager: shows 200 toast
+deactivate workspacememberspage_ui
 
 @enduml

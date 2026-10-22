@@ -1,0 +1,88 @@
+@startuml 3.6.12 - Add Material Repository
+title Sequence Diagram — 3.6.12 - Add Material Repository
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "MaterialController" as materialcontroller
+control "MaterialService" as materialservice
+entity "WorkspaceRepository" as workspacerepository
+entity "MaterialRepository" as materialrepository
+entity "S3 storage" as s3storage
+actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
+
+' === Flow ===
+materialservice -> materialservice: Check session, scope and add permission
+materialservice -> materialservice: Validate file format, size and metadata
+creatorclientmanager -> webdashboard: Confirm file upload (repeat per file)
+activate webdashboard
+webdashboard -> materialcontroller: POST /api/v1/workspaces/{workspaceId}/materials
+activate materialcontroller
+materialcontroller -> materialservice: uploadMaterial(user, command)
+activate materialservice
+materialservice -> workspacerepository: Load workspace access
+activate workspacerepository
+workspacerepository --> materialservice: Workspace
+deactivate workspacerepository
+
+loop invalid session / forbidden / unavailable resource
+  materialservice --> materialcontroller: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate materialservice
+  materialcontroller --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate materialcontroller
+  webdashboard --> creatorclientmanager: Display access or resource error
+end
+activate materialcontroller
+activate materialservice
+
+
+loop invalid input / quota exceeded
+  materialservice --> materialcontroller: 400 Bad Request
+  deactivate materialservice
+  materialcontroller --> webdashboard: 400 Bad Request
+  deactivate materialcontroller
+  webdashboard --> creatorclientmanager: Display validation error
+end
+activate materialcontroller
+activate materialservice
+
+materialservice -> materialrepository: Save PENDING metadata and object key
+activate materialrepository
+materialrepository --> materialservice: pendingOutcome
+deactivate materialrepository
+materialservice -> s3storage: Upload file to S3
+activate s3storage
+s3storage --> materialservice: storageOutcome
+deactivate s3storage
+
+alt upload failed or uncertain
+  materialservice -> materialrepository: Save unavailable state
+  activate materialrepository
+  materialrepository --> materialservice: recoveryState
+  deactivate materialrepository
+  materialservice --> materialcontroller: 503 Service Unavailable
+  deactivate materialservice
+  materialcontroller --> webdashboard: 503 Service Unavailable
+  deactivate materialcontroller
+  webdashboard --> creatorclientmanager: Display upload failure or retry status
+else storage complete
+  activate materialcontroller
+  activate materialservice
+  materialservice -> materialrepository: Save READY metadata
+  activate materialrepository
+  materialrepository --> materialservice: writeOutcome
+  deactivate materialrepository
+  materialservice --> materialcontroller: 201 Created
+  deactivate materialservice
+  materialcontroller --> webdashboard: 201 Created
+  deactivate materialcontroller
+  webdashboard --> creatorclientmanager: Display ready material in repository
+  deactivate webdashboard
+end
+
+@enduml

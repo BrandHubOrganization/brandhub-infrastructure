@@ -1,5 +1,7 @@
 # UC — Set Credit
 
+> **BA hiện hành 2026-10-19:** Owner cấu hình mức mặc định Agency và hạn mức từng thành viên Manager/Creator; Owner không có hạn mức cá nhân. Đây là trần chi tiêu, không phân bổ ví: tổng trần được vượt quỹ chung, nhưng tổng thực chi không được vượt số dư. Giữ cấu hình qua kỳ subscription, reset usage theo kỳ. Quyết định này thay giới hạn tổng hạn mức/soft warning trong các mục lịch sử dưới đây. Xem [đặc tả hiện hành](../member-credit/spec.md).
+
 | | |
 |---|---|
 | FR Code | 3.9.7 |
