@@ -1,0 +1,2 @@
+# Auto checkout
+Opening Plus checkout as the agency Owner automatically creates or resumes a payment order and displays its QR. No initial create button. Reuse the same idempotency key across reloads in the same tab and user/agency; explicit start-again creates a new key. Invalid tiers and non-owners never create an order. Errors offer an explicit retry; no automatic retry loop. Preserve VI/EN and theme tokens.
