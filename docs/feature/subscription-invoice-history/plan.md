@@ -1,0 +1,11 @@
+# Plan
+Tạo InvoiceHistoryService JDBC projection trên schema billing hiện có, DTO records; InvoiceHistoryController dưới /api/v1/billing/agencies/{aid}/invoices list/detail/receipt và /{oid}/sepay-transactions. Agency ownership check ở DB mọi request; cursor validation + scoped SQL bind parameters, read-only transactions. Không migration: index history đã có.
+SePayTransactionClient: fixed production/sandbox URLs, RestClient timeout/connect timeout, no redirects; API token configuration bổ sung SePayProperties + application.yml/.env.example. Client rate gate no more than 1 call/400ms per instance, no retry flood; 401/429/timeout -> safe error code. Provider service authorizes detail first, then queries outside DB transaction. Strict JSON fields/precision/date validation.
+Frontend agencyBillingService typed DTOs + download Blob; invoices.tsx thin context wrapper, hooks/query for filters/cursor/detail, InvoiceTable replaces fake download, InvoiceDetail component provider lookup button and receipt download. Reuse Button/Table/Badge/Input/Select native accessible controls, i18n vi/en subscription.json; plans link history.
+Tests real isolated PostgreSQL scoped pagination/ownership/detail/receipt; adapter HTTP fixtures strict matching and failures, security controller tests; Playwright mock APIs user/agency context, filters/cursor/detail/errors/provider/receipt, responsive light/dark/VI/EN. No real payment or state mutation during verification.
+
+## Sidebar navigation correction
+Add agency-scoped plans/history items to NAV_SECTIONS agency group, using existing canAccess route guards and hideInWorkspace. Add browser navigation regression from dashboard and non-owner hidden check.
+
+## Right-side detail drawer
+Reuse shared Sheet with modal=false, side=right, width w-full lg:w-1/3 and max-width override. Separate InvoiceDetailDrawer wraps existing InvoiceDetail body in scroll region. Existing detail title/close become drawer header/footer; store clicked trigger for focus return. Add VI/EN drawer description; test viewport width, right alignment, Escape, content and provider/download regression.

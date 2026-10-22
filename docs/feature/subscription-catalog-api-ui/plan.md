@@ -1,0 +1,9 @@
+# Technical plan
+
+1. Business: add BillingPlanResponse record, BillingPlanCatalogService using a bounded latest-per-code JDBC projection and read-only transaction, and BillingPlanController. Existing authenticated gateway wildcard forwards the new endpoint without configuration changes. Match checkoutEnabled to current SePay and payment-version selection.
+2. Tests: service integration against isolated PostgreSQL using real catalog DDL/migrations; security/controller tests for unauthorized and authenticated ApiResponse contract. Keep tests outside runtime source.
+3. Web: extend agencyBillingService.getPlans and exported types. Add useSubscriptionCatalog query hook for independently cached catalog/subscription by user/agency. Add CatalogPlanCard rendering generic fields with localization, exact bigint counts and formatted DB prices/storage.
+4. Replace plans.tsx with a small orchestrator handling owner-only, catalog loading/error/empty/list and independent current-subscription status/retry. No seeded product array or per-plan entitlement text remains.
+5. Update src/i18n/locales/vi/subscription.json and en/subscription.json together; remove obsolete hardcoded entitlement copy used only by the seeded view. Preserve checkout translations and existing legacy consumers.
+6. Update tests/e2e/subscription/agency-upgrade.spec.ts to mock catalog API and cover values changed from prior seeds, sale flags, unavailable status, error/retry, empty, scopes, API names, VI/EN and light/dark responsive behavior. Capture screenshots as local verification artifacts.
+7. Run targeted Java tests, frontend type-check/build and Playwright; recompile and restart local processes as needed with existing configuration. Verify deployed catalog route, gateway authentication and live DB catalog read-only. Verify a real signed-in session only via normal login or an existing session. Record unavailable session access separately from completed automated checks.
