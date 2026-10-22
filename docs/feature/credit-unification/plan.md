@@ -1,0 +1,13 @@
+# Technical plan
+
+1. Inventory the two accounting implementations, live callers and existing schema; preserve unrelated worktree changes.
+2. Extend AiCreditGenerationService with server-controlled Caption actions, stable caller-request identity and a reservation receipt. Retain old generic route hashing. Persist output before settlement; reuse reservation IDs for Caption history and frozen unit price.
+3. Move AiCaptionService to the unified engine; preserve context/compliance/history. Use replayed history rather than inserting duplicate rows. Remove property-based Caption pricing.
+4. Move new AiVideoService jobs to reservations. Add nullable reservation_id FK/unique index to ai_video_jobs; keep usage_id for legacy jobs and enforce mutually exclusive references. New jobs reconcile through DA-974, old jobs through legacy refund only. Keep polling/workers idempotent. Widen caption history credits to bigint.
+5. Replace old balance reads with an authorized DA-974 workspace adapter; switch Dashboard to derived new accounting totals. Keep deprecated calendar-month metrics accurate and introduce period bounds plus readiness state. Remove runtime legacy charge path; retain legacy refund for in-flight jobs only.
+6. Update Web service integration (shared Idempotency-Key/context/invalidation) and Dashboard/types/parallel src/i18n/locales/{vi,en}/workspace.json keys as required by actual namespace. No mock Studio feature expansion.
+7. Add a new additive PostgreSQL migration and matching postgres init; do not modify teammates' migrations. Test isolated fresh init/upgraded schema, concurrency, replay and asynchronous completion. Update rollout instructions/results.
+
+Cutover: audit current legacy open jobs, pause relevant workers for DDL, apply delta before matching Business/Web build, configure missing operation prices, smoke test. Do not delete/import legacy balances. No shared DB APPLY during implementation verification.
+
+Implemented: new reservation link is the only Video schema addition; Caption credits widens to bigint. Existing generic adapters keep their historical hash convention. Workspace Caption identities use the original request + trusted action rather than mutable brand context. Caption history reuses reservation ID with conflict-safe insertion and stored history replay. Video worker/history reconciliation shares DA-974 finalization; terminal responses return the committed winner under concurrent polling. Dashboard derives calendar and subscription-period totals separately. AgencySeeder no longer fabricates legacy usage/caps. Web adds typed workspace adapter services without wiring unrelated mock Studio pages. Results: test.md; deployment: rollout.md.
