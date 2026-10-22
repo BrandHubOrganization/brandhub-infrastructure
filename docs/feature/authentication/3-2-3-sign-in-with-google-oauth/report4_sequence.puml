@@ -17,27 +17,47 @@ entity "UserRepository" as userrepository
 
 ' === Flow ===
 user -> loginpageui: clicks "Sign In with Google"
+activate loginpageui
 loginpageui -> authcontroller: GET /api/v1/auth/oauth2/google
+activate authcontroller
 authcontroller --> loginpageui: redirect to Google OAuth consent URL
+deactivate authcontroller
 loginpageui --> user: Google login screen
 user -> googleoauthservice: grants permission
+activate googleoauthservice
 googleoauthservice --> loginpageui: callback with authCode
+deactivate googleoauthservice
 loginpageui -> authcontroller: GET /api/v1/auth/oauth2/callback?code=authCode
+activate authcontroller
 authcontroller -> authservice: loginWithGoogle(authCode)
+activate authservice
 authservice -> googleoauthservice: exchangeCode(authCode)
+activate googleoauthservice
 googleoauthservice --> authservice: GoogleUserInfo(email, name, googleId)
+deactivate googleoauthservice
 authservice -> userrepository: findByEmail(email)
+activate userrepository
 
 alt new user (first OAuth login)
   userrepository --> authservice: Optional.empty()
+  deactivate userrepository
   authservice -> userrepository: save(newUserFromGoogle)
+  activate userrepository
   userrepository --> authservice: savedUser
+  deactivate userrepository
 else existing user
+  activate userrepository
   userrepository --> authservice: Optional<User>
+  deactivate userrepository
 end
+activate userrepository
 
 authservice --> authcontroller: LoginResponse(accessToken, refreshToken)
+deactivate authservice
 authcontroller --> loginpageui: 200 OK (LoginResponse)
+deactivate authcontroller
 loginpageui --> user: redirect to Dashboard
+deactivate loginpageui
 
+deactivate userrepository
 @enduml

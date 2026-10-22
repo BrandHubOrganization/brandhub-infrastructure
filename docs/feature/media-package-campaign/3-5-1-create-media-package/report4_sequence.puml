@@ -17,47 +17,79 @@ boundary "MediaPackageUI" as mediapackageui
 
 ' === Flow ===
 agencyowner -> mediapackageui: clicks "Browse Templates" or opens package catalog
+activate mediapackageui
 mediapackageui -> mediapackagecontroll: GET /api/v1/media-package-templates
+activate mediapackagecontroll
 mediapackagecontroll -> mediapackageservice: listTemplates()
+activate mediapackageservice
 mediapackageservice -> mediapackagereposito: findAllByIsTemplateTrueOrderByCreatedAtAsc()
+activate mediapackagereposito
 mediapackagereposito --> mediapackageservice: templatePackages
+deactivate mediapackagereposito
 mediapackageservice --> mediapackagecontroll: List<MediaPackageResponse>
+deactivate mediapackageservice
 mediapackagecontroll --> mediapackageui: 200 OK (templatePackages)
+deactivate mediapackagecontroll
 mediapackageui --> agencyowner: render global template cards
 agencyowner ->> mediapackageui: fills package form (name, type, durationWeeks/budget, scope, optional sourceTemplateId) & submits
 mediapackageui ->> mediapackagecontroll: POST /api/v1/agencies/{agencyId}/media-package-custom (CreateCustomMediaPackageRequest)
+activate mediapackagecontroll
 mediapackagecontroll ->> mediapackageservice: createCustomPackage(agencyId, currentUser, request)
+activate mediapackageservice
 mediapackageservice ->> agencyrepository: findById(agencyId)
+activate agencyrepository
 agencyrepository ->> mediapackageservice: agency
 
 alt caller is not agency owner and not authorized manager
   mediapackageservice --> mediapackagecontroll: throw BusinessException (403 NOT_AGENCY_OWNER)
+  deactivate mediapackageservice
   mediapackagecontroll --> mediapackageui: 403 Forbidden (NOT_AGENCY_OWNER)
+  deactivate mediapackagecontroll
   mediapackageui --> agencyowner: show error toast ('Access denied: Agency Owner role required')
 else source template not a system template
+  activate mediapackagecontroll
+  activate mediapackageservice
   mediapackageservice ->> mediapackagereposito: findById(sourceTemplateId)
+  activate mediapackagereposito
   mediapackagereposito --> mediapackageservice: nonTemplatePackage (isTemplate=false)
+  deactivate mediapackagereposito
   mediapackageservice --> mediapackagecontroll: throw BusinessException (400 MEDIA_PACKAGE_TEMPLATE_REQUIRED)
+  deactivate mediapackageservice
   mediapackagecontroll --> mediapackageui: 400 Bad Request (MEDIA_PACKAGE_TEMPLATE_REQUIRED)
+  deactivate mediapackagecontroll
   mediapackageui --> agencyowner: show validation error ('Source package must be a system template')
 else invalid definition (missing required duration or budget)
+  activate mediapackagecontroll
+  activate mediapackageservice
   mediapackageservice --> mediapackagecontroll: throw BusinessException (400 INVALID_MEDIA_PACKAGE_CONFIGURATION)
+  deactivate mediapackageservice
   mediapackagecontroll --> mediapackageui: 400 Bad Request (INVALID_MEDIA_PACKAGE_CONFIGURATION)
+  deactivate mediapackagecontroll
   mediapackageui --> agencyowner: show validation error ('Duration or budget is required based on type')
 end
+activate mediapackagecontroll
+activate mediapackageservice
 
 
 opt sourceTemplateId is present
   mediapackageservice ->> mediapackagereposito: findById(sourceTemplateId)
+  activate mediapackagereposito
   mediapackagereposito --> mediapackageservice: sourceTemplate (isTemplate=true)
+  deactivate mediapackagereposito
 end
 
 else valid custom package definition
   mediapackageservice ->> mediapackagereposito: save(mediaPackage)
+  activate mediapackagereposito
   mediapackagereposito --> mediapackageservice: savedMediaPackage
+  deactivate mediapackagereposito
   mediapackageservice --> mediapackagecontroll: MediaPackageResponse
+  deactivate mediapackageservice
   mediapackagecontroll --> mediapackageui: 201 Created (MediaPackageResponse)
+  deactivate mediapackagecontroll
   mediapackageui --> agencyowner: show success toast & display new package in Agency catalogue
+  deactivate mediapackageui
 end
 
+deactivate agencyrepository
 @enduml

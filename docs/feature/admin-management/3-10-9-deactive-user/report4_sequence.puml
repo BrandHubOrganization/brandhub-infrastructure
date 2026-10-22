@@ -17,33 +17,61 @@ control "NotificationService" as notificationservice
 
 ' === Flow ===
 admin -> adminusermanagementp: selects user, chooses action (SUSPEND / RESTORE), confirms
+activate adminusermanagementp
 adminusermanagementp -> adminusercontroller: PATCH /api/v1/admin/users/{userId}/status (UpdateUserStatusRequest)
+activate adminusercontroller
 adminusercontroller -> adminuserservice: updateUserStatus(adminId, userId, action)
+activate adminuserservice
 adminuserservice -> userrepository: findById(userId)
+activate userrepository
 
 alt user not found
   userrepository --> adminuserservice: Optional.empty()
+  deactivate userrepository
   adminuserservice --> adminusercontroller: 404 Not Found (USER_NOT_FOUND)
+  deactivate adminuserservice
   adminusercontroller --> adminusermanagementp: 404 Not Found
+  deactivate adminusercontroller
   adminusermanagementp --> admin: Show error "User not found"
 else applying sanction (SUSPEND)
+  activate adminuserservice
+  activate adminusercontroller
+  activate userrepository
   userrepository --> adminuserservice: Optional<User>
+  deactivate userrepository
   adminuserservice -> userrepository: update(user, status=SUSPENDED)
+  activate userrepository
   userrepository --> adminuserservice: ok
+  deactivate userrepository
   adminuserservice -> notificationservice: notifyUser(userId, ACCOUNT_SUSPENDED)
+  activate notificationservice
   notificationservice --> adminuserservice: ok
+  deactivate notificationservice
   adminuserservice --> adminusercontroller: 200 OK
+  deactivate adminuserservice
   adminusercontroller --> adminusermanagementp: 200 OK
+  deactivate adminusercontroller
   adminusermanagementp --> admin: "User account suspended"
 else restoring account (RESTORE)
+  activate adminuserservice
+  activate adminusercontroller
+  activate userrepository
   userrepository --> adminuserservice: Optional<User>
+  deactivate userrepository
   adminuserservice -> userrepository: update(user, status=ACTIVE)
+  activate userrepository
   userrepository --> adminuserservice: ok
+  deactivate userrepository
   adminuserservice -> notificationservice: notifyUser(userId, ACCOUNT_RESTORED)
+  activate notificationservice
   notificationservice --> adminuserservice: ok
+  deactivate notificationservice
   adminuserservice --> adminusercontroller: 200 OK
+  deactivate adminuserservice
   adminusercontroller --> adminusermanagementp: 200 OK
+  deactivate adminusercontroller
   adminusermanagementp --> admin: "User account restored"
+  deactivate adminusermanagementp
 end
 
 @enduml

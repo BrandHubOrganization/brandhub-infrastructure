@@ -15,23 +15,41 @@ entity "FileStorageService" as storage
 
 ' === Flow: Update profile info ===
 user -> ui: edits display name, bio, portfolio URLs & preferences,\nclicks "Save Changes"
+activate ui
 ui -> ctrl: PUT /api/v1/users/me (UpdateProfileRequest, headers: Bearer accessToken)
+activate ctrl
 ctrl -> svc: updateUserProfile(userId, request)
+activate svc
 svc -> userRepo: findById(userId)
+activate userRepo
 
 alt user not found
   userRepo --> svc: Optional.empty()
+  deactivate userRepo
   svc --> ctrl: 404 Not Found (USER_NOT_FOUND)
+  deactivate svc
   ctrl --> ui: 404 Not Found
+  deactivate ctrl
   ui --> user: Show error toast "User not found"
 else user found
+  activate userRepo
+  activate ctrl
+  activate svc
   userRepo --> svc: Optional<User>
+  deactivate userRepo
   svc -> userRepo: save(updatedUser)
+  activate userRepo
   userRepo --> svc: savedUser
+  deactivate userRepo
   svc --> ctrl: 200 OK (UserProfileResponse)
+  deactivate svc
   ctrl --> ui: 200 OK
+  deactivate ctrl
   ui --> user: Show success toast "Profile updated"
 end
+activate userRepo
+activate ctrl
+activate svc
 
 ' === Flow: Upload avatar ===
 user -> ui: selects avatar image, clicks "Upload"
@@ -41,16 +59,26 @@ svc -> svc: validateImage(file)
 
 alt invalid file (empty / wrong type / > 5MB)
   svc --> ctrl: 400 Bad Request (INVALID_FILE / FILE_TOO_LARGE)
+  deactivate svc
   ctrl --> ui: 400 Bad Request
+  deactivate ctrl
   ui --> user: Show error toast "Invalid image file"
 else valid file
+  activate ctrl
+  activate svc
   svc -> storage: uploadAvatar(file)
+  activate storage
   storage --> svc: newAvatarUrl
+  deactivate storage
   svc -> userRepo: save(user with newAvatarUrl)
   userRepo --> svc: ok
+  deactivate userRepo
   svc --> ctrl: 200 OK (UserProfileResponse)
+  deactivate svc
   ctrl --> ui: 200 OK
+  deactivate ctrl
   ui --> user: Show new avatar preview
+  deactivate ui
 end
 
 @enduml

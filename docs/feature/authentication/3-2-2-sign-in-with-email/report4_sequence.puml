@@ -17,22 +17,38 @@ entity "RedisCache" as rediscache
 
 ' === Flow ===
 user -> loginpageui: enters email & password, clicks "Sign In"
+activate loginpageui
 loginpageui -> authcontroller: POST /api/v1/auth/login (LoginRequest)
+activate authcontroller
 authcontroller -> authservice: login(request)
+activate authservice
 authservice -> userrepository: findByEmail(email)
+activate userrepository
 
 alt user not found or wrong password
   userrepository --> authservice: Optional.empty() / password mismatch
+  deactivate userrepository
   authservice --> authcontroller: 401 Unauthorized (INVALID_CREDENTIALS)
+  deactivate authservice
   authcontroller --> loginpageui: 401 Unauthorized
+  deactivate authcontroller
   loginpageui --> user: Show error "Invalid email or password"
 else credentials valid
+  activate authcontroller
+  activate authservice
+  activate userrepository
   userrepository --> authservice: Optional<User>
+  deactivate userrepository
   authservice -> rediscache: set("refresh:" + userId, refreshToken, TTL)
+  activate rediscache
   rediscache --> authservice: ok
+  deactivate rediscache
   authservice --> authcontroller: LoginResponse(accessToken, refreshToken)
+  deactivate authservice
   authcontroller --> loginpageui: 200 OK (LoginResponse)
+  deactivate authcontroller
   loginpageui --> user: redirect to Dashboard
+  deactivate loginpageui
 end
 
 @enduml

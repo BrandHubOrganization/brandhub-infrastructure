@@ -18,20 +18,33 @@ control "AI Service (trends API)" as aiservicetrendsapi
 
 ' === Flow ===
 admincrawlconfigpane -> admincrawlconfigcont: GET/PATCH /admin/ai/crawl-config Or GET/POST /admin/ai/crawl-runs
+activate admincrawlconfigcont
+activate systemadministrator
 systemadministrator -> admincrawlconfigpane: View settings/history, save, or crawl now
 admincrawlconfigcont -> admincrawlconfigserv: get(actor) / runs(actor) / update(actor, request) / runNow(actor)
+activate admincrawlconfigserv
 admincrawlconfigserv -> adminaccountservice: requireAdmin(actor)
+activate adminaccountservice
 adminaccountservice -> usersystemrolereposi: findByUserId(actor)
+activate usersystemrolereposi
 usersystemrolereposi --> adminaccountservice: Optional<UserSystemRole>
+deactivate usersystemrolereposi
 adminaccountservice --> admincrawlconfigserv: ADMIN verified (void) / FORBIDDEN
+deactivate adminaccountservice
 
 alt Actor is not ADMIN
   admincrawlconfigserv --> admincrawlconfigcont: FORBIDDEN
+  deactivate admincrawlconfigserv
   admincrawlconfigcont --> admincrawlconfigpane: 403 — access denied
+  deactivate admincrawlconfigcont
   admincrawlconfigpane --> systemadministrator: Show access error
 else ADMIN permission granted
+  activate admincrawlconfigcont
+  activate admincrawlconfigserv
   admincrawlconfigserv -> aiservicetrendsapi: GET /api/v1/ai/trends/crawl-config Or /api/v1/ai/trends/crawl-runs
+  activate aiservicetrendsapi
   aiservicetrendsapi --> admincrawlconfigserv: Current config/run data or AI error
+  deactivate aiservicetrendsapi
 end
 
 
@@ -42,15 +55,21 @@ end
 
 opt Data loaded; valid save OR idle crawl request
   admincrawlconfigserv -> aiservicetrendsapi: POST /api/v1/ai/trends/crawl-config Or /api/v1/ai/trends/crawl-runs
+  activate aiservicetrendsapi
   aiservicetrendsapi --> admincrawlconfigserv: Saved config / accepted run / AI error
+  deactivate aiservicetrendsapi
 end
 
 
 alt Invalid input, crawl conflict or AI failure
   admincrawlconfigserv --> admincrawlconfigcont: BusinessException / AiServiceException
+  deactivate admincrawlconfigserv
   admincrawlconfigcont --> admincrawlconfigpane: 400 / 409 / 502 / 503 — request failed
+  deactivate admincrawlconfigcont
   admincrawlconfigpane --> systemadministrator: Show error; keep the input
 end
+activate admincrawlconfigcont
+activate admincrawlconfigserv
 
 
 opt Settings saved or new run accepted
@@ -59,8 +78,11 @@ end
 
 else Selected operation succeeded
   admincrawlconfigserv --> admincrawlconfigcont: ObjectNode — selected operation result
+  deactivate admincrawlconfigserv
   admincrawlconfigcont --> admincrawlconfigpane: 200 OK / 202 Accepted
+  deactivate admincrawlconfigcont
   admincrawlconfigpane --> systemadministrator: Show settings, history or new run
 end
 
+deactivate systemadministrator
 @enduml

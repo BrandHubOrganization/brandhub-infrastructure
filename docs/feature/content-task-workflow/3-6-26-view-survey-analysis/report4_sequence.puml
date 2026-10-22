@@ -18,26 +18,44 @@ boundary "SurveyAnalysisDashboard (UI)" as surveyanalysisdashbo
 
 ' === Flow ===
 creatorclientmanager -> surveyanalysisdashbo: Select "Survey Analysis" tab on Task Details
+activate surveyanalysisdashbo
 surveyanalysisdashbo -> surveytaskcontroller: GET /api/v1/workspaces/{wId}/tasks/{taskId}/survey/analysis
+activate surveytaskcontroller
 surveytaskcontroller -> surveytaskserviceimp: getSurveyAnalysis(workspaceId, taskId)
+activate surveytaskserviceimp
 surveytaskserviceimp -> surveyrepository: findByTaskId(taskId)
+activate surveyrepository
 surveyrepository --> surveytaskserviceimp: return Survey
+deactivate surveyrepository
 surveytaskserviceimp -> surveyresponsereposi: findBySurveyId(survey.getId())
+activate surveyresponsereposi
 surveyresponsereposi --> surveytaskserviceimp: return List Survey
+deactivate surveyresponsereposi
 
 alt No Responses Submitted Yet 
   surveytaskserviceimp -> surveyanalysisrespon: toEmptyAnalysisResponse(survey)
+  activate surveyanalysisrespon
   surveyanalysisrespon --> surveytaskserviceimp: return emptyAnalysis
+  deactivate surveyanalysisrespon
   surveytaskserviceimp --> surveytaskcontroller: return emptyAnalysis
+  deactivate surveytaskserviceimp
   surveytaskcontroller --> surveyanalysisdashbo: return 200 OK (Empty count, zero statistics)
+  deactivate surveytaskcontroller
   surveyanalysisdashbo --> creatorclientmanager: Display empty state ("No survey responses collected yet") with public link CTA
 else Responses Present
+  activate surveytaskcontroller
+  activate surveytaskserviceimp
   surveytaskserviceimp -> surveytaskserviceimp: aggregateMetrics(survey.getQuestions(), responses)
   surveytaskserviceimp -> surveyanalysisrespon: toSurveyAnalysisResponse(survey, aggregatedMetrics)
+  activate surveyanalysisrespon
   surveyanalysisrespon --> surveytaskserviceimp: return analysisResponse
+  deactivate surveyanalysisrespon
   surveytaskserviceimp --> surveytaskcontroller: return analysisResponse
+  deactivate surveytaskserviceimp
   surveytaskcontroller --> surveyanalysisdashbo: return 200 OK (Aggregated metrics, question breakdowns, chart datasets)
+  deactivate surveytaskcontroller
   surveyanalysisdashbo --> creatorclientmanager: Render visual charts (Bar/Pie charts, average ratings, response volume summary)
+  deactivate surveyanalysisdashbo
 end
 
 @enduml

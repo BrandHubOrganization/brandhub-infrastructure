@@ -21,49 +21,85 @@ else valid draft campaign payload
 end
 
 manager -> mediacampaignui: fills campaign form (name, strategyDetail, brandGuideline, timeline, workItems JSONB) & submits
+activate mediacampaignui
 mediacampaignui -> mediacampaigncontrol: POST /api/v1/media-campaigns (CreateMediaCampaignRequest)
+activate mediacampaigncontrol
+activate mediapackageservice
 mediapackageservice -> workspacemediapackag: findById(request.workspaceMediaPackageId)
+activate workspacemediapackag
 workspacemediapackag --> mediapackageservice: workspacePackage
+deactivate workspacemediapackag
 mediacampaigncontrol -> mediapackageservice: createCampaign(currentUser, request)
 
 alt workspace package not found
   mediapackageservice --> mediacampaigncontrol: throw BusinessException (404 WORKSPACE_PACKAGE_NOT_FOUND)
+  deactivate mediapackageservice
   mediacampaigncontrol --> mediacampaignui: 404 Not Found (WORKSPACE_PACKAGE_NOT_FOUND)
+  deactivate mediacampaigncontrol
   mediacampaignui --> manager: show error toast ('Workspace package not found')
 else package negotiation status != APPROVED
+  activate mediacampaigncontrol
+  activate mediapackageservice
   mediapackageservice --> mediacampaigncontrol: throw BusinessException (400 PACKAGE_NOT_APPROVED)
+  deactivate mediapackageservice
   mediacampaigncontrol --> mediacampaignui: 400 Bad Request (PACKAGE_NOT_APPROVED)
+  deactivate mediacampaigncontrol
   mediacampaignui --> manager: show error toast ('Cannot create campaign from unapproved package')
 else caller lacks Agency Manager or Owner role in workspace
+  activate mediacampaigncontrol
+  activate mediapackageservice
   mediapackageservice --> mediacampaigncontrol: throw BusinessException (403 WORKSPACE_ACCESS_DENIED)
+  deactivate mediapackageservice
   mediacampaigncontrol --> mediacampaignui: 403 Forbidden (WORKSPACE_ACCESS_DENIED)
+  deactivate mediacampaigncontrol
   mediacampaignui --> manager: show error toast ('Access denied: Manager or Owner role required')
 else invalid workItems structure (missing stable id, type, name, or dueDate)
+  activate mediacampaigncontrol
+  activate mediapackageservice
   mediapackageservice --> mediacampaigncontrol: throw BusinessException (400 INVALID_WORK_ITEMS)
+  deactivate mediapackageservice
   mediacampaigncontrol --> mediacampaignui: 400 Bad Request (INVALID_WORK_ITEMS)
+  deactivate mediacampaigncontrol
   mediacampaignui --> manager: show validation error ('Each work item must contain id, name, type POST|LIVESTREAM|SURVEY, and dueDate')
 else valid draft campaign payload
+  activate mediacampaigncontrol
+  activate mediapackageservice
   mediapackageservice ->> mediapackagereposito: save(mediaCampaign)
+  activate mediapackagereposito
   mediapackagereposito --> mediapackageservice: savedCampaign
+  deactivate mediapackagereposito
   mediapackageservice --> mediacampaigncontrol: MediaCampaignResponse
+  deactivate mediapackageservice
   mediacampaigncontrol --> mediacampaignui: 201 Created (MediaCampaignResponse)
+  deactivate mediacampaigncontrol
   mediacampaignui --> manager: show success toast & display new Campaign in workspace list
 end
+activate mediacampaigncontrol
+activate mediapackageservice
 
 manager ->> mediacampaignui: clicks campaign card or opens campaign detail view
 mediacampaignui ->> mediacampaigncontrol: GET /api/v1/media-campaigns/{campaignId}
 mediacampaigncontrol ->> mediapackageservice: getCampaign(campaignId)
 mediapackageservice ->> mediapackagereposito: findById(campaignId)
+activate mediapackagereposito
 mediapackagereposito --> mediapackageservice: mediaCampaign
+deactivate mediapackagereposito
 
 alt campaign not found
   mediapackageservice --> mediacampaigncontrol: throw BusinessException (404 CAMPAIGN_NOT_FOUND)
+  deactivate mediapackageservice
   mediacampaigncontrol --> mediacampaignui: 404 Not Found (CAMPAIGN_NOT_FOUND)
+  deactivate mediacampaigncontrol
   mediacampaignui --> manager: show error toast ('Campaign not found')
 else campaign found
+  activate mediacampaigncontrol
+  activate mediapackageservice
   mediapackageservice --> mediacampaigncontrol: MediaCampaignResponse
+  deactivate mediapackageservice
   mediacampaigncontrol --> mediacampaignui: 200 OK (MediaCampaignResponse)
+  deactivate mediacampaigncontrol
   mediacampaignui --> manager: render campaign overview, workItems timeline & approval status
+  deactivate mediacampaignui
 end
 
 @enduml

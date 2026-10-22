@@ -21,54 +21,100 @@ actor "Scheduler (Job)" as schedulerjob
 
 ' === Flow ===
 schedulerjob -> schedulerserviceimpl: triggerEveryMinute()
+activate schedulerserviceimpl
 schedulerserviceimpl -> postmongorepositoryb: findScheduledPosts(scheduledAt <= NOW(), status='SCHEDULED', platform='TIKTOK')
+activate postmongorepositoryb
 postmongorepositoryb --> schedulerserviceimpl: return List<PostDocument>
+deactivate postmongorepositoryb
 
 break For each scheduled Post
   schedulerserviceimpl -> postmongorepositoryb: updateStatus(postId, 'IN_PROGRESS')
+  activate postmongorepositoryb
   postmongorepositoryb --> schedulerserviceimpl: return 200 OK
+  deactivate postmongorepositoryb
   schedulerserviceimpl -> rabbitmqbrandhubpubl: publish("brandhub.publishing", "publish.job", PublishJobMessage {platform='TIKTOK', ...})
+  activate rabbitmqbrandhubpubl
   rabbitmqbrandhubpubl --> schedulerserviceimpl: return Acknowledgement
+  deactivate rabbitmqbrandhubpubl
 end
 
+activate rabbitmqbrandhubpubl
 rabbitmqbrandhubpubl -> publishjobconsumerpu: consume("publisher.job.queue", message)
+activate publishjobconsumerpu
 publishjobconsumerpu -> publishjobconsumerpu: checkRedisLockSETNX("processingPostIds:" + postId, ttl=30m)
 publishjobconsumerpu -> tiktokpublishadapter: publish(jobMessage)
+activate tiktokpublishadapter
 tiktokpublishadapter -> tiktokreelspublishse: publish(jobMessage)
+activate tiktokreelspublishse
 tiktokreelspublishse -> tiktokreelspublishse: rateLimiter.acquire() & decryptToken(encryptedToken)
 tiktokreelspublishse -> s3mediastorage: GET videoUrl (download video bytes)
+activate s3mediastorage
 s3mediastorage --> tiktokreelspublishse: return videoBytes (byte[])
+deactivate s3mediastorage
 tiktokreelspublishse -> tiktokapi: POST https://open.tiktokapis.com/v2/post/publish/video/init/ (post_info: caption, source_info: FILE_UPLOAD)
+activate tiktokapi
 
 alt Container Created Successfully
   tiktokapi --> tiktokreelspublishse: return { publish_id: "tiktok_pub_888", upload_url: "https://..." }
+  deactivate tiktokapi
   tiktokreelspublishse -> tiktokapi: PUT upload_url (videoBytes, Content-Type: video/mp4)
+  activate tiktokapi
   tiktokapi --> tiktokreelspublishse: return 200 OK (Uploaded)
+  deactivate tiktokapi
   tiktokreelspublishse --> tiktokpublishadapter: return PublishResult (status='SUCCESS', platformPostId='tiktok_pub_888')
+  deactivate tiktokreelspublishse
   tiktokpublishadapter --> publishjobconsumerpu: return PublishResult
+  deactivate tiktokpublishadapter
   publishjobconsumerpu -> rabbitmqbrandhubpubl: channel.basicAck(deliveryTag)
   publishjobconsumerpu -> rabbitmqbrandhubpubl: publish("brandhub.publishing", "publish.callback", CallbackMessage {status='SUCCESS', platformPostId='tiktok_pub_888'})
   rabbitmqbrandhubpubl --> publishjobconsumerpu: return ack
+  deactivate rabbitmqbrandhubpubl
 else Container Creation Failed / Invalid Aspect Ratio
+  activate tiktokapi
+  activate rabbitmqbrandhubpubl
+  activate tiktokreelspublishse
+  activate tiktokpublishadapter
   tiktokapi --> tiktokreelspublishse: return Error Response (Invalid token / Video spec error)
+  deactivate tiktokapi
   tiktokreelspublishse --> tiktokpublishadapter: return PublishResult (status='FAILED', errorCode, errorMessage)
+  deactivate tiktokreelspublishse
   tiktokpublishadapter --> publishjobconsumerpu: return throw Exception
+  deactivate tiktokpublishadapter
   publishjobconsumerpu -> rabbitmqbrandhubpubl: basicNack -> Route to Dead Letter Queue ("publisher.job.dlq")
   rabbitmqbrandhubpubl --> publishjobconsumerpu: return ack
+  deactivate rabbitmqbrandhubpubl
   publishjobconsumerpu -> rabbitmqbrandhubpubl: publish("brandhub.publishing", "publish.callback", CallbackMessage {status='FAILED', error})
+  activate rabbitmqbrandhubpubl
   rabbitmqbrandhubpubl --> publishjobconsumerpu: return ack
+  deactivate rabbitmqbrandhubpubl
 end
+activate tiktokapi
+activate rabbitmqbrandhubpubl
+activate tiktokreelspublishse
+activate tiktokpublishadapter
 
 rabbitmqbrandhubpubl -> publishcallbackconsu: consume("business.publish_callback.queue", callbackMessage)
+activate publishcallbackconsu
 
 alt Status == 'SUCCESS'
   publishcallbackconsu -> postmongorepositoryb: updateStatus(postId, 'PUBLISHED', platformPostId)
+  activate postmongorepositoryb
   postmongorepositoryb --> publishcallbackconsu: return 200 OK
+  deactivate postmongorepositoryb
 else Status == 'FAILED'
   publishcallbackconsu -> postmongorepositoryb: updateStatus(postId, 'FAILED', errorMessage)
+  activate postmongorepositoryb
   postmongorepositoryb --> publishcallbackconsu: return 200 OK
+  deactivate postmongorepositoryb
 end
 
 publishcallbackconsu -> rabbitmqbrandhubpubl: channel.basicAck(deliveryTag)
 
+deactivate tiktokpublishadapter
+deactivate schedulerserviceimpl
+deactivate tiktokreelspublishse
+deactivate rabbitmqbrandhubpubl
+deactivate publishcallbackconsu
+deactivate publishjobconsumerpu
+deactivate tiktokapi
 @enduml

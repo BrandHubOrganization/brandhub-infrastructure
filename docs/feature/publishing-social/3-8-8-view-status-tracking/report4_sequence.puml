@@ -20,24 +20,36 @@ actor "Scheduler (Job)" as schedulerjob
 
 ' === Flow ===
 schedulerjob -> schedulerserviceimpl: triggerEveryMinute()
+activate schedulerserviceimpl
 schedulerserviceimpl -> postmongorepositoryb: findScheduledPosts(scheduledAt <= NOW(), status='SCHEDULED')
+activate postmongorepositoryb
 postmongorepositoryb --> schedulerserviceimpl: return List<PostDocument>
+deactivate postmongorepositoryb
 
 break For each scheduled Post
   schedulerserviceimpl -> postmongorepositoryb: updateStatus(postId, 'IN_PROGRESS')
+  activate postmongorepositoryb
   postmongorepositoryb --> schedulerserviceimpl: return 200 OK
+  deactivate postmongorepositoryb
   schedulerserviceimpl -> rabbitmqbrandhubpubl: publish("brandhub.publishing", "publish.job", PublishJobMessage)
+  activate rabbitmqbrandhubpubl
   rabbitmqbrandhubpubl --> schedulerserviceimpl: return Acknowledgement
+  deactivate rabbitmqbrandhubpubl
 end
 
+activate rabbitmqbrandhubpubl
 rabbitmqbrandhubpubl -> publishjobconsumerpu: consume("publisher.job.queue", message)
+activate publishjobconsumerpu
 publishjobconsumerpu -> publishjobconsumerpu: checkRedisLockSETNX("processingPostIds:" + postId, ttl=30m)
 publishjobconsumerpu -> facebookpublishadapt: publish(jobMessage)
+activate facebookpublishadapt
 facebookpublishadapt -> facebookpublishservi: publish(jobMessage)
+activate facebookpublishservi
 facebookpublishservi -> facebookpublishservi: rateLimiter.acquire() & decryptToken(encryptedToken)
 
 alt Post with Video
   facebookpublishservi -> metagraphapifacebook: POST https://graph-video.facebook.com/v26.0/{pageId}/videos (file_url, description)
+  activate metagraphapifacebook
 else Post with Photo
   facebookpublishservi -> metagraphapifacebook: POST https://graph.facebook.com/v26.0/{pageId}/photos (url, message, published=true)
 else Text Only Post
@@ -47,31 +59,61 @@ end
 
 alt Facebook API Success (HTTP 200)
   metagraphapifacebook --> facebookpublishservi: return FacebookResponse { id: "fb_post_123" }
+  deactivate metagraphapifacebook
   facebookpublishservi --> facebookpublishadapt: return PublishResult (status='SUCCESS', platformPostId='fb_post_123')
+  deactivate facebookpublishservi
   facebookpublishadapt --> publishjobconsumerpu: return PublishResult
+  deactivate facebookpublishadapt
   publishjobconsumerpu -> rabbitmqbrandhubpubl: channel.basicAck(deliveryTag)
   publishjobconsumerpu -> rabbitmqbrandhubpubl: publish("brandhub.publishing", "publish.callback", CallbackMessage {status='SUCCESS', platformPostId='fb_post_123'})
   rabbitmqbrandhubpubl --> publishjobconsumerpu: return ack
+  deactivate rabbitmqbrandhubpubl
 else Facebook API Error (Rate Limit / Expired Token / 5xx)
+  activate facebookpublishadapt
+  activate rabbitmqbrandhubpubl
+  activate facebookpublishservi
+  activate metagraphapifacebook
   metagraphapifacebook --> facebookpublishservi: return Error Response (HTTP 429/401/500)
+  deactivate metagraphapifacebook
   facebookpublishservi --> facebookpublishadapt: return PublishResult (status='FAILED', errorCode, errorMessage)
+  deactivate facebookpublishservi
   facebookpublishadapt --> publishjobconsumerpu: return throw Exception
+  deactivate facebookpublishadapt
   publishjobconsumerpu -> rabbitmqbrandhubpubl: basicNack -> Route to Dead Letter Queue ("publisher.job.dlq")
   rabbitmqbrandhubpubl --> publishjobconsumerpu: return ack
+  deactivate rabbitmqbrandhubpubl
   publishjobconsumerpu -> rabbitmqbrandhubpubl: publish("brandhub.publishing", "publish.callback", CallbackMessage {status='FAILED', error})
+  activate rabbitmqbrandhubpubl
   rabbitmqbrandhubpubl --> publishjobconsumerpu: return ack
+  deactivate rabbitmqbrandhubpubl
 end
+activate facebookpublishadapt
+activate rabbitmqbrandhubpubl
+activate facebookpublishservi
+activate metagraphapifacebook
 
 rabbitmqbrandhubpubl -> publishcallbackconsu: consume("business.publish_callback.queue", callbackMessage)
+activate publishcallbackconsu
 
 alt Status == 'SUCCESS'
   publishcallbackconsu -> postmongorepositoryb: updateStatus(postId, 'PUBLISHED', platformPostId)
+  activate postmongorepositoryb
   postmongorepositoryb --> publishcallbackconsu: return 200 OK
+  deactivate postmongorepositoryb
 else Status == 'FAILED'
   publishcallbackconsu -> postmongorepositoryb: updateStatus(postId, 'FAILED', errorMessage)
+  activate postmongorepositoryb
   postmongorepositoryb --> publishcallbackconsu: return 200 OK
+  deactivate postmongorepositoryb
 end
 
 publishcallbackconsu -> rabbitmqbrandhubpubl: channel.basicAck(deliveryTag)
 
+deactivate schedulerserviceimpl
+deactivate facebookpublishservi
+deactivate publishcallbackconsu
+deactivate rabbitmqbrandhubpubl
+deactivate metagraphapifacebook
+deactivate publishjobconsumerpu
+deactivate facebookpublishadapt
 @enduml

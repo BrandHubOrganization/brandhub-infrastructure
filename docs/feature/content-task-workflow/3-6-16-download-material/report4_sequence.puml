@@ -21,34 +21,58 @@ actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
 ' === Flow ===
 materialservice -> materialservice: Check session, scope and workspace download permission
 creatorclientmanager -> webdashboard: Download selected material
+activate webdashboard
 webdashboard -> materialcontroller: GET /api/v1/workspaces/{workspaceId}/materials/{materialId}/download
+activate materialcontroller
 materialcontroller -> materialservice: downloadMaterial(user, command)
+activate materialservice
 materialservice -> workspacerepository: Load workspace
+activate workspacerepository
 workspacerepository --> materialservice: Workspace
+deactivate workspacerepository
 materialservice -> workspacememberrepos: Load membership
+activate workspacememberrepos
 workspacememberrepos --> materialservice: WorkspaceMember
+deactivate workspacememberrepos
 materialservice -> agencyrepository: Load agency
+activate agencyrepository
 agencyrepository --> materialservice: Agency
+deactivate agencyrepository
 materialservice -> materialrepository: Load READY, non-deleted material
+activate materialrepository
 materialrepository --> materialservice: Material
+deactivate materialrepository
 
 loop invalid session / forbidden / unavailable resource
   materialservice --> materialcontroller: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate materialservice
   materialcontroller --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate materialcontroller
   webdashboard --> creatorclientmanager: Display access or resource error
 end
+activate materialcontroller
+activate materialservice
 
 materialservice -> s3storage: Read exact selected object from S3
+activate s3storage
 s3storage --> materialservice: file stream / storage error
+deactivate s3storage
 
 alt storage unavailable
   materialservice --> materialcontroller: 503 Service Unavailable
+  deactivate materialservice
   materialcontroller --> webdashboard: 503 Service Unavailable
+  deactivate materialcontroller
   webdashboard --> creatorclientmanager: Display download error; retry
 else file available
+  activate materialcontroller
+  activate materialservice
   materialservice --> materialcontroller: 200 OK
+  deactivate materialservice
   materialcontroller --> webdashboard: 200 OK
+  deactivate materialcontroller
   webdashboard --> creatorclientmanager: Display download started; browser receives selected file
+  deactivate webdashboard
 end
 
 @enduml

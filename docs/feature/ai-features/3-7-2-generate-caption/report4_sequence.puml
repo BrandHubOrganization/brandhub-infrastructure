@@ -17,22 +17,38 @@ control "AiServiceClient" as aiserviceclient
 
 ' === Flow ===
 user -> contenteditorpageui: selects post, clicks "Generate Caption with AI"
+activate contenteditorpageui
 contenteditorpageui -> aifeaturecontroller: POST /api/v1/ai/captions/generate (GenerateCaptionRequest)
+activate aifeaturecontroller
 aifeaturecontroller -> aicaptionservice: generateCaption(userId, request)
+activate aicaptionservice
 aicaptionservice -> postrepository: findById(postId)
+activate postrepository
 
 alt post not found
   postrepository --> aicaptionservice: Optional.empty()
+  deactivate postrepository
   aicaptionservice --> aifeaturecontroller: 404 Not Found (POST_NOT_FOUND)
+  deactivate aicaptionservice
   aifeaturecontroller --> contenteditorpageui: 404 Not Found
+  deactivate aifeaturecontroller
   contenteditorpageui --> user: Show error "Post not found"
 else post found
+  activate aicaptionservice
+  activate aifeaturecontroller
+  activate postrepository
   postrepository --> aicaptionservice: Optional<Post>
+  deactivate postrepository
   aicaptionservice -> aiserviceclient: POST /ai/generate-caption (topic, tone, platform)
+  activate aiserviceclient
   aiserviceclient --> aicaptionservice: GeneratedCaption(text, hashtags)
+  deactivate aiserviceclient
   aicaptionservice --> aifeaturecontroller: AiCaptionResponse(caption, hashtags)
+  deactivate aicaptionservice
   aifeaturecontroller --> contenteditorpageui: 200 OK (AiCaptionResponse)
+  deactivate aifeaturecontroller
   contenteditorpageui --> user: Display AI-generated caption with hashtags
+  deactivate contenteditorpageui
 end
 
 @enduml

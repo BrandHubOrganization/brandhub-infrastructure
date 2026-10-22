@@ -18,33 +18,57 @@ entity "RedisCache" as rediscache
 
 ' === Flow ===
 user -> securitysettingspage: clicks "Enable 2FA"
+activate securitysettingspage
 securitysettingspage -> authcontroller: POST /api/v1/auth/2fa/setup (headers: Bearer accessToken)
+activate authcontroller
 authcontroller -> authservice: setup2FA(userId)
+activate authservice
 authservice -> authenticatorapp: generateSecret() -> otpAuthUrl
+activate authenticatorapp
 authenticatorapp --> authservice: otpAuthUrl (QR code URL)
+deactivate authenticatorapp
 authservice -> rediscache: set("2fa:pending:" + userId, secret, 10 min)
+activate rediscache
 rediscache --> authservice: ok
+deactivate rediscache
 authservice --> authcontroller: 200 OK (otpAuthUrl)
+deactivate authservice
 authcontroller --> securitysettingspage: 200 OK (otpAuthUrl)
+deactivate authcontroller
 securitysettingspage --> user: Display QR code to scan in Authenticator App
 user -> securitysettingspage: scans QR, enters TOTP code, clicks "Confirm"
 securitysettingspage -> authcontroller: POST /api/v1/auth/2fa/confirm (code, headers: Bearer accessToken)
+activate authcontroller
 authcontroller -> authservice: confirm2FA(userId, code)
+activate authservice
 authservice -> rediscache: get("2fa:pending:" + userId)
+activate rediscache
 rediscache --> authservice: pendingSecret
+deactivate rediscache
 
 alt code invalid
   authservice --> authcontroller: 400 Bad Request (TWO_FA_CODE_INVALID)
+  deactivate authservice
   authcontroller --> securitysettingspage: 400 Bad Request
+  deactivate authcontroller
   securitysettingspage --> user: Show error "Invalid TOTP code"
 else code valid
+  activate authcontroller
+  activate authservice
   authservice -> userrepository: save(user with twoFaEnabled=true, twoFaSecret)
+  activate userrepository
   userrepository --> authservice: ok
+  deactivate userrepository
   authservice -> rediscache: delete("2fa:pending:" + userId)
+  activate rediscache
   rediscache --> authservice: ok
+  deactivate rediscache
   authservice --> authcontroller: 200 OK
+  deactivate authservice
   authcontroller --> securitysettingspage: 200 OK
+  deactivate authcontroller
   securitysettingspage --> user: "Two-factor authentication enabled"
+  deactivate securitysettingspage
 end
 
 @enduml

@@ -20,32 +20,54 @@ actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
 ' === Flow ===
 hashtagservice -> hashtagservice: Check session, scope and collection view permission
 creatorclientmanager -> webdashboard: Open Hashtag Collection / change filters
+activate webdashboard
 webdashboard -> hashtagcontroller: GET /api/v1/workspaces/{workspaceId}/hashtags
+activate hashtagcontroller
 hashtagcontroller -> hashtagservice: listHashtags(user, query)
+activate hashtagservice
 hashtagservice -> workspacerepository: Load workspace
+activate workspacerepository
 workspacerepository --> hashtagservice: Workspace
+deactivate workspacerepository
 hashtagservice -> workspacememberrepos: Load membership
+activate workspacememberrepos
 workspacememberrepos --> hashtagservice: WorkspaceMember
+deactivate workspacememberrepos
 hashtagservice -> agencyrepository: Load agency
+activate agencyrepository
 agencyrepository --> hashtagservice: Agency
+deactivate agencyrepository
 
 loop invalid session / forbidden / unavailable resource
   hashtagservice --> hashtagcontroller: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate hashtagservice
   hashtagcontroller --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate hashtagcontroller
   webdashboard --> creatorclientmanager: Display access or resource error
 end
+activate hashtagservice
+activate hashtagcontroller
 
 hashtagservice -> hashtagrepository: Query active tags with paging/search
+activate hashtagrepository
 hashtagrepository --> hashtagservice: entries
+deactivate hashtagrepository
 
 alt query failed
   hashtagservice --> hashtagcontroller: 500 Internal Server Error
+  deactivate hashtagservice
   hashtagcontroller --> webdashboard: 500 Internal Server Error
+  deactivate hashtagcontroller
   webdashboard --> creatorclientmanager: Display load error with Retry
 else query succeeded
+  activate hashtagservice
+  activate hashtagcontroller
   hashtagservice --> hashtagcontroller: 200 OK
+  deactivate hashtagservice
   hashtagcontroller --> webdashboard: 200 OK
+  deactivate hashtagcontroller
   webdashboard --> creatorclientmanager: Display tag details / empty list
+  deactivate webdashboard
 end
 
 @enduml

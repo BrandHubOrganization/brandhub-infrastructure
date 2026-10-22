@@ -17,7 +17,9 @@ boundary "WorkspacePackageUI" as workspacepackageui
 
 ' === Flow ===
 nuserclientagency -> workspacepackageui: reviews negotiated terms and clicks "Approve Package"
+activate workspacepackageui
 workspacepackageui -> mediapackagecontroll: POST /api/v1/workspaces/{workspaceId}/media-package/approve
+activate mediapackagecontroll
 else both Agency and Client approved same terms version
   mediapackageservice -> mediapackageservice: set negotiationStatus = APPROVED
 end
@@ -30,38 +32,68 @@ alt caller is Client
 end
 
 mediapackagecontroll -> mediapackageservice: approvePackage(workspaceId, currentUser)
+activate mediapackageservice
 mediapackageservice -> workspacemediapackag: findByWorkspaceIdForUpdate(workspaceId)
+activate workspacemediapackag
 workspacemediapackag --> mediapackageservice: workspacePackage
+deactivate workspacemediapackag
 
 alt package already in APPROVED status
+  activate workspacemediapackag
   workspacemediapackag -> mediapackagereposito: findById(packageId)
+  activate mediapackagereposito
   mediapackagereposito --> workspacemediapackag: mediaPackage
+  deactivate mediapackagereposito
   workspacemediapackag --> mediapackageservice: WorkspaceMediaPackageResponse (status: APPROVED)
+  deactivate workspacemediapackag
   mediapackageservice --> mediapackagecontroll: 200 OK (already approved)
+  deactivate mediapackageservice
   mediapackagecontroll --> workspacepackageui: show notice ('Package is already fully approved')
+  deactivate mediapackagecontroll
 else caller is unauthorized
+  activate mediapackagecontroll
+  activate mediapackageservice
   mediapackageservice --> mediapackagecontroll: throw BusinessException (403 WORKSPACE_ACCESS_DENIED)
+  deactivate mediapackageservice
   mediapackagecontroll --> workspacepackageui: 403 Forbidden (WORKSPACE_ACCESS_DENIED)
+  deactivate mediapackagecontroll
   workspacepackageui --> nuserclientagency: show error toast ('Access denied')
 end
+activate mediapackagecontroll
+activate mediapackageservice
 
 
 alt single party approved (pending other party)
   mediapackageservice ->> workspacemediapackag: save(workspacePackage)
+  activate workspacemediapackag
   workspacemediapackag --> mediapackageservice: savedPackage
+  deactivate workspacemediapackag
   mediapackageservice ->> mediapackagereposito: findById(packageId)
+  activate mediapackagereposito
   mediapackagereposito --> mediapackageservice: mediaPackage
+  deactivate mediapackagereposito
   mediapackageservice --> mediapackagecontroll: WorkspaceMediaPackageResponse (one approval timestamp set)
+  deactivate mediapackageservice
   mediapackagecontroll --> workspacepackageui: 200 OK (one approval timestamp recorded)
+  deactivate mediapackagecontroll
   workspacepackageui --> nuserclientagency: show toast ('Approved terms version. Awaiting second party confirmation')
 else both Agency and Client approved same terms version
+  activate mediapackagecontroll
+  activate mediapackageservice
   mediapackageservice ->> workspacemediapackag: save(workspacePackage)
+  activate workspacemediapackag
   workspacemediapackag --> mediapackageservice: savedPackage
+  deactivate workspacemediapackag
   mediapackageservice ->> mediapackagereposito: findById(packageId)
+  activate mediapackagereposito
   mediapackagereposito --> mediapackageservice: mediaPackage
+  deactivate mediapackagereposito
   mediapackageservice --> mediapackagecontroll: WorkspaceMediaPackageResponse (status: APPROVED)
+  deactivate mediapackageservice
   mediapackagecontroll --> workspacepackageui: 200 OK (status: APPROVED)
+  deactivate mediapackagecontroll
   workspacepackageui --> nuserclientagency: show success modal ('Media Package fully approved! Ready to create Campaign')
+  deactivate workspacepackageui
 end
 
 @enduml

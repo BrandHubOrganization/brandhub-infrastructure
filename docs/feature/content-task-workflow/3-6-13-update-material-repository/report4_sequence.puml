@@ -18,30 +18,50 @@ actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
 ' === Flow ===
 materialservice -> materialservice: Validate session, rights, allowed fields and expectedVersion
 creatorclientmanager -> webdashboard: Save edited type/note
+activate webdashboard
 webdashboard -> materialcontroller: PATCH /api/v1/workspaces/{workspaceId}/materials/{materialId}
+activate materialcontroller
 materialcontroller -> materialservice: updateMaterial(user, command)
+activate materialservice
 materialservice -> workspacerepository: Load workspace access
+activate workspacerepository
 workspacerepository --> materialservice: Workspace
+deactivate workspacerepository
 materialservice -> materialrepository: Load material and version
+activate materialrepository
 materialrepository --> materialservice: Material
+deactivate materialrepository
 
 loop invalid access / validation error / conflict
   materialservice --> materialcontroller: 400 Bad Request / 403 Forbidden / 409 Conflict
+  deactivate materialservice
   materialcontroller --> webdashboard: 400 Bad Request / 403 Forbidden / 409 Conflict
+  deactivate materialcontroller
   webdashboard --> creatorclientmanager: Display save error; retain previous values
 end
+activate materialcontroller
+activate materialservice
 
 materialservice -> materialrepository: Save edited metadata with version check
+activate materialrepository
 materialrepository --> materialservice: writeOutcome
+deactivate materialrepository
 
 alt writeOutcome committed
   materialservice --> materialcontroller: 200 OK
+  deactivate materialservice
   materialcontroller --> webdashboard: 200 OK
+  deactivate materialcontroller
   webdashboard --> creatorclientmanager: Display updated material
 else write failed or version conflict
+  activate materialcontroller
+  activate materialservice
   materialservice --> materialcontroller: 409 Conflict / 500 Internal Server Error
+  deactivate materialservice
   materialcontroller --> webdashboard: 409 Conflict / 500 Internal Server Error
+  deactivate materialcontroller
   webdashboard --> creatorclientmanager: Display validation or conflict error
+  deactivate webdashboard
 end
 
 @enduml

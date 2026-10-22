@@ -18,22 +18,38 @@ entity "MailTemplateResponse" as response
 
 ' === Flow ===
 member -> ui: opens /workspaces/{id}/mail-templates
+activate ui
 ui -> controller: GET /api/v1/workspaces/{id}/mail-templates?includeSystem&q&page&size
+activate controller
 controller -> service: listTemplates(currentUser, workspaceId, query)
+activate service
 service -> access: requireActiveMember(workspaceId, userId)
+activate access
 access --> service: member(role)
+deactivate access
 opt role not in {OWNER, MANAGER, CREATOR}
   service --> controller: throw 403 FORBIDDEN
+  deactivate service
   controller --> ui: 403 Forbidden
+  deactivate controller
   ui --> member: shows access denied
 end
+activate controller
+activate service
 service -> repo: findVisible(workspaceId, includeSystem, q, pageable) where deletedAt == null
+activate repo
 repo --> service: Page<MailTemplateDocument>
+deactivate repo
 loop each template
   service -> response: map(name, subject preview, type, attachmentCount, createdAt)
+  activate response
 end
 service --> controller: Page<MailTemplateResponse>
+deactivate service
 controller --> ui: 200 OK
+deactivate controller
 ui --> member: renders list (or empty state)
+deactivate ui
 
+deactivate response
 @enduml

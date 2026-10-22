@@ -20,37 +20,63 @@ entity "AgencyResponse" as agencyresponse
 
 ' === Flow ===
 viewer_owner_member_client -> agencyprofilepage_ui: opens Agency profile
+activate agencyprofilepage_ui
 agencyprofilepage_ui -> agencycontroller: GET /api/v1/agencies/{agencyId}
+activate agencycontroller
 agencycontroller -> agencyserviceimpl: getAgency(agencyId, currentUser)
+activate agencyserviceimpl
 alt !agency.present
   agencyserviceimpl -> agencyrepository: findById(agencyId)
+  activate agencyrepository
   agencyrepository --> agencyserviceimpl: Optional.empty()
+  deactivate agencyrepository
   agencyserviceimpl --> agencycontroller: throw AGENCY_NOT_FOUND (404)
+  deactivate agencyserviceimpl
   agencycontroller --> agencyprofilepage_ui: 404 AGENCY_NOT_FOUND
+  deactivate agencycontroller
   agencyprofilepage_ui --> viewer_owner_member_client: shows 404 toast
 else agency.present
+  activate agencyserviceimpl
+  activate agencycontroller
   agencyserviceimpl -> agencyrepository: findById(agencyId)
+  activate agencyrepository
   agencyrepository --> agencyserviceimpl: Optional<Agency>
+  deactivate agencyrepository
   agencyserviceimpl -> agency: getOwnerId()
+  activate agency
   agency --> agencyserviceimpl: ownerId
+  deactivate agency
   agencyserviceimpl -> agencyserviceimpl: checkIsOwner(currentUser)
   agencyserviceimpl -> agencymemberrepository: findByAgencyIdAndUserId(agencyId, userId)
+  activate agencymemberrepository
   agencymemberrepository --> agencyserviceimpl: Optional<AgencyMember>
+  deactivate agencymemberrepository
   opt !isMember && !isOwner
     agencyserviceimpl -> clientprofilerepository: findByUserId(userId)
+    activate clientprofilerepository
     clientprofilerepository --> agencyserviceimpl: List<ClientProfile>
+    deactivate clientprofilerepository
     agencyserviceimpl -> agencyserviceimpl: checkIsClient(agencyId)
   end
   opt !isOwner && !isMember && !isClient
     agencyserviceimpl --> agencycontroller: throw NOT_AGENCY_MEMBER (400)
+    deactivate agencyserviceimpl
     agencycontroller --> agencyprofilepage_ui: 400 NOT_AGENCY_MEMBER
+    deactivate agencycontroller
     agencyprofilepage_ui --> viewer_owner_member_client: shows 400 toast
   end
+  activate agencyserviceimpl
+  activate agencycontroller
   agencyserviceimpl -> agencyresponse: toResponse(agency, myRole)
+  activate agencyresponse
   agencyresponse --> agencyserviceimpl: AgencyResponse
+  deactivate agencyresponse
   agencyserviceimpl --> agencycontroller: AgencyResponse
+  deactivate agencyserviceimpl
   agencycontroller --> agencyprofilepage_ui: 200 OK AgencyResponse
+  deactivate agencycontroller
   agencyprofilepage_ui --> viewer_owner_member_client: renders Agency profile
+  deactivate agencyprofilepage_ui
 end
 
 @enduml

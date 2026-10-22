@@ -21,46 +21,80 @@ entity "WorkspaceResponse" as workspaceresponse
 
 alt views all workspaces
   user_any_role -> workspacepage_ui: opens workspace list
+  activate workspacepage_ui
   workspacepage_ui -> workspacecontroller: GET /api/v1/workspaces
+  activate workspacecontroller
   workspacecontroller -> workspaceserviceimpl: listWorkspaces(currentUser)
+  activate workspaceserviceimpl
   workspaceserviceimpl -> agencyrepository: findByOwnerIdAndStatusNot(userId, SOFT_DELETED)
+  activate agencyrepository
   agencyrepository --> workspaceserviceimpl: List<Agency>
+  deactivate agencyrepository
   workspaceserviceimpl -> workspacerepository: findByAgencyId(agencyId)
+  activate workspacerepository
   workspacerepository --> workspaceserviceimpl: List<Workspace>
+  deactivate workspacerepository
   workspaceserviceimpl -> workspacememberrepository: findByUserIdAndIsActiveTrue(userId)
+  activate workspacememberrepository
   workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+  deactivate workspacememberrepository
   workspaceserviceimpl -> clientprofilerepository: findByUserId(userId)
+  activate clientprofilerepository
   clientprofilerepository --> workspaceserviceimpl: List<ClientProfile>
+  deactivate clientprofilerepository
   opt !clientProfileIds.isEmpty()
     workspaceserviceimpl -> workspacememberrepository: findByClientProfileIds(clientProfileIds)
+    activate workspacememberrepository
     workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+    deactivate workspacememberrepository
     workspaceserviceimpl -> workspaceserviceimpl: mergeWorkspaceIds(...)
     workspaceserviceimpl -> workspacerepository: findAllById(workspaceIds)
+    activate workspacerepository
   end
   workspacerepository --> workspaceserviceimpl: List<Workspace>
+  deactivate workspacerepository
   workspaceserviceimpl -> workspace: getSettings()
+  activate workspace
   workspace --> workspaceserviceimpl: settings
+  deactivate workspace
   workspaceserviceimpl -> workspaceresponse: toResponse(ws, role)
+  activate workspaceresponse
   workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+  deactivate workspaceresponse
   workspaceserviceimpl --> workspacecontroller: List<WorkspaceResponse>
+  deactivate workspaceserviceimpl
   workspacecontroller --> workspacepage_ui: 200 OK List<WorkspaceResponse>
+  deactivate workspacecontroller
   workspacepage_ui --> user_any_role: renders workspace list
 else views managed workspaces
   user_any_role -> workspacepage_ui: selects managed workspaces tab
   workspacepage_ui -> workspacecontroller: GET /api/v1/workspaces/my-managed
+  activate workspacecontroller
   workspacecontroller -> workspaceserviceimpl: listMyManagedWorkspaces(currentUser)
+  activate workspaceserviceimpl
   workspaceserviceimpl -> workspacememberrepository: findByUserIdAndIsActiveTrue(userId)
+  activate workspacememberrepository
   workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+  deactivate workspacememberrepository
   workspaceserviceimpl -> workspaceserviceimpl: filterManagerRole()
   workspaceserviceimpl -> workspacerepository: findAllById(managedWorkspaceIds)
+  activate workspacerepository
   workspacerepository --> workspaceserviceimpl: Map<UUID, Workspace>
+  deactivate workspacerepository
   workspaceserviceimpl -> workspacememberrepository: countByWorkspaceId(workspaceId)
+  activate workspacememberrepository
   workspacememberrepository --> workspaceserviceimpl: long memberCount
+  deactivate workspacememberrepository
   workspaceserviceimpl -> workspaceresponse: new ManagedWorkspaceResponse(...)
+  activate workspaceresponse
   workspaceresponse --> workspaceserviceimpl: ManagedWorkspaceResponse
+  deactivate workspaceresponse
   workspaceserviceimpl --> workspacecontroller: List<ManagedWorkspaceResponse>
+  deactivate workspaceserviceimpl
   workspacecontroller --> workspacepage_ui: 200 OK List<ManagedWorkspaceResponse>
+  deactivate workspacecontroller
   workspacepage_ui --> user_any_role: renders managed workspaces
+  deactivate workspacepage_ui
 end
 
 @enduml

@@ -21,53 +21,95 @@ entity "WorkspaceResponse" as workspaceresponse
 
 ' === Flow ===
 agency_member -> createworkspacepage_ui: submits form
+activate createworkspacepage_ui
 createworkspacepage_ui -> workspacecontroller: POST /api/v1/workspaces
+activate workspacecontroller
 workspacecontroller -> workspaceserviceimpl: createWorkspace(currentUser, request)
+activate workspaceserviceimpl
 workspaceserviceimpl -> agencymemberrepository: findByAgencyIdAndUserId(agencyId, userId)
+activate agencymemberrepository
 agencymemberrepository --> workspaceserviceimpl: Optional<AgencyMember>
+deactivate agencymemberrepository
 opt !agency.present || role != OWNER
   workspaceserviceimpl --> workspacecontroller: throw 403 NOT_AGENCY_OWNER
+  deactivate workspaceserviceimpl
   workspacecontroller --> createworkspacepage_ui: 403 Forbidden
+  deactivate workspacecontroller
   createworkspacepage_ui --> agency_member: shows 403 toast
 end
+activate workspaceserviceimpl
+activate workspacecontroller
 workspaceserviceimpl -> workspace: new Workspace(...)
+activate workspace
 workspace --> workspaceserviceimpl: Workspace
+deactivate workspace
 workspaceserviceimpl -> workspacerepository: save(workspace)
+activate workspacerepository
 workspacerepository --> workspaceserviceimpl: Workspace
+deactivate workspacerepository
 workspaceserviceimpl -> workspaceserviceimpl: checkManagerAssignment(assignMembers)
 workspaceserviceimpl -> workspacememberrepository: save(creatorMember)
+activate workspacememberrepository
 workspacememberrepository --> workspaceserviceimpl: WorkspaceMember
+deactivate workspacememberrepository
 opt !assignMembers.isEmpty()
   workspaceserviceimpl -> agencymemberrepository: findByAgencyIdAndUserId(agencyId, entry.userId)
+  activate agencymemberrepository
   agencymemberrepository --> workspaceserviceimpl: Optional<AgencyMember>
+  deactivate agencymemberrepository
   opt !inAgency(userId)
     workspaceserviceimpl --> workspacecontroller: throw 403 NOT_AGENCY_MEMBER
+    deactivate workspaceserviceimpl
     workspacecontroller --> createworkspacepage_ui: 403 Forbidden error response
+    deactivate workspacecontroller
     createworkspacepage_ui --> agency_member: shows 400 toast
   end
+  activate workspacecontroller
+  activate workspaceserviceimpl
   workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndUserId(workspaceId, userId)
+  activate workspacememberrepository
   workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
+  deactivate workspacememberrepository
   workspaceserviceimpl -> workspacememberrepository: countByWorkspaceIdAndRole(workspaceId, MANAGER)
+  activate workspacememberrepository
   workspacememberrepository --> workspaceserviceimpl: long count
+  deactivate workspacememberrepository
   opt role == MANAGER && count > 0
     workspaceserviceimpl --> workspacecontroller: throw 409 MANAGER_ALREADY_ASSIGNED
+    deactivate workspaceserviceimpl
     workspacecontroller --> createworkspacepage_ui: 409 Conflict error response
+    deactivate workspacecontroller
     createworkspacepage_ui --> agency_member: shows 409 toast
   end
+  activate workspacecontroller
+  activate workspaceserviceimpl
   workspaceserviceimpl -> userrepository: findById(entry.userId)
+  activate userrepository
   userrepository --> workspaceserviceimpl: Optional<User>
+  deactivate userrepository
   opt !user.present
     workspaceserviceimpl --> workspacecontroller: throw 404 USER_NOT_FOUND
+    deactivate workspaceserviceimpl
     workspacecontroller --> createworkspacepage_ui: 404 Error response
+    deactivate workspacecontroller
     createworkspacepage_ui --> agency_member: shows 404 toast
   end
+  activate workspacecontroller
+  activate workspaceserviceimpl
   workspaceserviceimpl -> workspacememberrepository: save(member)
+  activate workspacememberrepository
   workspacememberrepository --> workspaceserviceimpl: WorkspaceMember
+  deactivate workspacememberrepository
 end
 workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
+activate workspaceresponse
 workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+deactivate workspaceresponse
 workspaceserviceimpl --> workspacecontroller: WorkspaceResponse
+deactivate workspaceserviceimpl
 workspacecontroller --> createworkspacepage_ui: 200 OK WorkspaceResponse
+deactivate workspacecontroller
 createworkspacepage_ui --> agency_member: navigates to workspace
+deactivate createworkspacepage_ui
 
 @enduml

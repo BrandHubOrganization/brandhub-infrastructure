@@ -17,19 +17,33 @@ actor "«Actor»
 Member / Manager" as actormembermanager
 
 ' === Flow ===
+activate actormembermanager
 actormembermanager -> postdashboardpageui: Navigate to "Post Dashboard" menu
 postdashboardpageui -> postcontroller: GET /api/v1/workspaces/{workspaceId}/posts/dashboard
+activate postcontroller
 postcontroller -> postserviceimpl: 3: getDashboardMetrics(workspaceId)
+activate postserviceimpl
 postserviceimpl -> postmongorepository: countByWorkspaceIdAndStatus(workspaceId, 'PUBLISHED')
+activate postmongorepository
 postmongorepository --> postserviceimpl: return totalPublishedCount
+deactivate postmongorepository
 postserviceimpl -> postmongorepository: aggregateByPlatform(workspaceId)
+activate postmongorepository
 postmongorepository --> postserviceimpl: return platformBreakdownMap
+deactivate postmongorepository
 postserviceimpl -> postmongorepository: calculatePublishSuccessRate(workspaceId)
+activate postmongorepository
 postmongorepository --> postserviceimpl: return successRatePercentage
+deactivate postmongorepository
 postserviceimpl -> postdashboardrespons: new PostDashboardResponse(totalPublishedCount, platformBreakdownMap, successRatePercentage)
+activate postdashboardrespons
 postdashboardrespons --> postserviceimpl: return dashboardData
+deactivate postdashboardrespons
 postserviceimpl --> postcontroller: return dashboardData
+deactivate postserviceimpl
 postcontroller --> postdashboardpageui: return 200 OK (ApiResponse { data: dashboardData })
+deactivate postcontroller
 postdashboardpageui --> actormembermanager: Render overview KPI cards, charts, and platform breakdown
 
+deactivate actormembermanager
 @enduml

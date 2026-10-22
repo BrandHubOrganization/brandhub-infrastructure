@@ -17,27 +17,45 @@ entity "MailDeliveryRepository" as deliveries
 
 == Cancel before run ==
 member -> ui: clicks "Cancel schedule" on a SCHEDULED batch
+activate ui
 ui -> controller: POST /api/v1/workspaces/{id}/mail-batches/{batchId}/cancel
+activate controller
 controller -> service: cancel(currentUser, workspaceId, batchId)
+activate service
 service -> batches: findById(batchId)
+activate batches
 batches --> service: batch
+deactivate batches
 opt caller is not creator and role not in {OWNER, MANAGER}
   service --> controller: throw 403 FORBIDDEN
+  deactivate service
 end
+activate service
 opt batch.status != SCHEDULED
   service --> controller: throw 409 MAIL_BATCH_NOT_CANCELLABLE
+  deactivate service
   controller --> ui: 409 Conflict
+  deactivate controller
 end
+activate controller
+activate service
 service -> batches: status = CANCELLED
+activate batches
 service -> deliveries: drop PENDING deliveries
+activate deliveries
 service --> controller: 200 OK
+deactivate service
 ui --> member: batch shows CANCELLED
+deactivate ui
 
 == Run at scheduled time ==
+activate job
 job -> batches: find SCHEDULED where scheduled_at <= now
 batches --> job: due batches
+deactivate batches
 loop each due batch
   job -> batches: status = QUEUED
+  activate batches
   job -> deliveries: set next_attempt_at = now for PENDING deliveries
 end
 note right of job
@@ -45,4 +63,8 @@ note right of job
   daily quota and throttle (see 3.6.32 send sequence).
 end note
 
+deactivate job
+deactivate deliveries
+deactivate batches
+deactivate controller
 @enduml

@@ -17,26 +17,42 @@ actor "USER (own account)" as userownaccount
 ' === Flow ===
 billingservice -> billingservice: Check session, filters and dates
 userownaccount -> webdashboard: Open transaction history / details
+activate webdashboard
 webdashboard -> billingcontroller: GET /api/v1/billing/transactions[/{transactionId}]
+activate billingcontroller
 billingcontroller -> billingservice: listTransactions() / getTransaction()
+activate billingservice
 
 loop invalid session / filters
   billingservice --> billingcontroller: 401 Unauthorized / 400 Bad Request
+  deactivate billingservice
   billingcontroller --> webdashboard: 401 Unauthorized / 400 Bad Request
+  deactivate billingcontroller
   webdashboard --> userownaccount: Display authentication or validation error
 end
+activate billingcontroller
+activate billingservice
 
 billingservice -> transactionrepositor: Query owned page / detail
+activate transactionrepositor
 transactionrepositor --> billingservice: historyOutcome
+deactivate transactionrepositor
 
 alt query failed / detail not owned
   billingservice --> billingcontroller: 403 Forbidden / 500 Internal Server Error
+  deactivate billingservice
   billingcontroller --> webdashboard: 403 Forbidden / 500 Internal Server Error
+  deactivate billingcontroller
   webdashboard --> userownaccount: Display load/access error; Retry where allowed
 else query succeeded
+  activate billingcontroller
+  activate billingservice
   billingservice --> billingcontroller: 200 OK
+  deactivate billingservice
   billingcontroller --> webdashboard: 200 OK
+  deactivate billingcontroller
   webdashboard --> userownaccount: Display transaction details / empty history
+  deactivate webdashboard
 end
 
 @enduml

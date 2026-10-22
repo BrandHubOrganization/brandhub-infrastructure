@@ -15,29 +15,44 @@ control "AiVideoService" as aivideoservice
 control "AI Service (video API)" as aiservicevideoapi
 
 ' === Flow ===
+activate creatormanager
 creatormanager -> videostudiopageui: Open Video AI
 videostudiopageui -> aivideocontroller: GET /workspaces/{id}/ai/video-styles
+activate aivideocontroller
 aivideocontroller -> aivideocontroller: Check workspace access (@RequireRole)
 
 alt Access denied
   aivideocontroller --> videostudiopageui: 403 — access denied
+  deactivate aivideocontroller
   videostudiopageui --> creatormanager: Show access error
 else Access granted
+  activate aivideocontroller
   aivideocontroller -> aivideoservice: styles()
+  activate aivideoservice
   aivideoservice -> aiservicevideoapi: GET /api/v1/ai/video/styles
+  activate aiservicevideoapi
   aiservicevideoapi --> aivideoservice: Style catalog / upstream error
+  deactivate aiservicevideoapi
 end
 
 
 alt AI route or service unavailable
   aivideoservice --> aivideocontroller: AiServiceException
+  deactivate aivideoservice
   aivideocontroller --> videostudiopageui: 502 / 503 — styles unavailable
+  deactivate aivideocontroller
   videostudiopageui --> creatormanager: Show error and retry
 else Catalog loaded
+  activate aivideocontroller
+  activate aivideoservice
   aivideoservice --> aivideocontroller: JsonNode — video styles
+  deactivate aivideoservice
   aivideocontroller --> videostudiopageui: 200 OK — style catalog
+  deactivate aivideocontroller
   videostudiopageui --> creatormanager: Show video style gallery
 end
+activate aivideocontroller
+activate aivideoservice
 
 
 opt Catalog loaded; user selects a style
@@ -45,4 +60,7 @@ opt Catalog loaded; user selects a style
   videostudiopageui --> creatormanager: Highlight selection; set suggested aspect ratio
 end
 
+deactivate creatormanager
+deactivate aivideoservice
+deactivate aivideocontroller
 @enduml

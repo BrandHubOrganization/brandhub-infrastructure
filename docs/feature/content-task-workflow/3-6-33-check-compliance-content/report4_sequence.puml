@@ -22,45 +22,73 @@ actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
 contentcheckservice -> contentcheckservice: Check content / conditional AI access
 contentcheckservice -> contentcheckservice: Check input and provider coverage
 creatorclientmanager -> webdashboard: Check Compliance for selected content version
+activate webdashboard
 webdashboard -> contentcheckcontroll: POST /api/v1/workspaces/{workspaceId}/tasks/{taskId}/compliance-check
+activate contentcheckcontroll
 contentcheckcontroll -> contentcheckservice: checkCompliance(user, command)
+activate contentcheckservice
 contentcheckservice -> workspacerepository: Load workspace
+activate workspacerepository
 workspacerepository --> contentcheckservice: Workspace
+deactivate workspacerepository
 contentcheckservice -> workspacememberrepos: Load membership
+activate workspacememberrepos
 workspacememberrepos --> contentcheckservice: WorkspaceMember
+deactivate workspacememberrepos
 contentcheckservice -> agencyrepository: Load agency
+activate agencyrepository
 agencyrepository --> contentcheckservice: Agency
+deactivate agencyrepository
 
 loop invalid session / forbidden / unavailable resource
   contentcheckservice --> contentcheckcontroll: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate contentcheckservice
   contentcheckcontroll --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate contentcheckcontroll
   webdashboard --> creatorclientmanager: Display access or resource error
 end
+activate contentcheckservice
+activate contentcheckcontroll
 
 
 loop no supported input / integration not configured
   contentcheckservice --> contentcheckcontroll: 400 Bad Request / 503 Service Unavailable
+  deactivate contentcheckservice
   contentcheckcontroll --> webdashboard: 400 Bad Request / 503 Service Unavailable
+  deactivate contentcheckcontroll
   webdashboard --> creatorclientmanager: Display unavailable or unsupported check
 end
+activate contentcheckservice
+activate contentcheckcontroll
 
 contentcheckservice -> hiveapi: Check supported text/images [provider proposed]
+activate hiveapi
 hiveapi --> contentcheckservice: per-part issues, coverage or errors
+deactivate hiveapi
 
 opt Evidence retention approved
   contentcheckservice -> contentcheckresultre: Save versioned check evidence
+  activate contentcheckresultre
   contentcheckresultre --> contentcheckservice: checkTrace
+  deactivate contentcheckresultre
 end
 
 
 alt provider failure or incomplete coverage
   contentcheckservice --> contentcheckcontroll: 503 Service Unavailable
+  deactivate contentcheckservice
   contentcheckcontroll --> webdashboard: 503 Service Unavailable
+  deactivate contentcheckcontroll
   webdashboard --> creatorclientmanager: Display partial / unavailable report; Retry
 else completed check
+  activate contentcheckservice
+  activate contentcheckcontroll
   contentcheckservice --> contentcheckcontroll: 200 OK
+  deactivate contentcheckservice
   contentcheckcontroll --> webdashboard: 200 OK
+  deactivate contentcheckcontroll
   webdashboard --> creatorclientmanager: Display versioned compliance report
+  deactivate webdashboard
 end
 
 @enduml
