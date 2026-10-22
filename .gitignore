@@ -30,6 +30,3 @@ redis-data/
 
 # ── Dashboard (docs/dashboard) ──────────────────────────────────
 docs/dashboard/jira_status.json
-
-# ── Large Reference Sample Reports (>50MB) ─────────────────────
-final_report/Sample_Report/
