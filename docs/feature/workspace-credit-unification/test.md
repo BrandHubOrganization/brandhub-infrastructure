@@ -1,0 +1,33 @@
+# Verification plan
+
+- Fresh init and ordered migrations give identical tables/columns/indexes/constraints; extension reapplies safely. A conflicting DA-974 schema stops before writes. No public reset/seed API.
+- Agency=1000, two Workspace caps=800: overlapping caps allowed; concurrent requests still cannot spend over the Agency or either Workspace budget. NULL caps use Agency funds; zero rejects positive-cost requests; no personal/default-member cap survives. Owner is not exempt from Workspace caps.
+- Owner can revise only its Agency's Workspace cap; expected revision conflict returns conflict; Manager/Creator read only accessible Workspaces. Client cannot generate/change caps. Deactivated/deleted/cross-Agency contexts denied.
+- Freeze operation price at reserve. Reuse same key+payload without another dispatch/charge; changed payload conflicts. Price zero/free action behavior remains supported. Different users' request identities do not collide.
+- Reserve/settle/release keep wallet, grants, allocations, Workspace counters and append-only journal balanced. Concurrent callbacks settle once. Unknown/timeouts stay held; no refund/re-dispatch merely from deadline expiry.
+- Expired Plan available credit is unavailable, Plan used before TOPUP, TOPUP never expires. Late completion debits original Workspace usage period; releasing expired Plan funds does not restore spendable credit. New cycle preserves cap but starts zero usage. Purchased credit remains usable after Subscription expiry.
+- Caption generation/history/replay and Video WAITING/poll/failure/callback retain content APIs and avoid legacy double-accounting. No actual paid AI, payment callbacks or public publishing for verification.
+- Web displays Workspace caps/used/held/period and Agency wallet consistently; unlimited and zero distinct; errors/stale saves/reload explicit; VI/EN keys parallel, no raw error, keyboard/light/dark/mobile checks.
+- Local reset preserves counts of users/agencies/workspaces/campaigns and AI content rows; never touches Mongo. Unlink obsolete financial IDs without deleting AI media/history. No fixed IDs/secrets/local scripts committed.
+
+## Results — 2026-10-22
+
+- Fresh init succeeds on isolated PostgreSQL 17. Compared columns/defaults/nullability and constraint definitions for 11 unified financial tables against upgraded local: all identical.
+- Repeat extension on upgraded local skips without writes. A synthetic legacy user_id reservation schema is rejected before price-table or migration-marker writes.
+- 29 targeted tests passed, no failures/errors/skips: AiCreditDatabaseTest (8), AiVideoDatabaseTest (6), CreditBalancePostgresTest (3), AgencyBillingPostgresTest (2), AgencyBillingServiceTest (2), BillingSeederTest (3), DataSeederTest (5). These tests compile all test sources and use a disposable loopback DB/mocked AI. Existing remote tests were updated; no new src test files.
+- Covered concurrent shared-wallet reservations, Owner/Creator shared Workspace caps, NULL/0/free behavior, original price/replay/conflict, expired-held release, immutable journal sums, Video pending/failure/unknown/reconciliation, old-ledger-only refunds, Owner revision conflicts/Creator read-only access, purchased credit after expiry, and Subscription fulfillment/renewal rollback/idempotency.
+- Web production build and changed-source ESLint passed. Credit VI/EN: 139 keys each, no differences. Existing bundle-size/dynamic-import warnings remain.
+- Real Chromium with mocked APIs: direct cap edit/save; unlimited differs from 0; negative input shows inline validation on blur; stale save preserves draft and disables save; reload restores server state. Light/dark inspected; desktop 1440, tablet 768 and mobile 375 checked, mobile has no horizontal overflow. Browser artifacts are ignored/local only. No real finance API or AI called.
+- Local reset ran first with ROLLBACK, then committed as one transaction while all DB writers were stopped. Checksum+row count matched for all 51 preserved tables, including Admin prices and business data. Removed 332 legacy subscription rows, 215 transaction rows, 1 old grant/reservation/allocation and legacy Credit counters/limits. Four Admin price rows retained. 53 Agency subscriptions now Basic/READY; 53 wallets VERIFIED with zero available/reserved; unified grants/reservations/caps empty. No backup was created; removed test finance is not restored by the public migration. Mongo/Atlas/Task/Post untouched.
+- Only the new shared extension and fresh init change schema in Git. Teammates' existing migration files are unchanged. The local reset script and isolated Maven/browser verification are under ignored keep-local-only, not shared setup.
+
+Not claimed: live paid AI/payment end-to-end, full application regression, runtime of every seed profile, or every expiry/period boundary. AgencyBillingWebhookPostgresTest could not initialize Testcontainers against this Docker engine (HTTP 400); the separate loopback fulfillment/renewal tests passed. IDE-written target bytecode was bypassed using an ignored isolated Maven build directory, not by changing teammates' build configuration.
+
+## Manual test prerequisites
+
+1. Restart Business/Gateway/Web with the updated code. Do not run seed or init again on this local DB. The local reset is complete and intentionally refuses to run twice.
+2. Owner opens Agency -> AI Credit. Verify Workspace caps and select no cap, 0 or a positive integer. Check Manager/Creator cannot change caps and cannot read unrelated Workspaces.
+3. Agency currently has ZERO funds. Before testing a paid action, purchase/fulfill a valid Agency subscription through the existing Subscription module; do not fabricate payment records. Existing rates retained: latest Content=3, Ambassador=10; Commercial image/Video still need enabled Admin prices before paid tests.
+4. Free Caption/refine/adapt, Hashtag, Character sheet do not require a price or positive balance; they still require an active authorized Workspace and a verified Agency account.
+5. After funding, use two Workspaces: caps may overlap, all actors consume Workspace used+held and the shared Agency pool. Verify successful AI charges once, authoritative failure releases once and unknown/Video pending stays held.
+6. New teammate DB: fresh init already includes Subscription and this extension. Existing Subscription-shaped DB with no old reservations: apply the new extension after expand -> catalog -> provider -> observability, with writers stopped. Existing DA-974 user_id schema: STOP for explicit reset/conversion review; do not blindly run expand/new extension or share the machine-local reset.

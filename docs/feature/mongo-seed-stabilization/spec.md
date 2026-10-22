@@ -21,4 +21,4 @@ existing Tasks.
 
 Machine-specific repair scripts, fixed-ID resets/deletions, local funding and
 Playground experiments are not distributed or committed. Keep them in ignored
-.local/ storage, not in shared migration entry points.
+keep-local-only/ storage, not in shared migration entry points.
