@@ -19,36 +19,64 @@ entity "MailTemplateRepository (MongoDB)" as repo
 
 ' === Flow ===
 member -> ui: fills name, subject, body (variables, images), uploads attachments, optional "use system template"
+activate ui
 ui -> controller: POST /api/v1/workspaces/{id}/mail-templates {name, subject, bodyHtml, attachmentIds?, cloneFromId?}
+activate controller
 controller -> service: createTemplate(currentUser, workspaceId, request)
+activate service
 service -> access: requireActiveMember(workspaceId, userId)
+activate access
 access --> service: member(role)
+deactivate access
 opt role not permitted
   service --> controller: throw 403 FORBIDDEN
+  deactivate service
   controller --> ui: 403 Forbidden
+  deactivate controller
 end
+activate controller
+activate service
 opt cloneFromId != null
   service -> repo: findVisibleById(cloneFromId, workspaceId) (own or SYSTEM_DEFAULT)
+  activate repo
   repo --> service: Optional<source>
+  deactivate repo
   opt source missing
     service --> controller: throw 404 TEMPLATE_NOT_FOUND
+    deactivate service
     controller --> ui: 404 Not Found
+    deactivate controller
   end
+  activate controller
+  activate service
   service -> service: fill missing fields and attachments from source
 end
 opt subject or bodyHtml blank, or body > 100KB
   service --> controller: throw 400 VALIDATION_ERROR
+  deactivate service
   controller --> ui: 400 Bad Request
+  deactivate controller
   ui --> member: keeps form data, shows validation error
 end
+activate controller
+activate service
 service -> sanitizer: sanitize(bodyHtml) (allow-list)
+activate sanitizer
 sanitizer --> service: safeHtml
+deactivate sanitizer
 service -> attachments: validate attachmentIds belong to workspace, mark bound
+activate attachments
 attachments --> service: ok / MAIL_ATTACHMENT_INVALID
+deactivate attachments
 service -> repo: save(new MailTemplateDocument(workspaceId, name, subject, safeHtml, CUSTOM, clonedFromId, createdBy))
+activate repo
 repo --> service: savedTemplate
+deactivate repo
 service --> controller: MailTemplateResponse
+deactivate service
 controller --> ui: 201 Created
+deactivate controller
 ui --> member: success toast, list refreshed
+deactivate ui
 
 @enduml

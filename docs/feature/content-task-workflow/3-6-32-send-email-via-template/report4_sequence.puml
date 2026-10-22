@@ -26,77 +26,137 @@ entity "NotificationService" as notifier
 
 ' === Flow: submit ===
 member -> ui: pastes / uploads CSV, fills variables, previews, clicks Send now or Schedule
+activate ui
 ui -> controller: POST /api/v1/workspaces/{id}/mail-templates/{templateId}/send {recipients, variables, attachmentIds?, scheduledAt?}
+activate controller
 controller -> service: send(currentUser, workspaceId, templateId, request)
+activate service
 service -> access: requireActiveMember(workspaceId, userId)
+activate access
 access --> service: member(role)
+deactivate access
 opt role not permitted
   service --> controller: throw 403 FORBIDDEN
+  deactivate service
   controller --> ui: 403 Forbidden
+  deactivate controller
 end
+activate controller
+activate service
 service -> templates: findByIdAndDeletedAtIsNull(templateId)
+activate templates
 templates --> service: Optional<template>
+deactivate templates
 opt template missing
   service --> controller: throw 404 TEMPLATE_NOT_FOUND
+  deactivate service
   controller --> ui: 404 Not Found
+  deactivate controller
 end
+activate controller
+activate service
 opt recipients empty or > 200
   service --> controller: throw 400 VALIDATION_ERROR
+  deactivate service
   controller --> ui: 400 Bad Request
+  deactivate controller
 end
+activate controller
+activate service
 opt scheduledAt outside [now+5min, now+30d]
   service --> controller: throw 400 MAIL_SCHEDULE_OUT_OF_RANGE
+  deactivate service
   controller --> ui: 400 Bad Request
+  deactivate controller
 end
+activate controller
+activate service
 loop each recipient row
   service -> renderer: render(template, row.variables + shared + built-ins) (HTML-escape values)
+  activate renderer
   renderer --> service: rendered / MISSING_VARIABLE:x
+  deactivate renderer
   service -> classifier: isInsideWorkspace(email) (Client contact_email or active member)
+  activate classifier
   classifier --> service: true / false
+  deactivate classifier
 end
 service -> service: dedupe (case-insensitive), collect rejected[]
 opt all rows rejected
   service --> controller: throw 400 VALIDATION_ERROR
+  deactivate service
   controller --> ui: 400 Bad Request
+  deactivate controller
 end
+activate controller
+activate service
 opt scheduledAt == null
   service -> quota: remainingToday(workspaceId)
+  activate quota
   quota --> service: remaining
+  deactivate quota
   opt accepted > remaining
     service --> controller: throw 429 MAIL_QUOTA_EXCEEDED (remainingToday)
+    deactivate service
     controller --> ui: 429 Too Many Requests
+    deactivate controller
     ui --> member: shows quota left, suggests scheduling
   end
+  activate controller
+  activate service
 end
 service -> batches: save(batch: QUEUED or SCHEDULED, snapshot subject/body/attachments)
+activate batches
 service -> deliveries: saveAll(PENDING deliveries, event_key unique) in the same transaction
+activate deliveries
 service --> controller: 202 {batchId, status, accepted, rejected[], scheduledAt}
+deactivate service
 controller --> ui: 202 Accepted
+deactivate controller
 ui --> member: shows batch page and rejected rows
+deactivate ui
 
 ' === Flow: background delivery ===
 == Background worker ==
+activate worker
 worker -> deliveries: claim next due PENDING (FOR UPDATE SKIP LOCKED)
 deliveries --> worker: delivery
+deactivate deliveries
 worker -> suppressions: isSuppressed(workspaceId, email) (external recipients only)
+activate suppressions
 suppressions --> worker: true / false
+deactivate suppressions
 opt suppressed
   worker -> deliveries: mark SUPPRESSED
+  activate deliveries
 end
 worker -> quota: tryConsume(day, workspaceId) atomic SYSTEM + WORKSPACE
+activate quota
 quota --> worker: ok / exhausted
+deactivate quota
 opt exhausted
   worker -> deliveries: next_attempt_at = next day 00:00 (Asia/Ho_Chi_Minh)
 end
 worker -> smtp: sendHtml(to, subject, html, replyTo, attachments, List-Unsubscribe)
+activate smtp
 alt delivered
   smtp --> worker: ok
+  deactivate smtp
   worker -> deliveries: mark SENT
 else failure
+  activate smtp
   smtp --> worker: error
+  deactivate smtp
   worker -> deliveries: attempts++, backoff or FAILED after 5
 end
+activate smtp
 worker -> batches: update counters; COMPLETED / FAILED when no PENDING left
 worker -> notifier: notify sender (in-app) when batch finished
+activate notifier
 
+deactivate notifier
+deactivate batches
+deactivate worker
+deactivate smtp
+deactivate deliveries
 @enduml

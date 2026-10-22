@@ -19,28 +19,46 @@ actor "USER (own account)" as userownaccount
 subscriptionservice -> subscriptionservice: Check session, scope and account ownership
 subscriptionservice -> subscriptionservice: Check higher destination, current version and server quote
 userownaccount -> webdashboard: Compare plans and confirm higher plan
+activate webdashboard
 webdashboard -> subscriptioncontroll: POST /api/v1/subscription
+activate subscriptioncontroll
 subscriptioncontroll -> subscriptionservice: subscribe(user, command)
+activate subscriptionservice
 subscriptionservice -> usersubscriptionrepo: Load owned subscription
+activate usersubscriptionrepo
 usersubscriptionrepo --> subscriptionservice: UserSubscription
+deactivate usersubscriptionrepo
 subscriptionservice -> subscriptionplanrepo: Load plan catalog
+activate subscriptionplanrepo
 subscriptionplanrepo --> subscriptionservice: SubscriptionPlan
+deactivate subscriptionplanrepo
 
 loop invalid session / forbidden / unavailable resource
   subscriptionservice --> subscriptioncontroll: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate subscriptionservice
   subscriptioncontroll --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate subscriptioncontroll
   webdashboard --> userownaccount: Display access or resource error
 end
+activate subscriptionservice
+activate subscriptioncontroll
 
 
 loop Enterprise / invalid destination / stale quote
   subscriptionservice --> subscriptioncontroll: 400 Bad Request / 409 Conflict
+  deactivate subscriptionservice
   subscriptioncontroll --> webdashboard: 400 Bad Request / 409 Conflict
+  deactivate subscriptioncontroll
   webdashboard --> userownaccount: Display ALREADY_AT_HIGHEST_PLAN or invalid upgrade
 end
+activate subscriptionservice
+activate subscriptioncontroll
 
 subscriptionservice --> subscriptioncontroll: 200 OK
+deactivate subscriptionservice
 subscriptioncontroll --> webdashboard: 200 OK
+deactivate subscriptioncontroll
 webdashboard --> userownaccount: Display checkout / payment processing; retain current plan until provisioned
+deactivate webdashboard
 
 @enduml

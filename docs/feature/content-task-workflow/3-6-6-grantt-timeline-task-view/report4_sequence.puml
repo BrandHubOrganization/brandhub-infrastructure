@@ -17,15 +17,25 @@ boundary "TaskListPage (UI)" as tasklistpageui
 
 ' === Flow ===
 creatorclientmanager -> tasklistpageui: Select "Timeline / Gantt" tab (optional filter: campaignId)
+activate tasklistpageui
 tasklistpageui -> taskcontroller: Request tasks timeline view (campaignId)
+activate taskcontroller
 taskcontroller -> taskserviceimpl: getTasksGanttTimeline(campaignId)
+activate taskserviceimpl
 taskserviceimpl -> taskrepository: findTasksByCampaign(campaignId)
+activate taskrepository
 taskrepository --> taskserviceimpl: 5: return List<Task>
+deactivate taskrepository
 taskserviceimpl -> taskserviceimpl: calculateTaskProgressAndDependencies(tasks)
 taskserviceimpl -> tasklistresponse: mapToGanttResponse(timelineItems)
+activate tasklistresponse
 tasklistresponse --> taskserviceimpl: return ganttData
+deactivate tasklistresponse
 taskserviceimpl --> taskcontroller: return ganttData
+deactivate taskserviceimpl
 taskcontroller --> tasklistpageui: return 200 OK (Timeline bars, dependencies, milestone dates)
+deactivate taskcontroller
 tasklistpageui --> creatorclientmanager: Render interactive horizontal Gantt chart bars & milestones
+deactivate tasklistpageui
 
 @enduml

@@ -15,15 +15,25 @@ entity "ServerMetricsRepository" as repo
 
 ' === Flow ===
 admin -> ui: Open /admin/system-health (Servers tab)
+activate ui
 ui -> ctrl: GET /api/monitoring/servers(page, size, filters)
+activate ctrl
 ctrl -> authSvc: requireAdmin(actorId)
+activate authSvc
 authSvc --> ctrl: 200 OK (ADMIN verified)
+deactivate authSvc
 ctrl -> svc: listServers(principal, page, size, filters)
+activate svc
 svc -> repo: findServerMetrics(filters, pageable)
+activate repo
 repo --> svc: return serverMetricsPage
+deactivate repo
 svc -> svc: calculateHealthStatus(serverMetricsPage)
 svc --> ctrl: return ServerMonitoringResponse
+deactivate svc
 ctrl --> ui: 200 OK (ServerMonitoringResponse)
+deactivate ctrl
 ui --> admin: Render server status feed & resource gauges
+deactivate ui
 
 @enduml

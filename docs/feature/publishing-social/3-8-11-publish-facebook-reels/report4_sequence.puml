@@ -18,26 +18,48 @@ entity "PostRepository" as postrepository
 
 ' === Flow ===
 schedulerjob -> schedulerservice: trigger scheduled publish job
+activate schedulerservice
 schedulerservice -> postrepository: findScheduledPosts(scheduledAt <= NOW(), platform=INSTAGRAM, type=POST)
+activate postrepository
 postrepository --> schedulerservice: List<Post>
+deactivate postrepository
 schedulerservice -> rabbitmq: publish("publisher.job.queue", PublishJobMessage{platform=INSTAGRAM, type=POST, ...})
+activate rabbitmq
 rabbitmq --> publishjobconsumer: consume(PublishJobMessage)
+deactivate rabbitmq
+activate publishjobconsumer
 publishjobconsumer -> instagrampublishserv: publishPost(jobMessage)
+activate instagrampublishserv
 instagrampublishserv -> metagraphapi: POST /{igUserId}/media (image_url/video_url, caption)
+activate metagraphapi
 metagraphapi --> instagrampublishserv: {id: containerId}
+deactivate metagraphapi
 instagrampublishserv -> metagraphapi: POST /{igUserId}/media_publish (creation_id=containerId)
+activate metagraphapi
 metagraphapi --> instagrampublishserv: {id: platformPostId}
+deactivate metagraphapi
 
 alt publish failed
   instagrampublishserv --> publishjobconsumer: FAILED (error)
+  deactivate instagrampublishserv
   publishjobconsumer -> rabbitmq: basicNack -> Route to DLQ
+  activate rabbitmq
   publishjobconsumer -> postrepository: update(post, status=FAILED)
+  activate postrepository
   postrepository --> publishjobconsumer: ok
+  deactivate postrepository
 else publish success
+  activate instagrampublishserv
   instagrampublishserv --> publishjobconsumer: SUCCESS (platformPostId)
+  deactivate instagrampublishserv
   publishjobconsumer -> postrepository: update(post, status=PUBLISHED, platformPostId)
+  activate postrepository
   postrepository --> publishjobconsumer: ok
+  deactivate postrepository
   publishjobconsumer -> rabbitmq: publish("business.publish_callback.queue", CallbackMessage{status=SUCCESS})
 end
 
+deactivate rabbitmq
+deactivate schedulerservice
+deactivate publishjobconsumer
 @enduml

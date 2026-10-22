@@ -17,30 +17,54 @@ entity "MailTemplateRepository (MongoDB)" as repo
 
 ' === Flow ===
 member -> ui: clicks Delete on a template row and confirms
+activate ui
 ui -> controller: DELETE /api/v1/workspaces/{id}/mail-templates/{templateId}
+activate controller
 controller -> service: deleteTemplate(currentUser, workspaceId, templateId)
+activate service
 service -> access: requireActiveMember(workspaceId, userId)
+activate access
 access --> service: member(role)
+deactivate access
 service -> repo: findByIdAndDeletedAtIsNull(templateId)
+activate repo
 repo --> service: Optional<template>
+deactivate repo
 opt template missing or other Workspace
   service --> controller: throw 404 TEMPLATE_NOT_FOUND
+  deactivate service
   controller --> ui: 404 Not Found
+  deactivate controller
 end
+activate controller
+activate service
 opt template.type == SYSTEM_DEFAULT
   service --> controller: throw 403 SYSTEM_TEMPLATE_READ_ONLY
+  deactivate service
   controller --> ui: 403 Forbidden
+  deactivate controller
 end
+activate controller
+activate service
 opt caller is not creator and role not in {OWNER, MANAGER}
   service --> controller: throw 403 FORBIDDEN
+  deactivate service
   controller --> ui: 403 Forbidden
+  deactivate controller
   ui --> member: shows forbidden toast
 end
+activate controller
+activate service
 service -> repo: save(template.softDelete()) sets deletedAt = now
+activate repo
 repo --> service: void
+deactivate repo
 service --> controller: void
+deactivate service
 controller --> ui: 200 OK (data: null)
+deactivate controller
 ui --> member: removes row, success toast
+deactivate ui
 note right of service
   Soft delete only. mail_batches and mail_deliveries
   that reference the template are not touched.

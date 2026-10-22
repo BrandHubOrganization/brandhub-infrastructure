@@ -18,26 +18,48 @@ entity "PostRepository" as postrepository
 
 ' === Flow ===
 schedulerjob -> schedulerservice: trigger scheduled publish job
+activate schedulerservice
 schedulerservice -> postrepository: findScheduledPosts(scheduledAt <= NOW(), platform=THREADS)
+activate postrepository
 postrepository --> schedulerservice: List<Post>
+deactivate postrepository
 schedulerservice -> rabbitmq: publish("publisher.job.queue", PublishJobMessage{platform=THREADS, ...})
+activate rabbitmq
 rabbitmq --> publishjobconsumer: consume(PublishJobMessage)
+deactivate rabbitmq
+activate publishjobconsumer
 publishjobconsumer -> threadspublishservic: publishPost(jobMessage)
+activate threadspublishservic
 threadspublishservic -> threadsapi: POST /{targetId}/threads (media_type, text/image_url/video_url)
+activate threadsapi
 threadsapi --> threadspublishservic: {id: containerId}
+deactivate threadsapi
 threadspublishservic -> threadsapi: POST /{targetId}/threads_publish (creation_id=containerId)
+activate threadsapi
 threadsapi --> threadspublishservic: {id: platformPostId}
+deactivate threadsapi
 
 alt publish failed
   threadspublishservic --> publishjobconsumer: FAILED (error)
+  deactivate threadspublishservic
   publishjobconsumer -> rabbitmq: basicNack -> Route to DLQ
+  activate rabbitmq
   publishjobconsumer -> postrepository: update(post, status=FAILED)
+  activate postrepository
   postrepository --> publishjobconsumer: ok
+  deactivate postrepository
 else publish success
+  activate threadspublishservic
   threadspublishservic --> publishjobconsumer: SUCCESS (platformPostId)
+  deactivate threadspublishservic
   publishjobconsumer -> postrepository: update(post, status=PUBLISHED, platformPostId)
+  activate postrepository
   postrepository --> publishjobconsumer: ok
+  deactivate postrepository
   publishjobconsumer -> rabbitmq: publish("business.publish_callback.queue", CallbackMessage{status=SUCCESS})
 end
 
+deactivate publishjobconsumer
+deactivate schedulerservice
+deactivate rabbitmq
 @enduml

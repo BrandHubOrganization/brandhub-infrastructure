@@ -18,23 +18,39 @@ entity "PostRepository" as postrepository
 
 ' === Flow ===
 schedulerjob -> schedulerservice: trigger scheduled publish job
+activate schedulerservice
 schedulerservice -> postrepository: findScheduledPosts(scheduledAt <= NOW(), platform=INSTAGRAM, type=STORY)
+activate postrepository
 postrepository --> schedulerservice: List<Post>
+deactivate postrepository
 schedulerservice -> rabbitmq: publish("publisher.job.queue", PublishJobMessage{platform=INSTAGRAM, type=STORY, ...})
+activate rabbitmq
 rabbitmq --> publishjobconsumer: consume(PublishJobMessage)
+deactivate rabbitmq
+activate publishjobconsumer
 publishjobconsumer -> instagramstorypublis: publishPost(jobMessage)
+activate instagramstorypublis
 
 alt photo story
   instagramstorypublis -> metagraphapi: POST /{igUserId}/media (media_type="STORIES", image_url)
+  activate metagraphapi
 else video story
   instagramstorypublis -> metagraphapi: POST /{igUserId}/media (media_type="STORIES", video_url)
 end
 
 metagraphapi --> instagramstorypublis: {id: containerId}
+deactivate metagraphapi
 instagramstorypublis -> metagraphapi: POST /{igUserId}/media_publish (creation_id=containerId)
+activate metagraphapi
 metagraphapi --> instagramstorypublis: {id: platformPostId}
+deactivate metagraphapi
 instagramstorypublis --> publishjobconsumer: SUCCESS (platformPostId)
+deactivate instagramstorypublis
 publishjobconsumer -> postrepository: update(post, status=PUBLISHED, platformPostId)
+activate postrepository
 postrepository --> publishjobconsumer: ok
+deactivate postrepository
 
+deactivate schedulerservice
+deactivate publishjobconsumer
 @enduml

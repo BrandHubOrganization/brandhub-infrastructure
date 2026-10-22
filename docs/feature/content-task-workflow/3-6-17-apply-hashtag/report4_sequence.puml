@@ -24,41 +24,69 @@ hashtagservice -> hashtagservice: Check CREATOR and destination rights
 hashtagservice -> hashtagservice: Merge tags; keep snapshots
 hashtagservice -> hashtagservice: Resolve coordinated writeOutcome
 creator -> webdashboard: Select hashtags and Apply to Post
+activate webdashboard
 webdashboard -> hashtagcontroller: PATCH /api/v1/workspaces/{workspaceId}/tasks/{taskId}/hashtags
+activate hashtagcontroller
 hashtagcontroller -> hashtagservice: applyHashtags(user, command)
+activate hashtagservice
 hashtagservice -> workspacerepository: Load workspace
+activate workspacerepository
 workspacerepository --> hashtagservice: Workspace
+deactivate workspacerepository
 hashtagservice -> workspacememberrepos: Load membership
+activate workspacememberrepos
 workspacememberrepos --> hashtagservice: WorkspaceMember
+deactivate workspacememberrepos
 hashtagservice -> agencyrepository: Load agency
+activate agencyrepository
 agencyrepository --> hashtagservice: Agency
+deactivate agencyrepository
 hashtagservice -> hashtagrepository: Load selected tags and required scope
+activate hashtagrepository
 hashtagrepository --> hashtagservice: Hashtag
+deactivate hashtagrepository
 
 loop invalid session / forbidden / unavailable resource
   hashtagservice --> hashtagcontroller: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate hashtagservice
   hashtagcontroller --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate hashtagcontroller
   webdashboard --> creator: Display access or resource error
 end
+activate hashtagservice
+activate hashtagcontroller
 
 
 loop invalid selection / stale Post / contract unavailable
   hashtagservice --> hashtagcontroller: 400 Bad Request / 409 Conflict
+  deactivate hashtagservice
   hashtagcontroller --> webdashboard: 400 Bad Request / 409 Conflict
+  deactivate hashtagcontroller
   webdashboard --> creator: Display apply rejected; no partial save
 end
+activate hashtagservice
+activate hashtagcontroller
 
 hashtagservice -> taskhashtagrepositor: Save usage snapshots (proposed)
+activate taskhashtagrepositor
 taskhashtagrepositor --> hashtagservice: snapshotOutcome
+deactivate taskhashtagrepositor
 
 alt writeOutcome committed
   hashtagservice --> hashtagcontroller: 200 OK
+  deactivate hashtagservice
   hashtagcontroller --> webdashboard: 200 OK
+  deactivate hashtagcontroller
   webdashboard --> creator: Display updated Post hashtag preview
 else write failed or version conflict
+  activate hashtagservice
+  activate hashtagcontroller
   hashtagservice --> hashtagcontroller: 409 Conflict / 500 Internal Server Error
+  deactivate hashtagservice
   hashtagcontroller --> webdashboard: 409 Conflict / 500 Internal Server Error
+  deactivate hashtagcontroller
   webdashboard --> creator: Display Apply failure; retain previous selection
+  deactivate webdashboard
 end
 
 @enduml

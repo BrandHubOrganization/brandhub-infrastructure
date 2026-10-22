@@ -17,24 +17,42 @@ control "NotificationService" as notificationservice
 
 ' === Flow ===
 admin -> adminmoderationpageu: views flagged content list, selects item & action (APPROVE / REMOVE)
+activate adminmoderationpageu
 adminmoderationpageu -> moderationcontroller: PATCH /api/v1/admin/moderation/{contentId} (ModerationDecisionRequest)
+activate moderationcontroller
 moderationcontroller -> moderationservice: moderateContent(adminId, contentId, decision)
+activate moderationservice
 moderationservice -> contentrepository: findById(contentId)
+activate contentrepository
 
 alt content not found
   contentrepository --> moderationservice: Optional.empty()
+  deactivate contentrepository
   moderationservice --> moderationcontroller: 404 Not Found (CONTENT_NOT_FOUND)
+  deactivate moderationservice
   moderationcontroller --> adminmoderationpageu: 404 Not Found
+  deactivate moderationcontroller
   adminmoderationpageu --> admin: Show error "Content not found"
 else content found
+  activate moderationcontroller
+  activate moderationservice
+  activate contentrepository
   contentrepository --> moderationservice: Optional<Content>
+  deactivate contentrepository
   moderationservice -> contentrepository: update(content, status=APPROVED / REMOVED)
+  activate contentrepository
   contentrepository --> moderationservice: updatedContent
+  deactivate contentrepository
   moderationservice -> notificationservice: notifyUser(content.ownerId, decision)
+  activate notificationservice
   notificationservice --> moderationservice: ok
+  deactivate notificationservice
   moderationservice --> moderationcontroller: 200 OK (ModerationResponse)
+  deactivate moderationservice
   moderationcontroller --> adminmoderationpageu: 200 OK
+  deactivate moderationcontroller
   adminmoderationpageu --> admin: "Moderation action applied"
+  deactivate adminmoderationpageu
 end
 
 @enduml

@@ -18,32 +18,52 @@ actor "USER (owned budget)" as userownedbudget
 
 ' === Flow ===
 userownedbudget -> webdashboard: Select credit quantity and confirm quote
+activate webdashboard
 billingservice -> billingservice: Check budget owner and eligible plan
 billingservice -> billingservice: Validate quantity; price purchase
 webdashboard -> billingcontroller: POST /api/v1/billing/credits/buy
+activate billingcontroller
 billingcontroller -> billingservice: buyCredit(user, request)
+activate billingservice
 billingservice -> aicreditaccountrepos: Load owned budget
+activate aicreditaccountrepos
 aicreditaccountrepos --> billingservice: AiCreditAccount
+deactivate aicreditaccountrepos
 billingservice -> usersubscriptionrepo: Load owned subscription
+activate usersubscriptionrepo
 usersubscriptionrepo --> billingservice: UserSubscription
+deactivate usersubscriptionrepo
 billingservice -> subscriptionplanrepo: Load plan catalog
+activate subscriptionplanrepo
 subscriptionplanrepo --> billingservice: SubscriptionPlan
+deactivate subscriptionplanrepo
 
 loop invalid session / forbidden / unavailable resource
   billingservice --> billingcontroller: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate billingservice
   billingcontroller --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate billingcontroller
   webdashboard --> userownedbudget: Display access or resource error
 end
+activate billingcontroller
+activate billingservice
 
 
 loop ineligible plan / invalid quantity / stale quote
   billingservice --> billingcontroller: 400 Bad Request / 409 Conflict
+  deactivate billingservice
   billingcontroller --> webdashboard: 400 Bad Request / 409 Conflict
+  deactivate billingcontroller
   webdashboard --> userownedbudget: Display purchase validation error
 end
+activate billingcontroller
+activate billingservice
 
 billingservice --> billingcontroller: 200 OK
+deactivate billingservice
 billingcontroller --> webdashboard: 200 OK
+deactivate billingcontroller
 webdashboard --> userownedbudget: Display checkout / processing; reload balance and history after provisioning
+deactivate webdashboard
 
 @enduml

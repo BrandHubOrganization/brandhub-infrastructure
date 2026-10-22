@@ -17,30 +17,48 @@ actor "USER (own account)" as userownaccount
 ' === Flow ===
 subscriptionservice -> subscriptionservice: Validate account ownership, lower plan eligibility and workspace limit
 userownaccount -> webdashboard: Select lower plan
+activate webdashboard
 webdashboard --> userownaccount: Show downgrade impact and date
 userownaccount -> webdashboard: Confirm downgrade
 webdashboard -> subscriptioncontroll: POST /api/v1/subscription/cancel
+activate subscriptioncontroll
 subscriptioncontroll -> subscriptionservice: cancel(user, command)
+activate subscriptionservice
 subscriptionservice -> usersubscriptionrepo: Load owned subscription and lower plan catalog
+activate usersubscriptionrepo
 usersubscriptionrepo --> subscriptionservice: UserSubscription
+deactivate usersubscriptionrepo
 
 loop invalid access / validation error / workspace limit exceeded
   subscriptionservice --> subscriptioncontroll: 400 Bad Request / 403 Forbidden / 409 Conflict
+  deactivate subscriptionservice
   subscriptioncontroll --> webdashboard: 400 Bad Request / 403 Forbidden / 409 Conflict
+  deactivate subscriptioncontroll
   webdashboard --> userownaccount: Display WORKSPACE_LIMIT_EXCEEDED or conflict error
 end
+activate subscriptionservice
+activate subscriptioncontroll
 
 subscriptionservice -> usersubscriptionrepo: Save downgraded plan / schedule change
+activate usersubscriptionrepo
 usersubscriptionrepo --> subscriptionservice: writeOutcome
+deactivate usersubscriptionrepo
 
 alt writeOutcome committed
   subscriptionservice --> subscriptioncontroll: 200 OK
+  deactivate subscriptionservice
   subscriptioncontroll --> webdashboard: 200 OK
+  deactivate subscriptioncontroll
   webdashboard --> userownaccount: Display downgrade confirmed
 else write failed or version conflict
+  activate subscriptionservice
+  activate subscriptioncontroll
   subscriptionservice --> subscriptioncontroll: 409 Conflict / 500 Internal Server Error
+  deactivate subscriptionservice
   subscriptioncontroll --> webdashboard: 409 Conflict / 500 Internal Server Error
+  deactivate subscriptioncontroll
   webdashboard --> userownaccount: Display save error; retain previous values
+  deactivate webdashboard
 end
 
 @enduml

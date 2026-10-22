@@ -15,34 +15,58 @@ entity "Threads API" as threadsApi
 
 ' === Flow ===
 user -> ui: clicks "Connect Threads"
+activate ui
 ui -> ctrl: GET /api/v1/oauth/social/connect?platform=THREADS
+activate ctrl
 ctrl -> oauthSvc: buildAuthorizationUrl()
+activate oauthSvc
 oauthSvc --> ctrl: authUrl
+deactivate oauthSvc
 ctrl --> ui: 302 Redirect to authUrl
+deactivate ctrl
 ui --> user: Threads Authorization Screen
 
 user -> threadsApi: authorizes permissions (threads_basic, threads_content_publish)
+activate threadsApi
 threadsApi --> ui: callback with code & state
+deactivate threadsApi
 
 ui -> ctrl: GET /api/v1/oauth/social/callback?code=...&state=...
+activate ctrl
 ctrl -> oauthSvc: exchangeToken(authCode)
+activate oauthSvc
 oauthSvc -> threadsApi: exchange short-lived token
+activate threadsApi
 threadsApi --> oauthSvc: short-lived token
+deactivate threadsApi
 oauthSvc -> threadsApi: exchange long-lived token (60 days)
+activate threadsApi
 threadsApi --> oauthSvc: long-lived token
+deactivate threadsApi
 oauthSvc -> threadsApi: fetch Threads user profile
+activate threadsApi
 threadsApi --> oauthSvc: userInfo(username, profilePictureUrl)
+deactivate threadsApi
 
 alt connection failed
   oauthSvc --> ctrl: 302 Redirect with error status
+  deactivate oauthSvc
   ctrl --> ui: error redirect
+  deactivate ctrl
   ui --> user: Show error "Threads connection cancelled or failed"
 else connection success
+  activate oauthSvc
+  activate ctrl
   oauthSvc -> accountSvc: syncSocialAccount(userId, userInfo, encryptedToken)
+  activate accountSvc
   accountSvc --> oauthSvc: savedAccount
+  deactivate accountSvc
   oauthSvc --> ctrl: 302 Redirect with success status
+  deactivate oauthSvc
   ctrl --> ui: redirect to SocialAccountsPage
+  deactivate ctrl
   ui --> user: Show Threads channel card as connected
+  deactivate ui
 end
 
 @enduml

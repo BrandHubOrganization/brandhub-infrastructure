@@ -19,33 +19,57 @@ entity "WorkspaceResponse" as workspaceresponse
 
 ' === Flow ===
 member_manager_creator_client -> workspacesettingspage_ui: opens /workspaces/:id/settings
+activate workspacesettingspage_ui
 workspacesettingspage_ui -> workspacecontroller: GET /api/v1/workspaces/{workspaceId}
+activate workspacecontroller
 opt role !in {MANAGER, CREATOR, CLIENT}
   workspacecontroller --> workspacesettingspage_ui: 403 Forbidden error response
+  deactivate workspacecontroller
   workspacesettingspage_ui --> member_manager_creator_client: shows 403 toast
 end
+activate workspacecontroller
 workspacecontroller -> workspaceserviceimpl: getWorkspace(workspaceId, currentUser)
+activate workspaceserviceimpl
 workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
+activate workspacerepository
 workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+deactivate workspacerepository
 opt !workspace.present
   workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+  deactivate workspaceserviceimpl
   workspacecontroller --> workspacesettingspage_ui: 404 Error response
+  deactivate workspacecontroller
   workspacesettingspage_ui --> member_manager_creator_client: shows 404 toast
 end
+activate workspacecontroller
+activate workspaceserviceimpl
 workspaceserviceimpl -> workspacememberrepository: assertActiveMember(workspaceId, userId)
+activate workspacememberrepository
 workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
+deactivate workspacememberrepository
 opt !activeMember
   workspaceserviceimpl --> workspacecontroller: throw 403 WORKSPACE_ACCESS_DENIED
+  deactivate workspaceserviceimpl
   workspacecontroller --> workspacesettingspage_ui: 403 Forbidden
+  deactivate workspacecontroller
   workspacesettingspage_ui --> member_manager_creator_client: shows 403 toast
 end
+activate workspacecontroller
+activate workspaceserviceimpl
 workspaceserviceimpl -> workspace: getSettings()
+activate workspace
 workspace --> workspaceserviceimpl: settings
+deactivate workspace
 workspaceserviceimpl -> workspaceserviceimpl: parseSettings(json)
 workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
+activate workspaceresponse
 workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+deactivate workspaceresponse
 workspaceserviceimpl --> workspacecontroller: WorkspaceResponse
+deactivate workspaceserviceimpl
 workspacecontroller --> workspacesettingspage_ui: 200 OK WorkspaceResponse
+deactivate workspacecontroller
 workspacesettingspage_ui --> member_manager_creator_client: renders profile
+deactivate workspacesettingspage_ui
 
 @enduml

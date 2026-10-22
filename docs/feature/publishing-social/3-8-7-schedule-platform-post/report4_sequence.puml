@@ -17,15 +17,25 @@ boundary "PostStatusBadge / TrackingModal (UI)" as poststatusbadgetrack
 
 ' === Flow ===
 creatormanager -> poststatusbadgetrack: Click "View Publishing Status" on Post card
+activate poststatusbadgetrack
 poststatusbadgetrack -> postcontroller: GET /api/v1/workspaces/{workspaceId}/posts/{postId}/status
+activate postcontroller
 postcontroller -> postserviceimpl: getPostPublishStatus(workspaceId, postId)
+activate postserviceimpl
 postserviceimpl -> postmongorepository: findByIdAndWorkspaceId(postId, workspaceId)
+activate postmongorepository
 postmongorepository --> postserviceimpl: return PostDocument (status, failReason, updatedAt, targetPlatforms)
+deactivate postmongorepository
 postserviceimpl -> postserviceimpl: mapToStepperProgress(postDoc.getStatus())
 postserviceimpl -> poststatustrackingre: new PostStatusTrackingResponse(status, currentStep, failReason, targetPlatforms, updatedAt)
+activate poststatustrackingre
 poststatustrackingre --> postserviceimpl: return trackingData
+deactivate poststatustrackingre
 postserviceimpl --> postcontroller: return trackingData
+deactivate postserviceimpl
 postcontroller --> poststatusbadgetrack: return 200 OK (ApiResponse { data: trackingData })
+deactivate postcontroller
 poststatusbadgetrack --> creatormanager: Render status stepper badge (Pending → In Progress → Done / Fail)
+deactivate poststatusbadgetrack
 
 @enduml

@@ -20,27 +20,42 @@ entity "User / UserStrike" as useruserstrike
 entity "ApiResponse<Void>" as apiresponsevoid
 
 ' === Flow ===
+activate systemadministrator
 systemadministrator -> adminstrikedialogui: Add/remove a strike or unflag an account
 adminstrikedialogui -> admincontroller: POST /api/v1/admin/users/{id}/violations OR PATCH /users/{id}/status
+activate admincontroller
 admincontroller -> adminaccountservice: record(actor, target, request) / unflag(actor, target, reason)
+activate adminaccountservice
 adminaccountservice -> usersystemrolereposi: findByUserId(actor)
+activate usersystemrolereposi
 usersystemrolereposi --> adminaccountservice: Optional<UserSystemRole>
+deactivate usersystemrolereposi
 
 alt Actor is not ADMIN
   adminaccountservice --> admincontroller: BusinessException(FORBIDDEN)
+  deactivate adminaccountservice
   admincontroller --> adminstrikedialogui: 403 Forbidden
+  deactivate admincontroller
   adminstrikedialogui --> systemadministrator: Show access denied
 else ADMIN permission granted
+  activate adminaccountservice
+  activate admincontroller
   adminaccountservice -> userrepository: lockById(target)
+  activate userrepository
   userrepository --> adminaccountservice: Optional<User>
+  deactivate userrepository
 end
 
 
 opt Target account exists
   adminaccountservice -> usersystemrolereposi: findByUserId(target)
+  activate usersystemrolereposi
   usersystemrolereposi --> adminaccountservice: Target system role
+  deactivate usersystemrolereposi
   adminaccountservice -> userstrikerepository: findByUserIdAndRemovedAtIsNullAndExpiresAtAfter (target, now)
+  activate userstrikerepository
   userstrikerepository --> adminaccountservice: Live strikes
+  deactivate userstrikerepository
 end
 
 else ADMIN permission granted
@@ -50,34 +65,53 @@ end
 
 alt Operation rejected
   adminaccountservice --> admincontroller: BusinessException(errorCode)
+  deactivate adminaccountservice
   admincontroller --> adminstrikedialogui: 400 / 403 / 404 / 409 — request rejected
+  deactivate admincontroller
   adminstrikedialogui --> systemadministrator: Show the reason; keep the form
 else Eligible operation
+  activate adminaccountservice
+  activate admincontroller
   adminaccountservice -> useruserstrike: Read account status and existing strike fields, if any
+  activate useruserstrike
   useruserstrike --> adminaccountservice: Account/strike data
+  deactivate useruserstrike
   adminaccountservice -> adminaccountservice: Apply ADD/REMOVE/UNFLAG policy; skip already-applied action
 end
 
 
 opt ADD or REMOVE strike not previously applied
   adminaccountservice -> userstrikerepository: saveAll(live) / save(strike)
+  activate userstrikerepository
   userstrikerepository --> adminaccountservice: Saved strikes
+  deactivate userstrikerepository
 end
 
 
 opt ADD or UNFLAG changes account status and action not previously applied
   adminaccountservice -> userrepository: save(user)
+  activate userrepository
   userrepository --> adminaccountservice: Saved User
+  deactivate userrepository
 end
 
 else Eligible operation
   adminaccountservice -> sanctionreviewreposi: findByUserIdAndStatus(target, "PENDING"); save(review) if threshold changes
+  activate sanctionreviewreposi
   sanctionreviewreposi --> adminaccountservice: Current/saved sanction review
+  deactivate sanctionreviewreposi
   adminaccountservice --> admincontroller: Operation completed (void)
+  deactivate adminaccountservice
   admincontroller --> adminstrikedialogui: 200 OK — changes saved
+  deactivate admincontroller
   adminstrikedialogui --> systemadministrator: Refresh account status, counters and history
+  activate admincontroller
   admincontroller -> apiresponsevoid: ok(null, requestId)
+  activate apiresponsevoid
   apiresponsevoid --> admincontroller: ApiResponse<Void>
+  deactivate apiresponsevoid
 end
 
+deactivate admincontroller
+deactivate systemadministrator
 @enduml

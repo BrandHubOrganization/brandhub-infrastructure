@@ -17,22 +17,36 @@ boundary "TaskFilterBar / TaskViews (UI)" as taskfilterbartaskvie
 
 ' === Flow ===
 creatorclientmanager -> taskfilterbartaskvie: Enter search keyword & select filter criteria (type, status, assignee, dueDate)
+activate taskfilterbartaskvie
 taskfilterbartaskvie -> taskcontroller: Request search & filter tasks (criteria, sortBy)
+activate taskcontroller
 taskcontroller -> taskserviceimpl: searchAndFilterTasks(criteria, pageable)
+activate taskserviceimpl
 taskserviceimpl -> taskserviceimpl: buildSpecification(criteria)
 taskserviceimpl -> taskrepository: findFilteredTasks(specification, pageable)
+activate taskrepository
 taskrepository --> taskserviceimpl: return Page<Task>
+deactivate taskrepository
 
 alt Tasks Match Criteria (Page contains items)
   taskserviceimpl -> taskfilterresultresp: mapToSummaryList(filteredPage)
+  activate taskfilterresultresp
   taskfilterresultresp --> taskserviceimpl: return filterResults
+  deactivate taskfilterresultresp
   taskserviceimpl --> taskcontroller: return pagedResults
+  deactivate taskserviceimpl
   taskcontroller --> taskfilterbartaskvie: return 200 OK (Filtered tasks list, total count, pagination metadata)
+  deactivate taskcontroller
   taskfilterbartaskvie --> creatorclientmanager: Dynamically refresh active view (List / Calendar / Gantt / Kanban) with filtered tasks
 else No Tasks Matched (Empty Page)
+  activate taskserviceimpl
+  activate taskcontroller
   taskserviceimpl --> taskcontroller: return emptyPagedResult
+  deactivate taskserviceimpl
   taskcontroller --> taskfilterbartaskvie: return 200 OK (Zero matching tasks, empty results)
+  deactivate taskcontroller
   taskfilterbartaskvie --> creatorclientmanager: Display "No matching tasks found" & show "Reset Filters" action
+  deactivate taskfilterbartaskvie
 end
 
 @enduml

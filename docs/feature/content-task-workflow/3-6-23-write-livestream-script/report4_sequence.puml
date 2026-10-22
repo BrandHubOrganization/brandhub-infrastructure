@@ -17,36 +17,64 @@ boundary "TaskDetailPage (UI)" as taskdetailpageui
 
 ' === Flow ===
 creator -> taskdetailpageui: Enter timeline segments (timeMark, content, speaker, shotList) & click "Save Script"
+activate taskdetailpageui
 taskdetailpageui -> livestreamtaskcontro: PATCH /api/v1/workspaces/{wId}/tasks/{taskId}/livestream/script { "segments": [...] }
+activate livestreamtaskcontro
 livestreamtaskcontro -> livestreamtaskservic: saveLivestreamScript(workspaceId, taskId, scriptRequest, creatorUser)
+activate livestreamtaskservic
 livestreamtaskservic -> taskrepository: findByIdAndWorkspaceId(taskId, workspaceId)
+activate taskrepository
 taskrepository --> livestreamtaskservic: return Optional<Task>
+deactivate taskrepository
 
 alt Task Not Found (Optional is empty)
   livestreamtaskservic --> livestreamtaskcontro: throw TASK_NOT_FOUND (404 Not Found)
+  deactivate livestreamtaskservic
   livestreamtaskcontro --> taskdetailpageui: return 404 Not Found (Task not found in workspace)
+  deactivate livestreamtaskcontro
   taskdetailpageui --> creator: Display error: "Task not found in workspace"
 else Task is not LIVESTREAM type (task.getType() != 'LIVESTREAM')
+  activate livestreamtaskcontro
+  activate livestreamtaskservic
   livestreamtaskservic --> livestreamtaskcontro: throw INVALID_TASK_TYPE (400 Bad Request)
+  deactivate livestreamtaskservic
   livestreamtaskcontro --> taskdetailpageui: return 400 Bad Request (Task must be of type Livestream)
+  deactivate livestreamtaskcontro
   taskdetailpageui --> creator: Display error message: "Task must be of type Livestream"
 else Livestream Idea is not yet defined
+  activate livestreamtaskcontro
+  activate livestreamtaskservic
   livestreamtaskservic --> livestreamtaskcontro: throw LIVESTREAM_IDEA_REQUIRED (400 Bad Request)
+  deactivate livestreamtaskservic
   livestreamtaskcontro --> taskdetailpageui: return 400 Bad Request (Please complete Livestream Idea first)
+  deactivate livestreamtaskcontro
   taskdetailpageui --> creator: Display validation warning: "Please complete Livestream Idea before drafting script"
 else Empty Segments List (segments is empty)
+  activate livestreamtaskcontro
+  activate livestreamtaskservic
   livestreamtaskservic --> livestreamtaskcontro: throw SCRIPT_CANNOT_BE_EMPTY (400 Bad Request)
+  deactivate livestreamtaskservic
   livestreamtaskcontro --> taskdetailpageui: return 400 Bad Request (Livestream script must contain at least one segment)
+  deactivate livestreamtaskcontro
   taskdetailpageui --> creator: Display validation error: "Livestream script must contain at least one timeline segment"
 else Valid Livestream Task & Segments
+  activate livestreamtaskcontro
+  activate livestreamtaskservic
   livestreamtaskservic -> livestreamtaskservic: updateLivestreamScript(task, scriptRequest.getSegments())
   livestreamtaskservic -> taskrepository: save(task)
+  activate taskrepository
   taskrepository --> livestreamtaskservic: return savedTask
+  deactivate taskrepository
   livestreamtaskservic -> livestreamidearespon: toLivestreamScriptResponse(savedTask)
+  activate livestreamidearespon
   livestreamidearespon --> livestreamtaskservic: return scriptResponse
+  deactivate livestreamidearespon
   livestreamtaskservic --> livestreamtaskcontro: return scriptResponse
+  deactivate livestreamtaskservic
   livestreamtaskcontro --> taskdetailpageui: return 200 OK (Saved timeline segments & cues)
+  deactivate livestreamtaskcontro
   taskdetailpageui --> creator: Display notification: "Livestream script saved successfully" & update timeline preview
+  deactivate taskdetailpageui
 end
 
 @enduml

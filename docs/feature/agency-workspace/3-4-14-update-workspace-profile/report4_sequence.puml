@@ -19,59 +19,103 @@ participant "FileStorageService" as filestorageservice
 
 alt saves settings
   workspace_manager -> workspacesettingspage_ui: submits settings form
+  activate workspacesettingspage_ui
   workspacesettingspage_ui -> workspacecontroller: PUT /api/v1/workspaces/{id}/settings
+  activate workspacecontroller
   opt caller != MANAGER
     workspacecontroller --> workspacesettingspage_ui: 403 Forbidden
+    deactivate workspacecontroller
     workspacesettingspage_ui --> workspace_manager: shows 403 toast
   end
+  activate workspacecontroller
   workspacecontroller -> workspaceserviceimpl: updateSettings(workspaceId, request)
+  activate workspaceserviceimpl
   workspaceserviceimpl -> workspacerepository: findById(workspaceId)
+  activate workspacerepository
   workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+  deactivate workspacerepository
   opt !workspace.present
     workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+    deactivate workspaceserviceimpl
     workspacecontroller --> workspacesettingspage_ui: 404 Not Found
+    deactivate workspacecontroller
     workspacesettingspage_ui --> workspace_manager: shows 404 toast
   end
+  activate workspacecontroller
+  activate workspaceserviceimpl
   workspaceserviceimpl -> workspace: applySettings(request)
+  activate workspace
   workspace --> workspaceserviceimpl: Workspace
+  deactivate workspace
   workspaceserviceimpl -> workspacerepository: save(workspace)
+  activate workspacerepository
   workspacerepository --> workspaceserviceimpl: Workspace
+  deactivate workspacerepository
   workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
+  activate workspaceresponse
   workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+  deactivate workspaceresponse
   workspaceserviceimpl --> workspacecontroller: WorkspaceResponse
+  deactivate workspaceserviceimpl
   workspacecontroller --> workspacesettingspage_ui: 200 OK
+  deactivate workspacecontroller
   workspacesettingspage_ui --> workspace_manager: shows 200 toast
 else uploads logo
   workspace_manager -> workspacesettingspage_ui: uploads logo file
   workspacesettingspage_ui -> workspacecontroller: POST /api/v1/workspaces/{id}/logo
+  activate workspacecontroller
   opt caller != MANAGER
     workspacecontroller --> workspacesettingspage_ui: 403 Forbidden
+    deactivate workspacecontroller
     workspacesettingspage_ui --> workspace_manager: shows 403 toast
   end
+  activate workspacecontroller
   workspacecontroller -> workspaceserviceimpl: uploadLogo(workspaceId, file)
+  activate workspaceserviceimpl
   workspaceserviceimpl -> workspacerepository: findById(workspaceId)
+  activate workspacerepository
   workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+  deactivate workspacerepository
   opt !workspace.present
     workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+    deactivate workspaceserviceimpl
     workspacecontroller --> workspacesettingspage_ui: 404 Not Found
+    deactivate workspacecontroller
     workspacesettingspage_ui --> workspace_manager: shows 404 toast
   end
+  activate workspacecontroller
+  activate workspaceserviceimpl
   alt fileError
     workspaceserviceimpl --> workspacecontroller: throw 400 FILE_READ_ERROR
+    deactivate workspaceserviceimpl
     workspacecontroller --> workspacesettingspage_ui: 400 Bad Request
+    deactivate workspacecontroller
     workspacesettingspage_ui --> workspace_manager: shows 400 toast
   else valid(file)
+    activate workspacecontroller
+    activate workspaceserviceimpl
     workspaceserviceimpl -> filestorageservice: uploadLogo(workspaceId, file)
+    activate filestorageservice
     filestorageservice --> workspaceserviceimpl: logo URL
+    deactivate filestorageservice
     workspaceserviceimpl -> workspace: updateLogoUrl(url)
+    activate workspace
     workspace --> workspaceserviceimpl: Workspace
+    deactivate workspace
     workspaceserviceimpl -> workspacerepository: save(workspace)
+    activate workspacerepository
     workspacerepository --> workspaceserviceimpl: Workspace
+    deactivate workspacerepository
     workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
+    activate workspaceresponse
     workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+    deactivate workspaceresponse
     workspaceserviceimpl --> workspacecontroller: WorkspaceResponse
+    deactivate workspaceserviceimpl
     workspacecontroller --> workspacesettingspage_ui: 200 OK
+    deactivate workspacecontroller
     workspacesettingspage_ui --> workspace_manager: shows 200 toast
+    deactivate workspacesettingspage_ui
   end
 end
 

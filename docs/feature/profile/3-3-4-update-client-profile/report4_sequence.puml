@@ -17,36 +17,60 @@ entity "WorkspaceMemberRepository" as workspacememberrepository
 
 alt creates profile
   user -> clientprofilelistpage_ui: submits form
+  activate clientprofilelistpage_ui
   clientprofilelistpage_ui -> clientprofilecontroller: POST /api/v1/client-profile
+  activate clientprofilecontroller
   clientprofilecontroller -> clientprofileserviceimpl: createProfile(currentUser, request)
+  activate clientprofileserviceimpl
   clientprofileserviceimpl -> clientprofileserviceimpl: new ClientProfile(...)
   clientprofileserviceimpl -> clientprofilerepository: save(profile)
+  activate clientprofilerepository
   clientprofilerepository --> clientprofileserviceimpl: saved ClientProfile
+  deactivate clientprofilerepository
   clientprofileserviceimpl --> clientprofilecontroller: 200 OK ClientProfileResponse
+  deactivate clientprofileserviceimpl
   clientprofilecontroller --> clientprofilelistpage_ui: 200 OK ClientProfileResponse
+  deactivate clientprofilecontroller
   clientprofilelistpage_ui --> user: shows 200 toast
 else updates profile
   user -> clientprofilelistpage_ui: submits form
   clientprofilelistpage_ui -> clientprofilecontroller: PUT /api/v1/client-profile/{profileId}
+  activate clientprofilecontroller
   clientprofilecontroller -> clientprofileserviceimpl: updateById(currentUser, profileId, request)
+  activate clientprofileserviceimpl
   clientprofileserviceimpl -> clientprofilerepository: findById(profileId)
+  activate clientprofilerepository
   clientprofilerepository --> clientprofileserviceimpl: Optional<ClientProfile>
+  deactivate clientprofilerepository
   clientprofileserviceimpl -> clientprofilerepository: save(updatedProfile)
+  activate clientprofilerepository
   clientprofilerepository --> clientprofileserviceimpl: updated ClientProfile
+  deactivate clientprofilerepository
   clientprofileserviceimpl --> clientprofilecontroller: 200 OK ClientProfileResponse
+  deactivate clientprofileserviceimpl
   clientprofilecontroller --> clientprofilelistpage_ui: 200 OK ClientProfileResponse
+  deactivate clientprofilecontroller
   clientprofilelistpage_ui --> user: shows 200 toast
 else deletes profile
   user -> clientprofilelistpage_ui: confirms delete
   clientprofilelistpage_ui -> clientprofilecontroller: DELETE /api/v1/client-profile/{profileId}
+  activate clientprofilecontroller
   clientprofilecontroller -> clientprofileserviceimpl: deleteById(currentUser, profileId)
+  activate clientprofileserviceimpl
   clientprofileserviceimpl -> workspacememberrepository: checkProfileInUse(profileId)
+  activate workspacememberrepository
   workspacememberrepository --> clientprofileserviceimpl: List<WorkspaceMember>
+  deactivate workspacememberrepository
   clientprofileserviceimpl -> clientprofilerepository: delete(profile)
+  activate clientprofilerepository
   clientprofilerepository --> clientprofileserviceimpl: deleted
+  deactivate clientprofilerepository
   clientprofileserviceimpl --> clientprofilecontroller: 200 OK
+  deactivate clientprofileserviceimpl
   clientprofilecontroller --> clientprofilelistpage_ui: 200 OK
+  deactivate clientprofilecontroller
   clientprofilelistpage_ui --> user: shows 200 toast
+  deactivate clientprofilelistpage_ui
 end
 
 @enduml

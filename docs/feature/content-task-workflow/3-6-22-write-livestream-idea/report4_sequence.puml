@@ -17,32 +17,56 @@ boundary "TaskDetailPage (UI)" as taskdetailpageui
 
 ' === Flow ===
 managercreator -> taskdetailpageui: Fill in Livestream Idea & Target Goal, click "Save Idea"
+activate taskdetailpageui
 taskdetailpageui -> livestreamtaskcontro: PATCH /api/v1/workspaces/{wId}/tasks/{taskId}/livestream/idea { "idea": "...", "goal": "..." }
+activate livestreamtaskcontro
 livestreamtaskcontro -> livestreamtaskservic: saveLivestreamIdea(workspaceId, taskId, ideaRequest, currentUser)
+activate livestreamtaskservic
 livestreamtaskservic -> taskrepository: findByIdAndWorkspaceId(taskId, workspaceId)
+activate taskrepository
 taskrepository --> livestreamtaskservic: return Optional<Task>
+deactivate taskrepository
 
 alt Task Not Found (Optional is empty)
   livestreamtaskservic --> livestreamtaskcontro: throw TASK_NOT_FOUND (404 Not Found)
+  deactivate livestreamtaskservic
   livestreamtaskcontro --> taskdetailpageui: return 404 Not Found (Task not found in workspace)
+  deactivate livestreamtaskcontro
   taskdetailpageui --> managercreator: Display error: "Task not found in workspace"
 else Task is not LIVESTREAM type (task.getType() != 'LIVESTREAM')
+  activate livestreamtaskcontro
+  activate livestreamtaskservic
   livestreamtaskservic --> livestreamtaskcontro: throw INVALID_TASK_TYPE (400 Bad Request)
+  deactivate livestreamtaskservic
   livestreamtaskcontro --> taskdetailpageui: return 400 Bad Request (Task must be of type Livestream)
+  deactivate livestreamtaskcontro
   taskdetailpageui --> managercreator: Display error message: "Task must be of type Livestream"
 else Blank Idea & Goal
+  activate livestreamtaskcontro
+  activate livestreamtaskservic
   livestreamtaskservic --> livestreamtaskcontro: throw INVALID_PAYLOAD (400 Bad Request)
+  deactivate livestreamtaskservic
   livestreamtaskcontro --> taskdetailpageui: return 400 Bad Request (Idea description or goal cannot be blank)
+  deactivate livestreamtaskcontro
   taskdetailpageui --> managercreator: Display validation message: "Idea description or goal cannot be blank"
 else Valid Livestream Task & Payload
+  activate livestreamtaskcontro
+  activate livestreamtaskservic
   livestreamtaskservic -> livestreamtaskservic: updateLivestreamIdea(task, ideaRequest.getIdea(), ideaRequest.getGoal())
   livestreamtaskservic -> taskrepository: save(task)
+  activate taskrepository
   taskrepository --> livestreamtaskservic: return savedTask
+  deactivate taskrepository
   livestreamtaskservic -> livestreamidearespon: toLivestreamIdeaResponse(savedTask)
+  activate livestreamidearespon
   livestreamidearespon --> livestreamtaskservic: return ideaResponse
+  deactivate livestreamidearespon
   livestreamtaskservic --> livestreamtaskcontro: return ideaResponse
+  deactivate livestreamtaskservic
   livestreamtaskcontro --> taskdetailpageui: return 200 OK (Updated idea, goal, and task status)
+  deactivate livestreamtaskcontro
   taskdetailpageui --> managercreator: Display notification: "Livestream idea saved successfully" & enable Script tab
+  deactivate taskdetailpageui
 end
 
 @enduml

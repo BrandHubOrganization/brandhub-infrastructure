@@ -17,24 +17,42 @@ control "MailService" as mailservice
 
 ' === Flow ===
 user -> registerpageui: fills in full name, email & password, clicks "Create Account"
+activate registerpageui
 registerpageui -> authcontroller: POST /api/v1/auth/register (RegisterRequest)
+activate authcontroller
 authcontroller -> authservice: register(request)
+activate authservice
 authservice -> userrepository: existsByEmail(email)
+activate userrepository
 
 alt email already registered
   userrepository --> authservice: true
+  deactivate userrepository
   authservice --> authcontroller: 409 Conflict (EMAIL_ALREADY_IN_USE)
+  deactivate authservice
   authcontroller --> registerpageui: 409 Conflict (EMAIL_ALREADY_IN_USE)
+  deactivate authcontroller
   registerpageui --> user: Show error "Email already in use"
 else email available
+  activate authcontroller
+  activate authservice
+  activate userrepository
   userrepository --> authservice: false
+  deactivate userrepository
   authservice -> userrepository: save(newUser)
+  activate userrepository
   userrepository --> authservice: savedUser
+  deactivate userrepository
   authservice -> mailservice: sendVerificationEmail(email, verifyToken)
+  activate mailservice
   mailservice --> authservice: ok
+  deactivate mailservice
   authservice --> authcontroller: RegisterResponse(userId, email)
+  deactivate authservice
   authcontroller --> registerpageui: 201 Created (RegisterResponse)
+  deactivate authcontroller
   registerpageui --> user: "Account created — check your email to verify"
+  deactivate registerpageui
 end
 
 @enduml

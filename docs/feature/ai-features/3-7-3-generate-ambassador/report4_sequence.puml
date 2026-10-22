@@ -19,39 +19,67 @@ actor "OWNER / MANAGER / CREATOR" as ownermanagercreator
 
 ' === Flow ===
 ownermanagercreator -> webdashboard: Generate ambassador from description/style
+activate webdashboard
 aiassetservice -> aiassetservice: Validate input, AI rights and available credits
 webdashboard -> aiassetcontroller: POST /api/v1/ai/generate-ambassador
+activate aiassetcontroller
 aiassetcontroller -> aiassetservice: generateAmbassador(user, command)
+activate aiassetservice
 aiassetservice -> workspacerepository: Load workspace access
+activate workspacerepository
 workspacerepository --> aiassetservice: Workspace
+deactivate workspacerepository
 aiassetservice -> aicreditaccountrepos: Load credit account and limit
+activate aicreditaccountrepos
 aicreditaccountrepos --> aiassetservice: AiCreditAccount
+deactivate aicreditaccountrepos
 
 loop invalid access / validation error / insufficient credits
   aiassetservice --> aiassetcontroller: 400 Bad Request / 402 Payment Required / 403 Forbidden
+  deactivate aiassetservice
   aiassetcontroller --> webdashboard: 400 Bad Request / 402 Payment Required / 403 Forbidden
+  deactivate aiassetcontroller
   webdashboard --> ownermanagercreator: Display validation or credit error
 end
+activate aiassetservice
+activate aiassetcontroller
 
 aiassetservice -> aicreditaccountrepos: Reserve generation credits
+activate aicreditaccountrepos
 aicreditaccountrepos --> aiassetservice: reservationOutcome
+deactivate aicreditaccountrepos
 aiassetservice -> aiservices3: Generate and store image in S3
+activate aiservices3
 aiservices3 --> aiassetservice: generationOutcome
+deactivate aiservices3
 
 alt generation failed
   aiassetservice -> aicreditaccountrepos: Release reserved credits
+  activate aicreditaccountrepos
   aicreditaccountrepos --> aiassetservice: releaseOutcome
+  deactivate aicreditaccountrepos
   aiassetservice --> aiassetcontroller: 500 Internal Server Error
+  deactivate aiassetservice
   aiassetcontroller --> webdashboard: 500 Internal Server Error
+  deactivate aiassetcontroller
   webdashboard --> ownermanagercreator: Display generation failed; Retry
 else usable image stored
+  activate aiassetservice
+  activate aiassetcontroller
   aiassetservice -> generatedassetreposi: Save READY ambassador asset
+  activate generatedassetreposi
   generatedassetreposi --> aiassetservice: assetOutcome
+  deactivate generatedassetreposi
   aiassetservice -> aicreditaccountrepos: Settle generation credits
+  activate aicreditaccountrepos
   aicreditaccountrepos --> aiassetservice: settlementOutcome
+  deactivate aicreditaccountrepos
   aiassetcontroller --> webdashboard: 201 Created
+  deactivate aiassetcontroller
   aiassetservice --> aiassetcontroller: 201 Created
+  deactivate aiassetservice
   webdashboard --> ownermanagercreator: Display ambassador preview and credit usage
+  deactivate webdashboard
 end
 
 @enduml

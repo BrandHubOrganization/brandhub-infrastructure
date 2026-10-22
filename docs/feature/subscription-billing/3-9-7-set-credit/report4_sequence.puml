@@ -18,30 +18,50 @@ actor "OWNER (Workspace Agency)" as ownerworkspaceagency
 ' === Flow ===
 billingservice -> billingservice: Validate OWNER role, nonnegative limit, period and expectedVersion
 ownerworkspaceagency -> webdashboard: Confirm Workspace credit limit
+activate webdashboard
 webdashboard -> billingcontroller: PUT /api/v1/billing/credits/{agencyId}/limits
+activate billingcontroller
 billingcontroller -> billingservice: setWorkspaceCreditLimit(user, command)
+activate billingservice
 billingservice -> workspacerepository: Load workspace and agency OWNER access
+activate workspacerepository
 workspacerepository --> billingservice: Workspace
+deactivate workspacerepository
 billingservice -> aicreditworkspacelim: Load workspace credit limit and current usage
+activate aicreditworkspacelim
 aicreditworkspacelim --> billingservice: AiCreditWorkspaceLimit
+deactivate aicreditworkspacelim
 
 loop invalid access / validation error / conflict
   billingservice --> billingcontroller: 400 Bad Request / 403 Forbidden / 409 Conflict
+  deactivate billingservice
   billingcontroller --> webdashboard: 400 Bad Request / 403 Forbidden / 409 Conflict
+  deactivate billingcontroller
   webdashboard --> ownerworkspaceagency: Display validation or permission conflict error
 end
+activate billingcontroller
+activate billingservice
 
 billingservice -> aicreditworkspacelim: Save workspace limit with version check
+activate aicreditworkspacelim
 aicreditworkspacelim --> billingservice: writeOutcome
+deactivate aicreditworkspacelim
 
 alt writeOutcome committed
   billingservice --> billingcontroller: 200 OK
+  deactivate billingservice
   billingcontroller --> webdashboard: 200 OK
+  deactivate billingcontroller
   webdashboard --> ownerworkspaceagency: Display updated Workspace limit
 else write failed or version conflict
+  activate billingcontroller
+  activate billingservice
   billingservice --> billingcontroller: 409 Conflict / 500 Internal Server Error
+  deactivate billingservice
   billingcontroller --> webdashboard: 409 Conflict / 500 Internal Server Error
+  deactivate billingcontroller
   webdashboard --> ownerworkspaceagency: Display save error; retain previous values
+  deactivate webdashboard
 end
 
 @enduml

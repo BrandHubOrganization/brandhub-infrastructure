@@ -21,30 +21,54 @@ boundary "PostDetailPage (UI)" as postdetailpageui
 
 ' === Flow ===
 membermanager -> postdetailpageui: Click on published post in list / calendar
+activate postdetailpageui
 postdetailpageui -> postcontroller: GET /api/v1/workspaces/{workspaceId}/posts/{postId}
+activate postcontroller
 postcontroller -> postserviceimpl: getPostTrackDetail(workspaceId, postId)
+activate postserviceimpl
 postserviceimpl -> postmongorepository: findByIdAndWorkspaceId(postId, workspaceId)
+activate postmongorepository
 postmongorepository --> postserviceimpl: return PostDocument (platform, platformPostId, platformPostUrl)
+deactivate postmongorepository
 postserviceimpl -> redismetricscache: get("post:metrics:" + postId)
+activate redismetricscache
 
 alt Cache Hit (TTL < 15 mins)
   redismetricscache --> postserviceimpl: return cachedMetricsJson
+  deactivate redismetricscache
 else Cache Miss or Expired
+  activate redismetricscache
   redismetricscache --> postserviceimpl: return null
+  deactivate redismetricscache
+  activate socialmetricscontrol
   socialmetricscontrol -> socialmetricsservice: fetchPostMetrics(platform, platformPostId)
+  activate socialmetricsservice
   postserviceimpl -> socialmetricscontrol: GET /api/v1/social/metrics?platform={p}&platformPostId={extId}
   socialmetricsservice -> socialplatformgrapha: GET /{platformPostId}?fields=reactions.summary(true),shares,comments.summary(true)
+  activate socialplatformgrapha
   socialplatformgrapha --> socialmetricsservice: return rawMetricsResponse (reactionCount, shareCount, commentCount)
+  deactivate socialplatformgrapha
   socialmetricsservice --> socialmetricscontrol: return metricsPayload
+  deactivate socialmetricsservice
   socialmetricscontrol --> postserviceimpl: return 200 OK (metricsPayload)
+  deactivate socialmetricscontrol
   postserviceimpl -> redismetricscache: set("post:metrics:" + postId, metricsPayload, ttl=15m)
+  activate redismetricscache
   redismetricscache --> postserviceimpl: return OK
+  deactivate redismetricscache
 end
+activate redismetricscache
 
 postserviceimpl -> posttrackdetailrespo: new PostTrackDetailResponse(postDoc, metrics, platformPostUrl)
+activate posttrackdetailrespo
 postserviceimpl --> postcontroller: return trackDetailResponse
+deactivate postserviceimpl
 posttrackdetailrespo --> postserviceimpl: return trackDetailResponse
+deactivate posttrackdetailrespo
 postcontroller --> postdetailpageui: return 200 OK (ApiResponse { data: trackDetailResponse })
+deactivate postcontroller
 postdetailpageui --> membermanager: Render post preview, engagement counts & original platform link
+deactivate postdetailpageui
 
+deactivate redismetricscache
 @enduml

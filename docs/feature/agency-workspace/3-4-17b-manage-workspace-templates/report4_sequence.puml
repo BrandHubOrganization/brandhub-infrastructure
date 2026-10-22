@@ -18,45 +18,79 @@ entity "WorkspaceTemplateResponse" as workspacetemplateresponse
 
 alt views templates
   agency_member_owner -> templatespage_ui: opens templates page
+  activate templatespage_ui
   templatespage_ui -> workspacetemplatecontroller: GET /api/v1/workspace-templates
+  activate workspacetemplatecontroller
   workspacetemplatecontroller -> workspacetemplateserviceimpl: listTemplates(currentUser)
+  activate workspacetemplateserviceimpl
   workspacetemplateserviceimpl -> agencyrepository: resolveOwnedAgencyId(currentUser)
+  activate agencyrepository
   agencyrepository --> workspacetemplateserviceimpl: Optional<Agency>
+  deactivate agencyrepository
   opt !agency.present
     workspacetemplateserviceimpl --> workspacetemplatecontroller: throw 404 AGENCY_NOT_FOUND
+    deactivate workspacetemplateserviceimpl
     workspacetemplatecontroller --> templatespage_ui: 404 Not Found
+    deactivate workspacetemplatecontroller
     templatespage_ui --> agency_member_owner: shows 404 toast
   end
+  activate workspacetemplatecontroller
+  activate workspacetemplateserviceimpl
   workspacetemplateserviceimpl -> workspacetemplaterepository: findByAgencyId(agencyId)
+  activate workspacetemplaterepository
   workspacetemplaterepository --> workspacetemplateserviceimpl: List<WorkspaceTemplate>
+  deactivate workspacetemplaterepository
   workspacetemplateserviceimpl -> workspacetemplateresponse: toResponse(template)
+  activate workspacetemplateresponse
   workspacetemplateresponse --> workspacetemplateserviceimpl: WorkspaceTemplateResponse
+  deactivate workspacetemplateresponse
   workspacetemplateserviceimpl --> workspacetemplatecontroller: List<WorkspaceTemplateResponse>
+  deactivate workspacetemplateserviceimpl
   workspacetemplatecontroller --> templatespage_ui: 200 OK List<WorkspaceTemplateResponse>
+  deactivate workspacetemplatecontroller
   templatespage_ui --> agency_member_owner: renders templates list
 else deletes template
   agency_member_owner -> templatespage_ui: confirms delete
   templatespage_ui -> workspacetemplatecontroller: DELETE /api/v1/workspace-templates/{templateId}
+  activate workspacetemplatecontroller
   workspacetemplatecontroller -> workspacetemplateserviceimpl: deleteTemplate(currentUser, templateId)
+  activate workspacetemplateserviceimpl
   workspacetemplateserviceimpl -> workspacetemplaterepository: findById(templateId)
+  activate workspacetemplaterepository
   workspacetemplaterepository --> workspacetemplateserviceimpl: Optional<WorkspaceTemplate>
+  deactivate workspacetemplaterepository
   opt !template.present
     workspacetemplateserviceimpl --> workspacetemplatecontroller: throw 404 NOT_FOUND
+    deactivate workspacetemplateserviceimpl
     workspacetemplatecontroller --> templatespage_ui: 404 Not Found
+    deactivate workspacetemplatecontroller
     templatespage_ui --> agency_member_owner: shows 404 toast
   end
+  activate workspacetemplatecontroller
+  activate workspacetemplateserviceimpl
   workspacetemplateserviceimpl -> agencyrepository: resolveOwnedAgencyId(currentUser)
+  activate agencyrepository
   agencyrepository --> workspacetemplateserviceimpl: Optional<Agency>
+  deactivate agencyrepository
   opt template.agencyId != agency.id
     workspacetemplateserviceimpl --> workspacetemplatecontroller: throw 403 FORBIDDEN
+    deactivate workspacetemplateserviceimpl
     workspacetemplatecontroller --> templatespage_ui: 403 Forbidden
+    deactivate workspacetemplatecontroller
     templatespage_ui --> agency_member_owner: shows 403 toast
   end
+  activate workspacetemplatecontroller
+  activate workspacetemplateserviceimpl
   workspacetemplateserviceimpl -> workspacetemplaterepository: delete(template)
+  activate workspacetemplaterepository
   workspacetemplaterepository --> workspacetemplateserviceimpl: void
+  deactivate workspacetemplaterepository
   workspacetemplateserviceimpl --> workspacetemplatecontroller: 200 OK
+  deactivate workspacetemplateserviceimpl
   workspacetemplatecontroller --> templatespage_ui: 200 OK
+  deactivate workspacetemplatecontroller
   templatespage_ui --> agency_member_owner: shows 200 toast
+  deactivate templatespage_ui
 end
 
 @enduml

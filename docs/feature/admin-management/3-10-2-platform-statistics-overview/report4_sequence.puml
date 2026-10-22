@@ -17,15 +17,25 @@ entity "PlatformStatsRepository" as platformstatsreposit
 
 ' === Flow ===
 admin -> adminoverviewpanelui: Open overview; choose period & timezone
+activate adminoverviewpanelui
 adminoverviewpanelui -> adminstatisticscontr: GET /api/v1/admin/statistics(days, tz)
+activate adminstatisticscontr
 adminstatisticscontr -> adminaccountservice: requireAdmin(actorId)
+activate adminaccountservice
 adminaccountservice --> adminstatisticscontr: 200 OK (ADMIN verified)
+deactivate adminaccountservice
 adminstatisticscontr -> adminstatisticsservi: getPlatformOverview(days, tz)
+activate adminstatisticsservi
 adminstatisticsservi -> platformstatsreposit: fetchPlatformMetrics(days)
+activate platformstatsreposit
 platformstatsreposit --> adminstatisticsservi: return platformMetrics
+deactivate platformstatsreposit
 adminstatisticsservi -> adminstatisticsservi: aggregatePlatformStatistics(platformMetrics)
 adminstatisticsservi --> adminstatisticscontr: return PlatformStatsResponse
+deactivate adminstatisticsservi
 adminstatisticscontr --> adminoverviewpanelui: 200 OK (PlatformStatsResponse)
+deactivate adminstatisticscontr
 adminoverviewpanelui --> admin: Render overview stats, user growth & activity
+deactivate adminoverviewpanelui
 
 @enduml

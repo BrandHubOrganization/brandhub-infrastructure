@@ -18,30 +18,50 @@ actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
 ' === Flow ===
 hashtagservice -> hashtagservice: Validate rights, scope, uniqueness and expectedVersion
 creatorclientmanager -> webdashboard: Save hashtag changes
+activate webdashboard
 webdashboard -> hashtagcontroller: PATCH /api/v1/workspaces/{workspaceId}/hashtags/{hashtagId}
+activate hashtagcontroller
 hashtagcontroller -> hashtagservice: updateHashtag(user, command)
+activate hashtagservice
 hashtagservice -> workspacerepository: Load workspace access
+activate workspacerepository
 workspacerepository --> hashtagservice: Workspace
+deactivate workspacerepository
 hashtagservice -> hashtagrepository: Load hashtag and version
+activate hashtagrepository
 hashtagrepository --> hashtagservice: Hashtag
+deactivate hashtagrepository
 
 loop invalid access / duplicate / stale version
   hashtagservice --> hashtagcontroller: 400 Bad Request / 403 Forbidden / 409 Conflict
+  deactivate hashtagservice
   hashtagcontroller --> webdashboard: 400 Bad Request / 403 Forbidden / 409 Conflict
+  deactivate hashtagcontroller
   webdashboard --> creatorclientmanager: Display validation or reload conflict
 end
+activate hashtagservice
+activate hashtagcontroller
 
 hashtagservice -> hashtagrepository: Save hashtag changes with version check
+activate hashtagrepository
 hashtagrepository --> hashtagservice: writeOutcome
+deactivate hashtagrepository
 
 alt writeOutcome committed
   hashtagservice --> hashtagcontroller: 200 OK
+  deactivate hashtagservice
   hashtagcontroller --> webdashboard: 200 OK
+  deactivate hashtagcontroller
   webdashboard --> creatorclientmanager: Display updated collection entry
 else write failed or version conflict
+  activate hashtagservice
+  activate hashtagcontroller
   hashtagservice --> hashtagcontroller: 409 Conflict / 500 Internal Server Error
+  deactivate hashtagservice
   hashtagcontroller --> webdashboard: 409 Conflict / 500 Internal Server Error
+  deactivate hashtagcontroller
   webdashboard --> creatorclientmanager: Display save error; retain previous values
+  deactivate webdashboard
 end
 
 @enduml

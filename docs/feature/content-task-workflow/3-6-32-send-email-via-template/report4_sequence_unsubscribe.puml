@@ -15,26 +15,44 @@ entity "UnsubscribeTokenService" as tokens
 entity "MailSuppressionRepository" as suppressions
 
 recipient -> ui: clicks the unsubscribe link in the email footer
+activate ui
 ui -> controller: GET /api/v1/public/mail/unsubscribe?token=...
+activate controller
 controller -> service: describe(token)
+activate service
 service -> tokens: verify HMAC(token)
+activate tokens
 tokens --> service: workspaceId, email / invalid
+deactivate tokens
 opt invalid token
   service --> controller: throw 400
+  deactivate service
   controller --> ui: 400 Bad Request
+  deactivate controller
   ui --> recipient: generic invalid link message
 end
+activate controller
+activate service
 service --> controller: workspace name, masked email
+deactivate service
 controller --> ui: 200 OK
+deactivate controller
 ui --> recipient: asks for confirmation
 recipient -> ui: confirms
 ui -> controller: POST /api/v1/public/mail/unsubscribe?token=...
+activate controller
 controller -> service: unsubscribe(token)
+activate service
 service -> suppressions: upsert(workspaceId, emailLower, UNSUBSCRIBED) (idempotent)
+activate suppressions
 suppressions --> service: ok
+deactivate suppressions
 service --> controller: 200 OK
+deactivate service
 controller --> ui: 200 OK
+deactivate controller
 ui --> recipient: confirmation shown
+deactivate ui
 note right of service
   Mail clients may also call POST directly
   (List-Unsubscribe-Post one-click, RFC 8058).

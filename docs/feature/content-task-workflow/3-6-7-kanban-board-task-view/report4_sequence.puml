@@ -18,15 +18,24 @@ control "TaskServiceImpl" as taskserviceimpl
 ' === Flow ===
 taskserviceimpl -> taskserviceimpl: groupTasksIntoColumns(tasks, groupBy)
 creatorclientmanager -> taskcalendarpageui: Select "Kanban Board" tab
+activate taskcalendarpageui
 taskcalendarpageui -> taskcontroller: Request tasks kanban board (groupBy)
+activate taskcontroller
 taskcontroller -> taskserviceimpl: getTasksKanbanBoard(groupBy)
+activate taskserviceimpl
 taskserviceimpl -> taskrepository: findTasks()
+activate taskrepository
 taskrepository --> taskserviceimpl: return List<Task>
+deactivate taskrepository
 taskserviceimpl -> taskkanbanresponse: mapToKanbanResponse(columns)
+activate taskkanbanresponse
 taskkanbanresponse --> taskserviceimpl: return kanbanData
+deactivate taskkanbanresponse
 taskcalendarpageui --> creatorclientmanager: Render Kanban columns with draggable task cards
 taskserviceimpl --> taskcontroller: return kanbanData
+deactivate taskserviceimpl
 taskcontroller --> taskcalendarpageui: return 200 OK (Kanban columns, task cards per column)
+deactivate taskcontroller
 
 opt Drag Task card to new Column (Creator / Manager only)
   creatorclientmanager -> taskcalendarpageui: Drag card from "IN_PROGRESS" to "REVIEW"
@@ -37,23 +46,36 @@ alt User is Client (View-only)
   taskcalendarpageui --> creatorclientmanager: Disable card dragging / show tooltip ("Read-only permission")
 else User is Creator or Manager
   taskcalendarpageui -> taskcontroller: Request move task card (newStatus)
+  activate taskcontroller
   taskcontroller -> taskserviceimpl: updateTaskStatusByKanban(taskId, newStatus)
+  activate taskserviceimpl
   taskserviceimpl -> taskrepository: findTask(taskId)
+  activate taskrepository
   taskrepository --> taskserviceimpl: return Task
+  deactivate taskrepository
 end
 
 
 alt Invalid Transition (e.g., skip review to completed)
   taskserviceimpl --> taskcontroller: throw INVALID_STATUS_TRANSITION (409 Conflict)
+  deactivate taskserviceimpl
   taskcontroller --> taskcalendarpageui: return 409 Conflict (Illegal state transition to target status)
+  deactivate taskcontroller
   taskcalendarpageui --> creatorclientmanager: Revert card position & display validation warning toast
 else Valid Transition
+  activate taskserviceimpl
+  activate taskcontroller
   taskserviceimpl -> taskserviceimpl: task.setStatus(newStatus)
   taskserviceimpl -> taskrepository: save(task)
+  activate taskrepository
   taskrepository --> taskserviceimpl: return updatedTask
+  deactivate taskrepository
   taskserviceimpl --> taskcontroller: return savedTask
+  deactivate taskserviceimpl
   taskcontroller --> taskcalendarpageui: return 200 OK (Updated task status)
+  deactivate taskcontroller
   taskcalendarpageui --> creatorclientmanager: Snap card to new column & trigger status update
+  deactivate taskcalendarpageui
 end
 
 @enduml
