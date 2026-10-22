@@ -1,13 +1,13 @@
 # Kịch bản test Credit trên Web
 
-## Cập nhật: đã tích hợp AI và seed local — 20/10/2026
+## Phạm vi kiểm thử AI Credit
 
-Mục này thay thế ghi chú cũ bên dưới về “chưa nối AI”/quỹ chưa được cấp. Đã chạy thêm `2026-10-20-credit-ai-execution.sql`, `2026-10-20-credit-dev-seed-source.sql` và `docs/database/seeds/2026-10-20-demo-agency-credit.sql` trên local `brandhub-postgres/brandhub`. Không init/Mongo/Atlas. Chỉ Demo Agency `23dc3d67-4c4b-4a0a-8b91-da5968dbbbb9`, Owner `user177@hotmail.com`, được cấp 100 DEV_SEED (used=0, held=0 lúc cấp). Seed chạy lại không cộng dồn. Không tạo subscription/giao dịch thanh toán giả; credit test hiển thị riêng, không phải credit mua thêm.
+Mục này thay thế ghi chú cũ bên dưới về “chưa nối AI”. Mỗi môi trường cần có schema Credit phù hợp và Agency kiểm thử được cấp quỹ hợp lệ theo quyền của môi trường đó. Không giả định dữ liệu, tài khoản hay khoản cấp thử trên máy của người khác tồn tại. Script cấp quỹ/sửa dữ liệu dành riêng cho một máy không nằm trong repository; không tạo subscription hoặc thanh toán giả. Xem hướng dẫn triển khai chung tại [Credit unification](../../credit-unification/rollout.md).
 
 ### Trước khi test AI
 
 1. Restart Business bằng code mới và AI Service để áp dụng internal-key guard của hashtag; Gateway/Web chạy bình thường. Chỉ migrate nhưng giữ binary cũ thì chưa hạch toán AI đúng. Không đổi khóa nội bộ.
-2. Chọn Workspace thuộc Demo Agency trên; Workspace thuộc Agency khác không có khoản 100 này.
+2. Chọn Workspace thuộc Agency kiểm thử đã được cấp quỹ trên chính môi trường đang dùng.
 3. Admin kiểm tra `/admin/credit-prices`. Lúc seed, giá mới nhất: CONTENT_GENERATE=3, AMBASSADOR_GENERATE=10. Thao tác khác chưa có giá phải cấu hình trước; không tự miễn phí. Không tự đổi giá để khớp ví dụ.
 4. Manager/Creator cần membership Agency/Workspace hoạt động. Mặc định 10/kỳ nếu Owner chưa cấu hình; Owner không có trần cá nhân nhưng vẫn chịu quỹ chung. Đã chốt mở Editor và AI Studio cho Owner dùng AI; quyền sửa Task/gửi duyệt/xuất bản ở Backend không thay đổi.
 
@@ -15,7 +15,7 @@ Mục này thay thế ghi chú cũ bên dưới về “chưa nối AI”/quỹ 
 
 | Thao tác | Kỳ vọng |
 | --- | --- |
-| Mở báo cáo Demo Agency trước lần tạo đầu | Tổng khả dụng 100; DEV_SEED 100; Plan/mua thêm/used/held=0. |
+| Mở báo cáo Agency kiểm thử trước lần tạo đầu | Số dư và nguồn quỹ khớp khoản cấp hợp lệ trên môi trường đó; không giả định sẵn 100 credit. |
 | Tạo nội dung thành công, giá vẫn 3 | Còn 97; usage người gửi tăng 3, held=0. Áp dụng lại kết quả vào Editor không trừ thêm. |
 | Bấm tạo lại có chủ ý | Mã yêu cầu mới; thành công trừ thêm theo giá lúc gửi. |
 | Retry kỹ thuật cùng payload và Idempotency-Key | Không gọi/trừ lần hai; đang chạy báo pending, đã xong trả kết quả đã lưu. Không đổi payload với cùng mã. |
@@ -29,16 +29,16 @@ Mục này thay thế ghi chú cũ bên dưới về “chưa nối AI”/quỹ 
 
 Không dùng seed để reset số đã dùng/đang giữ; không xóa reservation hoặc tạo thanh toán giả. Các test cấu hình phía dưới vẫn áp dụng, nhưng quỹ không còn 0 sau seed.
 
-## 1. Trạng thái DB sau migration — 20/10/2026
+## 1. Kiểm tra schema trước khi test
 
-Đã áp dụng theo thứ tự trên PostgreSQL **local**, container `brandhub-postgres`, database/schema `brandhub.public`:
+Kiểm tra schema PostgreSQL thực tế và chỉ áp dụng migration còn thiếu theo thứ tự phụ thuộc:
 
-1. `2026-10-19-member-credit-configuration.sql` — COMMIT thành công.
-2. `2026-10-20-credit-accounting.sql` — COMMIT thành công.
+1. `2026-10-19-member-credit-configuration.sql`.
+2. `2026-10-20-credit-accounting.sql`.
 
-Preflight không có schema Credit 8 bảng cũ. Kiểm tra sau chạy đạt: 4 bảng mới, 9 cột bổ sung trên Agency/thành viên, index và trigger lịch sử giá. Không chạy init, không seed giá, không cấp credit, không chạm Mongo/Atlas. Số dòng trước/sau giữ nguyên: 53 Agency, 798 thành viên Agency, 50 ledger cũ, 50 hạn mức Creator cũ.
+Đối chiếu các migration AI execution, nguồn quỹ và unified credit trong README migration/rollout hiện tại trước khi test AI. Không chạy init trên DB có dữ liệu, không replay toàn bộ thư mục migration và không dùng script sửa dữ liệu của máy khác.
 
-Tại thời điểm vừa migrate, cả 4 bảng Credit mới rỗng; hạn mức riêng/mặc định và cycle anchor đều NULL, revision cấu hình bằng 0. Dữ liệu ledger/Creator limit cũ vẫn còn nhưng không tự nhập vào báo cáo mới.
+Không suy ra số dòng, cấu hình hạn mức hoặc số dư từ kết quả trên môi trường khác. Dữ liệu ledger/Creator limit cũ không tự nhập vào báo cáo mới.
 
 **Lưu ý:** các thao tác test bên dưới sẽ lưu cấu hình thật. Dùng Agency dành cho kiểm thử, ghi lại cấu hình/giá trước khi đổi; không dùng Agency của thành viên khác. Chưa có thao tác xóa override để quay lại kế thừa trên UI/API; dùng một thành viên khác chưa có override để kiểm tra kế thừa. Giá là lịch sử append-only: khôi phục bằng cách lưu phiên bản mới, không DELETE lịch sử.
 
@@ -48,7 +48,7 @@ Tại thời điểm vừa migrate, cả 4 bảng Credit mới rỗng; hạn m�
 - Chuẩn bị Owner đúng Agency, hai thành viên nội bộ để thử kế thừa/override, Manager/Creator và một Admin. Client dùng để kiểm tra chặn truy cập. Manager/Creator phải thực sự thuộc Agency; role Workspace không thay thế membership Agency.
 - Vào Agency, chọn **AI Credit**, hoặc mở `http://localhost:3000/agency/{agencyId}/credit`.
 - Admin mở `http://localhost:3000/admin/credit-prices`.
-- Ví dụ DB hiện có **Demo Agency**: `23dc3d67-4c4b-4a0a-8b91-da5968dbbbb9`. Chỉ dùng nếu bạn có đúng tài khoản Owner/thành viên của Agency đó; có thể chọn Agency test khác.
+- Chọn Agency kiểm thử mà tài khoản có đúng quyền Owner/thành viên trên môi trường đang dùng; không sao chép ID Agency từ máy khác.
 - Mở DevTools → Network khi cần xem request/status. Không gửi token hay thông tin đăng nhập cho người khác.
 
 ## 3. Những phần test được ngay

@@ -1,6 +1,10 @@
 # Migration entry points
 
-- `2026-10-20-credit-dev-seed-source.sql`: permits explicitly identified DEV_SEED grants, without payment/subscription references. No funding is created by the migration. Fresh init includes the constraint. The separate local-only `../seeds/2026-10-20-demo-agency-credit.sql` funds only the confirmed Demo Agency with 100 test credits, idempotently. Do not run this seed on shared/production environments. No public API mints this source; reporting separates development funds from purchases.
+- `2026-10-21-unified-ai-credit.sql`: apply after Caption/Video and compact Credit accounting/execution deltas. Links new Video jobs to reservations (nullable FK + unique index + exclusive legacy/unified source CHECK) and widens Caption history credits to bigint. No data cleanup, funding, price seed or balance import. Included in fresh init. Deploy matching Business and send `Idempotency-Key` on Workspace Caption/Video POST routes; inspect legacy open jobs before cutover.
+
+- `2026-10-20-credit-dev-seed-source.sql`: permits explicitly identified DEV_SEED grants, without payment/subscription references. No funding is created by the migration. Fresh init includes the constraint. No public API mints this source; reporting separates development funds from purchases.
+
+- Only shared schema migrations belong in this directory. Scripts with machine-specific IDs, one-off data repairs, local credit funding or Playground experiments must stay in the ignored `.local/` directory, outside Git. Do not add them to init or migration lists. Shared inventory/checker scripts must remain read-only.
 
 - `2026-10-20-credit-ai-execution.sql`: apply after Credit accounting. Adds dispatch state/response/job metadata and indexes to reservations only; prevents duplicate AI dispatch and supports asynchronous video settlement. Included in fresh init. No grants, prices, seed or Task/Post/Mongo changes. Deploy with the matching Business/Web adapters requiring `X-AI-Workspace-Id` and `Idempotency-Key` on AI POSTs. The AI-specific Workspace header is authorized server-side and is separate from Gateway's JWT-derived header.
 
