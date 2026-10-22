@@ -25,7 +25,7 @@ logs/
 
 # Machine-specific repairs, funding scripts, inventories and verification artifacts.
 # These are not shared migrations or application setup.
-.local/
+keep-local-only/
 
 # ── Docker volumes (local data) ──────────────────────────────
 postgres-data/
