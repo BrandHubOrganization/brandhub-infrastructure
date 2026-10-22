@@ -53,7 +53,7 @@ Report 1 và Report 2 đã được hoàn thiện (Trung + Phước phụ trách
 
 ### Bước 4 — Viết 3 tài liệu còn lại theo mẫu
 
-Mẫu đặt tại `brandhub-infrastructure/docs/feature/definition/`. Mỗi feature phải có đủ 4 file:
+Mẫu đặt tại `brandhub-infrastructure/docs/feature/system-maintenance/definition/`. Mỗi feature phải có đủ 4 file:
 
 | File | Vai trò | Trả lời câu hỏi |
 |------|---------|-----------------|
@@ -171,7 +171,7 @@ Cập nhật cột **`Hiện trạng`** trong file
 | Git commit convention | `brandhub-infrastructure/docs/rule/git-commit-convention.md` |
 | Chuẩn code Backend | `brandhub-business-service/rule.md` |
 | Chuẩn code Frontend | `brandhub-web-dashboard/rule.md` |
-| Mẫu spec/plan/task/test | `brandhub-infrastructure/docs/feature/definition/` |
+| Mẫu spec/plan/task/test | `brandhub-infrastructure/docs/feature/system-maintenance/definition/` |
 | Đặc tả từng feature | `brandhub-infrastructure/docs/feature/<tên-feature>/` |
 | Phân tích nghiệp vụ (BA) | `brandhub-infrastructure/docs/ba/` |
 | Mẫu spec FR (Report 3) | `FormReportDA/report_drafts/DA-763_R3_S3.2.1_FR_Register_Email.md` |

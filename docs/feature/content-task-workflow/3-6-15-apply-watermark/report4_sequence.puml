@@ -18,12 +18,19 @@ participant "FileStorageService" as filestorageservice
 
 alt opens watermark studio
   creator -> watermarkmodal_ui: opens studio on retouched image
+  activate watermarkmodal_ui
   watermarkmodal_ui -> materialcontroller: GET /api/v1/workspaces/{id}/brand-collection?type=LOGO
+  activate materialcontroller
   materialcontroller -> materialserviceimpl: getBrandLogos(workspaceId)
+  activate materialserviceimpl
   materialserviceimpl -> brandcollectionrepository: findByWorkspaceIdAndAssetType(workspaceId, "LOGO")
+  activate brandcollectionrepository
   brandcollectionrepository --> materialserviceimpl: List<BrandAsset>
+  deactivate brandcollectionrepository
   materialserviceimpl --> materialcontroller: List<BrandAssetResponse>
+  deactivate materialserviceimpl
   materialcontroller --> watermarkmodal_ui: 200 OK List<BrandAssetResponse>
+  deactivate materialcontroller
 
   alt brandLogos.isEmpty()
     watermarkmodal_ui --> creator: shows "no logo" warning, disables Apply
@@ -36,45 +43,72 @@ alt opens watermark studio
 else applies watermark
   creator -> watermarkmodal_ui: clicks Apply
   watermarkmodal_ui -> materialcontroller: POST /api/v1/workspaces/{id}/materials/{materialId}/watermark
+  activate materialcontroller
   materialcontroller -> materialserviceimpl: applyWatermark(workspaceId, materialId, request, currentUser)
+  activate materialserviceimpl
 
   materialserviceimpl -> materialrepository: findByIdAndWorkspaceId(materialId, workspaceId)
+  activate materialrepository
   materialrepository --> materialserviceimpl: Optional<Material>
+  deactivate materialrepository
 
   opt !material.present || !material.isImage()
     materialserviceimpl --> materialcontroller: throw 400 INVALID_MATERIAL_TYPE
+    deactivate materialserviceimpl
     materialcontroller --> watermarkmodal_ui: 400 Bad Request
+    deactivate materialcontroller
     watermarkmodal_ui --> creator: shows 400 toast
   end
+  activate materialserviceimpl
+  activate materialcontroller
 
   materialserviceimpl -> brandcollectionrepository: findByIdAndWorkspaceId(request.logoAssetId, workspaceId)
+  activate brandcollectionrepository
   brandcollectionrepository --> materialserviceimpl: Optional<BrandAsset>
+  deactivate brandcollectionrepository
 
   opt !logo.present
     materialserviceimpl --> materialcontroller: throw 404 LOGO_NOT_FOUND
+    deactivate materialserviceimpl
     materialcontroller --> watermarkmodal_ui: 404 Not Found
+    deactivate materialcontroller
     watermarkmodal_ui --> creator: shows 404 toast
   end
+  activate materialserviceimpl
+  activate materialcontroller
 
   materialserviceimpl -> filestorageservice: downloadInputStream(originalMaterial.url)
+  activate filestorageservice
   filestorageservice --> materialserviceimpl: InputStream (baseImage)
+  deactivate filestorageservice
 
   materialserviceimpl -> filestorageservice: downloadInputStream(logoAsset.url)
+  activate filestorageservice
   filestorageservice --> materialserviceimpl: InputStream (logoImage)
+  deactivate filestorageservice
 
   materialserviceimpl -> imagewatermarkprocessor: composite(baseImage, logoImage, position, opacity, scale)
+  activate imagewatermarkprocessor
   imagewatermarkprocessor -> imagewatermarkprocessor: renderComposite()
   imagewatermarkprocessor --> materialserviceimpl: ByteArrayOutputStream (stream)
+  deactivate imagewatermarkprocessor
 
   materialserviceimpl -> filestorageservice: upload(stream, newFileName, mimeType)
+  activate filestorageservice
   filestorageservice --> materialserviceimpl: newFileUrl
+  deactivate filestorageservice
 
   materialserviceimpl -> materialrepository: save(new Material(...))
+  activate materialrepository
   materialrepository --> materialserviceimpl: Material
+  deactivate materialrepository
 
   materialserviceimpl --> materialcontroller: WatermarkedMaterialResponse
+  deactivate materialserviceimpl
   materialcontroller --> watermarkmodal_ui: 201 Created
+  deactivate materialcontroller
   watermarkmodal_ui --> creator: shows 201 toast
+  deactivate watermarkmodal_ui
 end
 
 @enduml

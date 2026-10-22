@@ -1,0 +1,86 @@
+@startuml 3.8.2 - Disconnect Social Account
+title Sequence Diagram — 3.8.2 - Disconnect Social Account
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "SocialAccountDocument" as socialaccountdocumen
+entity "SocialAccountMongoRepository" as socialaccountmongore
+control "SocialAccountServiceImpl" as socialaccountservice
+boundary "SocialAccountController" as socialaccountcontrol
+entity "Social Platform API" as socialplatformapi
+control "MetaOAuthServiceImpl" as metaoauthserviceimpl
+boundary "SocialOAuthController" as socialoauthcontrolle
+boundary "SocialAccountsPage (UI)" as socialaccountspageui
+actor "Client" as client
+
+' === Flow ===
+client -> socialaccountspageui: Click "Disconnect" on Social Account card
+activate socialaccountspageui
+else Account found
+  socialaccountspageui -> socialaccountspageui: Update account status to DISCONNECTED in UI state
+end
+
+socialaccountspageui -> socialaccountspageui: Open Disconnect Confirmation Dialog
+client -> socialaccountspageui: 3: Confirm disconnect
+socialaccountspageui -> socialaccountcontrol: DELETE /api/v1/social-accounts/{id}?workspaceId={wsId}
+activate socialaccountcontrol
+socialaccountcontrol -> socialaccountservice: disconnectAccount(accountId, workspaceId)
+activate socialaccountservice
+socialaccountservice -> socialaccountmongore: findById(accountId)
+activate socialaccountmongore
+
+alt Account not found
+  socialaccountmongore --> socialaccountservice: return Optional.empty()
+  deactivate socialaccountmongore
+  socialaccountspageui --> client: Show toast warning or refresh list
+  socialaccountservice --> socialaccountcontrol: return void
+  deactivate socialaccountservice
+  socialaccountcontrol --> socialaccountspageui: 9: return 200 OK (ApiResponse with null data)
+  deactivate socialaccountcontrol
+else Account found
+  activate socialaccountmongore
+  activate socialaccountcontrol
+  activate socialaccountservice
+  socialaccountmongore --> socialaccountservice: return existingDoc
+  deactivate socialaccountmongore
+end
+activate socialaccountmongore
+
+
+alt Opt
+  socialaccountservice -> socialoauthcontrolle: POST /api/v1/social/tokens/revoke (platform, encryptedAccessToken)
+  activate socialoauthcontrolle
+  socialoauthcontrolle -> metaoauthserviceimpl: revokeToken(encryptedAccessToken)
+  activate metaoauthserviceimpl
+  metaoauthserviceimpl -> socialplatformapi: DELETE /me/permissions (revoke app access)
+  activate socialplatformapi
+  socialplatformapi --> metaoauthserviceimpl: return 200 OK (Revoked)
+  deactivate socialplatformapi
+  metaoauthserviceimpl --> socialoauthcontrolle: return success
+  deactivate metaoauthserviceimpl
+  socialoauthcontrolle --> socialaccountservice: return 200 OK
+  deactivate socialoauthcontrolle
+end
+
+else Account found
+  socialaccountservice -> socialaccountdocumen: setStatus('DISCONNECTED'), setIsActive(false), setEncryptedToken(null)
+  activate socialaccountdocumen
+  socialaccountdocumen --> socialaccountservice: return updatedDoc
+  deactivate socialaccountdocumen
+  socialaccountservice -> socialaccountmongore: save(updatedDoc)
+  socialaccountmongore --> socialaccountservice: return savedDoc
+  deactivate socialaccountmongore
+  socialaccountservice --> socialaccountcontrol: return void
+  deactivate socialaccountservice
+  socialaccountspageui --> client: 21: Show success toast notification
+  deactivate socialaccountspageui
+  socialaccountcontrol --> socialaccountspageui: 19: return 200 OK (ApiResponse { success: true })
+  deactivate socialaccountcontrol
+end
+
+@enduml

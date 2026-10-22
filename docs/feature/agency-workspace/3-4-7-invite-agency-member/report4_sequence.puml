@@ -22,43 +22,77 @@ participant "MailService" as mailservice
 
 ' === Flow: Owner Sends Invitation ===
 owner -> memberspage_ui: fills and submits invite form
+activate memberspage_ui
 memberspage_ui -> agencycontroller: POST /api/v1/agencies/{agencyId}/invitations
+activate agencycontroller
 agencycontroller -> agencyserviceimpl: inviteMember(agencyId, request, currentUser)
+activate agencyserviceimpl
 agencyserviceimpl -> agencyrepository: findAgencyOrThrow(agencyId)
+activate agencyrepository
 agencyrepository --> agencyserviceimpl: Agency
+deactivate agencyrepository
 opt caller != OWNER
   agencyserviceimpl --> agencycontroller: throw 403 NOT_AGENCY_OWNER
+  deactivate agencyserviceimpl
   agencycontroller --> memberspage_ui: 403 Error response
+  deactivate agencycontroller
   memberspage_ui --> owner: shows 403 toast
 end
+activate agencyserviceimpl
+activate agencycontroller
 agencyserviceimpl -> agencymemberrepository: findMemberByEmail(email)
+activate agencymemberrepository
 agencymemberrepository --> agencyserviceimpl: Optional<AgencyMember>
+deactivate agencymemberrepository
 opt isMember(email)
   agencyserviceimpl --> agencycontroller: throw 409 ALREADY_AGENCY_MEMBER
+  deactivate agencyserviceimpl
   agencycontroller --> memberspage_ui: 409 Error response
+  deactivate agencycontroller
   memberspage_ui --> owner: shows 409 toast
 end
+activate agencycontroller
+activate agencyserviceimpl
 agencyserviceimpl -> agencyinvitationrepository: findPendingInvitation(email)
+activate agencyinvitationrepository
 agencyinvitationrepository --> agencyserviceimpl: Optional<AgencyInvitation>
+deactivate agencyinvitationrepository
 opt hasPendingInvitation(email)
   agencyserviceimpl --> agencycontroller: throw 409 INVITATION_ALREADY_PENDING
+  deactivate agencyserviceimpl
   agencycontroller --> memberspage_ui: 409 Error response
+  deactivate agencycontroller
   memberspage_ui --> owner: shows 409 toast
 end
+activate agencycontroller
+activate agencyserviceimpl
 opt workspaceId != null
   agencyserviceimpl -> workspacerepository: findById(workspaceId)
+  activate workspacerepository
   workspacerepository --> agencyserviceimpl: Optional<Workspace>
+  deactivate workspacerepository
 end
 agencyserviceimpl -> agencyinvitation: new AgencyInvitation(...)
+activate agencyinvitation
 agencyinvitation --> agencyserviceimpl: AgencyInvitation
+deactivate agencyinvitation
 agencyserviceimpl -> agencyinvitationrepository: save(invitation)
+activate agencyinvitationrepository
 agencyinvitationrepository --> agencyserviceimpl: AgencyInvitation
+deactivate agencyinvitationrepository
 agencyserviceimpl -> mailservice: sendInvitationEmail(email, token)
+activate mailservice
 mailservice --> agencyserviceimpl: sent
+deactivate mailservice
 agencyserviceimpl -> agencyinvitationresponse: toInvitationResponse(invitation)
+activate agencyinvitationresponse
 agencyinvitationresponse --> agencyserviceimpl: AgencyInvitationResponse
+deactivate agencyinvitationresponse
 agencyserviceimpl --> agencycontroller: AgencyInvitationResponse
+deactivate agencyserviceimpl
 agencycontroller --> memberspage_ui: 200 OK AgencyInvitationResponse
+deactivate agencycontroller
 memberspage_ui --> owner: shows invitation sent toast
+deactivate memberspage_ui
 
 @enduml

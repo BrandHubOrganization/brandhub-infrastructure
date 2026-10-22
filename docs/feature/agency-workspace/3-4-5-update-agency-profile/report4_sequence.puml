@@ -20,53 +20,95 @@ participant "FileStorageService" as filestorageservice
 ' === Flow ===
 alt saves profile
   owner -> agencyprofilepage_ui_edit_mode: submits profile form
+  activate agencyprofilepage_ui_edit_mode
   agencyprofilepage_ui_edit_mode -> agencycontroller: PUT /api/v1/agencies/{agencyId}
+  activate agencycontroller
   agencycontroller -> agencyserviceimpl: updateAgency(currentUser, agencyId, request)
+  activate agencyserviceimpl
   agencyserviceimpl -> agencyrepository: findById(agencyId)
+  activate agencyrepository
   agencyrepository --> agencyserviceimpl: Optional<Agency>
+  deactivate agencyrepository
   opt !agency.present || caller != OWNER
     agencyserviceimpl --> agencycontroller: throw 403 NOT_AGENCY_OWNER
+    deactivate agencyserviceimpl
     agencycontroller --> agencyprofilepage_ui_edit_mode: 403 Forbidden
+    deactivate agencycontroller
     agencyprofilepage_ui_edit_mode --> owner: shows 403 toast
   end
+  activate agencyserviceimpl
+  activate agencycontroller
   agencyserviceimpl -> agency: updateFields(request)
+  activate agency
   agency --> agencyserviceimpl: Agency
+  deactivate agency
   agencyserviceimpl -> agencyrepository: save(agency)
+  activate agencyrepository
   agencyrepository --> agencyserviceimpl: Agency
+  deactivate agencyrepository
   agencyserviceimpl -> agencyresponse: toResponse(agency, OWNER)
+  activate agencyresponse
   agencyresponse --> agencyserviceimpl: AgencyResponse
+  deactivate agencyresponse
   agencyserviceimpl --> agencycontroller: AgencyResponse
+  deactivate agencyserviceimpl
   agencycontroller --> agencyprofilepage_ui_edit_mode: 200 OK
+  deactivate agencycontroller
   agencyprofilepage_ui_edit_mode --> owner: shows 200 toast
 else uploads logo
   owner -> agencyprofilepage_ui_edit_mode: uploads logo file
   agencyprofilepage_ui_edit_mode -> agencycontroller: POST /api/v1/agencies/{agencyId}/logo
+  activate agencycontroller
   agencycontroller -> agencyserviceimpl: updateLogo(currentUser, agencyId, file)
+  activate agencyserviceimpl
   agencyserviceimpl -> agencyrepository: findById(agencyId)
+  activate agencyrepository
   agencyrepository --> agencyserviceimpl: Optional<Agency>
+  deactivate agencyrepository
   opt !agency.present || caller != OWNER
     agencyserviceimpl --> agencycontroller: throw 403 NOT_AGENCY_OWNER
+    deactivate agencyserviceimpl
     agencycontroller --> agencyprofilepage_ui_edit_mode: 403 Forbidden
+    deactivate agencycontroller
     agencyprofilepage_ui_edit_mode --> owner: shows 403 toast
   end
+  activate agencyserviceimpl
+  activate agencycontroller
   alt fileError
     agencyserviceimpl -> filestorageservice: uploadLogo(agencyId, file)
+    activate filestorageservice
     filestorageservice --> agencyserviceimpl: throws error
+    deactivate filestorageservice
     agencyserviceimpl --> agencycontroller: throw 400 FILE_READ_ERROR
+    deactivate agencyserviceimpl
     agencycontroller --> agencyprofilepage_ui_edit_mode: 400 Bad Request
+    deactivate agencycontroller
     agencyprofilepage_ui_edit_mode --> owner: shows 400 toast
   else valid(file)
+    activate agencyserviceimpl
+    activate agencycontroller
     agencyserviceimpl -> filestorageservice: uploadLogo(agencyId, file)
+    activate filestorageservice
     filestorageservice --> agencyserviceimpl: logo URL
+    deactivate filestorageservice
     agencyserviceimpl -> agency: setLogoUrl(url)
+    activate agency
     agency --> agencyserviceimpl: Agency
+    deactivate agency
     agencyserviceimpl -> agencyrepository: save(agency)
+    activate agencyrepository
     agencyrepository --> agencyserviceimpl: Agency
+    deactivate agencyrepository
     agencyserviceimpl -> agencyresponse: toResponse(agency, OWNER)
+    activate agencyresponse
     agencyresponse --> agencyserviceimpl: AgencyResponse
+    deactivate agencyresponse
     agencyserviceimpl --> agencycontroller: AgencyResponse
+    deactivate agencyserviceimpl
     agencycontroller --> agencyprofilepage_ui_edit_mode: 200 OK
+    deactivate agencycontroller
     agencyprofilepage_ui_edit_mode --> owner: shows 200 toast
+    deactivate agencyprofilepage_ui_edit_mode
   end
 end
 

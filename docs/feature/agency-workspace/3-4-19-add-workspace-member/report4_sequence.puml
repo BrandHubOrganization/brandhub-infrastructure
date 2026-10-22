@@ -20,50 +20,86 @@ participant "MailService" as mailservice
 
 ' === Flow ===
 workspace_manager -> workspacememberspage_ui: submits invite
+activate workspacememberspage_ui
 workspacememberspage_ui -> workspacecontroller: POST /api/v1/workspaces/{id}/invite
+activate workspacecontroller
 opt caller != MANAGER
   workspacecontroller --> workspacememberspage_ui: 403 Forbidden
+  deactivate workspacecontroller
   workspacememberspage_ui --> workspace_manager: shows 403 toast
 end
+activate workspacecontroller
 opt !valid(request)
   workspacecontroller --> workspacememberspage_ui: 400 Bad Request
+  deactivate workspacecontroller
   workspacememberspage_ui --> workspace_manager: shows 400 toast
 end
+activate workspacecontroller
 workspacecontroller -> workspaceserviceimpl: inviteMemberByEmail(workspaceId, request)
+activate workspaceserviceimpl
 workspaceserviceimpl -> workspaceserviceimpl: normalizeEmail(email)
 workspaceserviceimpl -> userrepository: findByEmail(email)
+activate userrepository
 userrepository --> workspaceserviceimpl: Optional<User>
+deactivate userrepository
 workspaceserviceimpl -> workspacememberrepository: findActiveMember(workspaceId, userId)
+activate workspacememberrepository
 workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
+deactivate workspacememberrepository
 opt isMember(email)
   workspaceserviceimpl --> workspacecontroller: throw 409 ALREADY_IN_WORKSPACE
+  deactivate workspaceserviceimpl
   workspacecontroller --> workspacememberspage_ui: 409 Conflict
+  deactivate workspacecontroller
   workspacememberspage_ui --> workspace_manager: shows 409 toast
 end
+activate workspacecontroller
+activate workspaceserviceimpl
 workspaceserviceimpl -> workspaceinvitationrepository: findPendingInvitation(workspaceId, email)
+activate workspaceinvitationrepository
 workspaceinvitationrepository --> workspaceserviceimpl: Optional<WorkspaceInvitation>
+deactivate workspaceinvitationrepository
 opt hasPendingInvitation(email)
   workspaceserviceimpl --> workspacecontroller: throw 409 INVITATION_ALREADY_PENDING
+  deactivate workspaceserviceimpl
   workspacecontroller --> workspacememberspage_ui: 409 Conflict
+  deactivate workspacecontroller
   workspacememberspage_ui --> workspace_manager: shows 409 toast
 end
+activate workspacecontroller
+activate workspaceserviceimpl
 opt role == MANAGER
   workspaceserviceimpl -> workspacememberrepository: countByWorkspaceIdAndRole(workspaceId, MANAGER)
+  activate workspacememberrepository
   workspacememberrepository --> workspaceserviceimpl: long count
+  deactivate workspacememberrepository
   opt count > 0
     workspaceserviceimpl --> workspacecontroller: throw 409 MANAGER_ALREADY_ASSIGNED
+    deactivate workspaceserviceimpl
     workspacecontroller --> workspacememberspage_ui: 409 Conflict
+    deactivate workspacecontroller
     workspacememberspage_ui --> workspace_manager: shows 409 toast
   end
+  activate workspacecontroller
+  activate workspaceserviceimpl
 end
 workspaceserviceimpl -> workspaceinvitationrepository: save(new WorkspaceInvitation(...))
+activate workspaceinvitationrepository
 workspaceinvitationrepository --> workspaceserviceimpl: WorkspaceInvitation
+deactivate workspaceinvitationrepository
 workspaceserviceimpl -> workspacerepository: findById(workspaceId)
+activate workspacerepository
 workspacerepository --> workspaceserviceimpl: Workspace
+deactivate workspacerepository
 workspaceserviceimpl -> mailservice: sendInvitationEmail(email, token)
+activate mailservice
 mailservice --> workspaceserviceimpl: sent
+deactivate mailservice
 workspaceserviceimpl --> workspacecontroller: void
+deactivate workspaceserviceimpl
 workspacecontroller --> workspacememberspage_ui: 200 OK
+deactivate workspacecontroller
 workspacememberspage_ui --> workspace_manager: shows 200 toast
+deactivate workspacememberspage_ui
 
 @enduml

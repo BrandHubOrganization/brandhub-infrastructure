@@ -22,44 +22,66 @@ entity "AgencyResponse" as agencyresponse
 
 ' === Flow ===
 user -> createagencypage_ui: submits form(type)
+activate createagencypage_ui
 createagencypage_ui -> agencycontroller: POST /api/v1/agencies
+activate agencycontroller
 
 opt !valid(request)
   agencycontroller --> createagencypage_ui: 400 Bad Request
+  deactivate agencycontroller
   createagencypage_ui --> user: shows 400 toast
 end
+activate agencycontroller
 
 agencycontroller -> agencyserviceimpl: createAgency(currentUser, request)
+activate agencyserviceimpl
 
 agencyserviceimpl -> agency: new Agency(request, currentUser.getId())
+activate agency
 agency --> agencyserviceimpl: Agency
+deactivate agency
 agencyserviceimpl -> agencyrepository: save(agency)
+activate agencyrepository
 agencyrepository --> agencyserviceimpl: Agency
+deactivate agencyrepository
 
 agencyserviceimpl -> agencymemberrepository: save(new AgencyMember(...))
+activate agencymemberrepository
 agencymemberrepository --> agencyserviceimpl: AgencyMember
+deactivate agencymemberrepository
 
 alt type == PERSONAL
   agencyserviceimpl -> workspace: new Workspace(...)
+  activate workspace
   workspace --> agencyserviceimpl: Workspace
+  deactivate workspace
   agencyserviceimpl -> workspacerepository: save(workspace)
+  activate workspacerepository
   workspacerepository --> agencyserviceimpl: Workspace
+  deactivate workspacerepository
 
   agencyserviceimpl -> workspacememberrepository: save(new WorkspaceMember(...))
+  activate workspacememberrepository
   workspacememberrepository --> agencyserviceimpl: WorkspaceMember
+  deactivate workspacememberrepository
   agencyserviceimpl -> agencyresponse: toResponse(agency, OWNER, workspaceId)
+  activate agencyresponse
 else type == BUSINESS
   agencyserviceimpl -> agencyresponse: toResponse(agency, OWNER, null)
 end
 
 agencyresponse --> agencyserviceimpl: AgencyResponse
+deactivate agencyresponse
 agencyserviceimpl -> agencycontroller: AgencyResponse
 agencycontroller --> createagencypage_ui: 201 Created
+deactivate agencycontroller
 
 alt type == PERSONAL
   createagencypage_ui --> user: navigates to workspace dashboard
 else type == BUSINESS
   createagencypage_ui --> user: navigates to agency dashboard
+  deactivate createagencypage_ui
 end
 
+deactivate agencyserviceimpl
 @enduml

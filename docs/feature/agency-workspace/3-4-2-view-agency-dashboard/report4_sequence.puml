@@ -17,23 +17,39 @@ entity "AgencyMemberRepository" as agencymemberrepository
 
 ' === Flow ===
 user -> agencydashboardpage_ui: opens dashboard
+activate agencydashboardpage_ui
 agencydashboardpage_ui -> agencycontroller: GET /api/v1/agencies/{agencyId}/dashboard
+activate agencycontroller
 agencycontroller -> agencyserviceimpl: getDashboard(agencyId, currentUser)
+activate agencyserviceimpl
 agencyserviceimpl -> agencyrepository: findById(agencyId)
+activate agencyrepository
 agencyrepository --> agencyserviceimpl: Optional<Agency>
+deactivate agencyrepository
 agencyserviceimpl -> agencyrepository: findByAgencyIdAndUserId(agencyId, userId)
+activate agencyrepository
 agencyrepository --> agencyserviceimpl: Optional<AgencyMember>
+deactivate agencyrepository
 alt caller in {OWNER, MEMBER}
   agencyserviceimpl -> agencymemberrepository: countByAgencyId(agencyId)
+  activate agencymemberrepository
   agencymemberrepository --> agencyserviceimpl: member count
+  deactivate agencymemberrepository
   agencyserviceimpl -> agencyserviceimpl: calculateDashboardSummary()
   agencyserviceimpl --> agencycontroller: 200 OK
+  deactivate agencyserviceimpl
   agencycontroller --> agencydashboardpage_ui: 200 OK 200 OK
+  deactivate agencycontroller
   agencydashboardpage_ui --> user: renders dashboard summary
 else caller !in {OWNER, MEMBER}
+  activate agencyserviceimpl
+  activate agencycontroller
   agencyserviceimpl --> agencycontroller: 403 FORBIDDEN
+  deactivate agencyserviceimpl
   agencycontroller --> agencydashboardpage_ui: 403 FORBIDDEN
+  deactivate agencycontroller
   agencydashboardpage_ui --> user: displays 403 Forbidden error toast
+  deactivate agencydashboardpage_ui
 end
 
 @enduml

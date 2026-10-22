@@ -1,0 +1,91 @@
+@startuml 3.10.6 - Search users and view strike history
+title Sequence Diagram — 3.10.6 - Search users and view strike history
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "System Administrator" as systemadministrator
+boundary "AdminAccountsPanel / AdminStrikeDialog (UI)" as adminaccountspanelad
+boundary "AdminController" as admincontroller
+control "AdminAccountQueryService" as adminaccountqueryser
+control "AdminAccountService" as adminaccountservice
+entity "UserRepository" as userrepository
+entity "UserStrikeRepository" as userstrikerepository
+entity "SanctionReviewRepository" as sanctionreviewreposi
+entity "User / UserStrike" as useruserstrike
+
+' === Flow ===
+adminaccountspanelad -> admincontroller: GET /api/v1/admin/users OR /users/{id}/violations
+activate admincontroller
+admincontroller -> adminaccountqueryser: list(actor, filter) / history(actor, userId, page)
+activate adminaccountqueryser
+adminaccountqueryser -> adminaccountqueryser: Validate filters and pagination
+activate systemadministrator
+systemadministrator -> adminaccountspanelad: Search accounts or view strike history
+adminaccountqueryser -> adminaccountservice: requireAdmin(actor)
+activate adminaccountservice
+adminaccountservice --> adminaccountqueryser: ADMIN verified (void) / BusinessException(FORBIDDEN)
+deactivate adminaccountservice
+adminaccountqueryser --> admincontroller: BusinessException(errorCode)
+deactivate adminaccountqueryser
+admincontroller --> adminaccountspanelad: 403 / 400 — request rejected
+deactivate admincontroller
+adminaccountspanelad --> systemadministrator: Show the error; keep filters
+
+alt Search accounts
+  activate adminaccountqueryser
+  adminaccountqueryser -> userrepository: findAdminUsers(search, status, role, pageable)
+  activate userrepository
+  userrepository --> adminaccountqueryser: Page<User>, including an empty page
+  deactivate userrepository
+else View strike history
+  adminaccountqueryser -> userrepository: findById(userId)
+  activate userrepository
+  userrepository --> adminaccountqueryser: Optional<User>
+  deactivate userrepository
+end
+
+
+alt History account not found
+  adminaccountqueryser --> admincontroller: BusinessException(USER_NOT_FOUND)
+  deactivate adminaccountqueryser
+  admincontroller --> adminaccountspanelad: 404 — account not found
+end
+activate adminaccountqueryser
+
+adminaccountspanelad --> systemadministrator: Show the error; return to account list
+
+opt Viewing strike history
+  adminaccountqueryser -> userstrikerepository: findByUserIdOrderByCreatedAtDescIdDesc(userId, pageable)
+  activate userstrikerepository
+  userstrikerepository --> adminaccountqueryser: Page<UserStrike>
+  deactivate userstrikerepository
+end
+
+
+opt Returned account list is not empty
+  adminaccountqueryser -> useruserstrike: Read account and strike fields
+  activate useruserstrike
+  useruserstrike --> adminaccountqueryser: Account IDs/status and history fields
+  deactivate useruserstrike
+  adminaccountqueryser -> sanctionreviewreposi: findByUserIdInAndStatus(userIds, "PENDING")
+  activate sanctionreviewreposi
+  sanctionreviewreposi --> adminaccountqueryser: Pending sanction reviews
+  deactivate sanctionreviewreposi
+  adminaccountqueryser -> userstrikerepository: findByUserIdInAndRemovedAtIsNullAndExpiresAtAfter (userIds, now)
+  activate userstrikerepository
+  userstrikerepository --> adminaccountqueryser: Live strikes for counters
+  deactivate userstrikerepository
+end
+
+adminaccountqueryser --> admincontroller: AdminPageResponse<AdminUserResponse> / AdminStrikeSummary
+deactivate adminaccountqueryser
+admincontroller --> adminaccountspanelad: 200 OK — includes valid empty pages
+adminaccountspanelad --> systemadministrator: Show accounts, counters, history and pagination
+
+deactivate systemadministrator
+@enduml
