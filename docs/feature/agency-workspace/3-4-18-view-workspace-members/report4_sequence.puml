@@ -20,39 +20,69 @@ entity "WorkspaceMemberResponse" as workspacememberresponse
 
 ' === Flow ===
 member_manager_creator_client -> workspacememberspage_ui: opens /workspaces/:id/members
+activate workspacememberspage_ui
 workspacememberspage_ui -> workspacecontroller: GET /workspaces/{workspaceId}/members
+activate workspacecontroller
 workspacecontroller -> workspaceserviceimpl: listMembers(workspaceId, currentUser)
+activate workspaceserviceimpl
 workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
+activate workspacerepository
 workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+deactivate workspacerepository
 opt !workspace.present
   workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+  deactivate workspaceserviceimpl
   workspacecontroller --> workspacememberspage_ui: 404 Error response
+  deactivate workspacecontroller
   workspacememberspage_ui --> member_manager_creator_client: shows 404 toast
 end
+activate workspacecontroller
+activate workspaceserviceimpl
 workspaceserviceimpl -> workspacememberrepository: assertActiveMember(workspaceId, userId)
+activate workspacememberrepository
 workspacememberrepository --> workspaceserviceimpl: Optional<WorkspaceMember>
+deactivate workspacememberrepository
 opt !isDirectMember
   workspaceserviceimpl -> clientprofilerepository: findByUserId(userId)
+  activate clientprofilerepository
   clientprofilerepository --> workspaceserviceimpl: List<ClientProfile>
+  deactivate clientprofilerepository
   workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndIsActiveTrue(workspaceId)
+  activate workspacememberrepository
   workspaceserviceimpl -> workspaceserviceimpl: checkClientRole(member)
   workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+  deactivate workspacememberrepository
 end
 opt !activeMember
   workspaceserviceimpl --> workspacecontroller: throw 403 WORKSPACE_ACCESS_DENIED
+  deactivate workspaceserviceimpl
   workspacecontroller --> workspacememberspage_ui: 403 Forbidden error response
+  deactivate workspacecontroller
   workspacememberspage_ui --> member_manager_creator_client: shows 403 toast
 end
+activate workspacecontroller
+activate workspaceserviceimpl
 workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndIsActiveTrue(workspaceId)
+activate workspacememberrepository
 workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+deactivate workspacememberrepository
 workspaceserviceimpl -> userrepository: findAllById(userIds)
+activate userrepository
 userrepository --> workspaceserviceimpl: Map<UUID, User>
+deactivate userrepository
 workspaceserviceimpl -> clientprofilerepository: findAllById(clientProfileIds)
+activate clientprofilerepository
 clientprofilerepository --> workspaceserviceimpl: Map<UUID, ClientProfile>
+deactivate clientprofilerepository
 workspaceserviceimpl -> workspacememberresponse: new WorkspaceMemberResponse(...)
+activate workspacememberresponse
 workspacememberresponse --> workspaceserviceimpl: WorkspaceMemberResponse
+deactivate workspacememberresponse
 workspaceserviceimpl --> workspacecontroller: List<WorkspaceMemberResponse>
+deactivate workspaceserviceimpl
 workspacecontroller --> workspacememberspage_ui: 200 OK List<WorkspaceMemberResponse>
+deactivate workspacecontroller
 workspacememberspage_ui --> member_manager_creator_client: renders members
+deactivate workspacememberspage_ui
 
 @enduml

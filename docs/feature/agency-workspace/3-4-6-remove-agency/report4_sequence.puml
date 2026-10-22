@@ -18,35 +18,63 @@ entity "WorkspaceRepository" as workspacerepository
 
 ' === Flow ===
 owner -> agencysettingspage_ui: selects Remove on Agency settings, confirms
+activate agencysettingspage_ui
 agencysettingspage_ui -> agencycontroller: DELETE /api/v1/agencies/{agencyId}
+activate agencycontroller
 agencycontroller -> agencyserviceimpl: removeAgency(agencyId, currentUser)
+activate agencyserviceimpl
 alt !agency.present
   agencyserviceimpl -> agencyrepository: findById(agencyId)
+  activate agencyrepository
   agencyrepository --> agencyserviceimpl: Optional.empty()
+  deactivate agencyrepository
   agencyserviceimpl --> agencycontroller: throw AGENCY_NOT_FOUND (404)
+  deactivate agencyserviceimpl
   agencycontroller --> agencysettingspage_ui: 404 AGENCY_NOT_FOUND
+  deactivate agencycontroller
   agencysettingspage_ui --> owner: shows 404 toast
 else agency.present
+  activate agencyserviceimpl
+  activate agencycontroller
   agencyserviceimpl -> agencyrepository: findById(agencyId)
+  activate agencyrepository
   agencyrepository --> agencyserviceimpl: Optional<Agency>
+  deactivate agencyrepository
   agencyserviceimpl -> agency: getOwnerId()
+  activate agency
   agency --> agencyserviceimpl: ownerId
+  deactivate agency
   opt caller != OWNER
     agencyserviceimpl --> agencycontroller: throw NOT_AGENCY_OWNER (403)
+    deactivate agencyserviceimpl
     agencycontroller --> agencysettingspage_ui: 403 NOT_AGENCY_OWNER
+    deactivate agencycontroller
     agencysettingspage_ui --> owner: shows 403 toast
   end
+  activate agencyserviceimpl
+  activate agencycontroller
   agencyserviceimpl -> agency: setStatus(SOFT_DELETED)
+  activate agency
   agency --> agencyserviceimpl: Agency
+  deactivate agency
   agencyserviceimpl -> agencyrepository: save(agency)
+  activate agencyrepository
   agencyrepository --> agencyserviceimpl: Agency
+  deactivate agencyrepository
   agencyserviceimpl -> workspacerepository: findByAgencyId(agencyId)
+  activate workspacerepository
   workspacerepository --> agencyserviceimpl: List<Workspace>
+  deactivate workspacerepository
   agencyserviceimpl -> agencyserviceimpl: softDeleteWorkspaces(agencyId)
   agencyserviceimpl -> workspacerepository: saveAll(workspaces)
+  activate workspacerepository
   agencyserviceimpl --> agencycontroller: 204 No Content
+  deactivate agencyserviceimpl
   agencycontroller --> agencysettingspage_ui: 204 No Content
+  deactivate agencycontroller
   agencysettingspage_ui --> owner: shows confirmation, updates screen
+  deactivate agencysettingspage_ui
 end
 
+deactivate workspacerepository
 @enduml

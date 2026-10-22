@@ -1,0 +1,72 @@
+@startuml 3.6.24 - Track Livestream Status
+title Sequence Diagram — 3.6.24 - Track Livestream Status
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Manager / Creator" as managercreator
+control "LivestreamTaskServiceImpl" as livestreamtaskservic
+boundary "TaskDetailPage (UI)" as taskdetailpageui
+entity "LivestreamIdeaResponse" as livestreamidearespon
+entity "TaskRepository" as taskrepository
+boundary "LivestreamTaskController" as livestreamtaskcontro
+
+' === Flow ===
+managercreator -> taskdetailpageui: Select new livestream progress state (PRE_LIVE, LIVE, POST_LIVE, DONE, CANCEL)
+activate taskdetailpageui
+taskdetailpageui -> livestreamtaskcontro: PATCH /api/v1/workspaces/{wId}/tasks/{taskId}/livestream/status { "targetStatus": "LIVE" }
+activate livestreamtaskcontro
+livestreamtaskcontro -> livestreamtaskservic: updateLivestreamStatus(workspaceId, taskId, targetStatus, currentUser)
+activate livestreamtaskservic
+livestreamtaskservic -> taskrepository: findByIdAndWorkspaceId(taskId, workspaceId)
+activate taskrepository
+taskrepository --> livestreamtaskservic: return Optional<Task>
+deactivate taskrepository
+
+alt Task Not Found (Optional is empty)
+  livestreamtaskservic --> livestreamtaskcontro: throw TASK_NOT_FOUND (404 Not Found)
+  deactivate livestreamtaskservic
+  livestreamtaskcontro --> taskdetailpageui: return 404 Not Found (Task not found in workspace)
+  deactivate livestreamtaskcontro
+  taskdetailpageui --> managercreator: Display error: "Task not found in workspace"
+else Task is not LIVESTREAM type (task.getType() != 'LIVESTREAM')
+  activate livestreamtaskcontro
+  activate livestreamtaskservic
+  livestreamtaskservic --> livestreamtaskcontro: throw INVALID_TASK_TYPE (400 Bad Request)
+  deactivate livestreamtaskservic
+  livestreamtaskcontro --> taskdetailpageui: return 400 Bad Request (Task must be of type Livestream)
+  deactivate livestreamtaskcontro
+  taskdetailpageui --> managercreator: Display error message: "Task must be of type Livestream"
+else Invalid State Transition (Violates Livestream State Machine)
+  activate livestreamtaskcontro
+  activate livestreamtaskservic
+  livestreamtaskservic --> livestreamtaskcontro: throw INVALID_LIVESTREAM_TRANSITION (409 Conflict)
+  deactivate livestreamtaskservic
+  livestreamtaskcontro --> taskdetailpageui: return 409 Conflict (Illegal state transition from current status)
+  deactivate livestreamtaskcontro
+  taskdetailpageui --> managercreator: Display error: "Cannot transition from current status to requested status"
+else Valid Transition
+  activate livestreamtaskcontro
+  activate livestreamtaskservic
+  livestreamtaskservic -> livestreamtaskservic: transitionLivestreamStatus(task, targetStatus)
+  livestreamtaskservic -> taskrepository: save(task)
+  activate taskrepository
+  taskrepository --> livestreamtaskservic: return savedTask
+  deactivate taskrepository
+  livestreamtaskservic -> livestreamidearespon: toLivestreamStatusResponse(savedTask)
+  activate livestreamidearespon
+  livestreamidearespon --> livestreamtaskservic: return statusResponse
+  deactivate livestreamidearespon
+  livestreamtaskservic --> livestreamtaskcontro: return statusResponse
+  deactivate livestreamtaskservic
+  livestreamtaskcontro --> taskdetailpageui: return 200 OK (Updated livestream status)
+  deactivate livestreamtaskcontro
+  taskdetailpageui --> managercreator: Update Stepper badge, refresh active state controls (e.g. enable Submit for Approval if DONE)
+  deactivate taskdetailpageui
+end
+
+@enduml

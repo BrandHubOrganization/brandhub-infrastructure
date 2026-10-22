@@ -19,70 +19,126 @@ entity "WorkspaceResponse" as workspaceresponse
 
 alt deletes workspace
   agency_owner -> workspacedetailpage_danger_zone_ui: confirms delete
+  activate workspacedetailpage_danger_zone_ui
   workspacedetailpage_danger_zone_ui -> workspacecontroller: DELETE /api/v1/workspaces/{workspaceId}
+  activate workspacecontroller
   workspacecontroller -> workspaceserviceimpl: deleteWorkspace(currentUser, workspaceId)
+  activate workspaceserviceimpl
   workspaceserviceimpl -> workspacerepository: findById(workspaceId)
+  activate workspacerepository
   workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+  deactivate workspacerepository
   opt !workspace.present
     workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+    deactivate workspaceserviceimpl
     workspacecontroller --> workspacedetailpage_danger_zone_ui: 404 Not Found
+    deactivate workspacecontroller
     workspacedetailpage_danger_zone_ui --> agency_owner: shows 404 toast
   end
+  activate workspacecontroller
+  activate workspaceserviceimpl
   workspaceserviceimpl -> workspace: getAgencyId()
+  activate workspace
   workspace --> workspaceserviceimpl: agencyId
+  deactivate workspace
   workspaceserviceimpl -> agencyrepository: findById(agencyId)
+  activate agencyrepository
   agencyrepository --> workspaceserviceimpl: Optional<Agency>
+  deactivate agencyrepository
   opt !agency.present
     workspaceserviceimpl --> workspacecontroller: throw 404 AGENCY_NOT_FOUND
+    deactivate workspaceserviceimpl
     workspacecontroller --> workspacedetailpage_danger_zone_ui: 404 Not Found
+    deactivate workspacecontroller
     workspacedetailpage_danger_zone_ui --> agency_owner: shows 404 toast
   end
+  activate workspacecontroller
+  activate workspaceserviceimpl
   opt caller not Owner
     workspaceserviceimpl --> workspacecontroller: throw 403 FORBIDDEN
+    deactivate workspaceserviceimpl
     workspacecontroller --> workspacedetailpage_danger_zone_ui: 403 Forbidden
+    deactivate workspacecontroller
     workspacedetailpage_danger_zone_ui --> agency_owner: shows 403 toast
   end
+  activate workspacecontroller
+  activate workspaceserviceimpl
   workspaceserviceimpl -> workspace: setStatus(SOFT_DELETED)
+  activate workspace
   workspace --> workspaceserviceimpl: Workspace
+  deactivate workspace
   workspaceserviceimpl -> workspacerepository: save(workspace)
+  activate workspacerepository
   workspacerepository --> workspaceserviceimpl: Workspace
+  deactivate workspacerepository
   workspaceserviceimpl --> workspacecontroller: 200 OK
+  deactivate workspaceserviceimpl
   workspacecontroller --> workspacedetailpage_danger_zone_ui: 200 OK
+  deactivate workspacecontroller
   workspacedetailpage_danger_zone_ui --> agency_owner: shows 200 toast
 else restores workspace
   agency_owner -> workspacedetailpage_danger_zone_ui: clicks Restore Workspace
   workspacedetailpage_danger_zone_ui -> workspacecontroller: POST /api/v1/workspaces/{workspaceId}/restore
+  activate workspacecontroller
   workspacecontroller -> workspaceserviceimpl: restoreWorkspace(currentUser, workspaceId)
+  activate workspaceserviceimpl
   workspaceserviceimpl -> workspacerepository: findById(workspaceId)
+  activate workspacerepository
   workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+  deactivate workspacerepository
   opt !workspace.present
     workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+    deactivate workspaceserviceimpl
     workspacecontroller --> workspacedetailpage_danger_zone_ui: 404 Not Found
+    deactivate workspacecontroller
     workspacedetailpage_danger_zone_ui --> agency_owner: shows 404 toast
   end
+  activate workspacecontroller
+  activate workspaceserviceimpl
   workspaceserviceimpl -> workspace: getAgencyId()
+  activate workspace
   workspace --> workspaceserviceimpl: agencyId
+  deactivate workspace
   workspaceserviceimpl -> agencyrepository: findById(agencyId)
+  activate agencyrepository
   agencyrepository --> workspaceserviceimpl: Optional<Agency>
+  deactivate agencyrepository
   opt !agency.present
     workspaceserviceimpl --> workspacecontroller: throw 404 AGENCY_NOT_FOUND
+    deactivate workspaceserviceimpl
     workspacecontroller --> workspacedetailpage_danger_zone_ui: 404 Not Found
+    deactivate workspacecontroller
     workspacedetailpage_danger_zone_ui --> agency_owner: shows 404 toast
   end
+  activate workspacecontroller
+  activate workspaceserviceimpl
   opt caller not Owner
     workspaceserviceimpl --> workspacecontroller: throw 403 FORBIDDEN
+    deactivate workspaceserviceimpl
     workspacecontroller --> workspacedetailpage_danger_zone_ui: 403 Forbidden
+    deactivate workspacecontroller
     workspacedetailpage_danger_zone_ui --> agency_owner: shows 403 toast
   end
+  activate workspacecontroller
+  activate workspaceserviceimpl
   workspaceserviceimpl -> workspace: setStatus(ACTIVE)
+  activate workspace
   workspace --> workspaceserviceimpl: Workspace
+  deactivate workspace
   workspaceserviceimpl -> workspacerepository: save(workspace)
+  activate workspacerepository
   workspacerepository --> workspaceserviceimpl: Workspace
+  deactivate workspacerepository
   workspaceserviceimpl -> workspaceresponse: toResponse(workspace)
+  activate workspaceresponse
   workspaceresponse --> workspaceserviceimpl: WorkspaceResponse
+  deactivate workspaceresponse
   workspaceserviceimpl --> workspacecontroller: WorkspaceResponse
+  deactivate workspaceserviceimpl
   workspacecontroller --> workspacedetailpage_danger_zone_ui: 200 OK WorkspaceResponse
+  deactivate workspacecontroller
   workspacedetailpage_danger_zone_ui --> agency_owner: shows 200 toast
+  deactivate workspacedetailpage_danger_zone_ui
 end
 
 @enduml

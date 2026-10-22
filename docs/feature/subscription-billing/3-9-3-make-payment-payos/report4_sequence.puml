@@ -1,0 +1,162 @@
+@startuml 3.9.3 - Make Payment (PayOs)
+title Sequence Diagram — 3.9.3 - Make Payment (PayOs)
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+entity "PaymentReceiptRepository" as paymentreceiptreposi
+entity "AiCreditAccountRepository" as aicreditaccountrepos
+entity "UserSubscriptionRepository" as usersubscriptionrepo
+entity "Billing / Callback controllers" as billingcallbackcontr
+entity "Billing / Webhook /
+Provisioning services" as billingwebhookprovis
+entity "PayOS" as payos
+entity "TransactionRepository" as transactionrepositor
+actor "USER (own order)" as userownorder
+
+' --- Section: 3.9.3a - Make Payment (PayOS) ---
+billingwebhookprovis -> billingwebhookprovis: Check ownership, priced terms and idempotent request
+userownorder -> webdashboard: Confirm owned upgrade or credit purchase
+activate webdashboard
+webdashboard -> billingcallbackcontr: POST /api/v1/billing/transactions
+activate billingcallbackcontr
+billingcallbackcontr -> billingwebhookprovis: createPayment(user, request)
+activate billingwebhookprovis
+billingwebhookprovis -> transactionrepositor: Load owned active transactions
+activate transactionrepositor
+transactionrepositor --> billingwebhookprovis: Transaction
+deactivate transactionrepositor
+
+loop invalid access / validation error / quote expired
+  billingwebhookprovis --> billingcallbackcontr: 400 Bad Request / 401 Unauthorized / 409 Conflict
+  deactivate billingwebhookprovis
+  billingcallbackcontr --> webdashboard: 400 Bad Request / 401 Unauthorized / 409 Conflict
+  deactivate billingcallbackcontr
+  webdashboard --> userownorder: Display access or quote validation error
+end
+activate billingwebhookprovis
+activate billingcallbackcontr
+
+billingwebhookprovis -> transactionrepositor: Save PENDING order
+activate transactionrepositor
+transactionrepositor --> billingwebhookprovis: pendingOutcome
+deactivate transactionrepositor
+billingwebhookprovis -> payos: Create PayOS checkout
+activate payos
+payos --> billingwebhookprovis: checkoutOutcome
+deactivate payos
+
+alt checkout creation failed
+  billingwebhookprovis --> billingcallbackcontr: 503 Service Unavailable
+  deactivate billingwebhookprovis
+  billingcallbackcontr --> webdashboard: 503 Service Unavailable
+  deactivate billingcallbackcontr
+  webdashboard --> userownorder: Display payment gateway unavailable
+else checkout created
+  activate billingcallbackcontr
+  activate billingwebhookprovis
+  billingwebhookprovis -> transactionrepositor: Update order with checkout link
+  activate transactionrepositor
+  transactionrepositor --> billingwebhookprovis: updateOutcome
+  deactivate transactionrepositor
+  billingwebhookprovis --> billingcallbackcontr: 201 Created
+  deactivate billingwebhookprovis
+  billingcallbackcontr --> webdashboard: 201 Created
+  deactivate billingcallbackcontr
+  webdashboard --> userownorder: Display PayOS checkout link
+end
+activate billingcallbackcontr
+activate billingwebhookprovis
+
+userownorder -> payos: Pay through PayOS checkout
+activate payos
+
+' --- Section: 3.9.3b - Verify and Provision Payment ---
+payos -> billingcallbackcontr: Payment webhook callback
+billingwebhookprovis -> billingwebhookprovis: Verify PayOS signature and payment data
+billingcallbackcontr -> billingwebhookprovis: receiveWebhook(payload)
+
+loop invalid webhook signature
+  billingwebhookprovis --> billingcallbackcontr: 401 Unauthorized
+  deactivate billingwebhookprovis
+  billingcallbackcontr --> payos: Reject webhook call
+  deactivate billingcallbackcontr
+end
+activate billingcallbackcontr
+activate billingwebhookprovis
+
+billingwebhookprovis -> transactionrepositor: Find order by verified transaction ID
+activate transactionrepositor
+transactionrepositor --> billingwebhookprovis: order
+deactivate transactionrepositor
+billingwebhookprovis -> paymentreceiptreposi: Save durable receipt
+activate paymentreceiptreposi
+paymentreceiptreposi --> billingwebhookprovis: receiptOutcome
+deactivate paymentreceiptreposi
+
+alt verified paid purchase
+  billingwebhookprovis -> usersubscriptionrepo: Apply purchased subscription / plan
+  activate usersubscriptionrepo
+  usersubscriptionrepo --> billingwebhookprovis: planOutcome
+  deactivate usersubscriptionrepo
+  billingwebhookprovis -> aicreditaccountrepos: Grant purchased credits
+  activate aicreditaccountrepos
+  aicreditaccountrepos --> billingwebhookprovis: creditOutcome
+  deactivate aicreditaccountrepos
+  billingwebhookprovis -> transactionrepositor: Mark order SUCCESS
+  activate transactionrepositor
+  transactionrepositor --> billingwebhookprovis: successOutcome
+  deactivate transactionrepositor
+  billingwebhookprovis --> billingcallbackcontr: 200 OK
+  deactivate billingwebhookprovis
+  billingcallbackcontr --> payos: Acknowledge webhook 200 OK
+  deactivate billingcallbackcontr
+else payment failed or cancelled
+  activate billingcallbackcontr
+  activate billingwebhookprovis
+  billingwebhookprovis -> transactionrepositor: Mark order FAILED / CANCELLED
+  activate transactionrepositor
+  transactionrepositor --> billingwebhookprovis: failOutcome
+  deactivate transactionrepositor
+  billingwebhookprovis --> billingcallbackcontr: 200 OK
+  deactivate billingwebhookprovis
+  billingcallbackcontr --> payos: Acknowledge webhook 200 OK
+  deactivate billingcallbackcontr
+end
+activate billingcallbackcontr
+activate billingwebhookprovis
+
+' --- Section: 3.9.3c - Read Owned Payment Status ---
+billingwebhookprovis -> billingwebhookprovis: Check session, scope and order ownership
+userownorder -> webdashboard: Return from checkout / Check Status
+webdashboard -> billingcallbackcontr: GET /api/v1/billing/transactions/{transactionId}
+billingcallbackcontr -> billingwebhookprovis: getTransaction(user, transactionId)
+billingwebhookprovis -> transactionrepositor: Load payment transaction status
+activate transactionrepositor
+transactionrepositor --> billingwebhookprovis: transaction
+deactivate transactionrepositor
+
+loop invalid session / forbidden / not found
+  billingwebhookprovis --> billingcallbackcontr: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate billingwebhookprovis
+  billingcallbackcontr --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate billingcallbackcontr
+  webdashboard --> userownorder: Display access or resource error
+end
+activate billingcallbackcontr
+activate billingwebhookprovis
+
+billingwebhookprovis --> billingcallbackcontr: 200 OK
+deactivate billingwebhookprovis
+billingcallbackcontr --> webdashboard: 200 OK
+deactivate billingcallbackcontr
+webdashboard --> userownorder: Display committed payment status
+deactivate webdashboard
+
+deactivate payos
+@enduml

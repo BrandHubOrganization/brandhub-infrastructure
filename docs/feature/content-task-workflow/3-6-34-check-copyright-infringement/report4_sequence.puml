@@ -1,0 +1,96 @@
+@startuml 3.6.34 - Check Copyright Infringement
+title Sequence Diagram — 3.6.34 - Check Copyright Infringement
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "ContentCheckController" as contentcheckcontroll
+control "ContentCheckService" as contentcheckservice
+entity "WorkspaceRepository" as workspacerepository
+entity "WorkspaceMemberRepository" as workspacememberrepos
+entity "AgencyRepository" as agencyrepository
+entity "Google Vision API" as googlevisionapi
+entity "ContentCheckResultRepository" as contentcheckresultre
+actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
+
+' === Flow ===
+creatorclientmanager -> webdashboard: Check Copyright on selected image/version
+activate webdashboard
+contentcheckservice -> contentcheckservice: Validate image and agreed provider/corpus/scope
+contentcheckservice -> contentcheckservice: Check content / conditional AI access
+webdashboard -> contentcheckcontroll: POST /api/v1/workspaces/{workspaceId}/tasks/{taskId}/copyright-check
+activate contentcheckcontroll
+contentcheckcontroll -> contentcheckservice: checkCopyright(user, command)
+activate contentcheckservice
+contentcheckservice -> workspacerepository: Load workspace
+activate workspacerepository
+workspacerepository --> contentcheckservice: Workspace
+deactivate workspacerepository
+contentcheckservice -> workspacememberrepos: Load membership
+activate workspacememberrepos
+workspacememberrepos --> contentcheckservice: WorkspaceMember
+deactivate workspacememberrepos
+contentcheckservice -> agencyrepository: Load agency
+activate agencyrepository
+agencyrepository --> contentcheckservice: Agency
+deactivate agencyrepository
+
+loop invalid session / forbidden / unavailable resource
+  contentcheckcontroll --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate contentcheckcontroll
+  contentcheckservice --> contentcheckcontroll: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate contentcheckservice
+  webdashboard --> creatorclientmanager: Display access or resource error
+end
+activate contentcheckservice
+activate contentcheckcontroll
+
+
+loop unsupported input / integration not configured
+  contentcheckcontroll --> webdashboard: 400 Bad Request / 503 Service Unavailable
+  deactivate contentcheckcontroll
+  contentcheckservice --> contentcheckcontroll: 400 Bad Request / 503 Service Unavailable
+  deactivate contentcheckservice
+  webdashboard --> creatorclientmanager: Display check unavailable
+end
+activate contentcheckservice
+activate contentcheckcontroll
+
+contentcheckservice -> googlevisionapi: Compare selected image [Google Vision proposed]
+activate googlevisionapi
+googlevisionapi --> contentcheckservice: matching sources / no matches / error
+deactivate googlevisionapi
+
+alt provider failed
+  contentcheckcontroll --> webdashboard: 503 Service Unavailable
+  deactivate contentcheckcontroll
+  contentcheckservice --> contentcheckcontroll: 503 Service Unavailable
+  deactivate contentcheckservice
+  webdashboard --> creatorclientmanager: Display COPYRIGHT_SERVICE_UNAVAILABLE; Retry
+end
+activate contentcheckservice
+activate contentcheckcontroll
+
+
+opt Evidence retention approved
+  contentcheckservice -> contentcheckresultre: Save versioned check evidence
+  activate contentcheckresultre
+  contentcheckresultre --> contentcheckservice: checkTrace
+  deactivate contentcheckresultre
+end
+
+else response available
+  contentcheckcontroll --> webdashboard: 200 OK
+  deactivate contentcheckcontroll
+  contentcheckservice --> contentcheckcontroll: 200 OK
+  deactivate contentcheckservice
+  webdashboard --> creatorclientmanager: Display versioned matches / no matches
+  deactivate webdashboard
+end
+
+@enduml

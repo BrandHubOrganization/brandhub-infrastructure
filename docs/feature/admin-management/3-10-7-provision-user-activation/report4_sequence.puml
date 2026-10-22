@@ -1,0 +1,58 @@
+@startuml 3.10.7 - Provision user and complete activation
+title Sequence Diagram — 3.10.7 - Provision user and complete activation
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Admin" as admin
+boundary "AdminUserManagementPage (UI)" as adminusermanagementp
+boundary "AdminUserController" as adminusercontroller
+control "AdminUserService" as adminuserservice
+entity "UserRepository" as userrepository
+control "MailService" as mailservice
+
+' === Flow ===
+admin -> adminusermanagementp: fills user details (name, email, role), clicks "Provision User"
+activate adminusermanagementp
+adminusermanagementp -> adminusercontroller: POST /api/v1/admin/users/provision (ProvisionUserRequest)
+activate adminusercontroller
+adminusercontroller -> adminuserservice: provisionUser(adminId, request)
+activate adminuserservice
+adminuserservice -> userrepository: existsByEmail(email)
+activate userrepository
+
+alt email already exists
+  userrepository --> adminuserservice: true
+  deactivate userrepository
+  adminuserservice --> adminusercontroller: 409 Conflict (EMAIL_ALREADY_IN_USE)
+  deactivate adminuserservice
+  adminusercontroller --> adminusermanagementp: 409 Conflict
+  deactivate adminusercontroller
+  adminusermanagementp --> admin: Show error "Email already in use"
+else email available
+  activate adminuserservice
+  activate adminusercontroller
+  activate userrepository
+  userrepository --> adminuserservice: false
+  deactivate userrepository
+  adminuserservice -> userrepository: save(newUser with status=PENDING_ACTIVATION)
+  activate userrepository
+  userrepository --> adminuserservice: savedUser
+  deactivate userrepository
+  adminuserservice -> mailservice: sendActivationEmail(email, activationToken)
+  activate mailservice
+  mailservice --> adminuserservice: ok
+  deactivate mailservice
+  adminuserservice --> adminusercontroller: 201 Created (UserProvisionResponse)
+  deactivate adminuserservice
+  adminusercontroller --> adminusermanagementp: 201 Created
+  deactivate adminusercontroller
+  adminusermanagementp --> admin: "User provisioned — activation email sent"
+  deactivate adminusermanagementp
+end
+
+@enduml

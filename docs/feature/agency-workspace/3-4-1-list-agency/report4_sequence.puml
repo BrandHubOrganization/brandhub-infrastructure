@@ -19,22 +19,38 @@ entity "AgencyResponse" as agencyresponse
 
 ' === Flow ===
 user -> agenciespage_ui: signs in, opens Agencies page
+activate agenciespage_ui
 agenciespage_ui -> agencycontroller: GET /api/v1/agencies
+activate agencycontroller
 agencycontroller -> agencyserviceimpl: listMyAgencies(currentUser)
+activate agencyserviceimpl
 agencyserviceimpl -> agencyrepository: findByOwnerIdAndStatusNot(userId, SOFT_DELETED)
+activate agencyrepository
 agencyrepository --> agencyserviceimpl: owned agency ids
+deactivate agencyrepository
 agencyserviceimpl -> agencymemberrepository: findByUserId(userId)
+activate agencymemberrepository
 agencymemberrepository --> agencyserviceimpl: member agency ids + roles
+deactivate agencymemberrepository
 agencyserviceimpl -> agencyserviceimpl: mergeAndDedupe(ids)
 agencyserviceimpl -> agencyrepository: findAllById(ids)
+activate agencyrepository
 agencyrepository --> agencyserviceimpl: List<Agency>
+deactivate agencyrepository
 agencyserviceimpl -> agency: isActive()
+activate agency
 agency --> agencyserviceimpl: boolean
+deactivate agency
 agencyserviceimpl -> agencyserviceimpl: filterActiveAgencies()
 agencyserviceimpl -> agencyresponse: toResponse(agency, role)
+activate agencyresponse
 agencyresponse --> agencyserviceimpl: List<AgencyResponse>
+deactivate agencyresponse
 agencyserviceimpl --> agencycontroller: List<AgencyResponse>
+deactivate agencyserviceimpl
 agencycontroller --> agenciespage_ui: 200 OK List<AgencyResponse>
+deactivate agencycontroller
 agenciespage_ui --> user: renders agencies
+deactivate agenciespage_ui
 
 @enduml

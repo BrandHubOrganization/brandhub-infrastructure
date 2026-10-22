@@ -18,34 +18,60 @@ entity "AgencyMember" as agencymember
 
 ' === Flow ===
 owner -> agencymemberspage_ui: clicks Remove on member, confirms
+activate agencymemberspage_ui
 agencymemberspage_ui -> agencycontroller: DELETE /api/v1/agencies/{agencyId}/members/{memberId}
+activate agencycontroller
 agencycontroller -> agencyserviceimpl: removeMember(agencyId, memberId, currentUser)
+activate agencyserviceimpl
 agencyserviceimpl -> agencyrepository: findAgencyOrThrow(agencyId)
+activate agencyrepository
 agencyrepository --> agencyserviceimpl: Agency
+deactivate agencyrepository
 opt caller != OWNER
   agencyserviceimpl --> agencycontroller: throw 403 NOT_AGENCY_OWNER
+  deactivate agencyserviceimpl
   agencycontroller --> agencymemberspage_ui: 403 Forbidden error response
+  deactivate agencycontroller
   agencymemberspage_ui --> owner: shows 403 toast
 end
+activate agencyserviceimpl
+activate agencycontroller
 agencyserviceimpl -> agencymemberrepository: findById(memberId)
+activate agencymemberrepository
 agencymemberrepository --> agencyserviceimpl: Optional<AgencyMember>
+deactivate agencymemberrepository
 opt !member.present || wrongAgency
   agencyserviceimpl --> agencycontroller: throw 404 NOT_FOUND
+  deactivate agencyserviceimpl
   agencycontroller --> agencymemberspage_ui: 404 Error response
+  deactivate agencycontroller
   agencymemberspage_ui --> owner: shows 404 toast
 end
+activate agencyserviceimpl
+activate agencycontroller
 agencyserviceimpl -> agencymember: getRole()
+activate agencymember
 agencymember --> agencyserviceimpl: role
+deactivate agencymember
 alt role == OWNER
   agencyserviceimpl --> agencycontroller: throw 409 CANNOT_REMOVE_OWNER
+  deactivate agencyserviceimpl
   agencycontroller --> agencymemberspage_ui: 409 Error response
+  deactivate agencycontroller
   agencymemberspage_ui --> owner: shows 409 toast
 else role != OWNER
+  activate agencyserviceimpl
+  activate agencycontroller
   agencyserviceimpl -> agencymemberrepository: delete(member)
+  activate agencymemberrepository
   agencymemberrepository --> agencyserviceimpl: void
+  deactivate agencymemberrepository
   agencyserviceimpl --> agencycontroller: 200 OK
+  deactivate agencyserviceimpl
   agencycontroller --> agencymemberspage_ui: 200 OK
+  deactivate agencycontroller
   agencymemberspage_ui --> owner: shows 200 toast
+  deactivate agencymemberspage_ui
 end
 
 @enduml

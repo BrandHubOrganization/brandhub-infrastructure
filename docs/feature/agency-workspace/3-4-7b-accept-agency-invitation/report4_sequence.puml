@@ -22,45 +22,77 @@ entity "AgencyMemberResponse" as agencymemberresponse
 
 ' === Flow: Invitee Accepts Invitation ===
 invitee -> invitationpage_ui: opens invitation link and clicks Accept
+activate invitationpage_ui
 invitationpage_ui -> agencycontroller: POST /api/v1/agencies/invitations/accept
+activate agencycontroller
 agencycontroller -> agencyserviceimpl: acceptInvitation(request, currentUser)
+activate agencyserviceimpl
 agencyserviceimpl -> agencyinvitationrepository: findByToken(request.token)
+activate agencyinvitationrepository
 agencyinvitationrepository --> agencyserviceimpl: Optional<AgencyInvitation>
+deactivate agencyinvitationrepository
 opt !validToken || expired || status != PENDING
   agencyserviceimpl --> agencycontroller: throw 400 INVALID_INVITATION
+  deactivate agencyserviceimpl
   agencycontroller --> invitationpage_ui: 400 Error response
+  deactivate agencycontroller
   invitationpage_ui --> invitee: shows 400 toast
 end
+activate agencyserviceimpl
+activate agencycontroller
 agencyserviceimpl -> userrepository: findById(currentUser.id)
+activate userrepository
 userrepository --> agencyserviceimpl: Optional<User>
+deactivate userrepository
 opt email != currentUser.email
   agencyserviceimpl --> agencycontroller: throw 400 INVALID_INVITATION
+  deactivate agencyserviceimpl
   agencycontroller --> invitationpage_ui: 400 Error response
+  deactivate agencycontroller
   invitationpage_ui --> invitee: shows 400 toast
 end
+activate agencyserviceimpl
+activate agencycontroller
 alt role == CLIENT
   opt clientProfile != null
     agencyserviceimpl -> clientprofilerepository: save(clientProfile)
+    activate clientprofilerepository
     clientprofilerepository --> agencyserviceimpl: ClientProfile
+    deactivate clientprofilerepository
   end
   agencyserviceimpl -> workspacememberrepository: save(clientWorkspaceMember)
+  activate workspacememberrepository
   workspacememberrepository --> agencyserviceimpl: WorkspaceMember
+  deactivate workspacememberrepository
 else role != CLIENT
   agencyserviceimpl -> agencymemberrepository: save(agencyMember)
+  activate agencymemberrepository
   agencymemberrepository --> agencyserviceimpl: AgencyMember
+  deactivate agencymemberrepository
   opt workspaceId != null
     agencyserviceimpl -> workspacememberrepository: save(workspaceMember)
+    activate workspacememberrepository
     workspacememberrepository --> agencyserviceimpl: WorkspaceMember
+    deactivate workspacememberrepository
   end
 end
 agencyserviceimpl -> agencyinvitation: setStatus(ACCEPTED)
+activate agencyinvitation
 agencyinvitation --> agencyserviceimpl: AgencyInvitation
+deactivate agencyinvitation
 agencyserviceimpl -> agencyinvitationrepository: save(invitation)
+activate agencyinvitationrepository
 agencyinvitationrepository --> agencyserviceimpl: AgencyInvitation
+deactivate agencyinvitationrepository
 agencyserviceimpl -> agencymemberresponse: toMemberResponse(member)
+activate agencymemberresponse
 agencymemberresponse --> agencyserviceimpl: AgencyMemberResponse
+deactivate agencymemberresponse
 agencyserviceimpl --> agencycontroller: AgencyMemberResponse
+deactivate agencyserviceimpl
 agencycontroller --> invitationpage_ui: 200 OK AgencyMemberResponse
+deactivate agencycontroller
 invitationpage_ui --> invitee: displays success toast
+deactivate invitationpage_ui
 
 @enduml
