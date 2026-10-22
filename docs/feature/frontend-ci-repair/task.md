@@ -1,0 +1,1 @@
+- [x] Tái hiện baseline. Khôi phục imports/biến thiếu; loại bỏ bindings thừa; sửa purity bằng lazy state/timer có cleanup; format; type-check/lint/build và diff-check PASS. Cảnh báo hiện có ghi tại test.md.
