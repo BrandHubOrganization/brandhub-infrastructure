@@ -1,5 +1,7 @@
 # UC — View AI Credit Tracking
 
+> **BA hiện hành 2026-10-19:** mở rộng Creator thành Manager/Creator/Owner, theo từng thành viên và kỳ subscription, không phải tháng dương lịch. Owner xem toàn Agency; thành viên xem mình. Owner không có trần cá nhân. Xem [member-credit/spec.md](../member-credit/spec.md) cho quyết định mới và trạng thái thực thi; API tracking tổng hợp bên dưới là thiết kế lịch sử, chưa được triển khai bởi configuration foundation.
+
 | | |
 |---|---|
 | FR Code | 3.9.5 |
