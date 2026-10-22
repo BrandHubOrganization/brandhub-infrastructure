@@ -21,41 +21,69 @@ entity "WorkspaceDashboardResponse" as workspacedashboardresponse
 
 ' === Flow ===
 member_manager_creator_client -> workspacedashboardpage_ui: opens Workspace dashboard
+activate workspacedashboardpage_ui
 workspacedashboardpage_ui -> workspacecontroller: GET /api/v1/workspaces/{workspaceId}/dashboard
+activate workspacecontroller
 opt !hasQualifyingRole
   workspacecontroller --> workspacedashboardpage_ui: 403 Forbidden error response
+  deactivate workspacecontroller
   workspacedashboardpage_ui --> member_manager_creator_client: displays error toast (403 FORBIDDEN)
 end
+activate workspacecontroller
 workspacecontroller -> workspaceserviceimpl: getDashboard(workspaceId, currentUser)
+activate workspaceserviceimpl
 workspaceserviceimpl -> workspacerepository: findWorkspaceOrThrow(workspaceId)
+activate workspacerepository
 workspacerepository --> workspaceserviceimpl: Optional<Workspace>
+deactivate workspacerepository
 opt !workspace.present
   workspaceserviceimpl --> workspacecontroller: throw 404 WORKSPACE_NOT_FOUND
+  deactivate workspaceserviceimpl
   workspacecontroller --> workspacedashboardpage_ui: 404 Error response
+  deactivate workspacecontroller
   workspacedashboardpage_ui --> member_manager_creator_client: shows 404 toast
 end
+activate workspacecontroller
+activate workspaceserviceimpl
 workspaceserviceimpl -> workspaceserviceimpl: assertMember(workspaceId, userId)
 opt !activeMember
   workspaceserviceimpl --> workspacecontroller: throw 403 WORKSPACE_ACCESS_DENIED
+  deactivate workspaceserviceimpl
   workspacecontroller --> workspacedashboardpage_ui: 403 Forbidden error response
+  deactivate workspacecontroller
   workspacedashboardpage_ui --> member_manager_creator_client: shows 403 toast
 end
+activate workspacecontroller
+activate workspaceserviceimpl
 workspaceserviceimpl -> workspacememberrepository: findByWorkspaceIdAndIsActiveTrue(workspaceId)
+activate workspacememberrepository
 workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+deactivate workspacememberrepository
 workspaceserviceimpl -> workspaceserviceimpl: groupByRole(members)
 workspaceserviceimpl -> workspacemediapackagerepository: findByWorkspaceId(workspaceId)
+activate workspacemediapackagerepository
 workspacemediapackagerepository --> workspaceserviceimpl: Optional<WorkspaceMediaPackage>
+deactivate workspacemediapackagerepository
 opt mediaPackage.present
   workspaceserviceimpl -> mediacampaignrepository: findByWorkspaceMediaPackageId(packageId)
+  activate mediacampaignrepository
   mediacampaignrepository --> workspaceserviceimpl: List<MediaCampaign>
+  deactivate mediacampaignrepository
   workspaceserviceimpl -> workspaceserviceimpl: groupByStatus(campaigns)
   workspaceserviceimpl -> aicreditledgerrepository: findByAgencyIdAndMonth(agencyId, month)
+  activate aicreditledgerrepository
 end
 aicreditledgerrepository --> workspaceserviceimpl: Optional<AiCreditLedger>
+deactivate aicreditledgerrepository
 workspaceserviceimpl -> workspacedashboardresponse: new WorkspaceDashboardResponse(...)
+activate workspacedashboardresponse
 workspacedashboardresponse --> workspaceserviceimpl: WorkspaceDashboardResponse
+deactivate workspacedashboardresponse
 workspaceserviceimpl --> workspacecontroller: WorkspaceDashboardResponse
+deactivate workspaceserviceimpl
 workspacecontroller --> workspacedashboardpage_ui: 200 OK WorkspaceDashboardResponse
+deactivate workspacecontroller
 workspacedashboardpage_ui --> member_manager_creator_client: renders metrics
+deactivate workspacedashboardpage_ui
 
 @enduml

@@ -1,0 +1,113 @@
+@startuml 3.8.9 - Publish Facebook Story (Photo / Video Story)
+title Sequence Diagram — 3.8.9 - Publish Facebook Story (Photo / Video Story)
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "RabbitMQ (brandhub.publishing)" as rabbitmqbrandhubpubl
+control "PublishCallbackConsumer (Business Service)" as publishcallbackconsu
+entity "Meta Graph API (Facebook)" as metagraphapifacebook
+control "FacebookPublishServiceImpl (Publisher Service)" as facebookpublishservi
+control "FacebookPublishAdapter (Publisher Service)" as facebookpublishadapt
+control "PublishJobConsumer (Publisher Service)" as publishjobconsumerpu
+control "PostMongoRepository (Business Service)" as postmongorepositoryb
+control "SchedulerServiceImpl (Business Service)" as schedulerserviceimpl
+actor "Scheduler (Job)" as schedulerjob
+
+' === Flow ===
+schedulerjob -> schedulerserviceimpl: triggerEveryMinute()
+activate schedulerserviceimpl
+schedulerserviceimpl -> postmongorepositoryb: findScheduledPosts(scheduledAt <= NOW(), status='SCHEDULED')
+activate postmongorepositoryb
+postmongorepositoryb --> schedulerserviceimpl: return List<PostDocument>
+deactivate postmongorepositoryb
+
+break For each scheduled Post
+  schedulerserviceimpl -> postmongorepositoryb: updateStatus(postId, 'IN_PROGRESS')
+  activate postmongorepositoryb
+  postmongorepositoryb --> schedulerserviceimpl: return 200 OK
+  deactivate postmongorepositoryb
+  schedulerserviceimpl -> rabbitmqbrandhubpubl: publish("brandhub.publishing", "publish.job", PublishJobMessage {platform='FACEBOOK', postType='STORY', ...})
+  activate rabbitmqbrandhubpubl
+  rabbitmqbrandhubpubl --> schedulerserviceimpl: return Acknowledgement
+  deactivate rabbitmqbrandhubpubl
+end
+
+activate rabbitmqbrandhubpubl
+rabbitmqbrandhubpubl -> publishjobconsumerpu: consume("publisher.job.queue", message)
+activate publishjobconsumerpu
+publishjobconsumerpu -> publishjobconsumerpu: checkRedisLockSETNX("processingPostIds:" + postId, ttl=30m)
+publishjobconsumerpu -> facebookpublishadapt: publish(jobMessage)
+activate facebookpublishadapt
+facebookpublishadapt -> facebookpublishservi: publish(jobMessage)
+activate facebookpublishservi
+facebookpublishservi -> facebookpublishservi: rateLimiter.acquire() & decryptToken(encryptedToken)
+
+alt Video Story (9:16 format, <=60s)
+  facebookpublishservi -> metagraphapifacebook: POST https://graph.facebook.com/v26.0/{pageId}/video_stories (video_url)
+  activate metagraphapifacebook
+else Photo Story (9:16 format)
+  facebookpublishservi -> metagraphapifacebook: POST https://graph.facebook.com/v26.0/{pageId}/photo_stories (photo_url)
+end
+
+metagraphapifacebook --> facebookpublishservi: return FacebookResponse { id: "story_98765" }
+deactivate metagraphapifacebook
+
+alt Facebook API Success (HTTP 200)
+  facebookpublishservi --> facebookpublishadapt: return PublishResult (status='SUCCESS', platformPostId='story_98765')
+  deactivate facebookpublishservi
+  facebookpublishadapt --> publishjobconsumerpu: return PublishResult
+  deactivate facebookpublishadapt
+  publishjobconsumerpu -> rabbitmqbrandhubpubl: channel.basicAck(deliveryTag)
+  publishjobconsumerpu -> rabbitmqbrandhubpubl: publish("brandhub.publishing", "publish.callback", CallbackMessage {status='SUCCESS', platformPostId='story_98765'})
+  rabbitmqbrandhubpubl --> publishjobconsumerpu: return ack
+  deactivate rabbitmqbrandhubpubl
+else Story API Error (Aspect ratio error / Expired Token / Rate Limit)
+  activate facebookpublishadapt
+  activate rabbitmqbrandhubpubl
+  activate facebookpublishservi
+  metagraphapifacebook --> facebookpublishservi: return Error Response (HTTP 400/401/429)
+  facebookpublishservi --> facebookpublishadapt: return PublishResult (status='FAILED', errorCode, errorMessage)
+  deactivate facebookpublishservi
+  facebookpublishadapt --> publishjobconsumerpu: return throw Exception
+  deactivate facebookpublishadapt
+  publishjobconsumerpu -> rabbitmqbrandhubpubl: basicNack -> Route to Dead Letter Queue ("publisher.job.dlq")
+  rabbitmqbrandhubpubl --> publishjobconsumerpu: return ack
+  deactivate rabbitmqbrandhubpubl
+  publishjobconsumerpu -> rabbitmqbrandhubpubl: publish("brandhub.publishing", "publish.callback", CallbackMessage {status='FAILED', error})
+  activate rabbitmqbrandhubpubl
+  rabbitmqbrandhubpubl --> publishjobconsumerpu: return ack
+  deactivate rabbitmqbrandhubpubl
+end
+activate facebookpublishadapt
+activate rabbitmqbrandhubpubl
+activate facebookpublishservi
+
+rabbitmqbrandhubpubl -> publishcallbackconsu: consume("business.publish_callback.queue", callbackMessage)
+activate publishcallbackconsu
+
+alt Status == 'SUCCESS'
+  publishcallbackconsu -> postmongorepositoryb: updateStatus(postId, 'PUBLISHED', platformPostId)
+  activate postmongorepositoryb
+  postmongorepositoryb --> publishcallbackconsu: return 200 OK
+  deactivate postmongorepositoryb
+else Status == 'FAILED'
+  publishcallbackconsu -> postmongorepositoryb: updateStatus(postId, 'FAILED', errorMessage)
+  activate postmongorepositoryb
+  postmongorepositoryb --> publishcallbackconsu: return 200 OK
+  deactivate postmongorepositoryb
+end
+
+publishcallbackconsu -> rabbitmqbrandhubpubl: channel.basicAck(deliveryTag)
+
+deactivate schedulerserviceimpl
+deactivate facebookpublishservi
+deactivate publishcallbackconsu
+deactivate rabbitmqbrandhubpubl
+deactivate publishjobconsumerpu
+deactivate facebookpublishadapt
+@enduml

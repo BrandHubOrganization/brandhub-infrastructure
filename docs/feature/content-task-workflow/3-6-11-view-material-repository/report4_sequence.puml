@@ -1,0 +1,109 @@
+@startuml 3.6.11 - View Material Repository
+title Sequence Diagram — 3.6.11 - View Material Repository
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "MaterialRepository" as materialrepository
+entity "AgencyRepository" as agencyrepository
+entity "WorkspaceMemberRepository" as workspacememberrepos
+entity "Material" as material
+entity "Agency" as agency
+boundary "Workspace Dashboard" as workspacedashboard
+boundary "MaterialController" as materialcontroller
+control "MaterialService" as materialservice
+entity "WorkspaceRepository" as workspacerepository
+entity "WorkspaceMember" as workspacemember
+entity "Workspace" as workspace
+actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
+
+' === Flow ===
+creatorclientmanager -> workspacedashboard: Browse materials or details
+activate workspacedashboard
+materialservice -> materialservice: Validate session and query
+agencyrepository -> agencyrepository: Check active workspace and view access
+else query succeeded
+  materialservice -> materialservice: Map metadata, badges and preview
+end
+
+workspacedashboard -> materialcontroller: GET workspace materials/brand-collection/
+activate materialcontroller
+materialcontroller -> materialservice: listMaterials()
+activate materialservice
+
+loop invalid session / query
+  materialservice --> materialcontroller: Validation error
+  deactivate materialservice
+  materialcontroller --> workspacedashboard: Show error
+  deactivate materialcontroller
+end
+activate materialcontroller
+activate materialservice
+
+materialservice ->> workspacerepository: Load workspace
+activate workspacerepository
+workspacerepository -> workspace: Read workspace
+activate workspace
+workspace --> workspacerepository: Workspace
+deactivate workspace
+workspacerepository --> materialservice: Workspace
+deactivate workspacerepository
+materialservice -> agencyrepository: Load membership
+activate agencyrepository
+agencyrepository ->> workspacemember: Read membership
+activate workspacemember
+workspacemember --> agencyrepository: WorkspaceMember
+deactivate workspacemember
+agencyrepository --> materialservice: WorkspaceMember
+deactivate agencyrepository
+materialservice ->> agencyrepository: Load agency
+activate agencyrepository
+agencyrepository -> agency: Read agency
+activate agency
+agency --> agencyrepository: Agency
+deactivate agency
+agencyrepository --> materialservice: Agency
+deactivate agencyrepository
+materialservice --> materialcontroller: Access error
+deactivate materialservice
+materialcontroller --> workspacedashboard: Show error
+deactivate materialcontroller
+activate materialservice
+materialservice ->> materialrepository: Load scoped page / detail
+activate materialrepository
+materialrepository ->> material: Read READY, non-deleted materials
+activate material
+material --> materialrepository: Materials / detail
+deactivate material
+materialrepository --> materialservice: Materials / detail
+deactivate materialrepository
+
+loop denied access
+  materialservice --> materialcontroller: Unavailable
+  deactivate materialservice
+  materialcontroller --> workspacedashboard: Notify and refresh list
+end
+activate materialservice
+
+
+alt query failed
+  materialservice --> materialcontroller: Load error
+  deactivate materialservice
+  materialcontroller --> workspacedashboard: Show error and Retry
+else query succeeded
+  activate materialservice
+  materialservice --> materialcontroller: Page / detail / empty result
+  deactivate materialservice
+  materialcontroller --> workspacedashboard: Show results
+end
+activate materialservice
+
+workspacedashboard --> creatorclientmanager: Display Material Resource
+deactivate workspacedashboard
+
+deactivate materialservice
+@enduml

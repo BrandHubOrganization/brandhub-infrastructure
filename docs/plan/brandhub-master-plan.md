@@ -1183,11 +1183,11 @@
 | DA-E51-06e | Apply Watermark to Material (FR 3.6.15) | Trung | M | `docs/feature/content-task-workflow/3-6-15-apply-watermark/spec.md` |
 | DA-E51-06f | Download Material (FR 3.6.16) | Tuấn | S | `docs/feature/content-task-workflow/3-6-16-download-material/spec.md` |
 | DA-E51-06g | Entity/Endpoint `brand_collections` (Client-supplied reference assets) | Tuấn | M | `docs/ba/05-content-task-workflow.md` |
-| DA-E51-07 | Apply Hashtag to Post Draft (FR 3.6.17) | Tuấn | S | `docs/feature/apply-hashtag-to-post/spec.md` |
-| DA-E51-07b | Workspace hashtag collection `workspace_hashtags` + View (FR 3.6.18) | Tuấn | S | `docs/feature/view-hashtag-collection/spec.md` |
-| DA-E51-07c | Add Hashtag to Collection (FR 3.6.19) | Tuấn | S | `docs/feature/add-hashtag-collection/spec.md` |
+| DA-E51-07 | Apply Hashtag to Post Draft (FR 3.6.17) | Tuấn | S | `docs/feature/content-task-workflow/apply-hashtag-to-post/spec.md` |
+| DA-E51-07b | Workspace hashtag collection `workspace_hashtags` + View (FR 3.6.18) | Tuấn | S | `docs/feature/content-task-workflow/view-hashtag-collection/spec.md` |
+| DA-E51-07c | Add Hashtag to Collection (FR 3.6.19) | Tuấn | S | `docs/feature/content-task-workflow/add-hashtag-collection/spec.md` |
 | DA-E51-07d | Update Hashtag in Collection (FR 3.6.20) | Tuấn | S | `docs/feature/content-task-workflow/3-6-20-update-hastag-collection/spec.md` |
-| DA-E51-07e | Remove Hashtag from Collection (FR 3.6.21) | Tuấn | S | `docs/feature/remove-hashtag-collection/spec.md` |
+| DA-E51-07e | Remove Hashtag from Collection (FR 3.6.21) | Tuấn | S | `docs/feature/content-task-workflow/remove-hashtag-collection/spec.md` |
 | DA-E51-08 | Write Livestream Idea (FR 3.6.22) | Phước | S | `docs/feature/content-task-workflow/3-6-22-write-livestream-idea/spec.md` |
 | DA-E51-08b | Write Livestream Script (FR 3.6.23) | Phước | S | `docs/feature/content-task-workflow/3-6-23-write-livestream-script/spec.md` |
 | DA-E51-08c | Track Livestream Status (FR 3.6.24) | Phước | M | `docs/feature/content-task-workflow/3-6-24-track-livestream-status/spec.md`, `docs/ba/12-state-machines.md` mục 5 |
@@ -10295,7 +10295,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] “Apply to Post” from the collection opens a new draft editor with the chosen hashtag prefilled.
 - [ ] Campaign-required hashtags cannot be applied to a draft without a campaign association.
 
-**Spec Reference:** `docs/feature/apply-hashtag-to-post/spec.md`
+**Spec Reference:** `docs/feature/content-task-workflow/apply-hashtag-to-post/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-07b, DA-E51-07c].
 
@@ -10312,7 +10312,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [x] `workspace_hashtags` table stores purpose, ownership, required campaign scope and soft-delete audit fields.
 - [x] `GET /api/v1/workspaces/{workspaceId}/hashtags` returns filtered, paged active entries with version for safe removal.
 
-**Spec Reference:** `docs/feature/view-hashtag-collection/spec.md`
+**Spec Reference:** `docs/feature/content-task-workflow/view-hashtag-collection/spec.md`
 
 **Dependencies:** Blocks: [DA-E51-07, DA-E51-07c, DA-E51-07d, DA-E51-07e].
 
@@ -10329,7 +10329,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [x] `POST /api/v1/workspaces/{workspaceId}/hashtags` accepts tag, purpose and scoped required-tag fields; returns 201.
 - [x] Workspace duplicate tag returns 409 `HASHTAG_ALREADY_EXISTS`.
 
-**Spec Reference:** `docs/feature/add-hashtag-collection/spec.md`
+**Spec Reference:** `docs/feature/content-task-workflow/add-hashtag-collection/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-07b].
 
@@ -10363,7 +10363,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [x] `DELETE /api/v1/workspaces/{workspaceId}/hashtags/{hashtagId}` soft-deletes and leaves existing post snapshots unchanged.
 - [x] A stale version requires review of the current entry before reconfirmation; repeated removal is rejected.
 
-**Spec Reference:** `docs/feature/remove-hashtag-collection/spec.md`
+**Spec Reference:** `docs/feature/content-task-workflow/remove-hashtag-collection/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-07b].
 

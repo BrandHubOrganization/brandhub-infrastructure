@@ -20,29 +20,47 @@ entity "AgencyResponse" as agencyresponse
 ' === Flow ===
 alt !valid(form)
   user -> createagencypage_ui: submits invalid form
+  activate createagencypage_ui
   createagencypage_ui -> agencycontroller: POST /api/v1/agencies
+  activate agencycontroller
   agencycontroller --> createagencypage_ui: 400 Bad Request
+  deactivate agencycontroller
   createagencypage_ui --> user: shows 400 toast
 else !authenticated
   user -> createagencypage_ui: submits unauthenticated form
   createagencypage_ui -> agencycontroller: POST /api/v1/agencies
+  activate agencycontroller
   agencycontroller --> createagencypage_ui: 401 Unauthorized
+  deactivate agencycontroller
   createagencypage_ui --> user: shows 401 toast
 else valid(form)
   user -> createagencypage_ui: submits form
   createagencypage_ui -> agencycontroller: POST /api/v1/agencies
+  activate agencycontroller
   agencycontroller -> agencyserviceimpl: createAgency(currentUser, request)
+  activate agencyserviceimpl
   agencyserviceimpl -> agency: new Agency(request, currentUser.getId())
+  activate agency
   agency --> agencyserviceimpl: Agency
+  deactivate agency
   agencyserviceimpl -> agencyrepository: save(agency)
+  activate agencyrepository
   agencyrepository --> agencyserviceimpl: Agency
+  deactivate agencyrepository
   agencyserviceimpl -> agencymemberrepository: save(ownerMember)
+  activate agencymemberrepository
   agencymemberrepository --> agencyserviceimpl: AgencyMember
+  deactivate agencymemberrepository
   agencyserviceimpl -> agencyresponse: toResponse(agency, OWNER)
+  activate agencyresponse
   agencyresponse --> agencyserviceimpl: AgencyResponse
+  deactivate agencyresponse
   agencyserviceimpl --> agencycontroller: AgencyResponse
+  deactivate agencyserviceimpl
   agencycontroller --> createagencypage_ui: 201 Created
+  deactivate agencycontroller
   createagencypage_ui --> user: shows 201 toast
+  deactivate createagencypage_ui
 end
 
 @enduml

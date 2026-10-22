@@ -20,25 +20,42 @@ entity "WorkspaceMemberRepository" as workspacememberrepository
 
 ' === Flow ===
 user -> clientprofilelistpage_ui: opens /client-profiles
+activate clientprofilelistpage_ui
 clientprofilelistpage_ui -> clientprofilelistpage_ui: checkRoleAndContext()
 
 alt role == BRAND_OWNER
   clientprofilelistpage_ui -> clientprofilecontroller: GET /api/v1/client-profile/mine
+  activate clientprofilecontroller
   clientprofilecontroller -> clientprofileserviceimpl: listMine(currentUser)
+  activate clientprofileserviceimpl
   clientprofileserviceimpl -> clientprofilerepository: findByUserId(currentUser.getId())
+  activate clientprofilerepository
   clientprofilerepository --> clientprofileserviceimpl: List<ClientProfile>
+  deactivate clientprofilerepository
   clientprofileserviceimpl --> clientprofilecontroller: List<ClientProfileResponse>
+  deactivate clientprofileserviceimpl
   clientprofilecontroller --> clientprofilelistpage_ui: 200 OK List<ClientProfileResponse>
+  deactivate clientprofilecontroller
   clientprofilelistpage_ui --> user: renders brand profiles
+  deactivate clientprofilelistpage_ui
 else role == AGENCY_MEMBER
+  activate clientprofilelistpage_ui
   clientprofilelistpage_ui -> workspaceclientspage_ui: navigates to /workspaces/:id/clients
   workspaceclientspage_ui -> workspacecontroller: GET /api/v1/workspaces/{id}/members
+  activate workspacecontroller
   workspacecontroller -> workspaceserviceimpl: listMembers(workspaceId)
+  activate workspaceserviceimpl
   workspaceserviceimpl -> workspacememberrepository: assertActiveMember(workspaceId, userId)
+  activate workspacememberrepository
   workspacememberrepository --> workspaceserviceimpl: List<WorkspaceMember>
+  deactivate workspacememberrepository
   workspaceserviceimpl --> workspacecontroller: List<WorkspaceMemberResponse>
+  deactivate workspaceserviceimpl
   workspacecontroller --> workspaceclientspage_ui: 200 OK List<WorkspaceMemberResponse>
+  deactivate workspacecontroller
   workspaceclientspage_ui --> user: renders client members
+  deactivate workspaceclientspage_ui
 end
 
+deactivate clientprofilelistpage_ui
 @enduml
