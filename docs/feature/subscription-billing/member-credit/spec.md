@@ -1,5 +1,9 @@
 # Agency member credit
 
+## Unified Caption/Video integration — 2026-10-21
+
+[Credit unification](../../credit-unification/spec.md) supersedes the historical notes about unchanged legacy consumers below. All new Caption/Video fees, workspace balance and Dashboard reads use DA-974; legacy rows are retained without conversion. Refine/Adapt share CAPTION_VARIANTS. Workspace billable POSTs require Idempotency-Key. New additive SQL links Video history to reservations and widens Caption history fees; no extra accounting tables or price seed. See [rollout](../../credit-unification/rollout.md) for pending application-DB migration and live test prerequisites.
+
 ## DA-974 commit boundary
 
 This feature commits Agency/member accounting, configuration/reporting and fixed operation-price AI integration. Actual token/hardware-cost metering on self-hosted Vast is deferred by the product owner. Payment demo UI, unrelated Campaign/Task UI and Task migration changes are not part of the Credit commit. Local verification sources/logs/screenshots/build products remain ignored; test.md/manual-test.md are required feature documentation, not executable test suites.
