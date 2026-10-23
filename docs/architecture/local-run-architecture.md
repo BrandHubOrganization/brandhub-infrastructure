@@ -42,6 +42,12 @@ publisher-service ──▶ rabbitmq (healthy)
 
 api-gateway là entrypoint duy nhất từ ngoài (port 8080) cho mọi client (web, mobile). business-service/ai-service/publisher-service không expose ra ngoài mạng thật trong production, nhưng compose local vẫn mở port host để debug trực tiếp (8081/8082/8083).
 
+## Mobile app (Expo) — không nằm trong compose
+
+`brandhub-mobile-app` không có Dockerfile/service trong `docker-compose.apps.yml` — chạy ngoài Docker bằng Metro bundler (`npm run dev`, mặc định port `8090` theo `package.json` — đổi khỏi mặc định Expo `8081` vì trùng port host của `business-service`). Gọi API qua `EXPO_PUBLIC_API_BASE_URL` trỏ thẳng `api-gateway` (port 8080), cùng entrypoint với web-dashboard — không có route riêng cho mobile ở gateway.
+
+Thiết bị thật/emulator không resolve được `localhost` của máy host — `.env` phải dùng IP LAN máy chạy backend (`http://<local-ip>:8080`), hoặc `http://10.0.2.2:8080` khi test trên Android emulator (AVD).
+
 ## Networking
 
 Toàn bộ chung 1 bridge network `brandhub-network` (external name cố định, không prefix theo project) — cho phép service gọi nhau qua tên container (`http://business-service:8081`) bất kể compose file nào tạo ra network trước.
