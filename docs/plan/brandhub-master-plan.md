@@ -1251,6 +1251,57 @@
 
 ---
 
+### EPIC E54 — Mobile App (re-scope V2 — 2026-10-22, thay thế E40/E41 cũ)
+
+> `E40 — Mobile App Core` và `E41 — Mobile Notifications` coi như **archived/thay thế** bởi Epic này, parent Jira dùng chung `DA-123` (E40) — 6 task con cũ (`DA-1197..DA-1202`) đã xoá ngày 2026-10-23 vì trùng scope, thay bằng 33 task mới bên dưới (đã tạo thật trên Jira qua `rest/api/3/issue`, xem `docs/plan/jira_status.json`). Mobile được thiết kế lại theo 7 nhóm domain (G1-G7), mỗi nhóm có `spec.md`/`plan.md`/`task.md`/`test.md` riêng tại `docs/mobile/features/gN-*/`. Checklist dưới đây map 1:1 từ `task.md` từng nhóm — xem file gốc để đọc đủ ngữ cảnh (API thật đã đọc code, không đoán) trước khi code.
+
+| Task ID (tạm) | Jira Key | Status | Description | Complexity | Spec Reference |
+|---|---|---|---|---|---|
+| **G1 — Authentication** | | | | | `docs/mobile/features/g1-auth/{spec,plan,task,test}.md` |
+| DA-E54-G1-01 | DA-1260 | Done | Infra: Axios interceptor auto-refresh 401, SecureStore token wrapper, `useAuthStore` (Zustand), bảng lỗi ErrorCode tiếng Việt, deep link scheme `brandhub` | M | g1-auth/task.md mục "Infra chung" |
+| DA-E54-G1-02 | DA-1261 | Done | Login/Register/VerifyOtp mutations + 3 screens (Login, Register, VerifyOtp) | M | g1-auth/task.md mục "Login/Register/OTP" |
+| DA-E54-G1-03 | DA-1262 | To Do | Forgot/Reset Password mutations + 2 screens + deep link handler `reset-password?token=` | M | g1-auth/task.md mục "Forgot/Reset Password" |
+| DA-E54-G1-04 | DA-1263 | To Do | Google OAuth flow (`client=mobile` param, `WebBrowser.openAuthSessionAsync`, parse token/error) | C | g1-auth/task.md mục "Google OAuth" |
+| DA-E54-G1-05 | DA-1264 | To Do | 2FA Verify mutation + screen | S | g1-auth/task.md mục "2FA Verify" |
+| DA-E54-G1-06 | DA-1265 | Done | Logout mutation (body `refreshToken` bắt buộc) + error/loading states chung | S | g1-auth/task.md mục "Logout" |
+| DA-E54-G1-07 🆕 | DA-1266 | Done | [Backend — đã code xong 2026-10-22] `POST /auth/logout` nhận `refreshToken` qua body (fallback cookie) | S | `AuthController.java` |
+| DA-E54-G1-08 🆕 | DA-1267 | Done | [Backend — đã code xong 2026-10-22] OAuth `?client=mobile` → redirect `app.mobile-redirect-uri`; cần set env `APP_MOBILE_REDIRECT_URI` trước khi test thật | S | `GoogleOAuthController.java`, `OAuthService.java`, `application.yml` |
+| **G2 — Creator Upload** | | | | | `docs/mobile/features/g2-creator-upload/{spec,task}.md` |
+| DA-E54-G2-01 | DA-1268 | Done | [Backend] `createPresignedUploadUrl` + endpoint `upload-session`/`upload-session/confirm` + field `taskId` trên `MaterialDocument` | C | g2-creator-upload/task.md mục Backend |
+| DA-E54-G2-02 | DA-1269 | Done | Mobile: dependencies (`expo-camera`, `expo-image-picker`) + Task List/Detail screens (quay/chọn video) | M | g2-creator-upload/task.md mục "screens & flow" |
+| DA-E54-G2-03 | DA-1270 | Done | Mobile: màn Upload (progress bar, `FileSystem.createUploadTask`) + confirm | M | g2-creator-upload/task.md mục "screens & flow" |
+| DA-E54-G2-04 | DA-1271 | Done | Mobile: upload resilience (retry 3 lần, giữ file local, 403 signature-expired, resume sau khi đóng app) | M | g2-creator-upload/task.md mục "resilience" |
+| **G3 — Agency / Workspace** | | | | | `docs/mobile/features/g3-agency-workspace/{spec,task}.md` |
+| DA-E54-G3-01 | DA-1272 | Done | Infra: `useWorkspaceStore` (Zustand) + persist + TanStack Query key structure | M | g3-agency-workspace/task.md mục "Infra/state" |
+| DA-E54-G3-02 | DA-1273 | Done | Agency screens: List, Dashboard, Profile, Member List + drawer, Invite modal, Pending Invitations | M | g3-agency-workspace/task.md mục "Agency screens" |
+| DA-E54-G3-03 | DA-1274 | Done | Workspace screens: List, Detail, Members tab, Invite/Assign/Update-Role/Remove, Leave, Switcher (`timezoneConfig` đã fix backend) | C | g3-agency-workspace/task.md mục "Workspace screens" |
+| **G4 — Media Package/Campaign (View+Approve)** | | | | | `docs/mobile/features/g4-package-campaign/{spec,task}.md` |
+| DA-E54-G4-01 | DA-1275 | To Do | Package List/Detail + nút Approve (**đọc `ApproveMediaPackageRequest` DTO trước**) | M | g4-package-campaign/task.md mục "Package screens" |
+| DA-E54-G4-02 | DA-1276 | To Do | Campaign List/Detail (dùng `WorkspaceCampaignController`, không dùng route cũ) | M | g4-package-campaign/task.md mục "Campaign screens" |
+| DA-E54-G4-03 | DA-1277 | To Do | Approve Campaign mutation (`expectedVersion=contentVersion`) + xử lý 409 `CAMPAIGN_VERSION_CONFLICT` | M | g4-package-campaign/task.md mục "Error handling approve" |
+| **G5 — Task Management** | | | | | `docs/mobile/features/g5-task-management/{spec,task}.md` |
+| DA-E54-G5-01 | DA-1278 | To Do | Task List (FR 3.6.4) — filter/sort/search + pull-to-refresh/infinite scroll | M | g5-task-management/task.md mục "Task List" |
+| DA-E54-G5-02 | DA-1279 | To Do | Task Detail (workflow+review API, allowedActions-driven UI) + tab Lịch sử duyệt | M | g5-task-management/task.md mục "Task Detail" |
+| DA-E54-G5-03 | DA-1280 | To Do | Status transitions (start/submit/withdraw/approve/reject) + optimistic update + 409 conflict UX | C | g5-task-management/task.md mục "Status transitions" |
+| DA-E54-G5-04 | DA-1281 | To Do | Kanban Board V1 (1 kiểu, 4 cột, kéo thả theo transition hợp lệ) | C | g5-task-management/task.md mục "Kanban Board" |
+| DA-E54-G5-05 | DA-1282 | To Do | Comment Thread (mention, đính kèm ảnh tái dùng picker G2, idempotent send) | M | g5-task-management/task.md mục "Comment Thread" |
+| DA-E54-G5-06 | DA-1283 | To Do | Polling realtime status/comment (15-30s, không WS) | S | g5-task-management/task.md mục "Realtime" |
+| **G6 — AI Features** | | | | | `docs/mobile/features/g6-ai-features/{spec,task}.md` |
+| DA-E54-G6-01 | DA-1284 | To Do | AI Hub (3 card + credit balance) | S | g6-ai-features/task.md mục "AI Hub" |
+| DA-E54-G6-02 | DA-1285 | To Do | Generate Video (style/prompt/ambassador form, poll job, result/refund) | C | g6-ai-features/task.md mục "Generate Video" |
+| DA-E54-G6-03 | DA-1286 | To Do | Generate Caption (form đồng bộ, 3 variant, refine/adapt/choice) | M | g6-ai-features/task.md mục "Generate Caption" |
+| DA-E54-G6-04 | DA-1287 | To Do | Generate Image (**đọc shape request/response từ ai-service trước khi code**, chưa rõ credit flow) | M | g6-ai-features/task.md mục "Generate Image" |
+| DA-E54-G6-05 | DA-1288 | To Do | Result Preview/Save (gắn Task G5/Material G2, export) + Credit History (video `GET /videos`; caption **chặn thiếu endpoint**) | M | g6-ai-features/task.md mục "Result Preview/Save", "Credit History" |
+| **G7 — Subscription & Billing (READ-ONLY)** | | | | | `docs/mobile/features/g7-subscription-billing/{spec,task}.md` |
+| DA-E54-G7-00 | DA-1289 | To Do | **[Chặn — hỏi BE/PM trước khi code]** Route plan/invoice chính thức (2 hệ song song), xác nhận hướng "mở web ngoài, không thanh toán trong app" | S | g7-subscription-billing/task.md mục "Chặn trước khi code" |
+| DA-E54-G7-01 | DA-1290 | To Do | Current Plan screen + AI credit allowance block | M | g7-subscription-billing/task.md mục "Current Plan" |
+| DA-E54-G7-02 | DA-1291 | To Do | Plan comparison list (nút Nâng cấp mở web ngoài qua `Linking.openURL`, không checkout trong app) | S | g7-subscription-billing/task.md mục "Plan comparison" |
+| DA-E54-G7-03 | DA-1292 | To Do | Invoice history list + detail + tải receipt (.txt) | M | g7-subscription-billing/task.md mục "Invoice history" |
+
+**Ước lượng:** 7 sub-epic (G1-G7), 33 task con — đã tạo thật trên Jira (`DA-1260`..`DA-1292`, parent `DA-123`) ngày 2026-10-23, 11 task đã chuyển Done khớp code thật G1-G3. Dùng mã `DA-12xx` ở trên khi commit theo `docs/rule/git-commit-convention.md` (ví dụ `feat(DA-1278): add task list pull-to-refresh`), không dùng `DA-E54-Gx-xx` (chỉ là ID tạm tham chiếu nội bộ). G4/G6/G7 còn task/câu hỏi **chặn** cần backend/PM xác nhận trước khi code mobile (xem cột Spec Reference → mục "Rủi ro"/"Chặn trước khi code" trong từng `task.md`) — không bỏ qua các mục chặn này khi lên sprint plan thật.
+
+---
+
 ## Tổng hợp quy mô (đã cập nhật 2026-09-15 — Assignee gán theo `docs/Các FR của hệ thống - Feature_Function Requirement.csv` cột "Code", KHÔNG dùng cột "Người làm tài liệu"; loại trừ toàn bộ FR 3.7 AI Features)
 
 | Epic | Task con | Assignee (chính) | Complexity nổi bật | Trạng thái |
