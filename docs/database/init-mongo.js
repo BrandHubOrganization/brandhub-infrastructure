@@ -343,6 +343,9 @@ db.createCollection('chat_messages', {
       senderUserId: { bsonType: 'string' }, senderRole: { enum: ['MANAGER', 'CREATOR', 'CLIENT'] },
       senderDisplayName: { bsonType: 'string' },
       content: { bsonType: 'string', minLength: 1, maxLength: 4000 },
+      richContent: { bsonType: ['object', 'null'], properties: {
+        type: { enum: ['doc'] }, content: { bsonType: 'array', maxItems: 500 },
+      } },
       contextType: { enum: ['GENERAL', 'MEDIA_PACKAGE', 'MEDIA_CAMPAIGN'] },
       contextId: { bsonType: ['string', 'null'] }, clientMessageId: { bsonType: 'string' },
       createdAt: { bsonType: 'date' },
