@@ -315,3 +315,16 @@ not sufficient. First use false and review output, then true only for APPLY.
 Do not use mongosh `load()` or `process.env` commands in Playground. Choose the
 intended connection; scripts explicitly target `brandhub`. Remove/reset flags
 after use. No shared deployment was changed when adding Playground support.
+
+### Chat rich composer (24 October 2026)
+
+`2026-10-24-chat-rich-content.js` adds explicit optional `richContent` object typing
+to the existing chat_messages validator, preserving its other rules and indexes.
+No message backfill, reset, new collection or PostgreSQL change. Seed samples now
+include one formatted reply; existing rows are not overwritten by the seeder.
+Use `globalThis.BRANDHUB_CHAT_RICH_APPLY = false;` before the complete script for
+DRY_RUN; use true only after clean preflight. Restart Business before sending rich
+messages, because an older server does not persist the new optional field.
+If the existing collection has no validator, this migration installs only optional
+richContent typing. It deliberately does not impose fresh-init required fields on
+legacy messages. Unsupported non-empty validator structures still require review.
