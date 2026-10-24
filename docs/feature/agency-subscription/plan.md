@@ -15,7 +15,7 @@
 - “FR 3.9.2 Downgrade/Cancel Plan: hoãn toàn bộ UI/API/business flow chủ động hạ hoặc hủy gói.â� Paid expiry/recovery vẫn bắt buộc.
 - Gói BASIC/PLUS/ENTERPRISE; không isPremium trên user; owner quản lý billing, creator chỉ xem usage mình.
 - Basic end NULL; period [start,end), UTC; expiry kiểm tra paidAt provider, không giờ webhook.
-- Quota dev/test: workspaces 1/10/50; internal members 3/15/50; clients 5/50/200; storage 2 GB/100 GB/1 TB; monthly credits 0/5000/25000; concurrency 1/3/10.
+- Quota dev/test: workspaces 1/10/50; internal members 3/15/50; clients 5/50/200; storage BASIC 20 GiB/Agency (21,474,836,480 bytes); PLUS/ENTERPRISE theo plan.storageQuotaBytes của catalog, không cộng thêm 20 GiB (100 GiB/1 TiB chỉ là ví dụ, không phê duyệt lại catalog production); monthly credits 0/5000/25000; concurrency 1/3/10.
 - Trial 100 một lần/owner, 30 ngày; top-up 12 tháng; monthly không rollover; giá/rate production chưa duyệt.
 - READ COMMITTED + khóa agency; CHECK/UNIQUE/FK; ledger append-only; outbox/inbox idempotent. Tuân [ACID rules](../../../../tuan-research/subscription_acid_implementation_rules.md).
 - API test bật auth và PostgreSQL thật. Fake SePay/AI/storage; không thanh toán thật.
