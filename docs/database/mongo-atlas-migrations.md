@@ -1,5 +1,15 @@
 # Update an existing BrandHub MongoDB Atlas database
 
+## Workspace chat collaboration — 2026-10-22
+
+Prepared migration: [2026-10-22-workspace-chat-collaboration.js](migrations/2026-10-22-workspace-chat-collaboration.js).
+Default DRY_RUN prints the intended new collections and indexes. APPLY requires
+`BRANDHUB_CHAT_COLLABORATION_APPLY=true` in the mongosh process environment after reviewing the target deployment.
+It adds `chat_channels`, `chat_channel_reads`, channel/thread/pin indexes and channel-name uniqueness;
+the existing sender/client-message unique index is retained. No message backfill/deletion or PostgreSQL migration.
+Run the existing workspace-chat baseline first. This change has not been applied to Atlas by the coding agent.
+Deploy the indexes before enabling the new frontend/backend and restart Business Service.
+
 ## FR 3.6.9 — Task Approval foundation (2026-10-18)
 
 Current incremental migration: [2026-10-18-task-approval-foundation.js](migrations/2026-10-18-task-approval-foundation.js).
@@ -236,6 +246,7 @@ indexes. No migration write was performed during implementation. Offline tests:
 
 ## DA-951 phase 3 — acceptance transaction/source uniqueness
 
+
 After the existing generic Task/Campaign deployment migrations and Request V2,
 review and run the NEW `2026-10-13-content-request-acceptance.js`. Do not rerun the
 phase-2 script after phase 3, because it installs the earlier validator revision.
@@ -274,3 +285,33 @@ Read-only Atlas `hello` verified replica set + sessions on 2026-10-13; applicati
 also checks transaction prerequisites before acceptance. Never fallback to separate
 Task/Request writes on standalone Mongo. Shared Atlas migration was NOT applied
 during implementation; transaction write tests use an isolated local replica set.
+
+## Chat mention inbox foundation — 2026-10-23
+
+Prerequisite: current chat baseline and `2026-10-22-workspace-chat-collaboration.js`.
+Review `2026-10-23-chat-mention-inbox.js` with all shared writers paused before APPLY.
+Default execution is read-only; target DB is explicitly `brandhub`.
+For mongosh, set `process.env.BRANDHUB_CHAT_MENTION_APPLY = 'false'` then load the script.
+Only after reviewing clean output, set that variable to `'true'`, load again, and
+reset it to `'false'` in finally. No APPLY was performed on Atlas during development.
+
+This adds one preferences collection and the pending-message delivery index. It
+does not backfill historical notifications or change PostgreSQL tables. Existing
+`user_notifications` is reused. The worker is inert until the delivery index exists.
+Do not rerun a fresh-init script on an existing database. Preferences errors return
+`CHAT_NOTIFICATION_SCHEMA_NOT_READY` until their collection has been installed.
+The migration preflights invalid preferences, duplicate identities and conflicting
+index definitions. Mongo metadata operations are not transactional: if deployment
+is interrupted, inspect the resulting metadata and rerun the idempotent script.
+
+### VS Code MongoDB Playground
+
+Playground does not provide Node's `process.env`. Both chat migrations also accept
+boolean global flags: `globalThis.BRANDHUB_CHAT_COLLABORATION_APPLY` (22 October)
+and `globalThis.BRANDHUB_CHAT_MENTION_APPLY` (23 October). Omitted/false flags keep
+DRY_RUN. Set the appropriate flag immediately before the complete script and run
+them together in the same Playground execution; setting it in an earlier run is
+not sufficient. First use false and review output, then true only for APPLY.
+Do not use mongosh `load()` or `process.env` commands in Playground. Choose the
+intended connection; scripts explicitly target `brandhub`. Remove/reset flags
+after use. No shared deployment was changed when adding Playground support.
