@@ -1,27 +1,30 @@
-# Remove Material — Verification Plan
+# Verification
+Seams selected by supplied spec section 13: mutation service, purge worker, quota
+transaction, API-backed frontend. Test ACL Manager/all vs Creator/Client/own, revoked
+client access, 30-day boundary, quota-independent restore, optional version CAS,
+concurrent restore/claim, references Post/Task/derivative, provider selection,
+storage error, PG retry and exactly-once decrement. Trash paging must scope before
+count and never sign previews. Existing pinned content must still resolve safely.
+Frontend: delete confirmation alertdialog/cancel focus/Escape, undo, Trash empty/error,
+restore unaffected by quota, vi/en parity, light/dark, keyboard and mobile layout.
+Run focused tests per slice, compile/typecheck, full suites once at completion.
+Integration tests require disposable Mongo replica set + PostgreSQL/Docker; record skips.
+Never apply staged migrations or enable purge on shared infrastructure during checks.
 
-**Status: NOT RUN.** Fixtures từ Add/View + clock controllable, deletedAt boundaries,
-Post/Task/derived references, unknown legacy key reference, provider versions,2workers/fences.
-
-| ID | Task | Scenario | Expected |
-|---|---|---|---|
-| TC-R01 | R03 | Manager deletes any scoped file, Creator/Client own vs other, OWNER-only | Correct ACL/no cross-tenant reveal;204 only permitted, no quota/storage mutation |
-| TC-R02 | R03 | Delete retry token same vs restore/re-delete cycle, stale/missing version | Same delete204 giữ retention, khác cycle stale409/missing400; no accidental delete newly restored |
-| TC-R03 | R04 | Trash2Client, count/page, claimed/DONE records | Only manageable own/Manager; no preview, claimed no restore, DONE hidden |
-| TC-R04 | R05 | used35GiB quota20GiB expired, valid restore via gateway |200, same used/reserved/provider, tombstone clear/version increment, no quota422 |
-| TC-R05 | R05 | Missing object, inactive profile, parent deleted, expectedVersion stale, claim race |409/no partial restore; cannot turn Client internal or resurrect purged object |
-| TC-R06 | R07 |30days-1ms/at boundary, reference blocked/backoff repeated | Before boundary no claim, after eligible; purge_after fixed, next_attempt distinct |
-| TC-R07 | R06/R07 | Post/Task/descendant/publish job references, unknown legacy | No delete/usage release, blocked reason, existing content reads per content ACL |
-| TC-R08 | R06/R07 | New pin/source write racing purge claim on separate instances | Exactly pin first blocks purge OR claim first denies new pin; no dangling published reference |
-| TC-R09 | R07/R08 | Two workers/lease expire/stale heartbeat/restore concurrent | One effective purge op, old fence cannot finalize, restore can't run under claim |
-| TC-R10 | R08 | Storage timeout, delete success then crash before Mongo proof | Retry identity safely; not assume success on timeout, no release while uncertain |
-| TC-R11 | R08 | PG down after object deleted; PG release committed but Mongo timeout | OBJECT_DELETED recovery, unique release exactly once/no negative counters; eventual DONE |
-| TC-R12 | R08 | Versioned bucket delete marker vs actual version deletion | Marker alone not completion/pool freed; durable version policy proof required |
-| TC-R13 | R08 | SYSTEM_S3 file after expiry, SYSTEM_GDRIVE after paid upgrade | Persisted provider only, no migration/fallback, user/pool usage reconcile correct |
-| TC-R14 | R09 | Soft-delete messaging vs usedBytes unchanged, conflict/retry/switch workspace | No false freed quota, inputs/status correct, stale responses ignored |
-| TC-R15 | R10/R11 | vi/en/light/dark/keyboard/responsive | Correct confirmation focus and restored row, key/contrast/layout pass |
-
-Tests use Mongo replica set+PG real for pins/ledger CAS concurrency, test endpoints for
-delete/version proof, deterministic clock/lease barrier. Unit mocks only error branches;
-UI tests outside src. Purge gate TC-R07–R12 needs actual evidence before enable. Record
-commands/commit/actual/results; dry-run production report never counted as delete test pass.
+## Verification results — 2026-10-25
+- Frontend typecheck, production build and changed-file ESLint: PASS.
+- Full frontend Vitest: 4 files / 13 tests PASS.
+- Repository Playwright: 9 tests PASS, including existing upload regressions,
+  vi/en, Cancel focus, Escape/focus return, Undo, 375/768/1440px, light/dark,
+  ownership controls and overflow checks. Screenshots inspected locally.
+- Real disposable Mongo replica set: Trash roundtrip, ACL-before-count aggregation,
+  worker claim vs restore, object deletion before quota release, receipt replay PASS.
+- Real disposable PostgreSQL: duplicate concurrent purge receipts subtract once PASS.
+- Focused rules/worker tests: retention boundary/backoff, revoked Client scope,
+  storage failure and object-deleted crash recovery PASS.
+- Post key whitespace bypass: regression observed failing before fix, passing after fix.
+- code-review Standards and Spec parallel reviews: all blocking findings resolved.
+- Full backend suite: PASS; final totals recorded after completion below.
+- Production migrations, provider capability tests against shared storage and purge
+  activation were not run. They remain rollout prerequisites, not local test claims.
+- Final backend suite: 186 suites, 1,245 tests; 1,152 passed, 93 conditional skips, 0 failures/errors. Command: mvn -Dapi.version=1.44 test (Docker API compatibility override).
