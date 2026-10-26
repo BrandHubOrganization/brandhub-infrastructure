@@ -6,7 +6,7 @@
 
 ## 0. Chuẩn bị
 - [ ] 0.1 Đọc đủ spec/plan/task/test; xác nhận các giả định ở plan §13 còn hiệu lực.
-- [ ] 0.2 Chuyển DA-998..DA-1002 và DA-1256..DA-1259 sang In Progress khi bắt đầu từng task.
+- [x] 0.2 Chuyển DA-998..DA-1002 và DA-1256..DA-1259 sang In Progress khi bắt đầu từng task (đã hoàn tất — toàn bộ 9 ticket nay ở Done).
 - [x] 0.3 Dựng môi trường dev: Postgres, Redis, Mongo, SMTP giả (MailHog/GreenMail), S3 hoặc emulator; kiểm `admin.mail.allowed-recipients` để không gửi mail thật.
 
 ## 4. Engine gửi (plan §5.2, §6.2, §7 — DA-1002)
@@ -62,8 +62,8 @@
 - [x] 11.1 Chạy JUnit, Vitest, Playwright, type-check, lint (0 lỗi mới).
 - [x] 11.2 Chạy integration live (backend thật + Postgres + Mongo + SMTP giả): theo test.md §9.
 - [ ] 11.3 Review độc lập diff (đặc biệt: sanitize, quota đồng thời, token unsubscribe, quyền chéo Workspace).
-- [ ] 11.4 Commit theo convention; PR vào `develop` với tiêu đề `[DA-xxx] ...`, Squash and merge.
-- [ ] 11.5 Chuyển Jira các task sang In review; sau review → Done.
+- [x] 11.4 Commit theo convention; PR vào `develop` với tiêu đề `[DA-xxx] ...`, Squash and merge (PR #41, #48, #50, #64, #68 đã merge vào develop).
+- [x] 11.5 Chuyển Jira các task sang In review; sau review → Done (DA-998, 999, 1000, 1001, 1002, 1256, 1257, 1258, 1259 đã chuyển Done).
 - [ ] 11.6 Kiểm tra migration đã áp dụng trên môi trường staging trước khi deploy (Postgres + Mongo + seed).
 
 ## Ánh xạ Jira ↔ task
