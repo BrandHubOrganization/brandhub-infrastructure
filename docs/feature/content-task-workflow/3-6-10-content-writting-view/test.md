@@ -1,15 +1,22 @@
 # Test — Content Writing View (FR 3.6.10)
 
-> Status: **Implemented & executed (2026-10-12).** All passing: 47 frontend unit + 22 backend service unit + 20 browser E2E + 31 live-backend integration (re-run 31/31 on the merged develop code). The live run (before merging the team's develop) found three defects the mocked tests could not see (§7 #4–#6); #4/#5 were meanwhile fixed upstream in `ChatInboundChannelInterceptor` and #6 was re-applied on top of develop. Items that could **not** be executed or are out of scope are listed explicitly in §6. See [spec.md](spec.md), [task.md](task.md).
+> Status: **Implemented & executed (2026-10-12; redesign + presence + mobile port added 2026-10-26).** All passing: 47+32 frontend unit + 22 backend service unit + 22 browser E2E + 31 live-backend integration (re-run 31/31 on the merged develop code) + 22 mobile unit. The live run (before merging the team's develop) found three defects the mocked tests could not see (§7 #4–#6); #4/#5 were meanwhile fixed upstream in `ChatInboundChannelInterceptor` and #6 was re-applied on top of develop. Items that could **not** be executed or are out of scope are listed explicitly in §6. See [spec.md](spec.md), [task.md](task.md).
+>
+> **2026-10-26 addition**: web UI redesigned to a Docs/Word hybrid chrome (page-card canvas + toolbar, Docs/Ribbon toggle — purely visual, zero logic changes, all pre-existing tests kept passing unmodified except the broker-mock fix noted below); presence/multi-cursor awareness added (`y-protocols/awareness` over a new unpersisted `/app+/topic/tasks/{taskId}/awareness` STOMP channel); 32 new Vitest unit tests for previously-untested pure-logic files (`richText.ts`, `listUtils.ts`, `contentUtils.ts`); 2 new E2E tests for presence (E2E-21, E2E-22); and a parallel **mobile port** (React Native, `brandhub-mobile-app/src/screens/content-writing/`) covering the same feature set via a TextInput-based editor instead of canvas — see §5 below.
 
 ## 1. Summary
 
 | Layer | Tool | Location | Cases | Result |
 |---|---|---|---|---|
-| FE pure logic (list, diff, publish text, restore, CRDT) | Vitest | `brandhub-web-dashboard/src/pages/content-writing/*.test.ts` | 47 | ✅ 47 / 47 |
+| FE pure logic (list, diff, publish text, restore, CRDT) | Vitest | `brandhub-web/src/pages/content-writing/**/*.test.ts` | 47 + 32 new (2026-10-26) | ✅ 79 / 79 |
 | BE service logic (load, op log, snapshot, versions, restore) | JUnit 5 + Mockito | `brandhub-business-service/src/test/java/.../service/impl/TaskContentServiceImplTest.java` | 22 | ✅ 22 / 22 |
-| Browser E2E (real canvas editor, mocked REST + in-test STOMP broker) | Playwright | `brandhub-web-dashboard/tests/e2e/editor/content-writing.spec.ts` | 20 | ✅ 20 / 20 |
+| Browser E2E (real canvas editor, mocked REST + in-test STOMP broker) | Playwright | `brandhub-web/tests/e2e/editor/content-writing.spec.ts` | 20 + 2 new presence (E2E-21/22) | ✅ 22 / 22 |
 | **Live backend integration** (real Spring Boot + Postgres + JWT + STOMP; two WS clients with real Yjs) | Node script | [integration-test.cjs](integration-test.cjs) | 31 | ✅ 31 / 31 |
+| **Mobile unit (new, 2026-10-26)** | Jest (jest-expo) | `brandhub-mobile-app/src/screens/content-writing/__tests__/*.test.ts` | 22 | ✅ 22 / 22 |
+| **Mobile component (new, 2026-10-26)** | Jest + `@testing-library/react-native` | `brandhub-mobile-app/src/screens/content-writing/__tests__/*.test.tsx` | 24 | ✅ 24 / 24 |
+| **Mobile device flows (new, 2026-10-26)** | Maestro (YAML) | `brandhub-mobile-app/.maestro/content-writing/*.yaml` | 7 flows | ⚠️ written, not executed — see §9 |
+
+> E2E note: running the full suite with Playwright's default `fullyParallel` workers against one shared `npm run dev` dev server causes spurious failures (page stuck on the app's lazy-load Suspense fallback) unrelated to this feature — confirmed by re-running with `--workers=1`, where all 22 pass, and by running each failing test in isolation. Always use `--workers=1` for this spec, or point `BASE_URL` at a dedicated dev server per worker.
 
 ## 2. How to run
 
@@ -144,6 +151,10 @@ Notes:
 | E2E-18 | empty document | copy button disabled |
 | E2E-19 | socket dropped, edit typed offline, then reconnect | edit queued + persisted in localStorage, sent after reconnect, queue cleared; update missed while offline is pulled from REST and merged |
 | E2E-20 | accessibility attributes | hidden input has `role=textbox` + `aria-multiline`; canvas is `aria-hidden` |
+| E2E-21 *(new, 2026-10-26)* | fake peer's awareness update arrives | their cursor flag renders with their name and color, `getByTitle(name)` visible |
+| E2E-22 *(new, 2026-10-26)* | this Creator types (publishes their own awareness state) | their own avatar never renders as a "peer of itself" — even though the mock broker echoes every SEND back to the sender, matching a real multi-subscriber topic |
+
+> Not covered by E2E-21: the 30s auto-expiry of a silent peer's cursor (y-protocols' own `outdatedTimeout`). `lib0`'s `getUnixTime` captures a direct `Date.now` reference at module load, which Playwright's `page.clock` fake-timer patch (applied after that module already loaded) cannot retroactively intercept — a library/clock-mocking limitation, not an app-code gap. The removal behavior itself is a well-established y-protocols guarantee, not something this feature's code implements.
 
 ## 6. Not executed / known gaps
 
@@ -172,3 +183,41 @@ Notes:
 | 6 | **Lost updates under concurrency** (the earlier "per-task lock" fix was incomplete): `synchronized` lived inside `@Transactional`, so the lock was released before commit; a burst of 120 updates persisted only ~63, 228 `duplicate key` errors | live integration (IT-13) | removed `@Transactional` from `appendOperation` so each statement commits inside the lock (re-applied on top of develop, which still had the bug). Single-JVM only, as before |
 
 Test-authoring mistakes (wrong expected code points, an over-narrow glob for the restore route) were corrected in the tests themselves; they were not product defects.
+
+## 8. Mobile unit tests (Jest, `jest-expo`) — new, 2026-10-26
+
+Mirrors §3's web pure-logic tests exactly (same assertions, ported file-for-file) against the mobile port's own copies of the logic (`brandhub-mobile-app/src/screens/content-writing/{listUtils,base64,contentUtils}.ts`) — there is no shared package between the two apps, so these files are duplicated by design, same as the rest of the mobile codebase's relationship to web.
+
+| File | Cases | Result |
+|---|---|---|
+| `listUtils.test.ts` | 8 | ✅ |
+| `base64.test.ts` | 4 | ✅ |
+| `contentUtils.test.ts` | 10 | ✅ |
+
+```bash
+cd brandhub-mobile-app && npm test -- src/screens/content-writing   # jest, all 3 files
+cd brandhub-mobile-app && npm test                                   # full suite — confirms no regression: 11 suites / 53 tests, all passing
+```
+
+**Environment fix needed to get yjs running under Jest** (not a product bug, but required infrastructure — documented here since it will resurface for anyone adding more `yjs`-dependent tests to this app): `yjs`'s `lib0` dependency resolves to its React-Native-specific `webcrypto.react-native.cjs` entry under `jest-expo`'s RN-style module resolution. That file requires `isomorphic-webcrypto`, whose own "no native crypto found" fallback (`msrcrypto`) tries to gather entropy via `XMLHttpRequest` — undefined in Jest's plain Node test environment (a real device build never hits this path; Expo provides `global.crypto` there). Fixed with:
+- `react-native-get-random-values` imported in `jest.setup.ts` (also the correct real-device polyfill, not test-only).
+- A `moduleNameMapper` entry in `package.json`'s `jest` config routing `isomorphic-webcrypto` to a 10-line local shim (`jest.webcrypto-shim.js`) that hands `lib0` Node's native `crypto.webcrypto` instead, with a no-op `ensureSecure()` (the one method Node's implementation lacks that `lib0` calls).
+
+Verification for the mobile port as of the §15/16 closeout: TypeScript compiles clean project-wide, the 22 unit tests above pass, and the full existing 53-test mobile suite had zero regressions. Component tests and device flows were added in a follow-up pass — see §9.
+
+## 9. Mobile component tests + Maestro device flows (new, 2026-10-26)
+
+24 `@testing-library/react-native` component tests across 4 files:
+
+| File | Cases | What it covers |
+|---|---|---|
+| `FormattingToolbar.test.tsx` | 9 | Every toolbar callback fires with the right argument (bold/italic/underline/strikethrough toggle, align, list kind, undo/redo, clear formatting), the color/link modals open and apply, Docs/Ribbon mode switch doesn't crash |
+| `SocialPreview.test.tsx` | 6 | Placeholder vs. typed text, author name default, X/Twitter tab + character counter + over-limit flag, attached image renders |
+| `VersionHistory.test.tsx` | 3 | Empty state, editor name / "Unknown" fallback, restore calls `onRestored` with the server's returned snapshot (REST mocked via `jest.mock("../../../services/api")`) |
+| `RichTextEditor.test.tsx` | 6 | Typing inserts into a **real** `Y.Doc` (not mocked — exercises the actual CRDT wiring), toolbar bold formats the next typed char, bullet list prefixes the paragraph, undo reverts, `onTextChange` fires, peer avatar renders |
+
+**Defect found and fixed while writing these (test infrastructure, not app code)**: `fireEvent.press` in this project's RTL version (14.1.0) combined with React 19 must be wrapped in `await act(async () => ...)`. Without it, the state update from a `press()` in one test leaks past that test's boundary — the *next* `render()` call in the same file silently fails to mount (`toJSON()` returns `null`), which then surfaced as a confusing "Unable to find an element with accessibility label: X" on a completely unrelated query two tests later, with nothing in the error pointing at the real cause. Diagnosed by: (1) confirming each failing test passed when run alone (`-t "name"`), ruling out the test logic itself; (2) a binary-search probe — rendering `Modal` alone four times in a row (fine), then `Select` alone three times (fine), ruling those components out; (3) reproducing the exact 3-test failing sequence from the real file in an isolated throwaway test, which revealed `toJSON()` returning `null` on the broken render; (4) wrapping the presses in `act()` in that isolated repro fixed it, then applied the same fix to the real suite. All four test files above use this pattern (`async function press(el) { await act(async () => { fireEvent.press(el); }); }`), and `VersionHistory.test.tsx`'s async `api.post` flow additionally needed `waitFor`.
+
+**Maestro device flows** (`.maestro/content-writing/*.yaml`, 7 flows) and a setup README (`.maestro/README.md`) were written to cover what unit/component tests structurally cannot: the real app launching, real OS keyboard, real photo picker, real navigation. **Not executed** — this session had no Maestro CLI installed and no running simulator/emulator (headless environment). See `.maestro/README.md` §1-§4 for install/build/run steps.
+
+Flows 06 (version history: autosave → diff → restore) and 07 (offline/reconnect: airplane-mode edit → queue → flush, **Android-only**, no iOS equivalent for `setAirplaneMode`) were added after the initial 5, closing the two single-device gaps originally listed as not covered. Still not attempted — needs two simultaneous device sessions, not a single-device Maestro flow: two-device real-time sync, presence/multi-cursor (see §6 of the README).
