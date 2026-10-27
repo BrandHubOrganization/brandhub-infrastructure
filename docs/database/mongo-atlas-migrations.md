@@ -328,3 +328,41 @@ messages, because an older server does not persist the new optional field.
 If the existing collection has no validator, this migration installs only optional
 richContent typing. It deliberately does not impose fresh-init required fields on
 legacy messages. Unsupported non-empty validator structures still require review.
+
+### Scheduled chat messages (26 October 2026)
+
+`2026-10-26-chat-scheduled-messages.js` adds only `chat_scheduled_messages` and five
+indexes. It does not change/backfill messages, Task/Post, notifications or PostgreSQL.
+Use the existing workspace-chat/collaboration, mention-inbox and rich-content
+metadata first. Mongo must support transactions (Atlas/replica set).
+
+Open the **entire migration file** in VS Code Playground. Its first line is:
+
+```js
+globalThis.BRANDHUB_CHAT_SCHEDULE_APPLY = false;
+// Keep the rest of the migration below this line and Run All.
+```
+
+Review `blocked:false`, zero invalid/duplicate/conflict counts and an empty issues
+list. Change that first line to `true` and run the entire script again to APPLY;
+reset it to `false` afterward. Do not prepend a second flag: a later assignment
+to `false` inside the pasted file would override it. Running only the flag line returns a boolean and does
+not perform a migration. No `process.env` or `load()` is needed in Playground.
+
+The script is idempotent and stops before writes on unsupported topology, missing
+baseline/idempotency index, invalid documents, duplicate request identities or
+conflicting metadata. Fresh init mirrors the same validator/index contract; never
+run init on an existing Atlas database. Metadata operations are not transactional;
+if interrupted, inspect the metadata and rerun the migration.
+
+Restart Business after rollout. Missing metadata disables only scheduling; normal
+chat remains available. ChatSampleSeeder adds optional **CANCELLED-only** examples
+after scheduling metadata exists; it never creates pending scheduled sends.
+
+Manual smoke: Creator opens a DM/channel or a thread, composes rich content and
+uses the arrow next to Send to choose a time at least one minute ahead. Check the
+private Scheduled panel, change/cancel another item, then close the browser. With
+Business running, the due item should appear once in chat and become SENT; mention/
+DM notification intents are created only on delivery. Worker polling is every five
+seconds; service outages/rate limits may delay delivery. Shared Atlas APPLY/seed
+was not performed during implementation.

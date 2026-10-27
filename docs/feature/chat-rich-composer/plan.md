@@ -19,3 +19,5 @@
 7. Reuse Tiptap sink/lift commands behind shared bounded list actions. Add labelled
    toolbar controls and list-only Tab handling; scoped CSS styles editor/rendered
    nested markers consistently. No DB/API changes: nested list JSON is supported.
+8. Keep the contextual textbox description but apply sr-only at all breakpoints;
+   remove the desktop visibility override that squeezes narrow thread footers.
