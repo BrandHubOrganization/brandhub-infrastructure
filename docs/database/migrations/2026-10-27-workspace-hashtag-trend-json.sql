@@ -1,0 +1,176 @@
+-- Source: trend_results_2026-10-24.json
+-- SHA256: 2192dcbd8529ae2077e1e27fd0c341671dfc8e559d5cdfea767a4c49f5112b53
+-- Historical hashtags explicitly imported for local testing; not current trend rankings.
+BEGIN;
+SET LOCAL lock_timeout = '5s';
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM workspaces
+        WHERE id = 'bb996948-4b50-4761-a682-07a3e7a43eba'
+          AND name = 'FPT Shop x AIM Academy' AND deleted_at IS NULL
+          AND status = 'ACTIVE'
+    ) THEN
+        RAISE EXCEPTION 'Expected active demo workspace not found';
+    END IF;
+    IF (SELECT count(*) FROM workspace_members wm JOIN users u ON u.id = wm.user_id
+        WHERE wm.workspace_id = 'bb996948-4b50-4761-a682-07a3e7a43eba'
+          AND wm.is_active AND u.is_active
+          AND ((u.id = '12adcef2-8964-4ed6-95a5-bbb9a601803c' AND wm.role = 'CREATOR')
+            OR (u.id = 'dbdc427b-e39f-4cdd-b7c2-1de84fec003f' AND wm.role = 'MANAGER'))) <> 2 THEN
+        RAISE EXCEPTION 'Expected active demo Creator and Manager not found';
+    END IF;
+END $$;
+
+WITH source(id,tag,normalized_tag) AS (VALUES
+    ('cf000338-345a-5bbd-b682-718cc23c2dfe', '2010', '2010'),
+    ('fcccb137-ce55-5e14-bfef-d5d89635ed59', 'ahappycup', 'ahappycup'),
+    ('49331bb8-c88a-5e04-9894-ce2ae69ad52d', 'aimag2026', 'aimag2026'),
+    ('3b9bacd4-c594-55fe-b686-63b23c744f53', 'albumtanmui', 'albumtanmui'),
+    ('553fa7c8-b553-591c-a5c5-afb169831a78', 'allyachiraya', 'allyachiraya'),
+    ('c59b0bfa-f2e6-5f88-baaf-87bbfe805e31', 'anhdavang', 'anhdavang'),
+    ('654ca944-9fa3-5bee-a361-272733ee59f3', 'archive026', 'archive026'),
+    ('c566367b-69ff-5258-b0db-78f1d4f09b56', 'beatvn', 'beatvn'),
+    ('1b8419d5-c0fb-5f9e-a6b3-6d9990ac135b', 'benthanhcollection', 'benthanhcollection'),
+    ('09054886-5588-5dc5-be86-942251795332', 'bitis', 'bitis'),
+    ('aca2e9a2-e853-5226-99c5-4336388cb7b1', 'bitiswomen', 'bitiswomen'),
+    ('e5ece191-1185-5939-93d6-df6e91f07495', 'blvquanghuy', 'blvquanghuy'),
+    ('cc10a834-79d8-5f43-ae20-392f9e6a326c', 'blvquanghuynews', 'blvquanghuynews'),
+    ('05a12485-ebf2-5178-a828-59484f1b55e2', 'blvquanghuyqa', 'blvquanghuyqa'),
+    ('d0ff3338-edfd-5d59-84c3-9d5dfc12c1c7', 'blvquanghuyshow', 'blvquanghuyshow'),
+    ('dafaded8-85a9-5f15-bf80-b59b8334fba6', 'bongchuyen', 'bongchuyen'),
+    ('b039b79c-1ddf-57e9-b50b-e10c9909c5c5', 'bongdaplus', 'bongdaplus'),
+    ('590235a8-33e5-571d-92a9-a8b5b9f4b319', 'bongrotv', 'bongrotv'),
+    ('e8b06ff8-d162-5fdd-bddb-6da1885cdb6b', 'branding', 'branding'),
+    ('62cc9f8b-c16a-523e-bb19-5bdc4da95276', 'chatkichthichlanhmanh', 'chatkichthichlanhmanh'),
+    ('e1234078-fe0f-50ea-9cc6-f716f782b890', 'chuâ', 'chuâ'),
+    ('1d1c78b3-9d21-5ee7-ae14-1e2d974eca2d', 'chuẩnâuganicvừalòngmẹá', 'chuẩnâuganicvừalòngmẹá'),
+    ('31645ea7-ebda-5f6e-b883-8eb74151c4b1', 'chínhtrị', 'chínhtrị'),
+    ('e09f205b-f82f-5fe0-92c4-9942f9d166e5', 'citigym', 'citigym'),
+    ('c358c473-d92f-56df-9e10-b37468808713', 'cooking', 'cooking'),
+    ('9bf99f28-9ece-57a1-bf6e-64bc49a718c7', 'cungchamdinh', 'cungchamdinh'),
+    ('0c419929-16ae-5437-9722-3b59ef13758d', 'cupphanboncamau2026', 'cupphanboncamau2026'),
+    ('9e365835-3a80-5d7c-b2dd-6d105dee8c28', 'curry', 'curry'),
+    ('3961c8de-125e-5b1d-9914-755f063e778c', 'cuồngphim', 'cuồngphim'),
+    ('f3c04a56-f813-5fee-9dc0-80f0f97b4648', 'cuồngphimnetwork', 'cuồngphimnetwork'),
+    ('e1d4ac11-06f1-5669-81fe-15035f3fdd4d', 'cùngchạmđỉnh', 'cùngchạmđỉnh'),
+    ('faf734af-e543-5b84-af49-a3b9878ed094', 'dailystyle', 'dailystyle'),
+    ('ee3642c1-ba17-5201-a3e2-162b94e31744', 'daomedianetwork', 'daomedianetwork'),
+    ('e350e6b2-36e8-5086-bf76-5c6c0d7b2783', 'dealthantoc', 'dealthantoc'),
+    ('cb4fab9a-6768-5144-9750-78fae936097d', 'design', 'design'),
+    ('3eb6c05b-10df-5eed-a83b-40a479f1a1c9', 'diceblue', 'diceblue'),
+    ('1cf67037-266d-550c-afd3-142a37478e26', 'dinhhuongmoi', 'dinhhuongmoi'),
+    ('ef3d9ba6-0884-5418-b184-2413b54b3ffe', 'doituyenfutsalvietnam', 'doituyenfutsalvietnam'),
+    ('854d8c2e-5d10-5421-b79a-203709769da8', 'doncic', 'doncic'),
+    ('d62a785a-558e-5e6f-89ff-55dc8bacba74', 'dubnation', 'dubnation'),
+    ('e7c9c88a-4fd9-5131-8111-2f524da96cc0', 'durex', 'durex'),
+    ('e0a03191-074f-5829-af0a-0cc540d9af41', 'durexjeans', 'durexjeans'),
+    ('73152336-c37b-5e25-aaca-a0139860ac2b', 'durexplayclassic', 'durexplayclassic'),
+    ('58cc90bd-7d1a-5dd2-ae17-cd0314694b1d', 'durexplaystrawberry', 'durexplaystrawberry'),
+    ('f60d64ac-9c9b-5fe1-a7d7-a1ce6c72b158', 'durexvietnam', 'durexvietnam'),
+    ('1d900cad-5665-57e1-9aec-13a2936161f7', 'efw26aticonsiam', 'efw26aticonsiam'),
+    ('de90fc0f-5c43-5a79-b8bd-aa9fb04a7543', 'ellefashionweek2026', 'ellefashionweek2026'),
+    ('cf7751cd-4139-5ed6-8c64-8efb198ff960', 'ellevietnam', 'ellevietnam'),
+    ('1a654eb0-7268-5bad-a393-ef5cb2735952', 'enjoyitsfromeurope', 'enjoyitsfromeurope'),
+    ('5c2cee5b-029b-5536-9e8f-f181dabc8c3c', 'euagripromo', 'euagripromo'),
+    ('7297f6de-493f-5bed-8940-e8f49f86b6c6', 'europeanorganic', 'europeanorganic'),
+    ('7b8a507c-8e24-5cad-a245-9e71da6928b9', 'fetherlite', 'fetherlite'),
+    ('ecd25064-9b26-5c43-99ce-90fe8720a455', 'fifau15worldcupandfestival2026', 'fifau15worldcupandfestival2026'),
+    ('e9b7bd8a-6425-5f04-b81e-3ac337118ab9', 'fptplay', 'fptplay'),
+    ('8f7719f7-abbd-5aed-a43c-1b627d705fb5', 'fptplaysport', 'fptplaysport'),
+    ('778c75e4-59a4-5e48-a749-0bf811671431', 'fyp', 'fyp'),
+    ('c1ddefdc-5621-587f-90da-b8142c26e34e', 'gearvn', 'gearvn'),
+    ('f01e768b-9292-5b0c-8af8-0e0c47bbcc3b', 'gearvn_acer', 'gearvn_acer'),
+    ('e8bcfe1a-e461-50dc-baac-9a87bf576a33', 'gearvn_laptop', 'gearvn_laptop'),
+    ('0d2d901c-211c-5682-a579-62e32fa34ede', 'gearvn_tainghe', 'gearvn_tainghe'),
+    ('0a07c80c-ace7-56e1-8047-02b7057f529b', 'giaihangbaquocgia2026', 'giaihangbaquocgia2026'),
+    ('11c0b006-e11f-50b1-a2b8-b9246699f902', 'gosto', 'gosto'),
+    ('98ccefc4-6fe7-56bd-8b9b-1832dbd0c5a8', 'grabfood', 'grabfood'),
+    ('14b6d05a-7232-5cb5-a88a-b55094930da9', 'gsw', 'gsw'),
+    ('3f558d73-c237-5d0f-be99-4797703a49d4', 'gvn_marco', 'gvn_marco'),
+    ('7119ae11-357b-5398-aa17-0d875d3a1540', 'gvn_mixom', 'gvn_mixom'),
+    ('12341b45-82b4-543a-b63c-eb76ddf0b2dc', 'highlandsbuudienvanthanh', 'highlandsbuudienvanthanh'),
+    ('70453924-741b-58a5-a435-cdf2bc74c378', 'highlandscoffee', 'highlandscoffee'),
+    ('d35e9229-6170-55f4-b340-3a2a2b3268b4', 'huyseoul', 'huyseoul'),
+    ('702ac64c-83ac-5587-9aa3-d0fddea3fd59', 'hư', 'hư'),
+    ('43447932-8d75-5c31-8d1e-b580a1a2a38c', 'hữucơeu', 'hữucơeu'),
+    ('821ec1b6-6bd4-521f-9a39-955b70748988', 'kfc', 'kfc'),
+    ('ad32bf55-4c29-5cff-b28b-a3811696e39d', 'kfcthanhhoa', 'kfcthanhhoa'),
+    ('002f65cd-77b1-5440-8834-b33b7da2c6d4', 'kfcvietnam', 'kfcvietnam'),
+    ('f4c33f38-e25d-50da-a47b-1c32dd1f40f1', 'kongjiro', 'kongjiro'),
+    ('44619a6d-d259-5ad1-baad-72c725aabf99', 'lakers', 'lakers'),
+    ('e28489d6-ecf4-539c-9fc0-06fdca7c90cf', 'leaguepass', 'leaguepass'),
+    ('8867bba4-0450-5255-bebe-e067b158214d', 'lpb', 'lpb'),
+    ('fb709503-a7a3-5955-9a9c-30ae306a43b4', 'lpbank', 'lpbank'),
+    ('53436daf-deb0-527b-8781-ed52522cad98', 'lygiònănđược', 'lygiònănđược'),
+    ('02c4552e-1931-5692-83b8-3b3c282089ab', 'mentos', 'mentos'),
+    ('38ecfbb6-4d36-5d02-b4b3-ae354b755d75', 'minigame', 'minigame'),
+    ('9b1647a8-94b3-5ba9-9cb4-726df3b7d7b2', 'motchatphintu1999', 'motchatphintu1999'),
+    ('b8304160-c522-5330-98ef-1ca03bff33c5', 'mutualclimax', 'mutualclimax'),
+    ('339f83d1-cf30-5c5f-9baa-d05a00a639ad', 'mảnhghépphúclong', 'mảnhghépphúclong'),
+    ('c621eaa8-f8ab-5666-baf2-efeb9ae577d1', 'nangniubanchanviet', 'nangniubanchanviet'),
+    ('cd2042ef-3084-5188-b033-86eaac43f2b3', 'naturland', 'naturland'),
+    ('daefa3ff-eacf-56f2-b783-acf2bf9d9217', 'nba', 'nba'),
+    ('5212758e-8424-5fc6-88b9-8e02fc252da8', 'nbaplayoffs', 'nbaplayoffs'),
+    ('64a0d9d2-fc19-52fd-8b82-3f0285321df5', 'nbarecap', 'nbarecap'),
+    ('92957dee-af49-5c1a-8b4e-5bf7f79412cd', 'nbavietnam', 'nbavietnam'),
+    ('e3c530ad-1307-58ed-8796-3cdd182ab402', 'newstoreopening', 'newstoreopening'),
+    ('bc23a12a-ab9b-51aa-b68e-d9a007613485', 'ngayphunuvietnam', 'ngayphunuvietnam'),
+    ('570285ea-c109-5f43-a62a-b219e79805d2', 'ngumieuphaan', 'ngumieuphaan'),
+    ('3608ab53-a7dd-515d-842a-4b23d6485710', 'oppahuy', 'oppahuy'),
+    ('a7e8ef8f-8d7e-5387-862b-1eb5beaa8469', 'pannacotta', 'pannacotta'),
+    ('19b88b9b-5174-50d7-a5f6-ae334e88e688', 'phamtthuc', 'phamtthuc'),
+    ('43513c6e-fd24-5fdc-971c-3ea7c1b8d87b', 'phamvinh99', 'phamvinh99'),
+    ('e9b01e0c-d687-5619-8b6f-651b1af8b158', 'phanboncamau', 'phanboncamau'),
+    ('11b1d0e4-2de0-5d3f-a56e-af995af2da73', 'phúclong', 'phúclong'),
+    ('f10efe85-e782-51cd-8946-8764f2a36758', 'pt', 'pt'),
+    ('44e172bf-438d-5473-a12f-87f1aeee063a', 'pvcfc', 'pvcfc'),
+    ('f16a0b10-d943-5efb-9855-f7688161742d', 'qnhh', 'qnhh'),
+    ('e7eb53bb-9eff-581f-a64e-f7d0e530f412', 'quannhahaha', 'quannhahaha'),
+    ('2452b510-bee0-5810-ad18-96693c9f57c1', 'quatang', 'quatang'),
+    ('818cc9ce-3b29-5fb2-b359-668fed76af05', 'rgb', 'rgb'),
+    ('85fff94f-fe83-53e5-8a44-aae3ce0232c7', 'sacrangro', 'sacrangro'),
+    ('e85dad8c-eb18-58fe-b7da-72b05e93855d', 'saigonamap', 'saigonamap'),
+    ('4bfe1acc-1ac1-51b3-8bc2-88b973c5a097', 'seeyouatthetent', 'seeyouatthetent'),
+    ('e2d4a27d-10cf-5d80-a865-32dcf97c6329', 'shopeelive', 'shopeelive'),
+    ('031071ce-0fd0-5612-a7cb-5cf0a20838d5', 'spicybox10thbirthday', 'spicybox10thbirthday'),
+    ('bd9c625c-146f-5d9f-a441-e76306360def', 'stephencurry', 'stephencurry'),
+    ('fb241155-35d1-5c7f-b942-4a54b014dd19', 'tanmui', 'tanmui'),
+    ('1a39cd3c-1c71-5310-8e06-cf59ea453cf6', 'tanmuishowcase', 'tanmuishowcase'),
+    ('5ea1f4d5-3732-50e0-936e-c245ba0acfb4', 'theartofsoftness', 'theartofsoftness'),
+    ('b27f8a37-4d8b-5e0c-81c3-23253dc35dac', 'thiennguyenbenvung', 'thiennguyenbenvung'),
+    ('33ec018f-149f-5f45-a05b-09b1e4f49852', 'tháng10củanàng', 'tháng10củanàng'),
+    ('126b691b-a7c7-51fb-a175-bedf42221e2c', 'thờisự', 'thờisự'),
+    ('cf20f521-f058-5017-be04-1dbbd1f21bba', 'tieuthat2000', 'tieuthat2000'),
+    ('a19e8013-202b-5557-b224-22202caddef8', 'trangmieng', 'trangmieng'),
+    ('f7ba9290-642b-5c09-8077-d4b3dc2b2466', 'tronmuottruotme', 'tronmuottruotme'),
+    ('c2be2fc1-3bff-5ae6-9ea1-3c098ffb8523', 'trucnhan', 'trucnhan'),
+    ('4474f2dc-bf22-5af1-bc7e-3d31027254fe', 'tràsữaphúclong', 'tràsữaphúclong'),
+    ('fd9c14a6-b2a7-5408-8045-cb0a6782741e', 'tthomastc', 'tthomastc'),
+    ('4a60be01-e66c-5243-8f08-3e5685ce7ae4', 'u15vietnam', 'u15vietnam'),
+    ('9b96caf3-685f-5784-9db4-b27507989657', 'urbox', 'urbox'),
+    ('15fd84ed-88ed-52c8-a41a-e9ffc52df4e6', 'vanhleg', 'vanhleg'),
+    ('e6bd991a-e39b-50f5-8106-2f5711e67eee', 'vietcombankxquánnhàhaha', 'vietcombankxquánnhàhaha'),
+    ('56ceca31-a1e6-5256-baef-1c3c679ab2a1', 'vietcontent', 'vietcontent'),
+    ('b17e2bbc-449f-591d-96af-dede3e5e94a9', 'vietnamnet', 'vietnamnet'),
+    ('43d9924b-bbcb-58aa-9fd0-b38930cb4237', 'viral', 'viral'),
+    ('188a249f-bdf3-5dc0-9c4f-61db13edab3d', 'vl1', 'vl1'),
+    ('3a305712-4784-57ac-b429-b1e27b623bdb', 'vleague', 'vleague'),
+    ('c213e10c-6dee-5488-8067-1f57e6c33429', 'vmgenz', 'vmgenz'),
+    ('a560e817-8d8e-5e67-aa2c-f564ea7d783d', 'vulaci', 'vulaci'),
+    ('b0b214b1-867b-5a63-ad84-7a1914f68bd5', 'webthethao', 'webthethao'),
+    ('2f7b79d7-e171-56f3-8fb5-e9452be162a8', 'xhtiktok', 'xhtiktok'),
+    ('386cfde7-8e5a-52c0-9eb3-9c2cb9867e26', 'xuhuong', 'xuhuong'),
+    ('b309a3d5-6976-5017-a55e-a1f7e3a5946f', 'y1t26', 'y1t26'),
+    ('96864420-6050-51c1-a074-ac17b6c2b701', 'yeah1', 'yeah1'),
+    ('1da3b4a2-5de1-5668-9ca4-c891d30d6c2e', 'yogaworkshop', 'yogaworkshop'),
+    ('27b20993-fd80-55e3-84b3-ae54f1ce7d54', 'đậmtràđộcbản', 'đậmtràđộcbản')
+)
+INSERT INTO workspace_hashtags
+(id,workspace_id,tag,normalized_tag,purpose,added_by,added_by_name,is_required,campaign_id)
+SELECT s.id::uuid,'bb996948-4b50-4761-a682-07a3e7a43eba'::uuid,
+ s.tag,s.normalized_tag,'TRENDING',u.id,u.full_name,false,NULL
+FROM source s JOIN users u ON u.id='12adcef2-8964-4ed6-95a5-bbb9a601803c'
+ON CONFLICT DO NOTHING;
+COMMIT;

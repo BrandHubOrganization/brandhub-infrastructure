@@ -1,0 +1,4 @@
+# Plan
+Official source: https://docs.deploy.com/quickstart.md (read 2026-10-27). HTTPS POST base_url/chat/completions with Bearer key, model and user messages. Images use image_url data URIs; read only choices[0].message.content with finish_reason stop, ignore reasoning_content. Retry only 429/500/502/503/504 and connection timeout with bounded attempts. JSON mode uses explicit prompt and strips only a complete JSON fence, not unverified provider parameters. Wire DeployClient/get_deploy_client/config across prior Gemini consumers; preserve Groq. Remove obsolete Gemini client and update affected tests. Clean ignored .env Gemini keys while preserving existing Deploy values and dedicated Veo key.
+
+Update TrendReplayDetail.tsx warning heading to localized providerCostTitle, and vi/en admin.json cost warning provider. No interaction/layout changes.

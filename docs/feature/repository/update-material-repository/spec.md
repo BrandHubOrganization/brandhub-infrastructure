@@ -1,26 +1,5 @@
 # FR 3.6.13 — Update Material Repository Specification
 
-## Planning contract đã đồng bộ với BR01–BR25
-
-Nguồn chuẩn: [Repository BR](../../../../../tuan-research/REPOSITORY_SPEC.md).
-PATCH giữ nguyên schema/key/provider/accounting từ Add. Các chốt dưới đây làm rõ ví dụ nháp:
-
-- expectedVersion bắt buộc; payload rỗng400; omitted giữ nguyên, explicit null chỉ hợp lệ
-  cho clientProfileId khi MANAGER chuyển INTERNAL. No-op không tăng version nhưng stale409.
-- status READY + deleted_at null + purge_state NONE mới mutate; khóa các field key/provider/
-  byte/status/lineage/taskId/created_by. Không gán WATERMARKED qua request.
-- Visibility chỉ MANAGER đổi sau tạo; audience_scope không phải field thứ hai.
-- CREATOR B retouch A bằng upload mới; không sửa bản A. Điều này không mở thêm quyền metadata.
-- Thu hồi/mở audience lineage dùng protocol revision/lease của Add, audience mutation và
-  tạo derivative/reference phải serialize. Trong mutation chưa hoàn tất fail closed trên
-  toàn lineage; không dùng loop update child rồi báo thành công thiếu atomicity.
-- Restriction được áp lên descendant; expansion không tự chia sẻ thêm descendant nếu
-  chưa có thao tác rõ ràng trên file đó. Child không thể rộng hơn ancestor hiệu lực.
-- Audit có operationId/outbox bền vững; không cho audit-PG failure biến thành silent
-  partial success. Không giả định @Transactional JPA bao cả Mongo.
-- Lỗi tên ErrorCode được reuse/đăng ký tập trung; số code trong bảng là đề xuất, không
-  buộc ghi đè mã đã có. Quota/expiry không chặn metadata mutation.
-
 - **Feature ID:** FR 3.6.13
 - **Feature Name:** Update Material Repository (`update-material-repository`)
 - **Date:** 2026-10-24
@@ -445,3 +424,18 @@ Add the following keys simultaneously to `src/i18n/locales/vi/library.json` and 
 3. Filename sanitization, canonical extension enforcement, `WATERMARKED` immutability, derivative audience cascade, atomic MongoDB `expectedVersion` check, and PostgreSQL `AuditLog` recording are verified by unit and integration tests.
 4. `MediaDetailPanel.tsx` in `brandhub-web` provides capability-gated metadata editing (`canRename`, `canUpdateType`, `canChangeAudience`), `409` conflict recovery, parallel `vi`/`en` translations, Light/Dark theme compliance, responsive layout (`375px`/`768px`/`1440px`), and keyboard accessibility.
 5. All unit, integration, and E2E tests covering `AC-U01` through `AC-U11` pass.
+
+## Implementation alignment — 2026-10-25
+This explicitly supplied spec supersedes the earlier ticket plan. Existing Trash semantics
+(DELETED/PURGE_IN_PROGRESS/PURGED, original 30-day restore deadline) are preserved.
+PATCH null/omitted values retain stored values as §7.1 specifies; INTERNAL clears profile.
+Every valid PATCH increments version, including a supplied unchanged value; stale writes
+always conflict. Unknown payload fields are rejected, and binary identity stays immutable.
+Audience restriction uses one Mongo replica-set transaction for the target and recursive
+lineage, plus the existing ancestor access_revision fence used by uploads/Post/Task pins.
+An interrupted transaction rolls back all changes; no partially committed cascade needs a
+background saga. Descendants only become more restrictive, never implicitly shared to a
+new Client. Existing signed URLs expire within 300 seconds; future issuance rechecks ACL.
+Unsafe/unknown legacy storage identities receive no preview fallback or guessed provider.
+Usage counters use decimal strings on the wire to preserve PostgreSQL bigint precision.
+No live migration, provider reconfiguration, publishing or purge activation is authorized.

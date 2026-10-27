@@ -46,3 +46,6 @@ không tự xóa DB, quay public ACL hay đổi quyết định BASIC overflow.
 
 Specs trước normalization được giữ ở `.scratch/repository/spec-before-planning/` ngoài
 repo infrastructure để đối chiếu, không là tài liệu active hoặc một bản spec cạnh tranh.
+
+## Customer-owned Drive storage
+The customer-drive-overflow feature adds Owner/Manager OAuth connection, private brandhub-[agency]/workspace_N folders, Drive-first material writes and active-paid-plan S3 overflow. USER_GDRIVE is enabled only by the explicit customer-drive feature gate; SYSTEM_GDRIVE remains a historical system-provider route. See [customer-drive-overflow/plan.md](customer-drive-overflow/plan.md) for staged schema, account-wide capacity reservations, private gateway streaming and rollout prerequisites.
