@@ -1,26 +1,5 @@
 # FR 3.6.11 — View Material Repository Specification
 
-## Planning contract đã đồng bộ với BR01–BR25
-
-Nguồn chuẩn: [Repository BR](../../../../../tuan-research/REPOSITORY_SPEC.md).
-Reuse nền Add, không tạo storage/ACL/accounting thứ hai. Các chốt này ưu tiên hơn ví dụ nháp:
-
-- Provider enum SYSTEM_GDRIVE/SYSTEM_S3/USER_GDRIVE; status upload 5 giá trị của Add;
-  deleted_at và purge_state riêng. Không cấp URL cho deleted/purge-in-progress.
-- Legacy URL chỉ phục vụ inventory/migration; không fallback public URL cho preview.
-- CLIENT lọc query clientProfileId bằng giao với profile active; profile ngoài scope cho
-  kết quả rỗng, không leak tồn tại. Single ID sai scope404; membership403.
-- GET list trả mảng + MetaBody page/size/total; search prefix normalized escaped, sort
-  created_at/_id; CLIENT và count dùng cùng predicate trước pagination.
-- Trash predicate/capability restore chỉ được enable sau Remove; không tự expose mọi
-  deleted material có quyền đọc nhưng không có quyền quản lý.
-- OWNER usage ở GET /api/v1/agencies/{agencyId}/storage-usage, kiểm ownership, chỉ aggregate/
-  breakdown workspace; không mở quyền Library hoặc trả file metadata. Workspace usage API
-  không được lộ aggregate Agency cho CLIENT.
-- previewUrl TTL≤300s trong list/detail, không HEAD mỗi item/N request preview grid;
-  503 provider signing không được chuyển sang public URL. Credential refresh có thể I/O.
-- Gateway subscription filter phải cho read/preview qua khi paid hết hạn/vượt quota.
-
 - **Feature ID:** FR 3.6.11
 - **Feature Name:** View Material Repository (`view-material-repository`)
 - **Date:** 2026-10-24
@@ -152,7 +131,7 @@ Deliver **FR 3.6.11 — View Material Repository** by upgrading the existing `Ma
    - Presigning a `GET` URL with AWS S3 SDK (`S3Presigner`) is a local cryptographic operation using the configured credentials and endpoint of the material's `storage_provider` (`SYSTEM_GDRIVE` or `SYSTEM_S3`).
    - During `listMaterials` and `getMaterial`, for each document where `status == READY` and `deletedAt == null` and `isPreviewableMimeType(mimeType)`:
      - If `s3Key` is present, `StorageClientRouter` generates a presigned GET URL with `ResponseContentDisposition = "inline"`, `ResponseContentType = doc.getMimeType()`, and `signatureDuration = Duration.ofSeconds(300)` ($5\text{ minutes}$).
-     - Legacy compatibility: legacy URLs are migration inputs only. If a document has no verified private key/provider, do not return its public URL; return metadata without preview and reconcile before publication. Newly uploaded/migrated materials always sign from verified key/provider.
+     - Legacy compatibility: if a pre-migration document has `s3Key == null` but a non-blank `url` matching the allowed bucket/host, return it as fallback only until migration completes; newly uploaded/migrated materials always sign from `s3Key` and `storageProvider` and do not expose raw `url`.
    - Do **not** execute `HEAD Object` for each item in `GET /materials` list. `HEAD` verification belongs to upload confirm and download link issuance (`FR 3.6.16`).
 4. **Action Capabilities Driven by Server (`capabilities` Object):**
    - To prevent the UI from guessing mutation permissions or drifting from `BR03`–`BR08`, each `MaterialResponse` includes a `capabilities` object computed for the current caller:
@@ -334,16 +313,29 @@ Response headers for all endpoints returning signed URLs: `Cache-Control: no-sto
 }
 ```
 
-### 8.4 Storage usage read contracts
+### 8.4 Get Workspace Storage Usage Summary — `GET /api/v1/workspaces/{workspaceId}/materials/storage-usage`
 
-GET /api/v1/agencies/{agencyId}/storage-usage checks Agency owner_id (or existing system
-ADMIN support policy), not workspace membership. Return decimal-string usedBytes,
-reservedBytes,quotaBytes, per-workspace usage breakdown and observedAt/reconciliationPending.
-No file names, IDs, keys, URLs or Client-specific lists. OWNER-only still cannot enter Library.
-Workspace endpoint GET /api/v1/workspaces/{workspaceId}/materials/storage-usage is ops-only
-MANAGER/CREATOR and returns workspace usage only; do not expose Agency aggregate to CLIENT
-or implicitly to non-owner operators. Plan.md V4 is the canonical DTO definition.
-Quota is catalog total; BASIC/expired21474836480; trash included, restore no increase.
+- **Allowed Roles:** `MANAGER`, `CREATOR` (active member of `workspaceId`), `SystemRole.ADMIN`. (`CLIENT` does not view Agency-wide aggregate quota per `REPOSITORY_SPEC.md` §8; `OWNER` without workspace membership uses `GET /api/v1/agencies/{agencyId}/storage-usage` at Billing/Subscription per `BR02`).
+- **Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "data": {
+    "workspaceUsedBytes": 524288000,
+    "agencyUsedBytes": 10737418240,
+    "agencyReservedBytes": 20971520,
+    "agencyQuotaBytes": 21474836480,
+    "storageMode": "SYSTEM_REPO",
+    "isQuotaExceeded": false,
+    "canExpandWithSubscription": true
+  },
+  "error": null,
+  "meta": null,
+  "requestId": "123e4567-e89b-12d3-a456-426614174000",
+  "version": "v1",
+  "timestamp": "2026-10-24T10:30:00Z"
+}
+```
 
 ---
 
@@ -355,7 +347,7 @@ All errors use `BusinessException` mapped by `GlobalExceptionHandler` into `ApiR
 |---|---|---|---|
 | Missing or expired JWT | `401 Unauthorized` | `UNAUTHORIZED` / `TOKEN_EXPIRED` | Axios interceptor refreshes token once via `/api/v1/auth/refresh`; redirects to `/login` on failure. |
 | User is not an active member of `workspaceId`, or is an `OWNER` without `MANAGER`/`CREATOR` membership (`BR02`) | `403 Forbidden` | `WORKSPACE_ACCESS_DENIED` / `FORBIDDEN` | UI renders Forbidden state (`repository.access.forbidden`) and prevents rendering workspace data. |
-| `CLIENT` filters by a profile outside caller scope | `200 OK` | — | Empty scoped data/total; do not reveal profile existence. Calling Agency/workspace ops-only usage is403. |
+| `CLIENT` filters by a `clientProfileId` they do not own in `workspaceId`, or calls `/storage-usage` | `403 Forbidden` | `CLIENT_ACCESS_DENIED` / `FORBIDDEN` | UI shows permission error toast / banner. |
 | Invalid `page` ($<0$), `size` ($<1$ or $>100$), `search` ($>100$ chars), or invalid enum filter (`mediaKind`, `type`, `purpose`, `sort`) | `400 Bad Request` | `VALIDATION_ERROR` / `INVALID_REQUEST` | Inline/toast validation error; no database query executed. |
 | `materialId` does not exist, belongs to another `workspaceId`, or is invisible to the calling `CLIENT` (`INTERNAL` or another Client's profile) | `404 Not Found` | `MATERIAL_NOT_FOUND` | Detail panel closes or shows `"Không tìm thấy tài liệu"` without leaking whether the ID exists elsewhere. |
 | Calling `POST /{id}/preview` on a material with `status` in `UPLOADING` or `VALIDATING` | `409 Conflict` | `MATERIAL_NOT_READY` | Detail panel shows processing state (`repository.upload.validating`). |
@@ -552,3 +544,18 @@ The following items belong to separate FR specifications or future phases and ar
 5. `RAW` warning badge/banner (`BR08`) and `BRAND_REFERENCE` badge/filter (`BR09`) work end-to-end.
 6. Parallel `vi`/`en` translation keys exist with zero missing keys; UI passes Light/Dark mode, responsive (`375px`, `768px`, `1440px`), and keyboard accessibility checks.
 7. Unit, integration, and E2E tests covering `AC-V01` through `AC-V14` pass (`mvn test` and `npx tsc -b` / Playwright).
+
+## Implementation alignment — 2026-10-25
+This explicitly supplied spec supersedes the earlier ticket plan. Existing Trash semantics
+(DELETED/PURGE_IN_PROGRESS/PURGED, original 30-day restore deadline) are preserved.
+PATCH null/omitted values retain stored values as §7.1 specifies; INTERNAL clears profile.
+Every valid PATCH increments version, including a supplied unchanged value; stale writes
+always conflict. Unknown payload fields are rejected, and binary identity stays immutable.
+Audience restriction uses one Mongo replica-set transaction for the target and recursive
+lineage, plus the existing ancestor access_revision fence used by uploads/Post/Task pins.
+An interrupted transaction rolls back all changes; no partially committed cascade needs a
+background saga. Descendants only become more restrictive, never implicitly shared to a
+new Client. Existing signed URLs expire within 300 seconds; future issuance rechecks ACL.
+Unsafe/unknown legacy storage identities receive no preview fallback or guessed provider.
+Usage counters use decimal strings on the wire to preserve PostgreSQL bigint precision.
+No live migration, provider reconfiguration, publishing or purge activation is authorized.
