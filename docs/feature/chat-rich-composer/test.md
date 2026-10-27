@@ -64,3 +64,9 @@ Migration: execute the WHOLE 2026-10-24-chat-rich-content.js script with
 preflight. Existing schema permits additive fields; migration adds explicit typing.
 Restart Business before testing the new composer so richContent is not ignored by
 an old server. No collection reset/backfill or PostgreSQL changes are needed.
+
+Footer follow-up (2026-10-27): Enter/Shift+Enter instructions remain sr-only in
+channel/DM/thread composers at every breakpoint, including a narrow thread panel
+inside a wide desktop viewport. Textbox aria-describedby still targets that hint;
+keyboard handlers remain unchanged. Targeted ESLint and full Web TypeScript
+checking pass. No executable tests were added for this CSS-only change.
