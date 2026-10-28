@@ -1,0 +1,21 @@
+# Tasks
+
+- [x] Validate and preview S3 file manifest.
+- [x] Isolate replay history and daily pipeline results.
+- [x] Persist/fence execution, progress, errors, resume and API routes.
+- [x] Admin Business access checks, forwarding and audit.
+- [x] Admin form/preview/tracking/results and vi/en labels.
+- [x] Verify ordering, dedup, history exclusion, lease-expiry/resume, failure handling with isolated dependencies.
+- [x] Verify UI responsive/light-dark and build; no live writes/costs.
+- [x] Verify real S3/model replay recovery after the user's explicit instruction to continue.
+- [ ] User acceptance of the real published results in Admin UI.
+- [x] Reuse complete live downstream persistence; expose DB publication status.
+- [x] Verify historical daily publication, failure propagation and live defaults.
+- [x] Confirm scoped cleanup; perform read-only preflight of available stores.
+- [ ] Clear authorized trend data only after Neo4j is reachable (operator deferred cleanup).
+- [x] Add leased PREFLIGHT before extraction and test failure blocks file/model work.
+- [x] Verify resume from completed checkpoints and normal publication.
+- [ ] Scope entity resolution to public trend data and enforce namespace boundaries.
+- [ ] Protect shared graph/vector writes against stale replay and concurrent crawl.
+- [ ] Define historical versus current-live publication and freshness policy.
+- [ ] Fence in-flight storage writes when replay ownership is lost.
