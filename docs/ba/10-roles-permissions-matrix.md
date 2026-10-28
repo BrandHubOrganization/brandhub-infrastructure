@@ -54,6 +54,17 @@
 | 3.4.20 | Update Workspace Member Role | MANAGER | |
 | 3.4.21 | Remove Workspace Member | MANAGER | Không xóa khỏi Agency |
 
+### Mẫu email theo scope (FR 3.6.28-32, Addendum B — cập nhật 2026-10-29)
+
+| Scope | Tạo/sửa | Gửi | Ghi chú |
+|---|---|---|---|
+| `WORKSPACE_MANAGER`, `CAMPAIGN_BROADCAST` | Workspace OWNER / MANAGER / CREATOR | Workspace OWNER / MANAGER / CREATOR | Người nhận phải nêu tường minh hoặc backend suy ra theo scope |
+| `AGENCY_INTERNAL`, `AGENCY_CLIENT` | Agency OWNER | Agency OWNER (qua Workspace thuộc Agency đó) | Tầng 1; người khác nhận `TEMPLATE_NOT_FOUND` |
+| `ADMIN_SYSTEM_BROADCAST` | ADMIN | ADMIN (endpoint `/api/v1/admin/...`, không cần Workspace) | Member Workspace chỉ dùng được mẫu hệ thống với danh sách người nhận tường minh và cap 200/lần |
+| `TRANSACTIONAL_AUTO` | ADMIN | Hệ thống tự gửi (không ai bấm gửi tay) | Ẩn khỏi Workspace |
+
+Quyền theo từng trang web/mobile: xem [mobile-nav-role-parity](../feature/mobile-nav-role-parity/spec.md).
+
 **Nguyên tắc kỹ thuật:** Tầng 1 dùng check riêng (`agency.getOwnerId().equals(currentUserId)` hoặc tương đương `@RequireAgencyOwner`), KHÔNG dùng chung cơ chế `@RequireRole(MemberRole...)` của Tầng 2 — 2 cơ chế độc lập, một Agency Owner không tự động có `MemberRole` ở mọi Workspace con trừ khi được gán riêng (trừ hành động list/view đã liệt kê ở Tầng 1 do kế thừa quyền sở hữu).
 
 **Phạm vi mở rộng (E16, E50, E51):** endpoint các nhóm Agency & Client (E16), Media Package/Campaign (E50), Task workflow (E51) áp dụng theo cùng nguyên tắc 2 tầng ở trên — chi tiết role từng FR xem file [04](04-media-package-campaign.md) và [05](05-content-task-workflow.md); các FR đó đã dùng đúng model Workspace-level (`MemberRole`) hiện có, không cần bảng riêng.

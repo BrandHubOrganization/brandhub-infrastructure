@@ -169,7 +169,49 @@ git commit -m "test(DA-47): add unit tests for User schema"
 
 ---
 
-### Bước 5 — Push branch lên GitHub
+### Bước 5 — Pull và kiểm tra conflict trước khi push
+
+> **Bắt buộc trước mọi lần push**: kiểm tra xem branch có bị lệch so với
+> remote không, để không push đè lên commit của người khác hoặc bỏ sót
+> merge conflict.
+
+```bash
+# 1. Đảm bảo working tree sạch (không có gì chưa commit)
+git status
+
+# 2. Lấy trạng thái mới nhất của remote, KHÔNG tự merge
+git fetch origin <branch-name>
+
+# 3. So sánh: remote có commit mới mà local chưa có không?
+git log --oneline HEAD..origin/<branch-name>
+```
+
+- Nếu lệnh ở bước 3 **không in ra gì** → remote không có gì mới, local đang
+  dẫn trước (hoặc ngang bằng) → an toàn, sang bước 6 push thẳng.
+- Nếu lệnh ở bước 3 **có in ra commit** → remote đã có thay đổi mới, phải
+  đồng bộ trước khi push:
+
+```bash
+git pull origin <branch-name>
+```
+
+  - Nếu `git pull` báo **Already up to date** hoặc tự merge/fast-forward
+    thành công, không có dòng `CONFLICT` nào → an toàn, sang bước 6.
+  - Nếu `git pull` báo **CONFLICT (content)**: mở từng file bị đánh dấu
+    `<<<<<<<`, xử lý thủ công, sau đó:
+    ```bash
+    git add <file-đã-giải-quyết>
+    git commit -m "chore(DA-<id>): resolve merge conflict with <branch-name>"
+    ```
+    Không bỏ qua conflict, không dùng `git checkout --theirs .` hàng loạt
+    mà không đọc kỹ nội dung bị ghi đè.
+
+> **Không bao giờ** bỏ qua bước fetch/kiểm tra này rồi push thẳng — trên
+> branch nhiều người cùng làm, push mù dễ ghi đè mất commit của đồng đội.
+
+---
+
+### Bước 6 — Push branch lên GitHub
 
 ```bash
 # Lần đầu push branch mới
@@ -183,7 +225,7 @@ Sau bước này, Jira đã nhận diện được branch và gán vào task `DA
 
 ---
 
-### Bước 6 — Tạo Pull Request và tự merge
+### Bước 7 — Tạo Pull Request và tự merge
 
 1. Vào GitHub → **Compare & pull request**
 2. Đặt tiêu đề PR theo chuẩn: `feat(DA-47): short description`
@@ -234,7 +276,7 @@ feat(DA-47): short description (#PR_number)
 
 ---
 
-### Bước 7 — Cập nhật Jira sau khi merge
+### Bước 8 — Cập nhật Jira sau khi merge
 
 1. Vào task `DA-47` trên Jira
 2. Kéo sang **In Review**
@@ -250,6 +292,7 @@ feat(DA-47): short description (#PR_number)
 Jira: kéo task → In Progress
 Git:  pull develop → tạo branch feature/DA-47-xxx
 Code: commit thường xuyên với feat(DA-47): ...
+Pull: git fetch + kiểm tra conflict trước khi push (xem Bước 5)
 Push: git push -u origin feature/DA-47-xxx
 PR:   tiêu đề feat(DA-47): ..., base=develop, điền template đầy đủ
 Merge: Squash and merge → chỉnh tiêu đề squash commit → xác nhận
@@ -264,7 +307,7 @@ Jira: kéo task → In Review → chờ duyệt → Done
 - Một commit có thể gán nhiều task: `feat(DA-47)(DA-58): ...` — Jira nhận cả hai.
 - Commit không có mã task vẫn hợp lệ cho Git, nhưng **không sync được vào Jira**.
 - Merge commit tự động (`Merge pull request #xx`) không cần mã task.
-- **Ngôn ngữ commit/PR là tiếng Anh** — xem mục 1. Áp dụng cho cả squash commit title khi merge (mục 6, bước 6).
+- **Ngôn ngữ commit/PR là tiếng Anh** — xem mục 1. Áp dụng cho cả squash commit title khi merge (mục 6, bước 7).
 
 ---
 

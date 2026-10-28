@@ -6,8 +6,8 @@
 | Feature | Content Writting View |
 | Domain | Content & Workflow (FR 3.6) |
 | Role | CREATOR |
-| Version | 4.0 (V4 — implemented: canvas-rendering + Yjs CRDT real-time sync over WebSocket, 2026-10-01) |
-| Document Status | Implemented — minimal Task entity (not full FR 3.6.1), core + real-time sync + version history live; see task.md for what's still pending |
+| Version | 5.0 (V5 — Docs/Word hybrid UI redesign + presence/multi-cursor awareness + React Native mobile port, 2026-10-26; V4 — canvas-rendering + Yjs CRDT real-time sync over WebSocket, 2026-10-01) |
+| Document Status | Implemented — minimal Task entity (not full FR 3.6.1), core + real-time sync + version history + presence live on web; mobile port (RN TextInput, not canvas) live with the same sync/formatting/version-history/preview feature set; see task.md for what's still pending |
 
 ## 1. Objective
 
@@ -30,6 +30,8 @@ If a colleague has the same content open, I want to see their edits almost insta
 ## 4. UI / UX
 
 - Editor embedded in the Task Detail (Post type), with a Version History sidebar.
+- **Page chrome (V5, 2026-10-26)**: the canvas sits on a white "paper" sheet (max-width 816px, matching a Docs/Word page at 96dpi) over a gray "desk" background, with a toolbar that toggles between a **Docs mode** (compact single-row icon bar) and a **Ribbon mode** (Word-style grouped icons with captions under each group) — purely visual, no change to the underlying edit operations or Yjs wiring.
+- **Presence (V5, 2026-10-26)**: other Creators currently viewing/editing the document show as small colored avatar initials in the top status bar, and as a colored flag-with-name marker at their live caret position inside the editor (see [plan.md](plan.md) for the awareness-protocol design). Each peer's color is deterministic from their user ID (same color across sessions/devices).
 - **Rendering architecture: canvas-based (mirrors the real Google Docs), not an ordinary DOM/contentEditable editor:**
   - Content is drawn pixel-accurately onto a `<canvas>` — no HTML tags are used to display the text. Reason: WYSIWYG fidelity for print/PDF, avoiding line-shift differences across browsers/devices/fonts.
   - A hidden `contenteditable`, pushed off-screen (e.g. `translateX(-10000px)`), captures keyboard/IME events (including Vietnamese input via Unikey/Telex) — it is never shown; it only receives input and forwards it into the canvas editor's internal state.
@@ -54,6 +56,13 @@ Server → SUBSCRIBE /topic/tasks/{taskId}/content: { "update", "sequenceNumber"
 POST /api/v1/workspaces/{id}/tasks/{taskId}/content/snapshot
 Body: { "yjsState": "<base64 Yjs state>", "atSequenceNumber" }
 // Client-reported: the server has no Yjs runtime to merge updates into a state itself.
+
+Client → Server: PUBLISH /app/tasks/{taskId}/awareness  { "update": "<base64 y-protocols/awareness update>" }
+Server → SUBSCRIBE /topic/tasks/{taskId}/awareness: { "update" }
+// Presence/multi-cursor (added V5, 2026-10-26): same opaque-blob posture as content — the server relays without
+// decoding and, unlike content, never persists anything (awareness state is "who's online + their cursor right
+// now", not something a reload should restore). A silent client's state is cleared by y-protocols' own built-in
+// 30s outdated-state timeout on every other client, so no server-side cleanup job is needed.
 
 GET /api/v1/workspaces/{id}/tasks/{taskId}/content/versions
 → 200 { "success": true, "data": [{ "snapshotId", "sequenceNumber", "createdAt", "editedBy", "editedByName" }] }
@@ -109,9 +118,11 @@ renders bold/italic runs as Unicode Mathematical Sans-Serif letters; see [test.m
 
 ## Out of Scope
 
-- Showing avatars/colored cursors of who is typing where (multi-cursor presence UI) — not confirmed in the CSV; only convergent content via OT is required, not a UI showing "who is typing where."
 - Comment/suggestion mode (like Google Docs "Suggesting") — not in the CSV.
 - Pagination/page breaks to A4 print standards — the CSV only requires writing content for social posts, not PDF export/printing.
+- Mobile: component-level RN tests and mobile E2E/device test (no `@testing-library/react-native` harness or Detox/Maestro in this project — not attempted). Image attachment, font/size/color/highlight/link controls, and a Docs/Ribbon toggle were initially deferred but completed the same day on request — see task.md item 16; mobile now has full feature parity with web except the live cursor-position marker (avatar-only presence — RN's `TextInput` has no per-character pixel coordinate API to place one).
+
+> **Superseded (was Out of Scope until V5, 2026-10-26)**: showing avatars/colored cursors of who is typing where (multi-cursor presence UI) — now implemented on web; see §4 and §5's awareness endpoint. On mobile, presence shows as avatar initials only (no live cursor-position marker — not meaningful to render precisely against RN's TextInput, which doesn't expose per-character pixel coordinates the way canvas measurement does on web).
 
 ## BA Reference
 
