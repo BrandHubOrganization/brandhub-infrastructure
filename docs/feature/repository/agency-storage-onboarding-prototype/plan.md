@@ -1,0 +1,2 @@
+# Plan
+Embed a small prototype provider around the existing workspace dashboard. Render the selected layout at the primary or sidebar slot. Reuse Button/Select and theme tokens. One shared floating variant selector updates only URL parameters and supports arrow keys outside text controls. Keep all simulated connection state in context memory; no API mutations. Add npm run prototype:storage as a one-command development entry. Extend src/i18n/locales/{vi,en}/workspace.json together. Keep existing dashboard behavior when preview is off and exclude the preview in production.
