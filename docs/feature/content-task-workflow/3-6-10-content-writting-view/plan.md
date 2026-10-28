@@ -3,6 +3,8 @@
 > Link: [spec.md](spec.md) — Document Status: **Implemented**. Direction B (Yjs CRDT) from §6 was the one actually built — see §2/§3/§4 below for what the shipped API/data model/flow look like, which differs slightly from the original "hand-written OT" sketch (§6 still documents that trade-off and why B was chosen).
 >
 > V4 (2026-10-01): canvas-rendering + Yjs CRDT real-time sync over STOMP WebSocket, mirroring the real Google Docs technique's effect (not its OT algorithm — see §6). See [spec.md §4](spec.md#4-ui--ux) and [§7](spec.md#7-edge-cases).
+>
+> **V5 (2026-10-26)**: Docs/Word hybrid UI redesign (purely visual — see task.md item 13); presence/multi-cursor awareness added via a second, unpersisted STOMP channel carrying standard `y-protocols/awareness` updates (`handleAwareness` in `TaskContentWebSocketController`, same opaque-relay posture as content — see task.md item 14); and a React Native mobile port under `brandhub-mobile-app/src/screens/content-writing/` reusing the identical Yjs CRDT sync protocol over the same REST+STOMP endpoints, rendered through native `TextInput` instead of canvas (see task.md item 15 for the full rationale and what mobile intentionally doesn't cover).
 
 ## 1. Technical Scope (implemented)
 
