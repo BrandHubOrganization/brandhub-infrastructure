@@ -1,0 +1,3 @@
+# Material preview recovery
+Supported READY images must recover a missing preview URL through the existing authorized preview endpoint. Missing links are not unsupported formats. UPLOADING/VALIDATING and FAILED/REJECTED show their actual state; failed uploads instruct re-upload. Do not alter stored file state or bypass authorization.
+UI uses existing semantic theme classes in light/dark. Parallel vi/en keys: library.repository.previewUnavailable, previewNotReady, previewUploadFailed. Existing format fallback remains only for genuinely unsupported MIME. Preserve 403/404 access reset. No database changes.

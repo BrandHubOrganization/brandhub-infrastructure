@@ -11,7 +11,7 @@ docker run --rm -it `
   --authenticationDatabase admin
 ```
 
-# Điền password <!-- REDACTED_EXPOSED_CREDENTIAL -->
+# Điền password từ secret store / vault / environment
 
 ## 2. Initialize
 
