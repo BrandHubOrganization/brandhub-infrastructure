@@ -1,0 +1,4 @@
+# Tests
+FAILED PNG shows re-upload guidance, never unsupported-format/download promise. UPLOADING PNG shows progress state and does not request preview. READY PNG with missing URL and storage reason requests preview once and renders returned image; 503 remains retryable without request loop. Existing expiry and access revocation tests pass. Exercise light/dark and 375/768/1440 widths; translation keys remain parallel.
+
+Verification 2026-10-27: regression initially failed for all three PNG states with the exact unsupported-format message. After fix: 4 preview recovery tests passed, 7 existing detail/update/access/expiry tests passed, 4 upload tests passed. TypeScript build and targeted ESLint passed. Light/dark screenshots captured in Playwright test-results at mobile/tablet/desktop widths. Keyboard retry on 503 passed. vi/en keys added in parallel. Tests use mocked HTTP; existing failed uploads are not repaired by this UI change.

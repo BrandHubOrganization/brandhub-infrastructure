@@ -1,0 +1,7 @@
+- [x] Đọc skills dockerfile/compose, rule; spec/plan/task/test trước code.
+- [x] Multi-stage API/GPU/Vast, non-root, healthcheck, secret ignore, runtime volumes và networks.
+- [x] Pin upstream commits/model revision/checksum; model-init explicit/resume/verify.
+- [x] Supervisor readiness/process failure/signals; không dependency install tại entrypoint.
+- [x] Bỏ log API key, cập nhật hướng dẫn nguồn/Docker/Vast, runtime .env riêng được ignore.
+- [x] Build 3 targets, API18+GPU-image18+Docker11 tests, smoke, ComfyCPU17node, Compose/Dockerfile checks.
+- [x] Ghi rõ phạm vi chưa GPU/S3 thật/publish/deploy; không commit.
