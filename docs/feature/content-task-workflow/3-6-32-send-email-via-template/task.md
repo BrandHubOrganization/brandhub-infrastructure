@@ -66,6 +66,22 @@
 - [x] 11.5 Chuyển Jira các task sang In review; sau review → Done (DA-998, 999, 1000, 1001, 1002, 1256, 1257, 1258, 1259 đã chuyển Done).
 - [ ] 11.6 Kiểm tra migration đã áp dụng trên môi trường staging trước khi deploy (Postgres + Mongo + seed).
 
+## 12. Addendum B — block builder + đa scope (2026-10-28 → 2026-10-29)
+- [x] 12.1 Backend: `MailTemplateScope`, `layoutJson`, `MailBlockRenderer`, CRUD Workspace/Admin/Agency, `resolveRecipients` theo scope (B1-B9).
+- [x] 12.2 Backend: Agency OWNER gửi mẫu Agency qua endpoint Workspace; `findPreviewable` cho preview (B11).
+- [x] 12.3 Backend: Admin gửi/gửi thử `ADMIN_SYSTEM_BROADCAST` không cần Workspace (B11, B14).
+- [x] 12.4 Backend: `recipient-preview` cho Admin và Agency (B13).
+- [x] 12.5 Backend: chặn Workspace dùng mẫu hệ thống để gửi toàn hệ thống; ẩn `TRANSACTIONAL_AUTO` (B12).
+- [x] 12.6 Backend: huỷ đăng ký cấp hệ thống, thông báo không link khi không có Workspace (B15).
+- [x] 12.7 Migration Mongo + Postgres viết xong và chạy (Atlas dùng chung, Docker local).
+- [x] 12.8 Web: block builder kéo thả, trang Agency, gửi mẫu Agency, dialog gửi/gửi thử cho Admin, xem trước người nhận (B1, B13, B14).
+- [x] 12.9 Mobile: xem và gửi mẫu theo scope, mẫu Agency hiện số người nhận (B4, B13).
+- [x] 12.10 Nav web và mobile lọc theo role theo `access.ts` (B16).
+- [ ] 12.11 Chạy thử thật trên trình duyệt và thiết bị: tạo mẫu bằng builder, gửi thử, gửi mẫu Agency, gửi hệ thống ở môi trường dev.
+- [ ] 12.12 Chạy hai migration trên staging/production trước khi deploy (nếu có).
+- [ ] 12.13 Chủ task xác nhận chính thức B1-B16, rồi gộp vào "Quyết định đã chốt" và cập nhật D1/D3/D14.
+- [ ] 12.14 Admin chưa có màn xem/huỷ batch hệ thống (batch `workspace_id` null không hiện ở trang Batches của Workspace).
+
 ## Ánh xạ Jira ↔ task
 
 | Jira | Nhóm task |
