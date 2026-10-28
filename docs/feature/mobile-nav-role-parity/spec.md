@@ -33,13 +33,13 @@ Xuất bản và Dashboard xuất bản (nhóm Tạo nội dung); Thống kê c�
 | Dashboard xuất bản | `GET /api/v1/workspaces/{id}/posts/dashboard` | Chỉ đọc, KPI + theo nền tảng + bài gần đây, lọc theo trạng thái |
 | Thư viện | `GET /api/v1/workspaces/{id}/materials` | Chỉ đọc, tìm theo tên, lọc Bản gốc/Đã chỉnh sửa/Đã đóng dấu |
 
-Web: tab Media của Thư viện đã đọc dữ liệu thật qua cùng endpoint `/materials` (lọc, sắp xếp, phân trang xử lý phía client).
+Web: tab Media của Thư viện dùng kho tệp thật trên develop (cùng backend `/materials`).
 
 ## 5. Giới hạn đã biết
 
 - **Phân tích (Analytics)** trên web vẫn là dữ liệu giả; backend không có nguồn số liệu tiếp cận/tương tác từ nền tảng mạng xã hội, nên chưa có API và chưa có màn mobile. Cần quyết định tích hợp insights của từng nền tảng trước.
 - **Trang Xuất bản chính** (đăng bài) trên web vẫn dùng dữ liệu giả; mobile mới có Dashboard xuất bản. Backend đã có `submit`, `publish`, `reschedule`.
-- **Thư viện web**: đã bỏ nút Upload, Xoá và lọc tỉ lệ khung hình vì chưa có luồng upload web, chưa có endpoint xoá, và API không trả kích thước ảnh. `MediaUploadButton.tsx` và service giả lập không còn được dùng.
+- **Thư viện web** (cập nhật 2026-10-29): develop đã có kho tệp thật (upload, thùng rác, khôi phục, tải xuống) do nhánh khác thực hiện; phần đọc danh sách tôi tự làm trước đó đã bị bỏ để dùng bản đó. Mobile mới chỉ đọc danh sách qua `GET /materials`.
 - Mobile chưa có màn Xuất bản (đăng bài), Phân tích, và các trang agency khác ngoài Thống kê (vai trò, tín dụng, gói dịch vụ agency).
 - Chưa có bằng chứng chạy thật trên trình duyệt/thiết bị; web không có testing-library/jsdom nên không có test component.
 
