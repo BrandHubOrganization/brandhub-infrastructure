@@ -6,7 +6,7 @@
 
 - Một trang chỉ hiện trong nav khi role hiện tại nằm trong quy tắc của route đó. Trang không có quy tắc thì mọi role đều thấy.
 - Trên mobile, ngoài việc ẩn mục menu còn **bọc kiểm tra quyền ở cấp màn** (`navigation/withAccess.tsx`): role không đủ quyền thấy "Bạn không có quyền truy cập trang này.". Đây chỉ là lớp giao diện; backend vẫn là nơi quyết định quyền.
-- Mục "Mẫu email" của Agency (`/agency/:id/mail-templates`) chỉ hiện cho Owner agency (cờ `agencyOwnerOnly`).
+- Mục "Mẫu email" của Agency (`/agency/:id/mail-templates`) hiện cho Owner agency và Manager của một Workspace thuộc Agency (cờ `agencyStaffOnly` trên web; mobile gọi API và chỉ hiện khi API trả danh sách).
 
 ## 2. Ma trận role → trang (workspace)
 
