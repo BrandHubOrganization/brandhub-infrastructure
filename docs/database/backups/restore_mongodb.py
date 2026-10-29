@@ -4,19 +4,21 @@ Restore MongoDB full bundle (collections, $jsonSchema validators, indexes, and B
 from brandhub_mongodb_full_20261029.ejson.
 
 Usage:
-  python restore_mongodb.py [MONGODB_URI] [DATABASE_NAME]
+  Set MONGODB_URI in the environment, then run:
+  python restore_mongodb.py [DATABASE_NAME]
 """
 import os
 import sys
 import pymongo
 from bson import json_util
 
-DEFAULT_URI = "mongodb+srv://brandhub-mongo:REDACTED_EXPOSED_CREDENTIAL@brandhub.dupoa3v.mongodb.net/?appName=brandhub"
 DEFAULT_DB = "brandhub"
 
 def main():
-    uri = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("MONGODB_URI", DEFAULT_URI)
-    db_name = sys.argv[2] if len(sys.argv) > 2 else os.environ.get("MONGODB_DATABASE", DEFAULT_DB)
+    uri = os.environ.get("MONGODB_URI", "").strip()
+    if not uri:
+        raise SystemExit("Set MONGODB_URI before running the restore script.")
+    db_name = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("MONGODB_DATABASE", DEFAULT_DB)
     bundle_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "brandhub_mongodb_full_20261029.ejson")
 
     with open(bundle_path, "r", encoding="utf-8") as f:
