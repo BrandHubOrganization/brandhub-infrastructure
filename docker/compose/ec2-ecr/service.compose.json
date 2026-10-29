@@ -1,0 +1,426 @@
+{
+  "name": "brandhub-service",
+  "services": {
+    "ai-service": {
+      "restart": "unless-stopped",
+      "container_name": "brandhub-ai-service",
+      "command": null,
+      "entrypoint": null,
+      "networks": {
+        "brandhub-network": null
+      },
+      "depends_on": {
+        "chromadb": {
+          "condition": "service_started",
+          "required": true
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8082/health')"
+        ],
+        "timeout": "5s",
+        "interval": "15s",
+        "retries": 3,
+        "start_period": "30s"
+      },
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/ai-service:deploy-20261029",
+      "mem_limit": "2300m",
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "ai-data",
+          "target": "/app/data"
+        }
+      ],
+      "env_file": [
+        {
+          "path": "./env/ai-service.env",
+          "required": true
+        }
+      ]
+    },
+    "business-service": {
+      "restart": "unless-stopped",
+      "container_name": "brandhub-business-service",
+      "command": null,
+      "entrypoint": null,
+      "networks": {
+        "brandhub-network": null
+      },
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy",
+          "required": true
+        },
+        "rabbitmq": {
+          "condition": "service_healthy",
+          "required": true
+        },
+        "redis": {
+          "condition": "service_healthy",
+          "required": true
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8081/actuator/health || exit 1"
+        ],
+        "timeout": "10s",
+        "interval": "30s",
+        "retries": 3,
+        "start_period": "1m30s"
+      },
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/business-service:deploy-20261029",
+      "mem_limit": "1200m",
+      "ports": [
+        {
+          "target": 8081,
+          "published": "8081",
+          "host_ip": "172.31.24.149",
+          "protocol": "tcp"
+        }
+      ],
+      "env_file": [
+        {
+          "path": "./env/business-service.env",
+          "required": true
+        }
+      ]
+    },
+    "chromadb": {
+      "restart": "unless-stopped",
+      "container_name": "brandhub-chromadb",
+      "command": null,
+      "entrypoint": null,
+      "environment": {
+        "ANONYMIZED_TELEMETRY": "FALSE"
+      },
+      "image": "chromadb/chroma:1.5.9",
+      "networks": {
+        "brandhub-network": null
+      },
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "chroma-data",
+          "target": "/data",
+          "volume": {}
+        }
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "bash",
+          "-ec",
+          "exec 3<>/dev/tcp/127.0.0.1/8000\nprintf 'GET /api/v2/heartbeat HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3\nread -r -t 4 health_status <&3\n[[ \"$$health_status\" == *\" 200 \"* ]]\n"
+        ],
+        "timeout": "5s",
+        "interval": "15s",
+        "retries": 3,
+        "start_period": "10s"
+      },
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "mem_limit": "640m"
+    },
+    "neo4j": {
+      "restart": "unless-stopped",
+      "container_name": "brandhub-neo4j",
+      "command": null,
+      "entrypoint": null,
+      "image": "neo4j:5.26-community",
+      "networks": {
+        "brandhub-network": null
+      },
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "neo4j-data",
+          "target": "/data",
+          "volume": {}
+        },
+        {
+          "type": "volume",
+          "source": "neo4j-logs",
+          "target": "/logs",
+          "volume": {}
+        }
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:7474 || exit 1"
+        ],
+        "timeout": "5s",
+        "interval": "15s",
+        "retries": 5,
+        "start_period": "20s"
+      },
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "mem_limit": "900m",
+      "env_file": [
+        {
+          "path": "./env/neo4j.env",
+          "required": true
+        }
+      ]
+    },
+    "postgres": {
+      "restart": "unless-stopped",
+      "container_name": "brandhub-postgres",
+      "command": null,
+      "entrypoint": null,
+      "image": "postgres:17-alpine",
+      "networks": {
+        "brandhub-network": null
+      },
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "postgres_data",
+          "target": "/var/lib/postgresql/data",
+          "volume": {}
+        },
+        {
+          "type": "bind",
+          "source": "./init/schema.sql",
+          "target": "/docker-entrypoint-initdb.d/10-schema.sql",
+          "read_only": true,
+          "bind": {
+            "create_host_path": false
+          }
+        }
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
+        ],
+        "timeout": "5s",
+        "interval": "10s",
+        "retries": 5,
+        "start_period": "10s"
+      },
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "mem_limit": "640m",
+      "env_file": [
+        {
+          "path": "./env/postgres.env",
+          "required": true
+        }
+      ]
+    },
+    "publisher-service": {
+      "restart": "unless-stopped",
+      "container_name": "brandhub-publisher-service",
+      "command": null,
+      "entrypoint": null,
+      "networks": {
+        "brandhub-network": null
+      },
+      "depends_on": {
+        "rabbitmq": {
+          "condition": "service_healthy",
+          "required": true
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8083/actuator/health || exit 1"
+        ],
+        "timeout": "10s",
+        "interval": "30s",
+        "retries": 3,
+        "start_period": "1m0s"
+      },
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/publisher-service:deploy-20261029",
+      "mem_limit": "640m",
+      "ports": [
+        {
+          "target": 8083,
+          "published": "8083",
+          "host_ip": "172.31.24.149",
+          "protocol": "tcp"
+        }
+      ],
+      "env_file": [
+        {
+          "path": "./env/publisher-service.env",
+          "required": true
+        }
+      ]
+    },
+    "rabbitmq": {
+      "restart": "unless-stopped",
+      "container_name": "brandhub-rabbitmq",
+      "command": null,
+      "entrypoint": null,
+      "image": "rabbitmq:3.12-management-alpine",
+      "networks": {
+        "brandhub-network": null
+      },
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "rabbitmq-data",
+          "target": "/var/lib/rabbitmq",
+          "volume": {}
+        }
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "rabbitmq-diagnostics",
+          "-q",
+          "ping"
+        ],
+        "timeout": "5s",
+        "interval": "10s",
+        "retries": 5,
+        "start_period": "20s"
+      },
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "mem_limit": "640m",
+      "env_file": [
+        {
+          "path": "./env/rabbitmq.env",
+          "required": true
+        }
+      ]
+    },
+    "redis": {
+      "restart": "unless-stopped",
+      "container_name": "brandhub-redis",
+      "command": [
+        "exec redis-server --requirepass \"$$REDIS_PASSWORD\" --appendonly yes --maxmemory \"$$REDIS_MAXMEMORY\" --maxmemory-policy \"$$REDIS_MAXMEMORY_POLICY\""
+      ],
+      "entrypoint": [
+        "/bin/sh",
+        "-ec"
+      ],
+      "image": "redis:7.2-alpine",
+      "networks": {
+        "brandhub-network": null
+      },
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "redis-data",
+          "target": "/data",
+          "volume": {}
+        }
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping | grep -q PONG"
+        ],
+        "timeout": "5s",
+        "interval": "10s",
+        "retries": 5
+      },
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "ports": [
+        {
+          "target": 6379,
+          "published": "6379",
+          "host_ip": "172.31.24.149",
+          "protocol": "tcp"
+        }
+      ],
+      "mem_limit": "384m",
+      "env_file": [
+        {
+          "path": "./env/redis.env",
+          "required": true
+        }
+      ]
+    }
+  },
+  "networks": {
+    "brandhub-network": {
+      "name": "brandhub-network",
+      "driver": "bridge",
+      "ipam": {}
+    }
+  },
+  "volumes": {
+    "chroma-data": {
+      "name": "brandhub-chroma-data"
+    },
+    "neo4j-data": {
+      "name": "brandhub-neo4j-data"
+    },
+    "neo4j-logs": {
+      "name": "brandhub-neo4j-logs"
+    },
+    "postgres_data": {
+      "name": "brandhub-postgres-v2-data"
+    },
+    "rabbitmq-data": {
+      "name": "brandhub-rabbitmq-data"
+    },
+    "redis-data": {
+      "name": "brandhub-redis-data"
+    },
+    "ai-data": {
+      "name": "brandhub-ai-data"
+    }
+  }
+}

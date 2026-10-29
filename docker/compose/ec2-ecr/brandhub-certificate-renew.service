@@ -1,0 +1,8 @@
+[Unit]
+Description=Renew BrandHub API TLS certificate
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/brandhub-renew-certificate
