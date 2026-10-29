@@ -59,7 +59,7 @@
 | Scope | Tạo/sửa | Gửi | Ghi chú |
 |---|---|---|---|
 | `WORKSPACE_MANAGER`, `CAMPAIGN_BROADCAST` | Workspace OWNER / MANAGER / CREATOR | Workspace OWNER / MANAGER / CREATOR | Người nhận phải nêu tường minh hoặc backend suy ra theo scope |
-| `AGENCY_INTERNAL`, `AGENCY_CLIENT` | Agency OWNER | Agency OWNER (qua Workspace thuộc Agency đó) | Tầng 1; người khác nhận `TEMPLATE_NOT_FOUND` |
+| `AGENCY_INTERNAL`, `AGENCY_CLIENT` | Agency OWNER, Manager của Workspace thuộc Agency | Agency OWNER (toàn Agency) hoặc Manager (chỉ trong Workspace của mình), qua Workspace thuộc Agency đó | Cập nhật 2026-10-29 (B20); Creator và người ngoài Agency nhận `TEMPLATE_NOT_FOUND` |
 | `ADMIN_SYSTEM_BROADCAST` | ADMIN | ADMIN (endpoint `/api/v1/admin/...`, không cần Workspace) | Member Workspace chỉ dùng được mẫu hệ thống với danh sách người nhận tường minh và cap 200/lần |
 | `TRANSACTIONAL_AUTO` | ADMIN | Hệ thống tự gửi (không ai bấm gửi tay) | Ẩn khỏi Workspace |
 
