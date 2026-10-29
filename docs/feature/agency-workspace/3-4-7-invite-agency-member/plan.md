@@ -52,7 +52,7 @@ Khác so với spec.md (đề xuất `201` + `{invitationId, expiresAt}`):
 
 ## 6. Rủi ro kỹ thuật
 
-- **Email chưa có User account (spec mục 7):** vẫn gửi được invite (invite gắn `invitedEmail`, không cần User tồn tại). Khi user đăng ký đúng email đó, `acceptInvitation` check `invitedEmail == user.email`. Đúng ý spec.
+- **Email chưa có User account (spec mục 7):** vẫn gửi được invite (invite gắn `invitedEmail`, không cần User tồn tại). Trước 2026-10-26, user phải tự bấm link email để `acceptInvitation` xác thực — chưa có bước tự động nào khi vừa đăng ký xong. Đã thêm `AgencyServiceImpl.autoAcceptPendingInvitations(User)`, gọi từ `AuthServiceImpl.verifyOtp()` ngay sau khi set `emailVerifiedAt`: tự động accept mọi invite PENDING còn hạn khớp `invitedEmail == user.email`, trừ role CLIENT (vẫn cần chọn ClientProfile thủ công qua `acceptClientInvitation`) và role MANAGER gán sẵn workspace (giữ an toàn, tránh double-manager — vẫn cần accept thủ công để chạy `assertNoManagerYet`).
 - **Trùng email pending:** chặn bằng `INVITATION_ALREADY_PENDING` (tránh spam 2 lời mời cùng email).
 
 ## 7. V2 (2026-10-02) — Invite CLIENT từ trang riêng + auto-suggest

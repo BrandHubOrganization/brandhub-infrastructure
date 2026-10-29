@@ -198,3 +198,24 @@ Reviewer: java-reviewer agent over `git diff origin/develop...HEAD` of business-
 
 Totals after this pass: business-service 704, vitest 64, Playwright mail 25.
 Known limit: the first Playwright run after a cold dev server start can time out once (re-run passes).
+
+### 17. Addendum B (2026-10-29)
+
+| ID | Nội dung | Tầng | Kết quả |
+|---|---|---|---|
+| TC-B-01 | Agency OWNER gửi được mẫu Agency từ Workspace của Agency đó; không phải Owner hoặc Workspace ngoài Agency → `TEMPLATE_NOT_FOUND` | JUnit | pass |
+| TC-B-02 | Owner agency preview được mẫu Agency; người khác không | JUnit | pass |
+| TC-B-03 | Admin gửi `ADMIN_SYSTEM_BROADCAST` không cần member Workspace, batch `workspace_id` null; mẫu scope khác → `INVALID_SCOPE` | JUnit | pass |
+| TC-B-04 | Admin gửi thử không cần Workspace, từ chối scope khác | JUnit | pass |
+| TC-B-05 | `recipient-preview`: Admin đếm đủ user active và lấy mẫu 10; Agency chỉ Owner, đúng agencyId | JUnit | pass |
+| TC-B-06 | Member Workspace gửi mẫu admin với recipients rỗng → `VALIDATION_ERROR`, không truy vấn toàn bộ user, không tạo batch | JUnit | pass |
+| TC-B-07 | Mẫu admin trong Workspace vẫn bị cap 200/lần | JUnit | pass |
+| TC-B-08 | `TRANSACTIONAL_AUTO` không gửi được từ Workspace (`TEMPLATE_NOT_FOUND`) | JUnit | pass |
+| TC-B-09 | Token unsubscribe `system` round-trip với workspace null; huỷ đăng ký ghi vào danh sách chặn hệ thống | JUnit | pass |
+| TC-B-10 | Thông báo batch xong: có link Workspace khi có Workspace, không link khi null | JUnit | pass |
+| TC-B-11 | Block builder: thêm/di chuyển/xoá, validate từng khối, render preview escape mọi giá trị | Vitest | pass |
+| TC-B-12 | Bảng quyền mobile khớp `access.ts`; màn bị chặn khi role không đủ quyền | Jest | pass |
+| TC-B-13 | Mobile: lọc nhóm mẫu theo scope (gồm Agency), `isAgencyScope`, `agencyRecipientPreview` | Jest | pass |
+
+Tổng sau lượt này: backend 170 (nhóm Mail, token, thông báo, material), web vitest 70, mobile jest 140.
+**Chưa kiểm**: Playwright/E2E cho block builder và luồng gửi Agency/Admin; thử trên thiết bị thật; migration trên staging.

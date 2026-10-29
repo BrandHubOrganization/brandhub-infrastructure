@@ -9810,15 +9810,15 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Acceptance Criteria:**
 
-- [ ] `POST /internal/posts/{id}/publish-result` endpoint in business-service is authenticated via `X-Internal-Key`
-- [ ] On `status: PUBLISHED`: post record updated to `status=PUBLISHED`, `platformPostId` and `publishedAt` persisted
-- [ ] On `status: FAILED`: post record updated to `status=FAILED`, `errorCode` and `errorMessage` persisted; user notification created with failure reason
-- [ ] Endpoint is idempotent: duplicate callbacks with the same `postId` and `status` do not create duplicate notifications
+- [x] `POST /internal/posts/{id}/publish-result` endpoint in business-service is authenticated via `X-Internal-Key` — `InternalPostController`
+- [x] On `status: PUBLISHED`: post record updated to `status=PUBLISHED`, `platformPostId` and `publishedAt` persisted
+- [x] On `status: FAILED`: post record updated to `status=FAILED`, `errorCode` and `errorMessage` persisted; user notification created with failure reason — `UserNotificationService.publishFailed()`, added 2026-10-26
+- [x] Endpoint is idempotent: duplicate callbacks with the same `postId` and `status` do not create duplicate notifications — deterministic `UUID.nameUUIDFromBytes("publish-failed:" + postId)` + `on conflict (id) do nothing`
 
 **Technical Notes:**
 
-- Use database-level unique constraint or `INSERT ... ON CONFLICT DO NOTHING` to enforce idempotency on notification creation
-- Notification content for failure should be user-readable, not the raw API error message; map `errorCode` to a Vietnamese-language user message
+- Use database-level unique constraint or `INSERT ... ON CONFLICT DO NOTHING` to enforce idempotency on notification creation — implemented via deterministic id rather than a separate unique constraint, same effect
+- Notification content for failure should be user-readable, not the raw API error message; map `errorCode` to a Vietnamese-language user message — `InternalPostController.userFacingFailureMessage()`
 
 **Dependencies:** Blocks: None. Blocked by: DA-E22-01, DA-E22-02.
 

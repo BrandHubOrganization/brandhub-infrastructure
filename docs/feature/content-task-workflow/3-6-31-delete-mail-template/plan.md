@@ -134,3 +134,7 @@ Index: `{workspaceId:1, deletedAt:1, createdAt:-1}`, `{type:1, deletedAt:1}`.
 | Gửi trùng khi crash | `event_key` unique; at-least-once ghi rõ |
 | Phạm vi lớn so với 5 task Jira | Tách task con, làm theo thứ tự §12 |
 | Worker đơn instance | Dùng `SKIP LOCKED` sẵn; ghi rõ giới hạn đa instance khi scale |
+
+## Addendum B — Kỹ thuật (2026-10-28): drag-drop block builder + multi-scope broadcast — ĐÃ TRIỂN KHAI (2026-10-29), chờ chủ task xác nhận chính thức
+
+> Nội dung kỹ thuật đầy đủ (schema Mongo, API contract, error code, recipient lookup theo scope, worker/quota, test plan, rủi ro migration) ghi ở [3-6-32-send-email-via-template/plan.md §Addendum B — Kỹ thuật](../3-6-32-send-email-via-template/plan.md#addendum-b--kỹ-thuật-2026-10-28-drag-drop-block-builder--multi-scope-broadcast--đề-xuất-chưa-chốt) — dùng chung cho cả 5 FR, không lặp lại ở đây. Phần nghiệp vụ (B1-B10) xem [spec.md](spec.md#addendum-b-2026-10-28-drag-drop-block-builder--multi-scope-broadcast--đề-xuất-chưa-chốt) của chính FR này.

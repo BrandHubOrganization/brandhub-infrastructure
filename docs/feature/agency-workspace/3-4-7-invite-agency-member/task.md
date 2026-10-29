@@ -17,6 +17,10 @@
 - [x] Chặn internal member làm CLIENT — tái dùng check `ALREADY_AGENCY_MEMBER` hiện có (áp dụng mọi role, không cần logic riêng).
 - [x] Accept CLIENT: picker chọn/tạo ClientProfile (`GET /client-profile/mine`, `resolveClientProfileForAccept`) — đã có từ trước, không đổi lúc này.
 
+## 2026-10-26 — Auto-accept khi verify email (DA-968)
+
+- [x] `AgencyServiceImpl.autoAcceptPendingInvitations(User)` — gọi từ `AuthServiceImpl.verifyOtp()`, tự động accept mọi invite PENDING còn hạn khớp email vừa verify, bỏ qua role CLIENT (cần chọn ClientProfile thủ công) và role MANAGER (cần `assertNoManagerYet`, giữ accept thủ công).
+
 ## Verify
 
 - [x] `mvn test` pass (happy + already-member + pending + non-owner + workspace/manager/client checks)
