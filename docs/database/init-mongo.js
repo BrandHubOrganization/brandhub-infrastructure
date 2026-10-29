@@ -378,18 +378,31 @@ db.createCollection('post_versions', {
   } }, validationLevel: 'strict', validationAction: 'error',
 });
 
-// Exact schema/index effects of 2026-10-12-create-mail-templates-collection.js; no Mail behavior changes.
+// Exact schema/index effects of 2026-10-12-create-mail-templates-collection.js + 2026-10-28-mail-template-scope.js.
 (() => {
   const validator = {
   $jsonSchema: {
     bsonType: 'object',
-    required: ['_id', 'name', 'subject', 'bodyHtml', 'type', 'createdAt', 'updatedAt'],
+    required: ['_id', 'name', 'subject', 'type', 'createdAt', 'updatedAt'],
     properties: {
       workspaceId:  { bsonType: ['string', 'null'], description: 'null for SYSTEM_DEFAULT' },
       name:         { bsonType: 'string', minLength: 1, maxLength: 120 },
       subject:      { bsonType: 'string', minLength: 1, maxLength: 200 },
-      bodyHtml:     { bsonType: 'string', minLength: 1, maxLength: 102400 },
+      bodyHtml:     { bsonType: 'string', maxLength: 102400, description: 'Render-cache từ layoutJson (Addendum B); có thể rỗng tới khi save lần đầu' },
       type:         { enum: ['SYSTEM_DEFAULT', 'CUSTOM'] },
+      scope:        {
+        enum: [
+          'CAMPAIGN_BROADCAST',
+          'ADMIN_SYSTEM_BROADCAST',
+          'AGENCY_INTERNAL',
+          'WORKSPACE_MANAGER',
+          'AGENCY_CLIENT',
+          'TRANSACTIONAL_AUTO',
+        ],
+        description: 'Addendum B: thay type nhị phân cũ',
+      },
+      agencyId:     { bsonType: ['string', 'null'], description: 'Addendum B: set cho AGENCY_INTERNAL/AGENCY_CLIENT' },
+      layoutJson:   { bsonType: ['string', 'null'], description: 'Addendum B: danh sách block JSON, nguồn thật của nội dung' },
       attachments:  {
         bsonType: 'array',
         maxItems: 3,
@@ -413,14 +426,19 @@ db.createCollection('post_versions', {
     },
   },
 };
-  db.createCollection('mail_templates', { validator, validationAction: 'error' });
-db.mail_templates.createIndex(
-  { workspaceId: 1, deletedAt: 1, createdAt: -1 },
-  { name: 'ix_mail_templates_workspace_created' });
-db.mail_templates.createIndex(
-  { type: 1, deletedAt: 1 },
-  { name: 'ix_mail_templates_type' });
-
+  db.createCollection('mail_templates', { validator, validationLevel: 'strict', validationAction: 'error' });
+  db.mail_templates.createIndex(
+    { workspaceId: 1, deletedAt: 1, createdAt: -1 },
+    { name: 'ix_mail_templates_workspace_created' });
+  db.mail_templates.createIndex(
+    { type: 1, deletedAt: 1 },
+    { name: 'ix_mail_templates_type' });
+  db.mail_templates.createIndex(
+    { scope: 1, workspaceId: 1 },
+    { name: 'ix_mail_templates_scope_workspace' });
+  db.mail_templates.createIndex(
+    { scope: 1, agencyId: 1 },
+    { name: 'ix_mail_templates_scope_agency' });
 })();
 
 // Exact schema/index effects of 2026-10-13-create-mail-recipient-groups-collection.js; no Mail behavior changes.
@@ -804,5 +822,215 @@ db.chat_calls.createIndex({ state: 1, expiresAt: 1 }, { name: 'idx_chat_calls_ex
     validationLevel: 'strict', validationAction: 'error' });
   for (const { key, ...options } of chatScheduleIndexes) db.chat_scheduled_messages.createIndex(key, options);
 })();
+
+// Repository / Materials foundation, trash, and view indexes (2026-10-24..2026-10-25).
+(() => {
+  const materialSchema = {
+    bsonType: 'object',
+    required: ['workspace_id', 'status', 'storage_provider', 'visibility', 'purpose', 'media_kind', 'created_by', 'version'],
+    properties: {
+      workspace_id:     { bsonType: 'string' },
+      status:           { enum: ['UPLOADING', 'VALIDATING', 'READY', 'REJECTED', 'FAILED', 'DELETED', 'PURGE_IN_PROGRESS', 'PURGED'] },
+      storage_provider: { enum: ['SYSTEM_GDRIVE', 'SYSTEM_S3', 'USER_GDRIVE'] },
+      visibility:       { enum: ['INTERNAL', 'CLIENT'] },
+      purpose:          { enum: ['MATERIAL', 'BRAND_REFERENCE'] },
+      media_kind:       { enum: ['IMAGE', 'VIDEO', 'FILE'] },
+      created_by:       { bsonType: 'string' },
+      version:          { bsonType: ['long', 'int'], minimum: 0 },
+    },
+  };
+  db.createCollection('materials', {
+    validator: { $or: [{ status: { $exists: false } }, { $jsonSchema: materialSchema }] },
+    validationLevel: 'moderate',
+    validationAction: 'error',
+  });
+  db.materials.createIndex(
+    { workspace_id: 1, status: 1, deleted_at: 1, created_at: -1, _id: -1 },
+    { name: 'idx_repository_scope_ready' }
+  );
+  db.materials.createIndex(
+    { storage_provider: 1, s3_key: 1 },
+    {
+      name: 'uq_repository_provider_key',
+      unique: true,
+      partialFilterExpression: { storage_provider: { $type: 'string' }, s3_key: { $type: 'string' } },
+    }
+  );
+  db.materials.createIndex(
+    { workspace_id: 1, status: 1, deleted_at: -1, _id: -1 },
+    { name: 'idx_material_trash' }
+  );
+  db.materials.createIndex(
+    { status: 1, purge_after: 1, next_purge_attempt_at: 1, purge_lease_until: 1 },
+    { name: 'idx_material_purge_due' }
+  );
+  db.materials.createIndex(
+    { workspace_id: 1, deleted_at: 1, status: 1, created_at: -1, _id: -1 },
+    { name: 'idx_material_active_page' }
+  );
+  db.materials.createIndex(
+    { workspace_id: 1, visibility: 1, client_profile_id: 1, deleted_at: 1, status: 1, created_at: -1, _id: -1 },
+    { name: 'idx_material_client_page' }
+  );
+  db.materials.createIndex(
+    { workspace_id: 1, deleted_at: 1, normalized_name: 1, created_at: -1, _id: -1 },
+    { name: 'idx_material_name_prefix' }
+  );
+  db.materials.createIndex(
+    { workspace_id: 1, parent_material_id: 1, status: 1 },
+    { name: 'idx_material_parent_scope' }
+  );
+
+  db.createCollection('material_upload_sessions');
+  db.material_upload_sessions.createIndex(
+    { workspace_id: 1, staging_key: 1 },
+    { name: 'uq_repository_session_key', unique: true }
+  );
+  db.material_upload_sessions.createIndex(
+    { state: 1, expires_at: 1 },
+    { name: 'idx_repository_session_recovery' }
+  );
+
+  db.createCollection('material_references');
+  db.material_references.createIndex(
+    { workspace_id: 1, material_id: 1, source_id: 1 },
+    { name: 'uq_repository_reference', unique: true }
+  );
+
+  db.createCollection('material_audit_outbox');
+  db.material_audit_outbox.createIndex(
+    { delivered: 1, created_at: 1 },
+    { name: 'idx_material_audit_pending' }
+  );
+})();
+
+// Monitoring collections (servers, collectors, enrollments, health_targets).
+(() => {
+  const uuidPattern = '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$';
+  db.createCollection('monitoring_servers', {
+    validator: {
+      $jsonSchema: {
+        bsonType: 'object',
+        required: ['_id', 'name', 'ipAddress', 'environment', 'deployedServices', 'agentTokenHash', 'createdAt', 'updatedAt'],
+        properties: {
+          _id:              { bsonType: 'string', pattern: uuidPattern },
+          name:             { bsonType: 'string', minLength: 1 },
+          ipAddress:        { bsonType: 'string', minLength: 1 },
+          environment:      { bsonType: 'string', minLength: 1 },
+          deployedServices: { bsonType: 'array', items: { bsonType: 'string' } },
+          agentTokenHash:   { bsonType: 'string', minLength: 1 },
+          cpuPercent:       { bsonType: ['decimal', 'double', 'null'] },
+          ramPercent:       { bsonType: ['decimal', 'double', 'null'] },
+          diskPercent:      { bsonType: ['decimal', 'double', 'null'] },
+          uptimeSeconds:    { bsonType: ['long', 'int', 'null'] },
+          lastSeenAt:       { bsonType: ['date', 'null'] },
+          createdAt:        { bsonType: 'date' },
+          updatedAt:        { bsonType: 'date' },
+        },
+      },
+    },
+    validationLevel: 'strict',
+    validationAction: 'error',
+  });
+  db.monitoring_servers.createIndex({ name: 1, _id: 1 }, { name: 'idx_monitoring_servers_name_id' });
+  db.monitoring_servers.createIndex({ environment: 1, name: 1, _id: 1 }, { name: 'idx_monitoring_servers_env_name_id' });
+
+  db.createCollection('monitoring_collectors', {
+    validator: {
+      $jsonSchema: {
+        bsonType: 'object',
+        required: ['_id', 'name', 'tokenHash', 'createdAt', 'updatedAt'],
+        properties: {
+          _id:        { bsonType: 'string', pattern: uuidPattern },
+          name:       { bsonType: 'string', minLength: 1 },
+          serverId:   { bsonType: ['string', 'null'] },
+          tokenHash:  { bsonType: 'string', minLength: 1 },
+          lastSeenAt: { bsonType: ['date', 'null'] },
+          createdAt:  { bsonType: 'date' },
+          updatedAt:  { bsonType: 'date' },
+        },
+      },
+    },
+    validationLevel: 'strict',
+    validationAction: 'error',
+  });
+  db.monitoring_collectors.createIndex({ serverId: 1 }, { name: 'idx_monitoring_collectors_server_id' });
+
+  db.createCollection('monitoring_enrollments', {
+    validator: {
+      $jsonSchema: {
+        bsonType: 'object',
+        required: ['_id', 'name', 'environment', 'expiresAt'],
+        properties: {
+          _id:         { bsonType: 'string', pattern: '^[0-9a-f]{64}$' },
+          name:        { bsonType: 'string', minLength: 1 },
+          environment: { bsonType: 'string', minLength: 1 },
+          expiresAt:   { bsonType: 'date' },
+        },
+      },
+    },
+    validationLevel: 'strict',
+    validationAction: 'error',
+  });
+  db.monitoring_enrollments.createIndex({ expiresAt: 1 }, { name: 'idx_monitoring_enrollments_ttl', expireAfterSeconds: 0 });
+
+  db.createCollection('monitoring_health_targets', {
+    validator: {
+      $jsonSchema: {
+        bsonType: 'object',
+        required: [
+          '_id', 'name', 'kind', 'environment', 'collectorId', 'checkScope', 'probeType',
+          'intervalSeconds', 'timeoutSeconds', 'staleAfterSeconds', 'catalogVersion', 'createdAt', 'updatedAt',
+        ],
+        properties: {
+          _id:               { bsonType: 'string', pattern: uuidPattern },
+          name:              { bsonType: 'string', minLength: 1 },
+          kind:              { enum: ['SERVICE', 'CONTAINER', 'DATABASE', 'ENDPOINT'] },
+          environment:       { bsonType: 'string', minLength: 1 },
+          serverId:          { bsonType: ['string', 'null'] },
+          serviceName:       { bsonType: ['string', 'null'] },
+          instanceId:        { bsonType: ['string', 'null'] },
+          collectorId:       { bsonType: 'string' },
+          checkScope:        { bsonType: 'string', minLength: 1 },
+          probeType:         { enum: ['HTTP', 'DOCKER', 'POSTGRESQL', 'REDIS', 'MONGODB', 'NEO4J'] },
+          probeConfig:       { bsonType: 'object' },
+          assertion:         { bsonType: 'object' },
+          credentialRef:     { bsonType: ['string', 'null'] },
+          intervalSeconds:   { bsonType: 'int', minimum: 1 },
+          timeoutSeconds:    { bsonType: 'int', minimum: 1 },
+          staleAfterSeconds: { bsonType: 'int', minimum: 1 },
+          catalogVersion:    { bsonType: 'long', minimum: 1 },
+          createdAt:         { bsonType: 'date' },
+          updatedAt:         { bsonType: 'date' },
+          latestResult:      {
+            bsonType: ['object', 'null'],
+            properties: {
+              checkId:         { bsonType: 'string' },
+              collectorId:     { bsonType: 'string' },
+              outcome:         { enum: ['PASS', 'FAIL', 'ERROR'] },
+              checkedAt:       { bsonType: 'date' },
+              checkedAtMicros: { bsonType: ['long', 'null'] },
+              receivedAt:      { bsonType: 'date' },
+              latencyMs:       { bsonType: ['decimal', 'double', 'null'] },
+              reasonCode:      { bsonType: ['string', 'null'] },
+              httpStatus:      { bsonType: ['int', 'null'] },
+              runtimeState:    { bsonType: ['string', 'null'] },
+              runtimeHealth:   { bsonType: ['string', 'null'] },
+            },
+          },
+        },
+      },
+    },
+    validationLevel: 'strict',
+    validationAction: 'error',
+  });
+  db.monitoring_health_targets.createIndex({ name: 1, _id: 1 }, { name: 'idx_monitoring_targets_name_id' });
+  db.monitoring_health_targets.createIndex({ environment: 1, kind: 1, name: 1, _id: 1 }, { name: 'idx_monitoring_targets_env_kind_name_id' });
+  db.monitoring_health_targets.createIndex({ serverId: 1, name: 1, _id: 1 }, { name: 'idx_monitoring_targets_server_name_id' });
+  db.monitoring_health_targets.createIndex({ collectorId: 1 }, { name: 'idx_monitoring_targets_collector_id' });
+})();
+
+// Seed run audit markers.
+db.createCollection('seed_runs');
 
 print('BrandHub MongoDB initialized: collections and indexes created.');
