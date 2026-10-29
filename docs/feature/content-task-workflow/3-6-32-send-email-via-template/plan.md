@@ -218,3 +218,175 @@ Ghi chú: Jira gốc chỉ có 5 task; 4 task mở rộng DA-1256..DA-1259 đã 
 | Gửi trùng khi crash | `event_key` unique; at-least-once ghi rõ |
 | Phạm vi lớn so với 5 task Jira | Tách task con, làm theo thứ tự §12 |
 | Worker đơn instance | Dùng `SKIP LOCKED` sẵn; ghi rõ giới hạn đa instance khi scale |
+
+## Addendum B — Kỹ thuật (2026-10-28): drag-drop block builder + multi-scope broadcast — ĐÃ TRIỂN KHAI (2026-10-29)
+
+> Chi tiết kỹ thuật cho Addendum B (nghiệp vụ, B1-B10) đã ghi ở [spec.md](spec.md#addendum-b-2026-10-28-drag-drop-block-builder--multi-scope-broadcast--đề-xuất-chưa-chốt). Đã triển khai; xem B.12 cho API thực tế (khác đề xuất ban đầu ở B.2) và B.13 cho frontend. Quyết định chính thức vẫn chờ chủ task xác nhận.
+
+### B.1 Schema thay đổi (Mongo — `mail_templates`)
+
+`MailTemplateDocument.java` thêm field:
+
+| Field | Kiểu | Ghi chú |
+|---|---|---|
+| `scope` | `MailTemplateScope` (enum mới, 6 giá trị) | Thay `type` (giữ `type` tạm thời cho backward-compat đọc, xem bảng map dưới) |
+| `agencyId` | `String?` | Set cho `AGENCY_INTERNAL`/`AGENCY_CLIENT`; null cho scope còn lại |
+| `layoutJson` | `String` | Danh sách block (B9), nguồn thật của nội dung — thay vai trò input trực tiếp của `bodyHtml` |
+| `bodyHtml` | `String` (giữ nguyên) | Trở thành **render-cache**: backend render từ `layoutJson` → ghi lại `bodyHtml` mỗi lần save, dùng để preview nhanh và làm snapshot lúc gửi (D17 cũ không đổi: field tên vẫn `bodyHtml`) |
+
+**Map backward-compat `type` → `scope`** (migration 1-lần, rõ ràng không mơ hồ):
+- `type = SYSTEM_DEFAULT` → `scope = ADMIN_SYSTEM_BROADCAST`, `agencyId = null` (Admin đã là chủ sở hữu duy nhất của SYSTEM_DEFAULT, đúng khớp quyền B5)
+- `type = CUSTOM` → `scope = WORKSPACE_MANAGER`, `agencyId = null` (CUSTOM hiện tại luôn gắn `workspaceId`, đúng khớp D1 cũ)
+- `type` field **giữ lại** sau migration (không xoá cột) để `MailTemplateServiceImpl`/`MailSendService` cũ còn đọc được trong lúc chuyển đổi code dần; enum `MailTemplateType` thêm Javadoc `@Deprecated` trỏ sang `scope`, xoá hẳn ở 1 PR dọn dẹp sau khi toàn bộ nhánh code chuyển xong (không nằm trong phạm vi B1-B10).
+
+**Sửa 2026-10-28, sau khi xác minh validator thật** (bản đầu thiếu bước này — đã thiếu sót): `init-mongo.js:380-413` có `$jsonSchema` validator với `validationAction: 'error'`, chặn cứng `required: [..., 'type', ...]` + `type: { enum: ['SYSTEM_DEFAULT','CUSTOM'] }` + `bodyHtml` bắt buộc `minLength: 1`. Thêm field mới **không đủ** — phải nới validator trước, nếu không insert/update sẽ bị Mongo reject ngay ở tầng DB. Migration theo đúng pattern DRY_RUN đã có của repo (`docs/database/migration-mongo/2026-10-18-post-schedule-fields.js`), đặt tại `docs/database/migration-mongo/2026-10-28-mail-template-scope.js`:
+1. Đọc validator hiện tại qua `getCollectionInfos`, thêm `scope: {enum: [6 giá trị mới]}` (optional, không vào `required` — giữ `type` cũ cũng optional dần theo B.1), `agencyId: {bsonType: ['string','null']}`, `layoutJson: {bsonType: ['string','null']}` vào `properties`; **bỏ** `bodyHtml` khỏi `required` (đổi `minLength: 1` → cho phép rỗng, vì B.1 coi `bodyHtml` là render-cache có thể trống tới khi save lần đầu).
+2. Chạy `collMod` cập nhật validator (DRY_RUN mặc định, cần cờ `APPLY=true` giống file mẫu).
+3. Sau khi validator nới xong, chạy bước backfill data (vòng `forEach` cập nhật `scope`/`agencyId`/`layoutJson` cho document cũ) **trong cùng file**, chỉ chạy khi `APPLY=true`:
+```javascript
+db.mail_templates.find({ scope: { $exists: false } }).forEach(doc => {
+  const scope = doc.type === "SYSTEM_DEFAULT" ? "ADMIN_SYSTEM_BROADCAST" : "WORKSPACE_MANAGER";
+  db.mail_templates.updateOne({ _id: doc._id }, {
+    $set: { scope, agencyId: null, layoutJson: JSON.stringify({ version: 1, blocks: [] }) }
+  });
+});
+db.mail_templates.createIndex({ scope: 1, workspaceId: 1 });
+db.mail_templates.createIndex({ scope: 1, agencyId: 1 });
+```
+`layoutJson` rỗng cho template cũ — xem B.7 (rủi ro migration) cho cách UI xử lý. `init-mongo.js` (dùng cho môi trường tạo mới từ đầu) cũng cần cập nhật song song để khớp validator mới, tránh lệch giữa môi trường fresh-seed và môi trường đã migrate.
+
+**Migration Postgres bổ sung** (sửa 2026-10-28, sau khi xác minh schema thật — bản đầu giả định sai "không cần đổi schema"):
+- `mail_send_quota.scope` hiện là `VARCHAR(16) CHECK (scope IN ('SYSTEM','WORKSPACE'))` — CHECK constraint cứng **chặn** giá trị `AGENCY` mới. Cần `ALTER TABLE mail_send_quota DROP CONSTRAINT <tên constraint cũ>, ADD CONSTRAINT mail_send_quota_scope_check CHECK (scope IN ('SYSTEM','WORKSPACE','AGENCY'))`. `scope_id VARCHAR(64)` đã đủ dài chứa UUID, không cần đổi.
+- `mail_suppressions.workspace_id` hiện `UUID NOT NULL` — **không thể** dùng `workspace_id = NULL` làm khoá cho suppression phạm vi hệ thống (ADMIN_SYSTEM_BROADCAST) như ý tưởng ban đầu. Thay bằng: `ALTER TABLE mail_suppressions ALTER COLUMN workspace_id DROP NOT NULL;` + `CREATE UNIQUE INDEX mail_suppressions_system_email_idx ON mail_suppressions (email_lower) WHERE workspace_id IS NULL;` (giữ unique constraint hiện có `(workspace_id, email_lower)` cho các dòng có `workspace_id`, thêm index riêng cho dòng `workspace_id IS NULL`).
+- Đặt 2 ALTER trên trong cùng migration SQL `docs/database/migrations/2026-10-28-mail-template-scope-postgres.sql`, chạy trước khi deploy code đọc `scope=AGENCY`/suppression hệ thống.
+
+### B.2 API contract mới/sửa
+
+**Sửa `POST/PATCH /api/v1/workspaces/{id}/mail-templates[/{tid}]`** — request thêm `layoutJson` (bắt buộc khi tạo mới), bỏ `bodyHtml` khỏi input (chỉ output):
+```json
+POST /api/v1/workspaces/{id}/mail-templates
+{
+  "name": "Thông báo chiến dịch",
+  "subject": "Cập nhật {{campaignName}}",
+  "layoutJson": "{\"version\":1,\"blocks\":[{\"id\":\"b1\",\"type\":\"header\"},{\"id\":\"b2\",\"type\":\"heading\",\"props\":{\"text\":\"Xin chào\",\"align\":\"left\"}}]}",
+  "scope": "WORKSPACE_MANAGER",
+  "attachmentIds": []
+}
+→ 201 { "success": true, "data": { "id", "scope", "layoutJson", "bodyHtml" (rendered), ... } }
+```
+
+**Mới `GET/POST /api/v1/agencies/{agencyId}/mail-templates`** — kho riêng cho `AGENCY_INTERNAL`/`AGENCY_CLIENT`, cùng shape response, thêm query `?scope=AGENCY_INTERNAL|AGENCY_CLIENT` bắt buộc (không cho list lẫn 2 scope trong 1 call, tránh nhầm kho).
+
+**Mới `POST /api/v1/admin/mail-templates` mở rộng** — thêm `scope: "ADMIN_SYSTEM_BROADCAST" | "TRANSACTIONAL_AUTO"` bắt buộc trong body (trước đây ngầm định luôn SYSTEM_DEFAULT).
+
+**Sửa `POST .../mail-templates/{tid}/send`** — request thêm optional `recipients` giờ **không bắt buộc** khi scope tự suy ra được (B3); nếu client không gửi `recipients`, backend tự lấy theo scope rồi vẫn áp cùng pipeline `rejected[]`/quota/preview. Response giữ nguyên `202 {batchId,...}`.
+
+**Thay đổi so với đề xuất**: endpoint `suggested-recipients` **không** được xây. Thay bằng `recipient-preview` (B.12) và việc backend tự suy người nhận khi `recipients` rỗng (B3).
+
+### B.3 Error code mới
+
+| Mã | HTTP | Tình huống |
+|---|---|---|
+| `INVALID_SCOPE` | 400 | `scope` không nằm trong 6 giá trị hợp lệ, hoặc không khớp endpoint gọi (vd gửi `AGENCY_INTERNAL` qua endpoint Workspace) |
+| `AGENCY_SCOPE_FORBIDDEN` | 403 | Không phải Agency OWNER của `agencyId` mà cố tạo/sửa/gửi template `AGENCY_INTERNAL`/`AGENCY_CLIENT` |
+| `ADMIN_SCOPE_FORBIDDEN` | 403 | Không phải Admin mà cố tạo/sửa template `ADMIN_SYSTEM_BROADCAST`/`TRANSACTIONAL_AUTO` |
+| `BLOCK_SCHEMA_INVALID` | 400 | `layoutJson` parse lỗi, hoặc chứa `type` không nằm trong 9 block B9, hoặc thiếu field bắt buộc của 1 block (vd `cta_button` thiếu `label`) |
+| `LAYOUT_EMPTY` | 400 | `layoutJson.blocks` rỗng (tương đương rule cũ "cần ít nhất 1 khối") |
+| `TRANSACTIONAL_RECIPIENT_INVALID` | 400 | `TRANSACTIONAL_AUTO` enqueue thiếu đúng 1 user cụ thể (không phải danh sách) |
+
+### B.4 Recipient lookup theo scope (sửa 2026-10-28, sau khi xác minh `MailRecipientLookup.java` thật)
+
+**Tên method bản đầu sai** — `MailRecipientLookup` thật chỉ có 2 method: `candidates(UUID workspaceId, String q, int limit)` (search/autocomplete, trả `List<Candidate(email,name,source)>`) và `internalEmails(UUID workspaceId)` (trả `Set<String>` — gộp CHUNG member + client liên kết workspace trong 1 UNION query, **không tách riêng** 2 nhóm). Không có `clientsOfWorkspace()`/`membersOfWorkspace()` như bản đầu viết.
+
+```
+resolveRecipients(template):
+  switch template.scope:
+    CAMPAIGN_BROADCAST    -> campaign = mediaCampaignRepository.findById(campaignId)
+                              workspaceId = workspaceMediaPackageRepository.findById(campaign.workspaceMediaPackageId).workspaceId
+                              return mailRecipientLookup.clientsOnly(workspaceId)            // MỚI — tách riêng Client-only từ internalEmails(), vì CAMPAIGN_BROADCAST chỉ nhắm Client, không phải member nội bộ
+    WORKSPACE_MANAGER     -> return mailRecipientLookup.internalEmails(workspaceId)          // tái dùng nguyên — gộp member+client đúng ý "thông báo workspace" (D3 cũ coi cả 2 là "trong Workspace")
+    AGENCY_INTERNAL       -> return agencyMemberRepository.findByAgencyId(agencyId)
+                                .map(m -> emailOf(m.getUserId()))                           // tái dùng nguyên, đã có
+    AGENCY_CLIENT         -> workspaces = workspaceRepository.findByAgencyId(agencyId)
+                              return workspaces.flatMap(w -> mailRecipientLookup.clientsOnly(w.getId()))
+                                .distinct()                                                  // MỚI — dùng chung method clientsOnly() mới ở trên, gộp qua nhiều workspace
+    ADMIN_SYSTEM_BROADCAST-> return userRepository.findAllActive()                           // MỚI — toàn hệ thống, cần xác nhận nguồn (UserRepository hay riêng view)
+    TRANSACTIONAL_AUTO    -> return [singleUserEmail]                                        // không qua resolver này, caller truyền thẳng 1 email khi enqueue
+```
+
+**Việc mới cần viết trong `MailRecipientLookup`**: method `clientsOnly(UUID workspaceId)` — tách riêng phần `client_profiles` khỏi UNION hiện có của `internalEmails()` (query hiện tại gộp `workspace_members`+`users` và `workspace_members`+`client_profiles` bằng UNION — tách bằng cách chỉ giữ nhánh thứ 2, không viết lại từ đầu).
+
+### B.5 Worker/quota (`MailDeliveryService` / `MailQuotaService`)
+
+- `MailQuotaService.tryConsume(workspaceId, day)` hiện khoá cứng theo `workspaceId` — thêm overload `tryConsume(scope, scopeId, day)` nhận `scopeId` là `workspaceId` HOẶC `agencyId` HOẶC hằng số `"SYSTEM"` tuỳ scope; bảng `mail_send_quota` đã có cột `scope`/`scope_id` tổng quát sẵn (§4.2) — không cần đổi schema Postgres, chỉ đổi code gọi.
+- `ADMIN_SYSTEM_BROADCAST`/`TRANSACTIONAL_AUTO`: **không** áp quota per-workspace (vì không gắn `workspaceId`) — chỉ áp quota `SYSTEM` (450/ngày hiện có); `AGENCY_INTERNAL`/`AGENCY_CLIENT`: áp quota mới theo `agencyId` (cap riêng, đề xuất mặc định bằng `MAIL_QUOTA_WORKSPACE_PER_DAY` dùng chung config, không thêm env mới trừ khi cần tách).
+- **Cap 200/lần** (`MAIL_MAX_RECIPIENTS_PER_SEND`, chốt 2026-10-28): `ADMIN_SYSTEM_BROADCAST` **không áp** cap này — gửi toàn hệ thống có thể vượt xa 200, vẫn đi qua `mail_deliveries` hàng loạt bình thường, bị giới hạn tự nhiên bởi throttle 20 mail/phút (D5 cũ) nên không burst, chỉ mất lâu hơn để gửi hết. Các scope còn lại giữ nguyên cap 200.
+- **Unsubscribe cho `ADMIN_SYSTEM_BROADCAST`** (chốt 2026-10-28): **có** chèn footer + `List-Unsubscribe` như đối tượng "ngoài" (`externalAudience = true`) dù gửi nội bộ hệ thống — tránh bị Gmail đánh dấu spam khi gửi khối lượng lớn, user có quyền tắt thông báo loại này; suppression dùng `mail_suppressions.workspace_id IS NULL` làm khoá đặc biệt cho scope hệ thống (cần ALTER nullable trước — xem B.1 "Migration Postgres bổ sung"), không đụng suppression của từng Workspace (unique index riêng cho nhánh `workspace_id IS NULL`).
+- `MailDeliveryService.process()` dòng tính `externalAudience` — mở rộng: với `AGENCY_INTERNAL` thì "trong" = thuộc `agency_members` của đúng `agencyId` (không chèn unsubscribe); với `ADMIN_SYSTEM_BROADCAST` luôn coi là "ngoài" (chèn unsubscribe, theo quyết định trên).
+- `TRANSACTIONAL_AUTO` không qua `mail_batches`/CSV — enqueue thẳng 1 `mail_deliveries` row với `batchId` tự sinh kind=`TRANSACTIONAL`, tái dùng `deliverNext()` loop sẵn có (không viết worker riêng).
+
+### B.6 Test plan bổ sung
+
+| Tầng | Nội dung mới |
+|---|---|
+| JUnit (service) | `scope` × quyền (6 scope × role sai → 403 đúng mã); `layoutJson` parse lỗi → `BLOCK_SCHEMA_INVALID`; migration map `type`→`scope` idempotent; render engine 9 block → HTML đúng escape |
+| JUnit (recipient) | Mỗi scope trả đúng tập email kỳ vọng (mock `AgencyMemberRepository`/`WorkspaceRepository`/`MailRecipientLookup`); `AGENCY_CLIENT` dedupe qua nhiều workspace |
+| JUnit (worker) | Quota theo `agencyId`/`SYSTEM` không lẫn với `workspaceId`; `ADMIN_SYSTEM_BROADCAST` bỏ qua cap 200 nhưng vẫn throttle 20/phút; `TRANSACTIONAL_AUTO` không rơi vào `mail_batches` |
+| Vitest | Drag-drop reorder block giữ đúng thứ tự `layoutJson`; validate block props client-side trước submit |
+| Playwright E2E | Tạo template bằng block builder → preview → gửi (mock) cho từng kho (Agency builder riêng, Workspace builder cũ, Admin console) |
+| Integration live | Seed template cũ (`type=CUSTOM`) → chạy migration → load lại qua API mới vẫn đúng `scope=WORKSPACE_MANAGER` |
+
+### B.7 Rủi ro / migration an toàn
+
+- Template cũ có `bodyHtml` TipTap tự do (HTML tuỳ ý, không map được sang 9 block cố định) — **không** cố gắng tự động convert HTML → block (rủi ro render sai/mất định dạng). Đề xuất: sau migration B.1, `layoutJson` của các bản ghi cũ để rỗng (`blocks: []`); FE khi mở 1 template cũ trong block builder hiển thị banner "Mẫu này soạn trước khi có trình kéo-thả — vui lòng tạo lại bằng khối mới" và khoá nút Lưu cho tới khi người dùng thêm ít nhất 1 block thật (dùng lại rule `LAYOUT_EMPTY` sẵn có), **không** thêm block `legacy_html` đặc biệt để tránh vòng đời block-type thứ 10 không nằm trong B9 đã chốt.
+- Đổi `type` → `scope` là thay đổi có khả năng breaking cho FE hiện tại nếu đã có code đọc field `type` — vì FE chưa code (B10: backend-first), rủi ro này bằng 0 trong lần triển khai này, chỉ cần backend tự nhất quán.
+
+### B.8 Rate-limit API (bổ sung 2026-10-28, sửa lại 2026-10-28 sau khi xác minh chuẩn repo)
+
+**Không cần code mới** — đã xác minh: rate-limit theo chuẩn repo nằm ở **`brandhub-api-gateway`** (Spring Cloud Gateway), không phải trong từng service. Route `business-protected` (`application.yml:86-93`, pattern `Path=/api/v1/**`) đã áp sẵn filter `JwtAuthFilter` + `RateLimit` (`RateLimitGatewayFilterFactory.java:21-48`, Redis INCR+EXPIRE theo `X-User-Id`, trả 429 kèm header `X-RateLimit-*`/`Retry-After`) cho **mọi** route REST đã xác thực — bao gồm sẵn `/api/v1/workspaces/{id}/mail-templates*`, `/send`, `/suggested-recipients` vì đều khớp `/api/v1/**`. Route public mới nếu có (vd endpoint public khác ngoài `/public/mail/unsubscribe` đã có sẵn `mail-public` route, `application.yml:53-59`) thì khai báo route riêng trong `api-gateway` kèm filter `RateLimit`, theo đúng mẫu `mail-public`.
+
+`ChatRateLimiter` (business-service) là **ngoại lệ cố ý**, chỉ áp cho đường WebSocket/STOMP (`/ws/chat`) — nơi gateway không thể áp HTTP filter lên từng frame sau khi đã nâng cấp kết nối, không phải mẫu chuẩn cho REST endpoint. **Không nhân bản `ChatRateLimiter` cho mail-template** (bản B.8 trước đó đề xuất `MailApiRateLimiter` — sai chuẩn, đã loại bỏ). Nếu sau này có endpoint non-HTTP cho mail-template (không có trong B1-B10), mới cân nhắc limiter riêng ở service.
+
+### B.9 Xác nhận lại trước khi Admin gửi broadcast quy mô lớn (bổ sung 2026-10-28)
+
+**Chưa có pattern re-auth/OTP/confirm-token sẵn trong hệ thống** (đã rà `AuthController`/`AdminController`, không tìm thấy) — thiết kế mới, đơn giản nhất, không thêm hạ tầng OTP mới:
+- `POST .../mail-templates/{tid}/send` khi `scope = ADMIN_SYSTEM_BROADCAST` **và** số recipient suy ra được > 1000 (ngưỡng cấu hình `mail.admin-broadcast-confirm-threshold`, mặc định 1000) → yêu cầu thêm field `confirmPassword` trong request. **Xác minh 2026-10-28**: không có method `verifyPassword()` export sẵn ở `AuthController`/`AuthServiceImpl` để gọi lại — `AuthServiceImpl` tự gọi `passwordEncoder.matches(rawPassword, user.getPasswordHash())` trực tiếp nhiều chỗ (vd dòng 201, 388), không bọc thành API public riêng. Service gửi mail (`MailSendService` hoặc tương đương) **tự inject** `PasswordEncoder` (Spring bean có sẵn) + repository lấy `passwordHash` của user hiện tại, gọi thẳng `passwordEncoder.matches(confirmPassword, currentUser.getPasswordHash())` — không gọi qua `AuthServiceImpl`. Thiếu/sai `confirmPassword` → 403 `ADMIN_BROADCAST_CONFIRMATION_REQUIRED` kèm `recipientCount` để FE hiển thị cảnh báo trước khi hỏi lại mật khẩu.
+- Dưới ngưỡng 1000 recipient: gửi bình thường, không yêu cầu xác nhận thêm — tránh phiền Admin cho broadcast nhỏ.
+- Không áp dụng `confirmPassword` cho `send-test` (đồng bộ, 1 người, không rủi ro quy mô).
+
+### B.11 Sanitize block props (bổ sung 2026-10-28, bắt buộc kỹ thuật — không phải tùy chọn)
+
+Khi render `layoutJson` → `bodyHtml`, mọi field string trong block props **phải** HTML-escape trước khi chèn vào template (áp dụng tương đương mức độ nghiêm ngặt của sanitize allow-list cũ D14, dù không còn dùng TipTap):
+- `heading.text`, `paragraph.text`, `contact_strip` nội dung tĩnh, `cta_button.label`, `image_banner.imageAlt`: escape HTML entity chuẩn (`&lt;`, `&gt;`, `&amp;`, `&quot;`, `&#39;`) trước khi nội suy vào HTML — ngăn injection qua text field tưởng chừng vô hại.
+- `cta_button.custom_url`, `image_banner` URL: validate scheme **chỉ cho phép** `http://`/`https://` (khi `url_type = custom`/ảnh tuỳ ý); từ chối `javascript:`, `data:`, `vbscript:`, hoặc scheme khác → `BLOCK_SCHEMA_INVALID` (B.3). URL ảnh từ bucket hệ thống (upload qua `/images`) không cần validate scheme (đã kiểm soát nguồn).
+- Validate này nằm trong cùng tầng với `BLOCK_SCHEMA_INVALID` (B.3), chạy ở backend lúc save **và** lúc render (không chỉ FE), vì `layoutJson` có thể bị gửi thẳng qua API bỏ qua FE.
+
+**Chưa chốt — cần chủ task duyệt**: toàn bộ B.1-B.11 ở trạng thái đề xuất (2 điểm "mở" ban đầu ở B.5 — unsubscribe cho ADMIN_SYSTEM_BROADCAST, cap 200 — đã chốt 2026-10-28; B.8-B.11 bổ sung sau rà soát bảo mật/rate-limit riêng, dựa trên `ChatRateLimiter` có sẵn tái dùng cho B.8, thiết kế mới cho B.9 vì chưa có pattern sẵn). Sau khi duyệt sẽ merge vào mục "Quyết định đã chốt" tương ứng và bắt đầu code backend theo B10 (nghiệp vụ, ở `spec.md`, nói thứ tự triển khai backend-first).
+
+### B.12 Triển khai thực tế (2026-10-29)
+
+| Endpoint | Quyền | Ghi chú |
+|---|---|---|
+| `GET/POST/PATCH/DELETE /api/v1/agencies/{agencyId}/mail-templates` | Agency OWNER | Kho `AGENCY_INTERNAL`/`AGENCY_CLIENT`, CRUD |
+| `GET /api/v1/agencies/{agencyId}/mail-templates/{tid}/recipient-preview` | Agency OWNER | `{ total, sample[10] }` |
+| `POST /api/v1/workspaces/{id}/mail-templates/{tid}/send` | OWNER/MANAGER/CREATOR của Workspace | Mẫu Agency: Workspace phải thuộc Agency và người gửi là Agency OWNER |
+| `POST /api/v1/workspaces/{id}/mail-templates/{tid}/preview` | như trên | Owner agency xem trước được mẫu Agency (`findPreviewable`) |
+| `POST /api/v1/admin/mail-templates/{tid}/send` | ADMIN (rule `/api/v1/admin/**`) | `ADMIN_SYSTEM_BROADCAST`, batch `workspace_id` null, cần `confirmPassword` khi vượt ngưỡng (B.9) |
+| `POST /api/v1/admin/mail-templates/{tid}/send-test` | ADMIN | Gửi 1 bản tới chính Admin |
+| `GET /api/v1/admin/mail-templates/{tid}/recipient-preview` | ADMIN | `{ total, sample[10] }` |
+
+**Mã nguồn chính (backend)**: `MailSendService` (`send`/`sendSystem`/`deliver`, `previewSystemRecipients`/`previewAgencyRecipients`, `sendTestSystem`), `MailTemplateServiceImpl.findPreviewable`, `MailBlockRenderer`, `UnsubscribeTokenService` (token `system`), `MailSuppressionStore` (danh sách chặn hệ thống), `UserNotificationService.mailBatchFinished` (không link khi không có Workspace).
+
+**Quy tắc bảo mật đã áp dụng**
+- Đường Workspace không bao giờ tự suy ra người nhận cho `ADMIN_SYSTEM_BROADCAST`, vẫn áp cap 200/lần và không có nhánh xác nhận mật khẩu admin; `TRANSACTIONAL_AUTO` bị ẩn khỏi Workspace (truy vấn danh sách loại trừ và `findVisible` từ chối).
+- Admin gửi bằng đường riêng; cap và xác nhận mật khẩu (B.9) chỉ áp ở đó.
+- Quyền Agency dùng `agency_members.role = OWNER` (khớp với CRUD Agency).
+- Mọi chuỗi trong block đều HTML-escape; URL chỉ cho `http(s)` (B.11).
+
+**Migration đã chạy**: Mongo `2026-10-28-mail-template-scope.js` (đã sửa lỗi `required: []` khiến MongoDB từ chối) đã APPLY trên Atlas dùng chung, 4 document được backfill `scope`; Postgres `2026-10-28-mail-template-scope-postgres.sql` đã chạy trên DB Docker local. Staging/production (nếu có) cần chạy riêng.
+
+### B.13 Frontend
+
+- **Web**: `pages/mail-templates/blocks.ts` (kiểu block, validate, render preview), `components/BlockBuilder.tsx` (palette, kéo thả HTML5 + nút lên/xuống/xoá, animation GSAP Flip, tôn trọng `prefers-reduced-motion`), `TemplateFormDialog` dựa trên builder và có chọn scope, trang Agency `/agency/:id/mail-templates` (mục sidebar chỉ cho Owner agency), `AdminBroadcastDialog` (gửi, gửi thử, xem trước người nhận, xác nhận mật khẩu), `SendMailDialog` chế độ Agency (ẩn ô người nhận, hiện số người). TipTap `MailBodyEditor` đã xoá.
+- **Mobile**: `MailTemplatesScreen`/`MailSendScreen` (xem và gửi, không có kéo thả), nhóm theo scope gồm cả mẫu Agency, mẫu Agency hiện số người nhận.
+- **Phân quyền trang**: [mobile-nav-role-parity](../../mobile-nav-role-parity/spec.md).
