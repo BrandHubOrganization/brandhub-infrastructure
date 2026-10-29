@@ -9,3 +9,13 @@
 - [x] Verify keyboard, mobile and light/dark.
 - [x] Verify actual benchmark CSV, guards, rollback, conflicts and build/lint.
 - [x] Review clean diff; keep QA local; document DB impact and manual test.
+
+## Mixed-dimension correction
+- [x] Accept paired-empty metadata and preserve numeric validation.
+- [x] Update nullable Web types and vi/en mixed-dimension label.
+- [x] Verify parser, type-check and targeted lint; no live price apply.
+
+## Feature-only pricing
+- [x] Export operation-wide CSV and clarify benchmark help/contract.
+- [x] Update vi/en scope text and preview, preserve theme/layout.
+- [x] Verify no dimension multiplier in charging, regression/build and Web checks.
