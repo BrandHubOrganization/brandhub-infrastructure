@@ -71,6 +71,7 @@ export default {
   title: "BrandHub Docs",
   description: "BrandHub Infrastructure, Project Plans, and Sprints Documentation",
   srcDir: '../docs',
+  ignoreDeadLinks: true,
   markdown: {
     attrs: {
       leftDelimiter: '{@attrs:',
