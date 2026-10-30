@@ -147,54 +147,6 @@
       },
       "mem_limit": "640m"
     },
-    "neo4j": {
-      "restart": "unless-stopped",
-      "container_name": "brandhub-neo4j",
-      "command": null,
-      "entrypoint": null,
-      "image": "neo4j:5.26-community",
-      "networks": {
-        "brandhub-network": null
-      },
-      "volumes": [
-        {
-          "type": "volume",
-          "source": "neo4j-data",
-          "target": "/data",
-          "volume": {}
-        },
-        {
-          "type": "volume",
-          "source": "neo4j-logs",
-          "target": "/logs",
-          "volume": {}
-        }
-      ],
-      "healthcheck": {
-        "test": [
-          "CMD-SHELL",
-          "wget -qO- http://localhost:7474 || exit 1"
-        ],
-        "timeout": "5s",
-        "interval": "15s",
-        "retries": 5,
-        "start_period": "20s"
-      },
-      "logging": {
-        "driver": "json-file",
-        "options": {
-          "max-size": "10m",
-          "max-file": "3"
-        }
-      },
-      "mem_limit": "900m",
-      "env_file": [
-        {
-          "path": "./env/neo4j.env",
-          "required": true
-        }
-      ]
-    },
     "postgres": {
       "restart": "unless-stopped",
       "container_name": "brandhub-postgres",
@@ -403,12 +355,6 @@
   "volumes": {
     "chroma-data": {
       "name": "brandhub-chroma-data"
-    },
-    "neo4j-data": {
-      "name": "brandhub-neo4j-data"
-    },
-    "neo4j-logs": {
-      "name": "brandhub-neo4j-logs"
     },
     "postgres_data": {
       "name": "brandhub-postgres-v2-data"
