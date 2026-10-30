@@ -111,6 +111,15 @@ Ghi chú môi trường: nếu Maven báo `source level 25`, chạy `mvn clean` 
 | TC-ENH-07 | CSV cells starting with `= + - @` are prefixed with `'` | JUnit | pass |
 | TC-ENH-08 | Unsubscribed list pages, re-subscribe needs OWNER/MANAGER | Playwright + JUnit | pass |
 | TC-ENH-09 | Group create keeps only valid distinct emails, capped per Workspace, owner-only delete | JUnit | pass |
+| TC-ENH-10 | `RequireRoleAspect` stops CLIENT (403) and non-members on send, send-test and mail-quota; OWNER/MANAGER/CREATOR pass (TC-SEND-16) | JUnit `MailSendRoleEnforcementTest` | pass |
+| TC-ENH-11 | `POST send` answers 202, forwards `Idempotency-Key`, rejects malformed JSON with 400 | JUnit `MailSendControllerTest` | pass |
+| TC-ENH-12 | One-click unsubscribe POST works with the token in the query only; 31st call per IP in a minute is rate limited; IP key is the last `X-Forwarded-For` entry (TC-UNS-03, TC-UNS-09) | JUnit `PublicMailControllerTest` | pass |
+| TC-ENH-13 | Unsubscribe link has no `//` when `FRONTEND_URL` ends with `/` | JUnit `MailSendServiceTest` | pass |
+| TC-ENH-14 | `send` with a null body still sends when the scope resolves recipients (no NPE) | JUnit `MailSendServiceTest` | pass |
+| TC-ENH-15 | Suppression list: CREATOR can list but gets 403 on re-subscribe, MANAGER can re-subscribe, CLIENT gets 403; every batch-history endpoint excludes CLIENT (TC-HIS-03) | JUnit `MailHistoryRoleEnforcementTest` | pass |
+| TC-ENH-16 | Admin mail endpoints: 401 without token, 403 when the token's user is no longer ADMIN (services never run), 200 for a current ADMIN (TC-ADM-02) | `@WebMvcTest` `AdminMailSecurityTest` | pass |
+| TC-ENH-17 | Agency suppression endpoints forward agency, caller and paging to the service; missing `email` is 400; a service refusal propagates | JUnit `AgencyMailControllerTest` | pass |
+| TC-DATA-01 | Dev mail dataset (`MailSampleSeeder`, profile `seed`/`seed-postgres`): batches in all 6 statuses, deliveries in all 4, workspace/agency/system suppressions, near-cap quota workspace; idempotent; refuses `prod` | JUnit `MailSampleSeederTest` (SQL not yet run against a live DB) | pass |
 
 ## 4. Bảo mật
 
