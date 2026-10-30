@@ -34,3 +34,18 @@ redis-data/
 
 # ── Dashboard (docs/dashboard) ──────────────────────────────────
 docs/dashboard/jira_status.json
+
+# Security: private credentials and database snapshots
+.env.*
+!.env.example
+*.dump
+*.rdb
+*.p12
+*.pfx
+*.jks
+**/backups/*.sql
+**/backups/*.ejson
+**/backups/*.bson
+**/backups/*.archive
+**/backups/*.gz
+**/backups/*.zip

@@ -17,12 +17,8 @@
 --   - agency_members: added role column (OWNER/MEMBER) — explicit instead of deriving from agencies.owner_id.
 --   - workspace_members: at most 1 active MANAGER per workspace (no co-manage), enforced via partial unique index.
 --   - workspaces: added created_by for audit consistency with other tables.
---   - ai_credit_ledgers: split into ai_credit_ledgers (Agency-wide monthly usage, no user)
---     + ai_credit_creator_limits (per-Creator cap set by Owner, config only, not usage tracking).
 --
 -- PostgreSQL tables (52):
---   Monitoring:   monitoring_servers, monitoring_collectors,
---                 monitoring_health_targets, monitoring_health_results, monitoring_enrollments
 --   Identity:     users, user_oauth_providers, user_refresh_tokens, user_system_roles,
 --                 account_activation_tokens, subscription_plan_changes
 --   Organization: agencies, agency_members, agency_invitations, workspaces,
@@ -37,7 +33,7 @@
 --   Admin & Mod:  user_strikes, sanction_reviews, admin_account_operations, admin_email_outbox,
 --                 admin_notifications, admin_report_exports, content_moderation_reviews, user_notifications
 --   Billing:      subscription_plans, user_subscriptions, transactions,
---                 ai_credit_ledgers, ai_credit_creator_limits, audit_logs
+--                 audit_logs
 -- ============================================================
 
 BEGIN;
@@ -913,37 +909,6 @@ CREATE TRIGGER trg_transactions_updated_at
 BEFORE UPDATE ON transactions
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
-CREATE TABLE IF NOT EXISTS ai_credit_ledgers (
-    id             UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-    agency_id      UUID         NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
-    month          VARCHAR(7)   NOT NULL,
-    used_amount    INT          NOT NULL DEFAULT 0,
-    created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-    updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-    UNIQUE (agency_id, month)
-);
-
-DROP TRIGGER IF EXISTS trg_ai_credit_ledgers_updated_at ON ai_credit_ledgers;
-CREATE TRIGGER trg_ai_credit_ledgers_updated_at
-BEFORE UPDATE ON ai_credit_ledgers
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
-CREATE TABLE IF NOT EXISTS ai_credit_creator_limits (
-    id             UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-    agency_id      UUID         NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
-    creator_id     UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    monthly_limit  INT          NOT NULL,
-    set_by         UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-    created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-    updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-    UNIQUE (agency_id, creator_id)
-);
-
-DROP TRIGGER IF EXISTS trg_ai_credit_creator_limits_updated_at ON ai_credit_creator_limits;
-CREATE TRIGGER trg_ai_credit_creator_limits_updated_at
-BEFORE UPDATE ON ai_credit_creator_limits
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
 CREATE TABLE IF NOT EXISTS audit_logs (
     id            BIGSERIAL    PRIMARY KEY,
     agency_id     UUID         REFERENCES agencies(id) ON DELETE SET NULL,
@@ -1104,131 +1069,6 @@ CREATE TABLE IF NOT EXISTS seed_runs (
     CHECK ((status = 'failed') = (failed_at IS NOT NULL))
 );
 
--- ============================================================
--- System Health Monitoring (FR 3.10.3)
--- Mirrors docs/database/migrations/2026-09-24-monitoring.sql for fresh databases.
--- ============================================================
-
-CREATE TABLE IF NOT EXISTS monitoring_servers (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL CHECK (btrim(name) <> ''),
-    ip_address INET NOT NULL,
-    environment VARCHAR(50) NOT NULL CHECK (btrim(environment) <> ''),
-    deployed_services TEXT[] NOT NULL DEFAULT '{}',
-    agent_token_hash VARCHAR(255) NOT NULL CHECK (btrim(agent_token_hash) <> ''),
-    cpu_percent NUMERIC(5,2) CHECK (cpu_percent BETWEEN 0 AND 100),
-    ram_percent NUMERIC(5,2) CHECK (ram_percent BETWEEN 0 AND 100),
-    disk_percent NUMERIC(5,2) CHECK (disk_percent BETWEEN 0 AND 100),
-    uptime_seconds BIGINT CHECK (uptime_seconds >= 0),
-    last_seen_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT chk_monitoring_server_ip CHECK (
-        masklen(ip_address) = CASE family(ip_address) WHEN 4 THEN 32 ELSE 128 END
-    ),
-    CONSTRAINT chk_monitoring_server_no_sample CHECK (
-        last_seen_at IS NOT NULL OR
-        (cpu_percent IS NULL AND ram_percent IS NULL AND disk_percent IS NULL AND uptime_seconds IS NULL)
-    )
-);
-
-CREATE INDEX IF NOT EXISTS idx_monitoring_servers_environment ON monitoring_servers(environment, name, id);
-
-COMMENT ON TABLE monitoring_servers IS 'Operator-managed physical hosts; one latest sample per host, no history. API serverId maps to id.';
-COMMENT ON COLUMN monitoring_servers.id IS 'Stable across container redeploys; replacement host gets a new UUID. IP is not identity.';
-COMMENT ON COLUMN monitoring_servers.agent_token_hash IS 'Hash only; never expose via API/logs. Provision a separate random agent credential.';
-COMMENT ON COLUMN monitoring_servers.last_seen_at IS 'Backend receipt time of valid heartbeat; update atomically with all metrics. NULL means NO_DATA.';
-COMMENT ON COLUMN monitoring_servers.updated_at IS 'Application-maintained metadata update time; heartbeat must not overwrite operator metadata.';
-
-
-CREATE TABLE IF NOT EXISTS monitoring_collectors (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL CHECK (btrim(name) <> ''),
-    server_id UUID REFERENCES monitoring_servers(id) ON DELETE RESTRICT,
-    token_hash VARCHAR(255) NOT NULL CHECK (btrim(token_hash) <> ''),
-    last_seen_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-CREATE INDEX IF NOT EXISTS idx_monitoring_collectors_server ON monitoring_collectors(server_id);
-
-CREATE TABLE IF NOT EXISTS monitoring_health_targets (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL CHECK (btrim(name) <> ''),
-    kind VARCHAR(20) NOT NULL CHECK (kind IN ('SERVICE', 'CONTAINER', 'DATABASE', 'ENDPOINT')),
-    environment VARCHAR(50) NOT NULL CHECK (btrim(environment) <> ''),
-    server_id UUID REFERENCES monitoring_servers(id) ON DELETE RESTRICT,
-    service_name VARCHAR(100),
-    instance_id VARCHAR(255),
-    collector_id UUID NOT NULL REFERENCES monitoring_collectors(id) ON DELETE RESTRICT,
-    check_scope VARCHAR(100) NOT NULL CHECK (btrim(check_scope) <> ''),
-    probe_type VARCHAR(30) NOT NULL CHECK (probe_type IN ('HTTP', 'DOCKER', 'POSTGRESQL', 'REDIS', 'MONGODB', 'NEO4J')),
-    probe_config JSONB NOT NULL DEFAULT '{}' CHECK (jsonb_typeof(probe_config) = 'object'),
-    assertion JSONB NOT NULL DEFAULT '{}' CHECK (jsonb_typeof(assertion) = 'object'),
-    credential_ref VARCHAR(255) CHECK (credential_ref IS NULL OR btrim(credential_ref) <> ''),
-    interval_seconds INTEGER NOT NULL DEFAULT 30 CHECK (interval_seconds > 0),
-    timeout_seconds INTEGER NOT NULL DEFAULT 5 CHECK (timeout_seconds > 0),
-    stale_after_seconds INTEGER NOT NULL DEFAULT 90 CHECK (stale_after_seconds > 0),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT chk_monitoring_target_timing CHECK (
-        timeout_seconds < interval_seconds AND interval_seconds < stale_after_seconds
-    ),
-    CONSTRAINT chk_monitoring_target_probe CHECK (
-        (kind IN ('SERVICE', 'ENDPOINT') AND probe_type = 'HTTP') OR
-        (kind = 'CONTAINER' AND probe_type = 'DOCKER' AND server_id IS NOT NULL) OR
-        (kind = 'DATABASE' AND probe_type IN ('HTTP', 'POSTGRESQL', 'REDIS', 'MONGODB', 'NEO4J'))
-    ),
-    -- Supports provenance FK on latest result; one active collector per target.
-    CONSTRAINT uq_monitoring_target_collector UNIQUE (id, collector_id)
-);
-CREATE INDEX IF NOT EXISTS idx_monitoring_targets_environment_kind ON monitoring_health_targets(environment, kind);
-CREATE INDEX IF NOT EXISTS idx_monitoring_targets_server ON monitoring_health_targets(server_id);
-CREATE INDEX IF NOT EXISTS idx_monitoring_targets_collector ON monitoring_health_targets(collector_id);
-CREATE INDEX IF NOT EXISTS idx_monitoring_targets_service ON monitoring_health_targets(environment, service_name, instance_id);
-
-CREATE TABLE IF NOT EXISTS monitoring_health_results (
-    target_id UUID PRIMARY KEY,
-    collector_id UUID NOT NULL,
-    check_id UUID NOT NULL,
-    outcome VARCHAR(5) NOT NULL CHECK (outcome IN ('PASS', 'FAIL', 'ERROR')),
-    checked_at TIMESTAMPTZ NOT NULL,
-    received_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    latency_ms NUMERIC(14,3) CHECK (latency_ms >= 0 AND latency_ms < 'Infinity'::numeric),
-    reason_code VARCHAR(80),
-    http_status SMALLINT CHECK (http_status BETWEEN 100 AND 599),
-    runtime_state VARCHAR(30),
-    runtime_health VARCHAR(30),
-    CONSTRAINT fk_monitoring_result_owner FOREIGN KEY (target_id, collector_id)
-        REFERENCES monitoring_health_targets(id, collector_id) ON DELETE RESTRICT,
-    CONSTRAINT chk_monitoring_result_reason CHECK (
-        (outcome = 'PASS' AND reason_code IS NULL) OR
-        (outcome IN ('FAIL', 'ERROR') AND reason_code IS NOT NULL AND btrim(reason_code) <> '')
-    ),
-    CONSTRAINT chk_monitoring_result_clock CHECK (checked_at <= received_at + INTERVAL '10 seconds')
-);
-
-COMMENT ON TABLE monitoring_collectors IS 'Operator-provisioned sources; heartbeat independent of probes. API collectorId maps to id.';
-COMMENT ON TABLE monitoring_health_targets IS 'Persistent allowlist, including targets with no result. Never auto-create from submitted samples.';
-COMMENT ON COLUMN monitoring_health_targets.server_id IS 'NULL for managed/external targets; must not fabricate host metrics.';
-COMMENT ON COLUMN monitoring_health_targets.check_scope IS 'READINESS/LIVENESS for services; documented scope for other probes. Validate contract in application.';
-COMMENT ON COLUMN monitoring_health_targets.probe_config IS 'Operator-only address/selector configuration. No plaintext secrets or raw response; omit from public DTOs.';
-COMMENT ON COLUMN monitoring_health_targets.credential_ref IS 'Reference resolved by worker secret provider; never a password, bearer token, or secret-bearing URI.';
-COMMENT ON COLUMN monitoring_health_targets.stale_after_seconds IS 'Also used by ingestion as maximum past sample age; compare against backend time.';
-COMMENT ON TABLE monitoring_health_results IS 'Exactly zero or one latest result per target. No history or persisted freshness status.';
-COMMENT ON COLUMN monitoring_health_results.collector_id IS 'Result provenance; FK prevents retaining old result under a new assignment. Clear result before reassignment in same transaction.';
-COMMENT ON COLUMN monitoring_health_results.check_id IS 'Idempotency key scoped to target. Same current checkId is a no-op; do not update received_at.';
-COMMENT ON COLUMN monitoring_health_results.received_at IS 'Backend-assigned; never trust client timestamp. Application enforces ordering and past-age window atomically.';
-
-CREATE TABLE IF NOT EXISTS monitoring_enrollments (
-    token_hash CHAR(64) PRIMARY KEY,
-    name VARCHAR(255) NOT NULL CHECK (btrim(name) <> ''),
-    environment VARCHAR(50) NOT NULL CHECK (btrim(environment) <> ''),
-    expires_at TIMESTAMPTZ NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_monitoring_enrollments_expiry ON monitoring_enrollments(expires_at);
-COMMENT ON TABLE monitoring_enrollments IS 'Single-use admin-issued host enrollment; only token digests are stored. Claimed atomically.';
-
 
 COMMIT;
 
@@ -1347,7 +1187,8 @@ CREATE INDEX IF NOT EXISTS idx_admin_notifications_history
 ALTER TABLE admin_email_outbox
     ADD COLUMN IF NOT EXISTS notification_id UUID REFERENCES admin_notifications(id),
     ADD COLUMN IF NOT EXISTS failed_at TIMESTAMPTZ,
-    ADD COLUMN IF NOT EXISTS last_error VARCHAR(255);
+    ADD COLUMN IF NOT EXISTS last_error VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS attachment_ref VARCHAR(100);
 CREATE INDEX IF NOT EXISTS idx_admin_email_outbox_notification
     ON admin_email_outbox(notification_id) WHERE notification_id IS NOT NULL;
 
@@ -1480,32 +1321,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_plan_change_pending
 
 COMMIT;
 
--- ---- 2026-10-08-ai-credit-usages.sql ----
--- FR 3.7.2 (and 3.7.7): per-use AI credit record so the agency monthly ledger (ai_credit_ledgers) and the
--- Owner's hard per-Creator limit (ai_credit_creator_limits, FR 3.9.7) can both be enforced, and a failed
--- AI job can be refunded. FR 3.9.5 (credit tracking) can read this table.
--- Additive and idempotent.
-
-BEGIN;
-
-CREATE TABLE IF NOT EXISTS ai_credit_usages (
-    id           UUID         PRIMARY KEY,
-    agency_id    UUID         NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
-    user_id      UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    workspace_id UUID         REFERENCES workspaces(id) ON DELETE SET NULL,
-    feature      VARCHAR(40)  NOT NULL,
-    credits      INT          NOT NULL CHECK (credits >= 0),
-    month        VARCHAR(7)   NOT NULL,
-    reference    VARCHAR(120),
-    refunded_at  TIMESTAMPTZ,
-    created_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
-);
-CREATE INDEX IF NOT EXISTS idx_ai_credit_usages_agency_month ON ai_credit_usages(agency_id, month);
-CREATE INDEX IF NOT EXISTS idx_ai_credit_usages_user_month ON ai_credit_usages(user_id, agency_id, month)
-    WHERE refunded_at IS NULL;
-
-COMMIT;
-
 -- ---- 2026-10-08-ai-caption-generations.sql ----
 -- FR 3.7.2: every caption generation, which option the Creator picked and what they finally kept.
 -- Used for (1) history of AI-written content per task, (2) choosing better few-shot examples and a
@@ -1545,7 +1360,6 @@ CREATE TABLE IF NOT EXISTS ai_video_jobs (
     id             VARCHAR(64)  PRIMARY KEY,
     workspace_id   UUID         NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     user_id        UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    usage_id       UUID         REFERENCES ai_credit_usages(id) ON DELETE SET NULL,
     prompt         TEXT         NOT NULL,
     style_key      VARCHAR(40),
     ambassador_id  VARCHAR(80),
@@ -1799,12 +1613,6 @@ CREATE TABLE workspace_credit_limits (
  updated_by uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT, updated_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY(agency_id,workspace_id),
  FOREIGN KEY(agency_id,workspace_id) REFERENCES workspaces(agency_id,id) ON DELETE RESTRICT
 );
--- Keep old creator limits untouched until service cutover; new scoped config preserves them separately.
-CREATE TABLE agency_creator_credit_limits (
- agency_id uuid NOT NULL REFERENCES agencies(id) ON DELETE RESTRICT, creator_id uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
- cap bigint CHECK(cap>=0), version bigint NOT NULL DEFAULT 0 CHECK(version>=0),
- updated_by uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT, updated_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY(agency_id,creator_id)
-);
 CREATE TABLE credit_usage_periods (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), agency_id uuid NOT NULL REFERENCES agencies(id) ON DELETE RESTRICT,
  starts_at timestamptz NOT NULL, ends_at timestamptz NOT NULL, kind text NOT NULL CHECK(kind IN ('BASIC_CALENDAR','PAID')),
@@ -1818,11 +1626,6 @@ CREATE TABLE workspace_credit_usage (
  PRIMARY KEY(agency_id,workspace_id,period_id),
  FOREIGN KEY(agency_id,workspace_id) REFERENCES workspaces(agency_id,id) ON DELETE RESTRICT,
  FOREIGN KEY(agency_id,period_id) REFERENCES credit_usage_periods(agency_id,id) ON DELETE RESTRICT
-);
-CREATE TABLE creator_credit_usage (
- agency_id uuid NOT NULL, creator_id uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT, period_id uuid NOT NULL,
- used bigint NOT NULL DEFAULT 0 CHECK(used>=0), reserved bigint NOT NULL DEFAULT 0 CHECK(reserved>=0),
- PRIMARY KEY(agency_id,creator_id,period_id), FOREIGN KEY(agency_id,period_id) REFERENCES credit_usage_periods(agency_id,id) ON DELETE RESTRICT
 );
 CREATE TABLE ai_credit_reservations (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), job_id uuid NOT NULL UNIQUE, agency_id uuid NOT NULL,
@@ -1868,32 +1671,6 @@ CREATE TRIGGER credit_entries_immutable BEFORE UPDATE OR DELETE ON credit_entrie
 CREATE TRIGGER credit_operations_immutable BEFORE UPDATE OR DELETE ON credit_operations FOR EACH ROW EXECUTE FUNCTION billing_reject_ledger_mutation();
 CREATE TRIGGER credit_entries_no_truncate BEFORE TRUNCATE ON credit_entries FOR EACH STATEMENT EXECUTE FUNCTION billing_reject_ledger_mutation();
 CREATE TRIGGER credit_operations_no_truncate BEFORE TRUNCATE ON credit_operations FOR EACH STATEMENT EXECUTE FUNCTION billing_reject_ledger_mutation();
-CREATE TABLE agency_resource_usage (
- agency_id uuid PRIMARY KEY REFERENCES agencies(id) ON DELETE RESTRICT,
- used_bytes bigint NOT NULL DEFAULT 0 CHECK(used_bytes>=0), reserved_bytes bigint NOT NULL DEFAULT 0 CHECK(reserved_bytes>=0),
- active_workspaces bigint NOT NULL DEFAULT 0 CHECK(active_workspaces>=0), internal_members bigint NOT NULL DEFAULT 0 CHECK(internal_members>=0),
- active_clients bigint NOT NULL DEFAULT 0 CHECK(active_clients>=0), inventory_state text NOT NULL DEFAULT 'PENDING' CHECK(inventory_state IN ('PENDING','VERIFIED')),
- version bigint NOT NULL DEFAULT 0 CHECK(version>=0), reconciled_at timestamptz, updated_at timestamptz NOT NULL DEFAULT now()
-);
-CREATE TABLE storage_reservations (
- id uuid PRIMARY KEY DEFAULT gen_random_uuid(), agency_id uuid NOT NULL REFERENCES agencies(id) ON DELETE RESTRICT,
- upload_id uuid NOT NULL UNIQUE, workspace_id uuid, reserved_bytes bigint NOT NULL CHECK(reserved_bytes>0),
- status text NOT NULL DEFAULT 'RESERVED' CHECK(status IN ('RESERVED','UNKNOWN','FINALIZED','RELEASED')),
- expires_at timestamptz NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(agency_id,id), CHECK(expires_at>created_at),
- FOREIGN KEY(agency_id,workspace_id) REFERENCES workspaces(agency_id,id) ON DELETE RESTRICT
-);
-CREATE TABLE storage_objects (
- id uuid PRIMARY KEY DEFAULT gen_random_uuid(), agency_id uuid NOT NULL REFERENCES agencies(id) ON DELETE RESTRICT,
- workspace_id uuid, reservation_id uuid, uploaded_by uuid REFERENCES users(id) ON DELETE RESTRICT,
- backend text NOT NULL, bucket text NOT NULL, object_key text NOT NULL, size_bytes bigint NOT NULL CHECK(size_bytes>=0),
- status text NOT NULL CHECK(status IN ('UPLOADING','ACTIVE','TRASH','DELETE_PENDING','DELETED')),
- created_at timestamptz NOT NULL DEFAULT now(), deleted_at timestamptz,
- UNIQUE(backend,bucket,object_key), UNIQUE(agency_id,id),
- FOREIGN KEY(agency_id,workspace_id) REFERENCES workspaces(agency_id,id) ON DELETE RESTRICT,
- FOREIGN KEY(agency_id,reservation_id) REFERENCES storage_reservations(agency_id,id) ON DELETE RESTRICT,
- CHECK(status<>'DELETED' OR deleted_at IS NOT NULL)
-);
-CREATE INDEX idx_storage_agency_status ON storage_objects(agency_id,status);
 CREATE TABLE billing_outbox_events (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), agency_id uuid NOT NULL REFERENCES agencies(id) ON DELETE RESTRICT,
  event_key text NOT NULL UNIQUE, event_type text NOT NULL, payload jsonb NOT NULL CHECK(jsonb_typeof(payload)='object'),
@@ -1908,39 +1685,11 @@ CREATE TABLE billing_audit_events (
 );
 CREATE TRIGGER billing_audit_immutable BEFORE UPDATE OR DELETE ON billing_audit_events FOR EACH ROW EXECUTE FUNCTION billing_reject_ledger_mutation();
 CREATE TRIGGER billing_audit_no_truncate BEFORE TRUNCATE ON billing_audit_events FOR EACH STATEMENT EXECUTE FUNCTION billing_reject_ledger_mutation();
-CREATE TABLE billing_migration_reviews (
- id uuid PRIMARY KEY DEFAULT gen_random_uuid(), source_table text NOT NULL, source_id uuid NOT NULL,
- owner_id uuid REFERENCES users(id) ON DELETE RESTRICT, candidate_agency_ids uuid[] NOT NULL DEFAULT '{}',
- reason text NOT NULL, status text NOT NULL DEFAULT 'PENDING' CHECK(status IN ('PENDING','RESOLVED')),
- resolved_agency_id uuid REFERENCES agencies(id) ON DELETE RESTRICT, resolved_by uuid REFERENCES users(id) ON DELETE RESTRICT,
- resolution_note text, resolved_at timestamptz, created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(source_table,source_id),
- CHECK(status<>'RESOLVED' OR (resolved_by IS NOT NULL AND resolved_at IS NOT NULL AND resolution_note IS NOT NULL AND length(btrim(resolution_note))>0))
-);
 
 -- No automatic paid mapping or credit reconstruction, even when owner has just one agency.
 INSERT INTO agency_subscriptions(agency_id,plan_version_id,migration_state)
  SELECT a.id,p.id,'REVIEW_REQUIRED' FROM agencies a CROSS JOIN billing_plan_versions p WHERE p.code='BASIC' AND p.version=1;
 INSERT INTO agency_credit_wallets(agency_id) SELECT id FROM agencies;
-INSERT INTO agency_resource_usage(agency_id,active_workspaces,internal_members,active_clients)
- SELECT a.id,
- (SELECT count(*) FROM workspaces w WHERE w.agency_id=a.id AND w.status::text='ACTIVE'),
- (SELECT count(*) FROM (SELECT am.user_id FROM agency_members am WHERE am.agency_id=a.id UNION SELECT a.owner_id) members),
- (SELECT count(DISTINCT wm.client_profile_id) FROM workspace_members wm JOIN workspaces w ON w.id=wm.workspace_id
-  WHERE w.agency_id=a.id AND wm.is_active AND wm.role::text='CLIENT')
- FROM agencies a;
-INSERT INTO billing_migration_reviews(source_table,source_id,owner_id,candidate_agency_ids,reason)
- SELECT 'user_subscriptions',s.id,s.user_id,ARRAY(SELECT a.id FROM agencies a WHERE a.owner_id=s.user_id ORDER BY a.id),
- 'Legacy entitlement must be mapped and balances reconciled before agency cutover' FROM user_subscriptions s;
-INSERT INTO billing_migration_reviews(source_table,source_id,owner_id,candidate_agency_ids,reason)
- SELECT 'transactions',t.id,t.user_id,ARRAY(SELECT a.id FROM agencies a WHERE a.owner_id=t.user_id ORDER BY a.id),
- 'Payer alone does not prove beneficiary agency; preserve original payment' FROM transactions t;
-INSERT INTO billing_migration_reviews(source_table,source_id,owner_id,candidate_agency_ids,reason)
- SELECT 'subscription_plan_changes',s.id,s.user_id,ARRAY(SELECT a.id FROM agencies a WHERE a.owner_id=s.user_id ORDER BY a.id),
- 'Legacy pending plan change requires explicit resolution; downgrade FR deferred' FROM subscription_plan_changes s WHERE s.status='PENDING';
-INSERT INTO agency_creator_credit_limits(agency_id,creator_id,cap,updated_by)
- SELECT agency_id,creator_id,monthly_limit,set_by FROM ai_credit_creator_limits WHERE monthly_limit>=0;
-INSERT INTO billing_migration_reviews(source_table,source_id,candidate_agency_ids,reason)
- SELECT 'ai_credit_creator_limits',id,ARRAY[agency_id],'Invalid legacy negative limit must be resolved' FROM ai_credit_creator_limits WHERE monthly_limit<0;
 
 CREATE FUNCTION billing_guard_plan_version() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
@@ -2295,11 +2044,6 @@ BEGIN
         ALTER TABLE ai_video_jobs ADD CONSTRAINT fk_ai_video_jobs_reservation
             FOREIGN KEY (reservation_id) REFERENCES ai_credit_reservations(id);
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='ai_video_jobs'::regclass
-        AND conname='ck_ai_video_jobs_accounting_source') THEN
-        ALTER TABLE ai_video_jobs ADD CONSTRAINT ck_ai_video_jobs_accounting_source
-            CHECK (usage_id IS NULL OR reservation_id IS NULL);
-    END IF;
 END $$;
 
 CREATE UNIQUE INDEX IF NOT EXISTS uq_ai_video_jobs_reservation
@@ -2486,6 +2230,7 @@ ALTER TABLE mail_batches ADD CONSTRAINT ck_mail_batches_scope_consistency
 
 INSERT INTO brandhub_schema_migrations(version,description) VALUES
  ('20261028_mail_template_scope_postgres','Addendum B: mail_send_quota AGENCY scope, mail_suppressions nullable workspace_id, mail_batches nullable workspace_id + scope/agency_id for non-Workspace scopes'),
- ('20261029_mail_suppressions_agency','Addendum B: mail_suppressions.agency_id, per-Agency unsubscribe list')
+ ('20261029_mail_suppressions_agency','Addendum B: mail_suppressions.agency_id, per-Agency unsubscribe list'),
+ ('20261030_consolidate_monitoring_billing_storage_v1','Drop 5 retired Monitoring tables, 3 V1 Storage tables, and 6 V1/V2 Billing/Credit tables')
 ON CONFLICT DO NOTHING;
 COMMIT;
