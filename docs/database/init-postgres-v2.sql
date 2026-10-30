@@ -2306,3 +2306,186 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_ai_video_jobs_reservation
     ON ai_video_jobs(reservation_id) WHERE reservation_id IS NOT NULL;
 
 COMMIT;
+-- Repository & Storage Foundation baseline: 2026-10-24-repository-foundation.sql
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS agency_storage_usage (
+    agency_id uuid PRIMARY KEY REFERENCES agencies(id),
+    used_bytes bigint NOT NULL DEFAULT 0 CHECK (used_bytes >= 0),
+    reserved_bytes bigint NOT NULL DEFAULT 0 CHECK (reserved_bytes >= 0),
+    inventory_verified_at timestamptz,
+    version bigint NOT NULL DEFAULT 0,
+    updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS system_storage_pools (
+    provider varchar(32) PRIMARY KEY CHECK (provider = 'SYSTEM_GDRIVE'),
+    capacity_bytes bigint NOT NULL CHECK (capacity_bytes > 0),
+    physical_used_bytes bigint NOT NULL DEFAULT 0 CHECK (physical_used_bytes >= 0),
+    reserved_peak_bytes bigint NOT NULL DEFAULT 0 CHECK (reserved_peak_bytes >= 0),
+    observed_at timestamptz,
+    version bigint NOT NULL DEFAULT 0,
+    updated_at timestamptz NOT NULL DEFAULT now()
+);
+INSERT INTO system_storage_pools(provider,capacity_bytes)
+VALUES ('SYSTEM_GDRIVE',5000000000000) ON CONFLICT DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS agency_storage_reservations (
+    id uuid PRIMARY KEY,
+    agency_id uuid NOT NULL REFERENCES agencies(id),
+    workspace_id uuid NOT NULL REFERENCES workspaces(id),
+    actor_id uuid NOT NULL REFERENCES users(id),
+    material_id varchar(64) NOT NULL UNIQUE,
+    request_key varchar(128) NOT NULL,
+    fingerprint varchar(64) NOT NULL,
+    provider varchar(32) NOT NULL CHECK (provider IN ('SYSTEM_GDRIVE','SYSTEM_S3')),
+    reserved_bytes bigint NOT NULL CHECK (reserved_bytes > 0),
+    committed_bytes bigint CHECK (committed_bytes >= 0 AND committed_bytes <= reserved_bytes),
+    derivative boolean NOT NULL DEFAULT false,
+    state varchar(16) NOT NULL CHECK (state IN ('RESERVED','COMMITTED','RELEASED','EXPIRED')),
+    phase varchar(24) NOT NULL DEFAULT 'CREATED',
+    pool_hold_bytes bigint NOT NULL DEFAULT 0 CHECK (pool_hold_bytes >= 0),
+    staging_cleaned_at timestamptz,
+    claim_token uuid,
+    claim_until timestamptz,
+    expires_at timestamptz NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE(agency_id,actor_id,request_key)
+);
+ALTER TABLE agency_storage_reservations ADD COLUMN IF NOT EXISTS staging_cleaned_at timestamptz;
+CREATE INDEX IF NOT EXISTS idx_storage_res_expiry ON agency_storage_reservations(state,expires_at);
+CREATE INDEX IF NOT EXISTS idx_storage_res_agency ON agency_storage_reservations(agency_id,state);
+
+CREATE TABLE IF NOT EXISTS storage_usage_entries (
+    id uuid PRIMARY KEY,
+    operation_key varchar(160) NOT NULL UNIQUE,
+    agency_id uuid NOT NULL REFERENCES agencies(id),
+    workspace_id uuid NOT NULL REFERENCES workspaces(id),
+    reservation_id uuid NOT NULL REFERENCES agency_storage_reservations(id),
+    material_id varchar(64) NOT NULL,
+    kind varchar(24) NOT NULL CHECK (kind IN ('RESERVE','COMMIT','RELEASE','EXPIRE','PURGE_RELEASE')),
+    used_delta bigint NOT NULL,
+    reserved_delta bigint NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_storage_entries_scope ON storage_usage_entries(agency_id,workspace_id);
+
+INSERT INTO agency_storage_usage(agency_id) SELECT id FROM agencies ON CONFLICT DO NOTHING;
+ALTER TABLE billing_plan_versions DISABLE TRIGGER billing_plan_version_immutable;
+UPDATE billing_plan_versions SET storage_limit_bytes=21474836480 WHERE code='BASIC' AND storage_limit_bytes<>21474836480;
+ALTER TABLE billing_plan_versions ENABLE TRIGGER billing_plan_version_immutable;
+COMMIT;
+
+-- Material Trash & Audit Receipts baseline: 2026-10-25-material-trash.sql
+BEGIN;
+CREATE TABLE IF NOT EXISTS material_quota_releases (
+    material_id varchar(64) PRIMARY KEY,
+    agency_id uuid NOT NULL REFERENCES agencies(id),
+    workspace_id uuid NOT NULL REFERENCES workspaces(id),
+    released_bytes bigint NOT NULL CHECK (released_bytes >= 0),
+    released_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_material_releases_date ON material_quota_releases(released_at);
+CREATE TABLE IF NOT EXISTS material_audit_receipts (
+    event_id varchar(160) PRIMARY KEY,
+    delivered_at timestamptz NOT NULL DEFAULT now()
+);
+COMMIT;
+
+-- Customer Google Drive Overflow, Disconnect & Sync baselines: 2026-10-26..2026-10-27
+BEGIN;
+CREATE TABLE IF NOT EXISTS agency_drive_connections (
+ agency_id uuid PRIMARY KEY REFERENCES agencies(id),
+ connection_id uuid NOT NULL UNIQUE,
+ connected_by uuid NOT NULL REFERENCES users(id),
+ account_id text NOT NULL,
+ account_email text NOT NULL,
+ refresh_token_ciphertext text NOT NULL,
+ root_folder_id text NOT NULL,
+ connected boolean NOT NULL DEFAULT true,
+ capacity_revision bigint NOT NULL DEFAULT 0,
+ quota_full_at timestamptz,
+ created_at timestamptz NOT NULL DEFAULT now(),
+ updated_at timestamptz NOT NULL DEFAULT now(),
+ disconnecting boolean NOT NULL DEFAULT false,
+ granted_scope text NOT NULL DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS workspace_drive_folders (
+ workspace_id uuid PRIMARY KEY REFERENCES workspaces(id),
+ agency_id uuid NOT NULL REFERENCES agency_drive_connections(agency_id),
+ folder_id text NOT NULL,
+ ordinal bigint NOT NULL CHECK(ordinal>0),
+ UNIQUE(agency_id,ordinal)
+);
+CREATE TABLE IF NOT EXISTS repository_drive_objects (
+ object_key text PRIMARY KEY,
+ agency_id uuid NOT NULL REFERENCES agency_drive_connections(agency_id),
+ connection_id uuid NOT NULL,
+ file_id text NOT NULL UNIQUE,
+ created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS repository_drive_states (
+ state_hash text PRIMARY KEY,
+ agency_id uuid NOT NULL REFERENCES agencies(id),
+ workspace_id uuid NOT NULL REFERENCES workspaces(id),
+ actor_id uuid NOT NULL REFERENCES users(id),
+ verifier_ciphertext text NOT NULL,
+ generation bigint NOT NULL DEFAULT 0,
+ expires_at timestamptz NOT NULL
+);
+CREATE TABLE IF NOT EXISTS repository_drive_generations (
+ agency_id uuid PRIMARY KEY REFERENCES agencies(id),
+ generation bigint NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS repository_drive_operations (
+ agency_id uuid PRIMARY KEY REFERENCES agencies(id),
+ lease_token uuid NOT NULL,
+ lease_until timestamptz NOT NULL
+);
+ALTER TABLE agency_storage_reservations DROP CONSTRAINT IF EXISTS agency_storage_reservations_provider_check;
+ALTER TABLE agency_storage_reservations ADD CONSTRAINT agency_storage_reservations_provider_check
+ CHECK(provider IN ('SYSTEM_GDRIVE','SYSTEM_S3','USER_GDRIVE'));
+CREATE INDEX IF NOT EXISTS ix_storage_provider_capacity
+ ON agency_storage_reservations(agency_id,provider,state);
+CREATE INDEX IF NOT EXISTS ix_customer_drive_account ON agency_drive_connections(account_id);
+CREATE INDEX IF NOT EXISTS ix_customer_drive_state_expiry ON repository_drive_states(expires_at);
+COMMIT;
+
+-- Mail Addendum B baseline: 2026-10-28-mail-template-scope-postgres.sql & 2026-10-29-mail-suppressions-agency-postgres.sql
+BEGIN;
+SET LOCAL lock_timeout='5s';
+SET LOCAL statement_timeout='120s';
+SET LOCAL search_path=public;
+
+ALTER TABLE mail_send_quota DROP CONSTRAINT IF EXISTS mail_send_quota_scope_check;
+ALTER TABLE mail_send_quota ADD CONSTRAINT mail_send_quota_scope_check
+ CHECK (scope IN ('SYSTEM', 'WORKSPACE', 'AGENCY'));
+
+ALTER TABLE mail_suppressions ALTER COLUMN workspace_id DROP NOT NULL;
+ALTER TABLE mail_suppressions ADD COLUMN IF NOT EXISTS agency_id UUID REFERENCES agencies(id);
+ALTER TABLE mail_suppressions DROP CONSTRAINT IF EXISTS ck_mail_suppressions_one_scope;
+ALTER TABLE mail_suppressions ADD CONSTRAINT ck_mail_suppressions_one_scope
+ CHECK (workspace_id IS NULL OR agency_id IS NULL);
+DROP INDEX IF EXISTS uq_mail_suppressions_system_email;
+CREATE UNIQUE INDEX uq_mail_suppressions_system_email
+ ON mail_suppressions (email_lower) WHERE workspace_id IS NULL AND agency_id IS NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS uq_mail_suppressions_agency_email
+ ON mail_suppressions (agency_id, email_lower) WHERE agency_id IS NOT NULL;
+
+ALTER TABLE mail_batches ALTER COLUMN workspace_id DROP NOT NULL;
+ALTER TABLE mail_batches ADD COLUMN IF NOT EXISTS scope VARCHAR(32);
+ALTER TABLE mail_batches ADD COLUMN IF NOT EXISTS agency_id UUID REFERENCES agencies(id);
+ALTER TABLE mail_batches DROP CONSTRAINT IF EXISTS ck_mail_batches_scope_consistency;
+ALTER TABLE mail_batches ADD CONSTRAINT ck_mail_batches_scope_consistency
+ CHECK (
+   (workspace_id IS NOT NULL AND agency_id IS NULL)
+   OR (workspace_id IS NULL AND scope IN ('ADMIN_SYSTEM_BROADCAST','TRANSACTIONAL_AUTO'))
+   OR (workspace_id IS NULL AND agency_id IS NOT NULL AND scope IN ('AGENCY_INTERNAL','AGENCY_CLIENT'))
+ );
+
+INSERT INTO brandhub_schema_migrations(version,description) VALUES
+ ('20261028_mail_template_scope_postgres','Addendum B: mail_send_quota AGENCY scope, mail_suppressions nullable workspace_id, mail_batches nullable workspace_id + scope/agency_id for non-Workspace scopes'),
+ ('20261029_mail_suppressions_agency','Addendum B: mail_suppressions.agency_id, per-Agency unsubscribe list')
+ON CONFLICT DO NOTHING;
+COMMIT;
