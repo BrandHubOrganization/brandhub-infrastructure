@@ -57,3 +57,9 @@ keyboard focusable error summary and live pending/success states.
 
 Changing benchmark formulas/export format, live usage/token/GPU metering, buying
 credits, adding operations, auto-enabling AI or new price dimensions.
+
+## Contract correction — mixed dimensions
+Width and height may both be empty for a feature-average benchmark. Return both as null. Reject a partial pair or any nonempty invalid dimension. Preview displays credit.csv.mixedDimensions (vi/en) instead of a fabricated resolution. Auth, revisions, transactions and explicit apply remain unchanged.
+
+## Feature-only pricing (2026-10-29)
+Each feature has one unit-credit price per image for all supported dimensions. Dimension changes never add a surcharge. New benchmark exports leave width/height empty even for single-size runs; detailed actual dimensions remain in report.json/samples.csv. CSV v1 header and legacy valid dimension metadata remain supported. Preview shows pricing scope via credit.csv.featurePricing (vi/en); absent dimensions use credit.csv.allDimensions, not an assumption of mixed samples. Existing theme tokens, responsive layout and keyboard behavior stay in use.

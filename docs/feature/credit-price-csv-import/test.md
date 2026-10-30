@@ -68,3 +68,13 @@
   benchmark metadata, previous state and updated count; same transaction as prices.
 - No schema, MongoDB, init, migration, seeder, wallet, subscription or limit changes.
   No real prices or shared data were changed by implementation/QA.
+
+## Mixed-dimension regression
+Accept both empty dimensions with null metadata; accept valid fixed dimensions; reject only-one-empty, zero, invalid multiples and out-of-range values. Parse actual benchmark CSV. UI shows the mixed-dimension label in vi/en, preserves existing theme/keyboard layout and handles fixed metadata unchanged. No live apply.
+
+Verified 2026-10-29: 46 isolated parser checks passed, including all 28 benchmark CSV exports found in local test-output, paired-empty null metadata, valid fixed dimensions, and malformed/partial dimension rejection. Changed Java sources compiled with cached project dependencies. Web type-check and targeted ESLint passed; git diff --check passed. No live import/apply or database changes performed.
+
+## Feature-only regressions
+For fixed and mixed-size reports, export one row per operation with blank width/height. Same measured time and success count yield identical credits despite dimension changes. Reject duplicate operations even when sizes differ. Import old valid dimension metadata and new empty metadata. Preview communicates one price for all supported sizes in vi/en using existing light/dark tokens; no new controls or focus changes. Verify charging lookup uses operation only. Run offline benchmark tests/WPF smoke and Web type-check/lint; no live price apply.
+
+Verified feature-only change 2026-10-29: benchmark build passed without warnings/errors, 53/53 core checks and WPF offline light/dark/DPI smoke passed. Added assertions cover fixed-size and mixed-size CSV plus equal credits at equal time/output. CSV parser passed 47 checks including existing/new benchmark exports. Web type-check and targeted ESLint passed. Charging reviewed: AiCreditGenerationService reserves one unit by operation; CreditAccountingService reads store.price(request.operation()); no dimension multiplier. Tool published locally. No live GPU requests, database changes or price apply. Web browser flow not rerun for this text-only preview change.
