@@ -18,3 +18,9 @@
 
 Parser reference: https://commons.apache.org/proper/commons-csv/apidocs/.
 Use existing backend dependency conventions; verify resolved runtime dependencies.
+
+## Mixed-dimension correction
+Accept only paired-empty dimensions in CreditPriceCsv; use nullable Integer metadata in Proposal. Update Web proposal types to number|null and its configuration preview with parallel vi/en mixedDimensions text. Verify actual producer output and malformed/partial pairs in isolated local QA; no database writes.
+
+## Feature-only implementation
+Keep operation-keyed import and credit reservation. Export empty dimension metadata, preserve validation of actual benchmark samples and legacy CSV. Add regression proving identical measured time/output gives identical credits across dimensions. Update benchmark help and CSV contract; Web uses allDimensions and featurePricing keys in both locale credit.json files. No DB changes.
