@@ -1,0 +1,48 @@
+# Private keys and credentials
+/key_pair/
+*.pem
+*.key
+*.ppk
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+.aws/
+.ssh/
+
+# Local environment configuration
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# Editor and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Terraform state, variables, and provider binaries
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
