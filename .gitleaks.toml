@@ -1,0 +1,96 @@
+title = "BrandHub secret scanning"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "mongodb-embedded-password"
+description = "MongoDB URI with embedded credentials"
+regex = '''mongodb(?:\+srv)?://[^\s:/"\x27]+:([^\s@"\x27]+)@[^\s/"\x27]+'''
+secretGroup = 1
+[[rules.allowlists]]
+description = "Documented synthetic local credentials only"
+regexTarget = "secret"
+regexes = ['''^(?:password|pass|test|testpass|user|postgres|brandhub|changeme|your_password|\$\{[^}]+\})$''']
+
+[[allowlists]]
+description = "Reviewed documentation example, not a live credential"
+condition = "AND"
+paths = ['''(?:^|/)docs/feature/repository/remove\-material\-repository/spec\.md$''']
+regexTarget = "match"
+regexes = ['''^media\.s3_key\ ==\ material\.s3_key`[\r\n]*$''']
+
+[[allowlists]]
+description = "Reviewed documentation example, not a live credential"
+condition = "AND"
+paths = ['''(?:^|/)docs/feature/repository/remove\-material\-repository/spec\.md$''']
+regexTarget = "match"
+regexes = ['''^media\.s3_key":\ material\.s3_key\ [\r\n]*$''']
+
+[[allowlists]]
+description = "Reviewed documentation example, not a live credential"
+condition = "AND"
+paths = ['''(?:^|/)docs/feature/system\-health\-mongodb\-refactor/test\.md$''']
+regexTarget = "match"
+regexes = ['''^mongodb\+srv://<test_user>:<test_password>@<cluster>\.mongodb\.net[\r\n]*$''']
+
+[[allowlists]]
+description = "Reviewed documentation example, not a live credential"
+condition = "AND"
+paths = ['''(?:^|/)docs/feature/system\-health\-mongodb\-refactor/test\.md$''']
+regexTarget = "match"
+regexes = ['''^mongodb\+srv://<setup_user>:<setup_password>@<cluster>\.mongodb\.net[\r\n]*$''']
+
+[[allowlists]]
+description = "Reviewed documentation example, not a live credential"
+condition = "AND"
+paths = ['''(?:^|/)docs/plan/brandhub\-master\-plan\.md$''']
+regexTarget = "match"
+regexes = ['''^mongodb\+srv://<user>:<password>@<cluster>\.mongodb\.net[\r\n]*$''']
+
+[[allowlists]]
+description = "Reviewed historical test or documentation fixture"
+condition = "AND"
+paths = ['''(?:^|/)assets/feature_system\-health\-mongodb\-refactor_test\.md\.DkyMsYNR\.js$''']
+regexTarget = "match"
+regexes = ['''^mongodb\+srv://\&lt;test_user\&gt;:\&lt;test_password\&gt;@\&lt;cluster\&gt;\.mongodb\.net[\r\n]*$''']
+
+[[allowlists]]
+description = "Reviewed historical test or documentation fixture"
+condition = "AND"
+paths = ['''(?:^|/)assets/feature_system\-health\-mongodb\-refactor_test\.md\.DkyMsYNR\.js$''']
+regexTarget = "match"
+regexes = ['''^mongodb\+srv://\&lt;setup_user\&gt;:\&lt;setup_password\&gt;@\&lt;cluster\&gt;\.mongodb\.net[\r\n]*$''']
+
+[[allowlists]]
+description = "Reviewed historical test or documentation fixture"
+condition = "AND"
+paths = ['''(?:^|/)assets/plan_brandhub\-master\-plan\.md\.DnJBjA6T\.js$''']
+regexTarget = "match"
+regexes = ['''^mongodb\+srv://\&lt;user\&gt;:\&lt;password\&gt;@\&lt;cluster\&gt;\.mongodb\.net[\r\n]*$''']
+
+[[allowlists]]
+description = "Reviewed historical test or documentation fixture"
+condition = "AND"
+paths = ['''(?:^|/)feature/system\-health\-mongodb\-refactor/test\.html$''']
+regexTarget = "match"
+regexes = ['''^mongodb\+srv://\&lt;test_user\&gt;:\&lt;test_password\&gt;@\&lt;cluster\&gt;\.mongodb\.net[\r\n]*$''']
+
+[[allowlists]]
+description = "Reviewed historical test or documentation fixture"
+condition = "AND"
+paths = ['''(?:^|/)feature/system\-health\-mongodb\-refactor/test\.html$''']
+regexTarget = "match"
+regexes = ['''^mongodb\+srv://\&lt;setup_user\&gt;:\&lt;setup_password\&gt;@\&lt;cluster\&gt;\.mongodb\.net[\r\n]*$''']
+
+[[allowlists]]
+description = "Explicit removal marker from incident cleanup"
+regexTarget = "secret"
+regexes = ['''^REDACTED_EXPOSED_CREDENTIAL$''']
+
+[[allowlists]]
+description = "Reviewed historical test or documentation fixture"
+condition = "AND"
+paths = ['''(?:^|/)plan/brandhub\-master\-plan\.html$''']
+regexTarget = "match"
+regexes = ['''^mongodb\+srv://\&lt;user\&gt;:\&lt;password\&gt;@\&lt;cluster\&gt;\.mongodb\.net[\r\n]*$''']

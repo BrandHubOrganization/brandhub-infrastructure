@@ -1,0 +1,17 @@
+#!/bin/sh
+set -eu
+scanner="$(git config --get brandhub.gitleaksPath || printf '%s' gitleaks)"
+if ! command -v "$scanner" >/dev/null 2>&1; then
+  echo "Gitleaks 8.30.1 is required. See SECURITY.md." >&2
+  exit 1
+fi
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$local_sha" in 0000000000000000000000000000000000000000) continue ;; esac
+  [ "$local_sha" = "$remote_sha" ] && continue
+  case "$remote_sha" in
+    0000000000000000000000000000000000000000) range="$local_sha" ;;
+    *) range="$remote_sha..$local_sha" ;;
+  esac
+  python scripts/security/check_sensitive_paths.py --history "$range"
+  "$scanner" git --log-opts="$range" --redact=100 --no-banner
+done
