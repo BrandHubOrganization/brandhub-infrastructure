@@ -26,3 +26,20 @@
    mapping and UI polling using dummy subprocesses, temporary roots and mocked APIs.
    Keep new executable QA under ignored keep-local-only; do not run real Facebook
    crawling or paid APIs. Build/type-check/lint the changed services and Web.
+
+## Interrupted-run correction
+
+1. Reconcile failed crawler + absent closure into INTERRUPTED in TrendPipelineControl;
+   retain genuine queued/closed-run work and confirmed terminal publication. Group
+   attempts by pipeline ID before selecting active work. No startup/reconcile writes.
+2. Add validated manifest recovery and a non-browser preflight to LocalTrendRunner;
+   share fixed child launch, dispatch/process locks and original recovery CLI. Record
+   attempt mode so active recovery uses RECOVERING, not CRAWLING.
+3. Add internal recovery endpoint and safe 404/409 mapping. Proxy through thin
+   AdminTrendPipelineController/AdminTrendPipelineService, preserving audit/auth.
+4. Extend Web types/service/hook; show interrupted cards immediately, with explicit
+   per-run recovery and shared pending guard. Separate crawl and recovery readiness.
+   Reuse confirmation Dialog and recover source data without misleading success.
+5. Update src/i18n/locales/{vi,en}/admin.json, preserving existing theme/layout.
+   Isolated fake Redis, temporary manifests/dummy processes, mocked HTTP/browser QA
+   cover restart, no duplicate launch, invalid input and interrupted-to-partial flow.
