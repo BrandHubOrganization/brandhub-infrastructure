@@ -1,3 +1,57 @@
+# Test Specification — FR 3.6.31: Delete Mail Template
+
+## 1. Traceability & Execution Summary
+
+| Field | Value |
+| :--- | :--- |
+| **FR ID** | `FR 3.6.31` |
+| **Function Name** | Delete Mail Template |
+| **Functional Domain** | Content & Task |
+| **Canonical Actors / Roles** | `Owner, Manager` |
+| **Target Class & Method** | `MailTemplateServiceImpl.delete()` (15 LOC) |
+| **Unit Test File** | `brandhub-business-service/src/test/java/com/brandhub/business/service/MailTemplateServiceImplTest.java` |
+| **Code & Test Author** | Trung |
+| **Test Requirement** | Delete a custom email template from the workspace library while blocking deletion of mandatory system default templates |
+| **Preconditions** | Can connect with server; Custom mail template exists in workspace |
+| **Overall Status** | **Passed (100%)** |
+| **Test Case Breakdown** | **Total: 18** (`Passed`: 18, `Failed`: 0, `Untested`: 0) — `Normal (N)`: 8, `Boundary (B)`: 4, `Abnormal (A)`: 6 |
+
+---
+
+## 2. Unit Test Case Matrix (`UTCID01`–`UTCID18`)
+
+| Test Case ID | Type | Preconditions | Test Inputs | Expected Return / Exception | Log Message | Status |
+| :--- | :---: | :--- | :--- | :--- | :--- | :---: |
+| `UTCID01` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `templateId` = `valid template` | 200 OK - data null | Template deleted | **Passed** |
+| `UTCID02` | `N` | Can connect with server; Mail template exists in workspace; User is CREATOR of workspace | `templateId` = `valid template` | 200 OK - data null | — | **Passed** |
+| `UTCID03` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `templateId` = `valid template` | 200 OK - deletedAt set (soft delete) | — | **Passed** |
+| `UTCID04` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `templateId` = `valid template` | 200 OK - row kept in DB | — | **Passed** |
+| `UTCID05` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `templateId` = `template created by another member` | 200 OK - deleted | — | **Passed** |
+| `UTCID06` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `templateId` = `template previously used to send email` | 200 OK - send history kept | — | **Passed** |
+| `UTCID07` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace; Admin sample template cloned | `templateId` = `cloned template` | 200 OK - sample unaffected | — | **Passed** |
+| `UTCID08` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `templateId` = `valid template` | 200 OK - not returned by list afterwards | — | **Passed** |
+| `UTCID09` | `B` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `templates` = `only 1 template in workspace` | 200 OK - list becomes empty | — | **Passed** |
+| `UTCID10` | `B` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `templates` = `last of 100 templates` | 200 OK - 99 remain | — | **Passed** |
+| `UTCID11` | `B` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `templateId` = `just-created template` | 200 OK | — | **Passed** |
+| `UTCID12` | `B` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `templateId` = `template updated 1 ms ago` | 200 OK | — | **Passed** |
+| `UTCID13` | `A` | Can connect with server; User is MANAGER of workspace | `templateId` = `non-existent template` | MAIL_TEMPLATE_NOT_FOUND (404) | — | **Passed** |
+| `UTCID14` | `A` | Can connect with server; User is MANAGER of workspace | `templateId` = `already soft-deleted template` | MAIL_TEMPLATE_NOT_FOUND (404) | — | **Passed** |
+| `UTCID15` | `A` | Can connect with server; User is MANAGER of workspace | `templateId` = `template of another workspace` | MAIL_TEMPLATE_NOT_FOUND (404) | — | **Passed** |
+| `UTCID16` | `A` | Can connect with server; Mail template exists in workspace; User is not a member of workspace | `templateId` = `valid template` | FORBIDDEN (403) | — | **Passed** |
+| `UTCID17` | `A` | Can connect with server; Mail template exists in workspace; User is CLIENT of workspace | `templateId` = `valid template` | FORBIDDEN (403) | — | **Passed** |
+| `UTCID18` | `A` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `templateId` = `null` | VALIDATION_ERROR (400) | — | **Passed** |
+
+---
+
+## 3. Synchronization & Verification Notes
+
+- Synchronized 1-to-1 with [`Report5_Unit Test.xls`](../../../../brandhub-final_report/report5/Report5_Unit%20Test.xls) sheet `FR3.6.31`, [`Report5_Test Report.xlsx`](../../../../brandhub-final_report/report5/Report5_Test%20Report.xlsx), and [`Report5_Test Documentation.docx`](../../../../brandhub-final_report/report5/Report5_Test%20Documentation.docx).
+- Role names strictly follow the 6 canonical roles (`Guest`, `Owner`, `Manager`, `Creator`, `Client`, `Admin`).
+
+---
+
+## 4. Feature Acceptance & Integration Verification
+
 # Test — Delete Mail Template (FR 3.6.31)
 
 - **FR:** 3.6.31 · **Jira:** DA-1001

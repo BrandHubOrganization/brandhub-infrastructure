@@ -1,3 +1,56 @@
+# Test Specification — FR 3.6.28: View Mail Template
+
+## 1. Traceability & Execution Summary
+
+| Field | Value |
+| :--- | :--- |
+| **FR ID** | `FR 3.6.28` |
+| **Function Name** | View Mail Template |
+| **Functional Domain** | Content & Task |
+| **Canonical Actors / Roles** | `Owner, Manager, Creator, Client` |
+| **Target Class & Method** | `MailTemplateServiceImpl.list()` (22 LOC) |
+| **Unit Test File** | `brandhub-business-service/src/test/java/com/brandhub/business/service/MailTemplateServiceImplTest.java` |
+| **Code & Test Author** | Trung |
+| **Test Requirement** | List and view system default and custom workspace email templates along with supported placeholder variables |
+| **Preconditions** | Can connect with server; Caller is Owner, Manager, or Creator in workspace |
+| **Overall Status** | **Passed (100%)** |
+| **Test Case Breakdown** | **Total: 17** (`Passed`: 17, `Failed`: 0, `Untested`: 0) — `Normal (N)`: 8, `Boundary (B)`: 4, `Abnormal (A)`: 5 |
+
+---
+
+## 2. Unit Test Case Matrix (`UTCID01`–`UTCID17`)
+
+| Test Case ID | Type | Preconditions | Test Inputs | Expected Return / Exception | Log Message | Status |
+| :--- | :---: | :--- | :--- | :--- | :--- | :---: |
+| `UTCID01` | `N` | Can connect with server; User is MANAGER of workspace; Workspace exists; Mail template exists in workspace | `workspaceId` = `valid workspace` | 200 OK - list of templates | — | **Passed** |
+| `UTCID02` | `N` | Can connect with server; User is MANAGER of workspace; Workspace exists; Mail template exists in workspace | `templates` = `3 templates` | 200 OK - 3 items with id, name, subject | — | **Passed** |
+| `UTCID03` | `N` | Can connect with server; Workspace exists; Mail template exists in workspace; User is CREATOR of workspace | `workspaceId` = `valid workspace` | 200 OK - list of templates | — | **Passed** |
+| `UTCID04` | `N` | Can connect with server; User is MANAGER of workspace; Workspace exists; Mail template exists in workspace | `order` = `default` | 200 OK - sorted by createdAt desc | — | **Passed** |
+| `UTCID05` | `N` | Can connect with server; User is MANAGER of workspace; Workspace exists; Mail template exists in workspace | `templates` = `template with long subject` | 200 OK - subject preview returned | — | **Passed** |
+| `UTCID06` | `N` | Can connect with server; User is MANAGER of workspace; Workspace exists; Mail template exists in workspace | `templates` = `1 template` | 200 OK - 1 item | — | **Passed** |
+| `UTCID07` | `N` | Can connect with server; User is MANAGER of workspace; Workspace exists | `templates` = `none` | 200 OK - empty list | — | **Passed** |
+| `UTCID08` | `N` | Can connect with server; User is MANAGER of workspace; Workspace exists; Mail template exists in workspace | `templates` = `one soft-deleted, 2 active` | 200 OK - only 2 active templates | — | **Passed** |
+| `UTCID09` | `B` | Can connect with server; User is MANAGER of workspace; Workspace exists | `templates` = `0 templates` | 200 OK - data [] | — | **Passed** |
+| `UTCID10` | `B` | Can connect with server; User is MANAGER of workspace; Workspace exists; Mail template exists in workspace | `templates` = `exactly 1 template` | 200 OK - single item | — | **Passed** |
+| `UTCID11` | `B` | Can connect with server; User is MANAGER of workspace; Workspace exists; Mail template exists in workspace | `templates` = `1000 templates` | 200 OK - all or paged list | — | **Passed** |
+| `UTCID12` | `B` | Can connect with server; User is MANAGER of workspace; Workspace exists; Mail template exists in workspace | `subject` = `255 chars` | 200 OK - subject not truncated in data | — | **Passed** |
+| `UTCID13` | `A` | Can connect with server; Workspace exists; User is not a member of workspace | `workspaceId` = `valid workspace` | FORBIDDEN (403) | — | **Passed** |
+| `UTCID14` | `A` | Can connect with server; Workspace exists; User is CLIENT of workspace | `workspaceId` = `valid workspace` | FORBIDDEN (403) | — | **Passed** |
+| `UTCID15` | `A` | Can connect with server; User is MANAGER of workspace | `workspaceId` = `non-existent workspace` | WORKSPACE_NOT_FOUND (404) | — | **Passed** |
+| `UTCID16` | `A` | Can connect with server; User is MANAGER of workspace; Workspace exists; Mail template exists in workspace | `workspaceId` = `other workspace` | FORBIDDEN (403) | — | **Passed** |
+| `UTCID17` | `A` | Can connect with server; User is MANAGER of workspace | `workspaceId` = `null` | VALIDATION_ERROR (400) | — | **Passed** |
+
+---
+
+## 3. Synchronization & Verification Notes
+
+- Synchronized 1-to-1 with [`Report5_Unit Test.xls`](../../../../brandhub-final_report/report5/Report5_Unit%20Test.xls) sheet `FR3.6.28`, [`Report5_Test Report.xlsx`](../../../../brandhub-final_report/report5/Report5_Test%20Report.xlsx), and [`Report5_Test Documentation.docx`](../../../../brandhub-final_report/report5/Report5_Test%20Documentation.docx).
+- Role names strictly follow the 6 canonical roles (`Guest`, `Owner`, `Manager`, `Creator`, `Client`, `Admin`).
+
+---
+
+## 4. Feature Acceptance & Integration Verification
+
 # Test — View Mail Template (FR 3.6.28)
 
 - **FR:** 3.6.28 · **Jira:** DA-998

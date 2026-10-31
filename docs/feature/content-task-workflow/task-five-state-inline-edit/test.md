@@ -30,5 +30,5 @@ Limits: cross-route browser Back/Forward outside the Task route is not a router-
 1. Atlas metadata is already updated; do not run init or replay earlier migrations.
 2. Restart Business with this code and refresh Web. Gateway forwarding is unchanged.
 3. Use a newly created Task, or the 25 test Tasks explicitly reconciled above. Other legacy Tasks without revision/explicit first-start evidence remain readable but locked; any further reconciliation requires separate review. Fourteen reconciled Tasks belong to Workspaces absent from this local PostgreSQL; do not create/delete those Workspace records implicitly.
-4. As actual Workspace Manager: enter description, choose a valid deadline; then assign active Creator, optional different QC/Client approval. As that Creator: explicitly start. After start, Manager edits/reassignment lock.
+4. As actual Manager: enter description, choose a valid deadline; then assign active Creator, optional different QC/Client approval. As that Creator: explicitly start. After start, Manager edits/reassignment lock.
 5. Do not test approval transitions through arbitrary status changes: coordinate the five-state/reviewStep/first-start contract with the teammate owning Approval.

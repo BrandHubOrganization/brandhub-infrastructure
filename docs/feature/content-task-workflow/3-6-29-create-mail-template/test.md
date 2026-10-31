@@ -1,3 +1,58 @@
+# Test Specification — FR 3.6.29: Create Mail Template
+
+## 1. Traceability & Execution Summary
+
+| Field | Value |
+| :--- | :--- |
+| **FR ID** | `FR 3.6.29` |
+| **Function Name** | Create Mail Template |
+| **Functional Domain** | Content & Task |
+| **Canonical Actors / Roles** | `Owner, Manager` |
+| **Target Class & Method** | `MailTemplateServiceImpl.create()` (54 LOC) |
+| **Unit Test File** | `brandhub-business-service/src/test/java/com/brandhub/business/service/MailTemplateServiceImplTest.java` |
+| **Code & Test Author** | Trung |
+| **Test Requirement** | Create a custom workspace HTML email template with subject, body, and validated {{variable}} placeholders |
+| **Preconditions** | Can connect with server; Caller is Owner or Manager in workspace |
+| **Overall Status** | **Passed (100%)** |
+| **Test Case Breakdown** | **Total: 19** (`Passed`: 19, `Failed`: 0, `Untested`: 0) — `Normal (N)`: 8, `Boundary (B)`: 4, `Abnormal (A)`: 7 |
+
+---
+
+## 2. Unit Test Case Matrix (`UTCID01`–`UTCID19`)
+
+| Test Case ID | Type | Preconditions | Test Inputs | Expected Return / Exception | Log Message | Status |
+| :--- | :---: | :--- | :--- | :--- | :--- | :---: |
+| `UTCID01` | `N` | Can connect with server; User is MANAGER of workspace; Workspace exists | `name` = `Welcome`, `subject` = `Hello {{clientName}}`, `body` = `<p>Hi</p>` | 201 Created - id | Template created | **Passed** |
+| `UTCID02` | `N` | Can connect with server; Workspace exists; User is CREATOR of workspace | `name` = `Welcome`, `subject` = `Hello`, `body` = `plain text` | 201 Created - id | — | **Passed** |
+| `UTCID03` | `N` | Can connect with server; User is MANAGER of workspace; Workspace exists | `body` = `HTML body` | 201 Created - body stored as HTML | — | **Passed** |
+| `UTCID04` | `N` | Can connect with server; User is MANAGER of workspace; Workspace exists | `body` = `body with {{clientName}} placeholder` | 201 Created - placeholder kept | — | **Passed** |
+| `UTCID05` | `N` | Can connect with server; User is MANAGER of workspace; Workspace exists; Admin sample template exists | `cloneFrom` = `sample template id` | 201 Created - fields copied from sample | — | **Passed** |
+| `UTCID06` | `N` | Can connect with server; User is MANAGER of workspace; Workspace exists | `name` = `Welcome` | 201 Created - workspaceId set | — | **Passed** |
+| `UTCID07` | `N` | Can connect with server; User is MANAGER of workspace; Workspace exists | `name` = `Welcome` | 201 Created - createdBy is current user | — | **Passed** |
+| `UTCID08` | `N` | Can connect with server; User is MANAGER of workspace; Workspace exists | `name` = `Vietnamese text 'Chao mung'` | 201 Created - unicode stored | — | **Passed** |
+| `UTCID09` | `B` | Can connect with server; User is MANAGER of workspace; Workspace exists | `name` = `1 char`, `subject` = `1 char`, `body` = `1 char` | 201 Created - minimum values | — | **Passed** |
+| `UTCID10` | `B` | Can connect with server; User is MANAGER of workspace; Workspace exists | `name` = `255 chars` | 201 Created - max name length | — | **Passed** |
+| `UTCID11` | `B` | Can connect with server; User is MANAGER of workspace; Workspace exists | `name` = `256 chars` | VALIDATION_ERROR (400) | — | **Passed** |
+| `UTCID12` | `B` | Can connect with server; User is MANAGER of workspace; Workspace exists | `subject` = `998 chars` | 201 Created - long subject | — | **Passed** |
+| `UTCID13` | `A` | Can connect with server; User is MANAGER of workspace; Workspace exists | `subject` = `empty` | VALIDATION_ERROR (400) | — | **Passed** |
+| `UTCID14` | `A` | Can connect with server; User is MANAGER of workspace; Workspace exists | `body` = `empty` | VALIDATION_ERROR (400) | — | **Passed** |
+| `UTCID15` | `A` | Can connect with server; User is MANAGER of workspace; Workspace exists | `subject` = `null` | VALIDATION_ERROR (400) | — | **Passed** |
+| `UTCID16` | `A` | Can connect with server; User is MANAGER of workspace; Workspace exists | `body` = `null` | VALIDATION_ERROR (400) | — | **Passed** |
+| `UTCID17` | `A` | Can connect with server; User is MANAGER of workspace; Workspace exists | `name` = `null` | VALIDATION_ERROR (400) | — | **Passed** |
+| `UTCID18` | `A` | Can connect with server; User is MANAGER of workspace; Workspace exists | `cloneFrom` = `non-existent template id` | MAIL_TEMPLATE_NOT_FOUND (404) | — | **Passed** |
+| `UTCID19` | `A` | Can connect with server; Workspace exists; User is not a member of workspace | `name` = `Welcome` | FORBIDDEN (403) | — | **Passed** |
+
+---
+
+## 3. Synchronization & Verification Notes
+
+- Synchronized 1-to-1 with [`Report5_Unit Test.xls`](../../../../brandhub-final_report/report5/Report5_Unit%20Test.xls) sheet `FR3.6.29`, [`Report5_Test Report.xlsx`](../../../../brandhub-final_report/report5/Report5_Test%20Report.xlsx), and [`Report5_Test Documentation.docx`](../../../../brandhub-final_report/report5/Report5_Test%20Documentation.docx).
+- Role names strictly follow the 6 canonical roles (`Guest`, `Owner`, `Manager`, `Creator`, `Client`, `Admin`).
+
+---
+
+## 4. Feature Acceptance & Integration Verification
+
 # Test — Create Mail Template (FR 3.6.29)
 
 - **FR:** 3.6.29 · **Jira:** DA-999

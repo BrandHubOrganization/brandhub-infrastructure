@@ -1,3 +1,58 @@
+# Test Specification — FR 3.6.3: Add Comments on Task
+
+## 1. Traceability & Execution Summary
+
+| Field | Value |
+| :--- | :--- |
+| **FR ID** | `FR 3.6.3` |
+| **Function Name** | Add Comments on Task |
+| **Functional Domain** | Content & Task |
+| **Canonical Actors / Roles** | `Owner, Manager, Creator, Client` |
+| **Target Class & Method** | `TaskCommentService.create()` (30 LOC) |
+| **Unit Test File** | `brandhub-business-service/src/test/java/com/brandhub/business/service/TaskCommentServiceTest.java` |
+| **Code & Test Author** | Lộc |
+| **Test Requirement** | Add threaded comments with optional attachments and @mentions on a workspace task and broadcast real-time notifications |
+| **Preconditions** | Can connect with server; Caller is a member of the workspace |
+| **Overall Status** | **Passed (100%)** |
+| **Test Case Breakdown** | **Total: 19** (`Passed`: 19, `Failed`: 0, `Untested`: 0) — `Normal (N)`: 9, `Boundary (B)`: 4, `Abnormal (A)`: 6 |
+
+---
+
+## 2. Unit Test Case Matrix (`UTCID01`–`UTCID19`)
+
+| Test Case ID | Type | Preconditions | Test Inputs | Expected Return / Exception | Log Message | Status |
+| :--- | :---: | :--- | :--- | :--- | :--- | :---: |
+| `UTCID01` | `N` | Can connect with server; User is MANAGER of workspace; Task exists in workspace | `content` = `valid text` | 201 Created - CommentResponse(id, content, authorId, createdAt) | — | **Passed** |
+| `UTCID02` | `N` | Can connect with server; Task exists in workspace; User is CREATOR of workspace | `content` = `valid text` | 201 Created - CommentResponse | — | **Passed** |
+| `UTCID03` | `N` | Can connect with server; Task exists in workspace; User is CLIENT of workspace | `content` = `valid text` | 201 Created - CommentResponse | — | **Passed** |
+| `UTCID04` | `N` | Can connect with server; Task exists in workspace; User is CLIENT of workspace; Task requiresClientApproval=false | `content` = `valid text` | 201 Created - comment allowed regardless of approval flag | — | **Passed** |
+| `UTCID05` | `N` | Can connect with server; User is MANAGER of workspace; Task exists in workspace | `content` = `text with @mention of member` | 201 Created - CommentResponse | Mentioned user notified | **Passed** |
+| `UTCID06` | `N` | Can connect with server; Task exists in workspace; User is CREATOR of workspace | `content` = `valid text`, `attachments` = `1 image URL` | 201 Created - CommentResponse with attachment | — | **Passed** |
+| `UTCID07` | `N` | Can connect with server; Task exists in workspace; User is CREATOR of workspace | `content` = `valid text`, `attachments` = `2 reference links` | 201 Created - CommentResponse with 2 attachments | — | **Passed** |
+| `UTCID08` | `N` | Can connect with server; User is MANAGER of workspace; Task exists in workspace; Task has 3 comments | `taskId` = `valid task` | 200 OK - list of 3 comments ordered by createdAt asc | — | **Passed** |
+| `UTCID09` | `N` | Can connect with server; User is MANAGER of workspace; Task exists in workspace; Task has no comments | `taskId` = `valid task` | 200 OK - empty list | — | **Passed** |
+| `UTCID10` | `B` | Can connect with server; User is MANAGER of workspace; Task exists in workspace | `content` = `1 char` | 201 Created - CommentResponse | — | **Passed** |
+| `UTCID11` | `B` | Can connect with server; User is MANAGER of workspace; Task exists in workspace | `content` = `max length text` | 201 Created - CommentResponse | — | **Passed** |
+| `UTCID12` | `B` | Can connect with server; User is MANAGER of workspace; Task exists in workspace | `content` = `max length + 1 chars` | 400 VALIDATION_ERROR - Request validation failed | — | **Passed** |
+| `UTCID13` | `B` | Can connect with server; User is MANAGER of workspace; Task exists in workspace | `content` = `valid text`, `attachments` = `empty list` | 201 Created - CommentResponse without attachments | — | **Passed** |
+| `UTCID14` | `A` | Can connect with server; User is MANAGER of workspace; Task exists in workspace | `content` = `null` | 400 VALIDATION_ERROR - Request validation failed | — | **Passed** |
+| `UTCID15` | `A` | Can connect with server; User is MANAGER of workspace; Task exists in workspace | `content` = `empty` | 400 VALIDATION_ERROR - Request validation failed | — | **Passed** |
+| `UTCID16` | `A` | Can connect with server; User is MANAGER of workspace; Task exists in workspace | `content` = `blank spaces only` | 400 VALIDATION_ERROR - Request validation failed | — | **Passed** |
+| `UTCID17` | `A` | Can connect with server; Task exists in workspace; User is not a member of workspace | `content` = `valid text` | 403 FORBIDDEN - Your role does not have permission to perform this action | — | **Passed** |
+| `UTCID18` | `A` | Can connect with server; User is MANAGER of workspace; Task does not exist | `content` = `valid text` | 404 TASK_NOT_FOUND - Task not found | — | **Passed** |
+| `UTCID19` | `A` | Can connect with server; User is MANAGER of workspace; Task belongs to another workspace | `content` = `valid text` | 404 TASK_NOT_FOUND - Task not found | — | **Passed** |
+
+---
+
+## 3. Synchronization & Verification Notes
+
+- Synchronized 1-to-1 with [`Report5_Unit Test.xls`](../../../../brandhub-final_report/report5/Report5_Unit%20Test.xls) sheet `FR3.6.3`, [`Report5_Test Report.xlsx`](../../../../brandhub-final_report/report5/Report5_Test%20Report.xlsx), and [`Report5_Test Documentation.docx`](../../../../brandhub-final_report/report5/Report5_Test%20Documentation.docx).
+- Role names strictly follow the 6 canonical roles (`Guest`, `Owner`, `Manager`, `Creator`, `Client`, `Admin`).
+
+---
+
+## 4. Feature Acceptance & Integration Verification
+
 # Test — FR 3.6.3 / DA-1236
 
 AC theo [spec](spec.md) §3/6/7. Kết quả cập nhật 2026-10-17 bên dưới; kiểm thử cô lập không thay thế kiểm thử S3/inbox/Gateway thật.

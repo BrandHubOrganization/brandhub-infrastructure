@@ -1,3 +1,58 @@
+# Test Specification — FR 3.6.32: Send Email via Template
+
+## 1. Traceability & Execution Summary
+
+| Field | Value |
+| :--- | :--- |
+| **FR ID** | `FR 3.6.32` |
+| **Function Name** | Send Email via Template |
+| **Functional Domain** | Content & Task |
+| **Canonical Actors / Roles** | `Owner, Manager` |
+| **Target Class & Method** | `MailSendService.send()` (44 LOC) |
+| **Unit Test File** | `brandhub-business-service/src/test/java/com/brandhub/business/service/MailSendServiceTest.java` |
+| **Code & Test Author** | Trung |
+| **Test Requirement** | Render a workspace mail template with placeholder values, enqueue asynchronous SMTP delivery, and log the sent email |
+| **Preconditions** | Can connect with server; Mail template exists in workspace |
+| **Overall Status** | **Passed (100%)** |
+| **Test Case Breakdown** | **Total: 19** (`Passed`: 19, `Failed`: 0, `Untested`: 0) — `Normal (N)`: 8, `Boundary (B)`: 4, `Abnormal (A)`: 7 |
+
+---
+
+## 2. Unit Test Case Matrix (`UTCID01`–`UTCID19`)
+
+| Test Case ID | Type | Preconditions | Test Inputs | Expected Return / Exception | Log Message | Status |
+| :--- | :---: | :--- | :--- | :--- | :--- | :---: |
+| `UTCID01` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace; Email service available | `recipientEmail` = `client@brandhub.vn`, `variables` = `clientName=An` | 200 OK - messageId | Email sent, history logged | **Passed** |
+| `UTCID02` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace; Email service available | `recipientEmail` = `client@brandhub.vn`, `variables` = `null` | 200 OK - messageId | — | **Passed** |
+| `UTCID03` | `N` | Can connect with server; Mail template exists in workspace; Email service available; User is CREATOR of workspace | `recipientEmail` = `client@brandhub.vn`, `variables` = `clientName=An` | 200 OK - messageId | — | **Passed** |
+| `UTCID04` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace; Email service available | `variables` = `{{clientName}} replaced in subject and body` | 200 OK - placeholders rendered | — | **Passed** |
+| `UTCID05` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace; Email service available | `variables` = `extra unused variable` | 200 OK - extra ignored | — | **Passed** |
+| `UTCID06` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace; Email service available; Recipient is client in workspace | `recipientEmail` = `workspace client email` | 200 OK - messageId | — | **Passed** |
+| `UTCID07` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace; Email service available | `recipientEmail` = `client@brandhub.vn` | 200 OK - send history row saved | — | **Passed** |
+| `UTCID08` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace; Email service available | `variables` = `empty object` | 200 OK - unreplaced placeholder left empty | — | **Passed** |
+| `UTCID09` | `B` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace; Email service available | `recipientEmail` = `254 chars valid email` | 200 OK - messageId | — | **Passed** |
+| `UTCID10` | `B` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace; Email service available | `recipientEmail` = `255 chars email` | VALIDATION_ERROR (400) | — | **Passed** |
+| `UTCID11` | `B` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace; Email service available | `variables` = `1 variable` | 200 OK - messageId | — | **Passed** |
+| `UTCID12` | `B` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace; Email service available | `variables` = `50 variables` | 200 OK - messageId | — | **Passed** |
+| `UTCID13` | `A` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace; Email service down | `recipientEmail` = `client@brandhub.vn` | EMAIL_SERVICE_UNAVAILABLE (502) | — | **Passed** |
+| `UTCID14` | `A` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace; Email service available | `recipientEmail` = `null` | VALIDATION_ERROR (400) | — | **Passed** |
+| `UTCID15` | `A` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace; Email service available | `recipientEmail` = `empty` | VALIDATION_ERROR (400) | — | **Passed** |
+| `UTCID16` | `A` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace; Email service available | `recipientEmail` = `invalid format 'abc'` | VALIDATION_ERROR (400) | — | **Passed** |
+| `UTCID17` | `A` | Can connect with server; User is MANAGER of workspace; Email service available | `templateId` = `non-existent template` | MAIL_TEMPLATE_NOT_FOUND (404) | — | **Passed** |
+| `UTCID18` | `A` | Can connect with server; User is MANAGER of workspace; Email service available | `templateId` = `soft-deleted template` | MAIL_TEMPLATE_NOT_FOUND (404) | — | **Passed** |
+| `UTCID19` | `A` | Can connect with server; Mail template exists in workspace; Email service available; User is not a member of workspace | `recipientEmail` = `client@brandhub.vn` | FORBIDDEN (403) | — | **Passed** |
+
+---
+
+## 3. Synchronization & Verification Notes
+
+- Synchronized 1-to-1 with [`Report5_Unit Test.xls`](../../../../brandhub-final_report/report5/Report5_Unit%20Test.xls) sheet `FR3.6.32`, [`Report5_Test Report.xlsx`](../../../../brandhub-final_report/report5/Report5_Test%20Report.xlsx), and [`Report5_Test Documentation.docx`](../../../../brandhub-final_report/report5/Report5_Test%20Documentation.docx).
+- Role names strictly follow the 6 canonical roles (`Guest`, `Owner`, `Manager`, `Creator`, `Client`, `Admin`).
+
+---
+
+## 4. Feature Acceptance & Integration Verification
+
 # Test — Send Email via Template (FR 3.6.32)
 
 - **FR:** 3.6.32 · **Jira:** DA-1002

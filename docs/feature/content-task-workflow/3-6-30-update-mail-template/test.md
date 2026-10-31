@@ -1,3 +1,57 @@
+# Test Specification — FR 3.6.30: Update Mail Template
+
+## 1. Traceability & Execution Summary
+
+| Field | Value |
+| :--- | :--- |
+| **FR ID** | `FR 3.6.30` |
+| **Function Name** | Update Mail Template |
+| **Functional Domain** | Content & Task |
+| **Canonical Actors / Roles** | `Owner, Manager` |
+| **Target Class & Method** | `MailTemplateServiceImpl.update()` (38 LOC) |
+| **Unit Test File** | `brandhub-business-service/src/test/java/com/brandhub/business/service/MailTemplateServiceImplTest.java` |
+| **Code & Test Author** | Trung |
+| **Test Requirement** | Update subject, HTML body, and placeholder variables of a custom workspace email template |
+| **Preconditions** | Can connect with server; Custom mail template exists in workspace |
+| **Overall Status** | **Passed (100%)** |
+| **Test Case Breakdown** | **Total: 18** (`Passed`: 18, `Failed`: 0, `Untested`: 0) — `Normal (N)`: 8, `Boundary (B)`: 4, `Abnormal (A)`: 6 |
+
+---
+
+## 2. Unit Test Case Matrix (`UTCID01`–`UTCID18`)
+
+| Test Case ID | Type | Preconditions | Test Inputs | Expected Return / Exception | Log Message | Status |
+| :--- | :---: | :--- | :--- | :--- | :--- | :---: |
+| `UTCID01` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `name` = `New name` | 200 OK - name updated | — | **Passed** |
+| `UTCID02` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `subject` = `New subject` | 200 OK - subject updated | — | **Passed** |
+| `UTCID03` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `body` = `New body` | 200 OK - body updated | — | **Passed** |
+| `UTCID04` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `name` = `New name`, `subject` = `New subject`, `body` = `New body` | 200 OK - all fields updated | — | **Passed** |
+| `UTCID05` | `N` | Can connect with server; Mail template exists in workspace; User is CREATOR of workspace | `name` = `New name` | 200 OK - updated template | — | **Passed** |
+| `UTCID06` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `name` = `null`, `subject` = `null`, `body` = `null` | 200 OK - template unchanged | — | **Passed** |
+| `UTCID07` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `name` = `same as current` | 200 OK - no change | — | **Passed** |
+| `UTCID08` | `N` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `body` = `body with {{clientName}}` | 200 OK - placeholder kept | — | **Passed** |
+| `UTCID09` | `B` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `name` = `1 char` | 200 OK | — | **Passed** |
+| `UTCID10` | `B` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `name` = `255 chars` | 200 OK | — | **Passed** |
+| `UTCID11` | `B` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `name` = `256 chars` | VALIDATION_ERROR (400) | — | **Passed** |
+| `UTCID12` | `B` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `subject` = `empty` | VALIDATION_ERROR (400) | — | **Passed** |
+| `UTCID13` | `A` | Can connect with server; User is MANAGER of workspace; Mail template exists in workspace | `body` = `empty` | VALIDATION_ERROR (400) | — | **Passed** |
+| `UTCID14` | `A` | Can connect with server; User is MANAGER of workspace | `templateId` = `non-existent template` | MAIL_TEMPLATE_NOT_FOUND (404) | — | **Passed** |
+| `UTCID15` | `A` | Can connect with server; User is MANAGER of workspace | `templateId` = `soft-deleted template` | MAIL_TEMPLATE_NOT_FOUND (404) | — | **Passed** |
+| `UTCID16` | `A` | Can connect with server; User is MANAGER of workspace | `templateId` = `template of another workspace` | MAIL_TEMPLATE_NOT_FOUND (404) | — | **Passed** |
+| `UTCID17` | `A` | Can connect with server; Mail template exists in workspace; User is not a member of workspace | `name` = `New name` | FORBIDDEN (403) | — | **Passed** |
+| `UTCID18` | `A` | Can connect with server; Mail template exists in workspace; User is CLIENT of workspace | `name` = `New name` | FORBIDDEN (403) | — | **Passed** |
+
+---
+
+## 3. Synchronization & Verification Notes
+
+- Synchronized 1-to-1 with [`Report5_Unit Test.xls`](../../../../brandhub-final_report/report5/Report5_Unit%20Test.xls) sheet `FR3.6.30`, [`Report5_Test Report.xlsx`](../../../../brandhub-final_report/report5/Report5_Test%20Report.xlsx), and [`Report5_Test Documentation.docx`](../../../../brandhub-final_report/report5/Report5_Test%20Documentation.docx).
+- Role names strictly follow the 6 canonical roles (`Guest`, `Owner`, `Manager`, `Creator`, `Client`, `Admin`).
+
+---
+
+## 4. Feature Acceptance & Integration Verification
+
 # Test — Update Mail Template (FR 3.6.30)
 
 - **FR:** 3.6.30 · **Jira:** DA-1000
