@@ -41,3 +41,17 @@ Không dùng kết quả production trước đây thay thế các test này. Li
 - Chưa xác minh TLS production, provider login/proxy thực, live worker processing, screen reader thiết bị hoặc deploy/rollback thực tế. Không chạy paid providers hoặc thao tác production trong đợt này.
 
 - Browser readiness local: test thiếu package, thiếu binary, timeout, executable lỗi và cache browser có sẵn; xác minh bằng venv service thật mà không crawl hoặc gọi provider.
+
+## Regression proxy runtime Docker
+- Không có .env: provider giả trả proxy mới, child/browser đầu tiên dùng đúng proxy mới và không tạo file.
+- Retry browser lấy lại proxy bằng resolver, thay proxy cũ; lỗi refresh không tiếp tục các source còn lại, giữ kết quả đã thu thập.
+- Provider HTTP/lỗi dữ liệu và TCP timeout trả mã lỗi an toàn; không fallback âm thầm sang proxy cũ hoặc direct.
+- --proxy, --no-proxy và proxy quản lý cố định không gọi API xoay; Threads nhận proxy runtime và không đọc lại dotenv.
+- Không log endpoint, mật khẩu, API key; dùng mock, không thay production.
+
+Kết quả dev: 45 test crawler đạt; thêm test giới hạn retry proxy cố định và chạy lại 15/15 test proxy runtime đạt. Regression AI API/crawler 35/35 đạt; flake8 đạt. Provider/socket/browser đều được giả lập, không chạy crawl thật hoặc deploy production.
+
+## Session RAM theo yêu cầu (2026-11-02)
+Upload không key thành công, metadata không chứa cookie; store mới cùng process đọc được, process mới mất session. Run chụp session cũ trước replace/revoke và stdin tới browser dùng dict không ghi file. Thiếu session chặn start. Probe/legacy cookie API không ghi session file hoặc Redis. Kiểm tra song ngữ, dark/light và npm run ci.
+
+Kết quả session RAM: 55 test crawler/IPC/browser/proxy đạt; 37 test AI API/crawler đạt, sau chỉnh cache chạy lại 17 test liên quan đạt; flake8 và Web npm run ci đạt (188 cảnh báo lint hiện có, không lỗi). Preflight thực tế cho Facebook/Threads đọc RAM qua stdin đạt. UI fixture vi/en, light/dark, mobile 390px, file input không key và keyboard focus đạt. Không gọi provider thật, không chạy crawl thật, không deploy.

@@ -31,3 +31,13 @@
 - Chưa chạy crawl thật, chưa thử provider/proxy thật, chưa E2E worker với dịch vụ production và chưa deploy. Các task kiểm chứng toàn hệ thống/release vẫn mở để không ghi nhận hoàn tất giả.
 
 - [x] Sửa browser readiness theo Python của runner, thêm mã lỗi rõ ràng cho local/Windows và kiểm tra venv thực tế. API local đã trả Browser OK và manualReady true.
+
+## Proxy runtime Docker
+- [x] Thay luồng ghi dotenv bằng resolver trong bộ nhớ và truyền env cho child.
+- [x] Retry Facebook và Threads dùng resolver chung; lỗi proxy dừng sớm và giữ manifest/delivery.
+- [x] Kiểm tra regression thiếu .env, env cũ, provider/TCP lỗi, fixed/direct và log không lộ secret.
+
+## Session RAM theo yêu cầu (2026-11-02)
+- [x] Store RAM và IPC stdin cho preflight/run/probe/CLI; bỏ fallback file/Redis trong luồng admin session.
+- [x] UI upload session không cần khóa, thông báo mất session khi restart; giữ bảo vệ proxy/TikTok.
+- [x] Test snapshot/revoke/restart/no-write/child handoff, validation và Web CI.

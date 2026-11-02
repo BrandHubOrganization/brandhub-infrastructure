@@ -85,3 +85,9 @@ BA được duyệt, code/dev checks và security/integration checks đạt; mig
 
 ## Bổ sung chẩn đoán local (2026-11-02)
 Readiness phải kiểm tra bằng đúng Python của runner, phân biệt BROWSER_DEPENDENCIES_MISSING, BROWSER_MISSING, BROWSER_CHECK_TIMEOUT và BROWSER_CHECK_UNAVAILABLE. Không mặc định mọi runtime là Docker. Trên Windows không phụ thuộc event loop có hỗ trợ asyncio subprocess; polling không cài/download browser.
+
+## Sửa lỗi proxy Docker (2026-11-02)
+Proxy runtime không phụ thuộc đọc/ghi .env trong container. Proxy từ provider phải được truyền trong bộ nhớ tới browser/tiến trình con ngay lần đầu và khi retry. Khi provider/proxy lỗi, dừng trước khi quét toàn bộ nguồn; log chỉ mã lỗi an toàn. Giữ lựa chọn proxy cố định và kết nối trực tiếp rõ ràng; không đổi session hoặc production khi sửa dev.
+
+## Session RAM theo yêu cầu (2026-11-02)
+Session Facebook/Threads do admin nạp chỉ giữ trong RAM của một API process; không cần CRAWLER_SECRET_KEY_FILE, không ghi session ra file hoặc Redis. Restart/deploy mất session và UI phải nói rõ yêu cầu nạp lại. Thay/revoke không đổi snapshot của run đang chạy. Proxy/TikTok giữ cơ chế mã hóa hiện có, không mở khóa các trường này khi thiếu key.

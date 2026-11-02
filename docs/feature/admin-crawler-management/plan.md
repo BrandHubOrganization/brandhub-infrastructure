@@ -51,3 +51,11 @@ Overlay opt-in nằm tại `docker/compose/ec2-ecr/crawler-management.compose.ya
 
 
 Chẩn đoán browser local dùng subprocess đồng bộ có timeout trong worker thread và đúng runner.python; không dùng asyncio.create_subprocess_exec vì Uvicorn Windows có thể dùng SelectorEventLoop. Dependency cài ở venv chạy service, Docker image riêng không cấp package cho venv local.
+
+## Sửa proxy runtime
+Thêm crawlfb.proxy_runtime dùng chung để lấy proxy KiotProxy, kiểm tra endpoint/TCP và trả mã lỗi không chứa credential. run.py chuẩn bị proxy trong tiến trình cha, truyền bằng env cho Facebook/Threads. CLI Facebook refresh trực tiếp khi retry; không dùng subprocess ghi dotenv. Tool rotate_proxy trở thành kiểm tra runtime không ghi file. Threads standalone dùng cùng resolver. Regression giả lập provider, socket và browser; không gọi provider thật.
+
+## Session RAM theo yêu cầu (2026-11-02)
+Dùng store RAM có lock, version/revision và deepcopy trong AI process. Truyền snapshot session qua stdin pipe tới preflight, runner và CLI con; marker memory:facebook/threads dùng storage_state dict, không lưu cookie khi đóng browser. Scheduler gọi API hiện có để dùng chung RAM. Probe cũng dùng stdin. Legacy cookie API chuyển cùng RAM; không backup/restore Redis/file. UI mở session upload độc lập kho khóa, ghi rõ restart cần nạp lại. Một API worker sở hữu RAM (entrypoint hiện tại một worker).
+
+Session RAM thay thế các yêu cầu file khóa/working-copy session ở phần thiết kế trước. Overlay crawler-management.compose.yaml không còn cần mount key; chỉ thêm crawler-connections.compose.yaml nếu muốn quản lý proxy/TikTok mã hóa qua UI. Các file/ciphertext session cũ không được đọc/phục hồi tự động; không tự xóa dữ liệu deployment cũ. Không tăng số API worker: RAM chỉ thuộc API process hiện tại. Sau rollout/restart admin nạp lại session.
