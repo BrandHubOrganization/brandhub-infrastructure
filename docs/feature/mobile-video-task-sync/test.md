@@ -49,4 +49,23 @@ Pixel_9a, Android 17 (API 37), camera ảo, debug build, stack e2e riêng. Chưa
 | C8 | Đạt | Ở lại camera, số take tăng 01 → 04. Chưa kiểm tra giữ cài đặt |
 | C9 | Đạt phần Android | Nút back bị chặn, có cảnh báo. Chưa thử iPhone |
 | C10 | Có vấn đề | File 720x1280 (9:16) nhưng preview 4:3; chọn 1080p ra 720p. Cần xác nhận trên máy thật |
-| C1, C3, C5, C6, C7, C11, C12, C13 | Chưa chạy | |
+| C1, C3, C5, C6, C7, C11, C12, C13 | Chưa chạy | Xem lượt chạy lại bên dưới |
+
+## Kết quả chạy lại trên emulator (2026-11-02, sau khi sửa UI)
+Pixel_9a, debug build + Metro, stack e2e riêng. Vẫn chưa thay thế xác nhận trên máy thật.
+
+| # | Kết quả | Ghi chú |
+|---|---|---|
+| C3 | Đạt | Cắt mạng lúc `UPLOADING`: take thành `FAILED`, có mạng lại tự tải tiếp đến `SYNCED` sau 9 giây |
+| C4 | Đạt | Tắt app lúc `UPLOADING`, mở lại thì tự tải tiếp đến `SYNCED`. Tắt app ngay sau khi dừng quay, trước khi clip vào hàng đợi, thì mất clip đó |
+| C7 | Đạt | Mục tiêu 15 giây, quay quá 30 giây, timer đổi màu, không tự dừng |
+| C10 | Đạt phần khung trên emulator | Preview đã cắt theo tỉ lệ file, khung canh nằm trong hình, nhãn hiện đúng 720p. Cần so với file trên máy thật |
+| C11 | Đạt phần emulator | Từ chối quyền thì có Mở Cài đặt. Cấp lại bằng `pm grant` thì quay được, chưa đi qua màn Cài đặt |
+| C12 | Đạt trên Android | Mở bằng trình xem video của máy (Google Photos trên emulator). iOS chưa kiểm tra |
+| C13 | Đạt phần đã xem | Home, Chi tiết Task, Tải tệp, màn quay ở theme tối của app. Công tắc theme xoay vòng sáng, tối, theo hệ thống |
+| Histogram | Đạt | Góc phải trên của khung, không bị ngăn kéo và thẻ kịch bản che |
+| Zebra | Đạt phần vị trí | Đã sửa lỗi lệch 180°. Kiểm tra bằng ngưỡng tạm 150 vì cảnh ảo không chạm 235 |
+| EV +2 | Không kiểm chứng được | Giá trị đổi, nhưng hình và histogram của camera ảo gần như không đổi |
+| Kim dB | Không kiểm chứng được | Luôn -60 dB dù bật `-allow-host-audio` và phát tiếng ra loa. Track âm thanh của file cũng gần như im lặng (khoảng 102 byte mỗi frame AAC), nên nghi mic ảo không nhận tiếng. Cần thử có tiếng thật trên máy thật |
+| Motion | Đạt trên Expo Web, chưa kiểm tra lại trên Android | Khung 412x915: skeleton, nội dung hiện dần, tab drawer trồi nhẹ, thanh tab trượt, Reduce Motion bỏ dịch chuyển. Đổi 10 lần tab drawer với CPU chậm 6 lần không có màn trống. Emulator từng có 1 lần màn trống sau khi mở app, chưa tái hiện được (13 lần mở lại đều đạt); đã bỏ native driver ở 2 animation có thể che cả màn, cần xác nhận trên Android |
+| C1, C5, C6 | Chưa chạy | Cần iPhone, kiểm tra metadata file hoặc ảnh HEIC |

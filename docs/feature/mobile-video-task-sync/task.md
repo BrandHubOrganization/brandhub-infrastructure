@@ -41,4 +41,5 @@
 - [x] Luồng API thật trên Docker riêng (test.md mục B)
 - [x] Build native có VisionCamera trên Android (debug, emulator)
 - [ ] Build native có VisionCamera trên iOS
-- [ ] Checklist thiết bị (test.md mục C)
+- [x] Chạy lại checklist trên emulator (test.md, lượt 2026-11-02)
+- [ ] Checklist thiết bị thật (test.md mục C): C1, C5, C6, kim dB, EV, khoá ISO/shutter/WB, mic ngoài, iOS
