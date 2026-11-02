@@ -1,0 +1,19 @@
+# Opt-in deployment overlay. Provision the existing-service TLS path, encryption
+# key and offline state migration before applying through the deployment pipeline.
+# Never generate or upload a production key in source control.
+services:
+  ai-service:
+    environment:
+      CRAWLER_STATE_DIR: /app/data/crawler/control
+      CRAWLER_OUTPUT_DIR: /app/data/crawler/output
+      CRAWLER_WORK_DIR: /dev/shm/crawler
+      CRAWLER_SECRET_KEY_FILE: /run/secrets/crawler-master.key
+      CRAWLER_SCHEDULER_ENABLED: "true"
+    shm_size: 256mb
+    volumes:
+      - type: bind
+        source: ${CRAWLER_MASTER_KEY_FILE:-./secrets/crawler-master.key}
+        target: /run/secrets/crawler-master.key
+        read_only: true
+        bind:
+          create_host_path: false
