@@ -60,3 +60,8 @@ Kết quả session RAM: 55 test crawler/IPC/browser/proxy đạt; 37 test AI AP
 Giữ image mọi container, foreign/shared tags, target và một rollback; cleanup chỉ repo AI không force và không volume/container prune. Thiếu disk/inode sau cleanup trả lỗi trước deploy. Dry-run không mutate. Chạy unit tests mock Docker và parse workflow; chỉ inventory/dry-run production.
 
 Disk guard: 6 unit test đạt, flake8 đạt; YAML và command base64/argparse/order được kiểm tra. Production dry-run chỉ đọc chọn 8 image AI cũ (10 tag), giữ image đang chạy và sha-f435746-20 dự phòng. Disk trống 2.21 GiB nên guard báo ready=false. Chưa chạy --apply, chưa push/deploy.
+
+## Sửa quyền volume và chẩn đoán rollback (2026-11-02)
+Volume parent root:755 vẫn giữ nguyên; control/output thuộc appuser và ghi được. Chạy init lần hai không đổi dữ liệu; không theo symlink/hardlink ra ngoài. Init failure không recreate service. Startup failure capture health/log trước compose restore, che env secrets/cookie/URL. Test Docker offline với volume giả, không mount production.
+
+Kết quả dev: 12 unit test disk/volume/diagnostics đạt; flake8 và YAML/Bash/command SSM sau giải mã đạt. Docker local volume giả root:755 tái hiện lỗi trước init; sau init appuser UID1000 ghi được scheduler lock/heartbeat/output, dữ liệu cũ giữ nguyên, parent/other-service không đổi. Init lần hai đạt; volume QA đã xóa. Chưa đổi production, chưa commit/push/deploy.

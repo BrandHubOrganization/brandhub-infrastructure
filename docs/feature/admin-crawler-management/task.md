@@ -45,3 +45,8 @@
 ## Deploy disk guard (2026-11-02)
 - [x] Thêm script cleanup có scope/retention/disk guard và unit test bằng Docker giả lập.
 - [x] Gắn preflight trước sửa compose/pull; xác minh workflow và chạy dry-run production chỉ đọc.
+
+## Sửa quyền volume và chẩn đoán rollback (2026-11-02)
+- [x] Init volume crawler có giới hạn đường dẫn, quyền appuser và kiểm tra an toàn/idempotence.
+- [x] Gắn init trước recreate; log/health redacted trước rollback và kiểm tra ảnh mới sau healthy.
+- [x] Unit tests, workflow syntax/order và smoke Docker volume giả bằng non-root scheduler.

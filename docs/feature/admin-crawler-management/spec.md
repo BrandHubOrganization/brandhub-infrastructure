@@ -94,3 +94,6 @@ Session Facebook/Threads do admin nạp chỉ giữ trong RAM của một API pr
 
 ## Deploy disk guard (2026-11-02)
 Deploy phải kiểm tra disk/inode trước pull image; chỉ dọn image AI cũ không được container nào sử dụng, giữ một image dự phòng và target image. Không đụng volume/container/service khác. Thiếu dung lượng sau dọn thì dừng trước khi sửa compose, giữ dịch vụ hiện tại.
+
+## Sửa quyền volume và chẩn đoán rollback (2026-11-02)
+Trước khi recreate AI service, deployment chuẩn bị thư mục volume crawler cho appuser của image mới. Chỉ thay owner/quyền trong /app/data/crawler, không đổi owner toàn /app/data hoặc dữ liệu dịch vụ khác. Lỗi init chặn rollout. Thu metadata health và log startup đã che secret trước rollback.

@@ -62,3 +62,6 @@ Session RAM thay thế các yêu cầu file khóa/working-copy session ở phầ
 
 ## Deploy disk guard (2026-11-02)
 Thêm scripts/prepare_deploy_disk.py: mặc định dry-run, chọn image đúng repository và không có tag thuộc repo khác; bảo vệ toàn bộ container đang chạy/đã dừng, target và image unused mới nhất. Apply bỏ từng tag bằng docker image rm không force, kiểm tra lại container trước khi xóa. Workflow nhúng script base64 qua SSM trước backup/sửa compose, kiểm tra tối thiểu 6 GiB và inode. Không tự dọn production ngoài CI/CD.
+
+## Sửa quyền volume và chẩn đoán rollback (2026-11-02)
+Thêm scripts.prepare_crawler_volume chạy một lần bằng root trong container compose --rm --no-deps với image mới đã pull. Lấy UID/GID appuser từ image, tạo control/output và chown/chmod cây crawler giới hạn; reject symlink/hardlink/path ngoài base. API/scheduler vẫn chạy appuser. Thêm scripts.capture_deploy_failure chỉ in trạng thái/health và các dòng startup/error đã redaction, không in Env; gọi trước rollback và không để lỗi capture cản rollback.
