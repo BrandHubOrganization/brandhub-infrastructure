@@ -69,3 +69,14 @@ Pixel_9a, debug build + Metro, stack e2e riêng. Vẫn chưa thay thế xác nh�
 | Kim dB | Không kiểm chứng được | Luôn -60 dB dù bật `-allow-host-audio` và phát tiếng ra loa. Track âm thanh của file cũng gần như im lặng (khoảng 102 byte mỗi frame AAC), nên nghi mic ảo không nhận tiếng. Cần thử có tiếng thật trên máy thật |
 | Motion | Đạt trên Expo Web, chưa kiểm tra lại trên Android | Khung 412x915: skeleton, nội dung hiện dần, tab drawer trồi nhẹ, thanh tab trượt, Reduce Motion bỏ dịch chuyển. Đổi 10 lần tab drawer với CPU chậm 6 lần không có màn trống. Emulator từng có 1 lần màn trống sau khi mở app, chưa tái hiện được (13 lần mở lại đều đạt); đã bỏ native driver ở 2 animation có thể che cả màn, cần xác nhận trên Android |
 | C1, C5, C6 | Chưa chạy | Cần iPhone, kiểm tra metadata file hoặc ảnh HEIC |
+
+## Kết quả trên Expo Web (dark mode và ngôn ngữ)
+Khung 412x915, stack e2e riêng, vai trò Creator và Admin. Bộ dò tự động đo vùng nền sáng lớn, độ tương phản chữ/nền và chữ tiếng Việt còn sót trên phần đang hiển thị của mỗi màn. Chưa kiểm tra trên Android.
+
+| Mục | Kết quả | Ghi chú |
+|---|---|---|
+| Dark mode, các tab và menu More của Creator | Đạt | 19 màn không còn vùng nền sáng lớn. Lỗi tương phản ở nút Lịch sử màn Tạo video AI đã sửa ở Button dùng chung |
+| Dark mode, 8 màn chính của Admin | Đạt | Màn con, form và hộp thoại chỉ được chuyển bằng script, chưa mở hết để xem |
+| Tiếng Anh, 19 màn của Creator | Đạt | Chỉ còn tên ngôn ngữ "Tiếng Việt" ở ô chọn, là đúng. Nội dung do backend trả về vẫn giữ nguyên ngôn ngữ gốc |
+| Đổi ngôn ngữ trong phiên | Đạt | Cập nhật ngay, app quay về màn đầu của luồng |
+| Đăng nhập Google | Đạt một phần | Google nhận client_id và redirect_uri, tới trang đăng nhập. Chưa đăng nhập hết luồng nên client secret chưa được kiểm chứng |
