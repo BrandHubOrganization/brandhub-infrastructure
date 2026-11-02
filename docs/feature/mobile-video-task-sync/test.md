@@ -80,3 +80,12 @@ Khung 412x915, stack e2e riêng, vai trò Creator và Admin. Bộ dò tự độ
 | Tiếng Anh, 19 màn của Creator | Đạt | Chỉ còn tên ngôn ngữ "Tiếng Việt" ở ô chọn, là đúng. Nội dung do backend trả về vẫn giữ nguyên ngôn ngữ gốc |
 | Đổi ngôn ngữ trong phiên | Đạt | Cập nhật ngay, app quay về màn đầu của luồng |
 | Đăng nhập Google | Đạt một phần | Google nhận client_id và redirect_uri, tới trang đăng nhập. Chưa đăng nhập hết luồng nên client secret chưa được kiểm chứng |
+
+## Rà bản dịch và nội dung backend (chỉ test tự động, chưa mở trên trình duyệt)
+| Mục | Kết quả | Ghi chú |
+|---|---|---|
+| Rà bản dịch tiếng Anh | Agent đã đọc hết, chưa có người đọc lại | Đã sửa các chuỗi sai nghĩa theo ngữ cảnh và thống nhất thuật ngữ. Placeholder khớp ở mọi khoá |
+| Câu hệ thống từ backend | Đạt test tự động | Thông báo, lỗi đăng bài và lý do kiểm duyệt có bản tiếng Anh. Nội dung người dùng và AI, email, PDF, mẫu seed giữ nguyên |
+| Thông báo lỗi API | Đạt test tự động | Mobile đọc `error.message`; tiếng Việt chỉ hiện với mã đã dịch, mã khác và lỗi 5xx giữ câu của màn hình |
+| Creator vào `/requests` trên web | Đạt test tự động | Route đã chặn Creator, ẩn link Yêu cầu nội dung trong chi tiết Task |
+| Owner xem Yêu cầu nội dung (web, mobile) | Đạt test tự động | Mở danh sách và chi tiết. Backend trả mọi quyền thao tác là false nên Owner chỉ xem; form tạo vẫn đóng với Owner |
