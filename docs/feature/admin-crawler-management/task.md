@@ -41,3 +41,7 @@
 - [x] Store RAM và IPC stdin cho preflight/run/probe/CLI; bỏ fallback file/Redis trong luồng admin session.
 - [x] UI upload session không cần khóa, thông báo mất session khi restart; giữ bảo vệ proxy/TikTok.
 - [x] Test snapshot/revoke/restart/no-write/child handoff, validation và Web CI.
+
+## Deploy disk guard (2026-11-02)
+- [x] Thêm script cleanup có scope/retention/disk guard và unit test bằng Docker giả lập.
+- [x] Gắn preflight trước sửa compose/pull; xác minh workflow và chạy dry-run production chỉ đọc.

@@ -55,3 +55,8 @@ Kết quả dev: 45 test crawler đạt; thêm test giới hạn retry proxy c�
 Upload không key thành công, metadata không chứa cookie; store mới cùng process đọc được, process mới mất session. Run chụp session cũ trước replace/revoke và stdin tới browser dùng dict không ghi file. Thiếu session chặn start. Probe/legacy cookie API không ghi session file hoặc Redis. Kiểm tra song ngữ, dark/light và npm run ci.
 
 Kết quả session RAM: 55 test crawler/IPC/browser/proxy đạt; 37 test AI API/crawler đạt, sau chỉnh cache chạy lại 17 test liên quan đạt; flake8 và Web npm run ci đạt (188 cảnh báo lint hiện có, không lỗi). Preflight thực tế cho Facebook/Threads đọc RAM qua stdin đạt. UI fixture vi/en, light/dark, mobile 390px, file input không key và keyboard focus đạt. Không gọi provider thật, không chạy crawl thật, không deploy.
+
+## Deploy disk guard (2026-11-02)
+Giữ image mọi container, foreign/shared tags, target và một rollback; cleanup chỉ repo AI không force và không volume/container prune. Thiếu disk/inode sau cleanup trả lỗi trước deploy. Dry-run không mutate. Chạy unit tests mock Docker và parse workflow; chỉ inventory/dry-run production.
+
+Disk guard: 6 unit test đạt, flake8 đạt; YAML và command base64/argparse/order được kiểm tra. Production dry-run chỉ đọc chọn 8 image AI cũ (10 tag), giữ image đang chạy và sha-f435746-20 dự phòng. Disk trống 2.21 GiB nên guard báo ready=false. Chưa chạy --apply, chưa push/deploy.
