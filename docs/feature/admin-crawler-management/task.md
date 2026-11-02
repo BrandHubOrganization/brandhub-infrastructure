@@ -50,3 +50,14 @@
 - [x] Init volume crawler có giới hạn đường dẫn, quyền appuser và kiểm tra an toàn/idempotence.
 - [x] Gắn init trước recreate; log/health redacted trước rollback và kiểm tra ảnh mới sau healthy.
 - [x] Unit tests, workflow syntax/order và smoke Docker volume giả bằng non-root scheduler.
+
+## Retention khi rollout thất bại (2026-11-02)
+- [x] Sửa chọn rollback image để không giữ image rollout thất bại mới hơn bản đang chạy.
+- [x] Regression trường hợp failed image mới nhất, old rollback, target, foreign tag và initial deploy.
+- [x] Dry-run production chỉ đọc và xác nhận vẫn giữ image đang chạy/ngưỡng 6 GiB.
+
+
+## Rút gọn overview (2026-11-02)
+- [x] Chỉ render run gần nhất trong managed control, bao gồm run đã kết thúc.
+- [x] Hiện banner khi có history; giữ tab lịch sử đầy đủ.
+- [x] Kiểm tra build và UI nhiều run, active, completed, interrupted, empty, mobile/light/dark.

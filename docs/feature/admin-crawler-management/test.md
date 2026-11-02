@@ -65,3 +65,14 @@ Disk guard: 6 unit test đạt, flake8 đạt; YAML và command base64/argparse/
 Volume parent root:755 vẫn giữ nguyên; control/output thuộc appuser và ghi được. Chạy init lần hai không đổi dữ liệu; không theo symlink/hardlink ra ngoài. Init failure không recreate service. Startup failure capture health/log trước compose restore, che env secrets/cookie/URL. Test Docker offline với volume giả, không mount production.
 
 Kết quả dev: 12 unit test disk/volume/diagnostics đạt; flake8 và YAML/Bash/command SSM sau giải mã đạt. Docker local volume giả root:755 tái hiện lỗi trước init; sau init appuser UID1000 ghi được scheduler lock/heartbeat/output, dữ liệu cũ giữ nguyên, parent/other-service không đổi. Init lần hai đạt; volume QA đã xóa. Chưa đổi production, chưa commit/push/deploy.
+
+## Retention khi rollout thất bại (2026-11-02)
+Regression: active image cũ + failed image mới + previous image cũ hơn => cleanup failed, giữ active/previous. Target mới được giữ; không có active image vẫn giữ một unused. Dry-run không mutate. Đối chiếu production sha-6060fc3-25 unused, unique4.063GB; không hạ disk guard.
+
+Kết quả: 16 test disk/volume/diagnostics đạt, flake8 đạt. Production dry-run mới chỉ chọn sha-6060fc3-25 (unused, 4.063GB unique), giữ current sha-0ed93a6-21 và không sửa/xóa dữ liệu. Disk hiện vẫn5.57GiB vì chưa apply; ngưỡng6GiB không đổi. Chưa commit/push/deploy.
+
+
+## Kiểm tra overview rút gọn (2026-11-02)
+Nhiều history không theo thứ tự: chỉ run startedAt mới nhất hiện. Active ưu tiên hơn history. Khi latest completed/failed vẫn hiện; latest interrupted giữ recovery. Không có run thì ẩn banner. Tab lịch sử giữ mọi run. Kiểm tra vi/en, light/dark, mobile và keyboard với fixture, không chạy crawler thật.
+
+Kết quả: npm run ci pass (188 warning có sẵn, 0 error); Playwright fixture vi/en pass cho active, completed, failed, interrupted, lịch sử đầy đủ và empty; screenshot light/dark/mobile đã kiểm tra.

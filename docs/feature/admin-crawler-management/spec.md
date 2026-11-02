@@ -97,3 +97,10 @@ Deploy phải kiểm tra disk/inode trước pull image; chỉ dọn image AI c�
 
 ## Sửa quyền volume và chẩn đoán rollback (2026-11-02)
 Trước khi recreate AI service, deployment chuẩn bị thư mục volume crawler cho appuser của image mới. Chỉ thay owner/quyền trong /app/data/crawler, không đổi owner toàn /app/data hoặc dữ liệu dịch vụ khác. Lỗi init chặn rollout. Thu metadata health và log startup đã che secret trước rollback.
+
+## Retention khi rollout thất bại (2026-11-02)
+Retention không chọn image unused mới hơn bản đang được container sử dụng làm bản dự phòng; các image như vậy có thể là rollout thất bại/prefetch, chỉ bảo vệ nếu là target hiện tại hoặc được container tham chiếu. Giữ ngưỡng disk 6 GiB, không giảm để bypass.
+
+
+## Tổng quan chỉ hiển thị lần chạy gần nhất (2026-11-02)
+Tab overview hiển thị tối đa một run: run đang chạy nếu có, nếu không chọn history có startedAt mới nhất, kể cả completed/failed/interrupted. Các run khác xem ở tab lịch sử. Giữ recovery cho run gần nhất bị gián đoạn. Không thêm text/i18n key; giữ theme light/dark và điều hướng bàn phím hiện có.

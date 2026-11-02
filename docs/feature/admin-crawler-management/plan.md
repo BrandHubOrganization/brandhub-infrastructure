@@ -65,3 +65,10 @@ Thêm scripts/prepare_deploy_disk.py: mặc định dry-run, chọn image đúng
 
 ## Sửa quyền volume và chẩn đoán rollback (2026-11-02)
 Thêm scripts.prepare_crawler_volume chạy một lần bằng root trong container compose --rm --no-deps với image mới đã pull. Lấy UID/GID appuser từ image, tạo control/output và chown/chmod cây crawler giới hạn; reject symlink/hardlink/path ngoài base. API/scheduler vẫn chạy appuser. Thêm scripts.capture_deploy_failure chỉ in trạng thái/health và các dòng startup/error đã redaction, không in Env; gọi trước rollback và không để lỗi capture cản rollback.
+
+## Retention khi rollout thất bại (2026-11-02)
+Trong candidates(), xác định mốc Created mới nhất của image thuộc repo đang được container tham chiếu. Chỉ chọn bản dự phòng từ image unused có Created <= mốc đó; các image unused mới hơn vẫn là ứng viên cleanup. Mọi container/target/foreign tags tiếp tục được bảo vệ và recheck trước remove không force. Nếu chưa có container tham chiếu repo thì giữ retention mặc định cho initial deployment.
+
+
+## Rút gọn run trên overview (2026-11-02)
+AdminTrendPipelineControl managed chọn active hoặc history mới nhất theo startedAt, không phụ thuộc thứ tự API. Panel hiển thị banner khi có run bất kỳ. Không sửa API hay tab lịch sử.
