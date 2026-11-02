@@ -44,3 +44,28 @@ retain legacy endpoints and leave the separate crawler-social repo untouched.
   keep-local-only, on the same filesystem for API and scheduler. No Mongo/Postgres
   schema, init or seeder changes. Multi-host runner orchestration is out of scope.
 - No real paid/provider crawl, database reset or shared storage writes during QA.
+
+## Interrupted-run recovery (2026-10-30)
+
+- A dead/failed crawler with no received closure manifest and no confirmed publication
+  is INTERRUPTED, never RUNNING solely because Redis retains completed batches.
+  Interrupted runs are visible without opening history and do not block new runs.
+- Admin may explicitly recover an interrupted run by its opaque control ID using
+  POST /runs/{id}/recover on the existing Business/AI prefixes. Recovery reuses
+  run.py --recover-run with the original pipeline ID, no browser/new crawl and no
+  forced batch reprocessing. It closes the saved run and preserves partial sources.
+- Recovery needs valid local source metadata, Python dependencies, Redis and broker,
+  not a Facebook session. Readiness for new crawls remains separately enforced.
+- Unknown IDs return 404; invalid/stale/nonrecoverable runs return 409; active work
+  conflicts and missing infrastructure remain 409/503. Admin/internal auth and one
+  audit per accepted recovery apply. Fixed argv, no caller path/command overrides.
+- Polling/startup never initiates provider calls. Show interrupted progress honestly,
+  and confirm recovery may invoke downstream AI aggregation/provider costs.
+- Shared dispatch/process locks cover normal start and recovery. Deduplicate attempts
+  by original pipeline ID, preserve original counts and terminal partial semantics.
+- UI keys under admin.trendPipeline: recover, recovering, interruptedDescription,
+  recoveryUnavailable, recoveryNotReady, recoveryAccepted, recoveryConflict,
+  runNotFound, confirmRecoveryTitle, confirmRecoveryDescription, sessionMissing,
+  cancel and stage.INTERRUPTED/stage.RECOVERING, in vi/en admin.json. Use existing
+  semantic light/dark tokens, keyboard-focusable controls and responsive wrapping.
+- No DB migration/init/seeder change; executable QA stays in keep-local-only.
