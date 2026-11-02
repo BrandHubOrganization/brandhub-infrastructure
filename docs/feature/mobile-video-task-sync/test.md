@@ -1,0 +1,52 @@
+# Mobile video → Task sync — Test
+
+## Tự động
+| # | Kiểm tra | Mong đợi |
+|---|---|---|
+| A1 | Validator: `isom`, `mp42`, `qt` khai `video/mp4` hoặc `video/quicktime` | Qua |
+| A2 | Policy: JPEG vào TASK | Qua; PDF vào TASK bị từ chối |
+| A3 | `GET materials?taskId=` | Chỉ trả tệp của task; Client không thấy INTERNAL |
+| A4 | Client đọc bài có media INTERNAL đã ghim | Có URL |
+| A5 | Pipeline: session hết hạn | Upload lại, thành công |
+| A6 | Pipeline: `TASK_NOT_ASSIGNED` | `FAILED`, không thử lại |
+| A7 | Khởi động với mục `UPLOADING` | Về `QUEUED` |
+| A8 | Chỉ Wi-Fi trên 4G | Không chạy; có Wi-Fi thì chạy |
+| A9 | Web: danh sách, rỗng, đưa vào bài | Đúng trạng thái và payload |
+
+## API thật (Docker riêng: Postgres, Mongo replica set, MinIO)
+| # | Bước | Mong đợi |
+|---|---|---|
+| B1 | Creator tạo session, PUT file `.mov`, confirm | Material `READY`, có `taskId` |
+| B2 | Như B1 với MP4 `isom` và JPEG | `READY` |
+| B3 | `GET materials?taskId=` bằng Manager | Thấy tệp; Client không thấy |
+| B4 | Lưu bài với `materialId`, gửi duyệt | Bài có media; task `IN_REVIEW` |
+| B5 | Web mở task | Thấy tệp, xem trước, chuyển ngôn ngữ và theme không vỡ |
+
+## Thiết bị (người dùng xác nhận, dev build)
+| # | Bước | Mong đợi |
+|---|---|---|
+| C1 | iPhone quay clip | Tự upload, web thấy trong khoảng 15s |
+| C2 | Android quay clip | Như C1 |
+| C3 | Bật máy bay giữa upload, tắt lại | Tự tiếp tục |
+| C4 | Tắt app giữa upload, mở lại | Tự tiếp tục |
+| C5 | Đổi FPS 24/30/60 | Metadata file đúng FPS |
+| C6 | Ảnh HEIC trên iPhone | Lên task dạng JPEG |
+| C7 | Quay quá mục tiêu thời lượng | Không tự dừng |
+| C8 | Quay 3 take liên tiếp | Ở lại camera, giữ cài đặt, số take tăng 01, 02, 03 |
+| C9 | Đang quay thì vuốt back (iPhone) và bấm back (Android) | Không thoát, clip vẫn lưu khi dừng |
+| C10 | So khung trên màn với file đã quay | Video không bị cắt thêm, khung canh đúng vị trí |
+| C11 | Từ chối quyền camera, mở lại màn quay | Có nút Mở Cài đặt, bật quyền xong quay được |
+| C12 | Chạm một take trong chi tiết Task | Mở được video bằng trình phát của máy |
+| C13 | Bật dark mode, đi hết luồng | Không còn nền sáng lẫn vào, chữ đọc rõ |
+
+## Kết quả chạy emulator (2026-11-02)
+Pixel_9a, Android 17 (API 37), camera ảo, debug build, stack e2e riêng. Chưa thay thế xác nhận trên máy thật.
+
+| # | Kết quả | Ghi chú |
+|---|---|---|
+| C2 | Đạt một phần | Quay, tự tải lên, material `READY`, đúng dung lượng. Chưa kiểm tra phía web |
+| C4 | Đạt một phần | Đưa app ra nền rồi mở lại: hàng đợi chạy tiếp và thử lại được. Chưa tắt app giữa lúc upload |
+| C8 | Đạt | Ở lại camera, số take tăng 01 → 04. Chưa kiểm tra giữ cài đặt |
+| C9 | Đạt phần Android | Nút back bị chặn, có cảnh báo. Chưa thử iPhone |
+| C10 | Có vấn đề | File 720x1280 (9:16) nhưng preview 4:3; chọn 1080p ra 720p. Cần xác nhận trên máy thật |
+| C1, C3, C5, C6, C7, C11, C12, C13 | Chưa chạy | |
