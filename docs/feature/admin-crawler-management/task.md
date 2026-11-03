@@ -67,4 +67,10 @@
 - [x] Đồng bộ config, Dockerfile, env example, compose và workflow.
 - [x] Init quyền thư mục worker trong volume; regression paths/init.
 - [x] Unit tests lưu batch/aggregation/label-check và init volume: 18 passed.
-- [ ] Smoke Docker UID1000 ghi batch trên volume giả root-owned: chưa chạy được vì Docker local không hoạt động.
+- [x] Smoke Docker UID1000 ghi atomic batch và label_check trên volume giả root-owned; init idempotent; parent/dữ liệu ngoài crawler không đổi.
+
+
+## Cài browser ổn định trong build (2026-11-03)
+- [x] Thêm installer pinned và regression cấm update nền.
+- [x] Chạy đầy đủ CI AI: flake8 pass, 995 unit tests pass với coverage.
+- [x] Full Docker build Linux pass sau khi Docker bật; installer + info --quick pass, final-image smoke browser/worker pass; warm-cache rebuild 4.8 giây.

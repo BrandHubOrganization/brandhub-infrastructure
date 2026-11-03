@@ -108,3 +108,7 @@ Tab overview hiển thị tối đa một run: run đang chạy nếu có, nếu
 
 ## Thư mục worker có quyền ghi (2026-11-03)
 Worker lưu batch/label-check vào /app/data/crawler/trend_runs, trong volume có quyền appuser. Không đổi owner toàn /app/data. Giữ dữ liệu cũ; không tự replay DLQ hoặc dừng run production.
+
+
+## Cài browser ổn định trong build (2026-11-03)
+Build cài đúng binary theo phiên bản CloakBrowser đã pin, không chạy auto-update daemon trong installer ngắn hạn. Giữ fail-fast khi download/kiểm tra binary lỗi, không nuốt exit 139.

@@ -76,3 +76,9 @@ AdminTrendPipelineControl managed chọn active hoặc history mới nhất theo
 
 ## Thư mục worker có quyền ghi (2026-11-03)
 Đổi default local thành data/crawler/trend_runs; Docker và EC2 Compose dùng TREND_RUN_DIR=/app/data/crawler/trend_runs. Workflow set environment override trước init/recreate để env_file cũ không trỏ về data/trend_runs. Init tạo thư mục với UID/GID appuser trong phạm vi crawler.
+
+
+## Cài browser ổn định trong build (2026-11-03)
+Installer riêng gọi ensure_binary(browser_version=get_chromium_version()) để dùng nhánh pinned không tạo background update threads; Docker chạy installer rồi info --quick với faulthandler. Giữ layer browser trước COPY source để bảo toàn cache.
+
+Runtime ENV đặt sau dependency layer; data/crawler/ bị loại khỏi build context để không đưa dữ liệu run local vào image.

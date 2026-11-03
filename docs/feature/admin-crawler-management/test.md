@@ -82,3 +82,13 @@ Kết quả: npm run ci pass (188 warning có sẵn, 0 error); Playwright fixtur
 Kiểm tra volume /app/data root:root 0755: trước init UID1000 không ghi được; sau init ghi atomic batch JSON và label_check.state tại crawler/trend_runs. Parent/ngoài crawler giữ nguyên owner/dữ liệu. Kiểm tra workflow áp TREND_RUN_DIR trước init/up, YAML/Compose hợp lệ, unit aggregation/label check pass.
 
 Kết quả dev: flake8 pass; 18 unit tests pass; parse workflow YAML/Compose JSON và thực thi lệnh cập nhật Compose trên fixture pass, environment khác giữ nguyên. Smoke Docker chưa chạy được do Docker daemon local tắt. Chưa đổi production hay replay run cũ.
+
+
+## Cài browser ổn định trong build (2026-11-03)
+Installer phải truyền phiên bản chính xác vào ensure_binary, kiểm tra path tồn tại/executable và surface lỗi download. Unit CI đầy đủ phải pass. Build không bỏ qua diagnostic hoặc lỗi cài đặt; kiểm tra YAML và Docker build nếu daemon hoạt động.
+
+Kết quả: full flake8 pass; full pytest tests/unit với junit + coverage: 995 passed, 128 warning có sẵn. Workflow YAML và Docker layer order pass. Docker build Linux chưa chạy được do Linux Engine local không hoạt động, dù đã thử khởi động Docker Desktop. Crash exit 139 do thread teardown là giả thuyết từ log và nhánh installer upstream; chưa có faulthandler trace từ build lỗi để khẳng định.
+
+Bổ sung khi Docker đã bật: smoke Linux volume root-owned pass (UID1000, atomic batch + label-check, init 2 lần, không đổi parent). Installer pinned 5 lần không tạo background threads; Chromium mở/đóng trang offline pass trong image cache cùng CloakBrowser 0.5.10. Full Dockerfile build đang kiểm tra. Đã loại data/crawler khỏi build context và đặt runtime ENV sau dependency layers.
+
+Kết quả cuối khi Docker bật: full Dockerfile build exit 0, pinned installer và info --quick pass (không exit139); image brandhub-ai-crawler:browser-fix-review. Final-image offline smoke: UID1000, TREND_RUN_DIR đúng, không chứa .env/session; 5 lần ensure_binary pinned không có update thread, Chromium page launch/close pass. Worker volume smoke dùng code trong image (không bind dev source) pass, volume QA đã xóa. Build lặp lại sử dụng cache: exit0 trong 4.8 giây. Chưa push/deploy.
