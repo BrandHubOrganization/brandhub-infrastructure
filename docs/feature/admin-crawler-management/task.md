@@ -74,3 +74,9 @@
 - [x] Thêm installer pinned và regression cấm update nền.
 - [x] Chạy đầy đủ CI AI: flake8 pass, 995 unit tests pass với coverage.
 - [x] Full Docker build Linux pass sau khi Docker bật; installer + info --quick pass, final-image smoke browser/worker pass; warm-cache rebuild 4.8 giây.
+
+
+## Giới hạn RAM AI 4.5 GiB (2026-11-03)
+- [x] Cập nhật Compose/overlay và lệnh deploy CI/CD.
+- [x] Kiểm tra Compose render và generated deployment command giữ cấu hình khác.
+- [x] Chạy CI AI sau thay đổi: flake8 pass, 995 tests pass.

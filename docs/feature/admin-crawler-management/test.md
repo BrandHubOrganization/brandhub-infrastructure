@@ -92,3 +92,9 @@ Kết quả: full flake8 pass; full pytest tests/unit với junit + coverage: 99
 Bổ sung khi Docker đã bật: smoke Linux volume root-owned pass (UID1000, atomic batch + label-check, init 2 lần, không đổi parent). Installer pinned 5 lần không tạo background threads; Chromium mở/đóng trang offline pass trong image cache cùng CloakBrowser 0.5.10. Full Dockerfile build đang kiểm tra. Đã loại data/crawler khỏi build context và đặt runtime ENV sau dependency layers.
 
 Kết quả cuối khi Docker bật: full Dockerfile build exit 0, pinned installer và info --quick pass (không exit139); image brandhub-ai-crawler:browser-fix-review. Final-image offline smoke: UID1000, TREND_RUN_DIR đúng, không chứa .env/session; 5 lần ensure_binary pinned không có update thread, Chromium page launch/close pass. Worker volume smoke dùng code trong image (không bind dev source) pass, volume QA đã xóa. Build lặp lại sử dụng cache: exit0 trong 4.8 giây. Chưa push/deploy.
+
+
+## Giới hạn RAM AI 4.5 GiB (2026-11-03)
+Render Compose xác nhận ai-service.mem_limit tương đương 4831838208 bytes. Thực thi generated compose updater trên fixture 2300m: đổi thành 4608m, giữ env khác và memory service khác. YAML hợp lệ, CI flake8/unit pass. Production chỉ nhận cấu hình khi deploy; chưa restart hay retry run.
+
+Kết quả: Compose base và base+overlay render 4608m (4.5 GiB); generated updater áp memory mới và giữ env/limit service khác. Full flake8 pass, pytest unit 995 passed (128 warning có sẵn). Chưa commit/push/deploy, production chưa đổi.

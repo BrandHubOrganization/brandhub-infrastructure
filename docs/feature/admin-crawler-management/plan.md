@@ -82,3 +82,7 @@ AdminTrendPipelineControl managed chọn active hoặc history mới nhất theo
 Installer riêng gọi ensure_binary(browser_version=get_chromium_version()) để dùng nhánh pinned không tạo background update threads; Docker chạy installer rồi info --quick với faulthandler. Giữ layer browser trước COPY source để bảo toàn cache.
 
 Runtime ENV đặt sau dependency layer; data/crawler/ bị loại khỏi build context để không đưa dữ liệu run local vào image.
+
+
+## Giới hạn RAM AI 4.5 GiB (2026-11-03)
+Đặt ai-service.mem_limit=4608m trong EC2 Compose và overlay crawler. Workflow AI cập nhật mem_limit cùng image/TREND_RUN_DIR trước recreate, có sẵn backup/rollback compose. Không thay limit service khác, không đổi Docker image/browser code.

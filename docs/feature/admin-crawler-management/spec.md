@@ -112,3 +112,7 @@ Worker lưu batch/label-check vào /app/data/crawler/trend_runs, trong volume c�
 
 ## Cài browser ổn định trong build (2026-11-03)
 Build cài đúng binary theo phiên bản CloakBrowser đã pin, không chạy auto-update daemon trong installer ngắn hạn. Giữ fail-fast khi download/kiểm tra binary lỗi, không nuốt exit 139.
+
+
+## Giới hạn RAM AI 4.5 GiB (2026-11-03)
+AI Service có giới hạn 4.5 GiB (4608 MiB), thay 2300 MiB, theo yêu cầu sau OOM run 20261103_012405. Đây là giới hạn container, không phải RAM được giữ riêng. Không sửa trực tiếp production.
