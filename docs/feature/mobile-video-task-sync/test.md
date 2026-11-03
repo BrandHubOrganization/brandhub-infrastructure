@@ -111,7 +111,7 @@ Khung 412x915, stack e2e riêng dựng lại từ schema và seed của dự án
 | Bộ lọc loại Task | Đạt | Bỏ `VIDEO` backend không nhận (400), thêm `EVENT_PLAN`, `PRESS_RECOMMENDATION` |
 | Admin có Cài đặt | Đạt | Đổi giao diện, Cài đặt tài khoản, Bảo mật mở được. Ngôn ngữ chưa đổi thử trong lượt này |
 | Owner xem Task | Đạt | Trước đây lỗi 403 làm Owner không mở được chi tiết Task. Giờ chỉ xem, ẩn bình luận và lịch sử duyệt |
-| Owner với trình soạn thảo và mời Workspace | Đạt trên mobile | Ẩn vì API từ chối. Phần web mới có test tự động cho route, chưa mở trên trình duyệt |
+| Owner với trình soạn thảo và mời Workspace | Đạt trên mobile và web | Ẩn vì API từ chối. Web đã kiểm tra trên trình duyệt bằng Owner thật, xem mục bên dưới |
 | Email OTP, đặt lại mật khẩu, mời Agency, mời Workspace, kích hoạt | Đạt qua Mailpit | Có `working_language` thì một ngôn ngữ, không có thì hai ngôn ngữ. Mã và link có đủ ở cả hai phần. SMTP cục bộ, chưa gửi email thật |
 
 ## Test backend bản build sạch
@@ -125,3 +125,18 @@ Kết quả cũ "1454 test, 0 lỗi, 80 skip" của lượt sửa email và PDF 
 Kết quả build sạch: 1439 test, 0 lỗi, 42 skip.
 
 Trong nhóm skip, `MailStorePostgresTest` và `UserOAuthProviderRepositoryTest` đạt khi bật riêng. Các test còn lại chưa chạy được vì ghi cứng môi trường (cổng và tên DB như `55438/partner_test`, `55439/package_test`, replica set `taskWorkflowTest`) hoặc cần migration Mongo riêng. `*AtlasInventoryTest` đọc Atlas thật và `PaymentApiTest` cần cả hệ thống thanh toán nên không bật.
+
+## Kiểm tra trên bản ghép backend và quét sâu
+Backend ghép `feat/mobile-video-task-sync` với `fix/backend-db-tests`, build sạch: 1454 test, 0 lỗi, 42 skip.
+
+Owner thật là chủ agency nhưng không là thành viên workspace (`myRole=OWNER`). Tài khoản `user177` trong seed có `myRole=MANAGER` nên không dùng để thử vai trò này được.
+
+| Mục | Kết quả | Ghi chú |
+| --- | --- | --- |
+| Web, Owner mở Task | Đạt | Không có bình luận, nút Editor, ô phân công. Không còn 403 từ `/post`. Vào `/editor` bị chuyển về `/dashboard` |
+| Web, Manager mở Task | Đạt | Vẫn có ô phân công |
+| Expo Web, Owner mở Task | Đạt | Không có request 403 |
+| Expo Web, Admin đổi ngôn ngữ | Đạt | Đổi ngay, tải lại vẫn giữ, không bị đẩy khỏi Cài đặt |
+| Quét màn con, sáng + tiếng Việt, khổ 412px | Đạt | Manager 16 menu, Owner 14, Creator 9, Client 9, Admin 9, tối đa 6 màn con mỗi menu. Script kiểm tra chữ tiếng Anh, độ tương phản, tràn ngang, thông báo lỗi và request lỗi |
+
+Giới hạn của lượt quét: dữ liệu seed không có Task nên chỉ dùng 1 Task tạo tay. Script bỏ qua nút có tác động như xoá, duyệt, gửi. Nhiều menu không có màn con để mở. Các tab Dashboard, Task, Lịch, Chat không nằm trong lượt này.
