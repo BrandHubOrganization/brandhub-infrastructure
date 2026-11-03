@@ -2,6 +2,9 @@
   "name": "brandhub-service",
   "services": {
     "ai-service": {
+      "environment": {
+        "TREND_RUN_DIR": "/app/data/crawler/trend_runs"
+      },
       "restart": "unless-stopped",
       "container_name": "brandhub-ai-service",
       "command": null,
@@ -35,7 +38,7 @@
         }
       },
       "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/ai-service:deploy-20261029",
-      "mem_limit": "2300m",
+      "mem_limit": "4608m",
       "volumes": [
         {
           "type": "volume",

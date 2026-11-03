@@ -55,3 +55,46 @@ Kết quả dev: 45 test crawler đạt; thêm test giới hạn retry proxy c�
 Upload không key thành công, metadata không chứa cookie; store mới cùng process đọc được, process mới mất session. Run chụp session cũ trước replace/revoke và stdin tới browser dùng dict không ghi file. Thiếu session chặn start. Probe/legacy cookie API không ghi session file hoặc Redis. Kiểm tra song ngữ, dark/light và npm run ci.
 
 Kết quả session RAM: 55 test crawler/IPC/browser/proxy đạt; 37 test AI API/crawler đạt, sau chỉnh cache chạy lại 17 test liên quan đạt; flake8 và Web npm run ci đạt (188 cảnh báo lint hiện có, không lỗi). Preflight thực tế cho Facebook/Threads đọc RAM qua stdin đạt. UI fixture vi/en, light/dark, mobile 390px, file input không key và keyboard focus đạt. Không gọi provider thật, không chạy crawl thật, không deploy.
+
+## Deploy disk guard (2026-11-02)
+Giữ image mọi container, foreign/shared tags, target và một rollback; cleanup chỉ repo AI không force và không volume/container prune. Thiếu disk/inode sau cleanup trả lỗi trước deploy. Dry-run không mutate. Chạy unit tests mock Docker và parse workflow; chỉ inventory/dry-run production.
+
+Disk guard: 6 unit test đạt, flake8 đạt; YAML và command base64/argparse/order được kiểm tra. Production dry-run chỉ đọc chọn 8 image AI cũ (10 tag), giữ image đang chạy và sha-f435746-20 dự phòng. Disk trống 2.21 GiB nên guard báo ready=false. Chưa chạy --apply, chưa push/deploy.
+
+## Sửa quyền volume và chẩn đoán rollback (2026-11-02)
+Volume parent root:755 vẫn giữ nguyên; control/output thuộc appuser và ghi được. Chạy init lần hai không đổi dữ liệu; không theo symlink/hardlink ra ngoài. Init failure không recreate service. Startup failure capture health/log trước compose restore, che env secrets/cookie/URL. Test Docker offline với volume giả, không mount production.
+
+Kết quả dev: 12 unit test disk/volume/diagnostics đạt; flake8 và YAML/Bash/command SSM sau giải mã đạt. Docker local volume giả root:755 tái hiện lỗi trước init; sau init appuser UID1000 ghi được scheduler lock/heartbeat/output, dữ liệu cũ giữ nguyên, parent/other-service không đổi. Init lần hai đạt; volume QA đã xóa. Chưa đổi production, chưa commit/push/deploy.
+
+## Retention khi rollout thất bại (2026-11-02)
+Regression: active image cũ + failed image mới + previous image cũ hơn => cleanup failed, giữ active/previous. Target mới được giữ; không có active image vẫn giữ một unused. Dry-run không mutate. Đối chiếu production sha-6060fc3-25 unused, unique4.063GB; không hạ disk guard.
+
+Kết quả: 16 test disk/volume/diagnostics đạt, flake8 đạt. Production dry-run mới chỉ chọn sha-6060fc3-25 (unused, 4.063GB unique), giữ current sha-0ed93a6-21 và không sửa/xóa dữ liệu. Disk hiện vẫn5.57GiB vì chưa apply; ngưỡng6GiB không đổi. Chưa commit/push/deploy.
+
+
+## Kiểm tra overview rút gọn (2026-11-02)
+Nhiều history không theo thứ tự: chỉ run startedAt mới nhất hiện. Active ưu tiên hơn history. Khi latest completed/failed vẫn hiện; latest interrupted giữ recovery. Không có run thì ẩn banner. Tab lịch sử giữ mọi run. Kiểm tra vi/en, light/dark, mobile và keyboard với fixture, không chạy crawler thật.
+
+Kết quả: npm run ci pass (188 warning có sẵn, 0 error); Playwright fixture vi/en pass cho active, completed, failed, interrupted, lịch sử đầy đủ và empty; screenshot light/dark/mobile đã kiểm tra.
+
+
+## Thư mục worker có quyền ghi (2026-11-03)
+Kiểm tra volume /app/data root:root 0755: trước init UID1000 không ghi được; sau init ghi atomic batch JSON và label_check.state tại crawler/trend_runs. Parent/ngoài crawler giữ nguyên owner/dữ liệu. Kiểm tra workflow áp TREND_RUN_DIR trước init/up, YAML/Compose hợp lệ, unit aggregation/label check pass.
+
+Kết quả dev: flake8 pass; 18 unit tests pass; parse workflow YAML/Compose JSON và thực thi lệnh cập nhật Compose trên fixture pass, environment khác giữ nguyên. Smoke Docker chưa chạy được do Docker daemon local tắt. Chưa đổi production hay replay run cũ.
+
+
+## Cài browser ổn định trong build (2026-11-03)
+Installer phải truyền phiên bản chính xác vào ensure_binary, kiểm tra path tồn tại/executable và surface lỗi download. Unit CI đầy đủ phải pass. Build không bỏ qua diagnostic hoặc lỗi cài đặt; kiểm tra YAML và Docker build nếu daemon hoạt động.
+
+Kết quả: full flake8 pass; full pytest tests/unit với junit + coverage: 995 passed, 128 warning có sẵn. Workflow YAML và Docker layer order pass. Docker build Linux chưa chạy được do Linux Engine local không hoạt động, dù đã thử khởi động Docker Desktop. Crash exit 139 do thread teardown là giả thuyết từ log và nhánh installer upstream; chưa có faulthandler trace từ build lỗi để khẳng định.
+
+Bổ sung khi Docker đã bật: smoke Linux volume root-owned pass (UID1000, atomic batch + label-check, init 2 lần, không đổi parent). Installer pinned 5 lần không tạo background threads; Chromium mở/đóng trang offline pass trong image cache cùng CloakBrowser 0.5.10. Full Dockerfile build đang kiểm tra. Đã loại data/crawler khỏi build context và đặt runtime ENV sau dependency layers.
+
+Kết quả cuối khi Docker bật: full Dockerfile build exit 0, pinned installer và info --quick pass (không exit139); image brandhub-ai-crawler:browser-fix-review. Final-image offline smoke: UID1000, TREND_RUN_DIR đúng, không chứa .env/session; 5 lần ensure_binary pinned không có update thread, Chromium page launch/close pass. Worker volume smoke dùng code trong image (không bind dev source) pass, volume QA đã xóa. Build lặp lại sử dụng cache: exit0 trong 4.8 giây. Chưa push/deploy.
+
+
+## Giới hạn RAM AI 4.5 GiB (2026-11-03)
+Render Compose xác nhận ai-service.mem_limit tương đương 4831838208 bytes. Thực thi generated compose updater trên fixture 2300m: đổi thành 4608m, giữ env khác và memory service khác. YAML hợp lệ, CI flake8/unit pass. Production chỉ nhận cấu hình khi deploy; chưa restart hay retry run.
+
+Kết quả: Compose base và base+overlay render 4608m (4.5 GiB); generated updater áp memory mới và giữ env/limit service khác. Full flake8 pass, pytest unit 995 passed (128 warning có sẵn). Chưa commit/push/deploy, production chưa đổi.

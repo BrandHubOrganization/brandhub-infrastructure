@@ -41,3 +41,42 @@
 - [x] Store RAM và IPC stdin cho preflight/run/probe/CLI; bỏ fallback file/Redis trong luồng admin session.
 - [x] UI upload session không cần khóa, thông báo mất session khi restart; giữ bảo vệ proxy/TikTok.
 - [x] Test snapshot/revoke/restart/no-write/child handoff, validation và Web CI.
+
+## Deploy disk guard (2026-11-02)
+- [x] Thêm script cleanup có scope/retention/disk guard và unit test bằng Docker giả lập.
+- [x] Gắn preflight trước sửa compose/pull; xác minh workflow và chạy dry-run production chỉ đọc.
+
+## Sửa quyền volume và chẩn đoán rollback (2026-11-02)
+- [x] Init volume crawler có giới hạn đường dẫn, quyền appuser và kiểm tra an toàn/idempotence.
+- [x] Gắn init trước recreate; log/health redacted trước rollback và kiểm tra ảnh mới sau healthy.
+- [x] Unit tests, workflow syntax/order và smoke Docker volume giả bằng non-root scheduler.
+
+## Retention khi rollout thất bại (2026-11-02)
+- [x] Sửa chọn rollback image để không giữ image rollout thất bại mới hơn bản đang chạy.
+- [x] Regression trường hợp failed image mới nhất, old rollback, target, foreign tag và initial deploy.
+- [x] Dry-run production chỉ đọc và xác nhận vẫn giữ image đang chạy/ngưỡng 6 GiB.
+
+
+## Rút gọn overview (2026-11-02)
+- [x] Chỉ render run gần nhất trong managed control, bao gồm run đã kết thúc.
+- [x] Hiện banner khi có history; giữ tab lịch sử đầy đủ.
+- [x] Kiểm tra build và UI nhiều run, active, completed, interrupted, empty, mobile/light/dark.
+
+
+## Thư mục worker có quyền ghi (2026-11-03)
+- [x] Đồng bộ config, Dockerfile, env example, compose và workflow.
+- [x] Init quyền thư mục worker trong volume; regression paths/init.
+- [x] Unit tests lưu batch/aggregation/label-check và init volume: 18 passed.
+- [x] Smoke Docker UID1000 ghi atomic batch và label_check trên volume giả root-owned; init idempotent; parent/dữ liệu ngoài crawler không đổi.
+
+
+## Cài browser ổn định trong build (2026-11-03)
+- [x] Thêm installer pinned và regression cấm update nền.
+- [x] Chạy đầy đủ CI AI: flake8 pass, 995 unit tests pass với coverage.
+- [x] Full Docker build Linux pass sau khi Docker bật; installer + info --quick pass, final-image smoke browser/worker pass; warm-cache rebuild 4.8 giây.
+
+
+## Giới hạn RAM AI 4.5 GiB (2026-11-03)
+- [x] Cập nhật Compose/overlay và lệnh deploy CI/CD.
+- [x] Kiểm tra Compose render và generated deployment command giữ cấu hình khác.
+- [x] Chạy CI AI sau thay đổi: flake8 pass, 995 tests pass.
