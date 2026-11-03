@@ -88,4 +88,23 @@ Khung 412x915, stack e2e riêng, vai trò Creator và Admin. Bộ dò tự độ
 | Câu hệ thống từ backend | Đạt test tự động | Thông báo, lỗi đăng bài và lý do kiểm duyệt có bản tiếng Anh. Nội dung người dùng và AI, email, PDF, mẫu seed giữ nguyên |
 | Thông báo lỗi API | Đạt test tự động | Mobile đọc `error.message`; tiếng Việt chỉ hiện với mã đã dịch, mã khác và lỗi 5xx giữ câu của màn hình |
 | Creator vào `/requests` trên web | Đạt test tự động | Route đã chặn Creator, ẩn link Yêu cầu nội dung trong chi tiết Task |
-| Owner xem Yêu cầu nội dung (web, mobile) | Đạt test tự động | Mở danh sách và chi tiết. Backend trả mọi quyền thao tác là false nên Owner chỉ xem; form tạo vẫn đóng với Owner |
+| Owner xem Yêu cầu nội dung (web, mobile) | Đạt trên Expo Web | Mở danh sách và chi tiết. Backend trả mọi quyền thao tác là false nên Owner chỉ xem; form tạo vẫn đóng với Owner |
+
+## Quét toàn bộ trên Expo Web (2026-11-03)
+Khung 412x915, stack e2e riêng dựng lại từ schema và seed của dự án. Chưa kiểm tra trên Android hay iOS.
+
+| Mục | Kết quả | Ghi chú |
+|---|---|---|
+| Owner, Manager, Client, Creator, Admin: tối + tiếng Anh | Đạt | Mở cả màn con và form chính. Chữ tiếng Việt còn lại là dữ liệu seed hoặc tên thương hiệu |
+| Owner: sáng + tiếng Việt | Đạt | Sửa chữ "Đã kết nối" tương phản thấp bằng token `successText`. Vai trò khác chưa quét ở chế độ này |
+| Lỗi đăng nhập sai | Đạt | Hiện đúng thông báo của backend thay cho câu chung |
+| Thông báo do backend tạo | Đạt | Thông báo giao Task thật hiện tiếng Anh |
+| Đăng xuất Admin | Đạt | Trước đây Admin không có đường đăng xuất |
+| PDF Admin `en`, `vi`, không truyền | Đạt | Một ngôn ngữ khi có `language`, hai ngôn ngữ khi không truyền |
+| Chân email hàng loạt theo `working_language` | Đạt | `en`, `vi` đúng ngôn ngữ, rỗng nhận cả hai. Đọc từ `admin_email_outbox`, chưa gửi email thật |
+| Mất clip khi tắt app sau khi dừng quay | Đạt test tự động | Chưa thử trên máy thật: ghi vào `filePath` riêng và tắt app thật |
+
+## Test backend bản build sạch
+Biên dịch `clean` trên bản sao, bật test DB bằng `ADMIN_TEST_DB_URL`: 1454 test, 12 lỗi, 42 skip. Cả 12 lỗi đều có trên code gốc khi chạy cùng DB: `AiCreditDatabaseTest` 6, `AiVideoDatabaseTest` 5, `AdminFinanceDatabaseTest` 1.
+
+Kết quả cũ "1454 test, 0 lỗi, 80 skip" của lượt sửa email và PDF không dùng được: Maven khi đó không biên dịch lại vì `target/classes` đã bị tiện ích Java của IDE ghi đè. Cần chạy `mvn clean` trước khi tin kết quả test.
