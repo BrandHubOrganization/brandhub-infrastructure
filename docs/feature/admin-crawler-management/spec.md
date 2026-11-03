@@ -91,3 +91,28 @@ Proxy runtime không phụ thuộc đọc/ghi .env trong container. Proxy từ p
 
 ## Session RAM theo yêu cầu (2026-11-02)
 Session Facebook/Threads do admin nạp chỉ giữ trong RAM của một API process; không cần CRAWLER_SECRET_KEY_FILE, không ghi session ra file hoặc Redis. Restart/deploy mất session và UI phải nói rõ yêu cầu nạp lại. Thay/revoke không đổi snapshot của run đang chạy. Proxy/TikTok giữ cơ chế mã hóa hiện có, không mở khóa các trường này khi thiếu key.
+
+## Deploy disk guard (2026-11-02)
+Deploy phải kiểm tra disk/inode trước pull image; chỉ dọn image AI cũ không được container nào sử dụng, giữ một image dự phòng và target image. Không đụng volume/container/service khác. Thiếu dung lượng sau dọn thì dừng trước khi sửa compose, giữ dịch vụ hiện tại.
+
+## Sửa quyền volume và chẩn đoán rollback (2026-11-02)
+Trước khi recreate AI service, deployment chuẩn bị thư mục volume crawler cho appuser của image mới. Chỉ thay owner/quyền trong /app/data/crawler, không đổi owner toàn /app/data hoặc dữ liệu dịch vụ khác. Lỗi init chặn rollout. Thu metadata health và log startup đã che secret trước rollback.
+
+## Retention khi rollout thất bại (2026-11-02)
+Retention không chọn image unused mới hơn bản đang được container sử dụng làm bản dự phòng; các image như vậy có thể là rollout thất bại/prefetch, chỉ bảo vệ nếu là target hiện tại hoặc được container tham chiếu. Giữ ngưỡng disk 6 GiB, không giảm để bypass.
+
+
+## Tổng quan chỉ hiển thị lần chạy gần nhất (2026-11-02)
+Tab overview hiển thị tối đa một run: run đang chạy nếu có, nếu không chọn history có startedAt mới nhất, kể cả completed/failed/interrupted. Các run khác xem ở tab lịch sử. Giữ recovery cho run gần nhất bị gián đoạn. Không thêm text/i18n key; giữ theme light/dark và điều hướng bàn phím hiện có.
+
+
+## Thư mục worker có quyền ghi (2026-11-03)
+Worker lưu batch/label-check vào /app/data/crawler/trend_runs, trong volume có quyền appuser. Không đổi owner toàn /app/data. Giữ dữ liệu cũ; không tự replay DLQ hoặc dừng run production.
+
+
+## Cài browser ổn định trong build (2026-11-03)
+Build cài đúng binary theo phiên bản CloakBrowser đã pin, không chạy auto-update daemon trong installer ngắn hạn. Giữ fail-fast khi download/kiểm tra binary lỗi, không nuốt exit 139.
+
+
+## Giới hạn RAM AI 4.5 GiB (2026-11-03)
+AI Service có giới hạn 4.5 GiB (4608 MiB), thay 2300 MiB, theo yêu cầu sau OOM run 20261103_012405. Đây là giới hạn container, không phải RAM được giữ riêng. Không sửa trực tiếp production.

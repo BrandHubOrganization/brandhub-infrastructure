@@ -59,3 +59,30 @@ Thêm crawlfb.proxy_runtime dùng chung để lấy proxy KiotProxy, kiểm tra 
 Dùng store RAM có lock, version/revision và deepcopy trong AI process. Truyền snapshot session qua stdin pipe tới preflight, runner và CLI con; marker memory:facebook/threads dùng storage_state dict, không lưu cookie khi đóng browser. Scheduler gọi API hiện có để dùng chung RAM. Probe cũng dùng stdin. Legacy cookie API chuyển cùng RAM; không backup/restore Redis/file. UI mở session upload độc lập kho khóa, ghi rõ restart cần nạp lại. Một API worker sở hữu RAM (entrypoint hiện tại một worker).
 
 Session RAM thay thế các yêu cầu file khóa/working-copy session ở phần thiết kế trước. Overlay crawler-management.compose.yaml không còn cần mount key; chỉ thêm crawler-connections.compose.yaml nếu muốn quản lý proxy/TikTok mã hóa qua UI. Các file/ciphertext session cũ không được đọc/phục hồi tự động; không tự xóa dữ liệu deployment cũ. Không tăng số API worker: RAM chỉ thuộc API process hiện tại. Sau rollout/restart admin nạp lại session.
+
+## Deploy disk guard (2026-11-02)
+Thêm scripts/prepare_deploy_disk.py: mặc định dry-run, chọn image đúng repository và không có tag thuộc repo khác; bảo vệ toàn bộ container đang chạy/đã dừng, target và image unused mới nhất. Apply bỏ từng tag bằng docker image rm không force, kiểm tra lại container trước khi xóa. Workflow nhúng script base64 qua SSM trước backup/sửa compose, kiểm tra tối thiểu 6 GiB và inode. Không tự dọn production ngoài CI/CD.
+
+## Sửa quyền volume và chẩn đoán rollback (2026-11-02)
+Thêm scripts.prepare_crawler_volume chạy một lần bằng root trong container compose --rm --no-deps với image mới đã pull. Lấy UID/GID appuser từ image, tạo control/output và chown/chmod cây crawler giới hạn; reject symlink/hardlink/path ngoài base. API/scheduler vẫn chạy appuser. Thêm scripts.capture_deploy_failure chỉ in trạng thái/health và các dòng startup/error đã redaction, không in Env; gọi trước rollback và không để lỗi capture cản rollback.
+
+## Retention khi rollout thất bại (2026-11-02)
+Trong candidates(), xác định mốc Created mới nhất của image thuộc repo đang được container tham chiếu. Chỉ chọn bản dự phòng từ image unused có Created <= mốc đó; các image unused mới hơn vẫn là ứng viên cleanup. Mọi container/target/foreign tags tiếp tục được bảo vệ và recheck trước remove không force. Nếu chưa có container tham chiếu repo thì giữ retention mặc định cho initial deployment.
+
+
+## Rút gọn run trên overview (2026-11-02)
+AdminTrendPipelineControl managed chọn active hoặc history mới nhất theo startedAt, không phụ thuộc thứ tự API. Panel hiển thị banner khi có run bất kỳ. Không sửa API hay tab lịch sử.
+
+
+## Thư mục worker có quyền ghi (2026-11-03)
+Đổi default local thành data/crawler/trend_runs; Docker và EC2 Compose dùng TREND_RUN_DIR=/app/data/crawler/trend_runs. Workflow set environment override trước init/recreate để env_file cũ không trỏ về data/trend_runs. Init tạo thư mục với UID/GID appuser trong phạm vi crawler.
+
+
+## Cài browser ổn định trong build (2026-11-03)
+Installer riêng gọi ensure_binary(browser_version=get_chromium_version()) để dùng nhánh pinned không tạo background update threads; Docker chạy installer rồi info --quick với faulthandler. Giữ layer browser trước COPY source để bảo toàn cache.
+
+Runtime ENV đặt sau dependency layer; data/crawler/ bị loại khỏi build context để không đưa dữ liệu run local vào image.
+
+
+## Giới hạn RAM AI 4.5 GiB (2026-11-03)
+Đặt ai-service.mem_limit=4608m trong EC2 Compose và overlay crawler. Workflow AI cập nhật mem_limit cùng image/TREND_RUN_DIR trước recreate, có sẵn backup/rollback compose. Không thay limit service khác, không đổi Docker image/browser code.
