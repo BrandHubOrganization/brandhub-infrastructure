@@ -104,7 +104,24 @@ Khung 412x915, stack e2e riêng dựng lại từ schema và seed của dự án
 | Chân email hàng loạt theo `working_language` | Đạt | `en`, `vi` đúng ngôn ngữ, rỗng nhận cả hai. Đọc từ `admin_email_outbox`, chưa gửi email thật |
 | Mất clip khi tắt app sau khi dừng quay | Đạt test tự động | Chưa thử trên máy thật: ghi vào `filePath` riêng và tắt app thật |
 
+## Lượt quét thêm (2026-11-03)
+| Mục | Kết quả | Ghi chú |
+|---|---|---|
+| Manager, Creator, Client, Admin: sáng + tiếng Việt | Đạt | Quét các màn trong menu và tối đa 2 màn con mỗi màn. 503 ở Tạo Video AI là do stack test không chạy dịch vụ AI |
+| Bộ lọc loại Task | Đạt | Bỏ `VIDEO` backend không nhận (400), thêm `EVENT_PLAN`, `PRESS_RECOMMENDATION` |
+| Admin có Cài đặt | Đạt | Đổi giao diện, Cài đặt tài khoản, Bảo mật mở được. Ngôn ngữ chưa đổi thử trong lượt này |
+| Owner xem Task | Đạt | Trước đây lỗi 403 làm Owner không mở được chi tiết Task. Giờ chỉ xem, ẩn bình luận và lịch sử duyệt |
+| Owner với trình soạn thảo và mời Workspace | Đạt trên mobile | Ẩn vì API từ chối. Phần web mới có test tự động cho route, chưa mở trên trình duyệt |
+| Email OTP, đặt lại mật khẩu, mời Agency, mời Workspace, kích hoạt | Đạt qua Mailpit | Có `working_language` thì một ngôn ngữ, không có thì hai ngôn ngữ. Mã và link có đủ ở cả hai phần. SMTP cục bộ, chưa gửi email thật |
+
 ## Test backend bản build sạch
 Biên dịch `clean` trên bản sao, bật test DB bằng `ADMIN_TEST_DB_URL`: 1454 test, 12 lỗi, 42 skip. Cả 12 lỗi đều có trên code gốc khi chạy cùng DB: `AiCreditDatabaseTest` 6, `AiVideoDatabaseTest` 5, `AdminFinanceDatabaseTest` 1.
 
 Kết quả cũ "1454 test, 0 lỗi, 80 skip" của lượt sửa email và PDF không dùng được: Maven khi đó không biên dịch lại vì `target/classes` đã bị tiện ích Java của IDE ghi đè. Cần chạy `mvn clean` trước khi tin kết quả test.
+
+## Sửa test DB (nhánh `fix/backend-db-tests` của backend)
+12 test lỗi đều do test cũ, không có lỗi thật về tiền hay credit. Fixture AI Credit dùng đồng hồ thật của DB trong khi service dùng đồng hồ cố định, nên hỏng từ khi qua ngày 2026-10-31. Test báo cáo doanh thu tạo giao dịch kiểu cũ, trong khi báo cáo chỉ tính biên lai SePay đã xác minh.
+
+Kết quả build sạch: 1439 test, 0 lỗi, 42 skip.
+
+Trong nhóm skip, `MailStorePostgresTest` và `UserOAuthProviderRepositoryTest` đạt khi bật riêng. Các test còn lại chưa chạy được vì ghi cứng môi trường (cổng và tên DB như `55438/partner_test`, `55439/package_test`, replica set `taskWorkflowTest`) hoặc cần migration Mongo riêng. `*AtlasInventoryTest` đọc Atlas thật và `PaymentApiTest` cần cả hệ thống thanh toán nên không bật.
