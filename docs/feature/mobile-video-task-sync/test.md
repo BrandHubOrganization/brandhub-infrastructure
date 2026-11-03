@@ -140,3 +140,15 @@ Owner thật là chủ agency nhưng không là thành viên workspace (`myRole=
 | Quét màn con, sáng + tiếng Việt, khổ 412px | Đạt | Manager 16 menu, Owner 14, Creator 9, Client 9, Admin 9, tối đa 6 màn con mỗi menu. Script kiểm tra chữ tiếng Anh, độ tương phản, tràn ngang, thông báo lỗi và request lỗi |
 
 Giới hạn của lượt quét: dữ liệu seed không có Task nên chỉ dùng 1 Task tạo tay. Script bỏ qua nút có tác động như xoá, duyệt, gửi. Nhiều menu không có màn con để mở. Các tab Dashboard, Task, Lịch, Chat không nằm trong lượt này.
+
+## Sau khi merge `develop` có DA-996
+Merge vào web và backend, xung đột 1 chỗ phần import ở `TaskWorkflowContent.tsx`. Phát hiện `WorkspaceTaskReader` bản mới từ chối `IN_REVIEW` và `FINISHED`, làm hỏng bộ lọc trên web và mobile; đã sửa cùng phân trang sai và 2 mục sidebar `/publish`.
+
+| Mục | Kết quả |
+| --- | --- |
+| Backend, ghép thêm `fix/backend-db-tests`, build sạch | 1467 test, 0 lỗi, 42 skip |
+| Web | 104/104, `tsc` sạch |
+| Mobile | 295/295, `tsc` sạch |
+| Web, lọc Chờ duyệt, Hoàn thành, Cần làm | Đạt, gồm cả Task cũ `MANAGER_REVIEW`, `COMPLETED` |
+| Expo Web, tab Pending review | Đạt |
+| Survey trên web, Manager | Thẻ khảo sát và màn soạn mở được. Chưa thử xuất bản, trang công khai, Google Sheets |
