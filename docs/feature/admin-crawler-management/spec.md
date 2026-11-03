@@ -104,3 +104,7 @@ Retention không chọn image unused mới hơn bản đang được container s
 
 ## Tổng quan chỉ hiển thị lần chạy gần nhất (2026-11-02)
 Tab overview hiển thị tối đa một run: run đang chạy nếu có, nếu không chọn history có startedAt mới nhất, kể cả completed/failed/interrupted. Các run khác xem ở tab lịch sử. Giữ recovery cho run gần nhất bị gián đoạn. Không thêm text/i18n key; giữ theme light/dark và điều hướng bàn phím hiện có.
+
+
+## Thư mục worker có quyền ghi (2026-11-03)
+Worker lưu batch/label-check vào /app/data/crawler/trend_runs, trong volume có quyền appuser. Không đổi owner toàn /app/data. Giữ dữ liệu cũ; không tự replay DLQ hoặc dừng run production.

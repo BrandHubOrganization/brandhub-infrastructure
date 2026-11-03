@@ -76,3 +76,9 @@ Kết quả: 16 test disk/volume/diagnostics đạt, flake8 đạt. Production d
 Nhiều history không theo thứ tự: chỉ run startedAt mới nhất hiện. Active ưu tiên hơn history. Khi latest completed/failed vẫn hiện; latest interrupted giữ recovery. Không có run thì ẩn banner. Tab lịch sử giữ mọi run. Kiểm tra vi/en, light/dark, mobile và keyboard với fixture, không chạy crawler thật.
 
 Kết quả: npm run ci pass (188 warning có sẵn, 0 error); Playwright fixture vi/en pass cho active, completed, failed, interrupted, lịch sử đầy đủ và empty; screenshot light/dark/mobile đã kiểm tra.
+
+
+## Thư mục worker có quyền ghi (2026-11-03)
+Kiểm tra volume /app/data root:root 0755: trước init UID1000 không ghi được; sau init ghi atomic batch JSON và label_check.state tại crawler/trend_runs. Parent/ngoài crawler giữ nguyên owner/dữ liệu. Kiểm tra workflow áp TREND_RUN_DIR trước init/up, YAML/Compose hợp lệ, unit aggregation/label check pass.
+
+Kết quả dev: flake8 pass; 18 unit tests pass; parse workflow YAML/Compose JSON và thực thi lệnh cập nhật Compose trên fixture pass, environment khác giữ nguyên. Smoke Docker chưa chạy được do Docker daemon local tắt. Chưa đổi production hay replay run cũ.

@@ -61,3 +61,10 @@
 - [x] Chỉ render run gần nhất trong managed control, bao gồm run đã kết thúc.
 - [x] Hiện banner khi có history; giữ tab lịch sử đầy đủ.
 - [x] Kiểm tra build và UI nhiều run, active, completed, interrupted, empty, mobile/light/dark.
+
+
+## Thư mục worker có quyền ghi (2026-11-03)
+- [x] Đồng bộ config, Dockerfile, env example, compose và workflow.
+- [x] Init quyền thư mục worker trong volume; regression paths/init.
+- [x] Unit tests lưu batch/aggregation/label-check và init volume: 18 passed.
+- [ ] Smoke Docker UID1000 ghi batch trên volume giả root-owned: chưa chạy được vì Docker local không hoạt động.

@@ -72,3 +72,7 @@ Trong candidates(), xác định mốc Created mới nhất của image thuộc 
 
 ## Rút gọn run trên overview (2026-11-02)
 AdminTrendPipelineControl managed chọn active hoặc history mới nhất theo startedAt, không phụ thuộc thứ tự API. Panel hiển thị banner khi có run bất kỳ. Không sửa API hay tab lịch sử.
+
+
+## Thư mục worker có quyền ghi (2026-11-03)
+Đổi default local thành data/crawler/trend_runs; Docker và EC2 Compose dùng TREND_RUN_DIR=/app/data/crawler/trend_runs. Workflow set environment override trước init/recreate để env_file cũ không trỏ về data/trend_runs. Init tạo thư mục với UID/GID appuser trong phạm vi crawler.

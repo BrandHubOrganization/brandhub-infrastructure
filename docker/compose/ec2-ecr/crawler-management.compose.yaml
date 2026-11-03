@@ -6,6 +6,7 @@ services:
     environment:
       CRAWLER_STATE_DIR: /app/data/crawler/control
       CRAWLER_OUTPUT_DIR: /app/data/crawler/output
+      TREND_RUN_DIR: /app/data/crawler/trend_runs
       CRAWLER_WORK_DIR: /dev/shm/crawler
       CRAWLER_SCHEDULER_ENABLED: "true"
     shm_size: 256mb

@@ -2,6 +2,9 @@
   "name": "brandhub-service",
   "services": {
     "ai-service": {
+      "environment": {
+        "TREND_RUN_DIR": "/app/data/crawler/trend_runs"
+      },
       "restart": "unless-stopped",
       "container_name": "brandhub-ai-service",
       "command": null,
