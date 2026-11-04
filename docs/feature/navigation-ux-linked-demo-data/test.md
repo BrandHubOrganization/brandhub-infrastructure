@@ -77,4 +77,6 @@ Bấm thật trên Android emulator, data local:
 
 Bấm thật trên web, Chrome 1280px: quick login đủ 5 vai, mỗi mục sidebar của từng vai, breadcrumb, VI/EN, sáng/tối.
 
-Lỗi trang trend và crawl là do AI service không chạy, chưa kiểm tra được. Chưa test: iOS, web ở màn hẹp.
+Lỗi trang trend và crawl là do AI service không chạy, chưa kiểm tra được. Chưa test: iOS.
+
+Web 390px: 10 trang của vai `Manager` không tràn ngang; nút trên header cao 32dp. Dashboard Workspace 1280px hiện biểu đồ và danh sách từ Task thật. Grant `DEV_SEED` không có dòng sổ cái, nên bộ đối soát local sẽ báo lệch cho các agency demo.
