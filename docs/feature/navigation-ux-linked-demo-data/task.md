@@ -75,5 +75,7 @@
 - [x] Đăng xuất có xác nhận; bỏ nút đăng xuất ở màn Bảo mật
 - [x] Hàng đợi kiểm duyệt và các danh sách khác tự tải lại khi quay về từ màn chi tiết
 - [x] Web: breadcrumb không còn slug thô; Dashboard không còn mã thô; tiếng Anh không còn chuỗi cứng; ngôn ngữ giữ sau khi tải lại; `Creator` không còn lỗi chiến dịch
-- [ ] Web: Dashboard Workspace vẫn dùng data mẫu cho biểu đồ và hoạt động gần đây
-- [ ] Ví credit demo chưa `VERIFIED`, API số dư trả 409 cho Workspace TH True Milk
+- [x] Web: Dashboard Workspace dùng data Task thật, đã xoá data mẫu
+- [x] Seed thêm grant `DEV_SEED` 5000 credit cho các agency demo, API số dư trả đúng
+- [x] Dời lịch: lỗi quyền không còn bị nuốt, chỉ 404 mới chuyển sang luồng Task
+- [ ] Web: trang `/dashboard` chung vẫn có biểu đồ mẫu vì chưa có API
