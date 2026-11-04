@@ -36,6 +36,16 @@
 - [ ] Xác nhận trên máy thật: mức dB khi có tiếng, micro USB và Bluetooth có được ghi vào file không
 - [ ] Giai đoạn sau: focus peaking, chọn thủ công micro ghi, đồng hồ âm thanh trên iOS
 
+## Quay và tải lên bền hơn (2026-11-04)
+- [x] Backend: phiên tải theo phần, ký từng phần, ghép khi confirm, dọn upload bỏ dở, giới hạn 4 GiB
+- [x] Giữ màn hình sáng, dừng và lưu khi ra nền, giữ phần đã quay khi có lỗi
+- [x] Nút "Dùng take này", tự tạo nháp
+- [x] Bitrate theo chất lượng, cảnh báo gần 4 GB
+- [x] Tự thử lại theo thời gian, hàng đợi theo tài khoản, không sao chép take lần hai
+- [x] Android foreground service có thông báo tiến độ
+- [ ] Chạy thử trên emulator: thông báo tiến độ, tải tiếp khi ra nền, "Dùng take này"
+- [ ] Xác nhận trên iPhone (cần bản build iOS)
+
 ## Kiểm chứng
 - [x] Test tự động 3 repo
 - [x] Luồng API thật trên Docker riêng (test.md mục B)

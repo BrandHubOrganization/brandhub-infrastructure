@@ -30,11 +30,20 @@ Nền tảng: `docs/mobile/features/g2-creator-upload`.
 17. Khu take trên mobile mở xem được từng tệp, đặt tên theo cảnh và take, bỏ được tệp khỏi bài ngay tại chỗ, phân biệt lỗi tải với chưa có tệp.
 18. Android: đồng hồ âm thanh đọc mức thu thật theo dB; danh sách micro đang kết nối và micro hệ thống đang thu. Không có nút chọn micro vì không có tác dụng thật.
 19. Công cụ đo sáng histogram và zebra đọc từ khung hình thật, chỉ chạy khi bật. Zebra đánh dấu vùng cháy sáng theo ô.
+20. Màn quay giữ màn hình sáng. App ra nền khi đang quay thì dừng và lưu clip. Lỗi giữa lúc quay thì giữ phần đã quay nếu file phát được; không phát được mới bỏ và báo lỗi.
+21. Quay xong có nút "Dùng take này" trên Task loại POST: take vào bài nháp ngay khi tải xong, tự tạo nháp nếu chưa có. Không tự gửi duyệt.
+22. Video vào Task tối đa 4 GB. Bitrate có giới hạn theo chất lượng; gần 4 GB thì cảnh báo, không tự dừng.
+23. Video lớn tải theo phần: rớt mạng hoặc tắt app thì chỉ gửi lại phần còn thiếu. Lỗi server tự thử lại theo thời gian. Có tiến triển thì không tính vào giới hạn 5 lần thử.
+24. Android: tải tiếp khi app ra nền, có thông báo tiến độ. iOS: tệp đến 1 GB tải tiếp khi app bị treo, bước xác nhận chạy khi quay lại app; tệp lớn hơn chỉ tải tiếp phần đang gửi.
+25. Hàng đợi theo từng tài khoản: đăng xuất thì dừng, người đăng nhập sau không thấy và không tải tệp của người trước. Tệp vẫn nằm trên máy đến khi chủ tệp đăng nhập lại.
 
 ## API contract
 - `GET /workspaces/{id}/materials?taskId=`: lọc theo task. Client vẫn chỉ thấy `CLIENT` visibility.
 - `POST .../materials/upload-session`: TASK nhận thêm ảnh; `clientRequestId` làm khóa idempotent; TTL 3600s.
 - `POST /workspaces/{id}/tasks/{taskId}/post`: đã có, dùng để thêm `media[].materialId`. Response trả lại `media[].materialId`.
+- `POST .../materials/upload-session/multipart`: video Task đến 4 GiB; body như `upload-session`; trả `sessionId`, `s3Key`, `partSize`, `expiresAt`. TTL 24 giờ. Google Drive của khách trả `STORAGE_PROVIDER_UNSUPPORTED`, app quay về một PUT (giới hạn 1 GiB).
+- `POST .../materials/upload-session/{sessionId}/parts`: trả tối đa 8 phần còn thiếu (`partNumber`, `offset`, `size`, `url`) và `uploadedBytes`. Danh sách rỗng là đủ phần. App không cần giữ ETag.
+- `POST .../materials/upload-session/confirm`: giữ nguyên; tự ghép các phần trước khi kiểm tra tệp, gọi lại được sau khi mất response.
 
 ## Error handling
 | Mã | Xử lý trên mobile |
@@ -62,4 +71,4 @@ Web dùng token theme sẵn có. Các màn của luồng này dùng palette theo
 Test tự động pass ở cả 3 repo; luồng API thật pass trên môi trường Docker riêng; checklist thiết bị trong `test.md` do người dùng xác nhận.
 
 ## Out of scope
-Upload khi app ở nền; FPS/shutter ngoài khả năng phần cứng; kính lọc ND. Để giai đoạn sau: focus peaking; chọn thủ công micro ghi (VisionCamera không có API, cần thu âm riêng rồi ghép); đồng hồ âm thanh trên iOS.
+FPS/shutter ngoài khả năng phần cứng; kính lọc ND; tải tiếp sau khi người dùng tắt hẳn app (mở lại app mới chạy tiếp). Để giai đoạn sau: focus peaking; chọn thủ công micro ghi (VisionCamera không có API, cần thu âm riêng rồi ghép); đồng hồ âm thanh trên iOS.

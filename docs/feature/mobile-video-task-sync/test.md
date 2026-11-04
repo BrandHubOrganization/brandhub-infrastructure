@@ -153,6 +153,18 @@ Merge vào web và backend, xung đột 1 chỗ phần import ở `TaskWorkflowC
 | Expo Web, tab Pending review | Đạt |
 | Survey trên web, Manager | Thẻ khảo sát và màn soạn mở được. Chưa thử xuất bản, trang công khai, Google Sheets |
 
+## Quay và tải lên bền hơn (2026-11-04)
+| Mục | Kết quả | Ghi chú |
+| --- | --- | --- |
+| Backend, build sạch | 1479 test, 0 lỗi, 82 skip | Không bật test DB |
+| Mobile | 312/312, `tsc` sạch | Service và màn quay chạy với mock |
+| Tải theo phần trên server S3 thật | Đạt | RustFS qua `S3_TEST_ENDPOINT`: ký URL, gửi lại phần, ghép, copy, huỷ. Chưa thử trên AWS S3. Chưa chạy luồng API đủ Postgres và Mongo |
+| Biên dịch Kotlin, gộp manifest Android | Đạt | Chưa build APK, chưa chạy trên emulator |
+| Thông báo tiến độ, tải tiếp khi ra nền, giữ màn hình sáng, dừng khi ra nền, "Dùng take này" | Chưa chạy trên thiết bị | Cần emulator hoặc máy thật |
+| iOS | Chưa build | Cần Mac hoặc EAS Build |
+
+Cần thử trên máy thật: để màn quay quá thời gian khoá màn hình; bấm Home khi đang quay; có cuộc gọi đến khi đang quay; clip trên 1 GB trên iPhone và tắt mạng giữa chừng.
+
 ## Sửa Survey sau khi kiểm tra DA-996
 - API công khai kiểm tra câu trả lời theo câu hỏi của khảo sát, giới hạn 5000 ký tự mỗi câu trả lời văn bản và 60 lần gửi mỗi phút theo IP cho từng khảo sát.
 - Chỉ Manager và Creator lưu được khảo sát. Owner và Client chỉ xem câu trả lời.
