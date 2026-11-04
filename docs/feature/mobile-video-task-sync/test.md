@@ -152,3 +152,12 @@ Merge vào web và backend, xung đột 1 chỗ phần import ở `TaskWorkflowC
 | Web, lọc Chờ duyệt, Hoàn thành, Cần làm | Đạt, gồm cả Task cũ `MANAGER_REVIEW`, `COMPLETED` |
 | Expo Web, tab Pending review | Đạt |
 | Survey trên web, Manager | Thẻ khảo sát và màn soạn mở được. Chưa thử xuất bản, trang công khai, Google Sheets |
+
+## Sửa Survey sau khi kiểm tra DA-996
+- API công khai kiểm tra câu trả lời theo câu hỏi của khảo sát, giới hạn 5000 ký tự mỗi câu trả lời văn bản và 60 lần gửi mỗi phút theo IP cho từng khảo sát.
+- Chỉ Manager và Creator lưu được khảo sát. Owner và Client chỉ xem câu trả lời.
+- Mobile thay cảnh báo đỏ bằng lời nhắc mở khảo sát trên web.
+
+Kết quả test tự động: backend ghép thêm `fix/backend-db-tests` đạt 1472 test, 0 lỗi, 80 skip (Docker tắt nên không có DB test); web 104/104; mobile 295/295.
+
+Chưa kiểm tra trên trình duyệt vì Docker tắt: màn xem của Owner và Client, API thật với dữ liệu sai và gửi dồn dập, lời nhắc Survey trên mobile.
