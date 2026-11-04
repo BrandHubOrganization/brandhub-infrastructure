@@ -22,7 +22,7 @@ tôi muốn xem Task theo dạng lịch,
 ## 3. Acceptance Criteria
 
 - Hiển thị Task theo `dueDate` trên lưới calendar (tháng/tuần/ngày).
-- Kéo thả 1 Task sang ngày khác → cập nhật `dueDate` ngay (chỉ Manager/Creator được kéo, Client chỉ xem).
+- Kéo thả 1 Task sang ngày khác → cập nhật `dueDate` ngay (chỉ Manager được kéo, Creator và Client chỉ xem; chốt 2026-11-04).
 
 ## 4. UI / UX
 
@@ -41,7 +41,7 @@ PATCH /api/v1/workspaces/{id}/tasks/{taskId}/reschedule
 
 ## 6. Error Handling
 
-- Client cố kéo thả đổi ngày → 403 `FORBIDDEN` (chỉ Manager/Creator được sửa dueDate).
+- Creator hoặc Client cố kéo thả đổi ngày → 403 `FORBIDDEN` (chỉ Manager được sửa dueDate).
 
 ## 7. Edge Cases
 
@@ -49,7 +49,7 @@ PATCH /api/v1/workspaces/{id}/tasks/{taskId}/reschedule
 
 ## 8. Definition of Done
 
-- Calendar hiển thị đúng, kéo thả cập nhật deadline hoạt động cho Manager/Creator.
+- Calendar hiển thị đúng, kéo thả cập nhật deadline hoạt động cho Manager.
 
 ## Out of Scope
 

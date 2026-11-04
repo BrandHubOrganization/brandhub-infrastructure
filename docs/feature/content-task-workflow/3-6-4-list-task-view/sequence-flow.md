@@ -24,7 +24,7 @@
 10. tasklistpageui --> creatorclientmanager: `Render task table with columns & Pagination controls`
 11. taskserviceimpl --> taskcontroller: `return emptyPagedResult`
 12. taskcontroller --> tasklistpageui: `return 200 OK (Empty task list, zero pagination)`
-13. tasklistpageui --> creatorclientmanager: `Display Empty State with CTA ("Create first Campaign or Content Request")`
+13. tasklistpageui --> creatorclientmanager: `Display Empty State (CTA "Create first Campaign" for Manager, "Create Content Request" for Client; no CTA for Creator)`
 
 ---
 

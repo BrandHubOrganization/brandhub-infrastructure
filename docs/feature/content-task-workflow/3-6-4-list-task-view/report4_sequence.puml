@@ -44,7 +44,7 @@ else Empty Workspace (No tasks found)
   deactivate taskserviceimpl
   taskcontroller --> tasklistpageui: return 200 OK (Empty task list, zero pagination)
   deactivate taskcontroller
-  tasklistpageui --> creatorclientmanager: Display Empty State with CTA ("Create first Campaign or Content Request")
+  tasklistpageui --> creatorclientmanager: Display Empty State (CTA "Create first Campaign" for Manager, "Create Content Request" for Client; no CTA for Creator)
   deactivate tasklistpageui
 end
 

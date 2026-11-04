@@ -790,7 +790,7 @@
 | Task ID                                                             | Description                                                                                          | Assignee       | Priority    |
 | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------- | ----------- |
 | [DA-E29-01](#da-e29-01-implement-put-apiv1content-requestsidassign) | Implement PUT /api/v1/content-requests/{id}/assign (MANAGER assigns task to CREATOR) | Trung (Leader) | 🔴 Critical |
-| [DA-E29-02](#da-e29-02-implement-get-apiv1content-requestsmy-tasks) | Implement GET /api/v1/content-requests/my-tasks (CREATOR views their assigned tasks)         | Trung (Leader) | 🔴 Critical |
+| [DA-E29-02](#da-e29-02-implement-get-apiv1content-requestsmy-tasks) | Implement GET /api/v1/content-requests/my-tasks (superseded 2026-11-04: CREATOR has no Content Request access and sees assigned work in the Task list)         | Trung (Leader) | 🔴 Critical |
 | [DA-E29-03](#da-e29-03-implement-deadline-alert-notification)       | Implement deadline management (alert when a task is approaching its deadline)                        | Ân (AI)        | 🟡 High     |
 
 ### EPIC E30 — Media Package & Campaign _(re-scope V2, 2026-09-15 — cũ: "Content Calendar & Scheduling", nay chứa DA-E50-xx)_
@@ -11106,6 +11106,8 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Assignee:** Trung (Leader) | **Priority:** 🔴 Critical
 
+> Superseded 2026-11-04: a Content Request is never assigned to a CREATOR. Accepting it creates a Task, and the Task is what gets assigned.
+
 **Goal:** Allow MANAGER to assign a content request to a CREATOR and transition status to ASSIGNED.
 
 **Acceptance Criteria:**
@@ -11834,7 +11836,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Assignee:** Lộc (AI Sub-lead) | **Priority:** 🔴 Critical
 
-**Goal:** Provide MANAGER and CREATOR with a filterable, paginated view of all content requests relevant to their role.
+**Goal:** Provide MANAGER with a filterable, paginated view of all content requests. CREATOR has no access (confirmed 2026-11-04).
 
 **Acceptance Criteria:**
 
@@ -11842,7 +11844,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] Filter bar: status multi-select, platform multi-select, deadline date range picker
 - [ ] Pagination: 20 rows per page, page controls at bottom
 - [ ] MANAGER sees "Assign" button per row; clicking opens an assignee picker modal
-- [ ] CREATOR sees "View My Tasks" tab that calls GET /api/v1/content-requests/my-tasks
+- [ ] CREATOR cannot open this page; assigned work is in the Task list
 - [ ] Clicking any row navigates to Content Editor page for that request
 
 **Technical Notes:**
