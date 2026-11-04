@@ -1,3 +1,57 @@
+# Test Specification — FR 3.5.3: Request Media Package
+
+## 1. Traceability & Execution Summary
+
+| Field | Value |
+| :--- | :--- |
+| **FR ID** | `FR 3.5.3` |
+| **Function Name** | Request Media Package |
+| **Functional Domain** | Media Package |
+| **Canonical Actors / Roles** | `Owner, Manager, Client` |
+| **Target Class & Method** | `MediaPackageServiceImpl.negotiateTerms()` (55 LOC) |
+| **Unit Test File** | `brandhub-business-service/src/test/java/com/brandhub/business/service/MediaPackageServiceImplTest.java` |
+| **Code & Test Author** | Lộc |
+| **Test Requirement** | Select or negotiate adjustments to a workspace media package between Client and Agency (Owner/Manager) |
+| **Preconditions** | Can connect with server; Caller is Client, Owner, or Manager in workspace |
+| **Overall Status** | **Passed (100%)** |
+| **Test Case Breakdown** | **Total: 18** (`Passed`: 18, `Failed`: 0, `Untested`: 0) — `Normal (N)`: 9, `Boundary (B)`: 3, `Abnormal (A)`: 6 |
+
+---
+
+## 2. Unit Test Case Matrix (`UTCID01`–`UTCID18`)
+
+| Test Case ID | Type | Preconditions | Test Inputs | Expected Return / Exception | Log Message | Status |
+| :--- | :---: | :--- | :--- | :--- | :--- | :---: |
+| `UTCID01` | `N` | Can connect with server; Workspace exists; Workspace has selected package; User is CLIENT of workspace; Status DRAFT | `workspaceId` = `existing workspace`, `budgetAmount` = `7000.00` | status=CLIENT_REQUESTED_CHANGE, termsVersion+1, approvedByClientAt set, agency approval null | — | **Passed** |
+| `UTCID02` | `N` | Can connect with server; Workspace exists; Workspace has selected package; User is MANAGER of workspace; Status CLIENT_REQUESTED_CHANGE | `workspaceId` = `existing workspace`, `durationWeeks` = `6` | status=AGENCY_COUNTERED, approvedByAgencyAt set, client approval null | — | **Passed** |
+| `UTCID03` | `N` | Can connect with server; Workspace exists; Workspace has selected package; Status CLIENT_REQUESTED_CHANGE; User is OWNER of agency | `workspaceId` = `existing workspace`, `scopeDescription` = `New scope` | status=AGENCY_COUNTERED, scopeDescription updated | — | **Passed** |
+| `UTCID04` | `N` | Can connect with server; Workspace exists; Workspace has selected package; User is CLIENT of workspace; Status AGENCY_COUNTERED | `workspaceId` = `existing workspace`, `budgetAmount` = `6500.00` | status=CLIENT_REQUESTED_CHANGE; agency approval cleared | — | **Passed** |
+| `UTCID05` | `N` | Can connect with server; Workspace exists; Workspace has selected package; User is CLIENT of workspace; Status DRAFT | `workspaceId` = `existing workspace`, `budgetAmount` = `1000`, `durationWeeks` = `4`, `scopeDescription` = `s` | All three term fields updated in finalTerms | — | **Passed** |
+| `UTCID06` | `N` | Can connect with server; Workspace exists; Workspace has selected package; User is CLIENT of workspace; Status DRAFT | `workspaceId` = `existing workspace`, `budgetAmount` = `null`, `durationWeeks` = `null`, `scopeDescription` = `null` | No field changed but termsVersion still +1 | — | **Passed** |
+| `UTCID07` | `N` | Can connect with server; Workspace exists; Workspace has selected package; User is CLIENT of workspace; Multiple negotiation rounds | `workspaceId` = `existing workspace`, `budgetAmount` = `2nd round value` | termsVersion increments each round (2 -> 3) | — | **Passed** |
+| `UTCID08` | `N` | Can connect with server; Workspace exists; Workspace has selected package; User is CLIENT of workspace; Client resolved via clientProfile (not direct member) | `workspaceId` = `existing workspace`, `budgetAmount` = `900` | Role resolved as CLIENT via clientProfile; change accepted | — | **Passed** |
+| `UTCID09` | `N` | Can connect with server; Workspace exists; Workspace has selected package; User is CLIENT of workspace; Only agency approved before | `workspaceId` = `existing workspace`, `durationWeeks` = `3` | Agency approval invalidated (null) | — | **Passed** |
+| `UTCID10` | `B` | Can connect with server; Workspace exists; Workspace has selected package; User is CLIENT of workspace; termsVersion is 1 | `workspaceId` = `existing workspace`, `durationWeeks` = `1` | termsVersion=2 | — | **Passed** |
+| `UTCID11` | `B` | Can connect with server; Workspace exists; Workspace has selected package; User is CLIENT of workspace; finalTerms is corrupt JSON | `workspaceId` = `existing workspace`, `budgetAmount` = `100` | Terms rebuilt from empty object; update succeeds | — | **Passed** |
+| `UTCID12` | `B` | Can connect with server; Workspace exists; Workspace has selected package; User is CLIENT of workspace | `workspaceId` = `existing workspace`, `scopeDescription` = `blank` | scopeDescription stored as null | — | **Passed** |
+| `UTCID13` | `A` | Can connect with server; Workspace exists; Workspace has selected package; User is CLIENT of workspace; Status APPROVED | `workspaceId` = `existing workspace`, `budgetAmount` = `100` | MEDIA_PACKAGE_ALREADY_APPROVED: Media package has already been approved and cannot be renegotiated | — | **Passed** |
+| `UTCID14` | `A` | Can connect with server; Workspace exists; Workspace has selected package; User is MANAGER of workspace; Status APPROVED | `workspaceId` = `existing workspace`, `durationWeeks` = `2` | MEDIA_PACKAGE_ALREADY_APPROVED: Media package has already been approved and cannot be renegotiated | — | **Passed** |
+| `UTCID15` | `A` | Can connect with server; Workspace exists; User is CLIENT of workspace; Workspace has no selected package | `workspaceId` = `existing workspace`, `budgetAmount` = `100` | WORKSPACE_MEDIA_PACKAGE_NOT_FOUND: No media package has been selected for this workspace | — | **Passed** |
+| `UTCID16` | `A` | Can connect with server; Workspace exists; Workspace has selected package; User is not a workspace member | `workspaceId` = `existing workspace`, `budgetAmount` = `100` | WORKSPACE_ACCESS_DENIED: You do not have access to this workspace | — | **Passed** |
+| `UTCID17` | `A` | Can connect with server; Workspace exists; Workspace has selected package; User is member with other role (e.g. VIEWER) | `workspaceId` = `existing workspace`, `budgetAmount` = `100` | FORBIDDEN: Your role does not have permission to perform this action | — | **Passed** |
+| `UTCID18` | `A` | Can connect with server; Workspace exists | `workspaceId` = `non-existent id`, `budgetAmount` = `100` | WORKSPACE_NOT_FOUND: Workspace not found | — | **Passed** |
+
+---
+
+## 3. Synchronization & Verification Notes
+
+- Synchronized 1-to-1 with [`Report5_Unit Test.xls`](../../../../brandhub-final_report/report5/Report5_Unit%20Test.xls) sheet `FR3.5.3`, [`Report5_Test Report.xlsx`](../../../../brandhub-final_report/report5/Report5_Test%20Report.xlsx), and [`Report5_Test Documentation.docx`](../../../../brandhub-final_report/report5/Report5_Test%20Documentation.docx).
+- Role names strictly follow the 6 canonical roles (`Guest`, `Owner`, `Manager`, `Creator`, `Client`, `Admin`).
+
+---
+
+## 4. Feature Acceptance & Integration Verification
+
 # Test - FR 3.5.3
 
 | Case | Expected result |
