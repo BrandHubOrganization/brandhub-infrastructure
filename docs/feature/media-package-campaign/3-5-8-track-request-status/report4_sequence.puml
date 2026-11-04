@@ -13,7 +13,7 @@ entity "ContentRequestRepository" as contentrequestreposi
 control "ContentRequestService" as contentrequestservic
 boundary "ContentRequestPage (UI)" as contentrequestpageui
 boundary "ContentRequestController" as contentrequestcontro
-actor "Mânger" as mnger
+actor "Manager" as mnger
 
 ' === Flow ===
 mnger -> contentrequestpageui: navigates to Content Requests board / list
