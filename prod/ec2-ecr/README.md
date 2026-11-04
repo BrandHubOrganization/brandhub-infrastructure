@@ -1,5 +1,24 @@
 # Two-EC2 deployment with ECR
 
+## Production rebalance (applied 2026-11-03)
+
+The checked-in Compose files describe the deployed topology below. The original deployment inventory further down is historical. See the [migration runbook and verified result](./rebalance-ai.md).
+
+| Host | Containers | AI budget |
+| --- | --- | --- |
+| Backend / gateway, 172.31.27.199 | Nginx, API Gateway, AI API/crawler/consumer | 5 GiB RAM, 1.5 CPUs |
+| Service, 172.31.24.149 | Business, Publisher, PostgreSQL, Redis, RabbitMQ, ChromaDB | AI removed |
+
+AI data and model cache use named volumes on backend. Its runtime env file moves to backend as well. Business calls `http://172.31.27.199:8082`; AI calls Redis, RabbitMQ and ChromaDB at `172.31.24.149`. Ports 8082, 5672 and 8000 bind only to private IPs and are restricted to the corresponding peer security group. Redis reuses the existing private 6379 binding/rule. Host aliases preserve existing `redis`/`rabbitmq`/`chromadb` names in credential-bearing URLs without copying credentials into Compose.
+
+The local, ignored `terraform.tfvars` sets both root disks to 20 GiB: gateway grows from 10 GiB; service stays at its current 20 GiB. Copy this sizing into the environment-specific Terraform inputs when deploying elsewhere. EC2 types remain `m7i-flex.large`.
+
+AI and gateway CI acquire the same host lock, `/var/lock/brandhub-backend-compose.lock`, before modifying the shared backend manifest. GitHub concurrency groups alone do not serialize deployments across repositories. Deploy the workflow changes together with the host migration; leave CI paused until cutover verification finishes.
+
+The 5 GiB limit is an initial budget, not proof that crawl OOM is fixed. AI dependencies, Business connectivity, public HTTPS and an actual browser launch/render/close smoke passed after cutover; the new AI cgroup recorded no OOM or restarts during these checks. Validate an actual bounded crawl after session re-upload. Facebook/Threads sessions are missing, TikTok is not configured, and secret-file storage remains unconfigured; these are separate from the successfully verified service connections.
+
+## Original deployment baseline
+
 Deployment on 2026-10-29 uses immutable ECR tag `deploy-20261029` in account 821014378805, region ap-southeast-1.
 
 | Host | Address | Containers |

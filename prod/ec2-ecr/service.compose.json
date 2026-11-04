@@ -1,55 +1,6 @@
 {
   "name": "brandhub-service",
   "services": {
-    "ai-service": {
-      "restart": "unless-stopped",
-      "container_name": "brandhub-ai-service",
-      "command": null,
-      "entrypoint": null,
-      "networks": {
-        "brandhub-network": null
-      },
-      "depends_on": {
-        "chromadb": {
-          "condition": "service_started",
-          "required": true
-        }
-      },
-      "healthcheck": {
-        "test": [
-          "CMD",
-          "python",
-          "-c",
-          "import urllib.request; urllib.request.urlopen('http://localhost:8082/health')"
-        ],
-        "timeout": "5s",
-        "interval": "15s",
-        "retries": 3,
-        "start_period": "30s"
-      },
-      "logging": {
-        "driver": "json-file",
-        "options": {
-          "max-size": "10m",
-          "max-file": "3"
-        }
-      },
-      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/ai-service:deploy-20261029",
-      "mem_limit": "2300m",
-      "volumes": [
-        {
-          "type": "volume",
-          "source": "ai-data",
-          "target": "/app/data"
-        }
-      ],
-      "env_file": [
-        {
-          "path": "./env/ai-service.env",
-          "required": true
-        }
-      ]
-    },
     "business-service": {
       "restart": "unless-stopped",
       "container_name": "brandhub-business-service",
@@ -89,7 +40,7 @@
           "max-file": "3"
         }
       },
-      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/business-service:deploy-20261029",
+      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/business-service:sha-d9a0bbe-113",
       "mem_limit": "1200m",
       "ports": [
         {
@@ -104,7 +55,10 @@
           "path": "./env/business-service.env",
           "required": true
         }
-      ]
+      ],
+      "environment": {
+        "AI_SERVICE_URL": "http://172.31.27.199:8082"
+      }
     },
     "chromadb": {
       "restart": "unless-stopped",
@@ -145,7 +99,15 @@
           "max-file": "3"
         }
       },
-      "mem_limit": "640m"
+      "mem_limit": "640m",
+      "ports": [
+        {
+          "target": 8000,
+          "published": "8000",
+          "host_ip": "172.31.24.149",
+          "protocol": "tcp"
+        }
+      ]
     },
     "postgres": {
       "restart": "unless-stopped",
@@ -229,7 +191,7 @@
           "max-file": "3"
         }
       },
-      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/publisher-service:deploy-20261029",
+      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/publisher-service:sha-819bf14-32",
       "mem_limit": "640m",
       "ports": [
         {
@@ -287,6 +249,14 @@
         {
           "path": "./env/rabbitmq.env",
           "required": true
+        }
+      ],
+      "ports": [
+        {
+          "target": 5672,
+          "published": "5672",
+          "host_ip": "172.31.24.149",
+          "protocol": "tcp"
         }
       ]
     },
@@ -364,9 +334,6 @@
     },
     "redis-data": {
       "name": "brandhub-redis-data"
-    },
-    "ai-data": {
-      "name": "brandhub-ai-data"
     }
   }
 }

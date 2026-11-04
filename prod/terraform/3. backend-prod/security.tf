@@ -162,3 +162,32 @@ resource "aws_vpc_security_group_egress_rule" "service_all_outbound" {
   cidr_ipv4   = "0.0.0.0/0"
   ip_protocol = "-1"
 }
+
+# Business on service EC2 -> AI API on gateway EC2.
+resource "aws_vpc_security_group_ingress_rule" "ai_from_services" {
+  security_group_id            = aws_security_group.brandhub_core.id
+  description                  = "Internal services access to AI API"
+  referenced_security_group_id = aws_security_group.brandhub_service.id
+  from_port                    = 8082
+  to_port                      = 8082
+  ip_protocol                  = "tcp"
+}
+
+# AI on gateway EC2 -> broker/vector store on service EC2.
+resource "aws_vpc_security_group_ingress_rule" "rabbitmq_from_ai" {
+  security_group_id            = aws_security_group.brandhub_service.id
+  description                  = "AI access to RabbitMQ on service EC2"
+  referenced_security_group_id = aws_security_group.brandhub_core.id
+  from_port                    = 5672
+  to_port                      = 5672
+  ip_protocol                  = "tcp"
+}
+
+resource "aws_vpc_security_group_ingress_rule" "chroma_from_ai" {
+  security_group_id            = aws_security_group.brandhub_service.id
+  description                  = "AI access to ChromaDB on service EC2"
+  referenced_security_group_id = aws_security_group.brandhub_core.id
+  from_port                    = 8000
+  to_port                      = 8000
+  ip_protocol                  = "tcp"
+}
