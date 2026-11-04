@@ -1,0 +1,3 @@
+# Campaign navigation corrections
+
+Package negotiation opens the existing Workspace chat without MEDIA_PACKAGE context. Campaign task navigation and task-created guidance appear only after tasks are actually loaded. Missing deployment before first deploy is an ordinary empty state; unknown campaigns, authorization and genuine errors remain errors. Preserve existing deployment endpoint behavior by default; opt-in optional reads may return null. No DB changes or production writes. Investigate 401 without bypassing authentication. UI uses campaign.ux.awaitingTasks in vi/en, shared controls and theme tokens; verify narrow screens and light/dark.

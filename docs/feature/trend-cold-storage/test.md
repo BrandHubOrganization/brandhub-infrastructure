@@ -1,0 +1,10 @@
+# Verification
+Mocks: matching HeadObject SHA256/size, upload or head failure, changed local file/receipt, path traversal/symlink, ongoing/failed/partial runs, missing finalization/closure/resolution. Keep all files on failure. Existing multi-platform collector regression. Read-only S3 preflight; no real upload/deletion while credentials are invalid. No test/local artifacts committed.
+
+## Result (2026-10-31)
+54 archive/settings checks, 57 native collector regressions and 16 publisher/source-delivery regressions passed with mocks/temporary files. Publisher test now expects a failure exit for an incomplete configured cold backup while verifying Rabbit delivery still occurred; existing source test mocks accept current source-config signature. No new tracked executable tests were added.
+Local .env sets only FB_CRAWLER_S3_BUCKET_NAME=crawler-social; media bucket brandhubmedia is unchanged. .env and local QA stay ignored. Read-only S3 check returned InvalidAccessKeyId, so actual upload/cleanup has not been verified on the deployment and must wait for valid server credentials. No manual production upload/deletion was performed.
+
+## Limits and operation
+Restart AI Service after environment changes. Maintenance runs every five minutes, serializes against the native collector and acts only on completed, non-superseded DB runs with successful/skipped resolution and a published closed local manifest. It preserves partial/failed runs, manifests/receipts, replay data, Threads working files and TikTok media that are not covered by verified raw archives. Feature batches required by the history window retain their existing pruning policy. Cold JSON receipt suffix is .json.cold, so it cannot be mistaken for a new raw .json delivery file.
+S3 uses the existing dd-MM-yyyy/source/source_run.json layout and default readable storage class; no Glacier transition/lifecycle change. Archive bucket permissions need PutObject and GetObject/HeadObject. The separate Replay bucket/prefix still needs alignment with this root layout; global media bucket is deliberately not repointed.

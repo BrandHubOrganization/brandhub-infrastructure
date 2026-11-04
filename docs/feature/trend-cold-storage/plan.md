@@ -1,0 +1,6 @@
+# Plan
+1. Shared stdlib cold-storage helper: deterministic keys, streaming SHA256, verified S3 upload, durable receipt and verified raw-file cleanup. Fixed local output root; reject traversal/symlinks.
+2. Wire upload_s3 to helper, return failure on configured archive failure. Existing per-batch receipts keep Rabbit redelivery idempotent.
+3. AI background maintenance every five minutes when native cold storage configured: read completed run/terminal resolution in Redis; require local closed/published manifest, no running platform, then upload/retry and remove raw JSON only after verified archive. Do not depend on Admin GET to perform deletion. Fail safely, log only error class. Cancel maintenance on shutdown; serialize with OS lock across processes.
+4. Add separate environment example and set local crawler bucket only. Preserve general media settings. Credentials still need successful S3 authorization before enabling actual cold archive/deletion.
+5. Isolated mocks verify upload/head failure keeps files, receipt/hash checks, incomplete processing protects local data, path guards, publish regressions. No production deletion in tests; maintenance helper remains tracked feature code, QA stays ignored.

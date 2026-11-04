@@ -1,0 +1,13 @@
+# Opt-in deployment overlay. Sessions are held in the single API process RAM.
+# Restart/deploy requires an admin to upload sessions again.
+# Optional encrypted proxy/TikTok storage uses crawler-connections.compose.yaml.
+services:
+  ai-service:
+    mem_limit: 4608m
+    environment:
+      CRAWLER_STATE_DIR: /app/data/crawler/control
+      CRAWLER_OUTPUT_DIR: /app/data/crawler/output
+      TREND_RUN_DIR: /app/data/crawler/trend_runs
+      CRAWLER_WORK_DIR: /dev/shm/crawler
+      CRAWLER_SCHEDULER_ENABLED: "true"
+    shm_size: 256mb

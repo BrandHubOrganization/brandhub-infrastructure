@@ -135,6 +135,7 @@
       "cpus": 1.5,
       "cpu_shares": 256,
       "environment": {
+        "TREND_RUN_DIR": "/app/data/crawler/trend_runs",
         "REDIS_HOST": "172.31.24.149",
         "RABBITMQ_HOST": "172.31.24.149",
         "CHROMADB_HOST": "172.31.24.149"

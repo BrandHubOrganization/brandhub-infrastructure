@@ -63,3 +63,57 @@
 6. No Mongo/Postgres migration, init or seeder change. Existing worker DB writes
    remain exactly those of the scheduled flow. Local coordination/log/cache files
    and executable QA stay ignored under keep-local-only, excluded from Docker.
+
+## Interrupted recovery verification
+
+- Reproduce dead crawler, 18 completed batches, no Redis/local closure: INTERRUPTED,
+  not active; keep 450 posts/18 counts, no publication claimed and no provider calls.
+- Missing Facebook cookies blocks new crawling but permits configured recovery;
+  missing interpreter/dependencies, invalid/traversing manifest, missing files or
+  a still-active collector blocks recovery with safe errors and no child launch.
+- Recover original ID using fixed --recover-run only; completed batch markers are
+  retained. Closure marks unvisited sources interrupted and final status partial.
+- Same/opposite-action concurrent requests and separate API workers start at most
+  one child. Double-click/retry and stale/unknown IDs return clear 409/404.
+- Fresh closure/publication wins over interrupted crawler state; an old publication
+  cannot finish a newer recovery attempt. Older attempts do not keep polling active.
+- Existing nonfailed collection/queued/aggregation/resolution behavior stays valid.
+- Admin/internal auth deny before launch; audit accepted recovery once. No browser
+  session, cookies, local paths or raw exceptions are exposed in API responses.
+- Browser mocked recovery while ready=false/session missing: interrupted card is
+  visible without history; keyboard confirm/cancel, pending disable, 409/404/503,
+  refreshed stage/counts and vi/en/light/dark/375px. No native browser confirmation.
+- Run isolated regressions/build/lint; inspect real orphan status read-only only.
+  Do not publish/recover the real run, rerun crawling or call paid AI during QA.
+
+### Results — 2026-10-30
+
+- 36 isolated AI checks passed (existing pipeline plus recovery regressions), using
+  FakeRedis/temp roots/dummy child processes. Native recovery keeps the original
+  pipeline ID and fixed argv. Actual run.py closure code, with publisher mocked,
+  retains all 18 delivered batches and marks unvisited sources interrupted. No
+  forced redelivery, browser crawl or live provider calls. Shared OS lock/race,
+  malformed source/path/symlink, authentication and 404/409/503 cases covered.
+- Business compile and local Mockito harness passed: Admin guards precede upstream
+  calls, invalid IDs denied, original pipeline ID retained, one accepted recovery
+  audit, safe failure mappings and no audit on rejected requests. No DB connection.
+- Web lint/build passed. Real browser with all APIs mocked passed visible interrupted
+  card without history, missing-session recovery, keyboard confirm/cancel, double
+  click, partial result, explicit errors/readiness, vi/en and both themes at
+  375/768/1440. Screenshots inspected; mobile explanation/button stack without
+  horizontal overflow. Expected mocked 404/409/503 console entries only.
+- Read-only check of the existing real run `20261027_145518`: running=null,
+  status/stage=INTERRUPTED, canRecover=true, batchFinished=batchTotal=18.
+  Recovery-only dependencies are present; unused requests/browser requirements
+  do not block recovery. No real closure/recovery/provider execution performed.
+- All new executable QA, logs and screenshots remain ignored in keep-local-only.
+
+### Recovery rollout
+
+Restart Business and AI Service after deploying the changed controllers/services;
+reload Admin > Trends. The interrupted card is visible immediately. Select
+Recover this run, review the confirmation, then explicitly confirm to publish its
+saved closure and resume downstream aggregation. This action can invoke AI providers.
+No Facebook login is required to close saved work; new crawls still require login.
+Existing missing sources remain partial; do not mark the full 11-source run complete.
+No migration, init, seeder, data reset, Redis deletion or schedule change is needed.

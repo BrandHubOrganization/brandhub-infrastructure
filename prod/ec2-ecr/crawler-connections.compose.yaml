@@ -1,0 +1,12 @@
+# Optional: encrypted proxy/TikTok credentials only. Session uploads do not need this.
+services:
+  ai-service:
+    environment:
+      CRAWLER_SECRET_KEY_FILE: /run/secrets/crawler-master.key
+    volumes:
+      - type: bind
+        source: ${CRAWLER_MASTER_KEY_FILE:-./secrets/crawler-master.key}
+        target: /run/secrets/crawler-master.key
+        read_only: true
+        bind:
+          create_host_path: false
