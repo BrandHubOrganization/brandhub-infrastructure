@@ -5,8 +5,8 @@ Test PostgreSQL: 4 catalog, nhiều phiên bản Plus không nhân receipts; VER
 - Frontend type-check PASS, eslint các file sửa PASS, production build PASS (cảnh báo bundle/import có sẵn), diff-check PASS.
 - Maven đã compile production và toàn bộ test Java thành công trước khi Testcontainers khởi tạo.
 - AdminSePayRevenuePostgresTest chưa chạy được assertions: Docker endpoint npipe không khả dụng trong phiên công cụ, suite lỗi beforeAll. Không ghi nhận là test PASS. Fixture kiểm tra VERIFIED/FULFILLED, version catalog không nhân bản, giá order thay giá catalog, filter gói và timezone.
-- Cập nhật test legacy tài chính để chứng minh giao dịch PayOS cũ không đi vào nguồn SePay, và PDF không in khoản legacy. Test môi trường ADMIN_TEST_DB_URL cần schema billing mới, không chỉ schema legacy.
-- Chưa restart Business do tiến trình do Runner đang quản lý. Sau khi chạy lại kiểm thử PostgreSQL thành công, bấm Restart Business trong run-repo; web Vite tự reload. Không cần migration mới, không chỉnh dữ liệu DB. API và UI phải triển khai cùng nhau; UI từ chối contract cũ thay vì hiện NaN hoặc số liệu PayOS nhầm là SePay.
+- Cập nhật test legacy tài chính để chứng minh giao dịch SePay cũ không đi vào nguồn SePay, và PDF không in khoản legacy. Test môi trường ADMIN_TEST_DB_URL cần schema billing mới, không chỉ schema legacy.
+- Chưa restart Business do tiến trình do Runner đang quản lý. Sau khi chạy lại kiểm thử PostgreSQL thành công, bấm Restart Business trong run-repo; web Vite tự reload. Không cần migration mới, không chỉnh dữ liệu DB. API và UI phải triển khai cùng nhau; UI từ chối contract cũ thay vì hiện NaN hoặc số liệu SePay nhầm là SePay.
 - UI dùng đúng catalog/version từ backend; Personal chưa có luồng mua cá nhân thì thu 0; Basic miễn phí thu 0. Không tạo dữ liệu doanh thu mẫu.
 - MRR/ARR chỉ tính agency có kỳ CURRENT ACTIVE READY và khoản trả phí verified, chưa bao gồm Personal chưa triển khai. Refund = 0 có chú thích nghiệp vụ chưa triển khai, không suy đoán từ legacy updated_at.
 - Bộ lọc invoice vẫn độc lập với filter thống kê doanh thu như trước. Không commit/push.

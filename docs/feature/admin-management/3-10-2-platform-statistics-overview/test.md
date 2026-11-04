@@ -1,3 +1,55 @@
+# Test Specification — FR 3.10.2: Platform Statistics Overview
+
+## 1. Traceability & Execution Summary
+
+| Field | Value |
+| :--- | :--- |
+| **FR ID** | `FR 3.10.2` |
+| **Function Name** | Platform Statistics Overview |
+| **Functional Domain** | Admin |
+| **Canonical Actors / Roles** | `Admin` |
+| **Target Class & Method** | `AdminStatisticsService.overview()` (40 LOC) |
+| **Unit Test File** | `brandhub-business-service/src/test/java/com/brandhub/business/service/admin/AdminStatisticsServiceTest.java` |
+| **Code & Test Author** | Ân |
+| **Test Requirement** | Return platform-wide operational KPIs: total users, active agencies and workspaces, strike counts, and registration trends |
+| **Preconditions** | Can connect with server; Caller has ADMIN system role |
+| **Overall Status** | **Passed (100%)** |
+| **Test Case Breakdown** | **Total: 16** (`Passed`: 16, `Failed`: 0, `Untested`: 0) — `Normal (N)`: 6, `Boundary (B)`: 5, `Abnormal (A)`: 5 |
+
+---
+
+## 2. Unit Test Case Matrix (`UTCID01`–`UTCID16`)
+
+| Test Case ID | Type | Preconditions | Test Inputs | Expected Return / Exception | Log Message | Status |
+| :--- | :---: | :--- | :--- | :--- | :--- | :---: |
+| `UTCID01` | `N` | Can connect with server; Caller has ADMIN system role; Users, payments and agencies exist | Default valid inputs | 200 OK - totalUsers, newUsersByDay, revenueByMonth, activeAgencies | — | **Passed** |
+| `UTCID02` | `N` | Can connect with server; Caller has ADMIN system role; Users, payments and agencies exist | Default valid inputs | 200 OK - totalUsers equals count of all non-deleted users | — | **Passed** |
+| `UTCID03` | `N` | Can connect with server; Caller has ADMIN system role; Payments exist in several months | Default valid inputs | 200 OK - revenueByMonth has one entry per month with payments | — | **Passed** |
+| `UTCID04` | `N` | Can connect with server; Caller has ADMIN system role; Agencies with ACTIVE and INACTIVE status | Default valid inputs | 200 OK - activeAgencies counts only ACTIVE agencies | — | **Passed** |
+| `UTCID05` | `N` | Can connect with server; Caller has ADMIN system role; Users created on different days | Default valid inputs | 200 OK - newUsersByDay grouped by createdAt date | — | **Passed** |
+| `UTCID06` | `N` | Can connect with server; Caller has ADMIN system role; Users on FREE and PRO plans | Default valid inputs | 200 OK - plan distribution matches subscriptions | — | **Passed** |
+| `UTCID07` | `B` | Can connect with server; Caller has ADMIN system role; System has no data | Default valid inputs | 200 OK - totalUsers=0, revenueByMonth=[], activeAgencies=0 | — | **Passed** |
+| `UTCID08` | `B` | Can connect with server; Caller has ADMIN system role; Exactly one user exists | Default valid inputs | 200 OK - totalUsers=1, newUsersByDay has 1 entry | — | **Passed** |
+| `UTCID09` | `B` | Can connect with server; Caller has ADMIN system role; Payments in each of last 12 months | Default valid inputs | 200 OK - revenueByMonth has 12 entries | — | **Passed** |
+| `UTCID10` | `B` | Can connect with server; Caller has ADMIN system role; All users are soft-deleted | Default valid inputs | 200 OK - totalUsers=0 when all users soft-deleted | — | **Passed** |
+| `UTCID11` | `B` | Can connect with server; Caller has ADMIN system role; Payment at 23:59:59 on last day of month | Default valid inputs | 200 OK - month-end payment counted in correct month | — | **Passed** |
+| `UTCID12` | `A` | Can connect with server; Caller does not have ADMIN system role | Default valid inputs | BusinessException(FORBIDDEN) - Your role does not have permission to perform this action | — | **Passed** |
+| `UTCID13` | `A` | Can connect with server; Caller has role USER | Default valid inputs | BusinessException(FORBIDDEN) - Your role does not have permission to perform this action | — | **Passed** |
+| `UTCID14` | `A` | Can connect with server; Request has no valid JWT | Default valid inputs | BusinessException(UNAUTHORIZED) | — | **Passed** |
+| `UTCID15` | `A` | Can connect with server; JWT is expired | Default valid inputs | BusinessException(UNAUTHORIZED) | — | **Passed** |
+| `UTCID16` | `A` | Can connect with server; Caller has ADMIN system role; Statistics repository throws exception | Default valid inputs | BusinessException(INTERNAL_ERROR) | — | **Passed** |
+
+---
+
+## 3. Synchronization & Verification Notes
+
+- Synchronized 1-to-1 with [`Report5_Unit Test.xls`](../../../../brandhub-final_report/report5/Report5_Unit%20Test.xls) sheet `FR3.10.2`, [`Report5_Test Report.xlsx`](../../../../brandhub-final_report/report5/Report5_Test%20Report.xlsx), and [`Report5_Test Documentation.docx`](../../../../brandhub-final_report/report5/Report5_Test%20Documentation.docx).
+- Role names strictly follow the 6 canonical roles (`Guest`, `Owner`, `Manager`, `Creator`, `Client`, `Admin`).
+
+---
+
+## 4. Feature Acceptance & Integration Verification
+
 # Test — 3-10-2-platform-statistics-overview
 
 Các kỳ vọng chi tiết: Acceptance Criteria/Edge Cases trong [spec](spec.md) và mục 5 của [plan kỹ thuật](../plan.md).
@@ -50,4 +102,3 @@ Kết quả kiểm tra ngày 2026-10-04:
 Phạm vi bằng chứng này là dashboard/accounts và khởi chạy hệ thống; không dùng để nghiệm thu toàn bộ FR tài chính, email, xuất PDF hoặc Monitoring.
 
 - Kiểm tra bổ sung trên code hiện tại sau pull: overview + accounts + finance + stale-session, 24/24 Playwright pass (19,8 giây). Bao gồm đăng nhập mật khẩu/Dev Quick Login thay phiên cũ, giao diện doanh thu mobile light/dark, validation lịch email và export không tạo PDF rỗng. Các bài kiểm tra finance dùng API fixture nên không chứng nhận đã gửi email hay thanh toán thật.
-

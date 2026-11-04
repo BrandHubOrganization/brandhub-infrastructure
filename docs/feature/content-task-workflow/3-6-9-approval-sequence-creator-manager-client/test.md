@@ -1,3 +1,60 @@
+# Test Specification — FR 3.6.9: Approval Sequence (Creator -> Manager -> Client)
+
+## 1. Traceability & Execution Summary
+
+| Field | Value |
+| :--- | :--- |
+| **FR ID** | `FR 3.6.9` |
+| **Function Name** | Approval Sequence (Creator -> Manager -> Client) |
+| **Functional Domain** | Content & Task |
+| **Canonical Actors / Roles** | `Owner, Manager, Creator, Client` |
+| **Target Class & Method** | `TaskApprovalService.approve()` (64 LOC) |
+| **Unit Test File** | `brandhub-business-service/src/test/java/com/brandhub/business/service/TaskApprovalServiceTest.java` |
+| **Code & Test Author** | Lộc |
+| **Test Requirement** | Enforce multi-stage approval workflow (Creator -> Manager -> Client) and reset to Creator with audit log on rejection |
+| **Preconditions** | Can connect with server; Task exists in workspace |
+| **Overall Status** | **Passed (100%)** |
+| **Test Case Breakdown** | **Total: 21** (`Passed`: 21, `Failed`: 0, `Untested`: 0) — `Normal (N)`: 12, `Boundary (B)`: 2, `Abnormal (A)`: 7 |
+
+---
+
+## 2. Unit Test Case Matrix (`UTCID01`–`UTCID21`)
+
+| Test Case ID | Type | Preconditions | Test Inputs | Expected Return / Exception | Log Message | Status |
+| :--- | :---: | :--- | :--- | :--- | :--- | :---: |
+| `UTCID01` | `N` | Can connect with server; User is CREATOR of workspace; Task status is ASSIGNED, no QC, no client approval | `action` = `submit` | 200 OK - status=MANAGER_REVIEW | — | **Passed** |
+| `UTCID02` | `N` | Can connect with server; User is CREATOR of workspace; Task status is ASSIGNED, QC assigned | `action` = `submit` | 200 OK - status=QC_REVIEW | — | **Passed** |
+| `UTCID03` | `N` | Can connect with server; User is CREATOR of workspace; Task status is ASSIGNED, QC approval already passed | `action` = `submit` | 200 OK - status=MANAGER_REVIEW (skip QC) | — | **Passed** |
+| `UTCID04` | `N` | Can connect with server; User is CREATOR of workspace; Task status is ASSIGNED, QC and Manager approvals passed | `action` = `submit` | 200 OK - status=CLIENT_REVIEW (skip QC, Manager) | — | **Passed** |
+| `UTCID05` | `N` | Can connect with server; User is QC assignee; Task status is QC_REVIEW | `action` = `approve`, `step` = `qc` | 200 OK - status=MANAGER_REVIEW | — | **Passed** |
+| `UTCID06` | `N` | Can connect with server; User is MANAGER of workspace; Task status is MANAGER_REVIEW, no client approval | `action` = `approve`, `step` = `manager` | 200 OK - status=COMPLETED | — | **Passed** |
+| `UTCID07` | `N` | Can connect with server; User is MANAGER of workspace; Task status is MANAGER_REVIEW, requiresClientApproval=true | `action` = `approve`, `step` = `manager` | 200 OK - status=CLIENT_REVIEW | — | **Passed** |
+| `UTCID08` | `N` | Can connect with server; User is CLIENT of workspace; Task status is CLIENT_REVIEW | `action` = `approve`, `step` = `client` | 200 OK - status=COMPLETED | — | **Passed** |
+| `UTCID09` | `N` | Can connect with server; User is QC assignee; Task status is QC_REVIEW | `action` = `reject`, `step` = `qc`, `reason` = `needs fix` | 200 OK - status=ASSIGNED | — | **Passed** |
+| `UTCID10` | `N` | Can connect with server; User is MANAGER of workspace; Task status is MANAGER_REVIEW, QC approved | `action` = `reject`, `step` = `manager`, `reason` = `needs fix` | 200 OK - status=ASSIGNED, QC approval kept | — | **Passed** |
+| `UTCID11` | `N` | Can connect with server; User is CLIENT of workspace; Task status is CLIENT_REVIEW, Manager approved | `action` = `reject`, `step` = `client`, `reason` = `needs fix` | 200 OK - status=ASSIGNED, Manager approval kept | — | **Passed** |
+| `UTCID12` | `N` | Can connect with server; User is MANAGER of workspace; Task has 3 approval records | `action` = `list approvals` | 200 OK - list(step, action, actorId, comment, createdAt) | — | **Passed** |
+| `UTCID13` | `B` | Can connect with server; User is CREATOR of workspace; Task status is ASSIGNED, no QC, no client approval | `action` = `submit`, `path` = `shortest chain` | 200 OK - submit then manager approve gives COMPLETED (2 steps) | — | **Passed** |
+| `UTCID14` | `B` | Can connect with server; User is MANAGER of workspace; Task status is MANAGER_REVIEW | `action` = `reject`, `step` = `manager`, `reason` = `1 char` | 200 OK - status=ASSIGNED | — | **Passed** |
+| `UTCID15` | `A` | Can connect with server; Task status is QC_REVIEW; User is CLIENT of workspace | `action` = `approve`, `step` = `client` | 403 WRONG_APPROVAL_STEP | — | **Passed** |
+| `UTCID16` | `A` | Can connect with server; Task status is QC_REVIEW; User is MANAGER of workspace | `action` = `approve`, `step` = `manager` | 403 WRONG_APPROVAL_STEP | — | **Passed** |
+| `UTCID17` | `A` | Can connect with server; Task status is QC_REVIEW; User is another creator (not QC) | `action` = `approve`, `step` = `qc` | 403 WRONG_APPROVAL_STEP | — | **Passed** |
+| `UTCID18` | `A` | Can connect with server; User is MANAGER of workspace; Task status is ASSIGNED (not submitted) | `action` = `approve`, `step` = `manager` | 409 TASK_NOT_SUBMITTED | — | **Passed** |
+| `UTCID19` | `A` | Can connect with server; User is MANAGER of workspace; Task status is MANAGER_REVIEW | `action` = `reject`, `step` = `manager`, `reason` = `null` | 400 VALIDATION_ERROR - Request validation failed | — | **Passed** |
+| `UTCID20` | `A` | Can connect with server; User is CREATOR of workspace; User is not the assignee | `action` = `submit` | 403 FORBIDDEN - Your role does not have permission to perform this action | — | **Passed** |
+| `UTCID21` | `A` | Can connect with server; User is MANAGER of workspace; Task does not exist | `action` = `approve`, `step` = `manager` | 404 TASK_NOT_FOUND - Task not found | — | **Passed** |
+
+---
+
+## 3. Synchronization & Verification Notes
+
+- Synchronized 1-to-1 with [`Report5_Unit Test.xls`](../../../../brandhub-final_report/report5/Report5_Unit%20Test.xls) sheet `FR3.6.9`, [`Report5_Test Report.xlsx`](../../../../brandhub-final_report/report5/Report5_Test%20Report.xlsx), and [`Report5_Test Documentation.docx`](../../../../brandhub-final_report/report5/Report5_Test%20Documentation.docx).
+- Role names strictly follow the 6 canonical roles (`Guest`, `Owner`, `Manager`, `Creator`, `Client`, `Admin`).
+
+---
+
+## 4. Feature Acceptance & Integration Verification
+
 # Test plan — FR 3.6.9
 
 ## Kiểm trang duyệt riêng
