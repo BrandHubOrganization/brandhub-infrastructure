@@ -158,6 +158,16 @@ Merge vào web và backend, xung đột 1 chỗ phần import ở `TaskWorkflowC
 - Chỉ Manager và Creator lưu được khảo sát. Owner và Client chỉ xem câu trả lời.
 - Mobile thay cảnh báo đỏ bằng lời nhắc mở khảo sát trên web.
 
-Kết quả test tự động: backend ghép thêm `fix/backend-db-tests` đạt 1472 test, 0 lỗi, 80 skip (Docker tắt nên không có DB test); web 104/104; mobile 295/295.
+Kết quả test tự động: backend ghép thêm `fix/backend-db-tests`, có DB test, đạt 1472 test, 0 lỗi, 42 skip; web 104/104; mobile 295/295.
 
-Chưa kiểm tra trên trình duyệt vì Docker tắt: màn xem của Owner và Client, API thật với dữ liệu sai và gửi dồn dập, lời nhắc Survey trên mobile.
+| Mục | Kết quả |
+| --- | --- |
+| API công khai, 10 kiểu dữ liệu sai gồm giá trị 2MB | Đều trả 400 |
+| 70 lần gửi cùng IP | 60 đạt, 10 trả 429; IP khác vẫn gửi được |
+| Lưu khảo sát | Manager, Creator đạt; Owner, Client trả 403 |
+| Web, Owner và Client | Chỉ thấy tab câu trả lời, không có nút lưu, không có request lỗi |
+| Web, Creator | Vẫn mở được màn soạn đầy đủ |
+| Trang công khai, 5 loại câu hỏi | Gửi đạt, dữ liệu lưu đúng |
+| Expo Web, Task Survey | Hiện lời nhắc mở trên web, không còn cảnh báo đỏ; nhãn drawer đã dịch |
+
+Chưa kiểm tra: Google Sheets và thiết bị thật.
