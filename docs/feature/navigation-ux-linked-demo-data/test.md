@@ -60,3 +60,21 @@ mvn spring-boot:run -Dspring-boot.run.arguments="--seed-only --spring.profiles.a
 mvn spring-boot:run -Dspring-boot.run.arguments="--seed-only --spring.profiles.active=seed-linked-demo"
 # Gỡ: thêm --seed.linked-demo.remove=true vào lệnh thứ hai
 ```
+
+## Kết quả đợt xử lý tồn đọng (2026-11-04)
+
+Tự động: mobile 383/383 và `tsc` sạch; web 104/104, `tsc` và build đạt; backend 1489 test, 0 lỗi, 82 bỏ qua.
+
+Bấm thật trên Android emulator, data local:
+
+- Lịch mở đúng 04/11 sau 3/3 lần tải lại; chip 36dp.
+- Dời lịch Task lưu được, `workflowRevision` tăng. Bản sửa lỗi lùi giờ chỉ có test tự động, chưa bấm lại.
+- API dời lịch: `Creator` 403, `Manager` qua kiểm tra quyền. `Creator` không thấy nút.
+- Chat hiện 16 tin, nhãn "Channel: General".
+- Đăng xuất hỏi xác nhận; màn Bảo mật không còn nút đăng xuất.
+- Admin Chặn: review thành BLOCKED, strike tăng 1. Lúc đó hàng đợi vẫn hiện 3; sau khi sửa, mở lại thấy đúng 2, còn việc tự tải lại sau một quyết định mới chỉ có test tự động. Đã xoá strike và trả review về PENDING.
+- Hồ sơ `Client` một hồ sơ: không có khối đổi hồ sơ. Không có hồ sơ: hiện thông báo trống. Đã trả 14 hồ sơ về đúng chủ, `updated_at` của chúng đổi.
+
+Bấm thật trên web, Chrome 1280px: quick login đủ 5 vai, mỗi mục sidebar của từng vai, breadcrumb, VI/EN, sáng/tối.
+
+Lỗi trang trend và crawl là do AI service không chạy, chưa kiểm tra được. Chưa test: iOS, web ở màn hẹp.

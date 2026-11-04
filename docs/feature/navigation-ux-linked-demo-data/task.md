@@ -63,3 +63,17 @@
 - [x] Header màn con vỡ breadcrumb: điện thoại chỉ giữ 2 cấp cuối, bỏ hẳn khi có nút hành động
 - [x] Drawer đè thanh gesture; nút menu 40dp; hàng drawer 40dp; nút Chỉnh sửa, Quên mật khẩu nhỏ
 - [x] Nhãn lệch: tab Dashboard/Thêm thành Tổng quan/Mở rộng; "Expand" thành "More"; `ACTIVE` thô ở kiểm duyệt
+
+## 9. Xử lý các mục còn tồn (2026-11-04, sau khi commit)
+
+- [x] Chip lọc ở Chat và Lịch: cao 36dp, vùng chạm 44dp; nút Gửi 44dp; Dời lịch vùng chạm 44dp
+- [x] Màn đăng nhập và đăng ký: tab, nút giao diện, nút Google đều 44dp
+- [x] Lịch mở tại hôm nay, hoặc ngày cuối nếu toàn bộ đã qua; giữ vị trí khi làm mới hoặc dời lịch
+- [x] Dời lịch chỉ dành cho `Manager` trên mobile và API; spec 3.6.5 đã cập nhật
+- [x] Dời lịch trên Task: sửa đường dẫn API sai và lỗi lùi giờ theo múi giờ
+- [x] Chat: nhãn ngữ cảnh đọc được; seed 16 tin mẫu, có tag và gỡ được
+- [x] Đăng xuất có xác nhận; bỏ nút đăng xuất ở màn Bảo mật
+- [x] Hàng đợi kiểm duyệt và các danh sách khác tự tải lại khi quay về từ màn chi tiết
+- [x] Web: breadcrumb không còn slug thô; Dashboard không còn mã thô; tiếng Anh không còn chuỗi cứng; ngôn ngữ giữ sau khi tải lại; `Creator` không còn lỗi chiến dịch
+- [ ] Web: Dashboard Workspace vẫn dùng data mẫu cho biểu đồ và hoạt động gần đây
+- [ ] Ví credit demo chưa `VERIFIED`, API số dư trả 409 cho Workspace TH True Milk
