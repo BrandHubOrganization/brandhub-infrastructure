@@ -49,3 +49,8 @@ repo infrastructure để đối chiếu, không là tài liệu active hoặc m
 
 ## Customer-owned Drive storage
 The customer-drive-overflow feature adds Owner/Manager OAuth connection, private brandhub-[agency]/workspace_N folders, Drive-first material writes and active-paid-plan S3 overflow. USER_GDRIVE is enabled only by the explicit customer-drive feature gate; SYSTEM_GDRIVE remains a historical system-provider route. See [customer-drive-overflow/plan.md](customer-drive-overflow/plan.md) for staged schema, account-wide capacity reservations, private gateway streaming and rollout prerequisites.
+
+
+## S3 5GB Free Default, Nested Folders, Drive Folder Import, Duplicate/File Version, Client Vault & Security Overhaul (2026-11-04)
+- **Spec:** [s3-folder-vault-security/spec.md](s3-folder-vault-security/spec.md)
+- **Plan:** [s3-folder-vault-security/plan.md](s3-folder-vault-security/plan.md)
