@@ -135,6 +135,18 @@ resource "aws_s3_bucket_policy" "repository" {
         ]
       },
       {
+        Sid       = "DenyWrongRepositoryEncryptionKey"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:PutObject"
+        Resource  = "${aws_s3_bucket.repository.arn}/*"
+        Condition = {
+          StringNotEquals = {
+            "s3:x-amz-server-side-encryption-aws-kms-key-id" = aws_kms_key.repository_media.arn
+          }
+        }
+      },
+      {
         Sid       = "DenyHumanDevAndAdminFromReadingUserRepositoryMedia"
         Effect    = "Deny"
         Principal = "*"
@@ -145,6 +157,7 @@ resource "aws_s3_bucket_policy" "repository" {
         Resource = [
           "${aws_s3_bucket.repository.arn}/repository/*",
           "${aws_s3_bucket.repository.arn}/staging/*",
+          "${aws_s3_bucket.repository.arn}/repository-staging/*",
           "${aws_s3_bucket.repository.arn}/client-vault/*"
         ]
         Condition = {
