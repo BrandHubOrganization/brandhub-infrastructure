@@ -85,6 +85,7 @@
       }
     },
     "ai-service": {
+      "init": true,
       "restart": "unless-stopped",
       "container_name": "brandhub-ai-service",
       "command": null,

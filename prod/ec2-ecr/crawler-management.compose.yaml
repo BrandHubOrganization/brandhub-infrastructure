@@ -3,6 +3,7 @@
 # Optional encrypted proxy/TikTok storage uses crawler-connections.compose.yaml.
 services:
   ai-service:
+    init: true
     mem_limit: 4608m
     environment:
       CRAWLER_STATE_DIR: /app/data/crawler/control
