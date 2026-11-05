@@ -78,4 +78,10 @@
 - [x] Web: Dashboard Workspace dùng data Task thật, đã xoá data mẫu
 - [x] Seed thêm grant `DEV_SEED` 5000 credit cho các agency demo, API số dư trả đúng
 - [x] Dời lịch: lỗi quyền không còn bị nuốt, chỉ 404 mới chuyển sang luồng Task
-- [ ] Web: trang `/dashboard` chung vẫn có biểu đồ mẫu vì chưa có API
+- [x] Web: `/dashboard` và `/analytics` dùng API mới `GET /api/v1/analytics/overview`; đã bỏ service mock, biểu đồ mục tiêu và danh sách việc cứng vì không có nguồn dữ liệu
+- [x] Màu cam đổi từ `#F05A28` sang `#CA3D0E` trên nền sáng và nút đặc; chữ cam trên nền tối giữ `#F05A28`
+- [x] Header web đủ 44dp dưới `md`, không tràn ở 390px
+- [x] Seed: hồ sơ Client trùng thương hiệu trên mọi Workspace demo
+- [x] Lịch mobile ẩn Dời lịch trên Task đã khóa (`IN_REVIEW`, `FINISHED`)
+- [x] Survey: tải lỗi thì tự chọn câu hỏi mặc định
+- [ ] Lint web còn 83 warning: `set-state-in-effect` 66, `exhaustive-deps` 9, `only-export-components` 8

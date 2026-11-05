@@ -80,3 +80,12 @@ Bấm thật trên web, Chrome 1280px: quick login đủ 5 vai, mỗi mục side
 Lỗi trang trend và crawl là do AI service không chạy, chưa kiểm tra được. Chưa test: iOS.
 
 Web 390px: 10 trang của vai `Manager` không tràn ngang; nút trên header cao 32dp. Dashboard Workspace 1280px hiện biểu đồ và danh sách từ Task thật. Grant `DEV_SEED` không có dòng sổ cái, nên bộ đối soát local sẽ báo lệch cho các agency demo.
+
+## Dashboard, màu cam và đổi lịch (2026-11-05)
+
+- API `/api/v1/analytics/overview` gọi thật với 4 vai trên dữ liệu test: Manager có đủ; Owner có số liệu và team, không có nội dung bài; Client không có thống kê team; Admin nhận số 0. Timezone sai trả 400, chưa đăng nhập trả 401.
+- `/dashboard` và `/analytics` trên trình duyệt hiện số khớp API, không còn số mẫu, console không lỗi.
+- Tương phản chữ và nền cam: 4 trang `/dashboard`, `/analytics`, `/workspace`, `/agency`, sáng và tối, không còn cặp dưới 4.5:1. Trạng thái hover `/90` chưa đo. Các trang khác chưa quét.
+- Header 390px: nút 44dp, không tràn. Đã đo tại `/dashboard`.
+- Đổi lịch Task trên emulator (+7), Task `TODO`, Mongo replica set tạm: nhập 09:30, DB lưu `publishDate` `02:30:00Z`, lịch chuyển ngày, revision tăng 1. Task `IN_REVIEW`: API từ chối, app hiện đúng lỗi; sau đó nút đã được ẩn và có test. Chưa thử trên iPhone.
+- Tự động: backend 1557 test, 0 fail, 82 skip; web 104/104, lint 0 error, tsc, build; mobile 386/386, tsc.
