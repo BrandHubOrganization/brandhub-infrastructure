@@ -1,0 +1,9 @@
+# Trash bulk selection
+Objective: Replace repeated card actions with a compact selectable list of trash files and folders.
+Acceptance: native checkboxes select one/many/all eligible visible rows; shared Restore/Delete permanently apply only to selection; deselect clears selection. Empty trash is separate and covers all workspace trash regardless of search/page, including folders. Confirmation distinguishes selected count from all workspace trash and warns about descendants and irreversible deletion. Respect file capabilities, actor/workspace and folder role rules. Keep failed rows selected; report partial success. Block overlapping mutation/navigation. Pagination/filter context resets selection. Active library remains unchanged.
+API: reuse versioned file restore/purge and folder restore/purge. Extend POST materials/trash/purge response with foldersRequested/foldersSkipped while preserving requested/skipped file counts. Folder purges use existing transactional validation/ownership/reference checks. No credentials stored.
+i18n: library.trash selectionHint/selectPage/selectedCount/clearSelection/selectItem/nameColumn/sizeColumn/statusColumn/folderType/fileType/selectionPurgeTitle/selectionPurgeDescription/batchRestored/batchPurged/batchFailed/noPermission/emptyTrash/bulkPurgeQueued keys in both vi/en library.json.
+Themes/a11y: semantic existing tokens, native checkbox mixed state, keyboard Space and focus ring, responsive wrapping, light/dark.
+Errors: no false success on skipped/protected items; preserve retry selection. Existing referenced data never force-deleted. Backend cleanup remains asynchronous.
+Out of scope: redesign active cards, new storage engine, actual deletion of production data during testing.
+Definition of done: relevant Java tests, frontend CI and browser selection/confirmation/responsive/theme verification pass or blockers explicitly reported.
