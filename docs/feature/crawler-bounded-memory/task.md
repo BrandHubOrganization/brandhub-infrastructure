@@ -1,0 +1,5 @@
+- [x] Failing regressions for persistent store, batch subprocesses and comment spill.
+- [x] Disk-backed feed/results and comment handling.
+- [x] Memory-aware isolated worker lifecycle and default integration.
+- [x] Local test suite, synthetic stress/resume proof and operator notes.
+- [ ] Live server Facebook/Chromium memory validation (not deployed in this task).
