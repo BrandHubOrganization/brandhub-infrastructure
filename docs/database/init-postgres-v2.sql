@@ -471,6 +471,7 @@ CREATE TABLE IF NOT EXISTS media_packages (
     name               VARCHAR(255) NOT NULL,
     is_template        BOOLEAN      NOT NULL DEFAULT FALSE,
     agency_id          UUID         CONSTRAINT fk_media_packages_agency REFERENCES agencies(id) ON DELETE RESTRICT,
+    custom_workspace_id UUID       REFERENCES workspaces(id) ON DELETE RESTRICT,
     source_template_id UUID         CONSTRAINT fk_media_packages_source_template REFERENCES media_packages(id) ON DELETE SET NULL,
     is_available_to_workspaces BOOLEAN NOT NULL DEFAULT TRUE,
     duration_weeks     INT,
