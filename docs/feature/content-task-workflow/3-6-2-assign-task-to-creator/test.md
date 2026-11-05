@@ -1,3 +1,57 @@
+# Test Specification — FR 3.6.2: Assign Task to Creator
+
+## 1. Traceability & Execution Summary
+
+| Field | Value |
+| :--- | :--- |
+| **FR ID** | `FR 3.6.2` |
+| **Function Name** | Assign Task to Creator |
+| **Functional Domain** | Content & Task |
+| **Canonical Actors / Roles** | `Owner, Manager` |
+| **Target Class & Method** | `TaskWorkflowService.assign()` (34 LOC) |
+| **Unit Test File** | `brandhub-business-service/src/test/java/com/brandhub/business/service/TaskWorkflowServiceTest.java` |
+| **Code & Test Author** | Lộc |
+| **Test Requirement** | Allow Manager to assign a task to a Creator and optional internal reviewer in the workspace and notify them |
+| **Preconditions** | Can connect with server; Caller is Manager in workspace |
+| **Overall Status** | **Passed (100%)** |
+| **Test Case Breakdown** | **Total: 18** (`Passed`: 18, `Failed`: 0, `Untested`: 0) — `Normal (N)`: 5, `Boundary (B)`: 2, `Abnormal (A)`: 11 |
+
+---
+
+## 2. Unit Test Case Matrix (`UTCID01`–`UTCID18`)
+
+| Test Case ID | Type | Preconditions | Test Inputs | Expected Return / Exception | Log Message | Status |
+| :--- | :---: | :--- | :--- | :--- | :--- | :---: |
+| `UTCID01` | `N` | Can connect with server; User is MANAGER of workspace; Task status is DETAIL_IDENTIFIED; assignee is MEMBER of workspace | `assigneeId` = `valid creator`, `qcAssigneeId` = `null`, `requiresClientApproval` = `false` | 200 OK - status=ASSIGNED, no QC step | Notification sent to assignee | **Passed** |
+| `UTCID02` | `N` | Can connect with server; User is MANAGER of workspace; Task status is DETAIL_IDENTIFIED; assignee is MEMBER of workspace | `assigneeId` = `valid creator`, `qcAssigneeId` = `other valid creator`, `requiresClientApproval` = `false` | 200 OK - status=ASSIGNED, QC step enabled | Notification sent to assignee | **Passed** |
+| `UTCID03` | `N` | Can connect with server; User is MANAGER of workspace; Task status is DETAIL_IDENTIFIED; assignee is MEMBER of workspace | `assigneeId` = `valid creator`, `qcAssigneeId` = `null`, `requiresClientApproval` = `true` | 200 OK - status=ASSIGNED, client approval required | Notification sent to assignee | **Passed** |
+| `UTCID04` | `N` | Can connect with server; User is MANAGER of workspace; Task status is DETAIL_IDENTIFIED; assignee is MEMBER of workspace | `assigneeId` = `valid creator`, `qcAssigneeId` = `other valid creator`, `requiresClientApproval` = `true` | 200 OK - ASSIGNED, QC + client approval | Notification sent to assignee | **Passed** |
+| `UTCID05` | `N` | Can connect with server; User is MANAGER of workspace; Task status is DETAIL_IDENTIFIED; assignee is MEMBER of workspace | `assigneeId` = `valid creator`, `requiresClientApproval` = `false` | 200 OK - ASSIGNED, qcAssigneeId omitted treated as null | Notification sent to assignee | **Passed** |
+| `UTCID06` | `B` | Can connect with server; User is MANAGER of workspace; Task status is DETAIL_IDENTIFIED; workspace has only 1 creator | `assigneeId` = `the only creator`, `requiresClientApproval` = `false` | 200 OK - status=ASSIGNED | Notification sent to assignee | **Passed** |
+| `UTCID07` | `B` | Can connect with server; User is MANAGER of workspace; Task status is DETAIL_IDENTIFIED; workspace has 2 creators | `assigneeId` = `creator A`, `qcAssigneeId` = `creator B`, `requiresClientApproval` = `false` | 200 OK - QC is the last available creator | Notification sent to assignee | **Passed** |
+| `UTCID08` | `A` | Can connect with server; User is MANAGER of workspace; Task status is DETAIL_IDENTIFIED | `assigneeId` = `user with role CLIENT`, `requiresClientApproval` = `false` | 400 INVALID_ASSIGNEE | — | **Passed** |
+| `UTCID09` | `A` | Can connect with server; User is MANAGER of workspace; Task status is DETAIL_IDENTIFIED | `assigneeId` = `user not in workspace`, `requiresClientApproval` = `false` | 400 INVALID_ASSIGNEE | — | **Passed** |
+| `UTCID10` | `A` | Can connect with server; User is MANAGER of workspace; Task status is DETAIL_IDENTIFIED | `assigneeId` = `manager of workspace`, `requiresClientApproval` = `false` | 400 INVALID_ASSIGNEE | — | **Passed** |
+| `UTCID11` | `A` | Can connect with server; User is MANAGER of workspace; Task status is DETAIL_IDENTIFIED | `assigneeId` = `null`, `requiresClientApproval` = `false` | 400 VALIDATION_ERROR - Request validation failed | — | **Passed** |
+| `UTCID12` | `A` | Can connect with server; User is MANAGER of workspace; Task status is DETAIL_IDENTIFIED | `assigneeId` = `valid creator`, `qcAssigneeId` = `same as assignee`, `requiresClientApproval` = `false` | 400 QC_CANNOT_BE_SAME_AS_ASSIGNEE | — | **Passed** |
+| `UTCID13` | `A` | Can connect with server; User is MANAGER of workspace; Task status is DETAIL_IDENTIFIED | `assigneeId` = `valid creator`, `qcAssigneeId` = `user not in workspace`, `requiresClientApproval` = `false` | 400 INVALID_ASSIGNEE | — | **Passed** |
+| `UTCID14` | `A` | Can connect with server; User is MANAGER of workspace; Task status is BACKLOG | `assigneeId` = `valid creator`, `requiresClientApproval` = `false` | 409 TASK_DETAIL_NOT_IDENTIFIED | — | **Passed** |
+| `UTCID15` | `A` | Can connect with server; Task status is DETAIL_IDENTIFIED; User is CREATOR of workspace | `assigneeId` = `valid creator`, `requiresClientApproval` = `false` | 403 FORBIDDEN - Your role does not have permission to perform this action | — | **Passed** |
+| `UTCID16` | `A` | Can connect with server; Task status is DETAIL_IDENTIFIED; User is CLIENT of workspace | `assigneeId` = `valid creator`, `requiresClientApproval` = `false` | 403 FORBIDDEN - Your role does not have permission to perform this action | — | **Passed** |
+| `UTCID17` | `A` | Can connect with server; User is MANAGER of workspace; Task does not exist | `assigneeId` = `valid creator`, `requiresClientApproval` = `false` | 404 TASK_NOT_FOUND - Task not found | — | **Passed** |
+| `UTCID18` | `A` | Can connect with server; User is MANAGER of workspace; Task status is DETAIL_IDENTIFIED | `assigneeId` = `valid creator`, `requiresClientApproval` = `null` | 400 VALIDATION_ERROR - Request validation failed | — | **Passed** |
+
+---
+
+## 3. Synchronization & Verification Notes
+
+- Synchronized 1-to-1 with [`Report5_Unit Test.xls`](../../../../brandhub-final_report/report5/Report5_Unit%20Test.xls) sheet `FR3.6.2`, [`Report5_Test Report.xlsx`](../../../../brandhub-final_report/report5/Report5_Test%20Report.xlsx), and [`Report5_Test Documentation.docx`](../../../../brandhub-final_report/report5/Report5_Test%20Documentation.docx).
+- Role names strictly follow the 6 canonical roles (`Guest`, `Owner`, `Manager`, `Creator`, `Client`, `Admin`).
+
+---
+
+## 4. Feature Acceptance & Integration Verification
+
 # Test — FR 3.6.2 / DA-978
 
 > **Ưu tiên BA mới 2026-10-15:** xem [Task năm trạng thái + inline autosave](../task-five-state-inline-edit/spec.md). TODO thay BACKLOG/DETAIL_IDENTIFIED/ASSIGNED; giao việc cần mô tả + deadline hợp lệ, không chuyển trạng thái. IN_REVIEW lưu bước QC/Manager/Client riêng, reject về IN_PROGRESS, bước cuối thành công mới FINISHED. Manager khóa sửa/giao lại sau lần bắt đầu đầu tiên. Phần vòng đời/form cũ bên dưới được giữ làm lịch sử, không phải contract mới. Đợt này chỉ code FR 3.6.1/2; Approval và Comments không được coi là đã hoàn thành.

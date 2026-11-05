@@ -1,3 +1,57 @@
+# Test Specification — FR 3.6.1: Identify Task Detail
+
+## 1. Traceability & Execution Summary
+
+| Field | Value |
+| :--- | :--- |
+| **FR ID** | `FR 3.6.1` |
+| **Function Name** | Identify Task Detail |
+| **Functional Domain** | Content & Task |
+| **Canonical Actors / Roles** | `Owner, Manager, Creator, Client` |
+| **Target Class & Method** | `TaskWorkflowService.detail()` (45 LOC) |
+| **Unit Test File** | `brandhub-business-service/src/test/java/com/brandhub/business/service/TaskWorkflowServiceTest.java` |
+| **Code & Test Author** | Lộc |
+| **Test Requirement** | Specify and view full task details (taskType POST/SURVEY, platform, dueDate, scheduledAt, priority, brief, references) |
+| **Preconditions** | Can connect with server; Task exists in workspace |
+| **Overall Status** | **Passed (100%)** |
+| **Test Case Breakdown** | **Total: 18** (`Passed`: 18, `Failed`: 0, `Untested`: 0) — `Normal (N)`: 7, `Boundary (B)`: 4, `Abnormal (A)`: 7 |
+
+---
+
+## 2. Unit Test Case Matrix (`UTCID01`–`UTCID18`)
+
+| Test Case ID | Type | Preconditions | Test Inputs | Expected Return / Exception | Log Message | Status |
+| :--- | :---: | :--- | :--- | :--- | :--- | :---: |
+| `UTCID01` | `N` | Can connect with server; User is MANAGER of workspace; Task status is BACKLOG; Task type is POST | `description` = `valid text`, `dueDate` = `future date`, `typeSpecificFields` = `valid post fields` | 200 OK - task status=DETAIL_IDENTIFIED | — | **Passed** |
+| `UTCID02` | `N` | Can connect with server; User is MANAGER of workspace; Task status is BACKLOG; Task type is SURVEY | `description` = `valid text`, `dueDate` = `future date`, `typeSpecificFields` = `valid survey fields` | 200 OK - task status=DETAIL_IDENTIFIED | — | **Passed** |
+| `UTCID03` | `N` | Can connect with server; User is MANAGER of workspace; Task status is BACKLOG; Task type is SURVEY | `description` = `valid text`, `dueDate` = `future date`, `typeSpecificFields` = `valid survey fields` | 200 OK - task status=DETAIL_IDENTIFIED | — | **Passed** |
+| `UTCID04` | `N` | Can connect with server; User is MANAGER of workspace; Task status is BACKLOG; Task from Content Request with client description | `description` = `null (keep original)`, `dueDate` = `future date` | 200 OK - original description kept, DETAIL_IDENTIFIED | — | **Passed** |
+| `UTCID05` | `N` | Can connect with server; User is MANAGER of workspace; Task status is BACKLOG; Task from Content Request with client description | `description` = `original + extra notes`, `dueDate` = `future date` | 200 OK - description updated, DETAIL_IDENTIFIED | — | **Passed** |
+| `UTCID06` | `N` | Can connect with server; User is MANAGER of workspace; Task status is BACKLOG; Task type is POST | `description` = `valid text`, `dueDate` = `future date`, `typeSpecificFields` = `empty object` | 200 OK - DETAIL_IDENTIFIED | — | **Passed** |
+| `UTCID07` | `N` | Can connect with server; User is MANAGER of workspace; Task status is BACKLOG; Task type is POST | `description` = `valid text`, `dueDate` = `today` | 200 OK - DETAIL_IDENTIFIED | — | **Passed** |
+| `UTCID08` | `B` | Can connect with server; User is MANAGER of workspace; Task status is BACKLOG; Task type is POST | `description` = `1 char`, `dueDate` = `future date` | 200 OK - DETAIL_IDENTIFIED | — | **Passed** |
+| `UTCID09` | `B` | Can connect with server; User is MANAGER of workspace; Task status is BACKLOG; Task type is POST | `description` = `max length text`, `dueDate` = `future date` | 200 OK - DETAIL_IDENTIFIED | — | **Passed** |
+| `UTCID10` | `B` | Can connect with server; User is MANAGER of workspace; Task status is BACKLOG; Task type is POST | `description` = `valid text`, `dueDate` = `tomorrow (min future)` | 200 OK - DETAIL_IDENTIFIED | — | **Passed** |
+| `UTCID11` | `B` | Can connect with server; User is MANAGER of workspace; Task status is BACKLOG; Task type is POST | `description` = `valid text`, `dueDate` = `far future (1 year)` | 200 OK - DETAIL_IDENTIFIED | — | **Passed** |
+| `UTCID12` | `A` | Can connect with server; User is MANAGER of workspace; Task status is ASSIGNED | `description` = `valid text`, `dueDate` = `future date` | 409 TASK_NOT_IN_BACKLOG | — | **Passed** |
+| `UTCID13` | `A` | Can connect with server; User is MANAGER of workspace; Task status is DETAIL_IDENTIFIED | `description` = `valid text`, `dueDate` = `future date` | 409 TASK_NOT_IN_BACKLOG | — | **Passed** |
+| `UTCID14` | `A` | Can connect with server; Task status is BACKLOG; User is CREATOR of workspace | `description` = `valid text`, `dueDate` = `future date` | 403 FORBIDDEN - Your role does not have permission to perform this action | — | **Passed** |
+| `UTCID15` | `A` | Can connect with server; Task status is BACKLOG; User is CLIENT of workspace | `description` = `valid text`, `dueDate` = `future date` | 403 FORBIDDEN - Your role does not have permission to perform this action | — | **Passed** |
+| `UTCID16` | `A` | Can connect with server; Task status is BACKLOG; User is not a member of workspace | `description` = `valid text`, `dueDate` = `future date` | 403 WORKSPACE_ACCESS_DENIED - You do not have access to this workspace | — | **Passed** |
+| `UTCID17` | `A` | Can connect with server; User is MANAGER of workspace; Task does not exist | `description` = `valid text`, `dueDate` = `future date` | 404 TASK_NOT_FOUND - Task not found | — | **Passed** |
+| `UTCID18` | `A` | Can connect with server; User is MANAGER of workspace; Task status is BACKLOG | `description` = `null`, `dueDate` = `null` | 400 VALIDATION_ERROR - Request validation failed | — | **Passed** |
+
+---
+
+## 3. Synchronization & Verification Notes
+
+- Synchronized 1-to-1 with [`Report5_Unit Test.xls`](../../../../brandhub-final_report/report5/Report5_Unit%20Test.xls) sheet `FR3.6.1`, [`Report5_Test Report.xlsx`](../../../../brandhub-final_report/report5/Report5_Test%20Report.xlsx), and [`Report5_Test Documentation.docx`](../../../../brandhub-final_report/report5/Report5_Test%20Documentation.docx).
+- Role names strictly follow the 6 canonical roles (`Guest`, `Owner`, `Manager`, `Creator`, `Client`, `Admin`).
+
+---
+
+## 4. Feature Acceptance & Integration Verification
+
 # Test — FR 3.6.1 / DA-978
 
 > **Ưu tiên BA mới 2026-10-15:** xem [Task năm trạng thái + inline autosave](../task-five-state-inline-edit/spec.md). TODO thay BACKLOG/DETAIL_IDENTIFIED/ASSIGNED; giao việc cần mô tả + deadline hợp lệ, không chuyển trạng thái. IN_REVIEW lưu bước QC/Manager/Client riêng, reject về IN_PROGRESS, bước cuối thành công mới FINISHED. Manager khóa sửa/giao lại sau lần bắt đầu đầu tiên. Phần vòng đời/form cũ bên dưới được giữ làm lịch sử, không phải contract mới. Đợt này chỉ code FR 3.6.1/2; Approval và Comments không được coi là đã hoàn thành.

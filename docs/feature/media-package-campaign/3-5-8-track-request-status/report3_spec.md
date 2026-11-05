@@ -2,11 +2,11 @@
 
 **Function Trigger**
 
-Begins when Mânger thực hiện thao tác trên giao diện `ContentRequestPage (UI)` liên quan đến tính năng `Track Request Status`.
+Begins when Manager thực hiện thao tác trên giao diện `ContentRequestPage (UI)` liên quan đến tính năng `Track Request Status`.
 
 **Function Description**
 
-- **Actors / Roles**: Mânger.
+- **Actors / Roles**: Manager; Client read-only.
 - **Purpose**: Manager điều chỉnh status của các yêu cầu do client đưa lên thêm công việc mới, điều chỉnh từ pending -> in progress -> accept (chuyển công việc vào trong list backlog) 
 
 ở các trạng thái 
@@ -40,7 +40,7 @@ Figure — Screen Layout (`ContentRequestPage (UI)`):
     - **Output**: `ContentRequestResponse` kèm mã trạng thái HTTP tiêu chuẩn.
 
 - **Business Rules**
-    - **BR-358**: Chỉ các Actor có thẩm quyền hợp lệ (`Mânger`) mới được phép kích hoạt tính năng.
+    - **BR-358**: Chỉ các Actor có thẩm quyền hợp lệ (`Manager`) mới được phép kích hoạt tính năng.
     - Đảm bảo tính toàn vẹn dữ liệu và kiểm tra xung đột trạng thái trước khi thực hiện thay đổi dữ liệu.
     - Mọi thao tác đều được ghi nhận nhật ký hệ thống phục vụ công tác kiểm toán và giám sát.
 

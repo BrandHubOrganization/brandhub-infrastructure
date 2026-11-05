@@ -13,12 +13,14 @@
 | Trang | OWNER | MANAGER | CREATOR | CLIENT |
 |---|---|---|---|---|
 | Lịch (Calendar), Chat | không | có | có | có |
-| Yêu cầu nội dung | không | có | có | có |
+| Yêu cầu nội dung | chỉ xem | có | không | có |
 | Chiến dịch, Gói dịch vụ, Mạng xã hội | có | có | không | có |
 | Soạn thảo, Mẫu email, AI Studio | có | có | có | không |
 | Xuất bản, Dashboard xuất bản | không | có | có | không |
 | Thư viện | không | có | có | có |
 | Khách hàng, Mời thành viên, Thành viên Workspace | có | có | không | không |
+
+Chốt ngày 2026-11-04: Creator không dùng Yêu cầu nội dung, kể cả xem; backend cũng từ chối (`ContentRequestAccess`). Client không thấy tab Khách hàng; hồ sơ Client của chính họ là màn riêng (FR 3.3.3).
 
 ## 3. Trang web được thêm vào nav
 

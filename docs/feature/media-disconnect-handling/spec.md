@@ -1,0 +1,1 @@
+Expected client disconnects during media streaming must not produce ERROR stack traces or JSON writes into committed media responses. Real storage errors must remain visible. Polling must not reload an unchanged thumbnail solely because a signed preview URL changes.

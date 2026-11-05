@@ -1,0 +1,8 @@
+# Backend-held pre-S3 encryption
+Use the business-service dependency classpath plus its target/classes. Load the same ignored backend .env into the process environment; never pass keys on the command line. Preserve REPOSITORY_ENCRYPTION_KEY_V1 across rebuilds/deploys and back it up in an operator-controlled secret store outside S3. Losing all wrapping keys loses access to encrypted content.
+
+The migration Java source is dry-run by default. `--apply` replaces only repository/, repository-staging/, staging/, client-vault/ objects, uses conditional If-Match, preserves object tags/metadata and checks decrypted SHA-256 before and after every write. Stop all repository writers first. Versioned buckets are refused because prior plaintext versions need separate reviewed handling. Public image/* avatars/logos are untouched.
+
+Runtime configuration: REPOSITORY_ENCRYPTION_ENABLED=true; REPOSITORY_ENCRYPTION_ALLOW_LEGACY_READS=false; REPOSITORY_ENCRYPTION_ACTIVE_KEY_ID=v1; REPOSITORY_ENCRYPTION_KEY_V1=<32 random bytes base64>; REPOSITORY_MEDIA_PUBLIC_BASE_URL=<reachable gateway URL>. Older key IDs must remain in repository.encryption.keys for decryption during rotation. The key must never be stored in S3 or sent to the browser. Backend operators remain trusted decryptors.
+
+Application uploads now use a bounded streaming backend PUT capability, then the existing confirm flow. S3 only receives AWS Encryption SDK ciphertext, including staging/import/watermark/derived repository objects. Preview/download/publisher media URLs use short-lived encrypted GET capabilities with original Content-Type and Range behavior. A bounded verified plaintext temp cache expires after 60s idle; it contains no S3-accessible files.

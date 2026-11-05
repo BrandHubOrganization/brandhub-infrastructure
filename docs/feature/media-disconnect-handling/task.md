@@ -1,0 +1,3 @@
+- [x] Backend failing test, fix, regressions.
+- [x] Stable thumbnail source and frontend verification.
+- [x] Live runtime check after Business restart.

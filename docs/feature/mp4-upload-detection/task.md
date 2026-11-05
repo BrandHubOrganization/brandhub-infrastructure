@@ -1,0 +1,5 @@
+- [x] Capture HTTP 400 confirmation and reproduce actual file rejection.
+- [x] Add failing validator regression tests and implement narrow compatibility handling.
+- [x] Update VI/EN format feedback and suppress retry for invalid content.
+- [x] Verify backend tests, frontend checks, real client upload and preview.
+- [x] Existing semantic text-destructive error styling retained; no new theme or layout styles.
