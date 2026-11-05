@@ -8,50 +8,63 @@ skinparam BoxPadding 10
 skinparam ParticipantPadding 10
 
 ' === Participants ===
-actor "User" as user
+actor "Guest" as guest
 boundary "RegisterPage (UI)" as registerpageui
-boundary "AuthController" as authcontroller
+control "AuthController" as authcontroller
 control "AuthService" as authservice
 entity "UserRepository" as userrepository
+database "Database" as database
 control "MailService" as mailservice
 
-' === Flow ===
-user -> registerpageui: fills in full name, email & password, clicks "Create Account"
+' === Phase 1: Request & Pre-Branch Query ===
+guest -> registerpageui: fills in form, clicks "Create Account"
 activate registerpageui
 registerpageui -> authcontroller: POST /api/v1/auth/register (RegisterRequest)
 activate authcontroller
 authcontroller -> authservice: register(request)
 activate authservice
+
 authservice -> userrepository: existsByEmail(email)
 activate userrepository
+userrepository -> database: existsByEmail(email)
+activate database
+database --> userrepository: boolean
+deactivate database
+userrepository --> authservice: exists: boolean
+deactivate userrepository
 
-alt email already registered
-  userrepository --> authservice: true
-  deactivate userrepository
+' === Phase 2: Alt CombinedFragment at Service ===
+alt email already registered (exists == true)
   authservice --> authcontroller: 409 Conflict (EMAIL_ALREADY_IN_USE)
   deactivate authservice
   authcontroller --> registerpageui: 409 Conflict (EMAIL_ALREADY_IN_USE)
   deactivate authcontroller
-  registerpageui --> user: Show error "Email already in use"
-else email available
+  registerpageui --> guest: Show error "Email already in use"
+  deactivate registerpageui
+else email available (exists == false)
+  activate registerpageui
   activate authcontroller
   activate authservice
-  activate userrepository
-  userrepository --> authservice: false
-  deactivate userrepository
+
   authservice -> userrepository: save(newUser)
   activate userrepository
+  userrepository -> database: save(newUser)
+  activate database
+  database --> userrepository: savedNewUserEntity
+  deactivate database
   userrepository --> authservice: savedUser
   deactivate userrepository
+
   authservice -> mailservice: sendVerificationEmail(email, verifyToken)
   activate mailservice
   mailservice --> authservice: ok
   deactivate mailservice
+
   authservice --> authcontroller: RegisterResponse(userId, email)
   deactivate authservice
   authcontroller --> registerpageui: 201 Created (RegisterResponse)
   deactivate authcontroller
-  registerpageui --> user: "Account created — check your email to verify"
+  registerpageui --> guest: "Account created — check your email to verify"
   deactivate registerpageui
 end
 

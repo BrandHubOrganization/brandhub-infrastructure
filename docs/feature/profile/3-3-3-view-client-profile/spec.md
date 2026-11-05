@@ -8,7 +8,7 @@ Begins when a user opens their own list of Client Profiles ("My Brand Profiles")
 
 ## Function Description
 
-- **Actors / Roles:** Any signed-in user, viewing the Client Profiles they personally own; Agency members (Owner/Manager) when viewing a workspace's Client list (`/workspaces/{id}/clients`).
+- **Actors / Roles:** Any signed-in user, viewing the Client Profiles they personally own; Agency members (Owner/Manager) when viewing a workspace's Client list (`/workspaces/{id}/clients`). Client and Creator do not see this list or the Clients tab.
 - **Purpose:** Let a user manage the Client Profiles they own — one person may represent several brands (e.g. Nike, Adidas) and hold one profile per brand, none of which belong to any Agency. A profile is reused across every workspace/Agency the user collaborates with, instead of re-entering brand details per Agency.
 - **Interface:** The personal screen at `/client-profiles` lists every Client Profile the signed-in user owns — no Agency context required. A separate Workspace Client list, at `/workspaces/{id}/clients`, shows every `WorkspaceMember` with role CLIENT currently linked to that workspace (via `client_profile_id`), used by Agency Managers to manage who is collaborating and to invite new clients.
 - **Data Processing:** The system resolves the caller's identity from the access token and returns every Client Profile where `userId` matches the caller. For the workspace list, the system returns the workspace's active CLIENT members joined with their linked Client Profile for display.

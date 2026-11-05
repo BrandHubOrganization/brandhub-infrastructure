@@ -4,7 +4,7 @@
 
 ## Actors
 
-- **Mânger** — actor tương tác chính trong quy trình.
+- **Manager** — actor tương tác chính trong quy trình.
 - **Client** — giao diện người dùng `ContentRequestPage (UI)`.
 - **System** — `ContentRequestController` / `ContentRequestService`.
 

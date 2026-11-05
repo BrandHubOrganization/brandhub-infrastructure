@@ -1,3 +1,58 @@
+# Test Specification — FR 3.2.3: Sign In with Google OAuth
+
+## 1. Traceability & Execution Summary
+
+| Field | Value |
+| :--- | :--- |
+| **FR ID** | `FR 3.2.3` |
+| **Function Name** | Sign In with Google OAuth |
+| **Functional Domain** | Authentication |
+| **Canonical Actors / Roles** | `Guest, Owner, Manager, Creator, Client` |
+| **Target Class & Method** | `OAuthService (GoogleOAuthService).handleCallback()` (78 LOC) |
+| **Unit Test File** | `brandhub-business-service/src/test/java/com/brandhub/business/service/OAuthServiceTest.java` |
+| **Code & Test Author** | Trung |
+| **Test Requirement** | Verify Google OAuth state and code, login or auto-provision ACTIVE user account, and issue JWT tokens or 2FA challenge |
+| **Preconditions** | Can connect with server; OAuth state valid in Redis for GOOGLE |
+| **Overall Status** | **Passed (100%)** |
+| **Test Case Breakdown** | **Total: 19** (`Passed`: 19, `Failed`: 0, `Untested`: 0) — `Normal (N)`: 8, `Boundary (B)`: 2, `Abnormal (A)`: 9 |
+
+---
+
+## 2. Unit Test Case Matrix (`UTCID01`–`UTCID19`)
+
+| Test Case ID | Type | Preconditions | Test Inputs | Expected Return / Exception | Log Message | Status |
+| :--- | :---: | :--- | :--- | :--- | :--- | :---: |
+| `UTCID01` | `N` | Can connect with server; OAuth state valid in Redis for GOOGLE; Google account already linked to a user | `code` = `valid code`, `state` = `valid state` | 200 OK - CallbackResult(loginResult), access + refresh token issued | Audit LOGIN saved | **Passed** |
+| `UTCID02` | `N` | Can connect with server; OAuth state valid in Redis for GOOGLE; No user with Google email | `code` = `valid code`, `state` = `valid state` | 200 OK - new OAuth-only user created (emailVerifiedAt set, role USER) and logged in | Audit LOGIN saved | **Passed** |
+| `UTCID03` | `N` | Can connect with server; OAuth state valid in Redis for GOOGLE; Existing password user with same email | `code` = `valid code`, `state` = `valid state` | 200 OK - Google provider linked to existing account, logged in | Audit LOGIN saved | **Passed** |
+| `UTCID04` | `N` | Can connect with server; OAuth state valid in Redis for GOOGLE; Google account already linked to a user; 2FA enabled for user | `code` = `valid code`, `state` = `valid state` | 200 OK - CallbackResult(twoFactorToken), no access token | — | **Passed** |
+| `UTCID05` | `N` | Can connect with server; OAuth state valid in Redis for GOOGLE with linkingUserId; Link email equals current user email | `code` = `valid code`, `state` = `valid link state` | 200 OK - CallbackResult(isLinkMode=true, linkedProvider=GOOGLE) | — | **Passed** |
+| `UTCID06` | `N` | Can connect with server; OAuth state valid in Redis for GOOGLE; Google account already linked to a user | `code` = `valid code`, `state` = `valid state` | 200 OK - state key consumed (getAndDelete), lastLoginAt updated | — | **Passed** |
+| `UTCID07` | `N` | Can connect with server; OAuth state valid in Redis for GOOGLE; No user with Google email; Google profile has avatar | `code` = `valid code`, `state` = `valid state` | 200 OK - new user avatarUrl taken from Google profile | — | **Passed** |
+| `UTCID08` | `N` | Can connect with server; OAuth state valid in Redis for GOOGLE; Existing user has active workspace | `code` = `valid code`, `state` = `valid state` | 200 OK - access token has workspaceId claim | — | **Passed** |
+| `UTCID09` | `B` | Can connect with server; OAuth state valid in Redis for GOOGLE; Google email has mixed case/spaces | `code` = `valid code`, `state` = `valid state` | 200 OK - email lowercased and trimmed before lookup/create | — | **Passed** |
+| `UTCID10` | `B` | Can connect with server; OAuth state valid in Redis for GOOGLE with linkingUserId; Link email differs only by case | `code` = `valid code`, `state` = `valid link state` | 200 OK - equalsIgnoreCase match, provider linked | — | **Passed** |
+| `UTCID11` | `A` | Can connect with server; State not in Redis (expired or reused) | `code` = `valid code`, `state` = `expired state` | OAUTH_STATE_INVALID - 400 OAuth state is invalid or has expired | — | **Passed** |
+| `UTCID12` | `A` | Can connect with server; State stored for a different provider | `code` = `valid code`, `state` = `foreign state` | OAUTH_STATE_INVALID - 400 OAuth state is invalid or has expired | — | **Passed** |
+| `UTCID13` | `A` | Can connect with server; OAuth state valid in Redis for GOOGLE | `code` = `null`, `state` = `valid state` | OAUTH_CODE_INVALID - 400 OAuth authorization code exchange failed | — | **Passed** |
+| `UTCID14` | `A` | Can connect with server; OAuth state valid in Redis for GOOGLE | `code` = `invalid code`, `state` = `valid state` | OAUTH_CODE_INVALID - 400 OAuth authorization code exchange failed | — | **Passed** |
+| `UTCID15` | `A` | Can connect with server; OAuth state valid in Redis for GOOGLE; Google account linked to user isActive=false | `code` = `valid code`, `state` = `valid state` | ACCOUNT_SUSPENDED - 403 Account has been suspended | — | **Passed** |
+| `UTCID16` | `A` | Can connect with server; OAuth state valid in Redis for GOOGLE; Google account linked to user status DEACTIVATED | `code` = `valid code`, `state` = `valid state` | ACCOUNT_SUSPENDED - 403 Account has been suspended | — | **Passed** |
+| `UTCID17` | `A` | Can connect with server; OAuth state valid in Redis for GOOGLE with linkingUserId; Link email differs from Google email | `code` = `valid code`, `state` = `valid link state` | OAUTH_EMAIL_MISMATCH - 409 OAuth account email does not match your current account | — | **Passed** |
+| `UTCID18` | `A` | Can connect with server; OAuth state valid in Redis for GOOGLE with linkingUserId; Google account linked to another user | `code` = `valid code`, `state` = `valid link state` | OAUTH_ALREADY_LINKED - 409 linked to a different account | — | **Passed** |
+| `UTCID19` | `A` | Can connect with server; OAuth state valid in Redis for GOOGLE with linkingUserId; Linking user deleted | `code` = `valid code`, `state` = `valid link state` | USER_NOT_FOUND - 404 User not found | — | **Passed** |
+
+---
+
+## 3. Synchronization & Verification Notes
+
+- Synchronized 1-to-1 with [`Report5_Unit Test.xls`](../../../../brandhub-final_report/report5/Report5_Unit%20Test.xls) sheet `FR3.2.3`, [`Report5_Test Report.xlsx`](../../../../brandhub-final_report/report5/Report5_Test%20Report.xlsx), and [`Report5_Test Documentation.docx`](../../../../brandhub-final_report/report5/Report5_Test%20Documentation.docx).
+- Role names strictly follow the 6 canonical roles (`Guest`, `Owner`, `Manager`, `Creator`, `Client`, `Admin`).
+
+---
+
+## 4. Feature Acceptance & Integration Verification
+
 # Test — Sign In with Google OAuth
 
 | ID | Mô tả | AC/Edge | Kết quả mong đợi | Trạng thái |

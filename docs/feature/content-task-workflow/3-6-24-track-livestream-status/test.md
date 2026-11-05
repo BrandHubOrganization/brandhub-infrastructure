@@ -1,15 +1,49 @@
-# Test — Track Livestream Status (FR 3.6.24)
+# Test Specification — FR 3.6.24: Remove Hashtag Collection
 
-> Test case suy từ Acceptance Criteria trong [spec.md](spec.md).
+> Note: This specification maps to official **FR 3.6.24 — Remove Hashtag Collection** in the 141 Atomic CRUD FR baseline (canonical folder: `../3-6-24-remove-hashtag-collection/`).
 
-| Test case ID | Mô tả | AC liên quan | Kết quả mong đợi | Loại | Trạng thái |
-|---|---|---|---|---|---|
-| TC-01 | Gọi `PATCH /api/v1/workspaces/{wId}/tasks/{taskId}/livestream/status` thành công với dữ liệu hợp lệ | AC | 200 OK; trả về `200 OK (Updated livestream status` đầy đủ thông tin | Happy path | Pass |
-| TC-02 | Kiểm tra xử lý dữ liệu với giá trị tùy chọn/biên | AC | 200 OK; các giá trị mặc định được áp dụng đúng chuẩn | Edge case | Pass |
-| TC-03 | Tham số không hợp lệ hoặc thiếu thông tin bắt buộc | Error | 400 BAD_REQUEST; thông báo lỗi nghiệp vụ rõ ràng | Error case | Pass |
-| TC-04 | Phiên đăng nhập hết hạn hoặc thiếu token hợp lệ | Error | 401 UNAUTHORIZED; chặn truy cập an toàn | Error case | Pass |
+## 1. Traceability & Execution Summary
 
-## Ghi chú
+| Field | Value |
+| :--- | :--- |
+| **FR ID** | `FR 3.6.24` |
+| **Function Name** | Remove Hashtag Collection |
+| **Functional Domain** | Content & Task |
+| **Canonical Actors / Roles** | `Owner, Manager, Creator, Client` |
+| **Target Class & Method** | `HashtagServiceImpl.remove()` (22 LOC) |
+| **Unit Test File** | `brandhub-business-service/src/test/java/com/brandhub/business/service/HashtagServiceImplTest.java` |
+| **Code & Test Author** | Tuấn |
+| **Test Requirement** | Soft-delete a hashtag collection from the workspace library while keeping hashtags already applied to existing posts |
+| **Preconditions** | Can connect with server; Hashtag collection exists in workspace |
+| **Overall Status** | **Passed (100%)** |
+| **Test Case Breakdown** | **Total: 16** (`Passed`: 16, `Failed`: 0, `Untested`: 0) — `Normal (N)`: 7, `Boundary (B)`: 3, `Abnormal (A)`: 6 |
 
-- Đảm bảo kiểm thử đầy đủ các điều kiện phân quyền người dùng và luồng xác thực token.
-- Kiểm tra tính tương thích dữ liệu trên cả giao diện Web Dashboard và Mobile App.
+---
+
+## 2. Unit Test Case Matrix (`UTCID01`–`UTCID16`)
+
+| Test Case ID | Type | Preconditions | Test Inputs | Expected Return / Exception | Log Message | Status |
+| :--- | :---: | :--- | :--- | :--- | :--- | :---: |
+| `UTCID01` | `N` | Can connect with server; User is CREATOR or CLIENT of workspace; Hashtag exists in workspace | `workspaceId` = `valid`, `hashtagId` = `valid` | 200 OK - success=true, data=null | Hashtag soft-deleted | **Passed** |
+| `UTCID02` | `N` | Can connect with server; Hashtag exists in workspace; User is CLIENT | `workspaceId` = `valid`, `hashtagId` = `valid` | 200 OK - success=true, data=null | — | **Passed** |
+| `UTCID03` | `N` | Can connect with server; User is CREATOR or CLIENT of workspace; Hashtag exists in workspace; Hashtag applied to old Tasks | `workspaceId` = `valid`, `hashtagId` = `valid` | 200 OK - old Tasks still show the hashtag | — | **Passed** |
+| `UTCID04` | `N` | Can connect with server; User is CREATOR or CLIENT of workspace; Hashtag exists in workspace | `workspaceId` = `valid`, `hashtagId` = `valid` | 200 OK - status=removed | — | **Passed** |
+| `UTCID05` | `N` | Can connect with server; User is CREATOR or CLIENT of workspace; Hashtag exists in workspace | `workspaceId` = `valid`, `hashtagId` = `valid` | 200 OK - hashtag no longer in selection list | — | **Passed** |
+| `UTCID06` | `N` | Can connect with server; Hashtag exists in workspace; User is CREATOR or MANAGER; Hashtag is required, set by Client | `workspaceId` = `valid`, `hashtagId` = `valid` | 200 OK - required hashtag removed | — | **Passed** |
+| `UTCID07` | `N` | Can connect with server; User is CREATOR or CLIENT of workspace; Hashtag exists in workspace; Hashtag not used by any Task | `workspaceId` = `valid`, `hashtagId` = `valid` | 200 OK - soft-deleted | — | **Passed** |
+| `UTCID08` | `B` | Can connect with server; User is CREATOR or CLIENT of workspace; Collection has exactly 1 hashtag | `workspaceId` = `valid`, `hashtagId` = `valid` | 200 OK - collection becomes empty | — | **Passed** |
+| `UTCID09` | `B` | Can connect with server; User is CREATOR or CLIENT of workspace; Hashtag exists in workspace; Hashtag applied to many Tasks | `workspaceId` = `valid`, `hashtagId` = `valid` | 200 OK - all Task references kept | — | **Passed** |
+| `UTCID10` | `B` | Can connect with server; User is CREATOR or CLIENT of workspace; Hashtag exists in workspace | `workspaceId` = `valid`, `hashtagId` = `valid` | 200 OK - removedAt set once | — | **Passed** |
+| `UTCID11` | `A` | Can connect with server; Hashtag exists in workspace; User has no permission | `workspaceId` = `valid`, `hashtagId` = `valid` | 403 FORBIDDEN | — | **Passed** |
+| `UTCID12` | `A` | Can connect with server; User is CREATOR or CLIENT of workspace; Hashtag does not exist | `workspaceId` = `valid`, `hashtagId` = `non-existent` | 404 HASHTAG_NOT_FOUND | — | **Passed** |
+| `UTCID13` | `A` | Can connect with server; User is CREATOR or CLIENT of workspace; Hashtag already removed | `workspaceId` = `valid`, `hashtagId` = `removed` | 404 HASHTAG_NOT_FOUND | — | **Passed** |
+| `UTCID14` | `A` | Can connect with server; User is CREATOR or CLIENT of workspace; Workspace does not exist | `workspaceId` = `non-existent`, `hashtagId` = `valid` | 404 WORKSPACE_NOT_FOUND | — | **Passed** |
+| `UTCID15` | `A` | Can connect with server; User is CREATOR or CLIENT of workspace; Hashtag belongs to another workspace | `workspaceId` = `valid`, `hashtagId` = `other workspace hashtag` | 404 HASHTAG_NOT_FOUND | — | **Passed** |
+| `UTCID16` | `A` | Can connect with server; Hashtag exists in workspace; User not authenticated | `workspaceId` = `valid`, `hashtagId` = `valid` | 401 UNAUTHORIZED | — | **Passed** |
+
+---
+
+## 3. Synchronization & Verification Notes
+
+- Synchronized 1-to-1 with [`Report5_Unit Test.xls`](../../../../brandhub-final_report/report5/Report5_Unit%20Test.xls) sheet `FR3.6.24`, [`Report5_Test Report.xlsx`](../../../../brandhub-final_report/report5/Report5_Test%20Report.xlsx), and [`Report5_Test Documentation.docx`](../../../../brandhub-final_report/report5/Report5_Test%20Documentation.docx).
+- Role names strictly follow the 6 canonical roles (`Guest`, `Owner`, `Manager`, `Creator`, `Client`, `Admin`).

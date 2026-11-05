@@ -2,6 +2,8 @@
 
 > [<< Về Overview](00-overview.md)
 
+> **Chốt 2026-11-04:** `CREATOR` không truy cập Content Request (FR 3.5.7–3.5.10), kể cả xem. `CLIENT` không thấy tab Khách hàng (danh sách Client của Workspace); hồ sơ Client của chính họ theo FR 3.3.3 vẫn giữ nguyên.
+
 ## 1. Bảng role hệ thống V2
 
 | Cấp | Role | Phạm vi | Ghi chú |
