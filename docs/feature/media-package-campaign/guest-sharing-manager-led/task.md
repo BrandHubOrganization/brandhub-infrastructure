@@ -211,3 +211,26 @@ Bỏ dòng “Đề xuất gói truyền thông”, cột Lượt sửa, hai ch�
 
 - [x] Sửa contract đơn vị Báo điện tử giữa UI và impact/save; cập nhật seeder.
 - [x] Test validator các đơn vị, duplicate và service/seed liên quan.
+
+
+### Không tự đóng các dịch vụ khác khi bấm Xem
+
+- [x] Sửa auto-budget đóng hàng khác sau explicit expand.
+- [x] QA đúng trường hợp 2 mở/1 đóng rồi mở mục thứ ba, resize và đóng độc lập; lint.
+
+
+### Micro-interaction chọn và xem gói
+- [x] Chuyển preview, trạng thái card rõ và keyboard navigation.
+- [x] Chevron/mở nội dung và giảm chuyển động; giữ disclosure độc lập.
+- [x] Xác nhận tái sử dụng key vi.json + en.json; kiểm tra light/dark/mobile.
+- [x] Lint/type-check/build và browser QA local; không ghi DB.
+
+### Xác nhận giảm hạng mục/số lượng
+- [x] Resolver, contract impact/save, kiểm tra version/lock/confirmation.
+- [x] Đồng bộ worker idempotent, hủy bảo toàn dữ liệu, loại Task đã bỏ khỏi kế hoạch active.
+- [x] UI chọn Task/xác nhận/hủy và cập nhật vi.json + en.json.
+- [x] Kiểm thử light/dark, keyboard/mobile, HTTP mock và backend regression; ghi rõ giới hạn xác minh.
+
+### Phân biệt bỏ hạng mục và giảm số lượng
+- [x] Tách xác nhận bỏ hạng mục và chọn Task giảm; cập nhật vi/en.
+- [x] Tên hạng mục gốc từ impact; kiểm tra bỏ toàn bộ/giảm/hỗn hợp/hủy/payload/light-dark/mobile.

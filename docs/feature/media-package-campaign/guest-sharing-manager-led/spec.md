@@ -273,3 +273,18 @@ Thu nhỏ toolbar thêm: desktop nút36px, mobile giữ44px; tiêu đề14px; pa
 ### Sửa 400 impact do đơn vị Báo điện tử
 
 Báo điện tử dùng đơn vị bài ở gói mới. Backend nhận cả bài và danh sách đề xuất của gói cũ, chỉ tương thích riêng PRESS_RECOMMENDATION; không nới chuẩn unit các loại khác, không chuyển/xóa dữ liệu cũ.
+
+
+### Không tự đóng các dịch vụ khác khi bấm Xem
+
+Tự mở theo không gian chỉ trước thao tác toggle đầu tiên. Khi người dùng mở/đóng một hạng mục, không được thay đổi các mục khác; thiếu chỗ cho cuộn. Đổi gói reset tự mở như cũ.
+
+
+### Micro-interaction chọn và xem gói (sketch được duyệt 2026-11-06)
+Giữ layout chi tiết trái/danh sách phải. Card Đang xem phản hồi bằng màu/viền cam; Đang sử dụng vẫn badge xanh và không đổi khi preview. Chuyển chi tiết 160ms, chevron và nội dung mở nhẹ; các hàng độc lập. ArrowUp/Down/Home/End khi focus card chọn preview, không ghi dữ liệu. Tôn trọng prefers-reduced-motion; token light/dark hiện có. Tái sử dụng toàn bộ key vi/en; không thêm text hoặc nút bật/tắt hiệu ứng vào sản phẩm. Không đổi API, quyền, DB hoặc xuất PDF/JPG.
+
+### Xác nhận giảm hạng mục/số lượng trước triển khai (2026-11-06)
+Tăng số lượng/thêm hạng mục tự bổ sung Task. Giảm số lượng một phần trước triển khai hiển thị Task chịu tác động khi Lưu; Manager chọn đủ Task cần bỏ rồi xác nhận. Bỏ toàn bộ hạng mục chỉ hiển thị tên hạng mục để xác nhận, tự bao gồm toàn bộ Task liên quan. Hủy dialog giữ form, không ghi. Server kiểm tra lại termsVersion, trạng thái triển khai và danh sách xác nhận. Task không còn trong kế hoạch được CANCELLED với lý do DUPLICATE_OR_REPLACED, metadata packageRemoved, giữ ID/liên kết/nội dung/bình luận/lịch sử. Không tái sử dụng Task bị loại; thêm lại tạo định danh mới. Giữ Task/công việc cũ được chọn, không reset dữ liệu. Worker retry idempotent; chỉ READY khi Task active khớp kế hoạch mới. Không xóa DB hoặc nới quyền sau triển khai. Dùng dialog xác nhận ngắn, vi/en key song song `mediaPackage.impact.*`, token sáng/tối.
+
+### Phân biệt bỏ hạng mục và giảm số lượng
+Bỏ toàn bộ hạng mục: chỉ xác nhận tên hạng mục bị loại khỏi kế hoạch, không checkbox từng Task. Giảm số lượng: cho chọn đủ Task cần bỏ. Thay đổi hỗn hợp trình bày hai phần trong một dialog; xác nhận một lần, server vẫn kiểm tra đầy đủ IDs. Giữ bảo toàn dữ liệu/khóa sau triển khai. Text dùng key mediaPackage.impact mới song song vi/en và token theme hiện có.

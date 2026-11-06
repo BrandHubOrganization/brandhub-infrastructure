@@ -210,3 +210,32 @@ Kết quả: focused lint + production build/type-check pass. Workspace mock 144
 Bài báo unit bài phải qua validateNewSelection; unit cũ vẫn nhận; unit sự kiện/buổi sai cho báo phải chặn. SOCIAL_POST sai unit và duplicate service vẫn chặn. Không gọi API save trên dữ liệu demo trong QA.
 
 Kết quả: Maven unit test 25/25 pass (PackageOfferingSimplificationTest,CampaignSeederTest,MediaPackageServiceImplTest,PackageVersionGuardTest). Bài/legacy list pass cùng validator impact/save, buổi sai và duplicate press vẫn reject. Cập nhật test đã có trên remote, không thêm file test mới. Không migration/reset/seed/DB, cần restart Business để runtime dùng validator mới; chưa xác minh HTTP với tài khoản thật. Người dùng gửi Payload phần khung, chưa có Response chi tiết để loại trừ các nguyên nhân khác.
+
+
+### Không tự đóng các dịch vụ khác khi bấm Xem
+
+Fixture chiều cao giới hạn để chỉ 2 hàng đầu tự mở. Click hàng3 phải giữ 3 hàng mở, pane được scroll; đóng hàng1 không đổi2/3. Resize/locale sau toggle giữ trạng thái. Chuyển package reset và auto sizing vẫn hoạt động.
+
+Kết quả: focused ESLint pass; browser local API mock tái hiện 2 hàng tự mở + hàng3 đóng ở1440×860. Mở hàng3 giữ cả3, pane scrollHeight717/clientHeight713; đóng hàng1 giữ hàng2/3; resize/đổi locale/mobile giữ trạng thái, đổi package reset automatic như cũ. Không pageerror hoặc tràn ngang. Chỉ sửa hook UI, không API/DB; QA chỉ keep-local-only. Không commit.
+
+
+### Micro-interaction chọn và xem gói
+Chọn card/ArrowDown/Up/Home/End đổi preview nhưng giữ badge current và quyền actions. Click lại card không mất focus; search/load more không bị keyboard intercept. Các hàng đã mở giữ nguyên khi toggle hàng khác. Kiểm tra light/dark, vi/en, 390px và reduced-motion, scroll độc lập, không pageerror. Kiểm tra không thêm thư viện và không đổi API/DB/export.
+
+Browser QA local API mock: PASS ArrowDown/Up/Home/End giữ current, aria-pressed preview, CSS animation và reduced-motion, vi/en × light/dark × 390/1440, không pageerror/tràn ngang. Regression auto disclosure 2 mở/1 đóng -> mở cả3, đóng riêng, resize/locale/mobile, đổi gói reset PASS. Focused ESLint và diff whitespace PASS. npm run ci bị chặn bởi 2 no-explicit-any có sẵn trong thay đổi vietnamAddressService.ts ngoài phạm vi. Không sửa các file đó. QA nằm keep-local-only.
+
+Type-check và production build PASS; build còn warning chunk lớn đã tồn tại. CI toàn repo chưa xanh do lỗi lint ngoài phạm vi nêu trên. Không commit/push.
+
+### Xác nhận giảm hạng mục/số lượng
+Backend: tăng giữ ID, giảm mặc định/chọn task giữ đúng, thiếu/sai confirmation reject, version/deployment guard; bỏ rồi thêm lại không dùng ID cũ; packageDriven chấp nhận stable selected IDs nhưng reject trùng/count/type sai. Worker giữ field/comment liên kết, hủy không xóa, retry không lặp revision và active count đúng. Web: Save impact -> chọn đủ -> confirm -> PUT chính xác; cancel không PUT giữ form; pending/error không thành công giả; vi/en light/dark mobile keyboard. Không APPLY database demo/Atlas.
+
+Kết quả 2026-11-06: focused ESLint, type-check và Web production build PASS (warning chunk lớn có sẵn). Browser local API mock PASS: chưa xác nhận không PUT, hủy giữ form, chọn đúng số Task mới confirm, PUT chính xác selected IDs, tăng không dialog, lỗi 409 giữ form, Escape, vi/en × light/dark × mobile/desktop. Mongo 7 QA dùng init-mongo.js hiện tại PASS: service impact/save/version/khóa triển khai, chọn Task, CANCELLED + audit + metadata, giữ brief/assignee/liên kết bình luận, chèn lỗi sau archive trước upsert -> FAILED -> retry READY không lặp hủy, idempotency request, tăng lại có ID mới và count kế hoạch đúng. PG trong smoke là mock, không xác minh transaction PostgreSQL thật. Không thay schema: typeMetadata.packageRemoved/packageRemovedTermsVersion trong map đã có; cancellation dùng enum DUPLICATE_OR_REPLACED đã có. Không cần migration/init/seeder mới; seeder tiếp tục tạo Task active không có marker này. Không ghi dữ liệu local demo/Atlas/production. Container QA đã dọn; artifact kiểm tra chỉ keep-local-only. Chưa restart Business/commit/push.
+
+Regression cuối: 45/45 test Business PASS (CampaignTaskStore, CampaignPlanValidator, CampaignDeploymentProcessor, CampaignClosureService, MediaCampaignServiceImpl). Bao gồm giữ task có ordinal cao rồi tăng lại không trùng tên hoặc tái dùng ID đã hủy. File test được cập nhật đều đã theo dõi trong Git; không thêm test mới trong src.
+
+### Phân biệt bỏ hạng mục và giảm số lượng
+Bỏ trọn hạng mục không có checkbox hoặc yêu cầu chọn Task; xác nhận gửi toàn bộ IDs, hủy không ghi. Giảm vẫn phải chọn đủ số Task. Hỗn hợp giữ IDs bắt buộc của hạng mục bỏ khi đổi checkbox nhóm giảm. Kiểm tra locale/theme/mobile và không đổi dữ liệu demo.
+
+Browser local fixture PASS: bỏ trọn hạng mục không checkbox/Task list, xác nhận đủ IDs; giảm chọn đủ mới cho lưu; hỗn hợp giữ IDs bắt buộc khi thay lựa chọn; cancel null; Việt/Anh, sáng/tối, 390/1440 không overflow. Focused ESLint và diff whitespace PASS. Không thay DB.
+
+Kiểm tra cuối phân biệt bỏ/giảm: Business 23/23 tests PASS; Web type-check + production build PASS, warning chunk lớn có sẵn. Không commit/push hoặc restart service.

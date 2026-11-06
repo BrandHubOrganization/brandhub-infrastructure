@@ -316,3 +316,18 @@ Chỉ đổi utility CSS trên nhánh headerActions của InlineWorkArea và for
 ### Sửa 400 impact do đơn vị Báo điện tử
 
 Sửa PackageOfferingValidator.validateStandardUnits expected press thành bài và nhánh tương thích unit cũ. Cùng validator áp dụng impact/save/create. CampaignSeeder tạo gói bài báo với unit bài; không chạy seeder hoặc migration. Test canonical/legacy/reject sai/duplicate.
+
+
+### Không tự đóng các dịch vụ khác khi bấm Xem
+
+Dừng đo/phân bổ automatic khi manual map có key. Cleanup observer/rAF trên transition đầu, giữ automatic set hiện hành. Manual overrides chỉ item được bấm, resize/locale không thu gọn các hàng trước đó.
+
+
+### Micro-interaction chọn và xem gói
+WorkspacePackageOverview nhập CSS scoped, đặt animation trên proposal keyed theo ID; xử lý bàn phím trong vùng danh sách chỉ với button card, giữ focus. MediaPackageCard chỉ chuyển màu/viền/shadow 160ms; không animate kích thước và không thay đổi footprint khi chọn. PackageDeliverableRow giữ hidden row để tương thích auto sizing; animate nội dung lúc mở và xoay chevron. CSS chỉ áp dụng overview, reduced-motion tắt animation/transition. Locale vi/en dùng lại keys, không thay file locale.
+
+### Xác nhận giảm hạng mục/số lượng
+Thêm pure PackagePlanChange resolver giữ work item cũ theo deliverable/type, tạo thêm đủ số lượng với ID tránh lịch sử cũ; packageDriven kiểm tra số lượng, loại, ID unique và deliverable đúng thay vì đòi ID tái tạo. Request thêm confirmedRemovedTaskIds nullable; impact trả nhóm candidates/removeCount và default affectedTasks, giữ blocked=true cho client cũ dừng an toàn. Save yêu cầu xác nhận chính xác tập bị bỏ; requireEditable cả impact/save. Worker hủy Task ngoài kế hoạch, marker trong typeMetadata hiện có; CampaignTaskStore.byCampaign loại marker khỏi phép đếm deployment/closure. Giữ tài liệu cũ nguyên vẹn, không collection/index mới; cập nhật seeder nếu đổi schema (đợt này không đổi schema). Web dialog cho chọn task giảm, await quyết định trả boolean cho form; không native confirm. Không chạm Auth/concurrent edits.
+
+### Phân biệt bỏ hạng mục và giảm số lượng
+PackageImpactDialog phân nhóm removeCount === candidates.length là bỏ trọn hạng mục; tự đưa IDs của nhóm này vào payload xác nhận. Chỉ render checkbox/count cho nhóm giảm một phần. Impact trả tên deliverable gốc cho nhóm bị bỏ, không dùng tên Task #1 làm tên hạng mục. Không đổi DB hoặc quyền.
