@@ -1,63 +1,26 @@
-# FR 3.5.6 - Approve and Deploy Media Campaign
+# FR 3.5.6 — Client góp ý và Manager triển khai Campaign
 
-| Field | Value |
-|---|---|
-| Status | Implemented in code; Atlas migration verification and live flow testing pending (2026-10-10) |
-| Roles | Client; Owner/Manager |
-| Delivery task | DA-E50-07 / DA-948 |
+Cập nhật BA 2026-11-05. Bước duyệt Campaign hai phía đã được thay bằng [flow xem/góp ý và Manager triển khai](../guest-sharing-manager-led/spec.md).
 
-## Outcome
+## Quyền và góp ý
 
-Both parties approve a campaign, then deployment creates one generic Mongo task per planned campaign work item in `backlog` and sets the campaign to `IN_PROGRESS`.
+- Client đã tham gia đúng workspace được xem Campaign DRAFT, IN_PROGRESS và COMPLETED theo quyền xem hiện hành.
+- Client được comment góp ý cả khi Campaign còn DRAFT. Lưu người gửi, thời điểm và ngữ cảnh phiên bản đang xem khi có.
+- Comment không sửa kế hoạch, không chuyển trạng thái hoặc tạo approval. Manager quyết định xử lý góp ý trong phạm vi trạng thái cho phép.
+- Client không có nút approve/reject Campaign hoặc triển khai. Manager không cần chờ Client đồng ý/góp ý xong để triển khai.
+- Duyệt kết quả Task/bài đăng tiếp tục theo module Task và không được thay bằng comment Campaign.
 
-## Acceptance criteria
+## Triển khai
 
-- Approval needs Agency and Client timestamps for the same campaign content version; any edit invalidates both prior approvals.
-- Deploy rejects a campaign that is not fully approved.
-- Generated tasks contain `workspaceId`, `campaignId`, type, name, due date, and `status=backlog`; they initially have no assignee.
-- Retrying/deploying twice cannot duplicate a task for one campaign work item.
-- Client gives feedback; Manager edits, and both parties approve the revised version.
-- Confirmed 2026-10-14: Manager completes only after every linked Task is COMPLETED/CANCELLED and no Request is IN_PROGRESS. No reason bypass. Bulk cancellation is a separate explicit action with per-Task audit and one shared reason; preserve approval/content history. See ../campaign-closure/spec.md.
+- Manager chủ động triển khai khi gói, kế hoạch, task và thông tin bắt buộc đã hợp lệ/đồng bộ.
+- Không còn gate Campaign APPROVED hoặc timestamp duyệt hai phía trong flow mới.
+- Lượt triển khai cố định bản gói/kế hoạch được dùng và ngăn sửa đồng thời. Lỗi/gián đoạn cho phép retry trên cùng bản, không ghi đè task hoặc sinh task trùng.
+- Campaign chuyển IN_PROGRESS sau khi xác nhận đầy đủ công việc theo gói. Các task đã tồn tại từ khi lưu gói được giữ định danh và thông tin đã nhập.
+- Sau triển khai khóa gói/phạm vi kế hoạch. Thành viên bắt đầu công việc theo quyền Task hiện hành.
+- Hoàn thành Campaign vẫn do Manager thực hiện với điều kiện closure hiện hành. Request/Task chưa xử lý vẫn là điều kiện chặn theo spec riêng.
 
-## Constraint
+## Trạng thái và UX
 
-PostgreSQL and MongoDB have no shared transaction. Deploy needs stable work-item ID plus Mongo unique/upsert key on `{campaignId, campaignWorkItemId}`, not only a `deployed_at` timestamp.
+Vòng đời nghiệp vụ đích là DRAFT → IN_PROGRESS → COMPLETED. Tiến trình deployment/retry được hiển thị riêng. Giao diện Client tập trung kế hoạch, tiến độ và góp ý, dùng vi/en, semantic light/dark, bàn phím/mobile và các trạng thái tải/lỗi/trống/thiếu quyền.
 
-## Delivery gate (2026-10-08)
-
-Mongo V2 is confirmed as the Task source of truth. Current PostgreSQL Task and
-Content Writing foreign keys still require integration work before deployment;
-do not create unrelated Task copies in both stores. One Workspace has one Campaign;
-new campaigns use new Workspaces, with an Owner duplication feature planned.
-See [delivery plan](../campaign-delivery-plan.md) for the remaining decisions.
-
-## Stage 3 review and approval contract (2026-10-09)
-
-- Client submits feedback for the Campaign version currently displayed. Feedback is
-  append-only and does not change the plan or its content version.
-- Manager edits a draft plan; a material edit increments `contentVersion`, records a
-  full immutable snapshot, and invalidates both previous approvals. No-op saves do not.
-- Each side approves the exact version it viewed. The same actor cannot supply both
-  approvals. One-sided approval leaves status `DRAFT`; both sides approving the same
-  version moves it to `APPROVED`. Approved content is immutable.
-- Approval requires a strategy, both timeline dates, and at least one work item.
-  Feedback, edits, and approvals notify the opposite side through the existing inbox.
-- Campaign version snapshots and review events are retained for comparison/audit.
-  The Workspace-scoped API enforces current Workspace membership and role.
-- Deploy and completion belong to Stage 4 and are not enabled by this stage.
-
-## Stage 4 deployment and completion contract
-
-- Manager explicitly deploys a fully approved Campaign. Every planned work item
-  becomes one generic Mongo `tasks` document in `BACKLOG`, retaining its stable
-  `campaignWorkItemId`, Workspace, Campaign, type, name and due date. The new Task
-  has no assignee or QC assignee. Retry must not alter an existing Task.
-- Deployment progress is durable in PostgreSQL. The Campaign becomes `IN_PROGRESS`
-  only after Mongo confirms every work item. A failed or interrupted deployment
-  can be retried using the same Task identities.
-- PostgreSQL editor content remains stored in its Yjs tables, referenced by Task
-  UUID. Mongo is the Task source of truth; no second PostgreSQL Task is created.
-- Manager explicitly marks an IN_PROGRESS Campaign complete after all planned and supplemental Request Tasks reach COMPLETED/CANCELLED and all received Requests are processed. Preview shows blockers and PENDING cancellation count. Final completion rechecks server state; preserve actor/time/Task summary and durable PENDING cleanup. See ../campaign-closure/spec.md (2026-10-14 confirmation).
-- Existing Task IDs and editor content must be preserved during cutover. Local
-  preflight on 2026-10-09 found zero PostgreSQL tasks/operations/snapshots; other
-  environments must pass an independent preflight/backfill before switching.
+API, trạng thái APPROVED cũ và lịch sử review/approval cần kế hoạch tương thích riêng. Không tự chuyển/xóa dữ liệu trong giai đoạn chỉnh spec.

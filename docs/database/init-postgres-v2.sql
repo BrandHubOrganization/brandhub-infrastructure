@@ -468,6 +468,8 @@ CREATE INDEX IF NOT EXISTS idx_workspace_templates_agency_id ON workspace_templa
 
 CREATE TABLE IF NOT EXISTS media_packages (
     id                 UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+    share_token VARCHAR(64),
+    share_enabled BOOLEAN NOT NULL DEFAULT FALSE,
     name               VARCHAR(255) NOT NULL,
     is_template        BOOLEAN      NOT NULL DEFAULT FALSE,
     agency_id          UUID         CONSTRAINT fk_media_packages_agency REFERENCES agencies(id) ON DELETE RESTRICT,
@@ -503,6 +505,16 @@ FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 CREATE TABLE IF NOT EXISTS workspace_media_packages (
     id                     UUID                       PRIMARY KEY DEFAULT gen_random_uuid(),
+    share_token VARCHAR(64),
+    share_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    manager_led BOOLEAN NOT NULL DEFAULT FALSE,
+    preparation_status VARCHAR(16) NOT NULL DEFAULT 'LEGACY',
+    preparation_actor_id UUID,
+    preparation_lease UUID,
+    preparation_lease_until TIMESTAMPTZ,
+    preparation_error VARCHAR(64),
+    last_request_id UUID,
+    last_request_hash VARCHAR(64),
     workspace_id           UUID                       NOT NULL UNIQUE REFERENCES workspaces(id) ON DELETE RESTRICT,
     package_id             UUID                       NOT NULL REFERENCES media_packages(id) ON DELETE RESTRICT,
     negotiation_status     package_negotiation_status NOT NULL DEFAULT 'DRAFT',
@@ -514,9 +526,15 @@ CREATE TABLE IF NOT EXISTS workspace_media_packages (
     approved_by_client_at  TIMESTAMPTZ,
     created_at             TIMESTAMPTZ                NOT NULL DEFAULT NOW(),
     updated_at             TIMESTAMPTZ                NOT NULL DEFAULT NOW(),
+    CONSTRAINT chk_package_preparation_status CHECK (preparation_status IN ('LEGACY','PENDING','PROCESSING','READY','FAILED','DEPLOYING','DEPLOYED')),
     CONSTRAINT chk_workspace_media_packages_terms_version_positive CHECK (terms_version > 0),
     CONSTRAINT chk_workspace_media_packages_client_proposal_count CHECK (client_proposal_count >= 0)
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_media_packages_share_token ON media_packages(share_token);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_workspace_media_packages_share_token ON workspace_media_packages(share_token);
+CREATE INDEX IF NOT EXISTS idx_workspace_package_preparation ON workspace_media_packages(preparation_status, preparation_lease_until)
+    WHERE preparation_status IN ('PENDING','PROCESSING');
 
 DROP TRIGGER IF EXISTS trg_workspace_media_packages_updated_at ON workspace_media_packages;
 CREATE TRIGGER trg_workspace_media_packages_updated_at
@@ -528,7 +546,7 @@ CREATE TABLE IF NOT EXISTS package_negotiation_events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_media_package_id UUID NOT NULL REFERENCES workspace_media_packages(id) ON DELETE CASCADE,
     terms_version INTEGER NOT NULL CHECK (terms_version >= 1),
-    action VARCHAR(30) NOT NULL CHECK (action IN ('BASELINE','REQUEST_CHANGE','COUNTER_OFFER')),
+    action VARCHAR(30) NOT NULL CHECK (action IN ('BASELINE','REQUEST_CHANGE','COUNTER_OFFER','MANAGER_SAVE')),
     actor_id UUID,
     actor_role VARCHAR(20),
     note VARCHAR(2000),
@@ -537,7 +555,7 @@ CREATE TABLE IF NOT EXISTS package_negotiation_events (
     UNIQUE (workspace_media_package_id, terms_version),
     CHECK ((action = 'BASELINE' AND actor_id IS NULL AND actor_role IS NULL)
         OR (action = 'REQUEST_CHANGE' AND actor_id IS NOT NULL AND actor_role = 'CLIENT')
-        OR (action = 'COUNTER_OFFER' AND actor_id IS NOT NULL AND actor_role IN ('OWNER','MANAGER')))
+        OR (action IN ('COUNTER_OFFER','MANAGER_SAVE') AND actor_id IS NOT NULL AND actor_role IN ('OWNER','MANAGER')))
 );
 CREATE INDEX IF NOT EXISTS idx_package_negotiation_history
     ON package_negotiation_events(workspace_media_package_id, terms_version DESC);
@@ -569,7 +587,7 @@ CREATE TABLE IF NOT EXISTS package_negotiation_events (
         REFERENCES workspace_media_packages(id) ON DELETE CASCADE,
     terms_version INT NOT NULL CHECK (terms_version > 0),
     action VARCHAR(30) NOT NULL
-        CHECK (action IN ('BASELINE', 'REQUEST_CHANGE', 'COUNTER_OFFER')),
+        CHECK (action IN ('BASELINE', 'REQUEST_CHANGE', 'COUNTER_OFFER', 'MANAGER_SAVE')),
     actor_id UUID,
     actor_role VARCHAR(20),
     note VARCHAR(2000),

@@ -45,60 +45,46 @@
 
 Xác nhận người dùng 2026-10-13: IN_PROGRESS hiển thị “Đang xem xét”, không phải Task đang thực hiện. Client chỉ sửa title/description/type/dueDate và hủy trong PENDING. Chỉ tạo mới khi Campaign IN_PROGRESS, deployment SUCCEEDED; không tạo khi COMPLETED. Request đã có tiếp tục xử lý sau hoàn thành, không tự hủy. Các thay đổi BA chung cần lead/team review theo team guide.
 
-## 2. Media Package (đàm phán)
+## 2. Media Package — hành trình Manager quản lý
 
-```
-  Manager chọn template
-        │
-        ▼
-    [DRAFT] ──(Client request thay đổi)──► [CLIENT_REQUESTED_CHANGE]
-        │                                          │
-        │                          (Agency counter-offer)
-        │                                          │
-        │                                          ▼
-        │                                [AGENCY_COUNTERED] ──(lặp lại negotiate)──┐
-        │                                          │                                │
-        │                                          ▼                                │
-        └──────────────────► cả 2 bên đồng ý ──► [APPROVED] ◄───────────────────────┘
-```
+BA chốt 2026-11-05, theo [spec mới](../feature/media-package-campaign/guest-sharing-manager-led/spec.md). Sơ đồ này thay flow đàm phán/duyệt Package hai phía của đặc tả cũ.
 
-- Vòng lặp `CLIENT_REQUESTED_CHANGE ↔ AGENCY_COUNTERED` có thể xảy ra nhiều lần (FR 3.5.3: "Quá trình đó được diễn ra cho đến khi cả 2 bên chốt được gói cuối cùng").
-- `APPROVED` yêu cầu **cả 2 phía xác nhận** (approvedByAgencyAt VÀ approvedByClientAt đều có giá trị) — không phải 1 bên approve là xong.
-- Sau khi `APPROVED` → có thể tạo Media Campaign (mục tiếp).
-
-## 3. Media Campaign
-
-```
-Package APPROVED
-      │
-      ▼
-   [DRAFT] ──(Agency tạo nội dung chi tiết)
-      │
-      ▼
-cả 2 bên approve
-      │
-      ▼
-  [APPROVED] ──(nhấn triển khai)──► sinh Task backlog (N task) ──► [IN_PROGRESS]
-                                                                          │
-                                                            Manager mark completed
-                                                                          │
-                                                                          ▼
-                                                                   [COMPLETED]
+```mermaid
+flowchart TD
+    A[Gói quảng bá của Agency] --> B[Owner xuất ảnh/PDF hoặc link guest]
+    B --> C[Khách xem trước khi có tài khoản/workspace]
+    C --> D[Owner tạo workspace và gán Manager]
+    D --> E[Manager chốt gói bên ngoài]
+    E --> F[Manager lưu gói workspace hợp lệ]
+    F --> G[Tự tạo Campaign DRAFT và task lớn]
+    G --> H[Mời Client vào xem/góp ý]
+    G --> I[Manager chỉnh trước triển khai]
+    I --> G
+    G --> J[Cố định bản gói/kế hoạch khi triển khai]
 ```
 
-- Giống Package, `APPROVED` yêu cầu đồng thuận 2 phía.
-- **[Cập nhật BA 2026-10-08]** `IN_PROGRESS` sau deploy thành công; Manager chủ động
-  mark `COMPLETED` từ `IN_PROGRESS`. Được phép khi còn Task chưa hoàn thành nhưng
-  bắt buộc ghi lý do; không đổi trạng thái hoặc tự khóa workflow các Task con.
-- Một Workspace chỉ có một Campaign; chiến dịch mới dùng Workspace mới. Owner được
-  chọn từng thành viên và tùy chọn timezone khi nhân bản Workspace (DA-1255);
-  tài nguyên chờ module riêng. Đề xuất nhiều đợt
-  trong cùng Workspace không còn áp dụng.
+- Manager chọn gói mẫu Agency để tùy chỉnh hoặc tạo mới. Client không chọn, đàm phán hoặc duyệt Package trong hệ thống.
+- Link guest luôn đọc bản gói Agency mới nhất đã lưu. Gói workspace giữ nội dung riêng, không tự đổi theo danh mục.
+- Lưu lại/retry dùng cùng Campaign/task. Trước triển khai được chỉnh và đồng bộ an toàn, giữ thông tin công việc đã nhập.
+- Gói/phạm vi kế hoạch được cố định khi triển khai và khóa sau triển khai. Trạng thái dữ liệu cũ như CLIENT_REQUESTED_CHANGE, AGENCY_COUNTERED và APPROVED cần mapping trong plan, không tự xóa hoặc tạo approval giả.
 
-> **Campaign Addendum bên dưới là BA lịch sử cần review:** chưa có task riêng và
-> không được tạo Campaign thứ hai trong cùng Workspace để lách quan hệ 1:1 mới.
+## 3. Media Campaign — Client xem/góp ý, Manager triển khai
 
-**[CONFIRMED 2026-09-17] Campaign Addendum — bổ sung cho tính immutable:** Campaign gốc sau `APPROVED` vẫn immutable (không sửa trực tiếp), nhưng khi phát sinh khối lượng công việc lớn giữa chiến dịch (không phải 1 task lẻ qua Content Request hay Manager add thủ công), Agency tạo 1 **Campaign Addendum** — bản bổ sung link tới Campaign gốc (`parentCampaignId`), có thể chứa nhiều Task mới, cũng phải qua chu trình duyệt 2 phía riêng (Draft → Approved) như Campaign gốc. Mục đích: Task lớn phát sinh giữa kỳ vẫn truy vết được về đúng Campaign nào sinh ra nó, phục vụ báo cáo/billing — không để lẫn vào Task rời không rõ nguồn gốc như Manual Task đơn lẻ. Xem entity đề xuất tại [11-data-entities-glossary.md](11-data-entities-glossary.md).
+```mermaid
+stateDiagram-v2
+    [*] --> DRAFT: Manager lưu gói workspace hợp lệ
+    DRAFT --> DRAFT: Manager hoàn thiện kế hoạch hoặc đồng bộ gói trước triển khai
+    DRAFT --> IN_PROGRESS: Manager triển khai, công việc được xác nhận đầy đủ
+    IN_PROGRESS --> COMPLETED: Manager hoàn thành, đạt điều kiện closure hiện hành
+```
+
+- Client đã tham gia workspace xem/comment góp ý cả DRAFT. Góp ý không chuyển trạng thái, không tạo approval hoặc điều kiện chờ Client đồng ý.
+- Bỏ bước APPROVED và gate Agency/Client duyệt cùng phiên bản trong flow mới.
+- Deployment có thể có trạng thái tiến trình riêng. Khi triển khai phải cố định bản gói/kế hoạch, ngăn sửa đồng thời và cho retry cùng bản khi lỗi/gián đoạn, giữ định danh công việc đã có.
+- Chuyển IN_PROGRESS sau khi xác nhận đủ công việc theo gói. Task đã được tạo từ lúc lưu gói, được giữ thông tin khi triển khai.
+- Chỉ bắt đầu thực hiện Task khi Campaign IN_PROGRESS theo contract Task. Duyệt kết quả Task/bài đăng vẫn theo module riêng.
+- Một workspace có một Campaign. Hoàn thành tiếp tục yêu cầu các Task/Request đạt điều kiện tại [Campaign closure](../feature/media-package-campaign/campaign-closure/spec.md) và [package-driven task](../feature/package-driven-campaign-tasks/spec.md).
+- Campaign Addendum và sửa gói sau triển khai không được mở thêm trong đợt đổi hành trình này. Trạng thái và approval cũ giữ làm dữ liệu lịch sử, cách chuyển đổi chờ kế hoạch kỹ thuật.
 
 ## 4. Task — Approval Sequence (hiện hành 2026-10-18)
 
