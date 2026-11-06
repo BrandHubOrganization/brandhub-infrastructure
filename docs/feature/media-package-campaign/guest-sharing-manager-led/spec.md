@@ -248,3 +248,28 @@ Người dùng chọn Tiếng Việt hoặc English lúc xuất PDF/JPG, độc 
 ### Ngôn ngữ trang guest
 
 Trang guest /packages/share/:token có bộ chọn Tiếng Việt/English không cần đăng nhập, luôn hiển thị ở loading/error/success. Chuyển nhãn/đơn vị/số tiền; giữ nguyên nội dung nhập. Nhớ lựa chọn bằng cơ chế i18n có sẵn.
+
+
+### Form nhập liệu theo sketch đã duyệt
+
+Form tạo/sửa gói theo sketch: thông tin gói trên, 4 dịch vụ cố định tick chọn không trùng, danh sách trái và editor phải. Gợi ý tên, mô tả, mục tiêu theo loại, checkbox thêm/bỏ đoạn gợi ý không ghi đè text riêng. Budget quick 10/25/50 triệu; duration 2/4/6/8 tuần; không option Trao đổi thêm, vẫn optional/null. Giữ ID dịch vụ có sẵn và draft khi bỏ tick/chọn lại trong phiên; không thay BA ảnh hưởng Task/gói đã triển khai. Dữ liệu legacy ngoài 4 loại không tự xóa.
+
+
+### Sửa thanh Lưu đè nội dung
+
+Thanh Hủy/Lưu nằm ở vùng riêng dưới form, không sticky đè lên ô nhập. Header và actions giữ trong khung form; chỉ vùng thông tin/hạng mục cuộn.
+
+
+### Thu gọn vùng tiêu đề và thao tác lưu
+
+Tăng không gian nhập: gộp Lưu vào toolbar tiêu đề, quay lại dạng icon có accessible label, bỏ footer/trạng thái dài và giảm padding khung. Toolbar luôn hiển thị, nội dung cuộn riêng. Không thay save/discard/validation.
+
+
+### Thu nhỏ toolbar lần hai
+
+Thu nhỏ toolbar thêm: desktop nút36px, mobile giữ44px; tiêu đề14px; padding khung8px, khoảng cách4px và đường phân cách4px.
+
+
+### Sửa 400 impact do đơn vị Báo điện tử
+
+Báo điện tử dùng đơn vị bài ở gói mới. Backend nhận cả bài và danh sách đề xuất của gói cũ, chỉ tương thích riêng PRESS_RECOMMENDATION; không nới chuẩn unit các loại khác, không chuyển/xóa dữ liệu cũ.

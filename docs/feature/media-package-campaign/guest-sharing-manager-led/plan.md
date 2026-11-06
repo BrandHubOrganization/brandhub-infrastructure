@@ -289,3 +289,30 @@ Dùng Radix DropdownMenuSub sẵn có cho từng định dạng, hai menu item n
 ### Ngôn ngữ trang guest
 
 Thêm group hai Button aria-pressed/lang trên guest page trước query states; dùng i18n.changeLanguage và handler lưu lựa chọn đã có trong i18n/index.ts. Không đổi queryKey, API public, token hoặc quyền. Token màu semantic, responsive, locale song song.
+
+
+### Form nhập liệu theo sketch đã duyệt
+
+Đổi OfferingEditor có state selected và cache draft; fixed 4 service rows, legacy entries chỉ hiển thị giữ nguyên. Tách SuggestedPackageText giữ text controlled, options theo locale và chỉ thao tác dòng khớp; không vượt maxLength. Form CreateCustomPackageForm dùng InlineWorkArea compact header, thông tin grid và quick picks semantic tokens, footer sticky; mode edit từ parent để đúng nhãn. Không thêm dependency React Bits: áp dụng selected transition motion-reduce với CSS. API/DB không đổi, sửa unit press cho dữ liệu mới/copy thành bài.
+
+InlineWorkArea có compactHeader optional, PageWrapper có hideHeader optional (default false); chỉ bật cho form gói để tránh title lặp. SuggestedPackageText dùng state lưu phrase gốc theo option ID để bỏ đúng nội dung sau đổi locale; checkbox disabled khi thêm vượt 2000 ký tự. Bố cục panel khác hidden nhưng vẫn mounted để giữ lựa chọn gợi ý và native validation; invalid handler chọn/focus panel đầu tiên, có lỗi inline. Legacy/duplicate được giữ nguyên, không tự sửa DB.
+
+
+### Sửa thanh Lưu đè nội dung
+
+Tách footer khỏi fieldset cuộn, form flex min-h-0. InlineWorkArea nhận className optional. Hook đo chiều cao khả dụng từ vị trí form tới đáy main/viewport (trừ padding mobile); observe resize qua rAF, không thay logic lưu hoặc API. Áp dụng chung form Agency/Workspace.
+
+
+### Thu gọn vùng tiêu đề và thao tác lưu
+
+InlineWorkArea headerActions optional; compact toolbar flex-nowrap, back icon aria label, title min-w-0 line-clamp2; CreateCustomPackageForm dùng useId liên kết Button form với form id, bỏ footer. Root padding/gap giảm; usePackageEditorHeight chừa 8px dưới, Workspace/Agency edit giảm padding container.
+
+
+### Thu nhỏ toolbar lần hai
+
+Chỉ đổi utility CSS trên nhánh headerActions của InlineWorkArea và form gói; không đổi handler/save/API.
+
+
+### Sửa 400 impact do đơn vị Báo điện tử
+
+Sửa PackageOfferingValidator.validateStandardUnits expected press thành bài và nhánh tương thích unit cũ. Cùng validator áp dụng impact/save/create. CampaignSeeder tạo gói bài báo với unit bài; không chạy seeder hoặc migration. Test canonical/legacy/reject sai/duplicate.

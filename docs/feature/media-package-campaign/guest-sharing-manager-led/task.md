@@ -181,3 +181,33 @@ Bỏ dòng “Đề xuất gói truyền thông”, cột Lượt sửa, hai ch�
 
 - [x] Thêm bộ chọn ngôn ngữ guest và locale.
 - [x] Kiểm tra loading/error/success, giữ lựa chọn khi reload, không refetch khi đổi ngôn ngữ, keyboard/mobile/theme và build.
+
+
+### Form nhập liệu theo sketch đã duyệt
+
+- [x] Form bố cục và quick budget/duration không option Trao đổi thêm.
+- [x] OfferingEditor 4 dịch vụ, không trùng, giữ draft/ID/legacy, checkbox gợi ý và locale.
+- [x] QA tạo/sửa request, validation lỗi ở hạng mục không active, undo draft, copy/null, loading/quyền; vi/en theme mobile keyboard và CI.
+
+
+### Sửa thanh Lưu đè nội dung
+
+- [x] Tách vùng cuộn và thanh action, kiểm tra không giao nhau ở đầu/giữa/cuối nội dung.
+- [x] QA Workspace/Agency fixture, màn thấp/mobile, loading và submit; lint/build.
+
+
+### Thu gọn vùng tiêu đề và thao tác lưu
+
+- [x] Toolbar gọn với Lưu/Quay lại và vùng cuộn cao hơn.
+- [x] Kiểm tra submit ngoài form bằng form id, validation, dirty-back, loading, resize/mobile và đo chiều cao sử dụng.
+
+
+### Thu nhỏ toolbar lần hai
+
+- [x] Giảm height toolbar bằng padding/font/button responsive; focused lint và browser đo desktop/mobile.
+
+
+### Sửa 400 impact do đơn vị Báo điện tử
+
+- [x] Sửa contract đơn vị Báo điện tử giữa UI và impact/save; cập nhật seeder.
+- [x] Test validator các đơn vị, duplicate và service/seed liên quan.

@@ -175,3 +175,38 @@ Kết quả: ESLint component và production build/type-check pass. Playwright A
 Fixture guest public API mock không đăng nhập. Đổi VI→EN: Budget/Duration/Quantity/units đổi, tên/mô tả gốc giữ nguyên, API không fetch lại do đổi locale; reload giữ EN. Error/retry và skeleton vẫn có selector; không overflow ngang ở 390, aria-pressed/keyboard đúng.
 
 Kết quả: focused ESLint + production build/type-check pass. Browser local mock pass: switch labels, pressed state, nội dung gốc giữ nguyên, không refetch khi đổi ngôn ngữ, persist qua reload, selector có ở loading/error/retry, keyboard Enter, 4 tổ hợp 390/1440 sáng/tối không tràn ngang và không pageerror. Không DB/API/production thay đổi; fixture/artifact trong keep-local-only.
+
+
+### Form nhập liệu theo sketch đã duyệt
+
+Browser mock only. Mỗi service tối đa một row mới; bật/tắt/bật giữ ID và draft; chuyển editor giữ text. Suggestion thêm/bỏ đúng đoạn và không mất nội dung riêng, locale change không làm mất khả năng bỏ đoạn đã chọn, max2000. Input số không 003, budget10/25/50m duration2/4/6/8, vẫn blank null; submit đúng API không mock data. Lỗi field ở hàng khác phải focus đúng editor; uncheck không submit dữ liệu disabled. Legacy giữ nguyên. Dirty/discard, sticky save không che cuối form, reduced-motion, mobile/no overflow, lint/type/build.
+
+Kết quả: Web CI lint/type-check/build pass (cảnh báo lint/chunk có sẵn), focused lint 5 file và build cuối pass. Browser form thật với mock submit: 4 service không tạo trùng, giữ ID gốc và draft qua toggle, suggestion thêm/bỏ giữ text riêng và bỏ đúng đoạn sau đổi locale, 003 chuẩn hóa về 3, budget quick/custom/null và duration optional, loading disabled. Native validation ở panel ẩn mở/focus đúng, whitespace name và qty0 chặn submit; create blank và legacy/duplicate có sẵn giữ dữ liệu. 8 tổ hợp vi/en × light/dark ×390/1440 không overflow/pageerror, footer hiện và cuối textarea cuộn đọc được. Tích hợp Workspace mock mở form một tiêu đề, back dirty mở dialog. Preview/test artifacts chỉ keep-local-only; chưa HTTP save thật, không DB/API/production thay đổi. Các thay đổi Admin/graph xuất hiện đồng thời ngoài phạm vi được giữ nguyên.
+
+
+### Sửa thanh Lưu đè nội dung
+
+So sánh rect vùng cuộn/footer không chồng lên nhau tại scroll0/giữa/cuối; có thể focus/cuộn tới textarea cuối nằm trên footer. Resize desktop/mobile, footer Hủy/Lưu nằm trong viewport, không tràn ngang. Gói nhiều nội dung không làm mất action, submit payload giữ nguyên.
+
+Kết quả QA local mock: vùng cuộn bottom <= footer top ở scroll đầu/giữa/cuối trên 1440×900,1440×600,390×800,390×600; footer nằm trong viewport, textarea cuối cuộn đọc đủ. Đã xem ảnh desktop/mobile. Regression form: 4 service/ID/draft/suggestion/locale/hidden validation/optional/loading và 8 tổ hợp vi/en light/dark 390/1440 pass; submit fixture không API thật. Focused ESLint không warning/error. Không đổi DB/BA/API hoặc commit, giữ nguyên các chỉnh sửa đồng thời ở Admin/client-profiles.
+
+Build cuối bị chặn bởi thay đổi đồng thời ngoài phạm vi: AgencyBrandingSection.tsx thiếu COLOR_SWATCHES/implicit any và agency/create.tsx truyền brandColor không có trong props. Không sửa các file Agency này. Build trước đó của bản footer đầu đã pass; bản cuối focused lint + browser regression pass.
+
+
+### Thu gọn vùng tiêu đề và thao tác lưu
+
+Đo toolbar <=64px desktop, không footer; vùng scroll không giao toolbar và cao hơn bản trước. Save luôn trong viewport ở đầu/giữa/cuối; submit form-linked button giữ payload, native validation và loading. Mobile title đọc được, back aria/keyboard, không overflow.
+
+Kết quả: focused lint + production build/type-check pass. Workspace mock 1440×900 toolbar53px/vùng nhập729px; 1440×600 toolbar53/vùng429; 390×800 toolbar57/vùng629;390×600 toolbar57/vùng429. Không chồng ở đầu/giữa/cuối scroll, Save luôn trong viewport, textarea cuối nhìn đủ. Regression mock submit linked-form giữ payload/ID/draft, hidden-invalid focus, budget/duration optional, loading và 8 tổ hợp vi/en theme viewport pass. Đã xem ảnh desktop/mobile; không DB/API/production/commit thay đổi.
+
+
+### Thu nhỏ toolbar lần hai
+
+Đo toolbar desktop từ53px xuống41px; mobile nút44px, title2 dòng không tràn; kiểm tra nút Lưu còn trong viewport.
+
+
+### Sửa 400 impact do đơn vị Báo điện tử
+
+Bài báo unit bài phải qua validateNewSelection; unit cũ vẫn nhận; unit sự kiện/buổi sai cho báo phải chặn. SOCIAL_POST sai unit và duplicate service vẫn chặn. Không gọi API save trên dữ liệu demo trong QA.
+
+Kết quả: Maven unit test 25/25 pass (PackageOfferingSimplificationTest,CampaignSeederTest,MediaPackageServiceImplTest,PackageVersionGuardTest). Bài/legacy list pass cùng validator impact/save, buổi sai và duplicate press vẫn reject. Cập nhật test đã có trên remote, không thêm file test mới. Không migration/reset/seed/DB, cần restart Business để runtime dùng validator mới; chưa xác minh HTTP với tài khoản thật. Người dùng gửi Payload phần khung, chưa có Response chi tiết để loại trừ các nguyên nhân khác.
