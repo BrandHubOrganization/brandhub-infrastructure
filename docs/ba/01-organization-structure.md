@@ -47,6 +47,7 @@ User
 
 - Chỉ OWNER tạo được Workspace mới.
 - **Bắt buộc gán ít nhất 1 Manager ngay lúc tạo** — người này có toàn quyền quản lý workspace đó.
+- **BA 2026-11-05** Owner được tạo workspace và gán Manager trước khi có Client. Manager chốt gói với khách bên ngoài, lưu gói workspace rồi mời Client vào làm việc. Việc chuẩn bị workspace/gói/Campaign không chờ Client tham gia hoặc duyệt. Xem [hành trình mới](../feature/media-package-campaign/guest-sharing-manager-led/spec.md).
 - **[CONFIRMED 2026-09-14]** Owner tạo Workspace có thể **tự gán mình làm Manager** của workspace đó, **hoặc gán 1 Member khác làm Manager** — cả 2 tình huống đều hợp lệ, không bắt buộc theo 1 chiều.
 
 ### Workspace Profile (FR 3.4.13)
@@ -90,7 +91,7 @@ Ví dụ: User A có thể là:
 
 - **[CONFIRMED 2026-09-14]** Client KHÔNG phải member nội bộ của Agency/Workspace theo nghĩa nhân sự công ty — là khách hàng thuê Agency thực hiện truyền thông.
 - Có **Client Profile riêng** (xem [02-authentication-profile.md](02-authentication-profile.md) mục Client Profile) — tái sử dụng được khi Client tham gia làm việc với nhiều Agency/Workspace khác nhau, không cần khai lại thông tin mỗi lần.
-- Được Manager **invite vào 1 Workspace cụ thể** để theo dõi tiến độ, đàm phán Package/Campaign, duyệt nội dung, kết nối social account của họ.
+- Được Manager **invite vào 1 Workspace cụ thể** sau khi ghi nhận gói đã chốt bên ngoài để xem gói, theo dõi tiến độ và comment góp ý Campaign, kể cả bản nháp. Client không chọn/đàm phán/duyệt Package hoặc duyệt Campaign trong flow mới. Duyệt kết quả Task/nội dung và kết nối social account vẫn theo module tương ứng.
 - Không có quyền quản lý nội bộ Agency/Workspace (thêm/xóa member, đổi cấu hình...) — chỉ có quyền trong phạm vi nghiệp vụ: xem, request, approve/reject, comment.
 
 ## 6. Admin — tách biệt hoàn toàn hệ thống
@@ -100,6 +101,4 @@ Ví dụ: User A có thể là:
 
 ## 7. Thứ tự nghiệp vụ liên quan (tham chiếu)
 
-Sau khi Workspace được tạo (mục 3 ở trên), bước tiếp theo là mời Client vào Workspace rồi đàm phán Media Package/Campaign — xem chi tiết đầy đủ tại [04-media-package-campaign.md](04-media-package-campaign.md), mục "Thứ tự chuẩn: Workspace → Package → Campaign".
-
-**Điểm khác so với đọc thẳng câu chữ CSV gốc:** FR 3.5.1 viết "khi mà tạo Workspace bắt buộc phải có cái template media package" — dễ đọc nhầm là Package phải tồn tại TRƯỚC khi Workspace được tạo. Thực tế đã confirm: **Workspace tạo trước**, Manager được gán ngay lúc tạo, sau đó Manager mới chọn Package template (điều kiện để workspace "sẵn sàng" trước khi mời Client vào, không phải điều kiện tiên quyết để được tạo workspace).
+Theo BA 2026-11-05, Owner tạo gói quảng bá của Agency và chia sẻ cho khách trước. Sau đó Owner tạo workspace/gán Manager, Manager chốt gói bên ngoài và lưu gói workspace để tự tạo Campaign DRAFT/task, rồi mời Client vào xem và góp ý. Manager hoàn thiện và chủ động triển khai khi đủ điều kiện. Xem [04-media-package-campaign.md](04-media-package-campaign.md).

@@ -1,86 +1,67 @@
-# 04 — Media Package & Contract (Package → Campaign → Content Request)
+# 04 — Media Package, Campaign và Content Request
 
 > [<< Về Overview](00-overview.md)
 
-> **Cập nhật theo xác nhận người dùng 2026-10:** Flow triển khai hiện hành nằm tại
-> [Media Package baseline](../feature/media-package-campaign/README.md) và
-> [Offering models](../feature/media-package-campaign/offering-models/spec.md).
-> Workspace đã có Client khi tạo; Client chọn gói khả dụng của Agency. Dùng một bảng
-> media_packages (Admin template global; Agency package scoped). Các đoạn tháng 9 bên dưới
-> về chọn gói trước khi mời Client và hai bảng riêng là lịch sử, không còn dùng để triển khai.
-> Workshop chỉ hỗ trợ tạo link Meet và survey; Event chỉ bàn giao kế hoạch sự kiện.
+> **BA đã chốt 2026-11-05** theo [spec Guest sharing và Manager-led](../feature/media-package-campaign/guest-sharing-manager-led/spec.md). Đợt này chỉ cập nhật đặc tả. Flow Client chọn/đàm phán/duyệt Package và duyệt Campaign hai phía được thay thế trong phạm vi Package/Campaign. Quyền duyệt kết quả Task/bài đăng và Content Request theo spec riêng.
 
-> **BA mới nhất — 2026-10-08:** một Workspace gắn với một Campaign. Chiến dịch mới
-> dùng Workspace mới; Owner có tính năng Nhân bản Workspace để chọn thông tin/tài nguyên
-> từ Workspace cũ. Quyết định này thay thế đề xuất nhiều đợt trong cùng Workspace.
-> Task giữ Mongo V2; Client góp ý, Manager sửa và hai bên duyệt lại; Manager mark Campaign
-> completed. Gói mới tính tổng sản lượng; thêm Task EVENT_PLAN/PRESS_RECOMMENDATION;
-> complete khi Task chưa xong phải có lý do và không đổi trạng thái Task con. Phạm vi
-> Duplicate Workspace đã chốt DA-1255: chọn từng thành viên và tùy chọn copy timezone;
-> tài nguyên chờ module riêng. Thiết kế Campaign đã ghi trong phase-1-design của feature.
-> Xem [lộ trình Campaign](../feature/media-package-campaign/campaign-delivery-plan.md).
+## 1. Hành trình hiện hành
 
-## 1. Thứ tự chuẩn: Workspace → Package → Campaign → Task
+1. Owner tạo Media Package trong danh mục Agency.
+2. Hệ thống hỗ trợ Owner xuất ảnh/PDF hoặc link guest để quảng bá, gửi cho khách xem.
+3. Khách xem gói được chia sẻ trước khi có tài khoản hoặc membership workspace. Link luôn hiển thị bản mới nhất đã lưu của đúng gói Agency hoặc Custom Package workspace được chia sẻ.
+4. Owner tạo workspace và gán Manager. Chưa bắt buộc có Client.
+5. Manager chốt gói với Client bên ngoài hệ thống.
+6. Manager chọn gói Agency để tùy chỉnh hoặc tạo mới trong workspace, ghi nhận đúng thỏa thuận.
+7. Lưu gói workspace hợp lệ tự tạo một Campaign DRAFT và task lớn theo gói. Lưu lại/retry không sinh trùng.
+8. Manager mời Client vào workspace để xem gói đã ghi nhận, xem kế hoạch và comment góp ý cả khi Campaign còn DRAFT.
+9. Manager hoàn thiện kế hoạch và chủ động triển khai khi đủ điều kiện. Bỏ bước duyệt Campaign hai phía.
+10. Client theo dõi và góp ý. Những thao tác duyệt kết quả Task/nội dung thuộc quy trình riêng.
 
-**[CONFIRMED 2026-09-14]** — đây là điểm quan trọng nhất của file này, đảo ngược cách đọc thẳng câu chữ CSV gốc.
+Một workspace tiếp tục có một Campaign. Manager được sửa gói trước triển khai và đồng bộ kế hoạch/task, giữ thông tin đã nhập ở hạng mục còn hiệu lực. Khi triển khai phải cố định bản gói/kế hoạch dùng cho lượt đó, khóa sau triển khai. Góp ý của Client không trở thành gate duyệt.
 
-```
-1. Owner tạo Workspace + gán Manager (xem 01-organization-structure.md)
-2. Manager chọn 1 Media Package template ngay sau khi tạo workspace
-3. Manager invite Client vào Workspace
-4. Client + Manager/Owner đàm phán Media Package (bên trong Workspace)
-5. Cả 2 bên Approve Media Package  → "hợp đồng khung"
-6. Agency tạo Media Campaign (chi tiết, bám brand Client)
-7. Cả 2 bên Approve Media Campaign
-8. Toàn bộ đầu việc trong Campaign → tự động đẩy thành Task backlog trong Workspace
-```
+## 2. Media Package — FR 3.5.1 đến 3.5.4
 
-**Điểm khác so với đọc thẳng câu chữ CSV gốc:** FR 3.5.1 viết "khi tạo Workspace bắt buộc phải có template media package khi Owner chưa nhập thì thông báo Manager" — dễ đọc nhầm là Package phải tồn tại trước khi Workspace được tạo ra. Đã confirm thực tế: **Workspace tạo trước** (Owner + gán Manager), Package là bước Manager làm ngay sau đó, trước khi mời Client vào — không phải điều kiện tiên quyết để ĐƯỢC tạo Workspace.
+### 3.5.1 — Tạo gói
 
-## 2. Media Package (FR 3.5.1 – 3.5.4)
+Owner quản lý danh mục Agency để quảng bá độc lập với workspace. Manager tạo gói thực hiện trong workspace từ mẫu hoặc nhập mới theo thỏa thuận bên ngoài, không cần thêm lượt duyệt Owner/Client.
 
-### 3.5.1 — Create Media Package
-- Admin tạo sẵn các package mẫu (2 tuần, 3 tuần...) từ trước.
-- Owner có thể **chọn package mẫu có sẵn** hoặc **custom thêm gói truyền thông mới** riêng cho Agency của mình.
-- Không yêu cầu scheduled reminder chọn Package (xác nhận 2026-10-13); giữ gate/redirect chọn và chốt Package hiện có. Mô tả reminder cũ không còn dùng để triển khai.
-- Template Package cần dễ tùy chỉnh theo ý Client (mức độ dễ nhất để thay đổi).
-- **Thiết kế DB đề xuất từ nguồn**: tạo 2 bảng riêng — 1 bảng cho package do Owner tạo, 1 bảng cho package custom. Cột "chọn media package" trong Workspace chỉ cần lưu **ID tham chiếu** tới 1 trong 2 bảng đó — giảm độ phức tạp và tăng tốc truy vấn (không JOIN nhiều tầng).
-- Role: OWNER/MANAGER.
+Gói workspace giữ nội dung riêng và nguồn tham khảo khi có. Chỉnh gói quảng bá không tự sửa điều khoản gói workspace hoặc Campaign/task. Ngân sách và thời lượng tùy chọn. Giữ tổng sản lượng, đơn vị, dịch vụ và phạm vi bàn giao hiện hành, theo [spec package-driven](../feature/package-driven-campaign-tasks/spec.md).
 
-### 3.5.2 — View the Template Media Package
-- Client xem được các package mẫu (chiến lược truyền thông dài/ngắn) để hiểu quy mô triển khai, nhân sự, hình dung được sẽ book Agency trong bao lâu.
-- Package chia theo nhiều kiểu:
-  - Theo **khoảng thời gian**: trong X tuần sẽ làm những gì.
-  - Theo **ngân sách**: với số tiền Y sẽ làm được những gì.
-  - **Phó mặc toàn bộ**: Agency tự quyết cách làm, miễn đạt KPI đã thỏa thuận.
-- Role: OWNER/MANAGER/CLIENT.
+### 3.5.2 — Guest view và chia sẻ
 
-### 3.5.3 — Request Media Package
-- Với package mẫu do Agency cung cấp, **Client được quyền thảo luận lại**: đưa ra yêu cầu về giá, thời gian, sự kiện, hình thức...
-- Owner/Manager phản hồi: chấp nhận, từ chối, hoặc chuyển đổi thành 1 đề xuất khác phù hợp hơn.
-- Quá trình lặp lại (negotiate qua lại) **cho đến khi cả 2 bên chốt được gói cuối cùng**.
-- Role: OWNER/MANAGER/CLIENT.
+Owner xuất gói Agency đã lưu thành ảnh/PDF hoặc chia sẻ link. Manager phụ trách/Owner có quyền quản lý cũng chia sẻ được Custom Package workspace qua ba hình thức này để trao đổi với Client. Guest xem nội dung gói mà không cần đăng nhập. Link đọc bản mới nhất của đúng gói, ảnh/PDF là bản tại thời điểm xuất và có ngày xuất để đối chiếu. Cơ chế bảo mật nâng cao sẽ được bàn với team sau.
 
-### 3.5.4 — Approve Media Package
-- Khi package đã đúng thỏa thuận của cả 2 bên → **cả 2 bên cùng đồng ý** với yêu cầu và các chỉnh sửa đã thống nhất.
-- Role: OWNER/MANAGER/CLIENT.
+Link chỉ hiển thị nội dung và điều khoản của gói được chia sẻ; không trả Client Profile, quyền truy cập workspace, bình luận hoặc lịch sử đàm phán/duyệt. Có link không tự tạo workspace, đơn hàng, xác nhận mua hoặc membership.
 
-## 3. Media Campaign (FR 3.5.5 – 3.5.6)
+### 3.5.3 — Ghi nhận và điều chỉnh thỏa thuận
 
-> **Xác nhận mới 2026-10-14 — ưu tiên hơn mô tả lịch sử bên dưới:** Task sinh khi chấp nhận Content Request gắn Campaign hiện tại và giữ nguồn Request; hiển thị nhóm đầu việc bổ sung, không sửa sản lượng/kế hoạch đã duyệt. Manager không thể hoàn thành khi còn Task khác COMPLETED/CANCELLED hoặc Request IN_PROGRESS. Manager có thể chọn nhiều Task chưa kết thúc (kể cả chờ QC/Client) và hủy với một lý do chung từ danh sách/Khác, lưu audit từng Task. PENDING vẫn tự hủy khi hoàn thành thành công. Xem [Campaign closure](../feature/media-package-campaign/campaign-closure/spec.md). Quy tắc này thay thế campaignId=null cho Task Request mới và cách hoàn thành chỉ cần lý do khi Task chưa xong.
+Manager thực hiện trao đổi/chốt với Client bên ngoài, rồi lưu điều khoản gói trong workspace. Client vào workspace sau để xem thông tin đã ghi nhận. Bỏ hành trình request-change/counter-offer của Client trên hệ thống.
 
-### 3.5.5 — Create Media Campaign
-- Dựa trên Media Package đã chọn và thống nhất giữa 2 bên, nhưng **chi tiết hơn** — có nội dung triển khai phù hợp với brand cụ thể của Client.
-- **Quan trọng**: Media Campaign **KHÔNG phải là hợp đồng** — nó là **chiến lược thực hiện** (execution strategy/plan).
-- Role: OWNER/MANAGER/CLIENT.
+Trước triển khai, chỉnh gói phải đồng bộ Campaign/task, bảo toàn dữ liệu đã nhập và xử lý tác động giảm/đổi hạng mục có xác nhận cần thiết. Gói/kế hoạch đã triển khai được khóa, phát sinh mới theo quy trình bổ sung hiện hành.
 
-### 3.5.6 — Approve Media Campaign
-- Sau khi đưa chiến lược ra và cả 2 bên đồng ý → tiến hành nhấn **triển khai**.
-- Toàn bộ công việc trong Media Campaign được **đẩy tự động vào Workspace, tạo thành bảng backlog công việc** (giống Jira backlog).
-- **Lưu ý mức độ chi tiết ở giai đoạn này**: backlog sinh ra CHƯA đầy đủ quy trình triển khai, chưa có yêu cầu cụ thể — chỉ mới là tên công việc + thời gian thông thường. Chi tiết hóa xảy ra ở bước Identify Task Detail (xem [05-content-task-workflow.md](05-content-task-workflow.md)).
-- **[CONFIRMED 2026-09-15]** Sau khi approved và đã đẩy backlog, Campaign **immutable** — không sửa lại được. Muốn thêm nội dung giữa chiến dịch → dùng Content Request (mục 4 dưới) hoặc Manager add Task thủ công (FR 3.6.10), không amend Campaign gốc.
-- **[CONFIRMED 2026-09-17]** Với khối lượng công việc lớn phát sinh giữa chiến dịch (không phải 1 task lẻ) — dùng **Campaign Addendum**: bản bổ sung link tới Campaign gốc, đi qua chu trình duyệt 2 phía riêng, tách biệt Manual Task đơn lẻ ra khỏi Campaign có nguồn gốc rõ ràng để phục vụ báo cáo/billing. Xem chi tiết state machine tại [12-state-machines.md](12-state-machines.md) mục 3, entity tại [11-data-entities-glossary.md](11-data-entities-glossary.md).
-- Role: OWNER/MANAGER/CLIENT.
+### 3.5.4 — Thay bước duyệt Package
+
+Không yêu cầu Client chọn hay duyệt gói. Lưu gói workspace hợp lệ là điểm tự tạo Campaign DRAFT và task, không có bước xác nhận gói riêng sau lưu. Các redirect, checklist và điều kiện chờ Client duyệt Package của flow cũ cần được thay thế khi triển khai.
+
+## 3. Media Campaign — FR 3.5.5 đến 3.5.6
+
+### 3.5.5 — Campaign DRAFT từ gói
+
+Campaign là kế hoạch thực hiện gói đã ghi nhận trong workspace. Backend tự tạo Campaign DRAFT/task khi Manager lưu gói hợp lệ. Manager tiếp tục bổ sung strategy, timeline, brief/deadline và các thông tin thực hiện còn thiếu. Task/subtask theo contract riêng, thành viên bắt đầu khi Campaign IN_PROGRESS.
+
+### 3.5.6 — Client góp ý, Manager triển khai
+
+Client đã tham gia workspace xem/comment góp ý cả bản nháp. Comment lưu người/thời điểm/ngữ cảnh đang xem, không sửa kế hoạch hoặc chuyển trạng thái. Manager quyết định điều chỉnh kế hoạch theo trạng thái cho phép.
+
+Manager triển khai khi kế hoạch/task đủ thông tin và khớp gói. Không yêu cầu trạng thái APPROVED hay timestamp duyệt Campaign hai phía. Lượt triển khai phải cố định bản được dùng, giữ task identity, chống trùng và hỗ trợ retry. Thành công chuyển Campaign IN_PROGRESS, sau đó gói/phạm vi kế hoạch được khóa.
+
+Vòng đời nghiệp vụ đích là DRAFT → IN_PROGRESS → COMPLETED. Điều kiện hoàn thành tiếp tục theo [Campaign closure](../feature/media-package-campaign/campaign-closure/spec.md) và [package-driven task](../feature/package-driven-campaign-tasks/spec.md). Duyệt kết quả Task/bài đăng không được thay bằng comment Campaign.
+
+### Lịch sử và phạm vi thiết kế
+
+Giữ lịch sử đàm phán, approval và dữ liệu cũ để truy vết. Mapping dữ liệu legacy, endpoint, schema và quyền truy cập sẽ chốt trong plan triển khai. Spec này không tạo migration, không xác nhận implementation và không mở thêm Campaign Addendum hoặc checkout/thanh toán.
+
+Các phần Content Request bên dưới giữ phạm vi hiện hành. Những ghi chú lịch sử không liên quan Package/Campaign phải được đọc cùng spec riêng mới nhất đã dẫn.
 
 ## 4. Content Request — kênh bổ sung riêng (FR 3.5.7 – 3.5.10)
 
