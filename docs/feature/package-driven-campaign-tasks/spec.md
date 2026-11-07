@@ -19,3 +19,8 @@ Campaign chỉ được đóng khi thỏa điều kiện hiện có và tất c�
 Phạm vi dừng ở package, campaign, task và subtask. Post/event/workshop tiếp tục gắn với task lớn. Mô hình, nghiệp vụ và đầu ra từng dịch vụ thuộc phần của các thành viên khác.
 
 Task lớn mới tạo được gán cả người thực hiện và người giám sát cho Manager. Manager có thể đổi từng trường sang thành viên nội bộ đang hoạt động trong workspace. Subtask cũng chỉ được gán cho thành viên nội bộ đang hoạt động trong workspace. Khi người thực hiện đồng thời là người giám sát, bỏ qua bước duyệt nội bộ; vẫn giữ bước duyệt Client nếu được yêu cầu. Bài đăng phải được duyệt trước khi chuyển sang trạng thái lên lịch; tác vụ xuất bản không được tự hoàn thành task chưa được duyệt.
+
+
+## Campaign Timeline update (2026-11-07)
+
+The approved [Campaign Timeline specification](../campaign-timeline/spec.md) supersedes the default supervisor rule above for newly created Tasks/subtasks: supervisor defaults to the creating member. Existing rows retain their prior inheritance behavior. Planned start defaults to today in the Workspace timezone and missing deadline to two calendar days later; planned dates do not change actual workflow start history.
