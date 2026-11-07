@@ -1,39 +1,26 @@
-# FR 3.5.5 - Create Media Campaign
+# FR 3.5.5 — Tự tạo Campaign DRAFT từ gói workspace
 
-| Field | Value |
-|---|---|
-| Status | Implemented in code; live API/concurrency verification pending (2026-10-10) |
-| Roles | Owner/Manager |
-| Delivery task | DA-E50-06 / DA-947 |
+Cập nhật BA 2026-11-05, chờ triển khai. Theo [spec hành trình mới](../guest-sharing-manager-led/spec.md) và [package-driven task](../../package-driven-campaign-tasks/spec.md).
 
-## Outcome
+## Mục tiêu
 
-> Current implementation uses Workspace-scoped create/list/detail/PATCH endpoints.
-> The earlier `/api/v1/media-campaigns` create route remains compatible and also
-> enforces one Campaign per agreement and total quantities. Frozen terms, work items
-> and content versions are persisted; live verification remains in the
-> [roadmap](../implementation-roadmap.md).
+Manager lưu gói workspace hợp lệ sẽ có ngay một Campaign DRAFT và task lớn để chuẩn bị thực hiện. Campaign mô tả kế hoạch triển khai của gói đã chốt bên ngoài hệ thống.
 
-Owner/Manager creates a `DRAFT` campaign from an approved workspace package. The campaign is an execution plan, not a contract.
+## Tiêu chí nghiệm thu
 
-## Acceptance criteria
+- Tạo workspace chỉ cần Owner/gán Manager theo quy tắc tổ chức, chưa cần Client hoặc Package approval.
+- Lần lưu gói workspace hợp lệ đầu tiên tự tạo đúng một Campaign DRAFT cùng task theo dịch vụ/sản lượng của gói.
+- Lưu lại/retry/concurrent save sử dụng cùng Campaign/workspace và các định danh task ổn định.
+- Campaign/task giữ nguồn gói, liên kết workspace và các dữ liệu cần cho kế hoạch, tổng sản lượng, strategy, timeline và work items hiện hành.
+- Manager hoàn thiện các trường còn thiếu sau khi tạo DRAFT. Chỉ ra trường thiếu khi kiểm tra sẵn sàng triển khai.
+- Task có thể được chuẩn bị brief, deadline, assignee, supervisor, subtask trong giai đoạn DRAFT. Bắt đầu thực hiện vẫn yêu cầu Campaign IN_PROGRESS.
+- Cho phép Manager sửa gói trước triển khai, đồng bộ kế hoạch/task và giữ thông tin đã nhập. Thay đổi ảnh hưởng task phải theo quy tắc đồng bộ an toàn của spec mới.
+- Client được mời sau đó xem và góp ý cả bản nháp. Bình luận không làm thay đổi version nội dung kế hoạch hoặc đóng vai trò approval.
+- Một workspace có tối đa một Campaign. Chiến dịch mới dùng workspace mới theo quy tắc hiện hành.
+- Loading/error/empty/permission/conflict states, key vi/en và light/dark được thiết kế tương ứng.
 
-- `POST /api/v1/workspaces/{workspaceId}/campaigns` rejects an unapproved package with `PACKAGE_NOT_APPROVED`.
-- A campaign stores name, strategy detail, brand guideline, timeline, status, `contentVersion`, approvals, and JSONB `workItems`.
-- Each work item has stable `id`, `deliverableId`, `name`, `type`
-  (`POST|LIVESTREAM|SURVEY|EVENT_PLAN|PRESS_RECOMMENDATION`) and `dueDate`, so deployment creates one task exactly once.
-- A Workspace has at most one Campaign, including DRAFT and COMPLETED. A new
-  campaign uses a new Workspace; an Owner duplication feature is planned separately.
-- Keep one selected WorkspaceMediaPackage per Workspace. Do not implement multiple
-  cooperation rounds or allow agreement reassignment to bypass Campaign uniqueness.
-- New packages use total quantities for the whole package, with no monthly allowance.
-  Legacy monthly snapshots remain unchanged and require explicit handling, not automatic
-  conversion. See [phase-1 contract](../phase-1-design/plan.md) for fields/API and migration gates.
+## Tính nhất quán
 
-## Constraint
+Campaign/work items và Mongo Task phải giữ cùng phạm vi gói. Retry không tạo task/Campaign trùng. Nếu ghi một phần thất bại, hệ thống phải thể hiện trạng thái chưa sẵn sàng và phục hồi có kiểm soát trước triển khai.
 
-Task IDs are not a substitute for planned work items: tasks exist only after deployment. `workItems` is stored in PostgreSQL JSONB and is the deployment source of truth.
-
-## Approval-version rule
-
-The campaign starts at content version 1. Editing campaign content or work items before final approval increments the version and invalidates both prior approvals; content is immutable once both parties approve.
+Các trường/version dùng để chống ghi đè vẫn có thể cần thiết. Không dùng approval hai phía làm điều kiện lưu, đồng bộ hoặc tạo Campaign. Dữ liệu/code/schema hiện tại sẽ được đánh giá ở bước plan.

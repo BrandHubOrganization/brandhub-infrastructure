@@ -1,44 +1,24 @@
-# FR 3.5.1 - Create Media Package
+# FR 3.5.1 — Tạo gói Agency và gói workspace
 
-| Field | Value |
-|---|---|
-| Status | Ready for technical review |
-| Roles | Admin; Agency Owner; Client |
-| Delivery task | DA-E50-01 |
+Cập nhật BA 2026-11-05, chờ triển khai. Theo [spec hành trình mới](../guest-sharing-manager-led/spec.md).
 
-## Outcome
+## Mục tiêu và vai trò
 
-Admin templates and Agency packages use the same `media_packages` record. Templates have `is_template=true` and no agency; selectable packages have `is_template=false`, belong to one Agency, and may retain their source template ID.
+Owner tạo gói của Agency để quảng bá. Manager ghi nhận gói thực hiện của workspace sau khi chốt với Client bên ngoài hệ thống. Admin template vẫn thuộc phạm vi quản lý riêng của Admin.
 
-## Acceptance criteria
+## Tiêu chí nghiệm thu
 
-- List template packages with `GET /api/v1/media-package-templates`.
-- All Agencies can view Admin templates (`is_template=true`, `agencyId=null`).
-- An Agency Owner creates an Agency package with `POST /api/v1/agencies/{agencyId}/media-package-custom`, either independently or from an optional `sourceTemplateId`.
-- A package provides `id`, `name`, `type`, `durationWeeks`, `budgetAmount`, `scopeDescription`, `isTemplate`, `agencyId`, `sourceTemplateId`, and `availableToWorkspaces` where applicable.
-- Workspace selection is delivered by DA-E50-02 and uses one `package_id` reference.
-- The Agency Media Package screen at `/agency/{agencyId}/media-packages` is the Owner's management
-  surface. It lists global templates and persisted Agency packages, supports cloning a template, and lets the Owner hide/show Agency packages.
-- Creating an Agency package does not require a Workspace; the resulting package belongs to the Agency catalogue.
-- The Workspace Media Package screen lists only packages belonging to that Workspace's Agency with `availableToWorkspaces=true`, and exposes selection only to the Client role.
-- `GET /api/v1/agencies/{agencyId}/media-package-custom` reloads persisted custom packages for management.
-- `GET /api/v1/workspaces/{workspaceId}/media-packages` returns packages available for Client selection.
-- `PATCH /api/v1/agencies/{agencyId}/media-packages/{packageId}/availability` changes Agency-wide Workspace visibility.
-- The Workspace dashboard prompts the Client to select a package when none has been selected.
-- UI copy uses the `mediaPackage` namespace with key-parallel Vietnamese and English locale files.
-- Loading, empty, error, selected, and submitting states work in both light and dark themes using
-  semantic theme tokens.
+- Owner tạo gói Agency độc lập với workspace, theo quyền danh mục hiện hành. Có thể tham khảo nguồn mẫu được phép.
+- Gói dùng các dịch vụ, mô tả, tiêu chí, tổng sản lượng và đơn vị hiện hành. Ngân sách/thời lượng tùy chọn, có giá trị thì phải hợp lệ.
+- Owner xuất nội dung đã lưu thành ảnh/PDF hoặc chia sẻ link guest. Link hiển thị bản Agency mới nhất đã lưu, file là bản tại thời điểm xuất.
+- Owner tạo workspace và gán Manager khi chưa có Client. Manager không phải chờ Client tham gia để chuẩn bị gói.
+- Manager chọn gói Agency phù hợp để tùy chỉnh hoặc tạo gói workspace mới theo thỏa thuận bên ngoài.
+- Gói workspace giữ nội dung riêng. Sửa danh mục Agency không tự sửa gói workspace, Campaign hoặc task.
+- Lưu gói workspace hợp lệ tự tạo một Campaign DRAFT và task lớn theo gói. Lưu lại/retry không tạo trùng.
+- Manager không cần thêm lượt duyệt Owner hoặc Client để lưu gói. Client xem gói đã ghi nhận sau khi tham gia.
+- Có thể chỉnh trước triển khai và đồng bộ an toàn với Campaign/task. Khi triển khai phải cố định bản sử dụng, khóa gói theo spec mới.
+- i18n vi/en song song, semantic light/dark, bàn phím và mobile. Trạng thái tải/lưu/trống/lỗi/thiếu quyền rõ ràng.
 
-## Constraints
+## Ranh giới
 
-- Only Admin owns global templates; authoring UI is out of scope.
-- Global templates are initially supplied by seed data while the Admin stream implements authoring.
-- A custom package cannot be exposed as a global template.
-- Only the Agency Owner may create packages or change their Workspace visibility.
-- Global templates cannot be selected directly by a Workspace.
-- Hiding an Agency package affects new selections only; an existing Workspace selection remains readable and negotiable.
-- Do not use the obsolete polymorphic `packageRefType` database model.
-
-## Confirmed selection notification scope — 2026-10-13
-
-Scheduled package-selection reminders are not required. Keep the current Package gate: Client accesses Package negotiation and Chat; Manager also retains Workspace settings. Creative features remain gated until the package is approved. No scheduler or configurable X-day cadence is part of DA-943.
+Quyền xuất/share danh mục thuộc Owner. Không biến gói workspace thành gói công khai. Chi tiết API, vòng đời share và mapping dữ liệu cũ sẽ chốt trong plan, không dùng endpoint chọn/duyệt Client cũ làm hợp đồng cho flow mới.
