@@ -1,0 +1,1 @@
+Commercial image calls follow Web -> Gateway -> Business -> AI service -> worker. Empty prompt defaults to reference; studio/lifestyle selectable. Preserve credit/auth handling and three image roles. No database changes.
