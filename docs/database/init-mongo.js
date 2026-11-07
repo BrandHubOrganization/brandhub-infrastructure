@@ -241,6 +241,10 @@ db.createCollection('tasks', {
         type:                   { enum: ['POST', 'LIVESTREAM', 'SURVEY', 'EVENT_PLAN', 'PRESS_RECOMMENDATION'] },
         name:                   { bsonType: 'string' },
         dueDate:                { bsonType: ['date', 'null'] },
+        plannedStartDate:       { bsonType: ['date', 'null'] },
+        subtasks: { bsonType: 'array', items: { bsonType: 'object', properties: {
+          plannedStartDate: { bsonType: ['date', 'null'] },
+        } } },
         publishDate:            { bsonType: ['date', 'null'] },
         status:                 { enum: ['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'FINISHED', 'CANCELLED'] },
         reviewStep: { bsonType: ['string', 'null'], enum: ['MANAGER', 'CLIENT', null] },
