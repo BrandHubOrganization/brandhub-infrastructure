@@ -1040,3 +1040,65 @@ db.chat_calls.createIndex({ state: 1, expiresAt: 1 }, { name: 'idx_chat_calls_ex
 db.createCollection('seed_runs');
 
 print('BrandHub MongoDB initialized: collections and indexes created.');
+
+
+// Chat uploads and immutable repository references (2026-11-08). Metadata only; no seed/storage writes.
+(() => {
+  const uuid = '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$';
+  // BEGIN CHAT ATTACHMENT CONTRACT
+  const attachmentIds = { bsonType: ['array', 'null'], maxItems: 5, uniqueItems: true,
+    items: { bsonType: 'string', pattern: uuid } };
+  const attachmentValidator = { $jsonSchema: { bsonType: 'object', required: ['_id', 'workspaceId',
+    'channelId', 'uploadedBy', 'source', 'state', 'filename', 'mimeType', 'byteSize',
+    'storageProvider', 'storageKey', 'createdAt'], properties: {
+    _id: { bsonType: 'string', pattern: uuid }, workspaceId: { bsonType: 'string', pattern: uuid },
+    channelId: { bsonType: 'string', minLength: 1, maxLength: 100 }, uploadedBy: { bsonType: 'string', pattern: uuid },
+    source: { enum: ['UPLOAD', 'REPOSITORY'] }, state: { enum: ['UPLOADING', 'READY', 'ATTACHED', 'FAILED', 'DELETING'] },
+    filename: { bsonType: 'string', minLength: 1, maxLength: 255 }, mimeType: { bsonType: 'string', minLength: 1, maxLength: 255 },
+    byteSize: { bsonType: ['int', 'long'], minimum: 1 }, storageProvider: { bsonType: 'string', minLength: 1 },
+    storageKey: { bsonType: 'string', minLength: 1 }, materialId: { bsonType: ['string', 'null'] },
+    materialWorkspaceId: { bsonType: ['string', 'null'] }, versionNumber: { bsonType: ['int', 'long', 'null'], minimum: 1 },
+    createdAt: { bsonType: 'date' }, expiresAt: { bsonType: ['date', 'null'] },
+  } } };
+  const attachmentIndexes = [
+    { name: 'idx_chat_attachments_owner', key: { workspaceId: 1, channelId: 1, uploadedBy: 1, state: 1 } },
+    { name: 'idx_chat_attachments_cleanup', key: { expiresAt: 1, _id: 1 } },
+  ];
+  const messageAttachmentIndexes = [{ name: 'idx_chat_message_attachments', key: { workspaceId: 1, channelId: 1, attachmentIds: 1 } }];
+  const scheduleAttachmentIndexes = [{ name: 'idx_chat_schedule_attachments', key: { workspaceId: 1, channelId: 1, attachmentIds: 1, status: 1 } }];
+  const referenceAttachmentIndexes = [{ name: 'idx_material_chat_references', key: { source_type: 1, source_id: 1 } }];
+  const textOrAttachment = { $or: [{ content: { $regex: '\\S' } }, { 'attachmentIds.0': { $exists: true } }] };
+  function extendChatValidator(existing) {
+    const next = typeof EJSON !== 'undefined' ? EJSON.parse(EJSON.stringify(existing)) : JSON.parse(JSON.stringify(existing));
+    const find = value => value.$jsonSchema || (value.$and || []).map(find).find(Boolean);
+    const schema = find(next);
+    if (!schema || !schema.properties) throw new Error('Expected chat JSON schema baseline');
+    // Earlier rich-content rollout may have installed only its own field contract.
+    // Preserve that validator and add the missing text field rather than replace the baseline.
+    if (!schema.properties.content) schema.properties.content = { bsonType: 'string', maxLength: 4000 };
+    if (schema.properties.content.bsonType !== 'string') throw new Error('Incompatible chat content schema');
+    schema.properties.attachmentIds = attachmentIds;
+    schema.properties.content.minLength = 0;
+    // Keep existing predicates and fields; this additive rule enables attachment-only messages.
+    const isTextOrAttachment = clause => {
+      if (!clause.$or || clause.$or.length !== 2) return false;
+      const text = clause.$or.find(part => part.content)?.content;
+      const expression = text?.$regex ?? text?.$regularExpression?.pattern ?? text?.pattern ?? text?.source;
+      return expression === '\\S' && clause.$or.some(part => part['attachmentIds.0']?.$exists === true);
+    };
+    if (next.$and) {
+      if (!next.$and.some(isTextOrAttachment)) next.$and.push(textOrAttachment);
+    } else if (!next.$or) next.$or = textOrAttachment.$or;
+    else if (!isTextOrAttachment(next)) return { $and: [next, textOrAttachment] };
+    return next;
+  }
+  // END CHAT ATTACHMENT CONTRACT
+  db.createCollection('chat_attachments', {validator:attachmentValidator, validationLevel:'strict', validationAction:'error'});
+  for (const {key,...options} of attachmentIndexes) db.chat_attachments.createIndex(key,options);
+  for (const [name,indexes] of [['chat_messages',messageAttachmentIndexes],['chat_scheduled_messages',scheduleAttachmentIndexes]]) {
+    const current=db.getCollectionInfos({name})[0];
+    db.runCommand({collMod:name,validator:extendChatValidator(current.options.validator),validationLevel:'strict',validationAction:'error'});
+    for (const {key,...options} of indexes) db.getCollection(name).createIndex(key,options);
+  }
+  for (const {key,...options} of referenceAttachmentIndexes) db.material_references.createIndex(key,options);
+})();

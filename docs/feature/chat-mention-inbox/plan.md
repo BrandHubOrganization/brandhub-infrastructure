@@ -34,3 +34,7 @@ overrides. Keep dataset-specific values in ignored .env.development.local.
 7. Add ChatSampleSeeder to MongoDataSeeder, guard chat validators and indexes before
    writes, include chat collections in the empty-target check. Bounded PostgreSQL
    membership lookup; deterministic insert-only fixtures, no notification worker intents.
+
+
+## DM mention restriction — 2026-11-08
+Pass a composer mention capability from channel type; hide @ action and suppress suggestions in DM. Reject structured mention nodes on send/schedule in the composer and reject nonempty mentionUserIds in the shared backend send/schedule validator. Keep rich-content identity validation, automatic DM notifications and channel access checks. Update fresh ChatSampleSeeder fixtures without rewriting existing samples.
