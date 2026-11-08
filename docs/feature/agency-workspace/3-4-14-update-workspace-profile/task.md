@@ -14,3 +14,10 @@
 
 - [x] `mvn test` pass (happy path settings, happy path logo, non-manager, not-found, IOException logo)
 - [x] Partial update: field không gửi giữ nguyên giá trị cũ
+
+## Workspace update — 2026-11-08
+
+- [x] Implement UI and API contract changes within existing access rules.
+- [x] Verify existing tracked Workspace/role tests.
+- [x] Verify browser creation entry point and profile save/clear behavior.
+- [x] Keep QA fixtures, receipts and new tests out of shared commits.

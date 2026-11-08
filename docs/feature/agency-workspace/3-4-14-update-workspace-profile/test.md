@@ -52,3 +52,7 @@
 
 - Synchronized 1-to-1 with [`Report5_Unit Test.xls`](../../../../brandhub-final_report/report5/Report5_Unit%20Test.xls) sheet `FR3.4.16`, [`Report5_Test Report.xlsx`](../../../../brandhub-final_report/report5/Report5_Test%20Report.xlsx), and [`Report5_Test Documentation.docx`](../../../../brandhub-final_report/report5/Report5_Test%20Documentation.docx).
 - Role names strictly follow the 6 canonical roles (`Guest`, `Owner`, `Manager`, `Creator`, `Client`, `Admin`).
+
+## Workspace update — 2026-11-08
+
+Regression coverage: Owner creates; non-Owner cannot enter creation; active Agency retained from list and fallback URL; save/clear tagline survives reload; clearFields removes nullable values while omitted fields remain; social icons and HTTP(S) links appear in create/profile views. Desktop preview checked at 1920×900 and 1366×768. Backend Workspace/role regression tests passed. Environment-specific evidence is local-only.
