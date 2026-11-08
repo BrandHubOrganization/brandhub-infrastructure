@@ -59,3 +59,7 @@ one two-person DM, root/reply messages with mention IDs and a sample reaction/pi
 No delivery intents, SQL inbox writes, realtime events or preference overrides.
 Existing samples are never overwritten; deterministic IDs permit repeated calls.
 The existing full Mongo seed remains fresh-development-DB only and keeps its marker.
+
+
+## DM mention restriction — 2026-11-08
+DM (DIRECT) does not support structured @mentions, including self/recipient mentions. The same rule applies to DM threads and scheduled messages. Literal @ text remains ordinary text. Group channel mentions and automatic DM recipient notifications are unchanged. Existing messages remain readable; no backfill or schema migration.

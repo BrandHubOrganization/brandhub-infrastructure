@@ -90,3 +90,23 @@ Reduce filter popover width to440px desktop; allocate164px category column so Vi
 
 ## Optional strategy and selected-package navigation — 2026-11-07
 Deployment strategy is optional. Readiness has four required conditions: package prepared/current, valid Campaign dates, exact package-generated Tasks, all Tasks with deadlines. Strategy editor remains available, never blocks deploy. A chosen Workspace package opens navigation for Manager/Client regardless negotiation approval/preparation status; no package retains package/chat gate, existing role access rules remain. Desktop/mobile consistent. No fake approval or DB backfill.
+
+
+## Compact Campaign layout — 2026-11-08
+Timeline uses full page width. Strategy auto-save disclosure sits top right. Deployment action sits right of Campaign dates; conditions appear on hover/focus and an explicit accessible toggle for touch/disabled action. Preserve deployment confirmation, permissions, status, retry and closure. Feedback is a bottom-right round trigger with unread Client FEEDBACK count, excluding own events; opens a non-modal panel with existing comment permissions. Read watermark is browser-local per user/workspace/campaign, no server read-state claim or DB changes. Refresh feedback every30s while tab active. Preserve draft text, errors, VI/EN, dark/light, responsive and keyboard/Escape.
+
+
+## Feedback conversation — 2026-11-08
+Client and active Workspace Manager may send Campaign feedback; other roles remain read-only. Manager messages store AGENCY actorSide and notify existing opposite recipients; Client messages keep CLIENT. Preserve workspace scope, version check and no Campaign state mutation. Enter sends once, Shift+Enter inserts newline, IME Enter does not send; pending/blank prevented. Add a labeled link to /workspaces/:id/chat with no package/channel context.
+
+
+## Rich strategy — 2026-11-08
+Strategy editor reuses chat formatting toolbar and Tiptap. Provide a short localized empty placeholder suggesting objective, audience, channels and main activities. Enter creates normal paragraphs/list items, never sends. Preserve auto-save on leaving editor region or closing overlay; toolbar/link focus stays in editor region. Legacy plain text loads literally; new formatted content is HTML in existing strategyDetail string, max10000 stored characters, optional empty string. Safe Tiptap parsing/URL allowlist; never raw untrusted HTML rendering. Existing Campaign detail/form must not expose markup. Preserve version errors/draft and disabled roles. No schema migration.
+
+
+## Vietnamese and loading feedback — 2026-11-08
+Translate ordinary English domain words in Campaign/Package VI labels, leaving user data, identifiers and technical file formats untouched. Campaign page initial package read uses skeleton, existing Campaign/timeline initial skeleton remains. Package workspace skeleton matches detail-left/catalog-right layout; catalog wait uses compact card placeholders. Creating/moving/resizing a duration shows an immediate localized skeleton in the target lane through mutation and refetch. Only active row shows saving geometry; no persisted optimistic result or status change. Cancel shows no pending, error restores old/unscheduled lane, duplicate submission blocked.
+
+
+## Completion checklist at the action — 2026-11-08
+Manager checks campaign completion in an anchored popover at the completion button; no navigation or replacement work area. Hover/focus previews, click pins, touch/keyboard remain supported. The checklist uses the existing completion-check contract (deployment, unfinished tasks, reviewing requests, unlinked legacy tasks). Pending unaccepted requests retain the auto-cancellation warning. Optional task cancellation and final completion require separate explicit confirmations; server permissions/version checks remain authoritative. No API/schema changes.

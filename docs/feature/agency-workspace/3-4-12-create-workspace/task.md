@@ -14,3 +14,10 @@
 
 - [x] `mvn test` pass (happy path không assignMembers, happy path có chuyển giao MANAGER, non-agency-member, MANAGER trùng)
 - [x] `name`/`agencyId` validation qua `@Valid` → 400 `VALIDATION_ERROR`
+
+## Workspace update — 2026-11-08
+
+- [x] Implement UI and API contract changes within existing access rules.
+- [x] Verify existing tracked Workspace/role tests.
+- [x] Verify browser creation entry point and profile save/clear behavior.
+- [x] Keep QA fixtures, receipts and new tests out of shared commits.

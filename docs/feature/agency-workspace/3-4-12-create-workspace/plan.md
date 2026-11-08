@@ -55,3 +55,7 @@ Không lệch spec.md — đã khớp code thật, kể cả `agencyId` nằm tr
 - **`assignMembersInternal` dùng chung giữa Create và Add Member (3.4.19)** — thay đổi logic 1 chỗ ảnh hưởng cả 2 FR, cần test cả 2 khi sửa.
 - **2 nhánh lỗi chưa được spec.md mục 6 liệt kê đầy đủ** (theo sequence-flow.md): `403 NOT_AGENCY_MEMBER` (entry trong `assignMembers` không thuộc agency) và `USER_NOT_FOUND` (userId không tồn tại) — đã bổ sung ở test.md, cần đồng bộ spec.md nếu BA yêu cầu.
 - **Transaction boundary:** bước tạo Workspace + WorkspaceMember người tạo nằm cùng transaction; các entry `assignMembers` xử lý ngay sau — nếu 1 entry lỗi giữa chừng (ví dụ `USER_NOT_FOUND`), cần xác nhận toàn bộ transaction rollback hay chỉ entry đó fail (rủi ro dữ liệu inconsistent nếu partial-commit).
+
+## Workspace update — 2026-11-08
+
+Verify ownership through the existing Agency API before enabling Create or fetching templates. Pass agencyId from the list and fall back to the active Agency for empty-state/template entry points. Keep preview within viewport height with internal overflow for long content. Reuse platform icons without adding fields.

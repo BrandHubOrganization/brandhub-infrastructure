@@ -77,3 +77,7 @@
 ## Ghi chú
 
 - TC-08, TC-09 lấy từ sequence-flow.md (2 nhánh lỗi chưa được liệt kê đầy đủ ở spec.md mục 6 — xem plan.md mục 6).
+
+## Workspace update — 2026-11-08
+
+Regression coverage: Owner creates; non-Owner cannot enter creation; active Agency retained from list and fallback URL; save/clear tagline survives reload; clearFields removes nullable values while omitted fields remain; social icons and HTTP(S) links appear in create/profile views. Desktop preview checked at 1920×900 and 1366×768. Backend Workspace/role regression tests passed. Environment-specific evidence is local-only.

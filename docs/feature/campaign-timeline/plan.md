@@ -69,3 +69,25 @@ Adjust FilterBar popup width/grid/sidebar button classes only. Category labels n
 
 ## Optional strategy and selected-package navigation — 2026-11-07
 Remove strategy predicate from MediaCampaignServiceImpl.validateApprovalPlan and DeploymentPanel conditions; derive readiness denominator from condition length. Change Sidebar/Layout navigation gate from approval to missing workspaceMediaPackageId. Check stored package selection updates existing store. No schema/API changes.
+
+
+## Compact Campaign layout — 2026-11-08
+Reuse CampaignPlanEditor in header with positioned disclosure; move DeploymentPanel into dates slot. Replace rail grid with full-width timeline. Reuse Radix Popover for feedback; maintain query and comment state outside panel, local viewed watermark and30s polling. Deployment hover/focus details plus explicit Popover toggle. Update parallel campaign locales and scoped CSS. No API/DB changes.
+
+
+## Feedback conversation — 2026-11-08
+Update MediaCampaignServiceImpl.addFeedback to authorize AGENCY via requireManager, retain CLIENT access and version locking. Adapt notification title by side. Enable Manager composer; handle Enter via form.requestSubmit with composition guard. Add localized Workspace chat link. Reuse existing tables/API. Extend existing service tests and ignored browser harness.
+
+
+## Rich strategy — 2026-11-08
+Add CampaignStrategyInput with StarterKit, safeChatLink and ChatComposerToolbar reuse without changing chat. Convert legacy plain text to paragraph JSON; parse supported HTML through Tiptap. Add field wrapper for dirty/version/error/blur region and explicit close flush; use readonly input for legacy detail and controlled input in form. Update VI/EN placeholder/length messages. Test nested list formatting, safe URLs, empty/legacy HTML, save/reopen/version error, permissions and full Web CI.
+
+Rich strategy refinement: forward optional forceMount through shared Popover Portal (sole consumer is strategy), preserve mounted field across close; explicit close flush suppresses duplicate blur retry. Keep nested link popup above strategy overlay; Tiptap editable changes do not emit content updates. Read-only strategy uses compact spacing.
+
+
+## Vietnamese and loading feedback — 2026-11-08
+Normalize string values only in vi/campaign and vi/mediaPackage without modifying interpolation tokens. Add parallel loading/saving keys. Reuse TimelinePendingRange for both scheduled and unscheduled local commits with lock and finally cleanup. Keep mutation awaited through existing query invalidation. Add CampaignLoadingState and workspace/catalog Package skeleton exports. No backend/DB changes.
+
+
+## Completion action implementation — 2026-11-08
+Reuse CampaignClosureSection as a compact anchored popover in CampaignWorkspace and legacy CampaignDelivery. Fetch only when opened via React Query, show skeleton/error/retry, scroll content within viewport. Pin during interaction; protect active cancellation/confirmation from accidental dismissal. Reuse cancellation reasons/100-task limit and existing completion endpoints. Keep timeline visible and refresh task data after cancellation; apply returned Campaign after completion.

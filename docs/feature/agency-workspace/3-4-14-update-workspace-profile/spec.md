@@ -82,3 +82,7 @@ Figure — Workspace Settings Screen, edit section (`WorkspaceSettingsPage`, `us
 ## References
 
 [01-organization-structure.md](../../../BA/01-organization-structure.md), [03-agency-workspace-management.md](../../../BA/03-agency-workspace-management.md)
+
+## Workspace update — 2026-11-08
+
+Owner and Manager may update Workspace profile. Empty strings clear optional text fields. Nullable industry, companySize and foundedYear may be removed explicitly with clearFields; omitted fields remain unchanged. Profile metadata uses labeled rows and shared social links; no database schema change.

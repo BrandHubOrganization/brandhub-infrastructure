@@ -155,3 +155,36 @@ Optional strategy/navigation verification: Business Maven offline compile PASS. 
 
 ## Pre-commit verification — 2026-11-07
 Full Web npm run ci PASS: lint completed with zero errors (existing advisory warnings), TypeScript passed and production build passed. Unused bindings/dead initial assignments in changed Agency/Dashboard/Workspace pages were cleaned before committing. Source tests and local QA artifacts were excluded from commits; shared feature verification documentation remains part of this specification.
+
+
+## Compact Campaign layout — 2026-11-08
+Verify full-width timeline, dates and deployment on same toolbar, strategy at top right. Hover/focus deployment reveals4conditions; unavailable action still allows condition inspection; touch toggle, Escape and deployment confirmation work. Preserve closure and retry/errors. Feedback FAB opens panel, Client feedback unread excludes own/Agency/APPROVE, badge clears only after successful data viewed, persists by user/workspace/campaign and no draft loss on close. Failed fetch does not mark read. Polling stops in background; no DB writes. Test desktop/mobile light/dark VI/EN and npm run ci.
+
+
+Compact layout verification — 2026-11-08: full npm run ci PASS (lint zero errors, existing advisory warnings; type-check and production build passed). Final changed-file lint/type-check and production bundling PASS after refinements. Browser QA on actual CampaignWorkspace with mocked service contracts PASS: full-width timeline, strategy blur/close auto-save, deployment hover/details/confirmation cancellation, incomplete disabled action with accessible condition toggle, Client deployment hidden, feedback count excludes own/Agency/APPROVE, read watermark survives reload and fetch failure does not clear unread, Client draft survives close. VI/EN, light/dark,1440px/390px no document horizontal overflow; mobile feedback panel stays in viewport. FAB raised above horizontal scroll controls. No real API, DB or production writes; QA artifacts remain ignored keep-local-only. Read markers are browser-local, not cross-device server read state.
+
+
+## Feedback conversation — 2026-11-08
+Manager feedback stored as AGENCY, requireManager invoked, version/status unchanged; rejected Manager/Owner access cannot save; stale version rejected. Client remains allowed. Enter one POST, Shift+Enter newline, composition no submit, blank/pending blocked, failure preserves text. Chat anchor has /workspaces/ws/chat no query context. Manager and Client see composer, other roles do not. No DB migration.
+
+Verification: Business19tests PASS (MediaCampaignServiceImplTest15 and CampaignWorkspaceAccessTest4). Manager actor side, trimmed comment, authorization, unchanged state and stale version tested. Browser QA on actual Workspace with mocked services PASS: Manager/Client Enter exactly one request, Shift+Enter newline, IME/blank do not send, Creator read-only, correct Workspace chat link. Final fixture uses unique IDs; no JS/React errors. No DB/production writes. Restart Business for updated Manager permission. QA artifacts remain ignored local-only.
+
+Web full npm run ci PASS: lint zero errors (existing warnings), TypeScript and production build passed. VI/EN key parity and diff check PASS.
+
+
+## Rich strategy — 2026-11-08
+Legacy multiline/plain angle brackets remain literal. Bold/list/link survive save/reopen and readonly display; invalid URL rejected; no scripts execute. Formatting controls/link popup do not prematurely save; leaving region and Escape/overlay close save once. Enter continues lists, no send. Blank optional saved empty, max10000 HTML enforced with clear error. Stale version/save error keeps draft/retry; read-only cannot edit. VI/EN light/dark and small viewport.
+
+Rich strategy verification: full Web npm run ci PASS (zero lint errors, existing warnings; types and production build passed). Final focused lint/type-check and bundle PASS. Browser mocked QA PASS legacy multiline/literal angle brackets; no script/image/javascript-link rendering, invalid URL rejected; bold/numbered nested lists/link persisted after save/reopen; formatting did not save prematurely; closing saves once, failed save retains draft and does not auto-retry, explicit retry succeeds; optional blank saves empty, oversize10000 HTML blocked and retained, reducing input saves, stale version keeps draft and explicit retry succeeds; readonly disabled; VI/EN light/dark390px layout fits. No real API/DB/production writes; test artifacts ignored local-only. Shared Popover forwards forceMount to Portal to retain strategy draft; strategy is currently the sole forceMount consumer.
+
+
+## Vietnamese and loading feedback — 2026-11-08
+No English Campaign/Task/Client/Manager/Workspace/milestone/timeline in VI static labels, names/interpolation remain literal. Delayed new range click renders pending at selected dates before response; stays until refetch finishes; success shows saved duration, failure removes placeholder. Move/resize pending matches proposed interval, original restored on error; cancel no mutation. Unrelated rows do not show skeleton. Keyboard no duplicate while pending; readonly cannot mutate. Campaign initial skeleton, Package workspace and sidebar skeleton visible with delayed data; background refetch retains current content. VI/EN light/dark reduced-motion.
+
+Loading verification: full Web npm run ci PASS (zero errors, existing warnings; types and build passed). VI/EN key parity and ordinary-domain-label scan PASS for Campaign/Package; interpolation tokens preserved. Browser QA with manually delayed promise PASS: initial Campaign/Package/sidebar skeletons; new duration placeholder immediately at correct start/width; retained after request acceptance through refetch; only target row; success clears to duration; failed move restores saved dates; Escape drag cancellation makes no request; keyboard save and EN/dark loading verified. No real API/DB/production writes. QA fixtures/screenshots ignored local-only.
+
+
+## Completion action — 2026-11-08
+Browser QA uses actual CampaignClosureSection with mocked service methods in ignored keep-local-only: hover/skeleton/dismiss, click pin, blocked completion, task selection, OTHER note required, cancellation confirmation, refresh callback, final completion confirmation/exactly one call, unchanged URL. Error/retry, close, Escape, mobile viewport and EN labels checked. No real API, DB or production writes. Existing backend permissions and CAS/version contracts unchanged.
+
+Completion verification result: final npm run ci PASS (lint 0 errors, existing 106 advisory warnings; TypeScript and production build passed). Changed-file lint PASS without warnings. Browser QA additionally verified ArrowDown focus, completion API failure with recheck, no false success/no automatic mutation retry, and explicit manual retry. QA fixtures/screenshots/logs are Git-ignored local-only. No DB changes.

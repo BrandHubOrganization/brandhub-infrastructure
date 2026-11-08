@@ -28,3 +28,10 @@ No real-user inbox delivery or end-to-end Mongo/PostgreSQL worker test was run.
 - [x] Add ChatSampleSeeder and wire fresh Mongo seed.
 - [x] Guard chat metadata before seeding and preserve existing samples.
 - [x] Compile and verify fixtures without shared DB writes.
+
+
+## DM mention restriction — 2026-11-08
+- [x] Disable structured mentions in DM composer/thread/schedule.
+- [x] Shared backend validation, including scheduled dispatch.
+- [x] Align fresh DM seed data; retain existing history.
+- [x] Verify focused frontend/backend regression checks.
