@@ -93,3 +93,37 @@
 - [x] Make strategy optional in frontend/backend deployment readiness.
 - [x] Open desktop/mobile navigation on package selection.
 - [x] Verify empty strategy accepts otherwise ready plan, missing deadlines still rejected; verify selected DRAFT package sidebar and no real deploy/DB writes.
+
+
+## Compact Campaign layout — 2026-11-08
+- [x] Full-width timeline and strategy header.
+- [x] Compact deployment with hover/focus/touch prerequisites.
+- [x] Floating feedback and browser-local unread Client highlight.
+- [x] Update vi/en and verify light/dark, responsive, keyboard, permissions and full Web CI.
+
+
+## Feedback conversation — 2026-11-08
+- [x] Permit active Manager feedback in Business with scoped authorization.
+- [x] Enable Manager composer, Enter/Shift+Enter/IME behavior and Workspace chat link.
+- [x] Update VI/EN, existing backend tests, browser QA and Web CI.
+
+
+## Rich strategy — 2026-11-08
+- [x] Reuse chat toolbar with compact rich strategy input and guidance.
+- [x] Preserve versioned autosave, safe legacy text and detail/form rendering.
+- [x] VI/EN and browser QA, type-check/lint/build.
+
+
+## Vietnamese and loading feedback — 2026-11-08
+- [x] Localize VI Campaign/Package domain labels and maintain EN parity.
+- [x] Align initial Campaign/Package and sidebar loading skeletons.
+- [x] Add immediate duration saving skeleton through mutation/refetch, rollback/cancel checks.
+- [x] Browser delayed-success/failure/read-only QA and Web CI.
+
+
+## Completion action — 2026-11-08
+- [x] Replace InlineWorkArea completion check with hover/click anchored action.
+- [x] Four server-backed checks, unresolved task/request details, pending request warning.
+- [x] Optional cancellation selection/reason/confirmation and final completion confirmation.
+- [x] Loading, retry, busy/keyboard/mobile and VI/EN labels.
+- [x] Local browser QA with mock contracts; no real completion or DB writes.
