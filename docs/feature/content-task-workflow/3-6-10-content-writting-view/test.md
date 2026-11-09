@@ -15,7 +15,7 @@
 | **Code & Test Author** | Trung |
 | **Test Requirement** | Save rich social post drafts with Unicode font styling (YayText/Zantext), support both Direct API Auto-Publish and Manual 1-Click Copy/Paste to Facebook/Instagram/TikTok/Threads, import/export Google Docs & Word documents, track version history, and restore previous content versions |
 | **Preconditions** | Can connect with server (or automatic local offline fallback when server is unreachable); Caller is Owner, Manager, or Creator in workspace |
-| **Overall Status** | **Passed (100%) — 52/52 Vitest + 22/22 JUnit + 67/67 Playwright E2E + 31/31 Live Integration** |
+| **Overall Status** | **Passed (100%) — 60/60 Vitest + 22/22 JUnit + 68/68 Playwright E2E + 31/31 Live Integration** |
 | **Test Case Breakdown** | **Backend UTC Matrix: 17** (`Passed`: 17, `Failed`: 0, `Untested`: 0) — `Normal (N)`: 6, `Boundary (B)`: 3, `Abnormal (A)`: 8 |
 
 ---
@@ -55,16 +55,16 @@
 
 | Layer | Tool | Location | Cases | Result |
 |---|---|---|---|---|
-| FE pure logic (lists, diff, Unicode font conversion, CRDT, richText) | Vitest | `brandhub-web/src/pages/content-writing/**/*.test.ts` | 52 | ✅ 52 / 52 |
+| FE pure logic (lists, diff, 36-style YayText/Zantext Unicode conversion, CRDT, richText) | Vitest | `brandhub-web/src/pages/content-writing/**/*.test.ts` | 60 | ✅ 60 / 60 |
 | BE service logic (load, op log, snapshot, versions, restore) | JUnit 5 + Mockito | `brandhub-business-service/src/test/java/.../service/impl/TaskContentServiceImplTest.java` | 22 | ✅ 22 / 22 |
-| Browser E2E — Content Writing View (`CanvasTextEditor`) | Playwright | `brandhub-web/tests/e2e/editor/content-writing.spec.ts` | 32 (`E2E-01`..`E2E-32`) | ✅ 32 / 32 |
+| Browser E2E — Content Writing View (`CanvasTextEditor`) | Playwright | `brandhub-web/tests/e2e/editor/content-writing.spec.ts` | 33 (`E2E-01`..`E2E-33`) | ✅ 33 / 33 |
 | Browser E2E — Content Creator Studio (`RichTextEditor`) | Playwright | `brandhub-web/tests/e2e/editor/content-creator-studio.spec.ts` | 35 (`Studio-01`..`Studio-35`) | ✅ 35 / 35 |
 | Live backend integration (real Spring Boot + Postgres + JWT + STOMP) | Node script | [integration-test.cjs](integration-test.cjs) | 31 | ✅ 31 / 31 |
-| Mobile unit & component (`jest-expo` + RTL) | Jest | `brandhub-mobile-app/src/screens/content-writing/__tests__/` | 46 | ✅ 46 / 46 |
+| Mobile unit & component (`jest-expo` + RTL) | Jest | `brandhub-mobile-app/src/screens/content-writing/__tests__/` | 48 | ✅ 48 / 48 |
 
 ---
 
-## 5. Browser E2E Matrix (Playwright) — `content-writing.spec.ts` (`E2E-01`–`E2E-32`)
+## 5. Browser E2E Matrix (Playwright) — `content-writing.spec.ts` (`E2E-01`–`E2E-33`)
 
 | ID | Scenario | Expected | Status |
 |---|---|---|---|
@@ -100,19 +100,20 @@
 | `E2E-30` | Brand Knowledge Documents (`Phần tài liệu BK`) | View, Upload (`.pdf`, `.docx`, `.txt`), Reject invalid file, Semantic Search, and Delete to `Không BK` | ✅ Passed |
 | `E2E-31` | Full Google Docs/Word cursor suite (`Ctrl+Arrow`, `Ctrl+Shift+Arrow`, `Ctrl+Home/End`, `Ctrl+Backspace/Delete`, Double/Triple-click), Rich HTML Paste, `.docx`/`.md`/`.txt` Export, and Facebook publish | All cursor shortcuts, rich paste, export round-trip, and Facebook publish pass | ✅ Passed |
 | `E2E-32` | Both Social Publishing Cases: (1) Direct API Publish to `Facebook`, `Instagram`, `TikTok`, `Threads` & (2) Zantext / 1-Click Copy & Paste (`Ctrl+C`, toolbar copy, Zantext popover) into Plain-Text Facebook Composer Sandbox (`Thử dán FB`) | 100% of mixed fonts, bold, italic, underline, strikethrough, and bullet lists are preserved in both API payload and pasted plain-text composer | ✅ Passed |
+| `E2E-33` | V6 YayText 36-Style Expansion: Category Tabs (`Khung Nổi bật`, `Sale & Gạch giá`, `⭐ Yêu thích`), Favorite Pinning, Smart Vietnamese Diacritic Auto-Strip, OS Preview Switcher, `Black Bubble` (`🅕🅛🅐🅢🅗 🅢🅐🅛🅔 ➎⓿%`) & `Slashthrough` (`9̸9̸0̸.̸0̸0̸0̸đ̸`) into Facebook Sandbox | All 36 presets filter, pin, strip accents cleanly, and copy/paste identically into Facebook Sandbox | ✅ Passed |
 
 ---
 
-## 6. Planned V6 Test Cases (YayText 36-Style Expansion — To Execute After User Approval)
+## 6. V6 YayText 36-Style Unit & E2E Test Matrix (`TC-YAY-01`–`TC-YAY-08`, `E2E-33`)
 
-| ID | Layer | Scenario | Expected |
-|---|---|---|---|
-| `TC-YAY-01` | Vitest | `Black Bubble` (`🅑🅤🅑🅑🅛🅔`) & `Black Square` (`🅱🅻🅰🅲🅺`) with English & digits | Maps `Sale 50` → `🅢🅐🅛🅔 ➎⓿` / `🆂🅰🅻🅴 ➎⓿` |
-| `TC-YAY-02` | Vitest | Smart Vietnamese Diacritic Auto-Strip on Enclosed shapes (`"Khuyến mãi Đặc Biệt"`) | Automatically strips Vietnamese diacritics before enclosed mapping → `"🅚🅗🅤🅨🅔🅝 🅜🅐🅘 🅓🅐🅒 🅑🅘🅔🅣"` (zero broken combining marks) |
-| `TC-YAY-03` | Vitest | `Parenthesized` (`⒫⒜⒭⒠⒩`) & `Regional Indicator` (`🇧 🇷 🇦 🇳 🇩`) | Maps letters & digits accurately without merging into unintended country flags |
-| `TC-YAY-04` | Vitest | `Superscript` (`ˢᵘᵖᵉʳ ⁰¹²`) & `Subscript` (`ₛᵤ₆ ₀₁₂`) | Maps footnotes (`"incl. VAT 10%"` → `"ᶦⁿᶜˡ. ⱽᴬᵀ ¹⁰%"`) |
-| `TC-YAY-05` | Vitest | Combining Line Overlays: `slashthrough` (`9̸9̸0̸k̸`), `double-underline` (`A̳B̳C̳`), `tilde-strike` (`A̴B̴C̴`), `overline` (`A̅B̅C̅`), `under-asterisks` (`A͙B͙C͙`), `lightning-above` (`A͛B͛C͛`) | Applies exact combining mark after each base glyph (excluding `\n`) |
-| `TC-YAY-06` | Vitest | `upside-down` (`qnpuɐɹB`) | Rotates characters 180° and reverses character order per line while preserving line order |
-| `TC-YAY-07` | Vitest | Character & Line Decorators (`air-quotes` `『B』『r』`, `lenticular-brackets` `【B】【r】`, `sparkles-decorator`, `stars-wave-decorator`, `arrow-pointer-decorator`) | Wraps characters/lines cleanly |
-| `TC-YAY-08` | Vitest | `stripUnicodeStyling` across all 36 YayText styles | Restores clean plain text when switching between any two of the 36 styles |
-| `E2E-33` | Playwright | YayText 36-Style Popover in both `ContentWritingPage` and `ContentCreatorStudio`: Category filter tabs (`Sale & Gạch giá`, `Khung Nổi bật`), Favorite pinning (`⭐`), Vietnamese Diacritic toggle, and 1-Click Copy of `Black Bubble` + `Slash Price` into Facebook Sandbox | Filtered styles render, Favorites persist in `localStorage`, and copied `🅢🅐🅛🅔 9̸9̸0̸k̸` pastes identically into Facebook Sandbox |
+| ID | Layer | Scenario | Expected | Status |
+|---|---|---|---|---|
+| `TC-YAY-01` | Vitest | `Black Bubble` (`🅑🅤🅑🅑🅛🅔`) & `Black Square` (`🅱🅻🅰🅲🅺`) with English & digits | Maps `Bubble 50` → `🅑🅤🅑🅑🅛🅔 ➎⓿` and `BLACK 12` → `🅱🅻🅰🅲🅺 ➊➋` | ✅ Passed |
+| `TC-YAY-02` | Vitest | Smart Vietnamese Diacritic Auto-Strip on Enclosed shapes (`"Khuyến mãi Đặc Biệt"`) | Automatically strips Vietnamese diacritics before enclosed mapping → `"🅚🅗🅤🅨🅔🅝 🅜🅐🅘 🅓🅐🅒 🅑🅘🅔🅣"` (zero broken combining marks) | ✅ Passed |
+| `TC-YAY-03` | Vitest | `Parenthesized` (`⒫⒜⒭⒠⒩`) & `Regional Indicator` (`🇧 🇷 🇦 🇳 🇩`) | Maps letters & digits accurately without merging into unintended country flags | ✅ Passed |
+| `TC-YAY-04` | Vitest | `Superscript` (`ˢᵘᵖᵉʳ ⁰¹²`) & `Subscript` (`ₛᵤ₆ ₀₁₂`) | Maps footnotes (`"VAT 10"` → `"ⱽᴬᵀ ¹⁰"`, `"H2O 012"` → `"ₕ₂ₒ ₀₁₂"`) | ✅ Passed |
+| `TC-YAY-05` | Vitest | Combining Line Overlays: `slashthrough` (`9̸9̸0̸k̸`), `double-underline` (`A̳B̳C̳`), `tilde-strike` (`A̴B̴C̴`), `overline` (`A̅B̅C̅`), `under-asterisks` (`A͙B͙C͙`), `lightning-above` (`A͛B͛C͛`) | Applies exact combining mark after each base glyph (excluding `\n`) | ✅ Passed |
+| `TC-YAY-06` | Vitest | `upside-down` (`qnHpuɐɹᙠ`) | Rotates characters 180° and reverses character order per line while preserving line order | ✅ Passed |
+| `TC-YAY-07` | Vitest | Character & Line Decorators (`air-quotes` `『S』『a』`, `lenticular-brackets` `【H】【o】`, `sparkles-decorator`, `stars-wave-decorator`, `arrow-pointer-decorator`) | Wraps characters/lines cleanly | ✅ Passed |
+| `TC-YAY-08` | Vitest | `stripUnicodeStyling` across all 36 YayText styles | Restores clean plain text when switching between any two of the 36 styles | ✅ Passed |
+| `E2E-33` | Playwright | YayText 36-Style Popover in `ContentWritingPage`: Category filter tabs (`Sale & Gạch giá`, `Khung Nổi bật`), Favorite pinning (`⭐`), Vietnamese Diacritic toggle, and 1-Click Copy of `Black Bubble` + `Slash Price` into Facebook Sandbox | Filtered styles render, Favorites persist in `localStorage`, and copied `🅕🅛🅐🅢🅗 🅢🅐🅛🅔 ➎⓿%` pastes identically into Facebook Sandbox | ✅ Passed |

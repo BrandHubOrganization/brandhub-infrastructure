@@ -1,10 +1,10 @@
 # Plan — Content Writing View (FR 3.6.10)
 
-> Link: [spec.md](spec.md) — Document Status: **V4–V5 + Core Dual Publishing Implemented; V6 YayText 36-Style Expansion Ready for Review**.
+> Link: [spec.md](spec.md) — Document Status: **V4–V6 Implemented & Verified (60 Vitest unit tests + 68 Playwright E2E tests passing)**.
 >
 > - **V4 (2026-10-01)**: Canvas-rendering + Yjs CRDT real-time sync over STOMP WebSocket, mirroring the real Google Docs technique's effect. See [spec.md §4](spec.md#4-ui--ux--functional-architecture) and [§7](spec.md#7-edge-cases).
 > - **V5 (2026-10-26)**: Docs/Word hybrid UI redesign + presence/multi-cursor awareness via `/app+/topic/tasks/{taskId}/awareness` + React Native mobile port.
-> - **V6 (2026-11-09)**: Sub-pixel cursor physics (`measureRunSliceWidth`, `buildParagraphIndexMap`), Google Docs/Word full keyboard/mouse navigation, Document Import (`.docx`, `.txt`, `.md`, `.html`, live Google Docs URL) & Export (`.docx`, `.md`, `.txt`), Dual Social Publishing Workflows (**Direct API Auto-Publish** to Facebook/Instagram/TikTok/Threads + **Manual 1-Click Copy/Paste Zantext Workflow** with Plain-Text Facebook Composer Sandbox), and **YayText 36-Style Unicode Font & Text Effect Expansion** (see §7 below for the V6 expansion blueprint awaiting user sign-off).
+> - **V6 (2026-11-09)**: Sub-pixel cursor physics (`measureRunSliceWidth`, `buildParagraphIndexMap`), Google Docs/Word full keyboard/mouse navigation, Document Import (`.docx`, `.txt`, `.md`, `.html`, live Google Docs URL) & Export (`.docx`, `.md`, `.txt`), Dual Social Publishing Workflows (**Direct API Auto-Publish** to Facebook/Instagram/TikTok/Threads + **Manual 1-Click Copy/Paste Zantext Workflow** with Plain-Text Facebook Composer Sandbox), and **YayText 36-Style Unicode Font & Text Effect Expansion** across 6 categories.
 
 ---
 
@@ -30,32 +30,37 @@
 ## 3. API Contract (implemented)
 
 ```
-GET /api/v1/workspaces/{id}/tasks/{taskId}/content
+FR 3.6.10 — GET /api/v1/workspaces/{id}/tasks/{taskId}/content (Content Writing View)
 → 200 { "success": true, "data": { "snapshot": "<base64|null>", "operationsSinceSnapshot": ["<base64>", ...], "sequenceNumber" } }
 
-WS /ws/tasks?token=<JWT>
+FR 3.6.10 — WS /ws/tasks?token=<JWT> (Content Writing View)
 Client → Server: PUBLISH /app/tasks/{taskId}/content { "update": "<base64 Yjs update>" }
 Server → SUBSCRIBE /topic/tasks/{taskId}/content: { "update", "sequenceNumber", "editedBy" }
-
 Client → Server: PUBLISH /app/tasks/{taskId}/awareness { "update": "<base64 y-protocols/awareness update>" }
 Server → SUBSCRIBE /topic/tasks/{taskId}/awareness: { "update" }
 
-POST /api/v1/workspaces/{id}/tasks/{taskId}/content/snapshot
+FR 3.6.10 — POST /api/v1/workspaces/{id}/tasks/{taskId}/content/snapshot (Content Writing View)
 Body: { "yjsState": "<base64>", "atSequenceNumber" }
 
-GET /api/v1/workspaces/{id}/tasks/{taskId}/content/versions
+FR 3.6.34 — GET /api/v1/workspaces/{id}/tasks/{taskId}/content/versions (View Content History)
 → 200 { "success": true, "data": [{ "snapshotId", "sequenceNumber", "createdAt", "editedBy", "editedByName" }] }
 
-GET /api/v1/workspaces/{id}/tasks/{taskId}/content/versions/{snapshotId}
+FR 3.6.34 — GET /api/v1/workspaces/{id}/tasks/{taskId}/content/versions/{snapshotId} (View Content History)
 → 200 { "success": true, "data": { "snapshot": "<base64>", "operationsSinceSnapshot": [], "sequenceNumber" } }
 
-POST /api/v1/workspaces/{id}/tasks/{taskId}/content/versions/{snapshotId}/restore
+FR 3.6.10 — POST /api/v1/workspaces/{id}/tasks/{taskId}/content/versions/{snapshotId}/restore (Content Writing View)
 → 200 { "success": true, "data": { "snapshot": "<base64>", "operationsSinceSnapshot": [], "sequenceNumber" } }
 
-POST /api/v1/workspaces/{id}/posts
+FR 3.7.6 — POST /api/v1/workspaces/{id}/ai/captions (Generate Caption)
+→ 200 { "success": true, "data": { "generationId", "captions": [...] } }
+
+FR 3.6.33 — POST /api/v1/workspaces/{id}/tasks/{taskId}/compliance (Check Compliance Content)
+→ 200 { "success": true, "data": { "status": "PASSED", "issues": [] } }
+
+FR 3.8.5 — POST /api/v1/workspaces/{id}/posts (Preview Post)
 Body: { "taskId", "title", "content": "<Unicode-converted text>", "mediaUrls": [...], "targetPlatforms": ["FACEBOOK", "INSTAGRAM", "TIKTOK", "THREADS"] }
 
-POST /api/v1/workspaces/{id}/posts/{postId}/publish
+FR 3.8.8 — POST /api/v1/workspaces/{id}/posts/{postId}/publish (Publish Facebook Post)
 ```
 
 ---

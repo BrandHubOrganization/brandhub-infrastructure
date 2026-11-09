@@ -7,7 +7,7 @@
 | Domain | Content & Workflow (FR 3.6) |
 | Actors / Roles | `Owner, Manager, Creator, Client` |
 | Version | 6.0 (V6 — YayText/Zantext 36-Style Unicode Engine, Dual Social Publishing Workflows, Full Google Docs/Word Cursor & Import/Export Parity, BK/No-BK Resilience, 2026-11-09; V5 — Docs/Word hybrid UI redesign + presence/multi-cursor awareness + React Native mobile port, 2026-10-26; V4 — canvas-rendering + Yjs CRDT real-time sync over WebSocket, 2026-10-01) |
-| Document Status | V4–V5 + Core Dual Publishing & 16-Font/14-Preset Zantext Implemented & Verified (52 Vitest + 67 Playwright E2E passing); **V6 YayText 36-Style Expansion & Smart UX** documented below in §4.3 for review prior to implementation |
+| Document Status | Implemented & Verified — V4–V6 Complete (60 Vitest unit tests + 68 Playwright E2E tests passing 100%) |
 
 ## 1. Objective
 
@@ -131,33 +131,38 @@ Referenced from **YayText (`https://yaytext.com/`)**, V6 expands BrandHub's Unic
 REST for the initial load, snapshot reporting, version history/restore, Google Docs URL import proxy, Brand Knowledge RAG captioning, and Social Post publishing; STOMP WebSocket for real-time sync and awareness between Creators.
 
 ```
-GET /api/v1/workspaces/{id}/tasks/{taskId}/content
+FR 3.6.10 — GET /api/v1/workspaces/{id}/tasks/{taskId}/content (Content Writing View)
 → 200 { "success": true, "data": { "snapshot": "<base64 Yjs state|null>", "operationsSinceSnapshot": ["<base64 Yjs update>", ...], "sequenceNumber" } }
 
-WS /ws/tasks?token=<JWT>  (STOMP over spring-boot-starter-websocket; JWT via query param, not header)
+FR 3.6.10 — WS /ws/tasks?token=<JWT> (Content Writing View)
 Client → Server: PUBLISH /app/tasks/{taskId}/content  { "update": "<base64 Yjs update>" }
 Server → SUBSCRIBE /topic/tasks/{taskId}/content: { "update", "sequenceNumber", "editedBy" }
-
-POST /api/v1/workspaces/{id}/tasks/{taskId}/content/snapshot
-Body: { "yjsState": "<base64 Yjs state>", "atSequenceNumber" }
-
 Client → Server: PUBLISH /app/tasks/{taskId}/awareness  { "update": "<base64 y-protocols/awareness update>" }
 Server → SUBSCRIBE /topic/tasks/{taskId}/awareness: { "update" }
 
-GET /api/v1/workspaces/{id}/tasks/{taskId}/content/versions
+FR 3.6.10 — POST /api/v1/workspaces/{id}/tasks/{taskId}/content/snapshot (Content Writing View)
+Body: { "yjsState": "<base64 Yjs state>", "atSequenceNumber" }
+
+FR 3.6.34 — GET /api/v1/workspaces/{id}/tasks/{taskId}/content/versions (View Content History)
 → 200 { "success": true, "data": [{ "snapshotId", "sequenceNumber", "createdAt", "editedBy", "editedByName" }] }
 
-GET /api/v1/workspaces/{id}/tasks/{taskId}/content/versions/{snapshotId}
+FR 3.6.34 — GET /api/v1/workspaces/{id}/tasks/{taskId}/content/versions/{snapshotId} (View Content History)
 → 200 { "success": true, "data": { "snapshot": "<base64 Yjs state>", "operationsSinceSnapshot": [], "sequenceNumber" } }
 
-POST /api/v1/workspaces/{id}/tasks/{taskId}/content/versions/{snapshotId}/restore
+FR 3.6.10 — POST /api/v1/workspaces/{id}/tasks/{taskId}/content/versions/{snapshotId}/restore (Content Writing View)
 → 200 { "success": true, "data": { "snapshot": "<base64 Yjs state>", "operationsSinceSnapshot": [], "sequenceNumber" } }
 
-POST /api/v1/workspaces/{id}/posts
+FR 3.7.6 — POST /api/v1/workspaces/{id}/ai/captions (Generate Caption)
+→ 200 { "success": true, "data": { "generationId", "captions": [...] } }
+
+FR 3.6.33 — POST /api/v1/workspaces/{id}/tasks/{taskId}/compliance (Check Compliance Content)
+→ 200 { "success": true, "data": { "status": "PASSED", "issues": [] } }
+
+FR 3.8.5 — POST /api/v1/workspaces/{id}/posts (Preview Post)
 Body: { "taskId", "title", "content": "<Unicode-converted publish text>", "mediaUrls": [...], "targetPlatforms": ["FACEBOOK", "INSTAGRAM", "TIKTOK", "THREADS"] }
 → 200 { "success": true, "data": { "id": "<postId>", "status": "DRAFT", ... } }
 
-POST /api/v1/workspaces/{id}/posts/{postId}/publish
+FR 3.8.8 — POST /api/v1/workspaces/{id}/posts/{postId}/publish (Publish Facebook Post)
 → 200 { "success": true, "data": { "id": "<postId>", "status": "PUBLISHED", ... } }
 ```
 
