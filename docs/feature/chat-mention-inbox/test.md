@@ -125,3 +125,9 @@ backfilled; running migrations alone does not insert sample data. Do not clear
 seed_runs or existing collections to force seeding. DND/mute/read states are not
 seeded or overwritten. The bounded lookup examines at most 100 active Workspace
 members and selects two distinct Manager/Creator users; Clients are not auto-invited.
+
+
+## DM mention restriction — 2026-11-08
+Verify DIRECT send/thread/schedule rejects structured self/recipient/outsider mentions before writes or notifications; ordinary text containing @ remains allowed. PUBLIC/PRIVATE mentions still require recipient access and matching rich-content identity. UI: no @ button/suggestion in DM, normal text/formatting/emoji/scheduling remain; group mentions remain available. No live DB writes.
+
+Verification: changed Web files lint PASS; TypeScript app check PASS; Business Maven compile PASS. Browser QA with actual composer and mocked callbacks PASS on desktop/mobile: DM @ action/suggestions absent, ordinary @ text submits with no mention IDs, forged structured mention rejected by shared serializer, group @ suggestion/insertion/send preserved, schedule action remains available. Backend local mock smoke PASS 13 cases (self/peer/outsider immediate/scheduled/thread rejection; forged rich-content identity rejection; plain @ and DM notification recipient preserved; PUBLIC/PRIVATE mentions preserved). All QA artifacts stay ignored keep-local-only; no real DB/API writes, no new tests under src.

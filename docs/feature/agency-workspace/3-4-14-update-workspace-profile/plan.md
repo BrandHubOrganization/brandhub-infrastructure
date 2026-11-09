@@ -56,3 +56,7 @@ Cả 2 endpoint bảo vệ bởi `@RequireRole({MemberRole.MANAGER})`. Không l�
 - **Đổi `timezoneConfig` không cảnh báo ảnh hưởng Task/Livestream đã lên lịch** (Edge case mục 7 trong spec.md) — chưa có validate/cảnh báo ở BE, cần FE tự xử lý cảnh báo trước khi gọi API, hoặc bổ sung sau.
 - **Update qua PATCH true-partial** (field null giữ nguyên) khác với Update Agency Profile (dùng PUT, full-update) — 2 pattern khác nhau giữa Agency và Workspace, cần lưu ý khi FE tích hợp cả 2.
 - **`@RequireRole` không check đúng "MANAGER của chính workspace này" nếu aspect chỉ check role chung** — cần xác nhận aspect có resolve đúng theo `{workspaceId}` path variable hay không (khác với `getWorkspace`/`listMembers` phải check thủ công vì lý do này).
+
+## Workspace update — 2026-11-08
+
+Extend the settings request compatibly with an allowlisted clearFields list. Preserve existing constructors and omitted-field behavior. Submit empty values when clearing fields; validate year and URLs before save. Share social-link rendering across create/edit/profile previews; only HTTP(S) links navigate.

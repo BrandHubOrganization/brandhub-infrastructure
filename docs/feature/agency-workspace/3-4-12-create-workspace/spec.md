@@ -95,3 +95,7 @@ Figure — Create Workspace Screen:
 ## References
 
 [01-organization-structure.md](../../../BA/01-organization-structure.md), [03-agency-workspace-management.md](../../../BA/03-agency-workspace-management.md)
+
+## Workspace update — 2026-11-08
+
+Only the target Agency Owner may create a Workspace. Retain Owner access when another Manager is assigned. The list Create button preserves the active Agency; an explicit agencyId takes priority. Create/profile previews use platform icons for existing Facebook, LinkedIn and Instagram fields.
