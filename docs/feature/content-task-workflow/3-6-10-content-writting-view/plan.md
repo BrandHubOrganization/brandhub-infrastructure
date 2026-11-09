@@ -1,28 +1,31 @@
 # Plan — Content Writing View (FR 3.6.10)
 
-> Link: [spec.md](spec.md) — Document Status: **Implemented**. Direction B (Yjs CRDT) from §6 was the one actually built — see §2/§3/§4 below for what the shipped API/data model/flow look like, which differs slightly from the original "hand-written OT" sketch (§6 still documents that trade-off and why B was chosen).
+> Link: [spec.md](spec.md) — Document Status: **V4–V5 + Core Dual Publishing Implemented; V6 YayText 36-Style Expansion Ready for Review**.
 >
-> V4 (2026-10-01): canvas-rendering + Yjs CRDT real-time sync over STOMP WebSocket, mirroring the real Google Docs technique's effect (not its OT algorithm — see §6). See [spec.md §4](spec.md#4-ui--ux) and [§7](spec.md#7-edge-cases).
->
-> **V5 (2026-10-26)**: Docs/Word hybrid UI redesign (purely visual — see task.md item 13); presence/multi-cursor awareness added via a second, unpersisted STOMP channel carrying standard `y-protocols/awareness` updates (`handleAwareness` in `TaskContentWebSocketController`, same opaque-relay posture as content — see task.md item 14); and a React Native mobile port under `brandhub-mobile-app/src/screens/content-writing/` reusing the identical Yjs CRDT sync protocol over the same REST+STOMP endpoints, rendered through native `TextInput` instead of canvas (see task.md item 15 for the full rationale and what mobile intentionally doesn't cover).
+> - **V4 (2026-10-01)**: Canvas-rendering + Yjs CRDT real-time sync over STOMP WebSocket, mirroring the real Google Docs technique's effect. See [spec.md §4](spec.md#4-ui--ux--functional-architecture) and [§7](spec.md#7-edge-cases).
+> - **V5 (2026-10-26)**: Docs/Word hybrid UI redesign + presence/multi-cursor awareness via `/app+/topic/tasks/{taskId}/awareness` + React Native mobile port.
+> - **V6 (2026-11-09)**: Sub-pixel cursor physics (`measureRunSliceWidth`, `buildParagraphIndexMap`), Google Docs/Word full keyboard/mouse navigation, Document Import (`.docx`, `.txt`, `.md`, `.html`, live Google Docs URL) & Export (`.docx`, `.md`, `.txt`), Dual Social Publishing Workflows (**Direct API Auto-Publish** to Facebook/Instagram/TikTok/Threads + **Manual 1-Click Copy/Paste Zantext Workflow** with Plain-Text Facebook Composer Sandbox), and **YayText 36-Style Unicode Font & Text Effect Expansion** (see §7 below for the V6 expansion blueprint awaiting user sign-off).
 
-## 1. Technical Scope (implemented)
+---
+
+## 1. Technical Scope
 
 | Item | Content |
 |---|---|
-| Repo | `brandhub-business-service` (BE), `brandhub-web-dashboard` (FE) |
-| BE | `Task` entity (minimal — see note below), `TaskContentOperation` (append-only, opaque base64 Yjs update log), `TaskContentSnapshot` (client-reported Yjs state checkpoints), `spring-boot-starter-websocket`, `WebSocketConfig` (STOMP endpoint `/ws/tasks`, broker `/topic`), `WsJwtHandshakeInterceptor` (JWT via query param), `TaskContentWebSocketController` (`@MessageMapping`), `TaskContentSnapshotJob` (`@Scheduled`, logs tasks due for a snapshot — can't capture one itself, see §6) |
-| FE | `CanvasTextEditor` (hand-written canvas rendering engine, content now backed by a Yjs `Y.Text` instead of plain React state), `useTaskContentSync` hook (REST initial load + STOMP client via `@stomp/stompjs`, client-reported snapshotting), `VersionHistorySidebar` (list/restore), `yjs` + `@stomp/stompjs` added to `package.json` |
-| **Minimal `Task`, not full FR 3.6.1** | `id`, `workspaceId`, `type` (`TaskType` enum, only `POST` defined), `title`, `createdBy`, timestamps. No assignee, due date, comments, etc. — those belong to FR 3.6.1 Identify Task Detail, out of this scope. |
-| Not implemented this pass | Accessibility shadow-DOM beyond the existing `aria-live` text mirror; virtualization for multi-page documents; offline IndexedDB queue; font auto-conversion on publish; real compaction (old operations are never pruned, only snapshotted) |
+| Repo | `brandhub-business-service` (BE), `brandhub-web` / `brandhub-UI-Design` (FE), `brandhub-mobile-app` (Mobile) |
+| BE | `Task` entity, `TaskContentOperation` (append-only, opaque base64 Yjs update log), `TaskContentSnapshot` (client-reported Yjs state checkpoints), `spring-boot-starter-websocket`, `WebSocketConfig` (STOMP endpoint `/ws/tasks`, broker `/topic`), `WsJwtHandshakeInterceptor`, `TaskContentWebSocketController` (`@MessageMapping` for content + awareness), `PostController` (`POST /api/v1/workspaces/{id}/posts` & `/publish`) |
+| FE (`src/pages/content-writing/`) | `CanvasTextEditor.tsx` (pixel-accurate canvas engine + hidden textarea input + sub-pixel cursor/selection math + native `Ctrl+C`/`Ctrl+X` Unicode copy + rich HTML paste), `FormattingToolbar.tsx` (Google Docs / Word Ribbon toggle, 16+ Font selector, Creative Copywriting Toolkit, YayText/Zantext Popover), `ImportDocumentModal.tsx` (Google Docs URL + `.docx`/`.md`/`.txt`/`.html` parser), `SocialPreview.tsx` (4-platform live preview + `Copy dán Facebook (Giữ Font)` + `Thử dán FB` plain-text sandbox), `contentUtils.ts` (Unicode font & effect engine), `VersionHistorySidebar.tsx`, `useTaskContentSync.ts` |
+| FE (`src/pages/editor/`) | `RichTextEditor.tsx` (TipTap editor synchronized with `toPublishText`, `handleSelectFont` per-word & whole-post conversion, `Ctrl+C` Unicode copy, `Font Zantext` popover, `Nhập Google Docs / File`), `StudioPreviewPanel.tsx` (`PlatformMockup` for Facebook/Instagram/TikTok/Threads + `Copy dán Facebook (Giữ Font)` + `Thử dán FB` sandbox), `PlatformPreviewModal.tsx` |
+
+---
 
 ## 2. Data Model (implemented)
 
-- `Task` (table `tasks`) — see minimal scope above. Migration: `2026-10-01-create-tasks-table.sql`.
-- `TaskContentOperation` (table `task_content_operations`) — append-only: `id`, `taskId`, `sequenceNumber` (bigint, `count(taskId) + 1` per insert), `yjsUpdate` (TEXT, base64-encoded opaque Yjs binary update — **the server never decodes it**, Yjs itself is the CRDT/operation log), `editedBy`, `createdAt`.
-- `TaskContentSnapshot` (table `task_content_snapshots`) — `id`, `taskId`, `sequenceNumber`, `yjsState` (TEXT, base64-encoded `Y.encodeStateAsUpdate(yDoc)` — **client-reported**, not server-captured; see §6), `createdAt`.
-- Migration: `2026-10-01-create-task-content-tables.sql`.
-- This differs from the original sketch (hand-defined `opType`/`position`/`payload` columns) — Yjs updates are opaque binary, so there's nothing to decompose into those fields. See §6 for why.
+- `Task` (table `tasks` / MongoDB `tasks` collection).
+- `TaskContentOperation` (table `task_content_operations`) — append-only: `id`, `taskId`, `sequenceNumber` (bigint, `count(taskId) + 1` per insert), `yjsUpdate` (TEXT, base64-encoded opaque Yjs binary update), `editedBy`, `createdAt`.
+- `TaskContentSnapshot` (table `task_content_snapshots`) — `id`, `taskId`, `sequenceNumber`, `yjsState` (TEXT, base64-encoded `Y.encodeStateAsUpdate(yDoc)`), `createdAt`.
+
+---
 
 ## 3. API Contract (implemented)
 
@@ -30,68 +33,104 @@
 GET /api/v1/workspaces/{id}/tasks/{taskId}/content
 → 200 { "success": true, "data": { "snapshot": "<base64|null>", "operationsSinceSnapshot": ["<base64>", ...], "sequenceNumber" } }
 
-WS /ws/tasks?token=<JWT>  (STOMP; JWT via query param — WS clients can't always set an Authorization header on the upgrade request)
+WS /ws/tasks?token=<JWT>
 Client → Server: PUBLISH /app/tasks/{taskId}/content { "update": "<base64 Yjs update>" }
 Server → SUBSCRIBE /topic/tasks/{taskId}/content: { "update", "sequenceNumber", "editedBy" }
 
+Client → Server: PUBLISH /app/tasks/{taskId}/awareness { "update": "<base64 y-protocols/awareness update>" }
+Server → SUBSCRIBE /topic/tasks/{taskId}/awareness: { "update" }
+
 POST /api/v1/workspaces/{id}/tasks/{taskId}/content/snapshot
 Body: { "yjsState": "<base64>", "atSequenceNumber" }
-// Client-reported — see §6 "server never decodes Yjs updates".
 
 GET /api/v1/workspaces/{id}/tasks/{taskId}/content/versions
-→ 200 { "success": true, "data": [{ "snapshotId", "sequenceNumber", "createdAt" }] }
+→ 200 { "success": true, "data": [{ "snapshotId", "sequenceNumber", "createdAt", "editedBy", "editedByName" }] }
+
+GET /api/v1/workspaces/{id}/tasks/{taskId}/content/versions/{snapshotId}
+→ 200 { "success": true, "data": { "snapshot": "<base64>", "operationsSinceSnapshot": [], "sequenceNumber" } }
 
 POST /api/v1/workspaces/{id}/tasks/{taskId}/content/versions/{snapshotId}/restore
 → 200 { "success": true, "data": { "snapshot": "<base64>", "operationsSinceSnapshot": [], "sequenceNumber" } }
+
+POST /api/v1/workspaces/{id}/posts
+Body: { "taskId", "title", "content": "<Unicode-converted text>", "mediaUrls": [...], "targetPlatforms": ["FACEBOOK", "INSTAGRAM", "TIKTOK", "THREADS"] }
+
+POST /api/v1/workspaces/{id}/posts/{postId}/publish
 ```
+
+---
 
 ## 4. Processing Flow (implemented)
 
-**Opening content:**
-1. `findPostTaskOrThrow(workspaceId, taskId)` — 404 `TASK_NOT_FOUND` if missing or belongs to a different workspace; 400 `INVALID_TASK_TYPE_FOR_CONTENT_WRITING` if not type `POST`.
-2. `@RequireRole({MANAGER, CREATOR})` on `TaskController` — 403 otherwise.
-3. REST returns the latest `TaskContentSnapshot` (if any) + every `TaskContentOperation` committed after it.
-4. The client (`useTaskContentSync`) applies the snapshot then replays the tail via `Y.applyUpdate`, reconstructing the `Y.Doc`. It then opens a STOMP WS connection to `/ws/tasks?token=<JWT>` and subscribes to `/topic/tasks/{taskId}/content`.
+### 4.1 Opening Content & Offline Fallback (`Có Backend` vs. `Không Backend`)
+1. Client requests `GET /api/v1/workspaces/{id}/tasks/{taskId}/content` (or creates a draft POST task if `taskId` is absent).
+2. If backend is reachable (`Có Backend`), client reconstructs `Y.Doc` from `snapshot` + `operationsSinceSnapshot` and connects to STOMP `/ws/tasks`.
+3. If backend is unreachable (`Không Backend`), client falls back to `local-task-{workspaceId}` and restores/persists Yjs updates in `localStorage` (`brandhub-content-pending:{taskId}`), displaying `Chế độ Ngoại tuyến` while keeping all editing, Unicode font conversion, import/export, and copy-paste features 100% operational.
 
-**Real-time editing (Yjs CRDT merge — no central transform step):**
-5. The Creator types → the off-screen `contenteditable` captures the event → `CanvasTextEditor` calls `yText.insert()/delete()` at the local caret — a local Yjs mutation, rendered optimistically on the canvas right away.
-6. The `Y.Doc`'s `update` event fires locally → `useTaskContentSync` publishes `{ update: base64 }` over STOMP.
-7. `TaskContentWebSocketController` → `TaskContentServiceImpl.appendOperation`: assigns the next `sequenceNumber`, persists the opaque update, and broadcasts it to every subscriber of this Task's topic — including the sender (confirms its official `sequenceNumber`).
-8. Every receiving client calls `Y.applyUpdate(yDoc, update, "remote")` — Yjs merges the update into its local CRDT state automatically; no server-side transform step exists because none is needed. The canvas re-renders the affected region.
+### 4.2 Real-Time Editing & Sub-Pixel Cursor Layout
+4. `CanvasTextEditor` splits `Y.Text` delta into paragraphs and runs, measuring each run with `measureRunSliceWidth(ctx, text, letterSpacing)` and mapping every visual wrapped line via `buildParagraphIndexMap`.
+5. Clicking, dragging, double-clicking (word select), triple-clicking (paragraph select), or pressing `Arrow` / `Ctrl+Arrow` / `Home` / `End` computes the exact `Y.Text` offset and renders the CSS caret and selection highlight rects at the exact glyph pixel boundary.
 
-**Publish:**
-9. Font auto-conversion on publish is **not implemented** in this pass (see task.md).
+### 4.3 Dual Social Publishing Flow
+6. **Live Conversion (`publishText`)**: On every `Y.Doc` or TipTap update, `toPublishText(ops)` converts each run's `font`, `bold`, `italic`, `underline`, `strikethrough`, and `listType` attributes into its target Unicode characters.
+7. **Workflow A — Direct API Auto-Publish**: Clicking `Đăng bài` / `Đăng ngay` sends `publishText` to `POST /api/v1/workspaces/{id}/posts` and triggers `POST .../publish` for `FACEBOOK`, `INSTAGRAM`, `TIKTOK`, and `THREADS`.
+8. **Workflow B — Manual Zantext/YayText Copy-Paste**: Pressing `Ctrl+C` / `Ctrl+X` or clicking any `Copy dán Facebook` / `Sao chép bản đăng` / `Font Zantext Copy` button invokes `copyTextToClipboard(convertedText)` and updates the built-in `Thử dán FB` plain-text composer sandbox.
 
-**Client-reported snapshot (not a background job — see §6):**
-10. Once a client's `operationsSinceSnapshot` count crosses 200, it posts `POST .../content/snapshot` with its current merged Yjs state. `TaskContentServiceImpl.reportSnapshot` skips if a snapshot already exists at/after that sequence (first reporter wins), otherwise inserts a new row.
-11. `TaskContentSnapshotJob` runs every 5 minutes server-side but **cannot capture a snapshot itself** (see §6) — it only logs which Tasks have crossed the threshold.
+---
 
-## 5. Dependencies
+## 5. Technical Architecture & Design Decisions
 
-| Direction | Description |
-|---|---|
-| Was blocked by | The Task entity did not exist — resolved by building the minimal version in §1, not the full FR 3.6.1 scope. |
-| Blocks | None |
+| Area | Decision | Rationale |
+|---|---|---|
+| Real-time sync algorithm | **Yjs CRDT (`Y.Doc` / `Y.Text`)** over STOMP WebSocket | Commutative, conflict-free merging without server-side decoding or fragile hand-written OT matrices. |
+| Cursor & line-wrap alignment | Unified `buildParagraphIndexMap` + `measureRunSliceWidth` | Prevents desync between wrapped rich-text runs (with varying fonts/sizes/letter-spacing) and caret/click hit-testing. |
+| Social font persistence | Unicode Mathematical Alphanumeric Symbols + Enclosed Alphanumerics + Combining Overlays | Social networks (`Facebook`, `Instagram`, `TikTok`, `Threads`) strip HTML/CSS `<span style="font-family">` tags from post captions. Converting runs to Unicode code points guarantees 100% visual persistence across API publish and manual clipboard paste. |
 
-## 6. Technical Risks (as realized)
+---
 
-- **Hand-writing OT vs. integrating Yjs (CRDT) — decided: direction B (Yjs) was implemented.**
+## 6. Blueprint for V6 Expansion: YayText 36-Style Engine & Smart UX (Pending User Approval)
 
-  | Direction | Description | Chosen? |
-  |---|---|---|
-  | A. Hand-write OT (as the real Google Docs does) | `transform(opA, opB)` by hand for every operation-type pair | Not chosen — very high risk of document divergence bugs for a team not specialized in real-time editing |
-  | **B. Integrate Yjs (CRDT)** | Shared `Y.Doc`/`Y.Text`, updates merge automatically and commutatively on every peer | **Chosen and implemented** |
+### 6.1 Files to Modify in V6 Implementation
 
-  Consequence: the server (`TaskContentServiceImpl`) never decodes a Yjs update — it just orders (`sequenceNumber`) and relays opaque blobs. This is why snapshotting had to move from a server-side background job (as originally sketched) to **client-reported** snapshots: there is no Yjs runtime on the Java side to merge updates into a document state. `TaskContentSnapshotJob` only flags which Tasks are overdue; a connected client does the actual capture via `POST .../content/snapshot`.
+1. **`brandhub-web/src/pages/content-writing/contentUtils.ts`** (and sync to `brandhub-UI-Design`):
+   - Add new Unicode character maps and effect transformers:
+     - **Enclosed & Shape Maps**:
+       - `BLACK_BUBBLE` (`🅐`–`🅩` `U+1F150`–`U+1F169`, digits `⓿➊➋➌➍➎➏➐➑➒`)
+       - `BLACK_SQUARE` (`🅰`–`🆉` `U+1F170`–`U+1F189`, digits `⓿➊➋➌➍➎➏➐➑➒`)
+       - `PARENTHESIZED` (`⒜`–`⒵` `U+249C`–`U+24B5`, digits `⓪⑴⑵⑶⑷⑸⑹⑺⑻⑼`)
+       - `REGIONAL_INDICATOR` (`🇦`–`🇿` `U+1F1E6`–`U+1F1FF` with thin/space separator to prevent flag ligatures)
+     - **Phonetic & Script Modifier Maps**:
+       - `SUPERSCRIPT_MAP` (`ᴬᴮᶜᴰᴱᶠᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾQᴿˢᵀᵁⱽᵂˣʸᶻ`, `ᵃᵇᶜᵈᵉᶠᵍʰᶦʲᵏˡᵐⁿᵒᵖ۹ʳˢᵗᵘᵛʷˣʸᶻ`, `⁰¹²³⁴⁵⁶⁷⁸⁹`)
+       - `SUBSCRIPT_MAP` (`ₐ₆꜀𝒹ₑ𝒻₉ₕᵢⱼₖₗₘₙₒₚqᵣₛₜᵤᵥwₓᵧ₂`, `₀₁₂₃₄₅₆₇₈₉`)
+       - `UPSIDE_DOWN_MAP` (180° rotated glyphs `ɐqɔpǝɟƃɥᴉɾʞןɯuodbɹsʇnʌʍxʎz...` + line-by-line grapheme reversal)
+     - **Combining Line / Overlay Effects**:
+       - `COMBINING_DOUBLE_UNDERLINE = "\u0333"` (`A̳B̳C̳`)
+       - `COMBINING_LONG_SOLIDUS = "\u0338"` (`9̸9̸0̸k̸` — Slash price)
+       - `COMBINING_TILDE_OVERLAY = "\u0334"` (`A̴B̴C̴` — Wave strike)
+       - `COMBINING_OVERLINE = "\u0305"` (`A̅B̅C̅`)
+       - `COMBINING_ASTERISK_BELOW = "\u0359"` (`A͙B͙C͙`)
+       - `COMBINING_ZIGZAG_ABOVE = "\u035B"` (`A͛B͛C͛`)
+     - **Character & Line Wrapper Effects**:
+       - `air-quotes` (`『A』『B』『C』`)
+       - `lenticular-brackets` (`【A】【B】【C】`)
+       - `sparkles-decorator` (`˜”*°•.˜”*°• ... •°*”˜.•°*”˜`)
+       - `stars-wave-decorator` (`¸,ø¤º°\`°º¤ø,¸ ... ¸,ø¤º°°º¤ø,¸`)
+       - `arrow-pointer-decorator` (`»»——⍟ ... ⍟——««`)
+   - Add **`stripVietnameseAccents(text: string): string`** helper and integrate **Smart Vietnamese Diacritic Mode**:
+     - Auto-transliterates Vietnamese accents to clean ASCII (`Khuyến mãi ĐẶC BIỆT` → `Khuyen mai DAC BIET`) when converting into `enclosed` (`circled`, `black-bubble`, `squared`, `black-square`, `parenthesized`, `regional-indicator`), `superscript`, `subscript`, or `upside-down` styles, or when the user enables the `stripAccents` toggle.
+   - Expand `stripUnicodeStyling(text: string): string` so switching from any of the 36 styles back to another style cleanly restores the underlying base characters without stacking combining marks or brackets.
+   - Expand `ZANTEXT_STYLE_PRESETS` from 14 to **36 presets**, each tagged with:
+     - `id`, `label`, `badge`, `category`: `"emphasis" | "lines" | "enclosed" | "luxury" | "modern" | "creative"`
+     - `compatibility`: `"Universal (iOS / Android / Web)" | "Modern OS"`
+     - `vietnameseMode`: `"keep-marks" | "strip-accents-auto"`
 
-- **Canvas text layout/measurement** — implemented and browser-verified (`CanvasRenderingContext2D.measureText()`-based line wrapping, click-to-position).
+2. **`brandhub-web/src/pages/content-writing/components/FormattingToolbar.tsx`** & **`brandhub-web/src/pages/editor/components/RichTextEditor.tsx`**:
+   - Add **Category Filter Tabs** in the `Font Zantext` popover (`all`, `favorites`, `emphasis`, `lines`, `enclosed`, `luxury`, `modern`, `creative`).
+   - Add **Favorite Star Toggle (`⭐`)** persisted in `localStorage` (`brandhub-zantext-favorites`).
+   - Add **Vietnamese Diacritic Toggle (`Giữ dấu` vs. `Lược dấu chuẩn khung`)** (`data-testid="zantext-strip-accents-toggle"`).
+   - Add **OS Font Preview Switcher (`Web` / `iOS` / `Android`)** (`data-testid="zantext-os-preview-select"`).
+   - Add new font families (`Black Bubble (🅑🅤🅑)`, `Black Square (🅱🅻🅰)`, `Parenthesized (⒫⒜⒭)`, `Superscript (ᴬᴮᶜ)`) into `FONT_FAMILIES` so they can also be selected directly from the main Font dropdown.
 
-- **Vietnamese IME through the hidden input** — implemented and browser-verified with a synthesized Vietnamese composition sequence (`compositionstart/update/end`).
-
-- **WebSocket infrastructure** — implemented: `spring-boot-starter-websocket`, STOMP broker at `/topic`, `WsJwtHandshakeInterceptor` validates the JWT (query param) at handshake and binds the resolved user as the STOMP session's `Principal` via a custom `DefaultHandshakeHandler`. `SecurityConfig` permits `/ws/tasks/**` at the HTTP filter-chain level since auth happens at the handshake, not via `JwtAuthenticationFilter` (which only reads the `Authorization` header, absent on a WS upgrade request).
-
-- **Offline conflict on reconnect** — **not implemented**. `useTaskContentSync` just reconnects (`reconnectDelay: 3000`); there is no IndexedDB queue, so edits made fully offline (no WS at all, e.g. airplane mode) are not persisted if the tab closes before reconnecting. In-memory Yjs state survives a transient disconnect while the tab stays open.
-
-- **Snapshot/compaction job** — implemented as a log-only warning (`TaskContentSnapshotJob`), not an actual compactor: old `task_content_operations` rows are never deleted/archived, so the log grows unbounded. This was an explicit simplification (lower risk) over building real compaction.
-
-- **Font auto-conversion on publish** — **not implemented** (no publish flow exists yet to hook into; see task.md).
+3. **Unit & E2E Tests**:
+   - **`contentUtils.test.ts`**: Add unit tests covering all 36 YayText presets, Vietnamese diacritic auto-stripping on enclosed shapes (`"Khuyến mãi"` → `"🅚🅗🅤🅨🅔🅝 🅜🅐🅘"`), price slashthrough (`"990.000đ"` → `"9̸9̸0̸.̸0̸0̸0̸đ̸"`), upside-down text reversal, and `stripUnicodeStyling` round-trip recovery across all 36 styles.
+   - **`content-writing.spec.ts` & `content-creator-studio.spec.ts`**: Add E2E verification for Category tabs, Favorite pinning (`⭐`), Vietnamese diacritic toggle, Slash-price / Black Bubble conversion, and 1-click Copy into the Facebook Sandbox.
