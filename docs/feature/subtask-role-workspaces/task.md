@@ -85,11 +85,29 @@
 
 ## T4. Backend thông báo, nhắc, huỷ lịch (→ plan §1.6, §1.7)
 
-- [ ] T4.1 `UserNotificationService.sectionEvent(...)`: in-app cho submit/approve/return/reopen (`actionUrl` = trình soạn).
-- [ ] T4.2 Email qua `MailSendService.sendSystem` + 2 template hệ thống mới (vi/en): "Có phần chờ Client duyệt", "Phần của bạn bị trả lại".
-- [ ] T4.3 Mới `scheduled/SectionReminderJob` (mỗi giờ): phần `INTERNAL_APPROVED`, `clientPendingSince < now-48h`, `clientReminderSentAt` null hoặc > 48h → email nhắc, cập nhật `clientReminderSentAt`. Không tự duyệt. Unit test chọn đúng phần.
-- [ ] T4.4 Mới `PostService.cancelTaskSchedule(workspaceId, taskId)` (business-service): post của task có `status ∈ {SCHEDULED, APPROVED}` → `DRAFT`, `scheduledAt = null`; trả danh sách post không huỷ được (`IN_PROGRESS/PUBLISHING/PUBLISHED`). **Không đụng publisher-service.**
-- [ ] T4.5 `SectionService.return` khi người trả là Client: nếu task cha đang ở trạng thái đã duyệt → đưa về `IN_PROGRESS` (để `PostSchedulePublishJob` tự bỏ qua); gọi T4.4 với POST/SHORT_VIDEO; với EMAIL_NEWSLETTER gọi `MailBatchService.cancelSystem(batchId)` nếu batch còn `QUEUED/SCHEDULED`; thông báo chủ `POST_PUBLISHING`/`VIDEO_PUBLISH`/`EMAIL_SEND`. Test: post SCHEDULED về DRAFT, job không đăng.
+- [x] T4.1 `UserNotificationService.sectionEvent(...)`: in-app cho submit/approve/return/reopen (`actionUrl` = trình soạn).
+- [x] T4.2 Email qua `MailSendService.sendSystem` + 2 template hệ thống mới (vi/en): "Có phần chờ Client duyệt", "Phần của bạn bị trả lại".
+- [x] T4.3 Mới `scheduled/SectionReminderJob` (mỗi giờ): phần `INTERNAL_APPROVED`, `clientPendingSince < now-48h`, `clientReminderSentAt` null hoặc > 48h → email nhắc, cập nhật `clientReminderSentAt`. Không tự duyệt. Unit test chọn đúng phần.
+- [x] T4.4 Mới `PostService.cancelTaskSchedule(workspaceId, taskId)` (business-service): post của task có `status ∈ {SCHEDULED, APPROVED}` → `DRAFT`, `scheduledAt = null`; trả danh sách post không huỷ được (`IN_PROGRESS/PUBLISHING/PUBLISHED`). **Không đụng publisher-service.**
+- [x] T4.5 `SectionService.return` khi người trả là Client: nếu task cha đang ở trạng thái đã duyệt → đưa về `IN_PROGRESS` (để `PostSchedulePublishJob` tự bỏ qua); gọi T4.4 với POST/SHORT_VIDEO; với EMAIL_NEWSLETTER gọi `MailBatchService.cancelSystem(batchId)` nếu batch còn `QUEUED/SCHEDULED`; thông báo chủ `POST_PUBLISHING`/`VIDEO_PUBLISH`/`EMAIL_SEND`. Test: post SCHEDULED về DRAFT, job không đăng.
+
+- Ghi chú T4 (2026-11-10):
+  - T4.2: `MailSendService.sendSystem` là đường broadcast của Admin (template `ADMIN_SYSTEM_BROADCAST`), không gửi được cho từng người. Mail phần đi qua `MailService` (cùng đường với OTP, lời mời; tự chọn vi/en theo `workingLanguage`). Hai mail mới: `sendSectionAwaitingClientEmail` và `sendSectionReturnedEmail`, có escape note.
+  - Thông báo do `SectionNotifier` gửi; lỗi chỉ ghi log, không làm hỏng thao tác trên phần. Người nhận:
+    - nộp: supervisor của chủ phần (không phải điều phối); nếu không có thì Manager;
+    - duyệt: chủ phần, và Client nếu phần là O;
+    - Client duyệt: chủ phần và điều phối;
+    - trả: chủ phần (email kèm note), cộng điều phối khi Client trả;
+    - mở lại: chủ phần.
+  - Phần không chủ được duyệt lúc nộp task cũng gửi mail cho Client.
+  - T4.3: `SectionReminderJob` chạy theo `app.section-reminders.cron` (mặc định mỗi giờ). Job ghi `clientReminderSentAt` trước rồi mới gửi, nên không nhắc trùng khi chạy nhiều instance.
+  - T4.5: `settleSections` trả `true` khi Client trả phần của task `FINISHED`/`APPROVED`.
+    - Task về `IN_PROGRESS` với `lastSubmission.outcome = REJECTED`. Nếu chiến dịch đã `COMPLETED` thì bỏ qua bước này.
+    - Sau đó `SectionService` huỷ lịch: post qua `PostService.cancelTaskSchedule`; newsletter qua `MailBatchService.cancelForTask`, huỷ batch `SCHEDULED`/`QUEUED`. Không dùng `cancelSystem` vì hàm đó chỉ nhận batch hệ thống không có workspace.
+    - `batchId` của newsletter chỉ có sau T5.7.
+  - Test: G1–G3 `SectionNotifierTest`; G4, G5, G6 `SectionServiceMongoTest` (Mongo thật, có chạy `PostSchedulePublishJob`); reopen ở `TaskApprovalSectionsTest`.
+  - G7/G8 có test ở `MailStorePostgresTest`, nhưng file này chỉ chạy khi đặt `BRANDHUB_MAIL_ISOLATED_TEST=true` với DB Postgres riêng, nên chưa chạy ở máy này.
+  - `mvn test`: 1768 test, 0 fail, 92 skip.
 
 ## T5. Backend Newsletter (→ plan §0.4, §1.5, §2)
 
