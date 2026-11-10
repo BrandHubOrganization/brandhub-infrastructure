@@ -51,7 +51,7 @@
 | B16 | T3.3 | I | `SURVEY_DISTRIBUTE` gọi `POST /tasks/{id}/survey`; `SURVEY_DESIGN` gọi | Lần 1 `FORBIDDEN`; lần 2 200. WORKSHOP: chỉ chủ `WORKSHOP.REGISTRATION` lưu form được. | ☐ |
 | B17 | T2.6 | I | `PATCH /sections/EVENT.AGENDA` với content sai schema (vd `agenda` không phải list) | `VALIDATION_ERROR`; không tạo document. | ☐ |
 | B18 | Spec 13.8, §5.4 | I | Hai phiên cùng đọc revision 3 của CAPTION; cả hai `PATCH` với `expectedRevision = 3` | Phiên đầu 200 (revision 4); phiên sau `TASK_REVISION_CONFLICT`. | ☐ |
-| B19 | §5.4 | I | Hai phiên sửa hai phần khác nhau (CAPTION, MEDIA) cùng lúc | Cả hai 200, không chặn nhau. | ☐ |
+| B19 | §5.4 | I | Hai phiên sửa hai phần khác nhau (CAPTION, MEDIA) cùng lúc, qua `PATCH /sections` hoặc `POST /tasks/{id}/post` có `sectionRevisions` | Cả hai 200, không chặn nhau; lưu bài chỉ ghi trường của phần đã khai báo. | ☐ |
 | B20 | T2.6 lazy create | I | Hai request đầu tiên đồng thời tạo document cho cùng `{taskId, sectionKey}` | Một 200, một `TASK_REVISION_CONFLICT`; collection chỉ có 1 document. | ☐ |
 
 ## C. Xem phần & lọc theo người xem
@@ -91,7 +91,7 @@
 | E3 | §5.3, T3.5 | I | `VIDEO_PUBLISH` sở hữu CAPTION + CHANNELS; chỉ CAPTION đạt cuối | Subtask chưa `FINISHED`; đủ cả hai mới `FINISHED`. | ☐ |
 | E4 | AC12, spec 13.7 | I | `coord` nộp P1 khi CAPTION còn `SUBMITTED` | `TASK_SECTIONS_UNAPPROVED`. | ☐ |
 | E5 | AC12, §5.3 | I | Mọi phần `INTERNAL_APPROVED`+ nhưng còn subtask tự do chưa xong | `TASK_SUBTASKS_UNFINISHED` (luật cũ vẫn chạy). | ☐ |
-| E6 | §16.5 | I | Mọi phần O `CLIENT_APPROVED`, phần I `INTERNAL_APPROVED` | Task cha tự sang trạng thái đã duyệt; không tạo bước `reviewStep = CLIENT`. | ☐ |
+| E6 | §16.5 | I | Mọi phần O `CLIENT_APPROVED`, phần I `INTERNAL_APPROVED` | Task cha tự sang trạng thái đã duyệt. Không có duyệt Client cấp task: lúc chờ, task ở `IN_REVIEW`/`reviewStep = CLIENT` nhưng Client duyệt/trả cấp task → `WRONG_APPROVAL_STEP`, chỉ duyệt từng phần. | ☐ |
 | E7 | §5.3 | I | `content` (chủ phần, không phải điều phối) nộp task cha | `FORBIDDEN`. | ☐ |
 | E8 | §11 bỏ hết vai trò | I | Task POST chỉ có subtask tự do | Nộp task cha theo luồng cũ, không kiểm phần. | ☐ |
 

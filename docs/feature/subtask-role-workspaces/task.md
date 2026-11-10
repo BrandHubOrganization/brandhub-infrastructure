@@ -68,15 +68,20 @@
 - [x] T3.5 `CampaignSubtaskService.syncRoleSubtasks(taskId)`: gọi sau mỗi chuyển trạng thái phần; FINISHED khi đủ phần cuối, về `IN_PROGRESS` khi bị trả/mở lại (§5.3).
 - [x] T3.6 `CampaignTaskStore.draftTask`: sau khi tạo task cha, sinh subtask theo `TaskCatalog` (assignee null, `dueDate` = hạn task cha, TODO) (§16.9). Test deploy chiến dịch sinh đúng số subtask.
 - [x] T3.7 `TaskSampleSeeder`: thêm 1 task POST có đủ 5 subtask vai trò để demo.
-- [x] T3.8 Chạy `mvn clean test -Dapi.version=1.44` business-service — pass (2026-11-10: 1754 test, 0 fail, 91 skip). Test mới: `TaskApprovalSectionsTest` (E4–E8, chốt task theo phần), `TaskPostSectionsTest` (B1–B3, map video), `SectionServiceMongoTest` +3 (E1–E3, chặn/bump phần khi lưu bài), `CampaignTaskStoreTest` +1 (A7).
+- [x] T3.8 Chạy `mvn clean test -Dapi.version=1.44` business-service — pass (2026-11-10: 1757 test, 0 fail, 91 skip). Test mới: `TaskApprovalSectionsTest` (E4–E8, chốt task theo phần), `TaskPostSectionsTest` (B1–B3, B15, B19 merge, map video), `SectionServiceMongoTest` +3 (E1–E3, chặn/bump phần khi lưu bài), `CampaignTaskStoreTest` +1 (A7).
 - Ghi chú T3 (lệch nhỏ so với plan, đã chốt khi code):
   - "Task có subtask vai trò" = còn ít nhất một subtask có `subtaskRole` chưa `CANCELLED` (`SectionPolicy.roleTask`). Huỷ hết vai trò → luồng cũ (spec §11).
-  - Lưu bài khi có vai trò: bỏ kiểm `assignee`, thay bằng quyền EDIT từng phần bị đổi; lưu không đổi trường nào vẫn cần quyền sửa ít nhất một phần của bài. Bump revision phần chạy sau khi commit bài, không chung transaction; mất race thì chỉ log. `expectedRevision` của request vẫn là `workflowRevision` task, nên hai người lưu bài cùng lúc vẫn xung đột (chung 1 document post); revision theo phần chỉ tách được qua `PATCH /sections`.
+  - Lưu bài khi có vai trò: bỏ kiểm `assignee`, thay bằng quyền EDIT từng phần bị đổi; lưu không đổi trường nào vẫn cần quyền sửa ít nhất một phần của bài. Bump revision phần chạy trong cùng transaction với bài (`SectionService.editSections`). Lưu theo phần (§5.4, chốt 2026-11-10): request gửi thêm `sectionRevisions {sectionKey: revision đã đọc}` cho các phần người đó sửa → BE chỉ ghi trường của các phần đó (phần còn lại giữ giá trị đang lưu), CAS theo revision từng phần, không kiểm `expectedRevision`/`expectedPostContentVersion` → hai người sửa hai phần khác nhau không chặn nhau. Không gửi `sectionRevisions` → luồng cũ (kiểm `workflowRevision`, ghi cả bài). Survey/Workshop chỉ có 1 phần form nên không cần.
   - SHORT_VIDEO dùng chung luồng post ở mọi chỗ trước đây chỉ POST (`TaskApprovalPolicy.postLinked`). Media của video thuộc `VIDEO.EDIT`. Giới hạn kênh TikTok/Instagram/Facebook áp cho mọi task SHORT_VIDEO.
   - Nộp task có vai trò: bỏ bước Manager cấp task (phần đã duyệt từng phần). Subtask vai trò không tính vào `TASK_SUBTASKS_UNFINISHED` (chúng chỉ FINISHED sau khi Client duyệt); subtask tự do vẫn tính. Phần không chủ được duyệt nội bộ luôn khi nộp (spec §4, event `APPROVE` note `submit`).
   - Nếu mọi phần đã cuối lúc nộp → task `FINISHED`/`APPROVED` ngay. Nếu còn phần O chờ Client → task `IN_REVIEW`, `reviewStep = CLIENT` (giữ enum validator) làm trạng thái chờ; Client không duyệt/trả cấp task (`WRONG_APPROVAL_STEP`). Client duyệt phần cuối cùng → task đóng `APPROVED` qua luồng cũ (ghi decision CLIENT APPROVE). Client trả một phần khi task đang chờ → task về `IN_PROGRESS` (decision CLIENT REJECT, note = ghi chú trả). Trả sau khi task đã `FINISHED` (huỷ lịch) vẫn để T4.5.
   - Tên subtask sinh từ danh mục = tên vai trò tiếng Việt của spec §3 (`TaskCatalog.RoleDef.name`, cũng trả qua `TaskCatalogController`). Id subtask ổn định theo `taskId + role`.
   - Seeder: task POST đang làm đầu tiên chưa vào duyệt giữ 5 subtask vai trò (gán Creator) + 1 subtask tự do.
+- Chốt với user khi rà T1–T3 (2026-11-10):
+  - Lưu bài theo revision từng phần: làm ngay trong T3 (ghi chú trên).
+  - Trạng thái chờ Client giữ `IN_REVIEW` + `reviewStep = CLIENT`; Client chỉ duyệt/trả từng phần (test E6 sửa câu chữ cho khớp).
+  - Bỏ bước Manager duyệt cấp task với task có vai trò; phần không chủ duyệt cùng lúc khi điều phối nộp.
+  - Tên subtask sinh từ danh mục giữ tiếng Việt trong DB; web/mobile hiển thị nhãn i18n theo `subtaskRole` (T7/T9/T10).
 
 ## T4. Backend thông báo, nhắc, huỷ lịch (→ plan §1.6, §1.7)
 
