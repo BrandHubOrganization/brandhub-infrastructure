@@ -47,7 +47,7 @@ User
 
 - Chỉ OWNER tạo được Workspace mới.
 - **Bắt buộc gán ít nhất 1 Manager ngay lúc tạo** — người này có toàn quyền quản lý workspace đó.
-- **BA 2026-11-05** Owner được tạo workspace và gán Manager trước khi có Client. Manager chốt gói với khách bên ngoài, lưu gói workspace rồi mời Client vào làm việc. Việc chuẩn bị workspace/gói/Campaign không chờ Client tham gia hoặc duyệt. Xem [hành trình mới](../feature/media-package-campaign/guest-sharing-manager-led/spec.md).
+- **BA 2026-11-05** Owner được tạo workspace và gán Manager trước khi có Client. Manager chốt gói với khách bên ngoài, lưu gói workspace rồi mời Client vào làm việc. Việc chuẩn bị workspace/gói/Campaign không chờ Client tham gia hoặc duyệt. Xem [hành trình mới](../feature/3-5-media-package-campaign/3-5-6-view-media-campaign/guest-sharing-manager-led/spec.md).
 - **[CONFIRMED 2026-09-14]** Owner tạo Workspace có thể **tự gán mình làm Manager** của workspace đó, **hoặc gán 1 Member khác làm Manager** — cả 2 tình huống đều hợp lệ, không bắt buộc theo 1 chiều.
 
 ### Workspace Profile (FR 3.4.13)

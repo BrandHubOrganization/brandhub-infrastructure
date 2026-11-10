@@ -14,7 +14,7 @@ Chủ sản phẩm chốt quản lý credit theo **thành viên trong một Agen
 - Admin cấu hình giá từng thao tác; giữ giá phiên bản tại thời điểm nhận yêu cầu AI. Giá mới không thay giá tác vụ đang chạy.
 - Subscription/Payment do thành viên khác phụ trách; đợt này quản lý một Agency, không tự cấp nhân đôi định mức subscription của Owner sang các Agency khác.
 
-Các mục Creator/tháng bên dưới là mô tả lịch sử; quyết định này ưu tiên khi khác nhau. Xem [đặc tả và trạng thái triển khai](../feature/subscription-billing/member-credit/spec.md). DA-974 hiện đã có cấu hình, báo cáo và giữ/quyết toán Credit trên các API AI theo đơn giá thao tác đã chốt lúc gửi. Thanh toán tự động và tính phí theo token/tài nguyên self-host Vast chưa nằm trong phần triển khai này.
+Các mục Creator/tháng bên dưới là mô tả lịch sử; quyết định này ưu tiên khi khác nhau. Xem [đặc tả và trạng thái triển khai](../feature/3-9-subscription-billing/3-9-6-set-credit/member-credit/spec.md). DA-974 hiện đã có cấu hình, báo cáo và giữ/quyết toán Credit trên các API AI theo đơn giá thao tác đã chốt lúc gửi. Thanh toán tự động và tính phí theo token/tài nguyên self-host Vast chưa nằm trong phần triển khai này.
 
 ## Danh sách FR đầy đủ (3.9.1 – 3.9.7)
 

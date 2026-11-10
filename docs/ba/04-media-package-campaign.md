@@ -2,7 +2,7 @@
 
 > [<< Về Overview](00-overview.md)
 
-> **BA đã chốt 2026-11-05** theo [spec Guest sharing và Manager-led](../feature/media-package-campaign/guest-sharing-manager-led/spec.md). Đợt này chỉ cập nhật đặc tả. Flow Client chọn/đàm phán/duyệt Package và duyệt Campaign hai phía được thay thế trong phạm vi Package/Campaign. Quyền duyệt kết quả Task/bài đăng và Content Request theo spec riêng.
+> **BA đã chốt 2026-11-05** theo [spec Guest sharing và Manager-led](../feature/3-5-media-package-campaign/3-5-6-view-media-campaign/guest-sharing-manager-led/spec.md). Đợt này chỉ cập nhật đặc tả. Flow Client chọn/đàm phán/duyệt Package và duyệt Campaign hai phía được thay thế trong phạm vi Package/Campaign. Quyền duyệt kết quả Task/bài đăng và Content Request theo spec riêng.
 
 ## 1. Hành trình hiện hành
 
@@ -25,7 +25,7 @@ Một workspace tiếp tục có một Campaign. Manager được sửa gói tr�
 
 Owner quản lý danh mục Agency để quảng bá độc lập với workspace. Manager tạo gói thực hiện trong workspace từ mẫu hoặc nhập mới theo thỏa thuận bên ngoài, không cần thêm lượt duyệt Owner/Client.
 
-Gói workspace giữ nội dung riêng và nguồn tham khảo khi có. Chỉnh gói quảng bá không tự sửa điều khoản gói workspace hoặc Campaign/task. Ngân sách và thời lượng tùy chọn. Giữ tổng sản lượng, đơn vị, dịch vụ và phạm vi bàn giao hiện hành, theo [spec package-driven](../feature/package-driven-campaign-tasks/spec.md).
+Gói workspace giữ nội dung riêng và nguồn tham khảo khi có. Chỉnh gói quảng bá không tự sửa điều khoản gói workspace hoặc Campaign/task. Ngân sách và thời lượng tùy chọn. Giữ tổng sản lượng, đơn vị, dịch vụ và phạm vi bàn giao hiện hành, theo [spec package-driven](../feature/3-5-media-package-campaign/3-5-5-create-media-campaign/package-driven-campaign-tasks/spec.md).
 
 ### 3.5.2 — Guest view và chia sẻ
 
@@ -55,7 +55,7 @@ Client đã tham gia workspace xem/comment góp ý cả bản nháp. Comment lư
 
 Manager triển khai khi kế hoạch/task đủ thông tin và khớp gói. Không yêu cầu trạng thái APPROVED hay timestamp duyệt Campaign hai phía. Lượt triển khai phải cố định bản được dùng, giữ task identity, chống trùng và hỗ trợ retry. Thành công chuyển Campaign IN_PROGRESS, sau đó gói/phạm vi kế hoạch được khóa.
 
-Vòng đời nghiệp vụ đích là DRAFT → IN_PROGRESS → COMPLETED. Điều kiện hoàn thành tiếp tục theo [Campaign closure](../feature/media-package-campaign/campaign-closure/spec.md) và [package-driven task](../feature/package-driven-campaign-tasks/spec.md). Duyệt kết quả Task/bài đăng không được thay bằng comment Campaign.
+Vòng đời nghiệp vụ đích là DRAFT → IN_PROGRESS → COMPLETED. Điều kiện hoàn thành tiếp tục theo [Campaign closure](../feature/3-5-media-package-campaign/3-5-9-complete-media-campaign/campaign-closure/spec.md) và [package-driven task](../feature/3-5-media-package-campaign/3-5-5-create-media-campaign/package-driven-campaign-tasks/spec.md). Duyệt kết quả Task/bài đăng không được thay bằng comment Campaign.
 
 ### Lịch sử và phạm vi thiết kế
 

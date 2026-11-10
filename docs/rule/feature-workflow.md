@@ -22,18 +22,34 @@ làm lan man, tránh làm lại nhiều lần.
 nguồn sự thật duy nhất, tránh doc phân tán và mất đồng bộ giữa các repo khi
 nhiều người cùng làm feature liên quan nhiều service.
 
-Mỗi tính năng là **một thư mục**, chứa đúng 4 file bắt buộc:
+Thư mục tổ chức theo **domain → FR chuẩn** (141 FR, `3.2.1`–`3.10.14`, nguồn:
+`brandhub-docs-portal/src/data/frs/domain-*.json`). Mục lục: [`docs/feature/README.md`](../feature/README.md).
 
 ```
-brandhub-infrastructure/docs/feature/<ten-tinh-nang>/
-├── spec.md   # Đặc tả nghiệp vụ — LÀM TRƯỚC
-├── plan.md   # Kế hoạch triển khai kỹ thuật
-├── task.md   # Phân rã công việc (checklist thực thi)
-└── test.md   # Kịch bản / test case kiểm chứng
+brandhub-infrastructure/docs/feature/
+├── README.md                                   # Mục lục domain → FR → tính năng
+├── 3-6-content-task-workflow/                  # Domain: <mã domain>-<tên>
+│   ├── <tài liệu chung của domain>.md
+│   └── 3-6-9-approval-sequence-creator-manager-client/   # FR: <mã FR>-<slug tên FR chuẩn>
+│       ├── spec.md plan.md task.md test.md     # Tài liệu FR gốc
+│       ├── report3_spec.md report4_sequence.puml report5_unit_test.md  # Tài liệu report
+│       └── subtask-role-workspaces/            # Tính năng mở rộng FR này
+│           ├── spec.md
+│           ├── plan.md
+│           ├── task.md
+│           └── test.md
+├── _platform/<ten-viec>/                       # Hạ tầng, CI, deploy, seed, việc xuyên nhiều FR
+└── _archive/                                   # descoped/ (FR đã bỏ), legacy-numbering/ (bản đánh số cũ)
 ```
 
-- Thư mục đặt theo **tên tính năng** (kebab-case, tiếng Anh), không theo mã UC,
-  không phân theo tên repo. Vd: `multi-method-login`, `content-scheduler`.
+- **Tính năng mới** đặt làm thư mục con trong **FR chính** mà nó mở rộng (kebab-case,
+  tiếng Anh, vd `chat-attachments` trong `3-6-35-chat-realtime/`). Chạm nhiều FR → đặt ở
+  FR chính, ghi các FR liên quan ở đầu `spec.md`.
+- Việc không gắn FR nào (CI, deploy, seed, monitoring, sửa lỗi runtime) → `_platform/`.
+- Tên thư mục FR phải khớp đúng mã + tên trong danh sách 141 FR; không tạo thư mục FR
+  trùng số hoặc theo số cũ. FR bị bỏ khỏi phạm vi → `_archive/descoped/`.
+- Mỗi thư mục tính năng chứa đúng 4 file bắt buộc `spec.md`, `plan.md`, `task.md`, `test.md`.
+  Test unit theo Report5 đặt tên `report5_unit_test.md`, không dùng `test.md`.
 - Mỗi file có **trách nhiệm duy nhất**, không trộn lẫn.
 
 ## 3. Nội dung từng file

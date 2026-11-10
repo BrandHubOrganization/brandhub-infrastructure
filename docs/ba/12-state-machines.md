@@ -1,15 +1,15 @@
 # 12 — State Machines (sơ đồ trạng thái chi tiết)
 
-> **Ưu tiên BA 2026-10-18 cho Task:** mục 4 hiện hành và [FR 3.6.9 v3](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md) thay quy tắc QC/trạng thái trung gian của các ghi chú cũ. Một bản POST qua /editor, khóa nội dung khi review; reject/withdraw hợp lệ về IN_PROGRESS, gửi lại lượt mới; FINISHED không tự publish. Giai đoạn 1 là tài liệu, chưa có implementation Approval.
+> **Ưu tiên BA 2026-10-18 cho Task:** mục 4 hiện hành và [FR 3.6.9 v3](../feature/3-6-content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md) thay quy tắc QC/trạng thái trung gian của các ghi chú cũ. Một bản POST qua /editor, khóa nội dung khi review; reject/withdraw hợp lệ về IN_PROGRESS, gửi lại lượt mới; FINISHED không tự publish. Giai đoạn 1 là tài liệu, chưa có implementation Approval.
 
-> **BA mới đã chốt 2026-10-15:** Task chỉ còn TODO / IN_PROGRESS / IN_REVIEW / CANCELLED / FINISHED. Giao việc là metadata, không còn bước DETAIL_IDENTIFIED/ASSIGNED. Phải có mô tả + deadline hợp lệ trước giao; Creator được giao bấm bắt đầu mới IN_PROGRESS; sau đó Manager khóa sửa/giao lại. IN_REVIEW giữ QC → Manager → Client khi được cấu hình; reject về IN_PROGRESS, duyệt lại từ QC nếu có. Approval do thành viên khác triển khai. Autosave on-blur và action list chỉ assignment/deadline/start. Ghi chú mới này thay thế vòng đời Task lịch sử bên dưới; xem [spec mới](../feature/content-task-workflow/task-five-state-inline-edit/spec.md).
+> **BA mới đã chốt 2026-10-15:** Task chỉ còn TODO / IN_PROGRESS / IN_REVIEW / CANCELLED / FINISHED. Giao việc là metadata, không còn bước DETAIL_IDENTIFIED/ASSIGNED. Phải có mô tả + deadline hợp lệ trước giao; Creator được giao bấm bắt đầu mới IN_PROGRESS; sau đó Manager khóa sửa/giao lại. IN_REVIEW giữ QC → Manager → Client khi được cấu hình; reject về IN_PROGRESS, duyệt lại từ QC nếu có. Approval do thành viên khác triển khai. Autosave on-blur và action list chỉ assignment/deadline/start. Ghi chú mới này thay thế vòng đời Task lịch sử bên dưới; xem [spec mới](../feature/3-6-content-task-workflow/3-6-1-identify-task-detail/task-five-state-inline-edit/spec.md).
 
 > [<< Về Overview](00-overview.md)
 > Mục đích: mô tả chi tiết TỪNG cạnh chuyển trạng thái (transition) — điều kiện, ai được phép bấm — cho các entity có vòng đời phức tạp. Bổ sung cho mô tả bằng lời ở các file 04, 05, 07.
 
 ## 1. Content Request
 
-> **Quyết định mới nhất 2026-10-14 thay thế các ghi chú lịch sử về xử lý Request sau hoàn thành bên dưới:** Task được chấp nhận gắn Campaign hiện tại và giữ Request nguồn; mọi Task chưa COMPLETED/CANCELLED và Request IN_PROGRESS chặn Manager hoàn thành Campaign. Sau hoàn thành thành công, PENDING tự hủy bằng durable queue; không tạo/sửa/tiếp nhận mới. Hủy Task là thao tác riêng có lựa chọn, lý do chung và xác nhận. Xem [Campaign closure](../feature/media-package-campaign/campaign-closure/spec.md).
+> **Quyết định mới nhất 2026-10-14 thay thế các ghi chú lịch sử về xử lý Request sau hoàn thành bên dưới:** Task được chấp nhận gắn Campaign hiện tại và giữ Request nguồn; mọi Task chưa COMPLETED/CANCELLED và Request IN_PROGRESS chặn Manager hoàn thành Campaign. Sau hoàn thành thành công, PENDING tự hủy bằng durable queue; không tạo/sửa/tiếp nhận mới. Hủy Task là thao tác riêng có lựa chọn, lý do chung và xác nhận. Xem [Campaign closure](../feature/3-5-media-package-campaign/3-5-9-complete-media-campaign/campaign-closure/spec.md).
 
 ```
         create (CLIENT)
@@ -47,7 +47,7 @@ Xác nhận người dùng 2026-10-13: IN_PROGRESS hiển thị “Đang xem xé
 
 ## 2. Media Package — hành trình Manager quản lý
 
-BA chốt 2026-11-05, theo [spec mới](../feature/media-package-campaign/guest-sharing-manager-led/spec.md). Sơ đồ này thay flow đàm phán/duyệt Package hai phía của đặc tả cũ.
+BA chốt 2026-11-05, theo [spec mới](../feature/3-5-media-package-campaign/3-5-6-view-media-campaign/guest-sharing-manager-led/spec.md). Sơ đồ này thay flow đàm phán/duyệt Package hai phía của đặc tả cũ.
 
 ```mermaid
 flowchart TD
@@ -83,12 +83,12 @@ stateDiagram-v2
 - Deployment có thể có trạng thái tiến trình riêng. Khi triển khai phải cố định bản gói/kế hoạch, ngăn sửa đồng thời và cho retry cùng bản khi lỗi/gián đoạn, giữ định danh công việc đã có.
 - Chuyển IN_PROGRESS sau khi xác nhận đủ công việc theo gói. Task đã được tạo từ lúc lưu gói, được giữ thông tin khi triển khai.
 - Chỉ bắt đầu thực hiện Task khi Campaign IN_PROGRESS theo contract Task. Duyệt kết quả Task/bài đăng vẫn theo module riêng.
-- Một workspace có một Campaign. Hoàn thành tiếp tục yêu cầu các Task/Request đạt điều kiện tại [Campaign closure](../feature/media-package-campaign/campaign-closure/spec.md) và [package-driven task](../feature/package-driven-campaign-tasks/spec.md).
+- Một workspace có một Campaign. Hoàn thành tiếp tục yêu cầu các Task/Request đạt điều kiện tại [Campaign closure](../feature/3-5-media-package-campaign/3-5-9-complete-media-campaign/campaign-closure/spec.md) và [package-driven task](../feature/3-5-media-package-campaign/3-5-5-create-media-campaign/package-driven-campaign-tasks/spec.md).
 - Campaign Addendum và sửa gói sau triển khai không được mở thêm trong đợt đổi hành trình này. Trạng thái và approval cũ giữ làm dữ liệu lịch sử, cách chuyển đổi chờ kế hoạch kỹ thuật.
 
 ## 4. Task — Approval Sequence (hiện hành 2026-10-18)
 
-Nguồn: [spec FR3.6.9 v3](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md). Thay toàn bộ sơ đồ QC/ASSIGNED/skip-approval cũ cho luồng mới; không tự chuyển đổi/xóa dữ liệu legacy.
+Nguồn: [spec FR3.6.9 v3](../feature/3-6-content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md). Thay toàn bộ sơ đồ QC/ASSIGNED/skip-approval cũ cho luồng mới; không tự chuyển đổi/xóa dữ liệu legacy.
 
 | Trước | Action hợp lệ | Sau |
 |---|---|---|

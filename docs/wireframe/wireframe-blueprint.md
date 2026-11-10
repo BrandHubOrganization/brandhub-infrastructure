@@ -382,7 +382,7 @@ Giữ cấu trúc V1 (KPI Grid → Charts → Top Performing Posts) nhưng đổ
 
 Không có ở bản wireframe V1 (V1 chỉ có Admin ẩn trong role-matrix, chưa thiết kế màn hình riêng). V2 cần màn hình Admin đầy đủ theo `docs/ba/09-admin-management.md`:
 - **Sidebar:** User Management, Agency/Workspace Oversight, Content Moderation, Audit Log, System Config.
-- **User Management:** `Table` liệt kê User toàn hệ thống, nút Deactivate (có câu hỏi mở "Admin xoá Admin được không" — chưa chốt, UI tạm ẩn nút này khi target là Admin khác, xem `docs/feature/admin-management/3-10-9-deactive-user/spec.md`).
+- **User Management:** `Table` liệt kê User toàn hệ thống, nút Deactivate (có câu hỏi mở "Admin xoá Admin được không" — chưa chốt, UI tạm ẩn nút này khi target là Admin khác, xem `docs/feature/_archive/legacy-numbering/admin-management/3-10-9-deactive-user/spec.md`).
 - Role duy nhất truy cập: `ADMIN`.
 
 ---

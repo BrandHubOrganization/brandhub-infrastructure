@@ -65,7 +65,7 @@
 | `ADMIN_SYSTEM_BROADCAST` | ADMIN | ADMIN (endpoint `/api/v1/admin/...`, không cần Workspace) | Member Workspace chỉ dùng được mẫu hệ thống với danh sách người nhận tường minh và cap 200/lần |
 | `TRANSACTIONAL_AUTO` | ADMIN | Hệ thống tự gửi (không ai bấm gửi tay) | Ẩn khỏi Workspace |
 
-Quyền theo từng trang web/mobile: xem [mobile-nav-role-parity](../feature/mobile-nav-role-parity/spec.md).
+Quyền theo từng trang web/mobile: xem [mobile-nav-role-parity](../feature/_platform/mobile-nav-role-parity/spec.md).
 
 **Nguyên tắc kỹ thuật:** Tầng 1 dùng check riêng (`agency.getOwnerId().equals(currentUserId)` hoặc tương đương `@RequireAgencyOwner`), KHÔNG dùng chung cơ chế `@RequireRole(MemberRole...)` của Tầng 2 — 2 cơ chế độc lập, một Agency Owner không tự động có `MemberRole` ở mọi Workspace con trừ khi được gán riêng (trừ hành động list/view đã liệt kê ở Tầng 1 do kế thừa quyền sở hữu).
 

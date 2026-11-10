@@ -93,7 +93,7 @@
 ## UC-47 — Task Approval Sequence
 
 - **Actor(s):** CREATOR/CLIENT/MANAGER
-- **Current BA:** Confirmed 2026-10-18; [FR 3.6.9 v3](../../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md) supersedes the previous QC/intermediate-state flow. Backend, POST integration and UI have isolated verification; rollout remains disabled pending Atlas preflight/APPLY, publisher coordination and SQL/inbox/Gateway end-to-end testing.
+- **Current BA:** Confirmed 2026-10-18; [FR 3.6.9 v3](../../feature/3-6-content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md) supersedes the previous QC/intermediate-state flow. Backend, POST integration and UI have isolated verification; rollout remains disabled pending Atlas preflight/APPLY, publisher coordination and SQL/inbox/Gateway end-to-end testing.
 - **Description:** Assigned Creator submits → Manager → one active Client if required; no QC. Integrate POST from /editor first, one current content record, no review snapshots.
 - **Precondition:** Active assignee explicitly started the Task, Task is IN_PROGRESS, a valid linked Post exists, and required reviewers are available. Missing active Client when required blocks submission and prompts the Manager to add one.
 - **Main Flow:**

@@ -1090,7 +1090,7 @@
 | Task ID (tạm) | Description | Complexity | Spec Reference |
 |---|---|---|---|
 | DA-E13-05 | Refactor `User.role` từ String tự do sang liên kết đúng `SystemRole` enum (ADMIN/USER), tách bạch khỏi `MemberRole` (OWNER/MANAGER/CREATOR/CLIENT theo Workspace) | S | `docs/ba/02-authentication-profile.md`, `docs/ba/10-roles-permissions-matrix.md` |
-| DA-E13-06 | Client Profile tách bảng riêng khỏi `users` theo quyết định V2, field `linked_user_id` nullable | M | `docs/feature/profile/3-3-3-view-client-profile/spec.md`, `docs/feature/profile/3-3-4-update-client-profile/spec.md`, `docs/ba/11-data-entities-glossary.md` |
+| DA-E13-06 | Client Profile tách bảng riêng khỏi `users` theo quyết định V2, field `linked_user_id` nullable | M | `docs/feature/3-3-profile/3-3-3-view-client-profile/spec.md`, `docs/feature/3-3-profile/3-3-4-update-client-profile/spec.md`, `docs/ba/11-data-entities-glossary.md` |
 
 **Ước lượng:** 2 task con, Complexity S+M — không lớn, có thể ghép chung sprint với Epic khác.
 
@@ -1118,14 +1118,14 @@
 | Task ID (tạm) | Description | Complexity | Spec Reference |
 |---|---|---|---|
 | DA-E16-05 | Tạo entity `Agency` (id, name, owner_id 1-1, logo_url, description, status, soft-delete) + repository | M | `docs/ba/01-organization-structure.md` mục 2 "Agency" |
-| DA-E16-06 | Implement POST /api/v1/agencies (User tạo Agency mới, tự động là Owner) | S | `docs/feature/agency-workspace/3-4-3-create-agency/spec.md` |
-| DA-E16-07 | Implement GET /api/v1/agencies/mine + GET/PUT /api/v1/agencies/{id} (list + view/update Agency Profile) | S | `docs/feature/agency-workspace/3-4-1-list-agency/spec.md`, `3-4-2-view-agency-dashboard`, `3-4-4-view-agency-profile`, `3-4-5-update-agency-profile` |
-| DA-E16-08 | Implement DELETE /api/v1/agencies/{id} (soft-delete, khôi phục 30 ngày) | S | `docs/feature/agency-workspace/3-4-6-remove-agency/spec.md` |
-| DA-E16-09 | Entity `AgencyMember` + invite Member qua email (hết hạn 3 ngày) + Remove Member (giữ nguyên tài nguyên họ tạo ra) | M | `docs/feature/agency-workspace/3-4-7-invite-agency-member/spec.md`, `3-4-8-view-agency-invitation-status`, `3-4-9-remove-member` |
+| DA-E16-06 | Implement POST /api/v1/agencies (User tạo Agency mới, tự động là Owner) | S | `docs/feature/3-4-agency-workspace/3-4-3-create-agency/spec.md` |
+| DA-E16-07 | Implement GET /api/v1/agencies/mine + GET/PUT /api/v1/agencies/{id} (list + view/update Agency Profile) | S | `docs/feature/3-4-agency-workspace/3-4-1-list-agency/spec.md`, `3-4-2-view-agency-dashboard`, `3-4-4-view-agency-profile`, `3-4-5-update-agency-profile` |
+| DA-E16-08 | Implement DELETE /api/v1/agencies/{id} (soft-delete, khôi phục 30 ngày) | S | `docs/feature/3-4-agency-workspace/3-4-6-remove-agency/spec.md` |
+| DA-E16-09 | Entity `AgencyMember` + invite Member qua email (hết hạn 3 ngày) + Remove Member (giữ nguyên tài nguyên họ tạo ra) | M | `docs/feature/3-4-agency-workspace/3-4-7-invite-agency-member/spec.md`, `3-4-8-view-agency-invitation-status`, `3-4-9-remove-member` |
 | DA-E16-10 | Thêm field `agency_id` (FK) vào `Workspace.java`, migration | S | `docs/ba/01-organization-structure.md` mục 1 "Mô hình tổng quan", `docs/database/schema-v2/database-strategy.md` |
-| DA-E16-11 | Client Profile tái sử dụng xuyên Agency (liên kết `ClientProfile` từ E13-06) | M | `docs/feature/profile/3-3-3-view-client-profile/spec.md`, `docs/feature/profile/3-3-4-update-client-profile/spec.md` |
-| DA-E16-12 | Workspace Template — lưu cấu hình Workspace để tái sử dụng | S | `docs/feature/agency-workspace/3-4-17-save-workspace-template/spec.md` |
-| DA-E16-13 / DA-1255 | Nhân bản Workspace có chọn lọc để chuẩn bị chiến dịch mới _(phát sinh, ngoài plan gốc)_ | M | `docs/feature/media-package-campaign/implementation-roadmap.md` giai đoạn 5, `docs/feature/media-package-campaign/campaign-delivery-plan.md` mục M4 |
+| DA-E16-11 | Client Profile tái sử dụng xuyên Agency (liên kết `ClientProfile` từ E13-06) | M | `docs/feature/3-3-profile/3-3-3-view-client-profile/spec.md`, `docs/feature/3-3-profile/3-3-4-update-client-profile/spec.md` |
+| DA-E16-12 | Workspace Template — lưu cấu hình Workspace để tái sử dụng | S | `docs/feature/3-4-agency-workspace/3-4-19-save-workspace-template/spec.md` |
+| DA-E16-13 / DA-1255 | Nhân bản Workspace có chọn lọc để chuẩn bị chiến dịch mới _(phát sinh, ngoài plan gốc)_ | M | `docs/feature/3-5-media-package-campaign/implementation-roadmap.md` giai đoạn 5, `docs/feature/3-5-media-package-campaign/campaign-delivery-plan.md` mục M4 |
 
 **Ước lượng:** 8 task E16-05–12 theo re-audit, cộng 1 task phát sinh E16-13 về Nhân bản Workspace (9 task); Agency entity vẫn là domain **chặn (blocking)** trước RBAC Agency-level (E14) và Media Package/Campaign (E50).
 
@@ -1135,9 +1135,9 @@
 
 | Task ID (tạm) | Description | Complexity | Spec Reference |
 |---|---|---|---|
-| DA-E17-05 | Đổi `WorkspaceSubscription` → `UserSubscription` (gắn User/Owner, áp dụng toàn bộ Agency của họ) | M | `docs/ba/08-subscription-billing.md`, `docs/feature/subscription-billing/3-9-1-upgrade-plan/spec.md`, `docs/feature/subscription-billing/3-9-2-downgrade-plan/spec.md` |
-| DA-E17-06 | Đổi `Payment` → `Transaction`, tích hợp PayOS thay vì Stripe/generic gateway | M | `docs/feature/subscription-billing/3-9-3-make-payment-payos/spec.md`, `docs/feature/subscription-billing/3-9-4-view-invoice-history/spec.md` |
-| DA-E17-07 | Entity `AiCreditLedger` (sổ credit AI theo tháng, reset hàng tháng, KHÔNG rollover) | M | `docs/feature/subscription-billing/3-9-5-view-ai-credit-tracking/spec.md`, `docs/feature/subscription-billing/3-9-6-buy-credit/spec.md`, `docs/feature/subscription-billing/3-9-7-set-credit/spec.md`, `docs/ba/08-subscription-billing.md` |
+| DA-E17-05 | Đổi `WorkspaceSubscription` → `UserSubscription` (gắn User/Owner, áp dụng toàn bộ Agency của họ) | M | `docs/ba/08-subscription-billing.md`, `docs/feature/3-9-subscription-billing/3-9-1-upgrade-plan/spec.md`, `docs/feature/_archive/descoped/3-9-2-downgrade-plan/spec.md` |
+| DA-E17-06 | Đổi `Payment` → `Transaction`, tích hợp PayOS thay vì Stripe/generic gateway | M | `docs/feature/_archive/descoped/3-9-3-make-payment-payos/spec.md`, `docs/feature/3-9-subscription-billing/3-9-3-view-invoice-history/spec.md` |
+| DA-E17-07 | Entity `AiCreditLedger` (sổ credit AI theo tháng, reset hàng tháng, KHÔNG rollover) | M | `docs/feature/3-9-subscription-billing/3-9-4-view-ai-credit-tracking/spec.md`, `docs/feature/3-9-subscription-billing/3-9-5-buy-credit/spec.md`, `docs/feature/3-9-subscription-billing/3-9-6-set-credit/spec.md`, `docs/ba/08-subscription-billing.md` |
 
 **Ước lượng:** 3 task con, Complexity M — phụ thuộc quyết định nghiệp vụ trong `docs/ba/08-subscription-billing.md`.
 
@@ -1149,16 +1149,16 @@
 
 | Task ID (tạm) | Description | Complexity | Spec Reference |
 |---|---|---|---|
-| DA-E50-01 | Entity `MediaPackage` (1 bảng, cột `is_template` phân biệt Template/Custom) | M | `docs/ba/04-media-package-campaign.md`, `docs/feature/media-package-campaign/3-5-1-create-media-package/spec.md` |
-| DA-E50-02 | Client chọn Media Package đang khả dụng trong catalogue của Agency; Owner quản lý catalogue | M | `docs/feature/media-package-campaign/3-5-1-create-media-package/spec.md` |
-| DA-E50-03 | Entity/read model `WorkspaceMediaPackage` (một `package_id` áp dụng cho Workspace cụ thể) | M | `docs/feature/media-package-campaign/3-5-2-view-the-template-media-package/spec.md` |
-| DA-E50-04 | Implement đàm phán Package — negotiation loop, ACID 2-bên-approve (`final_terms`, `approved_by_agency_at`, `approved_by_client_at`) | C | `docs/feature/media-package-campaign/3-5-3-request-media-package/spec.md`, `docs/ba/12-state-machines.md` mục 2 "Media Package (đàm phán)" |
-| DA-E50-05 | Implement approve reset rule: terms mới phải reset cả hai approval về NULL cùng transaction | C | `docs/feature/media-package-campaign/3-5-4-approve-media-package/spec.md`, `docs/ba/12-state-machines.md` mục 2 |
-| DA-E50-06 | Entity `MediaCampaign` (sinh từ Package đã approve, immutable sau approve) | M | `docs/feature/media-package-campaign/3-5-5-create-media-campaign/spec.md`, `docs/ba/12-state-machines.md` mục 3 "Media Campaign" |
-| DA-E50-07 | Implement approve Campaign → auto-generate Task backlog | C | `docs/feature/media-package-campaign/3-5-6-approve-media-campaign/spec.md` |
+| DA-E50-01 | Entity `MediaPackage` (1 bảng, cột `is_template` phân biệt Template/Custom) | M | `docs/ba/04-media-package-campaign.md`, `docs/feature/3-5-media-package-campaign/3-5-1-create-media-package/spec.md` |
+| DA-E50-02 | Client chọn Media Package đang khả dụng trong catalogue của Agency; Owner quản lý catalogue | M | `docs/feature/3-5-media-package-campaign/3-5-1-create-media-package/spec.md` |
+| DA-E50-03 | Entity/read model `WorkspaceMediaPackage` (một `package_id` áp dụng cho Workspace cụ thể) | M | `docs/feature/3-5-media-package-campaign/3-5-2-view-template-media-package/spec.md` |
+| DA-E50-04 | Implement đàm phán Package — negotiation loop, ACID 2-bên-approve (`final_terms`, `approved_by_agency_at`, `approved_by_client_at`) | C | `docs/feature/3-5-media-package-campaign/3-5-3-request-media-package/spec.md`, `docs/ba/12-state-machines.md` mục 2 "Media Package (đàm phán)" |
+| DA-E50-05 | Implement approve reset rule: terms mới phải reset cả hai approval về NULL cùng transaction | C | `docs/feature/3-5-media-package-campaign/3-5-4-approve-media-package/spec.md`, `docs/ba/12-state-machines.md` mục 2 |
+| DA-E50-06 | Entity `MediaCampaign` (sinh từ Package đã approve, immutable sau approve) | M | `docs/feature/3-5-media-package-campaign/3-5-5-create-media-campaign/spec.md`, `docs/ba/12-state-machines.md` mục 3 "Media Campaign" |
+| DA-E50-07 | Implement approve Campaign → auto-generate Task backlog | C | `docs/feature/3-5-media-package-campaign/3-5-8-approve-media-campaign/spec.md` |
 | DA-E50-08 | Entity `ThirdPartyCollaborator` (danh bạ đối tác báo/banner/TV cấp Agency) | S | `docs/ba/07-publishing-social-collaborator.md`, `docs/ba/12-state-machines.md` mục 6 "Third-party Collaborator" |
 | DA-E50-09 | Entity `CampaignCollaborator` (N-N, trạng thái contacted/negotiating/confirmed/live theo từng Campaign) | M | `docs/ba/07-publishing-social-collaborator.md`, `docs/ba/12-state-machines.md` mục 6 |
-| DA-E50-10 | Implement Content Request (Client submit yêu cầu nội dung, FSM pending→in_progress→accepted/denied, denied=terminal) | M | `docs/feature/media-package-campaign/3-5-7-create-content-request/spec.md`, `docs/feature/media-package-campaign/3-5-8-track-request-status/spec.md`, `docs/feature/media-package-campaign/3-5-9-update-request/spec.md`, `docs/feature/media-package-campaign/3-5-10-cancel-request/spec.md`, `docs/ba/12-state-machines.md` mục 1 "Content Request" |
+| DA-E50-10 | Implement Content Request (Client submit yêu cầu nội dung, FSM pending→in_progress→accepted/denied, denied=terminal) | M | `docs/feature/3-5-media-package-campaign/3-5-10-create-content-request/spec.md`, `docs/feature/3-5-media-package-campaign/3-5-11-track-request-status/spec.md`, `docs/feature/3-5-media-package-campaign/3-5-12-update-request/spec.md`, `docs/feature/3-5-media-package-campaign/3-5-13-cancel-request/spec.md`, `docs/ba/12-state-machines.md` mục 1 "Content Request" |
 
 **Ước lượng:** 10 task con, có 3 task Complex (negotiation loop 2-bên-approve là phần nghiệp vụ khó nhất toàn dự án) — domain nặng nhất về logic, nhẹ về UI.
 
@@ -1170,38 +1170,38 @@
 
 | Task ID (tạm) | Description | Assignee | Complexity | Spec Reference |
 |---|---|---|---|---|
-| DA-E51-01 | Collection `tasks` (generic 3 loại: post/livestream/survey, discriminator `type`) | Lộc | C | `docs/ba/05-content-task-workflow.md`, `docs/feature/content-task-workflow/3-6-1-identify-task-detail/spec.md`, `docs/ba/11-data-entities-glossary.md` |
+| DA-E51-01 | Collection `tasks` (generic 3 loại: post/livestream/survey, discriminator `type`) | Lộc | C | `docs/ba/05-content-task-workflow.md`, `docs/feature/3-6-content-task-workflow/3-6-1-identify-task-detail/spec.md`, `docs/ba/11-data-entities-glossary.md` |
 | DA-E51-02 | Collection `task_approvals` (tách riêng khỏi tasks, giữ approval cũ khi step sau reject) | Lộc | C | `docs/ba/12-state-machines.md` mục 4 "Task — Approval Sequence", `docs/ba/11-data-entities-glossary.md` |
-| DA-E51-03 | Task Approval: Creator→Manager→Client tùy chọn, không QC; POST trước (BA 18/10) | Lộc (tiếp nhận theo người dùng; Jira cần đồng bộ) | C | `docs/feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/{spec,plan,task,test}.md`, `docs/ba/12-state-machines.md` mục 4 |
-| DA-E51-04 | Implement Task backlog + assign (Manager assign cho Creator) | Lộc | M | `docs/feature/content-task-workflow/3-6-2-assign-task-to-creator/spec.md` |
-| DA-E51-04b (Jira DA-1236) | Add Comments On Task (FR 3.6.3), mentions and image references | Lộc | M | `docs/feature/content-task-workflow/3-6-3-add-comments-on-task/spec.md` |
-| DA-E51-05 | Implement Task views: List, Calendar, Gantt/Timeline, Kanban board, Filter | Phước | M | `docs/feature/content-task-workflow/3-6-4-list-task-view/spec.md`, `3-6-5-calendar-task-view`, `3-6-6-grantt-timeline-task-view`, `3-6-7-kanban-board-task-view`, `3-6-8-view-task-filter` (cùng thư mục `docs/feature/content-task-workflow/`) |
-| DA-E51-06 | Collection `material_repository` + View Material (FR 3.6.11) | Tuấn | M | `docs/feature/content-task-workflow/3-6-11-view-material-repository/spec.md` |
-| DA-E51-06b | Add Material to Repository (FR 3.6.12) | Tuấn | S | `docs/feature/content-task-workflow/3-6-12-add-material-repository/spec.md` |
-| DA-E51-06c | Update Material in Repository (FR 3.6.13) | Tuấn | S | `docs/feature/content-task-workflow/3-6-13-update-material-repository/spec.md` |
-| DA-E51-06d | Remove Material from Repository (FR 3.6.14) | Tuấn | S | `docs/feature/content-task-workflow/3-6-14-remove-material-repository/spec.md` |
-| DA-E51-06e | Apply Watermark to Material (FR 3.6.15) | Trung | M | `docs/feature/content-task-workflow/3-6-15-apply-watermark/spec.md` |
-| DA-E51-06f | Download Material (FR 3.6.16) | Tuấn | S | `docs/feature/content-task-workflow/3-6-16-download-material/spec.md` |
+| DA-E51-03 | Task Approval: Creator→Manager→Client tùy chọn, không QC; POST trước (BA 18/10) | Lộc (tiếp nhận theo người dùng; Jira cần đồng bộ) | C | `docs/feature/3-6-content-task-workflow/3-6-9-approval-sequence-creator-manager-client/{spec,plan,task,test}.md`, `docs/ba/12-state-machines.md` mục 4 |
+| DA-E51-04 | Implement Task backlog + assign (Manager assign cho Creator) | Lộc | M | `docs/feature/3-6-content-task-workflow/3-6-2-assign-task-to-creator/spec.md` |
+| DA-E51-04b (Jira DA-1236) | Add Comments On Task (FR 3.6.3), mentions and image references | Lộc | M | `docs/feature/3-6-content-task-workflow/3-6-3-add-comments-on-task/spec.md` |
+| DA-E51-05 | Implement Task views: List, Calendar, Gantt/Timeline, Kanban board, Filter | Phước | M | `docs/feature/3-6-content-task-workflow/3-6-4-list-task-view/spec.md`, `3-6-5-calendar-task-view`, `3-6-6-grantt-timeline-task-view`, `3-6-7-kanban-board-task-view`, `3-6-8-view-task-filter` (cùng thư mục `docs/feature/3-6-content-task-workflow/`) |
+| DA-E51-06 | Collection `material_repository` + View Material (FR 3.6.11) | Tuấn | M | `docs/feature/3-6-content-task-workflow/3-6-11-view-material-repository/spec.md` |
+| DA-E51-06b | Add Material to Repository (FR 3.6.12) | Tuấn | S | `docs/feature/3-6-content-task-workflow/3-6-12-add-material-repository/spec.md` |
+| DA-E51-06c | Update Material in Repository (FR 3.6.13) | Tuấn | S | `docs/feature/3-6-content-task-workflow/3-6-13-update-material-repository/spec.md` |
+| DA-E51-06d | Remove Material from Repository (FR 3.6.14) | Tuấn | S | `docs/feature/3-6-content-task-workflow/3-6-14-remove-material-repository/spec.md` |
+| DA-E51-06e | Apply Watermark to Material (FR 3.6.15) | Trung | M | `docs/feature/3-6-content-task-workflow/3-6-18-apply-watermark/spec.md` |
+| DA-E51-06f | Download Material (FR 3.6.16) | Tuấn | S | `docs/feature/3-6-content-task-workflow/3-6-19-download-material/spec.md` |
 | DA-E51-06g | Entity/Endpoint `brand_collections` (Client-supplied reference assets) | Tuấn | M | `docs/ba/05-content-task-workflow.md` |
-| DA-E51-07 | Apply Hashtag to Post Draft (FR 3.6.17) | Tuấn | S | `docs/feature/content-task-workflow/apply-hashtag-to-post/spec.md` |
-| DA-E51-07b | Workspace hashtag collection `workspace_hashtags` + View (FR 3.6.18) | Tuấn | S | `docs/feature/content-task-workflow/view-hashtag-collection/spec.md` |
-| DA-E51-07c | Add Hashtag to Collection (FR 3.6.19) | Tuấn | S | `docs/feature/content-task-workflow/add-hashtag-collection/spec.md` |
-| DA-E51-07d | Update Hashtag in Collection (FR 3.6.20) | Tuấn | S | `docs/feature/content-task-workflow/3-6-20-update-hastag-collection/spec.md` |
-| DA-E51-07e | Remove Hashtag from Collection (FR 3.6.21) | Tuấn | S | `docs/feature/content-task-workflow/remove-hashtag-collection/spec.md` |
-| DA-E51-08 | Write Livestream Idea (FR 3.6.22) | Phước | S | `docs/feature/content-task-workflow/3-6-22-write-livestream-idea/spec.md` |
-| DA-E51-08b | Write Livestream Script (FR 3.6.23) | Phước | S | `docs/feature/content-task-workflow/3-6-23-write-livestream-script/spec.md` |
-| DA-E51-08c | Track Livestream Status (FR 3.6.24) | Phước | M | `docs/feature/content-task-workflow/3-6-24-track-livestream-status/spec.md`, `docs/ba/12-state-machines.md` mục 5 |
-| DA-E51-08d | Generate Meeting Link (FR 3.6.27) | Phước | S | `docs/feature/content-task-workflow/3-6-27-generate-meeting-link/spec.md` |
-| DA-E51-09 | Create Survey (FR 3.6.25) | Phước | M | `docs/feature/content-task-workflow/3-6-25-create-survey/spec.md` |
-| DA-E51-09b | View Survey Analysis (FR 3.6.26) | Phước | S | `docs/feature/content-task-workflow/3-6-26-view-survey-analysis/spec.md` |
-| DA-E51-10 | View Mail Template (FR 3.6.28, role TBD — [OPEN QUESTION]) | Trung | S | `docs/feature/content-task-workflow/3-6-28-view-mail-template/spec.md` |
-| DA-E51-10b | Create Mail Template (FR 3.6.29) | Trung | S | `docs/feature/content-task-workflow/3-6-29-create-mail-template/spec.md` |
-| DA-E51-10c | Update Mail Template (FR 3.6.30) | Trung | S | `docs/feature/content-task-workflow/3-6-30-update-mail-template/spec.md` |
-| DA-E51-10d | Delete Mail Template (FR 3.6.31) | Trung | S | `docs/feature/content-task-workflow/3-6-31-delete-mail-template/spec.md` |
-| DA-E51-10e | Send Email via Template (FR 3.6.32) | Trung | M | `docs/feature/content-task-workflow/3-6-32-send-email-via-template/spec.md` |
-| DA-E51-11 | Implement compliance check (content moderation) | Tuấn | M | `docs/feature/content-task-workflow/3-6-33-check-compliance-content/spec.md` |
-| DA-E51-12 | Implement copyright infringement check — dùng API bên thứ 3, trả JSON mức độ (bạo lực/copyright...), hiển thị chung 1 panel cảnh báo với compliance check (DA-E51-11) [CONFIRMED 2026-09-15] | Tuấn | M | `docs/feature/content-task-workflow/3-6-34-check-copyright-infringement/spec.md` |
-| DA-E51-13 | Collection `content_versions` (Content History) | Tuấn | S | `docs/feature/content-task-workflow/3-6-35-view-content-history/spec.md` |
+| DA-E51-07 | Apply Hashtag to Post Draft (FR 3.6.17) | Tuấn | S | `docs/feature/3-6-content-task-workflow/3-6-20-apply-hashtag/apply-hashtag-to-post/spec.md` |
+| DA-E51-07b | Workspace hashtag collection `workspace_hashtags` + View (FR 3.6.18) | Tuấn | S | `docs/feature/3-6-content-task-workflow/3-6-21-view-hashtag-collection/view-hashtag-collection/spec.md` |
+| DA-E51-07c | Add Hashtag to Collection (FR 3.6.19) | Tuấn | S | `docs/feature/3-6-content-task-workflow/3-6-22-add-hashtag-collection/add-hashtag-collection/spec.md` |
+| DA-E51-07d | Update Hashtag in Collection (FR 3.6.20) | Tuấn | S | `docs/feature/3-6-content-task-workflow/3-6-23-update-hashtag-collection/spec.md` |
+| DA-E51-07e | Remove Hashtag from Collection (FR 3.6.21) | Tuấn | S | `docs/feature/3-6-content-task-workflow/3-6-24-remove-hashtag-collection/spec.md` |
+| DA-E51-08 | Write Livestream Idea (FR 3.6.22) | Phước | S | `docs/feature/_archive/descoped/3-6-22-write-livestream-idea/spec.md` |
+| DA-E51-08b | Write Livestream Script (FR 3.6.23) | Phước | S | `docs/feature/_archive/descoped/3-6-23-write-livestream-script/spec.md` |
+| DA-E51-08c | Track Livestream Status (FR 3.6.24) | Phước | M | `docs/feature/_archive/descoped/3-6-24-track-livestream-status/spec.md`, `docs/ba/12-state-machines.md` mục 5 |
+| DA-E51-08d | Generate Meeting Link (FR 3.6.27) | Phước | S | `docs/feature/3-6-content-task-workflow/3-6-27-generate-meeting-link/spec.md` |
+| DA-E51-09 | Create Survey (FR 3.6.25) | Phước | M | `docs/feature/3-6-content-task-workflow/3-6-25-create-survey/spec.md` |
+| DA-E51-09b | View Survey Analysis (FR 3.6.26) | Phước | S | `docs/feature/3-6-content-task-workflow/3-6-26-view-survey-analysis/spec.md` |
+| DA-E51-10 | View Mail Template (FR 3.6.28, role TBD — [OPEN QUESTION]) | Trung | S | `docs/feature/3-6-content-task-workflow/3-6-28-view-mail-template/spec.md` |
+| DA-E51-10b | Create Mail Template (FR 3.6.29) | Trung | S | `docs/feature/3-6-content-task-workflow/3-6-29-create-mail-template/spec.md` |
+| DA-E51-10c | Update Mail Template (FR 3.6.30) | Trung | S | `docs/feature/3-6-content-task-workflow/3-6-30-update-mail-template/spec.md` |
+| DA-E51-10d | Delete Mail Template (FR 3.6.31) | Trung | S | `docs/feature/3-6-content-task-workflow/3-6-31-delete-mail-template/spec.md` |
+| DA-E51-10e | Send Email via Template (FR 3.6.32) | Trung | M | `docs/feature/3-6-content-task-workflow/3-6-32-send-email-via-template/spec.md` |
+| DA-E51-11 | Implement compliance check (content moderation) | Tuấn | M | `docs/feature/3-6-content-task-workflow/3-6-33-check-compliance-content/spec.md` |
+| DA-E51-12 | Implement copyright infringement check — dùng API bên thứ 3, trả JSON mức độ (bạo lực/copyright...), hiển thị chung 1 panel cảnh báo với compliance check (DA-E51-11) [CONFIRMED 2026-09-15] | Tuấn | M | `docs/feature/_archive/descoped/3-6-34-check-copyright-infringement/spec.md` |
+| DA-E51-13 | Collection `content_versions` (Content History) | Tuấn | S | `docs/feature/3-6-content-task-workflow/3-6-34-view-content-history/spec.md` |
 | DA-E51-14 | Collection `posts` (đổi nghĩa V2: chỉ bài ĐÃ PUBLISH thành công) | Phước | S | `docs/ba/12-state-machines.md` mục 7 "Post — trạng thái Publish" |
 | DA-E51-15 🆕 | Implement Realtime Chat (FR 3.6.36 — task mới, chưa từng có trong plan) | Lộc | M | FR 3.6.36 (chưa có spec riêng) |
 
@@ -1215,13 +1215,13 @@
 
 | Task ID (tạm) | Description | Assignee | Complexity | Trạng thái | Spec Reference |
 |---|---|---|---|---|---|
-| DA-E52-01..04 | Meta OAuth (Facebook + Instagram) — authorize redirect → callback → token exchange | Phước | M | **Chưa có, cần viết mới** | `docs/feature/publishing-social/3-8-1-connect-social-account/spec.md`, `docs/ba/07-publishing-social-collaborator.md` |
-| DA-E52-05..07 | TikTok & Threads OAuth + Token status dashboard API | Phước | M | **Chưa có, cần viết mới** | `docs/feature/publishing-social/3-8-1-connect-social-account/spec.md`, `docs/feature/publishing-social/3-8-2-disconnect-account/spec.md` |
+| DA-E52-01..04 | Meta OAuth (Facebook + Instagram) — authorize redirect → callback → token exchange | Phước | M | **Chưa có, cần viết mới** | `docs/feature/3-8-publishing-social/3-8-1-connect-social-account/spec.md`, `docs/ba/07-publishing-social-collaborator.md` |
+| DA-E52-05..07 | TikTok & Threads OAuth + Token status dashboard API | Phước | M | **Chưa có, cần viết mới** | `docs/feature/3-8-publishing-social/3-8-1-connect-social-account/spec.md`, `docs/feature/3-8-publishing-social/3-8-2-disconnect-account/spec.md` |
 | DA-E52-08 | Implement AES-256 encryption lưu token — hạ tầng `CryptoUtils` đã có sẵn, chỉ cần nối vào flow OAuth thật | Phước | S | CryptoUtils đã có, chưa có gì gọi nó trong OAuth vì OAuth chưa tồn tại | `docs/ba/07-publishing-social-collaborator.md` |
 | DA-E52-09..10 | Scheduled token refresh job (chạy định kỳ, cảnh báo khi refresh fail) | Phước | M | **Chưa có, cần viết mới** | `docs/ba/07-publishing-social-collaborator.md` |
-| DA-E52-11..14 | Publisher Service Core: adapters FB/IG/TikTok/Threads | — | — | **ĐÃ XONG**, bỏ khỏi backlog | `docs/feature/publishing-social/3-8-9-publish-facebook-post/spec.md` … `3-8-16-publish-threads-post` (8 spec, cùng thư mục) |
+| DA-E52-11..14 | Publisher Service Core: adapters FB/IG/TikTok/Threads | — | — | **ĐÃ XONG**, bỏ khỏi backlog | `docs/feature/3-8-publishing-social/3-8-8-publish-facebook-post/spec.md` … `3-8-16-publish-threads-post` (8 spec, cùng thư mục) |
 | DA-E52-15 | RabbitMQ consumer + Redis dedup lock | — | — | **ĐÃ XONG**, bỏ khỏi backlog | `docs/architecture/rabbitmq-publisher-contract.html` |
-| DA-E52-16 | Publish callback webhook (nhận kết quả publish thật từ platform → cập nhật status) | Phước | M | **Chưa có, cần viết mới** — hiện chỉ có nack/DLQ nội bộ, không có webhook nhận response async từ social platform | `docs/feature/publishing-social/3-8-4-view-post-track-detail/spec.md`, `docs/feature/publishing-social/3-8-8-view-status-tracking/spec.md` |
+| DA-E52-16 | Publish callback webhook (nhận kết quả publish thật từ platform → cập nhật status) | Phước | M | **Chưa có, cần viết mới** — hiện chỉ có nack/DLQ nội bộ, không có webhook nhận response async từ social platform | `docs/feature/3-8-publishing-social/3-8-4-view-posted-detail/spec.md`, `docs/feature/3-8-publishing-social/3-8-7-track-post-status/spec.md` |
 | DA-E52-17 | Retry logic có exponential backoff (hiện chỉ nack 1 lần → DLQ, chưa retry nhiều lần với backoff) | Phước | M | **Cần bổ sung** | `docs/architecture/rabbitmq-publisher-contract.html` |
 
 **Ước lượng (sau audit thật):** ~11 task con cần làm thật (giảm gần nửa so với ước lượng ban đầu 20, vì phần adapter core + RabbitMQ đã xong) — trọng tâm còn lại là **OAuth** (toàn bộ 3 platform) và **callback/retry hoàn chỉnh**, không phải viết lại adapter.
@@ -1236,15 +1236,15 @@
 
 | Task ID (tạm) | Description | Assignee | Complexity | Trạng thái | Spec Reference |
 |---|---|---|---|---|---|
-| DA-E53-01 | Backend: implement analytics aggregation API (FR 3.10.2, 3.10.11) | Ân | C | Backend 0%, frontend UI có sẵn (`pages/analytics/`) chỉ cần đổi service layer | `docs/feature/admin-management/3-10-2-platform-statistics-overview/spec.md`, `docs/feature/admin-management/3-10-11-view-revenue-dasboard/spec.md` |
-| DA-E53-02 | Backend: report generation PDF (FR 3.10.12) | Ân | M | Backend 0% | `docs/feature/admin-management/3-10-12-export-report-file-pdf/spec.md` |
+| DA-E53-01 | Backend: implement analytics aggregation API (FR 3.10.2, 3.10.11) | Ân | C | Backend 0%, frontend UI có sẵn (`pages/analytics/`) chỉ cần đổi service layer | `docs/feature/3-10-admin-management/3-10-2-platform-statistics-overview/spec.md`, `docs/feature/3-10-admin-management/3-10-13-view-revenue-dashboard/spec.md` |
+| DA-E53-02 | Backend: report generation PDF (FR 3.10.12) | Ân | M | Backend 0% | `docs/feature/_archive/legacy-numbering/admin-management/3-10-12-export-report-file-pdf/spec.md` |
 | DA-E53-03 | Frontend: thay `mockAnalyticsService.ts` → gọi API thật | Ân | S | Chỉ cần khi DA-E53-01/02 xong | (theo cùng spec DA-E53-01/02) |
-| DA-E53-04 | Backend: Notification CRUD API + trigger tạo notification khi event xảy ra (FR 3.10.1) | Ân | M | Backend 0%, `notificationStore.ts` + UI đã có sẵn | `docs/feature/admin-management/3-10-1-push-notification/spec.md` |
-| DA-E53-05 | Frontend: thay `mockNotificationService.ts` → API thật | Ân | S | | `docs/feature/admin-management/3-10-1-push-notification/spec.md` |
-| DA-E53-06 | Backend: System Health Monitoring endpoint (FR 3.10.3) | Tuấn | M | Frontend `SystemHealthPanel.tsx` chờ sẵn | `docs/feature/admin-management/3-10-3-system-health-monitoring/spec.md` |
-| DA-E53-07 | Backend: Content Moderation Queue (FR 3.10.4) | Ân | M | Frontend `ModerationQueueList.tsx` chờ sẵn | `docs/feature/admin-management/3-10-4-content-moderation-queue/spec.md` |
-| DA-E53-08 | Backend: User Management view/create/update (FR 3.10.6/7/8) | Ân | M | `AdminController` chỉ có 2 endpoint hiện tại | `docs/feature/admin-management/3-10-6-view-user/spec.md`, `3-10-7-create-user`, `3-10-8-update-user` |
-| DA-E53-09 | Backend: User verify/disable/deactivate (FR 3.10.5, 3.10.9) — [OPEN QUESTION] "Admin xoá Admin" chưa chốt | Ân | M | Chặn bởi DA-E53-08 | `docs/feature/admin-management/3-10-5-user-management-verifydisabledelete/spec.md`, `3-10-9-deactive-user`, `docs/ba/09-admin-management.md` |
+| DA-E53-04 | Backend: Notification CRUD API + trigger tạo notification khi event xảy ra (FR 3.10.1) | Ân | M | Backend 0%, `notificationStore.ts` + UI đã có sẵn | `docs/feature/3-10-admin-management/3-10-1-push-notification/spec.md` |
+| DA-E53-05 | Frontend: thay `mockNotificationService.ts` → API thật | Ân | S | | `docs/feature/3-10-admin-management/3-10-1-push-notification/spec.md` |
+| DA-E53-06 | Backend: System Health Monitoring endpoint (FR 3.10.3) | Tuấn | M | Frontend `SystemHealthPanel.tsx` chờ sẵn | `docs/feature/3-10-admin-management/3-10-3-system-health-monitoring/spec.md` |
+| DA-E53-07 | Backend: Content Moderation Queue (FR 3.10.4) | Ân | M | Frontend `ModerationQueueList.tsx` chờ sẵn | `docs/feature/3-10-admin-management/3-10-4-content-moderation-queue/spec.md` |
+| DA-E53-08 | Backend: User Management view/create/update (FR 3.10.6/7/8) | Ân | M | `AdminController` chỉ có 2 endpoint hiện tại | `docs/feature/3-10-admin-management/3-10-6-view-user/spec.md`, `3-10-7-create-user`, `3-10-8-update-user` |
+| DA-E53-09 | Backend: User verify/disable/deactivate (FR 3.10.5, 3.10.9) — [OPEN QUESTION] "Admin xoá Admin" chưa chốt | Ân | M | Chặn bởi DA-E53-08 | `docs/feature/_archive/legacy-numbering/admin-management/3-10-5-user-management-verifydisabledelete/spec.md`, `3-10-9-deactive-user`, `docs/ba/09-admin-management.md` |
 | DA-E53-10 | Frontend: thay `mockAdminService.ts` → API thật | Ân | S | | (theo cùng spec DA-E53-06/07/08/09) |
 
 **Ước lượng:** 10 task con (tăng từ 8 sau khi tách System Health cho Tuấn riêng khỏi phần Ân) — nhẹ hơn dự kiến ở phần frontend (UI có sẵn, chỉ đổi service layer ~1 buổi/domain), nặng ở phần backend analytics aggregation (nhiều nguồn dữ liệu Task/Post/Publish log, các domain này bản thân cũng đang viết mới ở E50/E51 — nên **E53 phải làm SAU khi E50/E51 có data thật để aggregate**, không làm song song từ đầu.
@@ -3252,7 +3252,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - `TotpUtil` hand-rolled theo RFC 6238, không phụ thuộc thư viện ngoài
 - Error codes: `TWO_FA_ALREADY_ENABLED`, `TWO_FA_NOT_ENABLED`, `TWO_FA_CODE_INVALID`, `TWO_FA_TOKEN_INVALID`
 
-**Ghi chú:** Không có trong plan gốc — phát sinh từ audit toàn diện authentication (2026-09-18). Code đã implement (`AuthController` 4 endpoint `/2fa/*`, `AuthServiceImpl`, `TotpUtil`, `TwoFactorSetupResponse`). Docs: `docs/feature/authentication/3-2-7-two-factor-authentication-2fa-totp/{spec,plan,task,test}.md`. Jira: DA-1232, status In Review.
+**Ghi chú:** Không có trong plan gốc — phát sinh từ audit toàn diện authentication (2026-09-18). Code đã implement (`AuthController` 4 endpoint `/2fa/*`, `AuthServiceImpl`, `TotpUtil`, `TwoFactorSetupResponse`). Docs: `docs/feature/3-2-authentication/3-2-7-two-factor-authentication-2fa-totp/{spec,plan,task,test}.md`. Jira: DA-1232, status In Review.
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E12-01, DA-E12-02].
 
@@ -3277,7 +3277,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - `AgencyRepository.findByOwnerId` (mới thêm) để check active agency ownership
 - `checkStatus()` dùng chung trong `login`/`refresh`/2FA-`verify` để chặn account deactivated đồng nhất
 
-**Ghi chú:** Không có trong plan gốc — phát sinh từ audit toàn diện authentication (2026-09-18). Code đã implement (`AuthController.deactivate`, `AuthServiceImpl.deactivate`, `DeactivateRequest` DTO, `ErrorCode.ACCOUNT_DEACTIVATED`/`AGENCY_OWNERSHIP_ACTIVE`). Docs: `docs/feature/authentication/3-2-9-deactivate-account/{spec,plan,task,test}.md`. Jira: DA-1233, status In Review.
+**Ghi chú:** Không có trong plan gốc — phát sinh từ audit toàn diện authentication (2026-09-18). Code đã implement (`AuthController.deactivate`, `AuthServiceImpl.deactivate`, `DeactivateRequest` DTO, `ErrorCode.ACCOUNT_DEACTIVATED`/`AGENCY_OWNERSHIP_ACTIVE`). Docs: `docs/feature/3-2-authentication/3-2-9-delete-account/{spec,plan,task,test}.md`. Jira: DA-1233, status In Review.
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E12-01, DA-E12-02].
 
@@ -3301,7 +3301,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - `ErrorCode.OTP_TOO_MANY_ATTEMPTS` (mới thêm)
 - Áp dụng chung cho luồng Sign Up (DA-E12-01) và OTP Verification vì dùng chung hàm `verifyOtp()`
 
-**Ghi chú:** Không có trong plan gốc — phát hiện qua audit test coverage (2026-09-18): spec/test.md đã ghi "sai 5 lần hủy session" nhưng code cũ chưa có giới hạn thử. Docs: `docs/feature/authentication/3-2-6-otp-verification/test.md`, `3-2-1-sign-up/test.md`. Jira: DA-1234, status In Review.
+**Ghi chú:** Không có trong plan gốc — phát hiện qua audit test coverage (2026-09-18): spec/test.md đã ghi "sai 5 lần hủy session" nhưng code cũ chưa có giới hạn thử. Docs: `docs/feature/3-2-authentication/3-2-6-otp-verification/report5_unit_test.md`, `3-2-1-sign-up/test.md`. Jira: DA-1234, status In Review.
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E12-01].
 
@@ -3324,7 +3324,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - `requireUserId()` là entrypoint chung cho mọi endpoint yêu cầu `Authorization: Bearer` (link/phone, set-password, 2FA, deactivate, me...) — fix áp dụng toàn bộ
 - Bug OAuth liên quan trực tiếp DA-E12-06 (Google OAuth Login) — đây là fix cho flow đã implement ở đó, không phải feature mới
 
-**Ghi chú:** Không có trong plan gốc — phát hiện qua audit test coverage cho ngoại lệ/unhappy-case (2026-09-18). Docs: `docs/feature/authentication/3-2-8-sign-out/test.md` (TC-02, TC-06), `3-2-3-sign-in-with-google-oauth/{spec,test}.md` (TC-05, TC-07). Jira: DA-1235, status In Review.
+**Ghi chú:** Không có trong plan gốc — phát hiện qua audit test coverage cho ngoại lệ/unhappy-case (2026-09-18). Docs: `docs/feature/_archive/legacy-numbering/authentication/3-2-8-sign-out/test.md` (TC-02, TC-06), `3-2-3-sign-in-with-google-oauth/{spec,test}.md` (TC-05, TC-07). Jira: DA-1235, status In Review.
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E12-02, DA-E12-04, DA-E12-06].
 
@@ -3491,7 +3491,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - `linked_user_id` is nullable per the V2 data model decision in `docs/ba/11-data-entities-glossary.md` — do not make this a required 1:1 FK
 - This is a new PostgreSQL table, not a MongoDB collection (per `docs/database/schema-v2/database-strategy.md` split)
 
-**Spec Reference:** `docs/feature/profile/3-3-3-view-client-profile/spec.md`, `docs/feature/profile/3-3-4-update-client-profile/spec.md`, `docs/ba/11-data-entities-glossary.md`
+**Spec Reference:** `docs/feature/3-3-profile/3-3-3-view-client-profile/spec.md`, `docs/feature/3-3-profile/3-3-4-update-client-profile/spec.md`, `docs/ba/11-data-entities-glossary.md`
 
 **Dependencies:** Blocks: [DA-E16-11]. Blocked by: [None].
 
@@ -3877,7 +3877,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Technical Notes:** Consider whether Agency count should be checked against `UserSubscription` limits here or left for a later constraint (per spec, not yet confirmed).
 
-**Spec Reference:** `docs/feature/agency-workspace/3-4-3-create-agency/spec.md`, `docs/ba/03-agency-workspace-management.md`
+**Spec Reference:** `docs/feature/3-4-agency-workspace/3-4-3-create-agency/spec.md`, `docs/ba/03-agency-workspace-management.md`
 
 **Dependencies:** Blocks: [DA-E16-07, DA-E16-08, DA-E16-09]. Blocked by: [DA-E16-05].
 
@@ -3896,7 +3896,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - [ ] `PUT /api/v1/agencies/{id}` allows the Owner to update `name`, `description`, `logoUrl`
 - [ ] Non-owner attempting to update returns 403
 
-**Spec Reference:** `docs/feature/agency-workspace/3-4-1-list-agency/spec.md`, `docs/feature/agency-workspace/3-4-2-view-agency-dashboard/spec.md`, `docs/feature/agency-workspace/3-4-4-view-agency-profile/spec.md`, `docs/feature/agency-workspace/3-4-5-update-agency-profile/spec.md`
+**Spec Reference:** `docs/feature/3-4-agency-workspace/3-4-1-list-agency/spec.md`, `docs/feature/3-4-agency-workspace/3-4-2-view-agency-dashboard/spec.md`, `docs/feature/3-4-agency-workspace/3-4-4-view-agency-profile/spec.md`, `docs/feature/3-4-agency-workspace/3-4-5-update-agency-profile/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E16-06].
 
@@ -3918,7 +3918,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Technical Notes:** Hard-delete after 30 days is a separate scheduled cleanup job, out of scope for this task (per BA, "thiết kế kỹ thuật riêng").
 
-**Spec Reference:** `docs/feature/agency-workspace/3-4-6-remove-agency/spec.md`
+**Spec Reference:** `docs/feature/3-4-agency-workspace/3-4-6-remove-agency/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E16-06, DA-E16-09 (for cascading Workspace agency_id link)].
 
@@ -3944,7 +3944,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Technical Notes:** Invitation expiry can reuse the same pattern as Workspace invitations if one already exists in the codebase (check `WorkspaceInvitation`-equivalent before writing from scratch).
 
-**Spec Reference:** `docs/feature/agency-workspace/3-4-7-invite-agency-member/spec.md`, `docs/feature/agency-workspace/3-4-8-view-agency-invitation-status/spec.md`, `docs/feature/agency-workspace/3-4-9-remove-member/spec.md`
+**Spec Reference:** `docs/feature/3-4-agency-workspace/3-4-7-invite-agency-member/spec.md`, `docs/feature/3-4-agency-workspace/3-4-8-view-agency-invitation-status/spec.md`, `docs/feature/3-4-agency-workspace/3-4-11-remove-agency-member/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E16-06].
 
@@ -3982,7 +3982,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Technical Notes:** `Client.java` already exists with a full Controller/Service (confirmed via code audit) — this task is about wiring it to `ClientProfile`, not building Client from scratch.
 
-**Spec Reference:** `docs/feature/profile/3-3-3-view-client-profile/spec.md`, `docs/feature/profile/3-3-4-update-client-profile/spec.md`
+**Spec Reference:** `docs/feature/3-3-profile/3-3-3-view-client-profile/spec.md`, `docs/feature/3-3-profile/3-3-4-update-client-profile/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E13-06].
 
@@ -4002,7 +4002,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - [ ] Template survives deletion of the original Workspace it was based on (independent record)
 - [ ] Non-owner attempting to save a template returns 403
 
-**Spec Reference:** `docs/feature/agency-workspace/3-4-17-save-workspace-template/spec.md`
+**Spec Reference:** `docs/feature/3-4-agency-workspace/3-4-19-save-workspace-template/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E16-06].
 
@@ -4010,7 +4010,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 ### DA-E16-13 — Duplicate Workspace with Selective Copy
 
-**Jira:** DA-1255. _(Phát sinh, ngoài plan gốc — do BA chốt một Workspace chỉ có một Campaign; chiến dịch tiếp theo cần Workspace mới mà không phải thiết lập lại từ đầu. Docs: `docs/feature/media-package-campaign/implementation-roadmap.md`, giai đoạn 5.)_
+**Jira:** DA-1255. _(Phát sinh, ngoài plan gốc — do BA chốt một Workspace chỉ có một Campaign; chiến dịch tiếp theo cần Workspace mới mà không phải thiết lập lại từ đầu. Docs: `docs/feature/3-5-media-package-campaign/implementation-roadmap.md`, giai đoạn 5.)_
 
 **Assignee:** Lộc | **Priority:** 🟡 High
 
@@ -4141,7 +4141,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Technical Notes:** **[CONFIRMED 2026-09-15, Trung]** No real subscription/payment transactions running yet — safe to rename/restructure freely, no data migration needed.
 
-**Spec Reference:** `docs/feature/subscription-billing/3-9-1-upgrade-plan/spec.md`, `docs/feature/subscription-billing/3-9-2-downgrade-plan/spec.md`, `docs/ba/08-subscription-billing.md`
+**Spec Reference:** `docs/feature/3-9-subscription-billing/3-9-1-upgrade-plan/spec.md`, `docs/feature/_archive/descoped/3-9-2-downgrade-plan/spec.md`, `docs/ba/08-subscription-billing.md`
 
 **Dependencies:** Blocks: [DA-E17-06]. Blocked by: [DA-E16-05 (Agency must exist to attribute Workspaces to an Owner's Agency)].
 
@@ -4164,7 +4164,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 
 **Technical Notes:** Requires a real PayOS API key/sandbox to test the callback flow end-to-end — flag this as an external dependency early.
 
-**Spec Reference:** `docs/feature/subscription-billing/3-9-3-make-payment-payos/spec.md`, `docs/feature/subscription-billing/3-9-4-view-invoice-history/spec.md`
+**Spec Reference:** `docs/feature/_archive/descoped/3-9-3-make-payment-payos/spec.md`, `docs/feature/3-9-subscription-billing/3-9-3-view-invoice-history/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E17-05].
 
@@ -4185,7 +4185,7 @@ Task IDs match Linear issues format: DA-{EPIC_ID}-{SEQ}
 - [ ] Monthly reset: unused credit does NOT carry over to the next month (confirmed business rule, not an [OPEN QUESTION] — resolved per `docs/ba/08`)
 - [ ] Credit consumption is triggered by the AI feature calls themselves (E24 — AI Service Integration), this task only covers the ledger + read APIs
 
-**Spec Reference:** `docs/feature/subscription-billing/3-9-5-view-ai-credit-tracking/spec.md`, `docs/feature/subscription-billing/3-9-6-buy-credit/spec.md`, `docs/feature/subscription-billing/3-9-7-set-credit/spec.md`, `docs/ba/08-subscription-billing.md`
+**Spec Reference:** `docs/feature/3-9-subscription-billing/3-9-4-view-ai-credit-tracking/spec.md`, `docs/feature/3-9-subscription-billing/3-9-5-buy-credit/spec.md`, `docs/feature/3-9-subscription-billing/3-9-6-set-credit/spec.md`, `docs/ba/08-subscription-billing.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E17-05, DA-E24-03 (AI usage tracking trigger)].
 
@@ -9369,7 +9369,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 - Location: `brandhub-ai-service/app/services/prompt/livestream_prompt_builder.py` và `app/services/validators/timeline_validator.py`.
 - Form schema đồng bộ với Mục 2.8 của `docs/plan/ai-features-spec-alignment-plan.md`.
 
-**Spec Reference:** `docs/feature/ai-features/3-7-11-generate-livestream-script/spec.md`
+**Spec Reference:** `docs/feature/_archive/descoped/3-7-11-generate-livestream-script/spec.md`
 
 **Dependencies:** Blocks: [DA-AI12-02]. Blocked by: [DA-AI04-01].
 
@@ -9393,7 +9393,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 - Location: `brandhub-ai-service/app/api/v1/endpoints/livestream.py`.
 - Response latency mục tiêu: P95 < 12s cho kịch bản 30-60 phút.
 
-**Spec Reference:** `docs/feature/ai-features/3-7-11-generate-livestream-script/spec.md`
+**Spec Reference:** `docs/feature/_archive/descoped/3-7-11-generate-livestream-script/spec.md`
 
 **Dependencies:** Blocks: [DA-AI12-03]. Blocked by: [DA-AI12-01].
 
@@ -9421,7 +9421,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 - Location: `brandhub-business-service/src/main/java/com/brandhub/service/ai/LivestreamScriptService.java` và `TaskController.java`.
 - Áp dụng nguyên tắc idempotency: Retry cùng mã request ID không bị trừ phí credit lần 2.
 
-**Spec Reference:** `docs/feature/ai-features/3-7-11-generate-livestream-script/spec.md`, `docs/feature/content-task-workflow/3-6-23-write-livestream-script/spec.md`
+**Spec Reference:** `docs/feature/_archive/descoped/3-7-11-generate-livestream-script/spec.md`, `docs/feature/_archive/descoped/3-6-23-write-livestream-script/spec.md`
 
 **Dependencies:** Blocks: [DA-AI12-04]. Blocked by: [DA-AI12-02, DA-E17-07, DA-E51-01].
 
@@ -9443,7 +9443,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 - Location: `brandhub-web/src/pages/ai/livestream/LivestreamScriptPage.tsx` và `components/ai/timeline/TimelineSegmentCard.tsx`.
 
-**Spec Reference:** `docs/feature/ai-features/3-7-11-generate-livestream-script/spec.md`
+**Spec Reference:** `docs/feature/_archive/descoped/3-7-11-generate-livestream-script/spec.md`
 
 **Dependencies:** Blocks: [DA-AI12-05]. Blocked by: [DA-AI12-03].
 
@@ -9466,7 +9466,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 - Location: `brandhub-ai-service/tests/benchmarks/test_livestream_anti_hallucination.py`.
 
-**Spec Reference:** `docs/feature/ai-features/3-7-11-generate-livestream-script/spec.md`
+**Spec Reference:** `docs/feature/_archive/descoped/3-7-11-generate-livestream-script/spec.md`
 
 **Dependencies:** Blocks: None. Blocked by: [DA-AI12-04].
 
@@ -9489,7 +9489,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 - Location: `brandhub-ai-service/app/data/system_collaborator_catalog.json`.
 - Multi-tenant isolation rule: Tuyệt đối không truy vấn chéo dữ liệu danh bạ nội bộ của Agency khác.
 
-**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`
+**Spec Reference:** `docs/feature/3-7-ai-features/3-7-19-recommend-collaborator/spec.md`
 
 **Dependencies:** Blocks: [DA-AI13-02]. Blocked by: [DA-AI02-01].
 
@@ -9515,7 +9515,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 - Location: `brandhub-ai-service/app/services/recommendation/collaborator_engine.py`.
 
-**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`
+**Spec Reference:** `docs/feature/3-7-ai-features/3-7-19-recommend-collaborator/spec.md`
 
 **Dependencies:** Blocks: [DA-AI13-03]. Blocked by: [DA-AI13-01].
 
@@ -9538,7 +9538,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 - Location: `brandhub-ai-service/app/api/v1/endpoints/collaborator.py`.
 
-**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`
+**Spec Reference:** `docs/feature/3-7-ai-features/3-7-19-recommend-collaborator/spec.md`
 
 **Dependencies:** Blocks: [DA-AI13-04]. Blocked by: [DA-AI13-02].
 
@@ -9565,7 +9565,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 - Location: `brandhub-business-service/src/main/java/com/brandhub/service/ai/CollaboratorRecommendationService.java` và `CampaignCollaboratorController.java`.
 
-**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`, `docs/ba/07-publishing-social-collaborator.md`, `docs/ba/12-state-machines.md` mục 6
+**Spec Reference:** `docs/feature/3-7-ai-features/3-7-19-recommend-collaborator/spec.md`, `docs/ba/07-publishing-social-collaborator.md`, `docs/ba/12-state-machines.md` mục 6
 
 **Dependencies:** Blocks: [DA-AI13-05]. Blocked by: [DA-AI13-03, DA-E50-08, DA-E50-09, DA-E17-07].
 
@@ -9590,7 +9590,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 - Location: `brandhub-web/src/pages/campaigns/CollaboratorRecommendationPage.tsx` và `components/collaborator/CollaboratorTierCard.tsx`.
 
-**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`
+**Spec Reference:** `docs/feature/3-7-ai-features/3-7-19-recommend-collaborator/spec.md`
 
 **Dependencies:** Blocks: [DA-AI13-06]. Blocked by: [DA-AI13-04].
 
@@ -9613,7 +9613,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 - Location: `brandhub-ai-service/tests/benchmarks/test_collaborator_recommendation.py`.
 
-**Spec Reference:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`
+**Spec Reference:** `docs/feature/3-7-ai-features/3-7-19-recommend-collaborator/spec.md`
 
 **Dependencies:** Blocks: None. Blocked by: [DA-AI13-05].
 
@@ -9843,7 +9843,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Technical Notes:** BA spec originally proposed 2 separate tables (`MediaPackageTemplate`/`MediaPackageCustom`) — the V2 DB decision consolidated this into 1 table with `is_template`; follow `docs/database/schema-v2/database-strategy.md`, not the older 2-table sketch in the FR spec. Global Admin templates are initially supplied through seed data; their Admin authoring API/UI belongs to the separate Admin implementation stream.
 
-**Spec Reference:** `docs/feature/media-package-campaign/3-5-1-create-media-package/spec.md`, `docs/database/schema-v2/database-strategy.md`, `docs/ba/04-media-package-campaign.md`
+**Spec Reference:** `docs/feature/3-5-media-package-campaign/3-5-1-create-media-package/spec.md`, `docs/database/schema-v2/database-strategy.md`, `docs/ba/04-media-package-campaign.md`
 
 **Dependencies:** Blocks: [DA-E50-02, DA-E50-03]. Blocked by: [DA-E16-05 (Agency must exist for `agencyId` scoping)].
 
@@ -9863,7 +9863,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 - [ ] Preserve the current Package gate and negotiation redirect (Client: Package/Chat; Manager additionally retains settings). Scheduled X-day reminders are removed by confirmed BA on 2026-10-13; no scheduler is required.
 - [ ] Package can be freely changed BEFORE the Client starts negotiating (DA-E50-04); once negotiation has started, switching to a different package entirely is blocked — only continued negotiation on the current package is allowed
 
-**Spec Reference:** `docs/feature/media-package-campaign/3-5-1-create-media-package/spec.md`, `docs/ba/04-media-package-campaign.md` mục 1
+**Spec Reference:** `docs/feature/3-5-media-package-campaign/3-5-1-create-media-package/spec.md`, `docs/ba/04-media-package-campaign.md` mục 1
 
 **Dependencies:** Blocks: [DA-E50-04]. Blocked by: [DA-E50-01, DA-E15-01].
 
@@ -9901,7 +9901,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Technical Notes:** This is the highest-complexity task in the entire re-scope — model negotiation history as an append-only log (e.g. a `PackageNegotiationEvent` sub-collection/table), not just overwriting `finalTerms` each time, so the UI thread view (DA-E50 frontend) can render the full back-and-forth.
 
-**Spec Reference:** `docs/feature/media-package-campaign/3-5-3-request-media-package/spec.md`, `docs/ba/12-state-machines.md` mục 2 "Media Package (đàm phán)"
+**Spec Reference:** `docs/feature/3-5-media-package-campaign/3-5-3-request-media-package/spec.md`, `docs/ba/12-state-machines.md` mục 2 "Media Package (đàm phán)"
 
 **Dependencies:** Blocks: [DA-E50-05]. Blocked by: [DA-E50-02, DA-E50-03].
 
@@ -9923,7 +9923,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 
 **Technical Notes:** This must be one atomic DB transaction (edit terms + increment version + reset both approvals) — a partial failure here (terms changed but stale approval left standing) is exactly the risk flagged in `docs/plan/document-plan.md` R2 §1.3 as a top project risk ("reject-giữ-approval-cũ tính sai trong code").
 
-**Spec Reference:** `docs/feature/media-package-campaign/3-5-4-approve-media-package/spec.md`, `docs/ba/12-state-machines.md` mục 2
+**Spec Reference:** `docs/feature/3-5-media-package-campaign/3-5-4-approve-media-package/spec.md`, `docs/ba/12-state-machines.md` mục 2
 
 **Dependencies:** Blocks: [DA-E50-06]. Blocked by: [DA-E50-04].
 
@@ -9939,7 +9939,7 @@ Blocks: DA-AI05-15, DA-AI05-16, DA-AI05-17. Blocked by: DA-AI05-29.
 and completed campaigns. A new campaign needs a new Workspace. Owner can duplicate
 selected Workspace members/timezone through DA-E16-13 / Jira DA-1255; resource copy
 awaits its own module. This replaces the multiple-cooperation-round proposal. See
-`docs/feature/media-package-campaign/campaign-delivery-plan.md` for decisions and rollout.
+`docs/feature/3-5-media-package-campaign/campaign-delivery-plan.md` for decisions and rollout.
 
 **Acceptance Criteria:**
 
@@ -9950,7 +9950,7 @@ awaits its own module. This replaces the multiple-cooperation-round proposal. Se
 - [ ] Attempting to create a Campaign against a non-approved package returns 409 `PACKAGE_NOT_APPROVED`
 - [ ] Enforce at most one Campaign per Workspace, including drafts and completed campaigns; use a new Workspace for a new campaign
 
-**Spec Reference:** `docs/feature/media-package-campaign/3-5-5-create-media-campaign/spec.md`, `docs/ba/12-state-machines.md` mục 3
+**Spec Reference:** `docs/feature/3-5-media-package-campaign/3-5-5-create-media-campaign/spec.md`, `docs/ba/12-state-machines.md` mục 3
 
 **Dependencies:** Blocks: [DA-E50-07]. Blocked by: [DA-E50-05].
 
@@ -9969,13 +9969,13 @@ awaits its own module. This replaces the multiple-cooperation-round proposal. Se
 - [ ] Generated Tasks are minimal: name + deadline only — no assignee or detailed requirements yet (those come from Identify Task Detail, DA-E51-04-equivalent FR 3.6.1); each carries its stable `campaignWorkItemId` for idempotency
 - [ ] Campaign transitions to `IN_PROGRESS` only after durable deployment confirms all work items have corresponding Tasks; partial failures remain retryable
 - [ ] Calling deploy twice (double-click) does not create duplicate Tasks — idempotency required
-- [ ] Confirmed 2026-10-14: Manager completes IN_PROGRESS only when every linked Task is COMPLETED/CANCELLED and no Request is IN_PROGRESS. Preview blockers; optional explicit bulk cancellation uses one shared preset/OTHER reason and per-Task audit, preserving approval/content history. PENDING Requests auto-cancel after completion. See docs/feature/media-package-campaign/campaign-closure/spec.md; replaces reason-only bypass.
+- [ ] Confirmed 2026-10-14: Manager completes IN_PROGRESS only when every linked Task is COMPLETED/CANCELLED and no Request is IN_PROGRESS. Preview blockers; optional explicit bulk cancellation uses one shared preset/OTHER reason and per-Task audit, preserving approval/content history. PENDING Requests auto-cancel after completion. See docs/feature/3-5-media-package-campaign/3-5-9-complete-media-campaign/campaign-closure/spec.md; replaces reason-only bypass.
 
-**Confirmed design (2026-10-08):** See `docs/feature/media-package-campaign/phase-1-design/plan.md` for versioned approval, total quantities, deployment recovery and Mongo Task/editor integration. Design completion is not implementation completion.
+**Confirmed design (2026-10-08):** See `docs/feature/3-5-media-package-campaign/phase-1-design/plan.md` for versioned approval, total quantities, deployment recovery and Mongo Task/editor integration. Design completion is not implementation completion.
 
 **Technical Notes:** This is the hand-off point into E51 (Task & Content Workflow) — the Task collection (DA-E51-01) must exist before this task's deploy logic can insert into it.
 
-**Spec Reference:** `docs/feature/media-package-campaign/3-5-6-approve-media-campaign/spec.md`, `docs/ba/05-content-task-workflow.md`
+**Spec Reference:** `docs/feature/3-5-media-package-campaign/3-5-8-approve-media-campaign/spec.md`, `docs/ba/05-content-task-workflow.md`
 
 **Dependencies:** Blocks: [DA-E51-04]. Blocked by: [DA-E50-06, DA-E51-01].
 
@@ -9991,7 +9991,7 @@ awaits its own module. This replaces the multiple-cooperation-round proposal. Se
 
 - [ ] `ThirdPartyCollaborator` table scoped to `agencyId`: `name`, `type` (newspaper/banner/TV/other), `contactInfo`
 - [ ] Basic CRUD endpoints under `/api/v1/agencies/{id}/collaborators`
-- [ ] Confirmed BA 2026-10-13: Agency Owner alone manages the directory. Unused partners may be deleted; previously used partners may only be deactivated, never newly assigned while inactive. Existing Campaign links remain readable/updateable. See `docs/feature/media-package-campaign/partner-directory/spec.md` (DA-949).
+- [ ] Confirmed BA 2026-10-13: Agency Owner alone manages the directory. Unused partners may be deleted; previously used partners may only be deactivated, never newly assigned while inactive. Existing Campaign links remain readable/updateable. See `docs/feature/3-7-ai-features/3-7-15-view-collaborator-directory/partner-directory/spec.md` (DA-949).
 
 **Spec Reference:** `docs/ba/07-publishing-social-collaborator.md`, `docs/ba/12-state-machines.md` mục 6 "Third-party Collaborator"
 
@@ -10017,7 +10017,7 @@ allowed per BA. Unique pair, row locks and timestamp guard protect assignment
 and updates without modifying Campaign approvals. 49 backend tests and 12 browser
 API-mock tests pass; PostgreSQL/API JWT/concurrency smoke remains pending.
 E50-08 directory CRUD is not implemented by this task. Details and verification:
-`docs/feature/media-package-campaign/campaign-collaborators/{spec,plan,task,test}.md`.
+`docs/feature/3-5-media-package-campaign/3-5-7-update-media-campaign/campaign-collaborators/{spec,plan,task,test}.md`.
 
 **Spec Reference:** `docs/ba/12-state-machines.md` mục 6
 
@@ -10043,15 +10043,15 @@ E50-08 directory CRUD is not implemented by this task. Details and verification:
 - [ ] Cancel is a soft-delete (`status=cancelled`), consistent with the soft-delete convention used elsewhere in V2
 - [ ] Non-Client attempting to create, or non-owner-of-request attempting to cancel, returns 403
 - [ ] Confirmed 2026-10-14: acceptance creates exactly one generic Mongo Task BACKLOG with current Campaign ID, campaignWorkItemId=null, sourceType=CONTENT_REQUEST/sourceRefId=requestId, and links generatedTaskId. Serialize with Campaign closure; retries cannot duplicate it. Supplemental group does not change approved plan/package quantities. Legacy unlinked Tasks need explicit reconciliation, not silent reassignment.
-- [ ] Align legacy Request UI/mock states and Atlas schema through new migrations plus init parity; no Atlas reinitialisation or guessed legacy mappings. See `docs/feature/media-package-campaign/remaining-work/spec.md` for decisions (DA-951).
+- [ ] Align legacy Request UI/mock states and Atlas schema through new migrations plus init parity; no Atlas reinitialisation or guessed legacy mappings. See `docs/feature/3-5-media-package-campaign/remaining-work/spec.md` for decisions (DA-951).
 
-**Spec Reference:** `docs/feature/media-package-campaign/3-5-7-create-content-request/spec.md`, `docs/feature/media-package-campaign/3-5-8-track-request-status/spec.md`, `docs/feature/media-package-campaign/3-5-9-update-request/spec.md`, `docs/feature/media-package-campaign/3-5-10-cancel-request/spec.md`, `docs/ba/12-state-machines.md` mục 1 "Content Request"
+**Spec Reference:** `docs/feature/3-5-media-package-campaign/3-5-10-create-content-request/spec.md`, `docs/feature/3-5-media-package-campaign/3-5-11-track-request-status/spec.md`, `docs/feature/3-5-media-package-campaign/3-5-12-update-request/spec.md`, `docs/feature/3-5-media-package-campaign/3-5-13-cancel-request/spec.md`, `docs/ba/12-state-machines.md` mục 1 "Content Request"
 
 **Implementation checkpoint 2026-10-13 (DA-951):** Giai đoạn 2–3 đã có API/UI create/read/edit/cancel,
 Manager receive/accept/deny, transaction Request/Task/audit và source uniqueness. Unit/MockMvc,
 transaction/race/rollback trên Mongo local cô lập và UI fixtures đã chạy. Atlas chỉ inventory/hello
 read-only; hai migration chưa apply, chưa live smoke qua Gateway hoặc đánh dấu task Done.
-Evidence: `docs/feature/media-package-campaign/remaining-work/test.md`.
+Evidence: `docs/feature/3-5-media-package-campaign/remaining-work/test.md`.
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E15-01].
 
@@ -10105,7 +10105,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 ### DA-E51-03 — Implement Task Approval (Creator → Manager → optional Client)
 
-> **BA confirmed 2026-10-18:** [FR3.6.9 v3](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md) and its plan/task/test supersede the former QC/intermediate-state/snapshot proposal for this task. Phase 1 is documentation only, not completed implementation or a Jira status update.
+> **BA confirmed 2026-10-18:** [FR3.6.9 v3](../feature/3-6-content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md) and its plan/task/test supersede the former QC/intermediate-state/snapshot proposal for this task. Phase 1 is documentation only, not completed implementation or a Jira status update.
 
 **Assignee in this local plan:** Lộc takes over FR3.6.9 as requested by the user; coordinate the handoff with Phước and the team. Actual Jira assignment and numeric issue key are not verified/updated here. **Priority:** Critical.
 
@@ -10126,9 +10126,9 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] Final approval only finishes Task, never auto-publishes; coordinate narrow Editor/Admin integration, leave Yjs and publisher modules owned by their maintainers.
 - [ ] Review UI/history in existing Task popup, vi/en and light/dark, accessible loading/errors; test role/scope/races/regressions before Done.
 
-**Technical Notes:** Plan/use cases/data contract at [FR3.6.9](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/plan.md). Giai đoạn 1→6: documentation → DB → backend → POST integration → UI/notifications → verification. No runtime/DB mutation in phase 1; no legacy cleanup/backfill without separately reviewed inventory/allowlist.
+**Technical Notes:** Plan/use cases/data contract at [FR3.6.9](../feature/3-6-content-task-workflow/3-6-9-approval-sequence-creator-manager-client/plan.md). Giai đoạn 1→6: documentation → DB → backend → POST integration → UI/notifications → verification. No runtime/DB mutation in phase 1; no legacy cleanup/backfill without separately reviewed inventory/allowlist.
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/{spec,plan,task,test}.md`, `docs/ba/12-state-machines.md` §4.
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-9-approval-sequence-creator-manager-client/{spec,plan,task,test}.md`, `docs/ba/12-state-machines.md` §4.
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-02, DA-E51-04]; coordinate the POST owner before phase 4.
 
@@ -10136,7 +10136,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 ### DA-E51-04 — Implement Task Backlog, Identify Detail + Assign to Creator
 
-> **Latest confirmed BA, 2026-10-15 (Jira DA-978):** detail preparation and assignment remain TODO; remove DETAIL_IDENTIFIED/ASSIGNED as business states and remove the intermediate-step prerequisite. Assignment/start require a nonblank description and a valid deadline. The assigned Creator explicitly starts TODO → IN_PROGRESS; Manager edits/reassignment remain locked after first start, including rejection. Detail autosaves on blur/selection. List actions are Manager assignee/deadline and assigned Creator Start only. Mandatory expectedRevision/CAS applies. This amendment supersedes the historical acceptance criteria below; see `docs/feature/content-task-workflow/task-five-state-inline-edit/spec.md`. FR 3.6.3 is still planned, not implemented.
+> **Latest confirmed BA, 2026-10-15 (Jira DA-978):** detail preparation and assignment remain TODO; remove DETAIL_IDENTIFIED/ASSIGNED as business states and remove the intermediate-step prerequisite. Assignment/start require a nonblank description and a valid deadline. The assigned Creator explicitly starts TODO → IN_PROGRESS; Manager edits/reassignment remain locked after first start, including rejection. Detail autosaves on blur/selection. List actions are Manager assignee/deadline and assigned Creator Start only. Mandatory expectedRevision/CAS applies. This amendment supersedes the historical acceptance criteria below; see `docs/feature/3-6-content-task-workflow/3-6-1-identify-task-detail/task-five-state-inline-edit/spec.md`. FR 3.6.3 is still planned, not implemented.
 
 **Assignee:** Lộc | **Priority:** 🟡 High
 
@@ -10144,7 +10144,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Q13 confirmed 2026-10-14 (DA-978/DA-1236), superseding Task visibility rules and Q12:** Active Clients may read/comment every Task in their Workspace, including Manager-created manual and legacy Tasks. No internal/public classification, visibility field/filter/default or Q12 validation. requiresClientApproval configures result approval only. Preserve role-based management/editor permissions, Workspace isolation, draft-upload ownership and Q11 notification recipients.
 
-**Amendment confirmed 2026-10-14 (Jira DA-978):** Separate Task dueDate from POST planned publication time; no automatic scheduling. Common brief/input scope covers all five current Task types without implementing specialist authoring modules. Manager may edit/reassign only before the Creator first starts, including initial ASSIGNED; reject returning to ASSIGNED must not reopen these controls. Under the latest Q13, active Clients can read/comment every Task in their Workspace, regardless of source or legacy start/revision fields. Missing first-start evidence gates management mutations only. Campaign Task deadlines fall within max(today,start)..end in Workspace timezone; POST planned publication is not before dueDate and stays within Campaign. Manual Tasks without Campaign have deadlines from today onward. Q8 confirmed: the assignee explicitly clicks Start to transition ASSIGNED to IN_PROGRESS; opening a page/editor does not start work. Preserve first-start evidence across rejects. Coordinate lifecycle/revision changes with the E51-03 owner; see `docs/feature/content-task-workflow/task-detail-assignment-comments-roadmap.md`.
+**Amendment confirmed 2026-10-14 (Jira DA-978):** Separate Task dueDate from POST planned publication time; no automatic scheduling. Common brief/input scope covers all five current Task types without implementing specialist authoring modules. Manager may edit/reassign only before the Creator first starts, including initial ASSIGNED; reject returning to ASSIGNED must not reopen these controls. Under the latest Q13, active Clients can read/comment every Task in their Workspace, regardless of source or legacy start/revision fields. Missing first-start evidence gates management mutations only. Campaign Task deadlines fall within max(today,start)..end in Workspace timezone; POST planned publication is not before dueDate and stays within Campaign. Manual Tasks without Campaign have deadlines from today onward. Q8 confirmed: the assignee explicitly clicks Start to transition ASSIGNED to IN_PROGRESS; opening a page/editor does not start work. Preserve first-start evidence across rejects. Coordinate lifecycle/revision changes with the E51-03 owner; see `docs/feature/3-6-content-task-workflow/task-detail-assignment-comments-roadmap.md`.
 
 **Acceptance Criteria:**
 
@@ -10157,7 +10157,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] Creator receives a notification upon assignment
 - [ ] Manager can reassign before first start, preserving ASSIGNED; after first start/approval/terminal status this operation is locked. Preserve Task identity, source linkage, cancellation audit and approval history.
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-1-identify-task-detail/spec.md`, `docs/feature/content-task-workflow/3-6-2-assign-task-to-creator/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-1-identify-task-detail/spec.md`, `docs/feature/3-6-content-task-workflow/3-6-2-assign-task-to-creator/spec.md`
 
 **Dependencies:** Blocks: [DA-E51-03]. Blocked by: [DA-E51-01, DA-E50-07].
 
@@ -10179,7 +10179,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] Send in-app comment notifications to mentions, assignee, QC and Workspace Managers; deduplicate, exclude the author and recipients without current Task access. Clients receive notifications only when mentioned (Q11 confirmed). No comment edit/delete in this scope.
 - [ ] Parallel vi/en, semantic light/dark, keyboard access, mobile layout and API authorization tests.
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-3-add-comments-on-task/spec.md`; planning decisions in `docs/feature/content-task-workflow/task-detail-assignment-comments-roadmap.md`.
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-3-add-comments-on-task/spec.md`; planning decisions in `docs/feature/3-6-content-task-workflow/task-detail-assignment-comments-roadmap.md`.
 
 **Dependencies:** Uses DA-E51-01 Task identity and the shared Task detail/access integration from DA-E51-04. Comments do not require the Task to be assigned or the Client-approval flag to be enabled. No runtime/database implementation has been added by this plan update.
 
@@ -10201,7 +10201,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Technical Notes:** Frontend `web-dashboard` already has a `calendar` page using `mockCalendarService.ts` — this backend work is what unblocks swapping the mock for a real service call, not new frontend work.
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-4-list-task-view/spec.md`, `3-6-5-calendar-task-view`, `3-6-6-grantt-timeline-task-view`, `3-6-7-kanban-board-task-view`, `3-6-8-view-task-filter` (cùng thư mục `docs/feature/content-task-workflow/`)
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-4-list-task-view/spec.md`, `3-6-5-calendar-task-view`, `3-6-6-grantt-timeline-task-view`, `3-6-7-kanban-board-task-view`, `3-6-8-view-task-filter` (cùng thư mục `docs/feature/3-6-content-task-workflow/`)
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-01].
 
@@ -10219,7 +10219,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] `GET /api/v1/workspaces/{id}/materials?type=raw|retouched` lists filtered by type
 - [ ] Raw-type materials show a warning badge in the UI when referenced in a submitted Task (does not hard-block submission — Manager decides whether to reject)
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-11-view-material-repository/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-11-view-material-repository/spec.md`
 
 **Dependencies:** Blocks: [DA-E51-06b, DA-E51-06c, DA-E51-06d, DA-E51-06e, DA-E51-06f]. Blocked by: [DA-E15-01].
 
@@ -10237,7 +10237,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] Uploader recorded as `uploadedBy`; `uploadedAt` set server-side
 - [ ] Invalid/missing file returns 400 `VALIDATION_ERROR`
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-12-add-material-repository/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-12-add-material-repository/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-06].
 
@@ -10255,7 +10255,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] Only the original uploader or a Manager may update — others get 403
 - [ ] Updating a non-existent material returns 404
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-13-update-material-repository/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-13-update-material-repository/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-06].
 
@@ -10273,7 +10273,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] Material already referenced by a submitted Task cannot be hard-deleted, only soft-deleted — Task still resolves the reference for history purposes
 - [ ] Only the original uploader or a Manager may delete — others get 403
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-14-remove-material-repository/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-14-remove-material-repository/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-06].
 
@@ -10291,7 +10291,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] Logo must come from the Workspace's Brand Collection (Client-supplied) — an arbitrary uploaded logo is rejected with 400
 - [ ] Unsupported image format returns 400 `UNSUPPORTED_FORMAT`
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-15-apply-watermark/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-18-apply-watermark/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-06].
 
@@ -10308,7 +10308,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] `GET /api/v1/workspaces/{id}/materials/{materialId}/download` streams/redirects to the file with correct `Content-Disposition`
 - [ ] Downloading a soft-deleted material returns 404
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-16-download-material/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-19-download-material/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-06].
 
@@ -10326,7 +10326,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] `GET /api/v1/workspaces/{id}/brand-collection` lists all Client-supplied reference assets
 - [ ] `POST /api/v1/workspaces/{id}/brand-collection` — CLIENT role only; Creator/Manager attempting to upload returns 403
 
-**Spec Reference:** `docs/ba/05-content-task-workflow.md`, `docs/feature/content-task-workflow/3-6-11-view-material-repository/spec.md` (Brand Asset Upload for Reference note)
+**Spec Reference:** `docs/ba/05-content-task-workflow.md`, `docs/feature/3-6-content-task-workflow/3-6-11-view-material-repository/spec.md` (Brand Asset Upload for Reference note)
 
 **Dependencies:** Blocks: [DA-E51-06e]. Blocked by: [DA-E15-01].
 
@@ -10346,7 +10346,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] “Apply to Post” from the collection opens a new draft editor with the chosen hashtag prefilled.
 - [ ] Campaign-required hashtags cannot be applied to a draft without a campaign association.
 
-**Spec Reference:** `docs/feature/content-task-workflow/apply-hashtag-to-post/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-20-apply-hashtag/apply-hashtag-to-post/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-07b, DA-E51-07c].
 
@@ -10363,7 +10363,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [x] `workspace_hashtags` table stores purpose, ownership, required campaign scope and soft-delete audit fields.
 - [x] `GET /api/v1/workspaces/{workspaceId}/hashtags` returns filtered, paged active entries with version for safe removal.
 
-**Spec Reference:** `docs/feature/content-task-workflow/view-hashtag-collection/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-21-view-hashtag-collection/view-hashtag-collection/spec.md`
 
 **Dependencies:** Blocks: [DA-E51-07, DA-E51-07c, DA-E51-07d, DA-E51-07e].
 
@@ -10380,7 +10380,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [x] `POST /api/v1/workspaces/{workspaceId}/hashtags` accepts tag, purpose and scoped required-tag fields; returns 201.
 - [x] Workspace duplicate tag returns 409 `HASHTAG_ALREADY_EXISTS`.
 
-**Spec Reference:** `docs/feature/content-task-workflow/add-hashtag-collection/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-22-add-hashtag-collection/add-hashtag-collection/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-07b].
 
@@ -10397,7 +10397,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] `PATCH /api/v1/workspaces/{workspaceId}/hashtags/{hashtagId}` accepts allowed metadata fields; scope and version rules remain design gates.
 - [ ] Renaming to a tag that already exists returns 409 `HASHTAG_ALREADY_EXISTS`
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-20-update-hastag-collection/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-23-update-hashtag-collection/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-07b].
 
@@ -10414,7 +10414,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [x] `DELETE /api/v1/workspaces/{workspaceId}/hashtags/{hashtagId}` soft-deletes and leaves existing post snapshots unchanged.
 - [x] A stale version requires review of the current entry before reconfirmation; repeated removal is rejected.
 
-**Spec Reference:** `docs/feature/content-task-workflow/remove-hashtag-collection/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-24-remove-hashtag-collection/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-07b].
 
@@ -10430,7 +10430,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 - [ ] `PATCH /api/v1/workspaces/{id}/tasks/{taskId}/livestream/idea` accepts `{idea, goal}`, only for `type=livestream` Tasks — returns 400 `INVALID_TASK_TYPE` otherwise
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-22-write-livestream-idea/spec.md`
+**Spec Reference:** `docs/feature/_archive/descoped/3-6-22-write-livestream-idea/spec.md`
 
 **Dependencies:** Blocks: [DA-E51-08b]. Blocked by: [DA-E51-04].
 
@@ -10446,7 +10446,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 - [ ] `PATCH /api/v1/workspaces/{id}/tasks/{taskId}/livestream/script` accepts `{script}`, only allowed after idea is recorded
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-23-write-livestream-script/spec.md`
+**Spec Reference:** `docs/feature/_archive/descoped/3-6-23-write-livestream-script/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-08].
 
@@ -10464,7 +10464,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] `GET /api/v1/workspaces/{id}/tasks/{taskId}/livestream/status` returns current sub-state
 - [ ] Transition out of order (e.g. `PRE_LIVE → POST_LIVE` skipping `LIVE`) returns 409 `INVALID_LIVESTREAM_TRANSITION`
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-24-track-livestream-status/spec.md`, `docs/ba/12-state-machines.md` mục 5 "Task loại Livestream"
+**Spec Reference:** `docs/feature/_archive/descoped/3-6-24-track-livestream-status/spec.md`, `docs/ba/12-state-machines.md` mục 5 "Task loại Livestream"
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-08].
 
@@ -10481,7 +10481,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] `POST /api/v1/workspaces/{id}/tasks/{taskId}/meeting-link` generates/returns a meeting link, persisted on the Task (neutral endpoint; not livestream-specific)
 - [ ] Calling it again on the same Task returns the existing link rather than generating a duplicate
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-27-generate-meeting-link/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-27-generate-meeting-link/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-08].
 
@@ -10499,7 +10499,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] Publishing a survey with zero questions returns 400 `SURVEY_MUST_HAVE_QUESTIONS`
 - [ ] Returns a `publicLink` for participants to fill without authentication
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-25-create-survey/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-25-create-survey/spec.md`
 
 **Dependencies:** Blocks: [DA-E51-09b]. Blocked by: [DA-E51-04].
 
@@ -10516,7 +10516,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] `GET /api/v1/workspaces/{id}/tasks/{taskId}/survey/analysis` aggregates responses per question
 - [ ] Survey with zero responses returns an empty aggregation, not an error
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-26-view-survey-analysis/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-26-view-survey-analysis/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-09].
 
@@ -10534,7 +10534,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Technical Notes:** [OPEN QUESTION] Which role(s) may view/create/send mail templates is unconfirmed in the source FR CSV — flag this to Trung before finalizing the `@RequireRole` annotation on these endpoints; do not guess.
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-28-view-mail-template/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-28-view-mail-template/spec.md`
 
 **Dependencies:** Blocks: [DA-E51-10b, DA-E51-10c, DA-E51-10d, DA-E51-10e]. Blocked by: [DA-E15-01].
 
@@ -10551,7 +10551,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] `POST /api/v1/workspaces/{id}/mail-templates` accepts `{name, subject, body}`, returns 201
 - [ ] Empty `subject`/`body` returns 400 `VALIDATION_ERROR`
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-29-create-mail-template/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-29-create-mail-template/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-10].
 
@@ -10568,7 +10568,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] `PATCH /api/v1/workspaces/{id}/mail-templates/{id}` accepts `{name?, subject?, body?}`
 - [ ] Editing a non-existent template returns 404
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-30-update-mail-template/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-30-update-mail-template/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-10].
 
@@ -10585,7 +10585,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] `DELETE /api/v1/workspaces/{id}/mail-templates/{id}` soft-deletes, consistent with the V2 soft-delete convention
 - [ ] Deleting a non-existent template returns 404
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-31-delete-mail-template/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-31-delete-mail-template/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-10].
 
@@ -10603,7 +10603,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] Sending with an empty `recipients` list returns 400 `VALIDATION_ERROR`
 - [ ] Email delivery failure returns 502 `EMAIL_SERVICE_UNAVAILABLE`, retryable
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-32-send-email-via-template/spec.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-32-send-email-via-template/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-10].
 
@@ -10625,7 +10625,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Technical Notes:** Requires selecting and provisioning a 3rd-party moderation API (not yet chosen) — flag as an external dependency to resolve before this task can start. Design the response `severity` scale so both this check and DA-E51-12 can feed the same panel component.
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-33-check-compliance-content/spec.md`, `docs/ba/09-admin-management.md` FR 3.10.4
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-33-check-compliance-content/spec.md`, `docs/ba/09-admin-management.md` FR 3.10.4
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-04].
 
@@ -10647,7 +10647,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Technical Notes:** Same 3rd-party provider selection dependency as DA-E51-11 — evaluate whether one vendor can cover both compliance (violence/explicit/plagiarism) and copyright checks in a single API integration, since Trung's direction treats them as one unified panel.
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-34-check-copyright-infringement/spec.md`
+**Spec Reference:** `docs/feature/_archive/descoped/3-6-34-check-copyright-infringement/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-04].
 
@@ -10666,7 +10666,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] Reusing an existing content/asset increments `reusedCount` but does NOT trigger a new `AiCreditLedger` deduction — verified by asserting the ledger balance is unchanged on reuse
 - [ ] Soft-deleted content that was previously reused still appears in reuse history (not hidden just because the source was deleted)
 
-**Spec Reference:** `docs/feature/content-task-workflow/3-6-35-view-content-history/spec.md`, `docs/ba/08-subscription-billing.md`
+**Spec Reference:** `docs/feature/3-6-content-task-workflow/3-6-34-view-content-history/spec.md`, `docs/ba/08-subscription-billing.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E17-07 (AiCreditLedger must exist to verify no-double-charge)].
 
@@ -10729,7 +10729,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Technical Notes:** `CryptoUtils` (AES-256) already exists in `brandhub-publisher-service` — use it to encrypt the token before persisting; do not write new encryption code.
 
-**Spec Reference:** `docs/feature/publishing-social/3-8-1-connect-social-account/spec.md`, `docs/feature/publishing-social/3-8-2-disconnect-account/spec.md`, `docs/ba/07-publishing-social-collaborator.md`
+**Spec Reference:** `docs/feature/3-8-publishing-social/3-8-1-connect-social-account/spec.md`, `docs/feature/3-8-publishing-social/3-8-2-disconnect-account/spec.md`, `docs/ba/07-publishing-social-collaborator.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [None].
 
@@ -10747,7 +10747,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] `GET /api/v1/social/threads/connect` + callback, scope `threads_basic + threads_content_publish` via Meta Graph API
 - [ ] `GET /api/v1/social/accounts/status` returns ACTIVE/EXPIRED/REVOKED for each connected account across all 4 platforms
 
-**Spec Reference:** `docs/feature/publishing-social/3-8-1-connect-social-account/spec.md`, `docs/feature/publishing-social/3-8-2-disconnect-account/spec.md`
+**Spec Reference:** `docs/feature/3-8-publishing-social/3-8-1-connect-social-account/spec.md`, `docs/feature/3-8-publishing-social/3-8-2-disconnect-account/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E52-01 (shares token status endpoint pattern)].
 
@@ -10803,7 +10803,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] A successful callback creates the `posts` collection entry (DA-E51-14)
 - [ ] Callback endpoint validated as internal-only (not public-facing) — same protection pattern as other `/internal/*` endpoints in E23
 
-**Spec Reference:** `docs/feature/publishing-social/3-8-4-view-post-track-detail/spec.md`, `docs/feature/publishing-social/3-8-8-view-status-tracking/spec.md`, `docs/ba/12-state-machines.md` mục 7
+**Spec Reference:** `docs/feature/3-8-publishing-social/3-8-4-view-posted-detail/spec.md`, `docs/feature/3-8-publishing-social/3-8-7-track-post-status/spec.md`, `docs/ba/12-state-machines.md` mục 7
 
 **Dependencies:** Blocks: [DA-E51-14]. Blocked by: [None].
 
@@ -10842,7 +10842,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] Platform API rate-limiting on real-time engagement fetch is handled by caching last-fetched numbers with a "last updated" timestamp
 - [ ] Dashboard post list (FR 3.8.3), comment detail list (FR 3.8.5), schedule (3.8.7), preview (3.8.6) included in this task's scope
 
-**Spec Reference:** `docs/feature/publishing-social/3-8-3-view-dashboard-post/spec.md`, `docs/feature/publishing-social/3-8-4-view-post-track-detail/spec.md`, `docs/feature/publishing-social/3-8-5-view-comment-detail-list/spec.md`, `docs/feature/publishing-social/3-8-6-preview-post/spec.md`, `docs/feature/publishing-social/3-8-7-schedule-platform-post/spec.md`
+**Spec Reference:** `docs/feature/3-8-publishing-social/3-8-3-view-dashboard-post/spec.md`, `docs/feature/3-8-publishing-social/3-8-4-view-posted-detail/spec.md`, `docs/feature/3-8-publishing-social/3-8-4-view-posted-detail/view-comment-detail-list/spec.md`, `docs/feature/3-8-publishing-social/3-8-5-preview-post/spec.md`, `docs/feature/3-8-publishing-social/3-8-6-schedule-platform-post/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E52-05].
 
@@ -10860,7 +10860,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] Status values exactly match `docs/ba/12-state-machines.md` mục 7: `PENDING → IN_PROGRESS → DONE` or `FAIL`
 - [ ] `FAIL` status includes a human-readable `failReason`
 
-**Spec Reference:** `docs/feature/publishing-social/3-8-8-view-status-tracking/spec.md`, `docs/ba/12-state-machines.md` mục 7
+**Spec Reference:** `docs/feature/3-8-publishing-social/3-8-7-track-post-status/spec.md`, `docs/ba/12-state-machines.md` mục 7
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E52-05].
 
@@ -10879,12 +10879,12 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 **Acceptance Criteria:**
 
 - [ ] `GET /api/v1/admin/statistics/overview` returns user/agency/revenue counts and trend charts data
-- [ ] `GET /api/v1/admin/revenue` returns revenue breakdown from Plan + Credit purchases (`docs/feature/admin-management/3-10-11-view-revenue-dasboard/spec.md`)
+- [ ] `GET /api/v1/admin/revenue` returns revenue breakdown from Plan + Credit purchases (`docs/feature/3-10-admin-management/3-10-13-view-revenue-dashboard/spec.md`)
 - [ ] Aggregation must read from the V2 Task/Post/Transaction collections (E51/E17), not the old V1 shape
 
 **Technical Notes:** This depends on E50/E51/E17 having real data to aggregate — do not start until those write paths exist, or the aggregation will have nothing to query against.
 
-**Spec Reference:** `docs/feature/admin-management/3-10-2-platform-statistics-overview/spec.md`, `docs/feature/admin-management/3-10-11-view-revenue-dasboard/spec.md`
+**Spec Reference:** `docs/feature/3-10-admin-management/3-10-2-platform-statistics-overview/spec.md`, `docs/feature/3-10-admin-management/3-10-13-view-revenue-dashboard/spec.md`
 
 **Dependencies:** Blocks: [DA-E53-03]. Blocked by: [DA-E51-01, DA-E17-06].
 
@@ -10901,7 +10901,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] `POST /api/v1/admin/reports/export` accepts `{reportType: users|revenue|analytics}`, returns a generated PDF file
 - [ ] Empty dataset still generates a valid (empty-state) PDF, not an error
 
-**Spec Reference:** `docs/feature/admin-management/3-10-12-export-report-file-pdf/spec.md`
+**Spec Reference:** `docs/feature/_archive/legacy-numbering/admin-management/3-10-12-export-report-file-pdf/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E53-01].
 
@@ -10938,7 +10938,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Technical Notes:** Frontend already has `notificationStore.ts` + bell UI wired to a mock — this task is purely the missing backend.
 
-**Spec Reference:** `docs/feature/admin-management/3-10-1-push-notification/spec.md`
+**Spec Reference:** `docs/feature/3-10-admin-management/3-10-1-push-notification/spec.md`
 
 **Dependencies:** Blocks: [DA-E53-05]. Blocked by: [None].
 
@@ -10955,7 +10955,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] `mockNotificationService.ts` calls replaced with real HTTP/WebSocket calls to DA-E53-04 endpoints
 - [ ] Unread badge count reflects real unread notifications, not mock data
 
-**Spec Reference:** `docs/feature/admin-management/3-10-1-push-notification/spec.md`
+**Spec Reference:** `docs/feature/3-10-admin-management/3-10-1-push-notification/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E53-04].
 
@@ -10972,7 +10972,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] `GET /api/v1/admin/system-health` returns per-service CPU%/RAM% and up/down status for business-service, ai-service, publisher-service, api-gateway
 - [ ] A service that fails to respond within timeout is reported as `down`, not left hanging
 
-**Spec Reference:** `docs/feature/admin-management/3-10-3-system-health-monitoring/spec.md`
+**Spec Reference:** `docs/feature/3-10-admin-management/3-10-3-system-health-monitoring/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [None].
 
@@ -10989,7 +10989,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] `GET /api/v1/admin/moderation-queue` lists Tasks with severe compliance/copyright violations (per DA-E51-11's auto-enqueue rule)
 - [ ] `POST /api/v1/admin/moderation-queue/{taskId}/resolve` accepts `{decision: confirm|override, note?}`
 
-**Spec Reference:** `docs/feature/admin-management/3-10-4-content-moderation-queue/spec.md`
+**Spec Reference:** `docs/feature/3-10-admin-management/3-10-4-content-moderation-queue/spec.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E51-11, DA-E51-12].
 
@@ -11007,7 +11007,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 - [ ] `POST /api/v1/admin/users` creates a new user directly (Admin-initiated, no signup flow)
 - [ ] `PATCH /api/v1/admin/users/{id}` updates user profile fields
 
-**Spec Reference:** `docs/feature/admin-management/3-10-6-view-user/spec.md`, `3-10-7-create-user`, `3-10-8-update-user`
+**Spec Reference:** `docs/feature/3-10-admin-management/3-10-6-view-user/spec.md`, `3-10-7-create-user`, `3-10-8-update-user`
 
 **Dependencies:** Blocks: [None]. Blocked by: [None].
 
@@ -11026,7 +11026,7 @@ when Task metadata moves to Mongo; follow the phase-1 design contract.
 
 **Technical Notes:** [OPEN QUESTION] Whether an Admin can deactivate another Admin (FR 3.10.9) is unconfirmed — resolve with Trung before finalizing the permission check, do not guess.
 
-**Spec Reference:** `docs/feature/admin-management/3-10-5-user-management-verifydisabledelete/spec.md`, `docs/feature/admin-management/3-10-9-deactive-user/spec.md`, `docs/ba/09-admin-management.md`
+**Spec Reference:** `docs/feature/_archive/legacy-numbering/admin-management/3-10-5-user-management-verifydisabledelete/spec.md`, `docs/feature/_archive/legacy-numbering/admin-management/3-10-9-deactive-user/spec.md`, `docs/ba/09-admin-management.md`
 
 **Dependencies:** Blocks: [None]. Blocked by: [DA-E53-08].
 

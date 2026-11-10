@@ -109,7 +109,7 @@ reviewStep (MANAGER | CLIENT | null), approvalRound, workflowRevision,
 assignedBy/At, firstStartedBy/At, createdBy/At, updatedAt, cancellation?, typeMetadata
 ```
 
-BA 2026-10-18: không QC/ngày đăng dự kiến trong workflow mới; field/history legacy giữ để tương thích, không tự clean. `sourceRefId` của Campaign writer hiện tại là work-item ID, không tự coi là Campaign ID. `approvalRound` là lượt duyệt, không phiên bản nội dung. Kế hoạch bổ sung `lastSubmission` metadata lượt gần nhất và `posts.task_id` tại [plan FR3.6.9](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/plan.md); chưa migration/implementation trong giai đoạn 1.
+BA 2026-10-18: không QC/ngày đăng dự kiến trong workflow mới; field/history legacy giữ để tương thích, không tự clean. `sourceRefId` của Campaign writer hiện tại là work-item ID, không tự coi là Campaign ID. `approvalRound` là lượt duyệt, không phiên bản nội dung. Kế hoạch bổ sung `lastSubmission` metadata lượt gần nhất và `posts.task_id` tại [plan FR3.6.9](../feature/3-6-content-task-workflow/3-6-9-approval-sequence-creator-manager-client/plan.md); chưa migration/implementation trong giai đoạn 1.
 
 ### `TaskApproval` (lịch sử duyệt)
 ```
@@ -117,7 +117,7 @@ id, taskId, approvalRound, step (MANAGER | CLIENT),
 action (APPROVE | REJECT), actorId (User ID), comment?, createdAt
 ```
 
-Append-only; mục tiêu unique(Task, lượt, bước), tối đa hai decision/lượt; reject bắt buộc comment. Giữ tên `comment`, UI gọi “Nhận xét duyệt”; không thay `task_comments`. Submit/withdraw là chuyển trạng thái, không tạo decision giả. Không snapshot/content-version history mới; không xem lại nội dung cũ qua TaskApproval. QC legacy không bị xóa. [Spec hiện hành](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md).
+Append-only; mục tiêu unique(Task, lượt, bước), tối đa hai decision/lượt; reject bắt buộc comment. Giữ tên `comment`, UI gọi “Nhận xét duyệt”; không thay `task_comments`. Submit/withdraw là chuyển trạng thái, không tạo decision giả. Không snapshot/content-version history mới; không xem lại nội dung cũ qua TaskApproval. QC legacy không bị xóa. [Spec hiện hành](../feature/3-6-content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md).
 
 ### `ThirdPartyCollaborator` (SỬA 2026-09-15 — danh bạ chung cấp Agency, không gắn cứng Campaign)
 ```

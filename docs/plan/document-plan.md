@@ -946,7 +946,7 @@
   - Mỗi UC: ID, Use Case, Actors, Description
   - Format theo sample Table 3
 
-- **Source References:** `docs/feature/authentication/*/spec.md`, `docs/feature/profile/*/spec.md`, `docs/feature/agency-workspace/*/spec.md`
+- **Source References:** `docs/feature/3-2-authentication/*/spec.md`, `docs/feature/3-3-profile/*/spec.md`, `docs/feature/3-4-agency-workspace/*/spec.md`
 
 - **Dependencies:** DA-D13-01, DA-D02-01
 
@@ -960,7 +960,7 @@
   - Format theo sample Table 3
   - Lưu ý UC "Approve Package/Campaign" phải ghi rõ điều kiện "cả 2 bên" trong Description
 
-- **Source References:** `docs/feature/media-package-campaign/*/spec.md`, `docs/feature/content-task-workflow/*/spec.md`
+- **Source References:** `docs/feature/3-5-media-package-campaign/*/spec.md`, `docs/feature/3-6-content-task-workflow/*/spec.md`
 
 - **Dependencies:** DA-D13-01, DA-D02-01
 
@@ -973,7 +973,7 @@
 - **Acceptance Criteria:**
   - Format theo sample Table 3
 
-- **Source References:** `docs/feature/ai-features/*/spec.md`, `docs/feature/publishing-social/*/spec.md`, `docs/feature/subscription-billing/*/spec.md`, `docs/feature/admin-management/*/spec.md`
+- **Source References:** `docs/feature/3-7-ai-features/*/spec.md`, `docs/feature/3-8-publishing-social/*/spec.md`, `docs/feature/3-9-subscription-billing/*/spec.md`, `docs/feature/3-10-admin-management/*/spec.md`
 
 - **Dependencies:** DA-D13-01, DA-D02-01
 
@@ -1032,7 +1032,7 @@
   - Format: #, Feature, System Function, Description
   - Functions: Welcome Email, Password Reset, JWT Cleanup, OAuth Token Refresh, Publishing Job, Publish Callback, Payment Confirmation (PayOS webhook), **Task auto-gen từ Campaign approved** (MỚI), **AI Credit monthly reset — không rollover** (MỚI, `docs/ba/13` mục 7), Trend Crawl, AI Usage Archive, Notification Delivery
 
-- **Source References:** `docs/feature/media-package-campaign/*/spec.md`, `docs/feature/subscription-billing/*/spec.md`
+- **Source References:** `docs/feature/3-5-media-package-campaign/*/spec.md`, `docs/feature/3-9-subscription-billing/*/spec.md`
 
 - **Dependencies:** DA-D14-01 through DA-D14-03
 
@@ -1046,7 +1046,7 @@
   - Mỗi FR: Function Trigger → Description → Screen Layout → Data → Business Rules → Normal Flow → Abnormal Cases → Post-Conditions
   - FR: Sign Up, Sign In (Email), Sign In (Google OAuth), Verify OTP, Forgot Password, Reset Password, Change Password, Multi-method Login, Account Deactivation
 
-- **Source References:** `docs/feature/authentication/` (9 spec.md)
+- **Source References:** `docs/feature/3-2-authentication/` (9 spec.md)
 
 - **Dependencies:** DA-D14-01 through DA-D14-03
 
@@ -1060,7 +1060,7 @@
   - FR: View Profile, Update Profile, Client Profile (tái sử dụng xuyên Agency/Workspace, email không đổi được), Avatar Upload
   - **[OPEN QUESTION]** FR 3.3.1 field list User Profile chưa xác định — ghi rõ trong report, không tự bịa field
 
-- **Source References:** `docs/feature/profile/` (4 spec.md)
+- **Source References:** `docs/feature/3-3-profile/` (4 spec.md)
 
 - **Dependencies:** DA-D15-01
 
@@ -1074,7 +1074,7 @@
   - FR: List/Create/View/Update/Delete Agency, Invite Member, View Invitation Status, Remove Member
   - Nhấn mạnh: mỗi Agency đúng 1 Owner, Member Agency không có role gì ở cấp này
 
-- **Source References:** `docs/feature/agency-workspace/` (9 spec.md đầu)
+- **Source References:** `docs/feature/3-4-agency-workspace/` (9 spec.md đầu)
 
 - **Dependencies:** DA-D15-02
 
@@ -1088,7 +1088,7 @@
   - FR: List/Create/View/Update/Delete Workspace, Leave Workspace, Save Template, View/Add/Remove Member, Timezone Configuration
   - Nhấn mạnh: Workspace tạo trước, bắt buộc gán Manager (Owner tự làm được), mỗi Workspace đúng 1 Manager
 
-- **Source References:** `docs/feature/agency-workspace/` (12 spec.md còn lại)
+- **Source References:** `docs/feature/3-4-agency-workspace/` (12 spec.md còn lại)
 
 - **Dependencies:** DA-D15-03
 
@@ -1102,7 +1102,7 @@
   - FR: chọn Package Template/Custom, đàm phán (Client request đổi ↔ Manager counter-offer), Approve
   - Nhấn mạnh rule: ACTIVE chỉ khi CẢ HAI bên approve bản mới nhất; 1 bên sửa lại reset approve bên kia (`docs/ba/13` mục 3)
 
-- **Source References:** `docs/feature/media-package-campaign/` (5 spec.md đầu)
+- **Source References:** `docs/feature/3-5-media-package-campaign/` (5 spec.md đầu)
 
 - **Dependencies:** DA-D15-04
 
@@ -1116,7 +1116,7 @@
   - FR: Approve Campaign → auto-gen Task backlog
   - Nhấn mạnh: Campaign **immutable** sau approve — thêm nội dung phải qua Content Request hoặc Manager add Task thủ công (`docs/ba/13` mục 6)
 
-- **Source References:** `docs/feature/media-package-campaign/3-5-6-approve-media-campaign/spec.md`
+- **Source References:** `docs/feature/3-5-media-package-campaign/3-5-8-approve-media-campaign/spec.md`
 
 - **Dependencies:** DA-D16-01
 
@@ -1130,7 +1130,7 @@
   - FR: Create, Track Status, Accept → auto-gen Task
   - Nhấn mạnh: `denied` là trạng thái **terminal**, Client không sửa lại được, phải tạo request mới (`docs/ba/13` mục 5)
 
-- **Source References:** `docs/feature/media-package-campaign/` (4 spec.md cuối)
+- **Source References:** `docs/feature/3-5-media-package-campaign/` (4 spec.md cuối)
 
 - **Dependencies:** DA-D16-02
 
@@ -1144,7 +1144,7 @@
   - FR: Backlog, Identify Task Detail, Assign (optional QC + requiresClientApproval), Approval Sequence 4-bước (Creator→[QC]→Manager→[Client]), Manager add Task thủ công
   - **Rule quan trọng (SỬA 2026-09-15):** reject quay về `ASSIGNED` nhưng GIỮ approval các step trước đã pass — không xoá toàn bộ lịch sử duyệt (`docs/ba/13` mục 4, khác hẳn thiết kế ban đầu ghi "làm lại từ đầu")
 
-- **Source References:** `docs/feature/content-task-workflow/` (10 spec.md đầu), `docs/ba/12-state-machines.md`
+- **Source References:** `docs/feature/3-6-content-task-workflow/` (10 spec.md đầu), `docs/ba/12-state-machines.md`
 
 - **Dependencies:** DA-D16-03
 
@@ -1157,7 +1157,7 @@
 - **Acceptance Criteria:**
   - FR: Material Repository, Brand Collection, Hashtag Collection, Content Version, Livestream (PRE_LIVE→LIVE→POST_LIVE→DONE/CANCEL), Survey/Form
 
-- **Source References:** `docs/feature/content-task-workflow/` (17 spec.md tiếp theo)
+- **Source References:** `docs/feature/3-6-content-task-workflow/` (17 spec.md tiếp theo)
 
 - **Dependencies:** DA-D16-04
 
@@ -1172,7 +1172,7 @@
   - **[OPEN QUESTION]** role nhóm Mail Template chưa xác định trong CSV gốc — ghi TBD, không tự gán
   - **[OPEN QUESTION]** FR 3.6.34 Copyright check bản thân CSV ghi "cần làm rõ hơn" — AC/DoD giữ nguyên trạng thái chưa hoàn chỉnh trong report
 
-- **Source References:** `docs/feature/content-task-workflow/` (8 spec.md cuối)
+- **Source References:** `docs/feature/3-6-content-task-workflow/` (8 spec.md cuối)
 
 - **Dependencies:** DA-D16-05
 
@@ -1182,7 +1182,7 @@
 
 - **Goal:** Mô tả FR 3.7.1–3.7.3.
 
-- **Acceptance Criteria:** Format chuẩn FR, nguồn `docs/feature/ai-features/` (3 spec.md đầu)
+- **Acceptance Criteria:** Format chuẩn FR, nguồn `docs/feature/3-7-ai-features/` (3 spec.md đầu)
 
 - **Dependencies:** DA-D16-06
 
@@ -1192,7 +1192,7 @@
 
 - **Goal:** Mô tả FR 3.7.4–3.7.6.
 
-- **Acceptance Criteria:** Format chuẩn FR, nguồn `docs/feature/ai-features/` (3 spec.md tiếp)
+- **Acceptance Criteria:** Format chuẩn FR, nguồn `docs/feature/3-7-ai-features/` (3 spec.md tiếp)
 
 - **Dependencies:** DA-D17-01
 
@@ -1202,7 +1202,7 @@
 
 - **Goal:** Mô tả FR 3.7.7–3.7.9.
 
-- **Acceptance Criteria:** Format chuẩn FR, nguồn `docs/feature/ai-features/` (3 spec.md tiếp)
+- **Acceptance Criteria:** Format chuẩn FR, nguồn `docs/feature/3-7-ai-features/` (3 spec.md tiếp)
 
 - **Dependencies:** DA-D17-02
 
@@ -1212,7 +1212,7 @@
 
 - **Goal:** Mô tả FR 3.7.10–3.7.11.
 
-- **Acceptance Criteria:** Format chuẩn FR, nguồn `docs/feature/ai-features/` (2 spec.md tiếp)
+- **Acceptance Criteria:** Format chuẩn FR, nguồn `docs/feature/3-7-ai-features/` (2 spec.md tiếp)
 
 - **Dependencies:** DA-D17-03
 
@@ -1226,7 +1226,7 @@
   - AI chỉ gợi ý, không tự động liên hệ/ký kết
   - Gợi ý có thể thêm mới vào danh bạ `ThirdPartyCollaborator` cấp Agency hoặc link vào Campaign hiện tại qua `CampaignCollaborator` (`docs/ba/13` mục 8)
 
-- **Source References:** `docs/feature/ai-features/3-7-12-recommend-collaborator/spec.md`
+- **Source References:** `docs/feature/3-7-ai-features/3-7-19-recommend-collaborator/spec.md`
 
 - **Dependencies:** DA-D17-04
 
@@ -1240,7 +1240,7 @@
   - FR: Connect/Disconnect Social Account
   - Platform hỗ trợ: Facebook, Instagram, TikTok, Threads — **KHÔNG Zalo OA** (loại khỏi scope)
 
-- **Source References:** `docs/feature/publishing-social/` (2 spec.md đầu)
+- **Source References:** `docs/feature/3-8-publishing-social/` (2 spec.md đầu)
 
 - **Dependencies:** DA-D16-06
 
@@ -1252,7 +1252,7 @@
 
 - **Acceptance Criteria:** Format chuẩn FR: View Dashboard Post, Post Track Detail, Comment Detail List, Preview Post, Schedule Platform Post, View Status Tracking
 
-- **Source References:** `docs/feature/publishing-social/` (6 spec.md tiếp)
+- **Source References:** `docs/feature/3-8-publishing-social/` (6 spec.md tiếp)
 
 - **Dependencies:** DA-D18-01
 
@@ -1266,7 +1266,7 @@
   - FR: Facebook Post/Story/Reels, Instagram Post/Reels/Story, TikTok Video, Threads Post
   - Không có FR publish Zalo (đã loại)
 
-- **Source References:** `docs/feature/publishing-social/` (8 spec.md cuối)
+- **Source References:** `docs/feature/3-8-publishing-social/` (8 spec.md cuối)
 
 - **Dependencies:** DA-D18-02
 
@@ -1278,7 +1278,7 @@
 
 - **Acceptance Criteria:** FR: Upgrade Plan, Downgrade Plan, Make Payment (PayOS — ACID compliant), View Invoice History
 
-- **Source References:** `docs/feature/subscription-billing/` (4 spec.md đầu)
+- **Source References:** `docs/feature/3-9-subscription-billing/` (4 spec.md đầu)
 
 - **Dependencies:** DA-D18-03
 
@@ -1292,7 +1292,7 @@
   - FR: View AI Credit Tracking, Buy Credit, Set Credit
   - Rule: reset hàng tháng về hạn mức gốc, **KHÔNG rollover** credit dư (`docs/ba/13` mục 7)
 
-- **Source References:** `docs/feature/subscription-billing/` (3 spec.md cuối)
+- **Source References:** `docs/feature/3-9-subscription-billing/` (3 spec.md cuối)
 
 - **Dependencies:** DA-D19-01
 
@@ -1302,9 +1302,9 @@
 
 - **Goal:** Mô tả FR 3.10.1–3.10.6.
 
-- **Acceptance Criteria:** Format chuẩn FR theo `docs/feature/admin-management/`
+- **Acceptance Criteria:** Format chuẩn FR theo `docs/feature/3-10-admin-management/`
 
-- **Source References:** `docs/feature/admin-management/` (6 spec.md đầu)
+- **Source References:** `docs/feature/3-10-admin-management/` (6 spec.md đầu)
 
 - **Dependencies:** DA-D19-02
 
@@ -1317,7 +1317,7 @@
 - **Acceptance Criteria:**
   - **[OPEN QUESTION]** FR 3.10.9 Deactive User: "Admin có xoá được Admin khác không?" chưa có câu trả lời chính thức — spec.md hiện tại tạm chặn (403) hành động Admin-deactivate-Admin, ghi rõ trong report là default an toàn tạm thời, không phải quyết định cuối cùng
 
-- **Source References:** `docs/feature/admin-management/` (5 spec.md cuối)
+- **Source References:** `docs/feature/3-10-admin-management/` (5 spec.md cuối)
 
 - **Dependencies:** DA-D19-03
 

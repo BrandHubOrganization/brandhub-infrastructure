@@ -120,4 +120,4 @@ Trong `llm_service`, Groq có thể chuyển sang Deploy khi gặp lỗi tạm t
 
 ## 8. Kiểm chứng phần Neo4j
 
-Ngày 03/11/2026: `EXPLAIN` query trên Neo4j thật thành công; đọc một trend có bằng chứng trả 3 bài nguồn, 5 lượt nhắc thực thể, context 692 ký tự. Không ghi database hoặc gọi AI sinh bài có phí. Bộ test caption, graph, API và trend-fit ban đầu đạt 93 test; kết quả kiểm tra giới hạn ký tự bổ sung được lưu tại `docs/feature/caption-neo4j-context/test.md`.
+Ngày 03/11/2026: `EXPLAIN` query trên Neo4j thật thành công; đọc một trend có bằng chứng trả 3 bài nguồn, 5 lượt nhắc thực thể, context 692 ký tự. Không ghi database hoặc gọi AI sinh bài có phí. Bộ test caption, graph, API và trend-fit ban đầu đạt 93 test; kết quả kiểm tra giới hạn ký tự bổ sung được lưu tại `docs/feature/3-7-ai-features/3-7-6-generate-caption/caption-neo4j-context/test.md`.
