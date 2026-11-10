@@ -1,0 +1,125 @@
+# Tasks — Subtask theo vai trò & Trình soạn chia phần (DA-1274)
+
+> Bước ③ theo `docs/rule/feature-workflow.md`. Dựa trên `spec.md` + `plan.md` (đã duyệt 2026-11-10).
+> Mỗi task ghi `→ plan §x` để đối chiếu. Làm đúng thứ tự; hết mỗi nhóm (T1…T10) phải build + test pass mới sang nhóm sau.
+
+## Kết quả kiểm tra kỹ thuật trước khi tách task (2026-11-10)
+
+**A. Thêm 4 TaskType mới có làm hỏng code khác không**
+
+| Repo | Kết quả | Việc cần làm |
+|---|---|---|
+| `brandhub-ai-service` | Không tham chiếu `TaskType` / tên loại task nào. | Không đụng. |
+| `brandhub-publisher-service` | Không tham chiếu `TaskType`, không đọc collection `tasks`. Chỉ nhận `PublishJobMessage` qua RabbitMQ. | Không đụng. |
+| `brandhub-mobile-app` | Không crash: `formatTaskTypePill` có `default`, `TASK_TYPE_LABEL[...] ?? type`, `enumLabel` có `humanize`. Nhưng loại mới hiện thành "Chiến dịch" hoặc mã thô. `taskListHelpers.ts:130` đang dịch `EVENT_PLAN` sang EN là "Workshop" (sai sẵn, sẽ trùng với loại WORKSHOP mới). | T9.1. |
+| `brandhub-business-service` | **Hỏng build:** `PackageOfferingValidator.java:19` là `switch` expression không có `default` trên `PackageServiceType` → thêm enum là lỗi compile. **Hỏng runtime:** `CampaignPlanValidator.TASK_TYPES` không có service type mới → `TaskType.valueOf(null)` trong `CampaignTaskStore.draftTask:56`. `WORKSHOP_SUPPORT` hiện map sang `SURVEY`. | T1.1, T1.2. |
+| `brandhub-web` | **Hỏng build TS:** `serviceUnits.ts` là `Record<PackageServiceType, string>`. `OfferingEditor.tsx`, `OfferingSummary.tsx`, `mediaPackage.ts` liệt kê cứng service type. `MyTasksSection.tsx`, `TaskFilterBar.tsx`, `TaskWorkflowContent.tsx` switch/list theo TaskType. | T7.1. |
+| Mongo validator | `init-mongo.js:241` ràng buộc `tasks.type` bằng enum 5 giá trị → insert task loại mới bị từ chối. | T1.4. |
+
+**B. Huỷ lịch đăng khi Client trả phần**
+
+- Không có hàm huỷ lịch. Lịch đăng chạy bằng `scheduled/PostSchedulePublishJob` (business-service, poll 30s): lấy post `status ∈ {SCHEDULED, APPROVED}` và `scheduledAt <= now`, **chỉ đăng khi task cha `status = FINISHED` và `lastSubmission.outcome = APPROVED`**.
+- Vì vậy chỉ cần làm ở business-service, không đụng publisher-service: (1) đưa task cha ra khỏi trạng thái đã duyệt → job tự bỏ qua; (2) đưa post `SCHEDULED/APPROVED` của task về `DRAFT`, xoá `scheduledAt` để phải đặt lịch lại (spec §11). Post đã `IN_PROGRESS/PUBLISHING/PUBLISHED` thì không huỷ được — báo lại cho người phụ trách Đăng bài.
+- Email: `MailBatchService.cancelSystem(batchId)` có sẵn. Batch Newsletter được lưu `batchId` trong `content` của phần `EMAIL.AUDIENCE` (không thêm cột `task_id`).
+
+---
+
+## T1. Backend nền — loại task, danh mục, `subtaskRole` (→ plan §1.1, §1.2, §2)
+
+- [ ] T1.1 `TaskType.java`: thêm `SHORT_VIDEO, KOL_BOOKING, WORKSHOP, EMAIL_NEWSLETTER`. `PackageServiceType.java`: thêm `SHORT_VIDEO, KOL_BOOKING, EMAIL_NEWSLETTER`.
+- [ ] T1.2 `PackageOfferingValidator.validateStandardUnits`: thêm đơn vị cho 3 service type mới (đã chốt 2026-11-10: `SHORT_VIDEO → "video"`, `KOL_BOOKING → "KOL"`, `EMAIL_NEWSLETTER → "bản tin"`). `CampaignPlanValidator.TASK_TYPES`: thêm 3 ánh xạ mới và đổi `WORKSHOP_SUPPORT → WORKSHOP` (chỉ ảnh hưởng chiến dịch triển khai sau này; task SURVEY cũ giữ nguyên).
+- [ ] T1.3 Mới `service/impl/task/TaskCatalog.java`: map tĩnh `TaskType → List<RoleDef(role, List<SectionDef(key, visibility)>)>` đúng bảng spec §3 (8 loại). Hàm `roles(type)`, `sectionsOf(type)`, `owns(role, sectionKey)`, `isValidRole(type, role)`. Unit test: đếm vai trò/phần từng loại, `POST_EDITING` sở hữu `POST.CAPTION`, `VIDEO_PUBLISH` sở hữu 2 phần.
+- [ ] T1.4 Migration mongosh `docs/database/migrations/2026-11-1x-subtask-role-sections.js`: `collMod tasks` thêm 4 giá trị vào enum `type` + `subtasks.items.subtaskRole: ['string','null']`; tạo `task_sections` (unique `{taskId,sectionKey}`, `{workspaceId,status}`, `{status,clientPendingSince}`), `task_section_versions` (unique `{taskId,sectionKey,versionNo}`), `task_section_events` (`{taskId,at}`). Sửa `init-mongo.js` cho khớp (parity).
+- [ ] T1.5 `TaskDocument.Subtask`: thêm `String subtaskRole` cuối record + constructor cũ ủy quyền (`subtaskRole = null`). Build xanh, không đổi chỗ gọi cũ.
+- [ ] T1.6 Mới `controller/TaskCatalogController.java`: `GET /api/v1/task-catalog/{taskType}` (đăng nhập là đủ). Test controller: loại hợp lệ trả đúng; loại sai → `VALIDATION_ERROR`.
+- [ ] T1.7 `CampaignSubtaskService` / `CampaignSubtaskController`: `Details`/`Row` thêm `subtaskRole`; tạo subtask validate bằng `TaskCatalog.isValidRole` (AC3); `PATCH /{id}/status` từ chối `FINISHED` khi `subtaskRole != null`. Test AC2, AC3.
+- [ ] T1.8 `ErrorCode.java`: thêm `SECTION_INVALID_TRANSITION, TASK_SECTIONS_UNAPPROVED, NEWSLETTER_NOT_APPROVED, MAIL_MONTHLY_QUOTA_EXCEEDED`.
+- [ ] T1.9 Chạy `mvn test` business-service — pass.
+
+## T2. Backend phần (section) (→ plan §1.3)
+
+- [ ] T2.1 Mới `document/TaskSectionDocument.java` + repository (field theo plan §1.3; `revision` long, `status` enum `SectionStatus {DRAFT, SUBMITTED, INTERNAL_APPROVED, CLIENT_APPROVED, RETURNED}`).
+- [ ] T2.2 Mới `TaskSectionVersionDocument.java` (`task_section_versions`) + `TaskSectionEventDocument.java` (`task_section_events`). Không có hàm xoá.
+- [ ] T2.3 Mới `SectionPolicy.java`: `canView/canEdit/canSubmit/canApprove/canReturn/canReopen/canRestore` theo spec §4, §5.2, §16.10, §16.13; luật chồng phần `POST.CAPTION`/`VIDEO.CAPTION`; phần không chủ → điều phối/Manager; hợp quyền nhiều subtask; subtask `CANCELLED` mất chủ. Dùng lại `TaskApprovalPolicy.Context/Snapshot`, `CampaignSubtaskService.supervisor`.
+- [ ] T2.4 Unit test `SectionPolicyTest`: mỗi dòng ma trận §4 một case; AC4, AC5, AC6, AC7, AC9; Creator không tham gia task không thấy phần I (§16.10); Client không thấy phần I và phần O dưới `INTERNAL_APPROVED` (AC10).
+- [ ] T2.5 Mới `SectionService.list(taskId, viewer)`: phần chưa có document → ảo `DRAFT`, chủ = điều phối (không backfill); lọc theo `canView`; kèm `can*`, `ownerSubtaskIds`, `ownerNames`.
+- [ ] T2.6 `SectionService.patch(key, content, expectedRevision)`: CAS `findAndModify {taskId, sectionKey, revision}`; lệch → `TASK_REVISION_CONFLICT`; tạo document lười ở lần ghi đầu (upsert, bắt duplicate key → conflict); sửa phần đã duyệt → `SUBMITTED`; validate `content` theo schema phần (spec §3). Với POST/SURVEY: chỉ trạng thái/revision, nội dung đi qua T3.
+- [ ] T2.7 `submit / approve / return / reopen`: máy trạng thái §5.1 (sai → `SECTION_INVALID_TRANSITION`); `return` bắt buộc note (`VALIDATION_ERROR`); `submit` ghi `task_section_versions` (snapshot nội dung thật, gồm POST/SURVEY); mọi hành động ghi `task_section_events`; `approve` nội bộ phần O → set `clientPendingSince`; `requiresClientApproval=false` → `INTERNAL_APPROVED` là cuối.
+- [ ] T2.8 `versions / version(no) / restore(no)`: Client bị chặn (§16.14); restore chép vào nháp, phần phải nộp và duyệt lại (§16.13).
+- [ ] T2.9 Mới `TaskSectionController.java`: endpoint spec §9.2 + versions/restore. Integration test chuyển trạng thái đủ vòng `DRAFT → SUBMITTED → INTERNAL_APPROVED → CLIENT_APPROVED → RETURNED` và test case spec 8 (2 phiên cùng lưu).
+
+## T3. Backend gắn luồng cũ (→ plan §1.2, §1.4)
+
+- [ ] T3.1 `TaskPostController` / service lưu bài: diff `SavePostRequest` với `PostDocument` → tập phần bị đổi (`caption/hashtags`→CAPTION, media→MEDIA, `targetPlatforms/scheduledAt`→CHANNELS); trường thuộc phần không có quyền → `FORBIDDEN` (AC8); bump revision từng phần đổi; response thêm `sections`. Chỉ bật khi task có subtask vai trò; không có → giữ `TaskApprovalPolicy.assignee`.
+- [ ] T3.2 SHORT_VIDEO dùng chung endpoint post với key `VIDEO.CAPTION/VIDEO.CHANNELS`; `targetPlatforms` giới hạn TikTok/Instagram/Facebook.
+- [ ] T3.3 `SurveyController POST /survey`: kiểm `SURVEY.FORM` khi task có subtask vai trò. WORKSHOP dùng cùng form builder: kiểm phần `WORKSHOP.REGISTRATION`.
+- [ ] T3.4 `TaskApprovalService.submit`: thêm `TASK_SECTIONS_UNAPPROVED` (AC12); task có subtask vai trò bỏ bước `reviewStep = CLIENT`; khi mọi phần O đạt trạng thái cuối → gọi luồng chuyển task cha sang đã duyệt hiện có (§16.5). Test regression case spec 15 (task cũ).
+- [ ] T3.5 `CampaignSubtaskService.syncRoleSubtasks(taskId)`: gọi sau mỗi chuyển trạng thái phần; FINISHED khi đủ phần cuối, về `IN_PROGRESS` khi bị trả/mở lại (§5.3).
+- [ ] T3.6 `CampaignTaskStore.draftTask`: sau khi tạo task cha, sinh subtask theo `TaskCatalog` (assignee null, `dueDate` = hạn task cha, TODO) (§16.9). Test deploy chiến dịch sinh đúng số subtask.
+- [ ] T3.7 `TaskSampleSeeder`: thêm 1 task POST có đủ 5 subtask vai trò để demo.
+
+## T4. Backend thông báo, nhắc, huỷ lịch (→ plan §1.6, §1.7)
+
+- [ ] T4.1 `UserNotificationService.sectionEvent(...)`: in-app cho submit/approve/return/reopen (`actionUrl` = trình soạn).
+- [ ] T4.2 Email qua `MailSendService.sendSystem` + 2 template hệ thống mới (vi/en): "Có phần chờ Client duyệt", "Phần của bạn bị trả lại".
+- [ ] T4.3 Mới `scheduled/SectionReminderJob` (mỗi giờ): phần `INTERNAL_APPROVED`, `clientPendingSince < now-48h`, `clientReminderSentAt` null hoặc > 48h → email nhắc, cập nhật `clientReminderSentAt`. Không tự duyệt. Unit test chọn đúng phần.
+- [ ] T4.4 Mới `PostService.cancelTaskSchedule(workspaceId, taskId)` (business-service): post của task có `status ∈ {SCHEDULED, APPROVED}` → `DRAFT`, `scheduledAt = null`; trả danh sách post không huỷ được (`IN_PROGRESS/PUBLISHING/PUBLISHED`). **Không đụng publisher-service.**
+- [ ] T4.5 `SectionService.return` khi người trả là Client: nếu task cha đang ở trạng thái đã duyệt → đưa về `IN_PROGRESS` (để `PostSchedulePublishJob` tự bỏ qua); gọi T4.4 với POST/SHORT_VIDEO; với EMAIL_NEWSLETTER gọi `MailBatchService.cancelSystem(batchId)` nếu batch còn `QUEUED/SCHEDULED`; thông báo chủ `POST_PUBLISHING`/`VIDEO_PUBLISH`/`EMAIL_SEND`. Test: post SCHEDULED về DRAFT, job không đăng.
+
+## T5. Backend Newsletter (→ plan §0.4, §1.5, §2)
+
+- [ ] T5.1 Migration SQL `docs/database/migrations/2026-11-1x-newsletter.sql` (additive như mẫu 11-06): `mail_batches.kind VARCHAR(16) NOT NULL DEFAULT 'TEMPLATE'`; `mail_suppressions.client_profile_id UUID` + index; bảng `newsletter_monthly_usage(agency_id, month, used, PK(agency_id, month))`. Báo user tự chạy trước khi merge.
+- [ ] T5.2 `MailRecipientGroupDocument.Entry`: thêm `consent, consentSource, importedAt`.
+- [ ] T5.3 `MailRecipientController POST /mail-recipient-groups/import` (multipart): `commons-csv`, cần cột `email,name,consent`, dedupe, loại không consent / suppressed / sai định dạng, trả 4 con số (AC13). Test case spec 9.
+- [ ] T5.4 Mới `NewsletterQuotaService`: đếm theo `agency_id` + tháng (`Asia/Ho_Chi_Minh`); limit từ gói (`newsletter.quota.basic|pro|enterprise` = 1000/10000/50000); `newsletter.rate.per-day`. Thêm config vào `application.yml`. Unit test hết quota (case spec 11).
+- [ ] T5.5 `MailDeliveryService`: batch `kind = NEWSLETTER` dùng `NewsletterQuotaService` thay `MailQuotaService`; hết quota giữa batch → `DEFERRED`; `deliverNext` ưu tiên batch hệ thống.
+- [ ] T5.6 Suppression theo Client: `MailSuppressionStore.isSuppressedForClient`; unsubscribe từ mail Newsletter ghi `client_profile_id`. Mail hệ thống giữ logic cũ.
+- [ ] T5.7 Mới `NewsletterService`: `send` (AC14 → `NEWSLETTER_NOT_APPROVED`, quyền, quota → `MAIL_MONTHLY_QUOTA_EXCEEDED`), render blocks `EMAIL.CONTENT`/`EMAIL.DESIGN` bằng renderer mail-templates, tạo batch `kind=NEWSLETTER`, sender name = `ClientProfile.displayName` (AC17), link unsubscribe (AC16), lưu `batchId` vào content `EMAIL.AUDIENCE`. `send-test` dùng `MailSendService.sendTest`. Endpoint `POST /tasks/{taskId}/newsletter/send|send-test`. Test case spec 10.
+- [ ] T5.8 `MailSendController GET /mail-quota`: thêm `monthlyUsed, monthlyLimit, planName`.
+- [ ] T5.9 `EMAIL.REPORT`: `SectionService.list` gắn số liệu từ `MailBatchService.detail(batchId)`; chỉ lưu ô nhận xét.
+
+## T6. Backend xuất file (→ plan §0.2, §1.8)
+
+- [ ] T6.1 `pom.xml` business-service: thêm `org.apache.poi:poi-ooxml` (đã được duyệt).
+- [ ] T6.2 Mới `SectionExportService` + `GET /tasks/{taskId}/export`: PRESS → DOCX (poi), loại khác → PDF (openpdf theo mẫu `PackageExportRenderer`); chỉ phần O; logo `ClientProfile.logoUrl`; agency xuất mọi trạng thái, phần chưa `CLIENT_APPROVED` đóng dấu "Bản nháp"; Client chỉ phần `CLIENT_APPROVED`. Test: file không chứa nội dung phần I.
+- [ ] T6.3 `mvn test` + `mvn package` business-service — pass.
+
+## T7. Web nền + trình soạn POST (→ plan §3)
+
+- [ ] T7.1 Types: `src/types/task.ts`, `src/pages/campaign/types.ts` (4 TaskType, `subtaskRole`, `TaskSection`); `media-package/types/mediaPackage.ts`, `serviceUnits.ts`, `OfferingEditor.tsx`, `OfferingSummary.tsx` (3 service type mới); `MyTasksSection.tsx`, `TaskFilterBar.tsx`, `TaskWorkflowContent.tsx` (nhãn + lọc loại mới). `npm run build` không lỗi TS.
+- [ ] T7.2 Mới `src/services/taskSectionService.ts`, `src/hooks/useTaskSections.ts` (React Query; gửi `expectedRevision`; `TASK_REVISION_CONFLICT` → banner tải lại).
+- [ ] T7.3 Mới `src/components/task-sections/`: `SectionFrame`, `SectionStatusBadge`, `SectionReturnDialog`, `SectionVersionDrawer` (list, so sánh, khôi phục). Đủ UI states spec §12.
+- [ ] T7.4 `pages/editor`: bọc vùng Caption/Media/Channels bằng `SectionFrame`, disable theo `can*`; thêm khối `POST.BRIEF`; SHORT_VIDEO thêm `VIDEO.SCRIPT` + placeholder `VIDEO.SHOOT`, `VIDEO.EDIT` (props `section`, cho Ân gắn code).
+- [ ] T7.5 E2E web luồng POST đầy đủ (test case spec 1–8): Manager tạo subtask → Content/Editing/Media/Publishing sửa đúng phần → duyệt nội bộ → Client duyệt/trả → nộp task.
+
+## T8. Web các trình soạn còn lại & màn liên quan (→ plan §3)
+
+- [ ] T8.1 Mới `src/pages/task-editor/index.tsx`: chọn editor theo `task.type` trên route `/workspaces/:id/tasks/:taskId/editor` (POST/SHORT_VIDEO giữ `pages/editor`).
+- [ ] T8.2 `SectionListField` dùng chung cho trường dạng bảng (agenda, vendor, media list, shortlist…).
+- [ ] T8.3 `SurveyEditor` (bọc `SurveyOverviewCard` + Phân phối, Báo cáo).
+- [ ] T8.4 `EventEditor`, `PressEditor`. Task EVENT_PLAN/PRESS cũ có dữ liệu trong `event_plans`/`press_recommendations` (`planContent`, `recommendations`): hiển thị khối chỉ-đọc "Nội dung cũ" phía trên, không migrate.
+- [ ] T8.5 `KolEditor`, `WorkshopEditor` (Registration dùng form builder survey).
+- [ ] T8.6 `NewsletterEditor`: dùng `BlockBuilder`, `MailPreview`, `RecipientPicker`; nút gửi/test; khối Báo cáo đọc số liệu batch.
+- [ ] T8.7 Subtask: `TimelineSubtaskCreator.tsx`, `CampaignSubtasks.tsx`, `WorkItemSubtasksList.tsx` — bước "Gợi ý theo danh mục", badge vai trò, ẩn FINISHED thủ công cho subtask có vai trò.
+- [ ] T8.8 `TaskWorkflowContent.tsx`: nút mở trình soạn cho mọi loại + "x/y phần đã duyệt".
+- [ ] T8.9 `CampaignTimelineGrid.tsx`: trạng thái phần + cờ trễ hạn / chờ Client (§16.15).
+- [ ] T8.10 Client portal `ApprovalQueueList.tsx`: danh sách phần chờ duyệt, Duyệt / Trả lại (note bắt buộc), empty state.
+- [ ] T8.11 `pages/mail-templates`: dialog import CSV (hiển thị 4 con số), quota tháng.
+- [ ] T8.12 Nút xuất file ở trình soạn và portal.
+- [ ] T8.13 `npm run build` + `npm test` web — pass.
+
+## T9. Mobile (→ plan §4)
+
+- [ ] T9.1 Nhãn 4 loại mới ở `src/theme/tokens.ts` (`TASK_TYPE_LABEL`), `src/i18n/enumLabel.ts`, `formatTaskTypePill` (`taskListHelpers.ts` và bản trùng ở `ApprovalScreen.tsx`), bộ lọc `TaskListScreen.tsx`. Sửa EN của `EVENT_PLAN` từ "Workshop" thành "Event plan".
+- [ ] T9.2 Service gọi `GET /sections` + approve/return.
+- [ ] T9.3 `TaskDetailScreen.tsx`: tab "Phần" chỉ đọc + Duyệt/Trả theo `can*` (AC18). Test case spec 12.
+- [ ] T9.4 `npm test` mobile — pass (gồm `TaskDetailScreen.test.tsx`).
+
+## T10. i18n, theme, nghiệm thu (→ plan §3, §4, §6 bước 10)
+
+- [ ] T10.1 **Cập nhật vi.json + en.json (web)**: `src/i18n/locales/{vi,en}/tasks.json`, `editor.json`, `campaign.json`, `mailTemplate.json`, `client.json` — mọi key spec AC19, key-parallel; so sánh khoá hai locale không lệch.
+- [ ] T10.2 **Cập nhật locale mobile**: `src/i18n/locales/vi/*`, `en.json` — cùng namespace.
+- [ ] T10.3 Rà hardcode: grep chuỗi tiếng Việt/Anh trong JSX/TSX mới — không còn.
+- [ ] T10.4 **Kiểm tra light/dark mode**: badge trạng thái, khối khoá, banner trả lại/xung đột, editor mới, portal — chỉ token/`dark:` có sẵn, không hex cứng (AC20); chụp cả hai theme.
+- [ ] T10.5 Chạy toàn bộ `test.md`, ghi pass/fail.
+- [ ] T10.6 Nhắc user chạy 2 migration (T1.4, T5.1) trên môi trường thật trước khi merge. Cập nhật FR/SRS để sau (ngoài scope code).

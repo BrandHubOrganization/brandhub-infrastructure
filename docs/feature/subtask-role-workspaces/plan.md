@@ -34,7 +34,7 @@ Dùng lại `MailSendService` → `MailDeliveryStore` (`mail_batches`, `mail_del
 
 ### 1.1 Danh mục cố định trong code
 - `model/enums/TaskType.java`: thêm `SHORT_VIDEO, KOL_BOOKING, WORKSHOP, EMAIL_NEWSLETTER`.
-- `model/enums/PackageServiceType.java`: thêm `SHORT_VIDEO, KOL_BOOKING, EMAIL_NEWSLETTER` + ánh xạ sang TaskType trong chỗ `CampaignTaskStore` đang map service type → task type.
+- `model/enums/PackageServiceType.java`: thêm `SHORT_VIDEO, KOL_BOOKING, EMAIL_NEWSLETTER`. Ánh xạ service type → task type nằm ở `CampaignPlanValidator.TASK_TYPES` (thêm 3 mục, đổi `WORKSHOP_SUPPORT` từ `SURVEY` sang `WORKSHOP`); `PackageOfferingValidator.validateStandardUnits` là switch không `default`, phải thêm đơn vị cho 3 loại mới.
 - **Mới** `service/impl/task/TaskCatalog.java`: map tĩnh `TaskType → List<RoleDef(role, List<SectionDef(key, visibility O|I)>)>` đúng bảng spec §3. Một class, không interface, không cấu hình.
 - **Mới** `controller/TaskCatalogController.java`: `GET /api/v1/task-catalog/{taskType}`.
 
@@ -75,8 +75,9 @@ Dùng lại `MailSendService` → `MailDeliveryStore` (`mail_batches`, `mail_del
 - **Mới** `@Scheduled` `SectionReminderJob` (mỗi giờ): phần `INTERNAL_APPROVED` có `clientPendingSince < now-48h` và `clientReminderSentAt` null hoặc cũ hơn 48h → gửi nhắc. Không tự duyệt.
 
 ### 1.7 Huỷ lịch khi Client trả (§11)
-- POST/VIDEO: gọi luồng huỷ lịch publish hiện có của task (xác định chính xác hàm khi làm task; nếu chưa có hàm huỷ lịch thì thêm vào service publish của business-service, không đụng publisher-service).
-- EMAIL: `MailBatchService.cancel` với batch đang chờ.
+- Đã kiểm 2026-11-10: chưa có hàm huỷ lịch. `PostSchedulePublishJob` (business-service) chỉ đăng post khi task cha `FINISHED` + `lastSubmission.outcome = APPROVED`.
+- POST/VIDEO: đưa task cha về `IN_PROGRESS` + thêm `PostService.cancelTaskSchedule` (post `SCHEDULED/APPROVED` → `DRAFT`, xoá `scheduledAt`). Không đụng publisher-service.
+- EMAIL: `MailBatchService.cancelSystem(batchId)` với batch đang chờ; `batchId` lưu trong content phần `EMAIL.AUDIENCE`.
 
 ### 1.8 Xuất file (§16.11)
 - **Mới** `service/impl/task/SectionExportService.java` + endpoint `GET /tasks/{taskId}/export` (`?format` suy ra theo loại: PRESS → DOCX, khác → PDF).
