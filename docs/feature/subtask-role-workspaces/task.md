@@ -106,20 +106,46 @@
     - Sau đó `SectionService` huỷ lịch: post qua `PostService.cancelTaskSchedule`; newsletter qua `MailBatchService.cancelForTask`, huỷ batch `SCHEDULED`/`QUEUED`. Không dùng `cancelSystem` vì hàm đó chỉ nhận batch hệ thống không có workspace.
     - `batchId` của newsletter chỉ có sau T5.7.
   - Test: G1–G3 `SectionNotifierTest`; G4, G5, G6 `SectionServiceMongoTest` (Mongo thật, có chạy `PostSchedulePublishJob`); reopen ở `TaskApprovalSectionsTest`.
-  - G7/G8 có test ở `MailStorePostgresTest`, nhưng file này chỉ chạy khi đặt `BRANDHUB_MAIL_ISOLATED_TEST=true` với DB Postgres riêng, nên chưa chạy ở máy này.
+  - G7/G8: đã chạy trên bản sao schema Postgres local (`mailtest_tmp`, xoá sau khi chạy), pass. Test chuyển sang `NewsletterPostgresTest` ở T5 vì huỷ batch nay giới hạn theo workspace.
   - `mvn test`: 1768 test, 0 fail, 92 skip.
 
 ## T5. Backend Newsletter (→ plan §0.4, §1.5, §2)
 
-- [ ] T5.1 Migration SQL `docs/database/migrations/2026-11-1x-newsletter.sql` (additive như mẫu 11-06): `mail_batches.kind VARCHAR(16) NOT NULL DEFAULT 'TEMPLATE'`; `mail_suppressions.client_profile_id UUID` + index; bảng `newsletter_monthly_usage(agency_id, month, used, PK(agency_id, month))`. Báo user tự chạy trước khi merge.
-- [ ] T5.2 `MailRecipientGroupDocument.Entry`: thêm `consent, consentSource, importedAt`.
-- [ ] T5.3 `MailRecipientController POST /mail-recipient-groups/import` (multipart): `commons-csv`, cần cột `email,name,consent`, dedupe, loại không consent / suppressed / sai định dạng, trả 4 con số (AC13). Test case spec 9.
-- [ ] T5.4 Mới `NewsletterQuotaService`: đếm theo `agency_id` + tháng (`Asia/Ho_Chi_Minh`); limit từ gói (`newsletter.quota.basic|pro|enterprise` = 1000/10000/50000); `newsletter.rate.per-day`. Thêm config vào `application.yml`. Unit test hết quota (case spec 11).
-- [ ] T5.5 `MailDeliveryService`: batch `kind = NEWSLETTER` dùng `NewsletterQuotaService` thay `MailQuotaService`; hết quota giữa batch → `DEFERRED`; `deliverNext` ưu tiên batch hệ thống.
-- [ ] T5.6 Suppression theo Client: `MailSuppressionStore.isSuppressedForClient`; unsubscribe từ mail Newsletter ghi `client_profile_id`. Mail hệ thống giữ logic cũ.
-- [ ] T5.7 Mới `NewsletterService`: `send` (AC14 → `NEWSLETTER_NOT_APPROVED`, quyền, quota → `MAIL_MONTHLY_QUOTA_EXCEEDED`), render blocks `EMAIL.CONTENT`/`EMAIL.DESIGN` bằng renderer mail-templates, tạo batch `kind=NEWSLETTER`, sender name = `ClientProfile.displayName` (AC17), link unsubscribe (AC16), lưu `batchId` vào content `EMAIL.AUDIENCE`. `send-test` dùng `MailSendService.sendTest`. Endpoint `POST /tasks/{taskId}/newsletter/send|send-test`. Test case spec 10.
-- [ ] T5.8 `MailSendController GET /mail-quota`: thêm `monthlyUsed, monthlyLimit, planName`.
-- [ ] T5.9 `EMAIL.REPORT`: `SectionService.list` gắn số liệu từ `MailBatchService.detail(batchId)`; chỉ lưu ô nhận xét.
+- [x] T5.1 Migration SQL `docs/database/migrations/2026-11-1x-newsletter.sql` (additive như mẫu 11-06): `mail_batches.kind VARCHAR(16) NOT NULL DEFAULT 'TEMPLATE'`; `mail_suppressions.client_profile_id UUID` + index; bảng `newsletter_monthly_usage(agency_id, month, used, PK(agency_id, month))`. Báo user tự chạy trước khi merge.
+- [x] T5.2 `MailRecipientGroupDocument.Entry`: thêm `consent, consentSource, importedAt`.
+- [x] T5.3 `MailRecipientController POST /mail-recipient-groups/import` (multipart): `commons-csv`, cần cột `email,name,consent`, dedupe, loại không consent / suppressed / sai định dạng, trả 4 con số (AC13). Test case spec 9.
+- [x] T5.4 Mới `NewsletterQuotaService`: đếm theo `agency_id` + tháng (`Asia/Ho_Chi_Minh`); limit từ gói (`newsletter.quota.basic|pro|enterprise` = 1000/10000/50000); `newsletter.rate.per-day`. Thêm config vào `application.yml`. Unit test hết quota (case spec 11).
+- [x] T5.5 `MailDeliveryService`: batch `kind = NEWSLETTER` dùng `NewsletterQuotaService` thay `MailQuotaService`; hết quota giữa batch → `DEFERRED`; `deliverNext` ưu tiên batch hệ thống.
+- [x] T5.6 Suppression theo Client: `MailSuppressionStore.isSuppressedForClient`; unsubscribe từ mail Newsletter ghi `client_profile_id`. Mail hệ thống giữ logic cũ.
+- [x] T5.7 Mới `NewsletterService`: `send` (AC14 → `NEWSLETTER_NOT_APPROVED`, quyền, quota → `MAIL_MONTHLY_QUOTA_EXCEEDED`), render blocks `EMAIL.CONTENT`/`EMAIL.DESIGN` bằng renderer mail-templates, tạo batch `kind=NEWSLETTER`, sender name = `ClientProfile.displayName` (AC17), link unsubscribe (AC16), lưu `batchId` vào content `EMAIL.AUDIENCE`. `send-test` dùng `MailSendService.sendTest`. Endpoint `POST /tasks/{taskId}/newsletter/send|send-test`. Test case spec 10.
+- [x] T5.8 `MailSendController GET /mail-quota`: thêm `monthlyUsed, monthlyLimit, planName`.
+- [x] T5.9 `EMAIL.REPORT`: `SectionService.list` gắn số liệu từ `MailBatchService.detail(batchId)`; chỉ lưu ô nhận xét.
+
+- Ghi chú T5 (2026-11-10):
+  - T5.1: migration `2026-11-10-newsletter.sql`. Khác plan:
+    - `mail_batches.kind` đã có sẵn (`SEND`/`TEST`, mặc định `SEND`), nên chỉ mở rộng CHECK thêm `NEWSLETTER`, không thêm cột `DEFAULT 'TEMPLATE'`.
+    - Một bảng `newsletter_usage(agency_id, period, used)` thay cho `newsletter_monthly_usage`: `period` là `YYYY-MM` cho quota tháng và `YYYY-MM-DD` cho giới hạn ngày.
+    - Đã chạy 2 lần trên bản sao có dữ liệu của DB local: không lỗi, 9 batch cũ vẫn `SEND` (M6). **User tự chạy trên DB thật trước khi merge.**
+  - T5.3: `POST /mail-recipient-groups/import` nhận `file` và `name` (tạo nhóm mới) hoặc `groupId` (thêm vào nhóm có sẵn). Chỉ Owner/Manager. Tối đa 2 MB, nhóm import tối đa `newsletter.max-recipients` (5000). Trùng email giữ một dòng, không tính vào 4 con số. Email bị chặn (của workspace hoặc của Client) vào `skippedSuppressed`.
+  - Nhóm tạo tay: entry có thêm `consent` (tuỳ chọn). Newsletter chỉ gửi cho entry `consent = true`; nhóm cũ không có consent sẽ không nhận Newsletter.
+  - T5.4: gói lấy theo chủ agency (`agencies.owner_id` → `user_subscriptions` → `subscription_plans`). Agency không có gói tính là BASIC. `newsletter.rate.per-day` mặc định 2000/agency/ngày.
+  - T5.5: hết quota tháng thì delivery chờ đến ngày 1 tháng sau; hết giới hạn ngày thì chờ đến 0h hôm sau (giờ VN). `claimNext` lấy mail không phải Newsletter trước. Batch Newsletter không tính vào giới hạn mail đang chờ (`mail.max-pending-per-workspace`) của mail thường.
+  - T5.6: unsubscribe từ Newsletter dùng token riêng (`newsletter:<workspaceId>`), ghi vào danh sách chặn của workspace kèm `client_profile_id` của Client trong workspace. Kiểm tra Newsletter: danh sách của workspace hoặc cùng Client ở bất kỳ workspace nào. Mail hệ thống và mail workspace giữ logic cũ.
+  - T5.7: `NewsletterService` (`service/impl`), endpoint `POST /api/v1/workspaces/{ws}/tasks/{taskId}/newsletter/send|send-test`.
+    - Nội dung lấy từ `blocks` của `EMAIL.DESIGN`; nếu trống thì lấy của `EMAIL.CONTENT`. Tiêu đề lấy `EMAIL.CONTENT.subject`. Dựng bằng `MailBlockRenderer`.
+    - From vẫn là địa chỉ BrandHub (`app.mail-from`), chỉ đổi tên hiển thị thành `ClientProfile.displayName` (thêm `OutgoingMail.fromName`). Reply-To là email người gửi.
+    - Mỗi mail có link unsubscribe riêng ở footer và header `List-Unsubscribe`.
+    - `batchId` ghi vào `EMAIL.AUDIENCE` trước khi tạo batch (CAS theo revision), nên hai lần gửi cùng lúc chỉ một lần qua. Đã có batch chưa huỷ thì không gửi lại.
+    - `batchId` do server giữ: PATCH hay restore phần `EMAIL.AUDIENCE` không xoá, không đổi được nó.
+    - `send-test`: không dùng `MailSendService.sendTest` như plan, vì hàm đó cần id của mail template, còn Newsletter dựng nội dung từ các phần. Gửi ngay cho người gọi, không tạo batch, không tính quota. Chưa giới hạn số lần gửi test.
+  - T4.5 sửa thêm: `MailBatchService.cancelForTask(workspaceId, batchId)` chỉ huỷ batch của đúng workspace.
+  - T5.8: `GET /mail-quota` thêm `monthlyUsed`, `monthlyLimit`, `planName`.
+  - T5.9: `EMAIL.REPORT` có thêm `content.stats` (`total, sent, failed, suppressed, unsubscribed, status`), đọc thẳng từ batch. `unsubscribed` = người đã nhận rồi huỷ đăng ký sau thời điểm gửi. Không có open/click. Chỉ lưu `comment`.
+  - Test:
+    - H1–H5 `MailRecipientServiceTest`; H6–H11 `NewsletterServiceTest`; H14, H15, H17 (nhánh worker) `MailDeliveryServiceTest`; H19 và giữ `batchId` `SectionServiceMongoTest`.
+    - H11–H13, H15–H17, H19, G7, G8 trên Postgres thật: `NewsletterPostgresTest` (cần `BRANDHUB_MAIL_ISOLATED_TEST=true`). Đã chạy trên bản sao schema local, 6/6 pass.
+    - H18 chưa có test riêng (controller chỉ ghép thêm 3 trường).
+  - `mvn test`: 1791 test, 0 fail, 97 skip (gồm 6 test Postgres Newsletter khi chạy không có DB riêng).
 
 ## T6. Backend xuất file (→ plan §0.2, §1.8)
 
