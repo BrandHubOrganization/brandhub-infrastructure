@@ -220,6 +220,40 @@ const taskWorkflowFoundation = (() => {
       index('idx_task_notification_outbox_due', { status: 1, availableAt: 1 }),
       index('idx_task_notification_outbox_lease', { status: 1, leaseUntil: 1 }),
     ] },
+    // Per-section state of role-split task editors (DA-1274). Missing document = virtual DRAFT.
+    { name: 'task_sections', validator: schema(['_id', 'workspaceId', 'taskId', 'sectionKey', 'visibility',
+      'status', 'revision', 'updatedAt'], {
+      _id: string, workspaceId: string, taskId: string, sectionKey: { bsonType: 'string', maxLength: 64 },
+      visibility: { enum: ['OUTPUT', 'INTERNAL'] },
+      status: { enum: ['DRAFT', 'SUBMITTED', 'INTERNAL_APPROVED', 'CLIENT_APPROVED', 'RETURNED'] },
+      revision: { bsonType: ['long', 'int'], minimum: 0 },
+      content: { bsonType: ['object', 'null'] },
+      returnNote: { bsonType: ['string', 'null'], maxLength: 2000 }, returnedBy: nullableString,
+      lastEditorRole: nullableString, clientPendingSince: nullableDate, clientReminderSentAt: nullableDate,
+      updatedAt: date,
+    }), indexes: [
+      index('uq_task_sections_task_key', { taskId: 1, sectionKey: 1 }, { unique: true }),
+      index('idx_task_sections_workspace_status', { workspaceId: 1, status: 1 }),
+      index('idx_task_sections_client_pending', { status: 1, clientPendingSince: 1 }),
+    ] },
+    // Immutable snapshot per section submit (§16.12); never deleted.
+    { name: 'task_section_versions', validator: schema(['_id', 'workspaceId', 'taskId', 'sectionKey',
+      'versionNo', 'submittedBy', 'submittedAt'], {
+      _id: string, workspaceId: string, taskId: string, sectionKey: string,
+      versionNo: { bsonType: ['long', 'int'], minimum: 1 },
+      content: { bsonType: ['object', 'null'] }, submittedBy: string, submittedAt: date,
+    }), indexes: [
+      index('uq_task_section_versions_no', { taskId: 1, sectionKey: 1, versionNo: 1 }, { unique: true }),
+    ] },
+    // Section audit log: submit/approve/return/reopen/restore (§16.12); never deleted.
+    { name: 'task_section_events', validator: schema(['_id', 'workspaceId', 'taskId', 'sectionKey',
+      'action', 'actorId', 'at'], {
+      _id: string, workspaceId: string, taskId: string, sectionKey: string,
+      action: { enum: ['SUBMIT', 'APPROVE', 'CLIENT_APPROVE', 'RETURN', 'CLIENT_RETURN', 'REOPEN', 'RESTORE'] },
+      actorId: string, note: { bsonType: ['string', 'null'], maxLength: 2000 }, at: date,
+    }), indexes: [
+      index('idx_task_section_events_timeline', { taskId: 1, at: 1 }),
+    ] },
   ];
   return { taskProperties, additions };
 })();
@@ -238,12 +272,15 @@ db.createCollection('tasks', {
         workspaceId:            { bsonType: 'string' },
         campaignId:             { bsonType: ['string', 'null'] },
         campaignWorkItemId:     { bsonType: ['string', 'null'] },
-        type:                   { enum: ['POST', 'LIVESTREAM', 'SURVEY', 'EVENT_PLAN', 'PRESS_RECOMMENDATION'] },
+        type:                   { enum: ['POST', 'LIVESTREAM', 'SURVEY', 'EVENT_PLAN', 'PRESS_RECOMMENDATION',
+                                         'SHORT_VIDEO', 'KOL_BOOKING', 'WORKSHOP', 'EMAIL_NEWSLETTER'] },
         name:                   { bsonType: 'string' },
         dueDate:                { bsonType: ['date', 'null'] },
         plannedStartDate:       { bsonType: ['date', 'null'] },
         subtasks: { bsonType: 'array', items: { bsonType: 'object', properties: {
           plannedStartDate: { bsonType: ['date', 'null'] },
+          // Catalogue role (DA-1274); null = free or legacy subtask.
+          subtaskRole: { bsonType: ['string', 'null'] },
         } } },
         publishDate:            { bsonType: ['date', 'null'] },
         status:                 { enum: ['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'FINISHED', 'CANCELLED'] },

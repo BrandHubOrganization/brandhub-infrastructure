@@ -26,15 +26,16 @@
 
 ## T1. Backend nền — loại task, danh mục, `subtaskRole` (→ plan §1.1, §1.2, §2)
 
-- [ ] T1.1 `TaskType.java`: thêm `SHORT_VIDEO, KOL_BOOKING, WORKSHOP, EMAIL_NEWSLETTER`. `PackageServiceType.java`: thêm `SHORT_VIDEO, KOL_BOOKING, EMAIL_NEWSLETTER`.
-- [ ] T1.2 `PackageOfferingValidator.validateStandardUnits`: thêm đơn vị cho 3 service type mới (đã chốt 2026-11-10: `SHORT_VIDEO → "video"`, `KOL_BOOKING → "KOL"`, `EMAIL_NEWSLETTER → "bản tin"`). `CampaignPlanValidator.TASK_TYPES`: thêm 3 ánh xạ mới và đổi `WORKSHOP_SUPPORT → WORKSHOP` (chỉ ảnh hưởng chiến dịch triển khai sau này; task SURVEY cũ giữ nguyên).
-- [ ] T1.3 Mới `service/impl/task/TaskCatalog.java`: map tĩnh `TaskType → List<RoleDef(role, List<SectionDef(key, visibility)>)>` đúng bảng spec §3 (8 loại). Hàm `roles(type)`, `sectionsOf(type)`, `owns(role, sectionKey)`, `isValidRole(type, role)`. Unit test: đếm vai trò/phần từng loại, `POST_EDITING` sở hữu `POST.CAPTION`, `VIDEO_PUBLISH` sở hữu 2 phần.
-- [ ] T1.4 Migration mongosh `docs/database/migrations/2026-11-1x-subtask-role-sections.js`: `collMod tasks` thêm 4 giá trị vào enum `type` + `subtasks.items.subtaskRole: ['string','null']`; tạo `task_sections` (unique `{taskId,sectionKey}`, `{workspaceId,status}`, `{status,clientPendingSince}`), `task_section_versions` (unique `{taskId,sectionKey,versionNo}`), `task_section_events` (`{taskId,at}`). Sửa `init-mongo.js` cho khớp (parity).
-- [ ] T1.5 `TaskDocument.Subtask`: thêm `String subtaskRole` cuối record + constructor cũ ủy quyền (`subtaskRole = null`). Build xanh, không đổi chỗ gọi cũ.
-- [ ] T1.6 Mới `controller/TaskCatalogController.java`: `GET /api/v1/task-catalog/{taskType}` (đăng nhập là đủ). Test controller: loại hợp lệ trả đúng; loại sai → `VALIDATION_ERROR`.
-- [ ] T1.7 `CampaignSubtaskService` / `CampaignSubtaskController`: `Details`/`Row` thêm `subtaskRole`; tạo subtask validate bằng `TaskCatalog.isValidRole` (AC3); `PATCH /{id}/status` từ chối `FINISHED` khi `subtaskRole != null`. Test AC2, AC3.
-- [ ] T1.8 `ErrorCode.java`: thêm `SECTION_INVALID_TRANSITION, TASK_SECTIONS_UNAPPROVED, NEWSLETTER_NOT_APPROVED, MAIL_MONTHLY_QUOTA_EXCEEDED`.
-- [ ] T1.9 Chạy `mvn test` business-service — pass.
+- [x] T1.1 `TaskType.java`: thêm `SHORT_VIDEO, KOL_BOOKING, WORKSHOP, EMAIL_NEWSLETTER`. `PackageServiceType.java`: thêm `SHORT_VIDEO, KOL_BOOKING, EMAIL_NEWSLETTER`.
+- [x] T1.2 `PackageOfferingValidator.validateStandardUnits`: thêm đơn vị cho 3 service type mới (đã chốt 2026-11-10: `SHORT_VIDEO → "video"`, `KOL_BOOKING → "KOL"`, `EMAIL_NEWSLETTER → "bản tin"`). `CampaignPlanValidator.TASK_TYPES`: thêm 3 ánh xạ mới và đổi `WORKSHOP_SUPPORT → WORKSHOP` (chỉ ảnh hưởng chiến dịch triển khai sau này; task SURVEY cũ giữ nguyên).
+- [x] T1.3 Mới `service/impl/TaskCatalog.java` (repo không có package con `task`, đặt phẳng như các service khác): map tĩnh `TaskType → List<RoleDef(role, List<SectionDef(key, visibility)>)>` đúng bảng spec §3 (8 loại). Hàm `roles(type)`, `sectionsOf(type)`, `owns(role, sectionKey)`, `isValidRole(type, role)`. Unit test: đếm vai trò/phần từng loại, `POST_EDITING` sở hữu `POST.CAPTION`, `VIDEO_PUBLISH` sở hữu 2 phần.
+- [x] T1.4 Migration mongosh `docs/database/migrations/2026-11-1x-subtask-role-sections.js`: `collMod tasks` thêm 4 giá trị vào enum `type` + `subtasks.items.subtaskRole: ['string','null']`; tạo `task_sections` (unique `{taskId,sectionKey}`, `{workspaceId,status}`, `{status,clientPendingSince}`), `task_section_versions` (unique `{taskId,sectionKey,versionNo}`), `task_section_events` (`{taskId,at}`). Sửa `init-mongo.js` cho khớp (parity).
+- [x] T1.5 `TaskDocument.Subtask`: thêm `String subtaskRole` cuối record + constructor cũ ủy quyền (`subtaskRole = null`). Build xanh, không đổi chỗ gọi cũ.
+- [x] T1.6 Mới `controller/TaskCatalogController.java`: `GET /api/v1/task-catalog/{taskType}` (đăng nhập là đủ). Test controller: loại hợp lệ trả đúng; loại sai → `VALIDATION_ERROR`.
+- [x] T1.7 `CampaignSubtaskService` / `CampaignSubtaskController`: `Details`/`Row` thêm `subtaskRole`; tạo subtask validate bằng `TaskCatalog.isValidRole` (AC3); `PATCH /{id}/status` từ chối `FINISHED` khi `subtaskRole != null`. Test AC2, AC3.
+- [x] T1.8 `ErrorCode.java`: thêm `SECTION_INVALID_TRANSITION, TASK_SECTIONS_UNAPPROVED, NEWSLETTER_NOT_APPROVED, MAIL_MONTHLY_QUOTA_EXCEEDED`.
+- [x] T1.7b (phát sinh) `dto/campaign/CampaignWorkItem.type` có `@Pattern` cứng 5 loại → thêm 4 loại mới, nếu không task WORKSHOP sinh từ chiến dịch bị từ chối.
+- [x] T1.9 Chạy `mvn test` business-service — pass (2026-11-10: 1706 test, 0 fail, 91 skip).
 
 ## T2. Backend phần (section) (→ plan §1.3)
 
