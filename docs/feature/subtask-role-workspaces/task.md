@@ -61,13 +61,22 @@
 
 ## T3. Backend gắn luồng cũ (→ plan §1.2, §1.4)
 
-- [ ] T3.1 `TaskPostController` / service lưu bài: diff `SavePostRequest` với `PostDocument` → tập phần bị đổi (`caption/hashtags`→CAPTION, media→MEDIA, `targetPlatforms/scheduledAt`→CHANNELS); trường thuộc phần không có quyền → `FORBIDDEN` (AC8); bump revision từng phần đổi; response thêm `sections`. Chỉ bật khi task có subtask vai trò; không có → giữ `TaskApprovalPolicy.assignee`.
-- [ ] T3.2 SHORT_VIDEO dùng chung endpoint post với key `VIDEO.CAPTION/VIDEO.CHANNELS`; `targetPlatforms` giới hạn TikTok/Instagram/Facebook.
-- [ ] T3.3 `SurveyController POST /survey`: kiểm `SURVEY.FORM` khi task có subtask vai trò. WORKSHOP dùng cùng form builder: kiểm phần `WORKSHOP.REGISTRATION`.
-- [ ] T3.4 `TaskApprovalService.submit`: thêm `TASK_SECTIONS_UNAPPROVED` (AC12); task có subtask vai trò bỏ bước `reviewStep = CLIENT`; khi mọi phần O đạt trạng thái cuối → gọi luồng chuyển task cha sang đã duyệt hiện có (§16.5). Test regression case spec 15 (task cũ).
-- [ ] T3.5 `CampaignSubtaskService.syncRoleSubtasks(taskId)`: gọi sau mỗi chuyển trạng thái phần; FINISHED khi đủ phần cuối, về `IN_PROGRESS` khi bị trả/mở lại (§5.3).
-- [ ] T3.6 `CampaignTaskStore.draftTask`: sau khi tạo task cha, sinh subtask theo `TaskCatalog` (assignee null, `dueDate` = hạn task cha, TODO) (§16.9). Test deploy chiến dịch sinh đúng số subtask.
-- [ ] T3.7 `TaskSampleSeeder`: thêm 1 task POST có đủ 5 subtask vai trò để demo.
+- [x] T3.1 `TaskPostController` / service lưu bài: diff `SavePostRequest` với `PostDocument` → tập phần bị đổi (`caption/hashtags`→CAPTION, media→MEDIA, `targetPlatforms/scheduledAt`→CHANNELS); trường thuộc phần không có quyền → `FORBIDDEN` (AC8); bump revision từng phần đổi; response thêm `sections`. Chỉ bật khi task có subtask vai trò; không có → giữ `TaskApprovalPolicy.assignee`.
+- [x] T3.2 SHORT_VIDEO dùng chung endpoint post với key `VIDEO.CAPTION/VIDEO.CHANNELS`; `targetPlatforms` giới hạn TikTok/Instagram/Facebook.
+- [x] T3.3 `SurveyController POST /survey`: kiểm `SURVEY.FORM` khi task có subtask vai trò. WORKSHOP dùng cùng form builder: kiểm phần `WORKSHOP.REGISTRATION`.
+- [x] T3.4 `TaskApprovalService.submit`: thêm `TASK_SECTIONS_UNAPPROVED` (AC12); task có subtask vai trò bỏ bước `reviewStep = CLIENT`; khi mọi phần O đạt trạng thái cuối → gọi luồng chuyển task cha sang đã duyệt hiện có (§16.5). Test regression case spec 15 (task cũ).
+- [x] T3.5 `CampaignSubtaskService.syncRoleSubtasks(taskId)`: gọi sau mỗi chuyển trạng thái phần; FINISHED khi đủ phần cuối, về `IN_PROGRESS` khi bị trả/mở lại (§5.3).
+- [x] T3.6 `CampaignTaskStore.draftTask`: sau khi tạo task cha, sinh subtask theo `TaskCatalog` (assignee null, `dueDate` = hạn task cha, TODO) (§16.9). Test deploy chiến dịch sinh đúng số subtask.
+- [x] T3.7 `TaskSampleSeeder`: thêm 1 task POST có đủ 5 subtask vai trò để demo.
+- [x] T3.8 Chạy `mvn clean test -Dapi.version=1.44` business-service — pass (2026-11-10: 1754 test, 0 fail, 91 skip). Test mới: `TaskApprovalSectionsTest` (E4–E8, chốt task theo phần), `TaskPostSectionsTest` (B1–B3, map video), `SectionServiceMongoTest` +3 (E1–E3, chặn/bump phần khi lưu bài), `CampaignTaskStoreTest` +1 (A7).
+- Ghi chú T3 (lệch nhỏ so với plan, đã chốt khi code):
+  - "Task có subtask vai trò" = còn ít nhất một subtask có `subtaskRole` chưa `CANCELLED` (`SectionPolicy.roleTask`). Huỷ hết vai trò → luồng cũ (spec §11).
+  - Lưu bài khi có vai trò: bỏ kiểm `assignee`, thay bằng quyền EDIT từng phần bị đổi; lưu không đổi trường nào vẫn cần quyền sửa ít nhất một phần của bài. Bump revision phần chạy sau khi commit bài, không chung transaction; mất race thì chỉ log. `expectedRevision` của request vẫn là `workflowRevision` task, nên hai người lưu bài cùng lúc vẫn xung đột (chung 1 document post); revision theo phần chỉ tách được qua `PATCH /sections`.
+  - SHORT_VIDEO dùng chung luồng post ở mọi chỗ trước đây chỉ POST (`TaskApprovalPolicy.postLinked`). Media của video thuộc `VIDEO.EDIT`. Giới hạn kênh TikTok/Instagram/Facebook áp cho mọi task SHORT_VIDEO.
+  - Nộp task có vai trò: bỏ bước Manager cấp task (phần đã duyệt từng phần). Subtask vai trò không tính vào `TASK_SUBTASKS_UNFINISHED` (chúng chỉ FINISHED sau khi Client duyệt); subtask tự do vẫn tính. Phần không chủ được duyệt nội bộ luôn khi nộp (spec §4, event `APPROVE` note `submit`).
+  - Nếu mọi phần đã cuối lúc nộp → task `FINISHED`/`APPROVED` ngay. Nếu còn phần O chờ Client → task `IN_REVIEW`, `reviewStep = CLIENT` (giữ enum validator) làm trạng thái chờ; Client không duyệt/trả cấp task (`WRONG_APPROVAL_STEP`). Client duyệt phần cuối cùng → task đóng `APPROVED` qua luồng cũ (ghi decision CLIENT APPROVE). Client trả một phần khi task đang chờ → task về `IN_PROGRESS` (decision CLIENT REJECT, note = ghi chú trả). Trả sau khi task đã `FINISHED` (huỷ lịch) vẫn để T4.5.
+  - Tên subtask sinh từ danh mục = tên vai trò tiếng Việt của spec §3 (`TaskCatalog.RoleDef.name`, cũng trả qua `TaskCatalogController`). Id subtask ổn định theo `taskId + role`.
+  - Seeder: task POST đang làm đầu tiên chưa vào duyệt giữ 5 subtask vai trò (gán Creator) + 1 subtask tự do.
 
 ## T4. Backend thông báo, nhắc, huỷ lịch (→ plan §1.6, §1.7)
 
