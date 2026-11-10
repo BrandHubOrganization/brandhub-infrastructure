@@ -173,7 +173,9 @@
 
 ## T7. Web nền + trình soạn POST (→ plan §3)
 
-- [ ] T7.1 Types: `src/types/task.ts`, `src/pages/campaign/types.ts` (4 TaskType, `subtaskRole`, `TaskSection`); `media-package/types/mediaPackage.ts`, `serviceUnits.ts`, `OfferingEditor.tsx`, `OfferingSummary.tsx` (3 service type mới); `MyTasksSection.tsx`, `TaskFilterBar.tsx`, `TaskWorkflowContent.tsx` (nhãn + lọc loại mới). `npm run build` không lỗi TS.
+- [x] T7.1 Types: `src/types/task.ts`, `src/pages/campaign/types.ts` (4 TaskType, `subtaskRole`, `TaskSection`); `media-package/types/mediaPackage.ts`, `serviceUnits.ts`, `OfferingEditor.tsx`, `OfferingSummary.tsx` (3 service type mới); `MyTasksSection.tsx`, `TaskFilterBar.tsx`, `TaskWorkflowContent.tsx` (nhãn + lọc loại mới). `npm run build` không lỗi TS.
+  - Ghi chú T7.1 (2026-11-10): web làm ở worktree `brandhub-web-T7`, branch `feat/DA-1274-subtask-role-workspaces` (từ `origin/develop`). `TaskType` chỉ còn một nguồn (`src/types/task.ts`; `pages/campaign/types.ts` re-export). Thêm `POST_EDITOR_TYPES` (POST, SHORT_VIDEO) để dùng ở T7.4. Thêm luôn nhãn vi/en cho 4 loại task và 3 service type (tên, đơn vị, số lượng, gợi ý hạng mục), nếu không form gói hiện mã thô. `mediaPackage.editor.selected` đổi `/4` cứng thành `{{total}}`. Type `TaskSection`, `TaskSectionVersion`, `SectionStatus` ở `src/types/task.ts`; `subtaskRole` thêm vào `SubtaskDetails` và `TimelineSubtask`.
+  - API khác prompt: khôi phục là `POST /sections/{key}/restore/{n}` (body `{expectedRevision}`), không phải `/versions/{n}/restore`.
 - [ ] T7.2 Mới `src/services/taskSectionService.ts`, `src/hooks/useTaskSections.ts` (React Query; gửi `expectedRevision`; `TASK_REVISION_CONFLICT` → banner tải lại).
 - [ ] T7.3 Mới `src/components/task-sections/`: `SectionFrame`, `SectionStatusBadge`, `SectionReturnDialog`, `SectionVersionDrawer` (list, so sánh, khôi phục). Đủ UI states spec §12.
 - [ ] T7.4 `pages/editor`: bọc vùng Caption/Media/Channels bằng `SectionFrame`, disable theo `can*`; thêm khối `POST.BRIEF`; SHORT_VIDEO thêm `VIDEO.SCRIPT` + placeholder `VIDEO.SHOOT`, `VIDEO.EDIT` (props `section`, cho Ân gắn code).
