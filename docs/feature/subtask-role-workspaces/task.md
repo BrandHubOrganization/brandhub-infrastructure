@@ -158,11 +158,18 @@
   - Quyền xuất (`SectionPolicy.mayExport`): Client, Owner, Manager, người tham gia task. Creator không tham gia → `FORBIDDEN`. Người ngoài workspace bị chặn ở bước kiểm tra thành viên (mã lỗi có sẵn).
   - Khác task: "đã duyệt xong" dùng `isFinal`. Task có Client duyệt thì đúng là `CLIENT_APPROVED`. Task bỏ bước Client duyệt thì `INTERNAL_APPROVED` cũng tính là xong.
   - Logo: chỉ đọc từ bucket (`image/client-logos/<profileId>/…`), đổi WebP sang PNG. `logoUrl` dán từ ngoài không được tải, để tránh SSRF; khi đó file không có logo.
-  - Nội dung mỗi phần in dạng `trường: giá trị`, HTML được bỏ thẻ. Tiêu đề phần là section key; chưa có nhãn tiếng Việt.
+  - Nội dung mỗi phần in dạng `Nhãn: giá trị`, HTML được bỏ thẻ.
+    - Tiêu đề phần và tên trường dùng nhãn tiếng Việt; user chốt ngày 2026-11-10.
+    - Ẩn `batchId` và `recipientGroupIds`.
+    - Có test bắt buộc mọi section trong catalog đều có nhãn.
+  - User đã xác nhận ngày 2026-11-10:
+    - Task bỏ bước Client duyệt: phần `INTERNAL_APPROVED` tính là đã xong.
+    - Logo dán từ link ngoài: bỏ qua, không tải.
+    - Nhóm người nhận cũ chưa có cờ đồng ý: không nhận Newsletter, phải import lại.
   - Test:
     - `SectionServiceMongoTest`: I1–I5 ở tầng chọn phần.
     - `SectionExportServiceTest`: DOCX/PDF, dấu "Bản nháp", logo, URL ngoài không bị gọi.
-    - `mvn clean package`: 1797 test, 0 fail, 97 skip; BUILD SUCCESS.
+    - `mvn clean package`: 1798 test, 0 fail, 97 skip; BUILD SUCCESS.
 
 ## T7. Web nền + trình soạn POST (→ plan §3)
 
