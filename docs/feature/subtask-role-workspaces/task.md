@@ -137,14 +137,14 @@
     - Mỗi mail có link unsubscribe riêng ở footer và header `List-Unsubscribe`.
     - `batchId` ghi vào `EMAIL.AUDIENCE` trước khi tạo batch (CAS theo revision), nên hai lần gửi cùng lúc chỉ một lần qua. Đã có batch chưa huỷ thì không gửi lại.
     - `batchId` do server giữ: PATCH hay restore phần `EMAIL.AUDIENCE` không xoá, không đổi được nó.
-    - `send-test`: không dùng `MailSendService.sendTest` như plan, vì hàm đó cần id của mail template, còn Newsletter dựng nội dung từ các phần. Gửi ngay cho người gọi, không tạo batch, không tính quota. Chưa giới hạn số lần gửi test.
+    - `send-test`: không dùng `MailSendService.sendTest` như plan, vì hàm đó cần id của mail template, còn Newsletter dựng nội dung từ các phần. Gửi ngay cho người gọi, không tạo batch, không tính quota. Giới hạn 10 lần mỗi giờ cho mỗi task, đếm bằng Redis. Lần vượt trả `RATE_LIMIT_EXCEEDED`. Nếu Redis lỗi thì vẫn cho gửi, giống `ChatRateLimiter`. Thêm ngày 2026-11-10 theo xác nhận của user.
   - T4.5 sửa thêm: `MailBatchService.cancelForTask(workspaceId, batchId)` chỉ huỷ batch của đúng workspace.
   - T5.8: `GET /mail-quota` thêm `monthlyUsed`, `monthlyLimit`, `planName`.
   - T5.9: `EMAIL.REPORT` có thêm `content.stats` (`total, sent, failed, suppressed, unsubscribed, status`), đọc thẳng từ batch. `unsubscribed` = người đã nhận rồi huỷ đăng ký sau thời điểm gửi. Không có open/click. Chỉ lưu `comment`.
   - Test:
     - H1–H5 `MailRecipientServiceTest`; H6–H11 `NewsletterServiceTest`; H14, H15, H17 (nhánh worker) `MailDeliveryServiceTest`; H19 và giữ `batchId` `SectionServiceMongoTest`.
     - H11–H13, H15–H17, H19, G7, G8 trên Postgres thật: `NewsletterPostgresTest` (cần `BRANDHUB_MAIL_ISOLATED_TEST=true`). Đã chạy trên bản sao schema local, 6/6 pass.
-    - H18 chưa có test riêng (controller chỉ ghép thêm 3 trường).
+    - H18: `MailSendControllerTest.quotaAddsTheNewsletterMonth_H18`.
   - `mvn test`: 1791 test, 0 fail, 97 skip (gồm 6 test Postgres Newsletter khi chạy không có DB riêng).
 
 ## T6. Backend xuất file (→ plan §0.2, §1.8)
@@ -169,7 +169,7 @@
   - Test:
     - `SectionServiceMongoTest`: I1–I5 ở tầng chọn phần.
     - `SectionExportServiceTest`: DOCX/PDF, dấu "Bản nháp", logo, URL ngoài không bị gọi.
-    - `mvn clean package`: 1798 test, 0 fail, 97 skip; BUILD SUCCESS.
+    - `mvn clean package`: 1800 test, 0 fail, 97 skip; BUILD SUCCESS.
 
 ## T7. Web nền + trình soạn POST (→ plan §3)
 

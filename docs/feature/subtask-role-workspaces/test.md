@@ -152,7 +152,7 @@
 | I2 | §16.11 | I | `mgr` xuất task KOL | PDF; không chứa giá trong `KOL.DEAL` (grep text PDF). | ☐ |
 | I3 | §16.11 | I | Agency xuất khi có phần chưa `CLIENT_APPROVED` | Phần đó có dấu "Bản nháp"; file có logo Client. | ☐ |
 | I4 | §16.11 | I | `client` xuất | Chỉ phần `CLIENT_APPROVED`; không có dấu "Bản nháp". | ☐ |
-| I5 | §16.11 | I | `outsider` xuất | `FORBIDDEN`. | ☐ |
+| I5 | §16.11 | I | `outsider` xuất | Không phải thành viên workspace → `WORKSPACE_ACCESS_DENIED` (như mọi API workspace). Creator trong workspace nhưng không tham gia task → `FORBIDDEN`. | ☐ |
 
 ## J. Web UI
 
