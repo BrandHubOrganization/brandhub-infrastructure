@@ -149,9 +149,20 @@
 
 ## T6. Backend xuất file (→ plan §0.2, §1.8)
 
-- [ ] T6.1 `pom.xml` business-service: thêm `org.apache.poi:poi-ooxml` (đã được duyệt).
-- [ ] T6.2 Mới `SectionExportService` + `GET /tasks/{taskId}/export`: PRESS → DOCX (poi), loại khác → PDF (openpdf theo mẫu `PackageExportRenderer`); chỉ phần O; logo `ClientProfile.logoUrl`; agency xuất mọi trạng thái, phần chưa `CLIENT_APPROVED` đóng dấu "Bản nháp"; Client chỉ phần `CLIENT_APPROVED`. Test: file không chứa nội dung phần I.
-- [ ] T6.3 `mvn test` + `mvn package` business-service — pass.
+- [x] T6.1 `pom.xml` business-service: thêm `org.apache.poi:poi-ooxml` (đã được duyệt).
+- [x] T6.2 Mới `SectionExportService` + `GET /tasks/{taskId}/export`: PRESS → DOCX (poi), loại khác → PDF (openpdf theo mẫu `PackageExportRenderer`); chỉ phần O; logo `ClientProfile.logoUrl`; agency xuất mọi trạng thái, phần chưa `CLIENT_APPROVED` đóng dấu "Bản nháp"; Client chỉ phần `CLIENT_APPROVED`. Test: file không chứa nội dung phần I.
+- [x] T6.3 `mvn test` + `mvn package` business-service — pass.
+- Ghi chú T6 (2026-11-10):
+  - T6.1: `poi-ooxml` 5.3.0.
+  - T6.2: `SectionService.exportable` lấy phần O. `SectionExportService` dựng file. Endpoint `GET /api/v1/workspaces/{ws}/tasks/{taskId}/export` nằm trong `TaskExportController`.
+  - Quyền xuất (`SectionPolicy.mayExport`): Client, Owner, Manager, người tham gia task. Creator không tham gia → `FORBIDDEN`. Người ngoài workspace bị chặn ở bước kiểm tra thành viên (mã lỗi có sẵn).
+  - Khác task: "đã duyệt xong" dùng `isFinal`. Task có Client duyệt thì đúng là `CLIENT_APPROVED`. Task bỏ bước Client duyệt thì `INTERNAL_APPROVED` cũng tính là xong.
+  - Logo: chỉ đọc từ bucket (`image/client-logos/<profileId>/…`), đổi WebP sang PNG. `logoUrl` dán từ ngoài không được tải, để tránh SSRF; khi đó file không có logo.
+  - Nội dung mỗi phần in dạng `trường: giá trị`, HTML được bỏ thẻ. Tiêu đề phần là section key; chưa có nhãn tiếng Việt.
+  - Test:
+    - `SectionServiceMongoTest`: I1–I5 ở tầng chọn phần.
+    - `SectionExportServiceTest`: DOCX/PDF, dấu "Bản nháp", logo, URL ngoài không bị gọi.
+    - `mvn clean package`: 1797 test, 0 fail, 97 skip; BUILD SUCCESS.
 
 ## T7. Web nền + trình soạn POST (→ plan §3)
 
