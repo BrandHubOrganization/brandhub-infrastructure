@@ -39,15 +39,25 @@
 
 ## T2. Backend phần (section) (→ plan §1.3)
 
-- [ ] T2.1 Mới `document/TaskSectionDocument.java` + repository (field theo plan §1.3; `revision` long, `status` enum `SectionStatus {DRAFT, SUBMITTED, INTERNAL_APPROVED, CLIENT_APPROVED, RETURNED}`).
-- [ ] T2.2 Mới `TaskSectionVersionDocument.java` (`task_section_versions`) + `TaskSectionEventDocument.java` (`task_section_events`). Không có hàm xoá.
-- [ ] T2.3 Mới `SectionPolicy.java`: `canView/canEdit/canSubmit/canApprove/canReturn/canReopen/canRestore` theo spec §4, §5.2, §16.10, §16.13; luật chồng phần `POST.CAPTION`/`VIDEO.CAPTION`; phần không chủ → điều phối/Manager; hợp quyền nhiều subtask; subtask `CANCELLED` mất chủ. Dùng lại `TaskApprovalPolicy.Context/Snapshot`, `CampaignSubtaskService.supervisor`.
-- [ ] T2.4 Unit test `SectionPolicyTest`: mỗi dòng ma trận §4 một case; AC4, AC5, AC6, AC7, AC9; Creator không tham gia task không thấy phần I (§16.10); Client không thấy phần I và phần O dưới `INTERNAL_APPROVED` (AC10).
-- [ ] T2.5 Mới `SectionService.list(taskId, viewer)`: phần chưa có document → ảo `DRAFT`, chủ = điều phối (không backfill); lọc theo `canView`; kèm `can*`, `ownerSubtaskIds`, `ownerNames`.
-- [ ] T2.6 `SectionService.patch(key, content, expectedRevision)`: CAS `findAndModify {taskId, sectionKey, revision}`; lệch → `TASK_REVISION_CONFLICT`; tạo document lười ở lần ghi đầu (upsert, bắt duplicate key → conflict); sửa phần đã duyệt → `SUBMITTED`; validate `content` theo schema phần (spec §3). Với POST/SURVEY: chỉ trạng thái/revision, nội dung đi qua T3.
-- [ ] T2.7 `submit / approve / return / reopen`: máy trạng thái §5.1 (sai → `SECTION_INVALID_TRANSITION`); `return` bắt buộc note (`VALIDATION_ERROR`); `submit` ghi `task_section_versions` (snapshot nội dung thật, gồm POST/SURVEY); mọi hành động ghi `task_section_events`; `approve` nội bộ phần O → set `clientPendingSince`; `requiresClientApproval=false` → `INTERNAL_APPROVED` là cuối.
-- [ ] T2.8 `versions / version(no) / restore(no)`: Client bị chặn (§16.14); restore chép vào nháp, phần phải nộp và duyệt lại (§16.13).
-- [ ] T2.9 Mới `TaskSectionController.java`: endpoint spec §9.2 + versions/restore. Integration test chuyển trạng thái đủ vòng `DRAFT → SUBMITTED → INTERNAL_APPROVED → CLIENT_APPROVED → RETURNED` và test case spec 8 (2 phiên cùng lưu).
+- [x] T2.1 Mới `document/TaskSectionDocument.java` + repository (field theo plan §1.3; `revision` long, `status` enum `SectionStatus {DRAFT, SUBMITTED, INTERNAL_APPROVED, CLIENT_APPROVED, RETURNED}`).
+- [x] T2.2 Mới `TaskSectionVersionDocument.java` (`task_section_versions`) + `TaskSectionEventDocument.java` (`task_section_events`). Không có hàm xoá.
+- [x] T2.3 Mới `SectionPolicy.java`: `canView/canEdit/canSubmit/canApprove/canReturn/canReopen/canRestore` theo spec §4, §5.2, §16.10, §16.13; luật chồng phần `POST.CAPTION`/`VIDEO.CAPTION`; phần không chủ → điều phối/Manager; hợp quyền nhiều subtask; subtask `CANCELLED` mất chủ. Dùng lại `TaskApprovalPolicy.Context/Snapshot`, `CampaignSubtaskService.supervisor`.
+- [x] T2.4 Unit test `SectionPolicyTest`: mỗi dòng ma trận §4 một case; AC4, AC5, AC6, AC7, AC9; Creator không tham gia task không thấy phần I (§16.10); Client không thấy phần I và phần O dưới `INTERNAL_APPROVED` (AC10).
+- [x] T2.5 Mới `SectionService.list(taskId, viewer)`: phần chưa có document → ảo `DRAFT`, chủ = điều phối (không backfill); lọc theo `canView`; kèm `can*`, `ownerSubtaskIds`, `ownerNames`.
+- [x] T2.6 `SectionService.patch(key, content, expectedRevision)`: CAS `findAndModify {taskId, sectionKey, revision}`; lệch → `TASK_REVISION_CONFLICT`; tạo document lười ở lần ghi đầu (upsert, bắt duplicate key → conflict); sửa phần đã duyệt → `SUBMITTED`; validate `content` theo schema phần (spec §3). Với POST/SURVEY: chỉ trạng thái/revision, nội dung đi qua T3.
+- [x] T2.7 `submit / approve / return / reopen`: máy trạng thái §5.1 (sai → `SECTION_INVALID_TRANSITION`); `return` bắt buộc note (`VALIDATION_ERROR`); `submit` ghi `task_section_versions` (snapshot nội dung thật, gồm POST/SURVEY); mọi hành động ghi `task_section_events`; `approve` nội bộ phần O → set `clientPendingSince`; `requiresClientApproval=false` → `INTERNAL_APPROVED` là cuối.
+- [x] T2.8 `versions / version(no) / restore(no)`: Client bị chặn (§16.14); restore chép vào nháp, phần phải nộp và duyệt lại (§16.13).
+- [x] T2.9 Mới `TaskSectionController.java`: endpoint spec §9.2 + versions/restore. Integration test chuyển trạng thái đủ vòng `DRAFT → SUBMITTED → INTERNAL_APPROVED → CLIENT_APPROVED → RETURNED` và test case spec 8 (2 phiên cùng lưu).
+- [x] T2.10 Chạy `mvn clean test -Dapi.version=1.44` business-service — pass (2026-11-10: 1737 test, 0 fail, 91 skip; `SectionServiceMongoTest` 11/11 pass trên Mongo thật). `SectionServiceMongoTest` (Testcontainers `mongo:7`) tự skip khi Testcontainers không nói chuyện được với Docker: Docker 29 từ chối API mặc định của Testcontainers 1.20.4, nên thiếu cờ `-Dapi.version=1.44` thì 11 test này skip (102 skip).
+  - Khớp validator migration 2026-11-10: note trả/mở lại ≤ 2000 ký tự; event Client ghi `CLIENT_APPROVE` / `CLIENT_RETURN`.
+- Ghi chú T2 (lệch nhỏ so với plan, đã chốt khi code):
+  - Không tạo Spring Data repository: mọi truy cập Mongo nằm trong `SectionStore` (MongoTemplate, như `CampaignSubtaskService`), vì CAS/upsert cần `findAndModify`.
+  - `_id` phần = `taskId|sectionKey`, phiên bản = `taskId|sectionKey|versionNo` → lần ghi đầu đồng thời không thể sinh 2 document (B20) dù chưa chạy migration index.
+  - Bỏ `lastEditorRole` (không ai đọc). Luật chồng phần nằm ở `SectionPolicy.EDITING_ROLES` (`POST.CAPTION → POST_EDITING`); VIDEO không có vai trò biên tập nên không áp.
+  - Schema trường từng phần: `TaskCatalog.fields(key)` (TEXT/NUMBER/LIST; `VIDEO.SHOOT`/`VIDEO.EDIT` tự do). Web (T7/T8) dùng đúng tên trường này.
+  - Phần POST/SURVEY: `PATCH` chỉ nhận content `{}` (bump revision + luật khoá); nội dung thật ghi qua T3. Snapshot version và restore đọc/ghi `posts` (`content_text, hashtags, media, target_platforms, scheduled_at`) / `surveys` (`title, description, questions`).
+  - Client trả phần được cả khi phần đã `CLIENT_APPROVED` (cần cho G5); đưa task cha về `IN_PROGRESS` để T4.5.
+  - Phần không chủ: chỉ Manager duyệt nội bộ; việc "duyệt cùng lúc khi nộp task cha" để T3.4.
 
 ## T3. Backend gắn luồng cũ (→ plan §1.2, §1.4)
 
