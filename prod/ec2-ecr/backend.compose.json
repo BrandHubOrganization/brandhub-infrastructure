@@ -26,7 +26,7 @@
           "max-file": "3"
         }
       },
-      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/api-gateway:sha-92de5b5-7",
+      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/api-gateway:sha-07f8b2c-10",
       "mem_limit": "640m",
       "env_file": [
         {
