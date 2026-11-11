@@ -215,7 +215,8 @@
   - Ghi chú T8.11 (2026-11-11): web 8772d74. BE đã có sẵn `POST /mail-recipient-groups/import` (multipart) trả đủ 4 số theo AC13 — chỉ thêm `importRecipientGroup` vào `mailTemplateService.ts`, không sửa BE. `ImportRecipientsDialog.tsx` mới: chọn file CSV + tên nhóm (tùy chọn), hiện 4 số kết quả. Quota tháng dùng lại `mailTemplateService.quota` (đã có từ trước, chưa ai hiển thị) — hiện cạnh ô tìm kiếm trong `page.tsx`, refetch sau khi import xong.
 - [x] T8.12 Nút xuất file ở trình soạn và portal — **làm xong portal + 5 trình soạn mới T8.4–T8.6, chưa làm POST/SURVEY editor cũ**.
   - Ghi chú T8.12 (2026-11-11): web 0c220c4. BE đã có sẵn `GET /tasks/{taskId}/export` (`TaskExportController`) — chỉ thêm `TaskExportButton.tsx` gọi endpoint này (blob + filename từ `Content-Disposition`), không sửa BE. Gắn vào `OpenRoleTaskEditorCard` (EVENT/PRESS/KOL/WORKSHOP/NEWSLETTER) và vào `SectionReview.tsx` (`SectionApprovalQueue` ở portal, `TaskSectionsReview` ở trang duyệt nội bộ) — portal coi như xong. **Chưa gắn** vào `pages/editor` (POST/SHORT_VIDEO, file lớn ~700 dòng chưa đọc trong session này) và header `survey-editor` — để lại việc sau, tránh sửa mù vào layout chưa review.
-- [ ] T8.13 `npm run build` + `npm test` web — pass.
+- [x] T8.13 `npm run build` + `npm test` web — pass.
+  - Ghi chú T8.13 (2026-11-11): `npm run build` xanh (chỉ warning chunk-size, không lỗi). `npm test` (vitest run): 21 test files, 98 tests, pass hết. T8 coi như xong, trừ 2 khoảng hẹp đã ghi rõ ở T8.6 (EMAIL.REPORT không đọc batch sống), T8.9 (thiếu trạng thái phần/cờ chờ Client trên timeline — cả hai chặn vì thiếu field ở response BE, ngoài phạm vi web-only) và T8.12 (chưa gắn nút xuất ở `pages/editor`/`survey-editor` cũ).
 
 ## T9. Mobile (→ plan §4)
 
