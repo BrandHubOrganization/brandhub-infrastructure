@@ -1,0 +1,11 @@
+# Tasks
+- [x] Write failing tests for standalone builder and API conversion.
+- [x] Make builder portable and preserve review/cinematic continuity.
+- [x] Implement authenticated LTX submission and reuse existing status/media transport; mock-test authentication and submission.
+- [x] Add Claude director/backend selection and transport tests.
+- [x] Forward optional character image through Business and web.
+- [x] Update Vietnamese/English labels and reuse existing theme tokens.
+- [x] Package ZIP and verify no keys, logs, generated jobs or model weights are included.
+- [x] Run focused regression checks and document remaining live-GPU checks.
+- [ ] Browser verification of upload/remove/preview in light and dark themes.
+- [ ] VM runtime schema compilation, one real render per mode, and public URL/key configuration.

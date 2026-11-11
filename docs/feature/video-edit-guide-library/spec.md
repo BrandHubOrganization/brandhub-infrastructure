@@ -1,0 +1,7 @@
+# On-demand video editing guides
+
+Continuation of Claude thread `84196747-2e11-4de6-80a8-44555d54e163` (Thread Codex trước đó), 2026-11-10. User chose option1: make existing skills/documents available to the server agent through `list_guides` and `read_guide`, without injecting the whole corpus into every model call. Claude stopped after locating sources and licenses.
+
+Acceptance: the current server agent discovers relevant guides and reads full original sections/pages on demand. Documents are reference data, not executable commands or authority to bypass the typed render plan, ownership, budget or preview gates. Read tools cannot access arbitrary paths, follow symlinks or fetch URLs. Keep sources untouched. Publish only verified licensed knowledge in the worker image with license/notices; user's private/unlicensed-source documents form a separate read-only bundle for local/private deployments, not automatically a distributable commercial library. Do not copy plugin node_modules/browser caches, secrets or media.
+
+List/read have strict argument and output bounds, section selection, pagination and a per-job read budget. Missing private bundle does not stop normal rendering. Cached guide bytes must match the packaged hash. The existing provider-start fence, tool errors, limits and original media remain unchanged. No new paid provider call is required for the implementation gate; any quality comparison must be reported separately, not inferred from unit tests.
