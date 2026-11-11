@@ -191,8 +191,10 @@
 
 ## T8. Web các trình soạn còn lại & màn liên quan (→ plan §3)
 
-- [ ] T8.1 Mới `src/pages/task-editor/index.tsx`: chọn editor theo `task.type` trên route `/workspaces/:id/tasks/:taskId/editor` (POST/SHORT_VIDEO giữ `pages/editor`).
-- [ ] T8.2 `SectionListField` dùng chung cho trường dạng bảng (agenda, vendor, media list, shortlist…).
+- [x] T8.1 Mới `src/pages/task-editor/index.tsx`: chọn editor theo `task.type` trên route `/workspaces/:id/tasks/:taskId/editor` (POST/SHORT_VIDEO giữ `pages/editor`).
+  - Ghi chú T8.1 (2026-11-11): web 3bfba81. Đọc `task.type` qua `taskWorkflowService.read` (không cần `TaskWorkflowProvider`, chỉ đọc). POST/SHORT_VIDEO → redirect `pages/editor?taskId=`; SURVEY → redirect route sẵn có `/survey`; EVENT_PLAN/PRESS/KOL_BOOKING/WORKSHOP/EMAIL_NEWSLETTER (chưa có editor, chờ T8.3–T8.6) → redirect tạm về `/detail`. Chưa sửa các nơi gọi (`TaskRowActions`, `TaskStartAction`, `TaskWorkflowContent`, `TaskApprovalSection` vẫn chỉ link thẳng `pages/editor` cho POST/SHORT_VIDEO) — nối các nơi đó vào route mới là T8.8. `npx tsc -b` sạch.
+- [x] T8.2 `SectionListField` dùng chung cho trường dạng bảng (agenda, vendor, media list, shortlist…).
+  - Ghi chú T8.2 (2026-11-11): web 81222e5. Component nhận `columns` từ nơi gọi (không đọc `TaskCatalog.fields` vì BE chỉ khai `List<?>`, không có schema cột); dùng `Table`/`Input` có sẵn trong `components/ui`. Thêm khoá i18n `editor.sections.addRow`/`removeRow` (vi+en). Dùng ở T8.4–T8.6.
 - [ ] T8.3 `SurveyEditor` (bọc `SurveyOverviewCard` + Phân phối, Báo cáo).
 - [ ] T8.4 `EventEditor`, `PressEditor`. Task EVENT_PLAN/PRESS cũ có dữ liệu trong `event_plans`/`press_recommendations` (`planContent`, `recommendations`): hiển thị khối chỉ-đọc "Nội dung cũ" phía trên, không migrate.
 - [ ] T8.5 `KolEditor`, `WorkshopEditor` (Registration dùng form builder survey).
