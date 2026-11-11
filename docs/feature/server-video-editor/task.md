@@ -16,3 +16,18 @@
 - [x] Update test evidence and leave code uncommitted/unpushed.
 
 Task1 review corrections: recover ambiguous output-session acquisition, fit text inside declared panel/frame, accept unchanged native text defaults, bound every decoded stream (including video embedded in audio).
+
+## 2026-11-11 — Editable layers
+- [x] Add offline regression coverage for sidecar ownership, geometry and validation.
+- [x] Export schema/source/library manifest and validate editable sidecar in worker.
+- [x] Import real cuts/text/music/SFX/source audio into separate native tracks; preserve old MP4 path and Undo.
+- [x] Update parallel vi/en labels and save/unsupported-effect feedback.
+- [x] Check native types, meaningful importer tests, worker regressions and build; inspect light/dark reuse.
+- [x] Report deployment and browser-verification limitations explicitly.
+
+
+## 2026-11-11 — Missing editor resources
+- [x] Reproduce missing audio list and blank effect previews with browser fixtures.
+- [x] Add uploaded-audio view, real effect presets and bundled previews.
+- [x] Keep VI/EN messages parallel and verify both themes/keyboard.
+- [x] Run native checks, relevant browser tests and production build; retain unrelated work.
