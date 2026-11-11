@@ -35,3 +35,5 @@ Local pricing follow-up (2026-11-06): user confirmed the editor's generic Genera
 
 ## Out of scope
 New brand profile forms, new database schema, paid video generation, publishing and guarantees of virality.
+
+PR #67 CI correction (2026-11-06): No merge conflict. AI unit tests passed1039 (1 skipped); three crawler orchestration assertions confuse new Google Trends cold backups with live source delivery. Preserve cold-only Google backups, no source redelivery and custom-output retry. No production behavior change.

@@ -65,3 +65,5 @@ Seed trước để có data thật khi kiểm tra UI. Sau đó tab mobile, Admi
 | Ghi nhầm môi trường Atlas | Từ chối khi profile `prod`/`production`; in host, DB và số bản ghi trước khi ghi |
 | Backend đổi cấu trúc billing | Seed qua constraint và trigger thật của DB, có test tích hợp |
 | Mobile đang có nhiều thay đổi chưa commit | Chỉ sửa đúng file trong kế hoạch, không dọn thay đổi khác |
+
+Local runtime correction: use the existing VITE_DEV_LOGIN_CREATOR_EMAIL override in ignored .env.local, without editing TSX or resetting accounts. Let Vite reload environment, read the served module to verify effective config, then test login/profile/workspace selection through Gateway only.

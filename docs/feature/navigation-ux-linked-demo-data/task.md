@@ -85,3 +85,8 @@
 - [x] Lịch mobile ẩn Dời lịch trên Task đã khóa (`IN_REVIEW`, `FINISHED`)
 - [x] Survey: tải lỗi thì tự chọn câu hỏi mặc định
 - [ ] Lint web còn 83 warning: `set-state-in-effect` 66, `exhaustive-deps` 9, `only-export-components` 8
+
+- [x] Reproduce Creator401 and four successful role logins; confirm user13 absent and user1 Creator membership.
+- [ ] Set ignored local Creator override and verify served environment/login/workspace.
+
+- [x] Local Creator override applied in ignored .env.local; Vite reloaded; all5 roles login/profile HTTP200; Creator workspace selection HTTP200 and correct CREATOR membership.

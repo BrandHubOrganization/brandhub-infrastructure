@@ -22,3 +22,7 @@
 Still pending: actual `/object_info` conversion for both full templates on the VM, GPU memory/quality and Vietnamese voice checks, live polling/media/S3 delivery, browser light/dark checks and public worker configuration. VM is off at the user's request. `start_api.py` performs schema compilation before exposing a new worker; failure requires diagnosis before claiming deployment success.
 
 Deployment: upload the ZIP, extract under `/workspace`, run `bash /workspace/ltx_video_bundle/setup.sh`. Public API targets 10200, GUI targets 10101. Backend LTX URL/key settings remain opt-in; a built ZIP is not evidence that the web is connected to a live worker. Stable `API_KEY` in the VM `.env` can be reused across rentals; an automatically generated key changes on a fresh VM and must be updated privately in backend settings.
+
+## SaveVideo regression — 2026-11-11
+
+Live setup reported one extra SaveVideo widget. The pinned ComfyUI nodes_video.py retains a UI-hidden optional legacy codec; the converter skipped it despite the canvas serializing it. Reproduced with the pinned schema shape, then fixed by consuming hidden UI widgets in required/optional groups (server-injected hidden group remains excluded). All 9 portable tests pass, including rejection of genuinely unknown extra values. Rebuilt ZIP, CRC and source parity passed. Full runtime schema validation still requires rerunning start_api.py on the VM.

@@ -35,4 +35,9 @@ Read spec.md -> plan.md -> task.md -> test.md before feature code. No commits/pu
 
 - [x] Fix observed lost-workspace Video AI launch/Back; rerun native source/edit/export browser gate.
 
-
+## Visual integration — 2026-11-11
+- [x] Reuse host appearance and remove duplicate lab navigation.
+- [x] Group video sidebar links under existing permission filtering.
+- [x] Update parallel library/host VI/EN labels and viewport layout.
+- [x] Verify palette mapping, navigation permissions, native type-check and frontend CI.
+- [ ] Check real light/dark layouts when browser access permits.

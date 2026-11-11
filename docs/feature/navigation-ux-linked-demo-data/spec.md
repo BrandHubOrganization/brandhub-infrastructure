@@ -152,3 +152,5 @@ Toàn bộ mục 4 đạt; test tự động qua; đã chạy thử 5 vai trò t
 - Phạm vi: cả mobile và web; mobile dùng tab dưới kết hợp drawer.
 - Tối đa 12 mục trong "Thêm" cho mỗi vai trò.
 - Biểu đồ Admin mobile chỉ gồm những loại web đang có, không thêm chỉ số mới.
+
+Local runtime correction 2026-11-09: after pull, Creator quick login defaults to user13, absent from this local database. Other four roles authenticate. Existing user1 is an active Creator in Dev Creator Workspace and Manager elsewhere. Configure ignored Web .env.local VITE_DEV_LOGIN_CREATOR_EMAIL=user1@demo.brandhub.test; preserve shared defaults, credentials, database and seeded relationships.

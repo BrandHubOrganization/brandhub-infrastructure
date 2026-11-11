@@ -89,3 +89,7 @@ Web 390px: 10 trang của vai `Manager` không tràn ngang; nút trên header ca
 - Header 390px: nút 44dp, không tràn. Đã đo tại `/dashboard`.
 - Đổi lịch Task trên emulator (+7), Task `TODO`, Mongo replica set tạm: nhập 09:30, DB lưu `publishDate` `02:30:00Z`, lịch chuyển ngày, revision tăng 1. Task `IN_REVIEW`: API từ chối, app hiện đúng lỗi; sau đó nút đã được ẩn và có test. Chưa thử trên iPhone.
 - Tự động: backend 1557 test, 0 fail, 82 skip; web 104/104, lint 0 error, tsc, build; mobile 386/386, tsc.
+
+Local runtime correction: effective served VITE_DEV_LOGIN_CREATOR_EMAIL must be user1@demo.brandhub.test. Five quick-login buttons authenticate normally; Creator profile loads and list() contains an active CREATOR workspace d3210000-0000-4000-8000-000000000003. No DB/password/role changes, UI automation, paid request, commit or push.
+
+Verified 2026-11-09: initial Creator user13 returned401 INVALID_CREDENTIALS and database had no matching user. Other4 role login calls returned200. Effective Vite environment now overrides only Creator=user1; all5 logins and profile reads returned200, Creator workspace lookup returned200 and matched d3210000-0000-4000-8000-000000000003. Proof: .tmp/login-diagnosis-20261109/quick-login-api.json and quick-login-after.json. No account/password/role changes or shared source edit; no UI automation or commit/push.

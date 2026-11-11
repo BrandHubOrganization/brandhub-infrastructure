@@ -14,3 +14,11 @@
 - [x] Apply/test bounded fallback in active AI8082 worktree and repair local dependency config; rerun one API smoke through8080.
 - [x] Bring over explicit Anthropic client URL; verify shell overrides cannot redirect the Claude key.
 - [x] Apply approved local CONTENT_GENERATE price0 via Admin API and test the editor's actual generic text route.
+
+PR #67 CI correction:
+- [x] Fetch origin; develop already ancestor; download failing CI log.
+- [x] Reproduce three crawler failures.
+- [x] Update assertions to distinguish cold-only backups.
+- [ ] Verify suites/lint, push PR branch and check CI.
+
+- [x] PR #67 fix verified: full AI1039 passed/1 skipped; crawler246 passed; workflow lint and diff check passed. Commit9c942e1 pushed to feature/brand-aware-captions-20261106 and fast-forwarded into root AI checkout, retaining unrelated edits. PR67 is closed/unmerged; no reopening or replacement PR created.
