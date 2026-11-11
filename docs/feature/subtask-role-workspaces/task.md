@@ -224,10 +224,14 @@
 
 ## T9. Mobile (→ plan §4)
 
-- [ ] T9.1 Nhãn 4 loại mới ở `src/theme/tokens.ts` (`TASK_TYPE_LABEL`), `src/i18n/enumLabel.ts`, `formatTaskTypePill` (`taskListHelpers.ts` và bản trùng ở `ApprovalScreen.tsx`), bộ lọc `TaskListScreen.tsx`. Sửa EN của `EVENT_PLAN` từ "Workshop" thành "Event plan".
-- [ ] T9.2 Service gọi `GET /sections` + approve/return.
-- [ ] T9.3 `TaskDetailScreen.tsx`: tab "Phần" chỉ đọc + Duyệt/Trả theo `can*` (AC18). Test case spec 12.
-- [ ] T9.4 `npm test` mobile — pass (gồm `TaskDetailScreen.test.tsx`).
+- [x] T9.1 Nhãn 4 loại mới ở `src/theme/tokens.ts` (`TASK_TYPE_LABEL`), `src/i18n/enumLabel.ts`, `formatTaskTypePill` (`taskListHelpers.ts` và bản trùng ở `ApprovalScreen.tsx`), bộ lọc `TaskListScreen.tsx`. Sửa EN của `EVENT_PLAN` từ "Workshop" thành "Event plan".
+  - Ghi chú T9.1 (2026-11-11): mobile 994ccfc (branch `fix/DA-1274-expo-image-lists`, chưa push). Thêm `SHORT_VIDEO`/`KOL_BOOKING`/`WORKSHOP`/`EMAIL_NEWSLETTER` vào `TASK_TYPE_LABEL`, `enumLabel.ts`, `formatTaskTypePill`, bộ lọc `TaskListScreen.tsx`. Sửa `EVENT_PLAN` EN "Workshop" → "Event plan" đúng như yêu cầu. `ApprovalScreen.tsx` có bản `formatTaskTypePill` riêng nhưng đã đúng sẵn + fallback về `TASK_TYPE_LABEL` cho loại không khớp case nào → không cần sửa trực tiếp, tự ăn theo fix ở `tokens.ts`.
+- [x] T9.2 Service gọi `GET /sections` + approve/return.
+  - Ghi chú T9.2 (2026-11-11): mobile 994ccfc. `taskSectionService.ts` mới (list + act approve/return), gọi `TaskSectionController` có sẵn, không sửa BE. Thêm `TaskSection`/`SectionStatus` vào `types/task.ts` (mirror từ web). Chỉ làm `list`/`approve`/`return` theo đúng phạm vi T9.2/AC18 — không làm `submit`/`reopen`/`versions`/`restore` (đó là của trình soạn web, mobile chỉ xem + duyệt/trả).
+- [x] T9.3 `TaskDetailScreen.tsx`: tab "Phần" chỉ đọc + Duyệt/Trả theo `can*` (AC18). Test case spec 12.
+  - Ghi chú T9.3 (2026-11-11): mobile 994ccfc. Không có cơ chế tab thật trong màn hình này (toàn bộ là 1 ScrollView xếp block) — "tab Phần" làm thành card `TaskSectionsCard` mới, xếp ngay trên `TaskTakesSection`. Mỗi section: tên key, badge trạng thái, banner lý do trả lại nếu `RETURNED`, nút Duyệt/Trả lại hiện theo `canApprove`/`canReturn`; Trả lại mở form ghi chú bắt buộc (không submit được khi rỗng). Card tự ẩn (`return null`) khi task không có section nào — không ảnh hưởng task không có subtask vai trò. Hiện cho cả Client (khác `TaskTakesSection` — duyệt phần là hành động của Client).
+- [x] T9.4 `npm test` mobile — pass (gồm `TaskDetailScreen.test.tsx`).
+  - Ghi chú T9.4 (2026-11-11): `npx tsc --noEmit` sạch. `npm test`: 438/439 pass — 1 fail duy nhất (`CalendarScreen.test.tsx`, assert ngày cứng `2026-11-10` đã qua) là lỗi có từ trước, xác nhận bằng `git stash` chạy lại trên baseline y hệt fail, không liên quan T9. Phải thêm `jest.mock(".../TaskSectionsCard")` vào `TaskDetailScreen.test.tsx` và `TaskWorkflowAndComments.test.tsx` (2 file test dựng màn hình không bọc `QueryClientProvider`) — cùng mẫu với mock `TaskTakesSection` đã có sẵn.
 
 ## T10. i18n, theme, nghiệm thu (→ plan §3, §4, §6 bước 10)
 
