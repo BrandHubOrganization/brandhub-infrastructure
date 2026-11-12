@@ -1,0 +1,7 @@
+# Plan
+
+1. Audit local source locations and licenses from Claude's completed inventory; select Markdown documentation only. Preserve original bytes plus license notices and SHA256/provenance in a generated manifest. Package MIT Opus prompts and Apache HyperFrames creative/animation/audio documentation in `app/resources/video-edit/guides`; put private skills and DemoVideo notes in a separate ignored deployment bundle. Record source classifications without inventing missing licenses.
+2. Add a standard-library guide reader: fixed manifests/root containment, hashes, no symlinks/paths/URLs supplied by model, bounded listing, section/page lookup and job character budget.
+3. Extend AgentTools with typed `list_guides` and `read_guide`. Update agent rules to consult relevant sections after inspecting source facts. Feed only requested text via normal tool results; do not concatenate the corpus into system prompt. Existing tool execution and paid-call fence stay intact.
+4. Document optional read-only private volume/environment settings and reuse existing Docker resource copy for the public bundle. No worker mode/model change, database migration, commit/push or external upload of guides.
+5. Offline reader/security/packaging and fake-agent tool-use tests, plus existing agent/contract regressions. Verify the active worker is idle before reloading it. Report knowledge integration separately from subjective output quality.
