@@ -1139,3 +1139,74 @@ print('BrandHub MongoDB initialized: collections and indexes created.');
   }
   for (const {key,...options} of referenceAttachmentIndexes) db.material_references.createIndex(key,options);
 })();
+
+// Repository Folders, Versions, Client Vault Shares, Surveys, and Watermark Presets.
+(() => {
+  // 1. material_folders
+  db.createCollection('material_folders');
+  db.material_folders.createIndex(
+    { scope_type: 1, workspace_id: 1, parent_folder_id: 1, normalized_name: 1 },
+    { name: 'uq_workspace_folder_name', unique: true, partialFilterExpression: { scope_type: 'WORKSPACE', deleted_at: null } }
+  );
+  db.material_folders.createIndex(
+    { scope_type: 1, owner_user_id: 1, parent_folder_id: 1, normalized_name: 1 },
+    { name: 'uq_vault_folder_name', unique: true, partialFilterExpression: { scope_type: 'CLIENT_VAULT', deleted_at: null } }
+  );
+  db.material_folders.createIndex({ ancestor_ids: 1 }, { name: 'idx_material_folders_ancestors' });
+
+  // 2. material_versions
+  db.createCollection('material_versions');
+  db.material_versions.createIndex(
+    { material_id: 1, version_number: 1 },
+    { name: 'uq_material_version_number', unique: true }
+  );
+
+  // 3. client_vault_shares
+  db.createCollection('client_vault_shares');
+  db.client_vault_shares.createIndex(
+    { workspace_id: 1, owner_user_id: 1, resource_type: 1, resource_id: 1 },
+    { name: 'uq_client_vault_share', unique: true }
+  );
+
+  // 4. materials (folder & vault browsing indexes from 2026-11-04 migration)
+  db.materials.createIndex(
+    { workspace_id: 1, folder_id: 1, deleted_at: 1, sort_key: 1, normalized_name: 1, created_at: -1 },
+    { name: 'idx_materials_folder_browse' }
+  );
+  db.materials.createIndex(
+    { scope_type: 1, owner_user_id: 1, folder_id: 1, deleted_at: 1 },
+    { name: 'idx_materials_vault_browse' }
+  );
+  db.materials.createIndex(
+    { ancestor_folder_ids: 1 },
+    { name: 'idx_materials_ancestors' }
+  );
+
+  // 5. surveys
+  db.createCollection('surveys');
+  db.surveys.createIndex({ taskId: 1 }, { name: 'idx_surveys_task_id' });
+  db.surveys.createIndex({ publicToken: 1 }, { name: 'uq_surveys_public_token', unique: true, sparse: true });
+  db.surveys.createIndex({ workspaceId: 1, taskId: 1 }, { name: 'idx_surveys_workspace_task' });
+
+  // 6. survey_responses
+  db.createCollection('survey_responses');
+  db.survey_responses.createIndex(
+    { surveyId: 1, submittedAt: -1 },
+    { name: 'idx_survey_responses_survey_submitted' }
+  );
+
+  // 7. watermark_presets
+  db.createCollection('watermark_presets');
+  db.watermark_presets.createIndex(
+    { workspace_id: 1, created_at: -1 },
+    { name: 'idx_watermark_presets_workspace_created' }
+  );
+  db.watermark_presets.createIndex(
+    { workspace_id: 1, client_profile_id: 1, created_at: -1 },
+    { name: 'idx_watermark_presets_workspace_client_created' }
+  );
+  db.watermark_presets.createIndex(
+    { workspace_id: 1, client_profile_id: 1, is_default: 1 },
+    { name: 'idx_watermark_presets_default' }
+  );
+})();
