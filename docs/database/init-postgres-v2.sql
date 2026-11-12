@@ -2437,3 +2437,16 @@ CREATE INDEX IF NOT EXISTS idx_product_video_pending ON product_video_production
 CREATE INDEX IF NOT EXISTS idx_product_video_quote ON product_video_quotes(production_id,revision,created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_product_video_attempt ON product_video_attempts(production_id,scene_id,attempt DESC);
 COMMIT;
+
+-- ---- 2026-11-11-mobile-google-oauth-link.sql ----
+BEGIN;
+CREATE UNIQUE INDEX IF NOT EXISTS uq_user_oauth_provider
+    ON public.user_oauth_providers (user_id, provider);
+
+INSERT INTO public.brandhub_schema_migrations (version, description)
+VALUES (
+    '20261111_mobile_google_oauth_link_v1',
+    'Enforce unique provider per user for mobile Google OAuth linking'
+)
+ON CONFLICT (version) DO NOTHING;
+COMMIT;
