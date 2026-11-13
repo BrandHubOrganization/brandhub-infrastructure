@@ -22,7 +22,11 @@ resource "aws_iam_role" "github_actions" {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
           }
           StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:${var.github_org}/*"
+            # New repos use GitHub's immutable subject: repo:<org>@<org_id>/<repo>@<repo_id>.
+            "token.actions.githubusercontent.com:sub" = [
+              "repo:${var.github_org}/*",
+              "repo:${var.github_org}@288960299/*",
+            ]
           }
         }
       }

@@ -2,6 +2,7 @@ locals {
   instance_security_groups = {
     api_gateway   = aws_security_group.brandhub_core.id
     core_services = aws_security_group.brandhub_service.id
+    crawl         = aws_security_group.brandhub_crawl.id
   }
 }
 
@@ -17,10 +18,10 @@ resource "aws_instance" "brandhub" {
   key_name             = each.value.key_name
   iam_instance_profile = data.aws_iam_instance_profile.ecr_pull.name
 
-  subnet_id = data.aws_subnet.brandhub.id
+  subnet_id  = data.aws_subnet.brandhub.id
+  private_ip = each.value.private_ip
 
-  # Both existing instances currently have an auto-assigned public IPv4.
-  # Keep this true while importing the current infrastructure.
+  # Instances need outbound internet (ECR, crawl targets) and there is no NAT.
   associate_public_ip_address = true
 
   vpc_security_group_ids = [
@@ -52,9 +53,5 @@ resource "aws_instance" "brandhub" {
     Environment = var.environment
     Service     = each.key
     ManagedBy   = "terraform"
-  }
-
-  lifecycle {
-    prevent_destroy = true
   }
 }
