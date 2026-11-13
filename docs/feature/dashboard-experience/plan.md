@@ -4,3 +4,6 @@
 3. Tab cá nhân có dữ liệu, fallback logo, compact invitations/profile, bỏ nhật ký giả.
 4. Cập nhật vi/dashboard.json + en/dashboard.json; Skeleton/Select/Button và theme token.
 5. CI Web; QA read-only local nếu môi trường sẵn sàng; ghi rõ hạn chế, không commit local-only.
+
+## Workspace overview extension
+Use RoleWorkspaceOverview with TanStack Query and existing task/campaign services. Retain the publishing screen/header via a compact footer action; suppress redundant legacy overview requests. Order task rows by overdue/review/active/closed. Reuse task deep links and approval routes. Add parallel vi/workspace.json and en/workspace.json keys. No migration or new dependencies.
