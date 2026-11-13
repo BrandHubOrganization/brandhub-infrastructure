@@ -15,7 +15,7 @@
 1. **Cấu trúc tổ chức 3 tầng mới**: `User → Agency → Workspace` (cũ: `User → Workspace` trực tiếp). Xem [01-organization-structure.md](01-organization-structure.md).
 2. **Role gán theo từng Workspace**, không phải role cố định toàn hệ thống. Xem [10-roles-permissions-matrix.md](10-roles-permissions-matrix.md).
 3. **Khái niệm hợp đồng 3 tầng mới**: Media Package (mẫu) → Media Campaign (kế hoạch chi tiết) → Task backlog. Xem [04-media-package-campaign.md](04-media-package-campaign.md).
-4. **Task có 3 loại nội dung** (Post / Livestream / Survey-Form) dùng chung 1 khung Approval Sequence. Xem [05-content-task-workflow.md](05-content-task-workflow.md).
+4. **[Cập nhật 2026-11-10] Task có 9 loại nội dung** (Post, Short Video, Survey/Form, Event Plan, Press Recommendation, KOL Booking, Workshop, Email Newsletter — Livestream ngoài phạm vi). Mỗi loại có danh mục subtask theo vai trò cố định, duyệt **theo từng phần** (section-level, Manager/supervisor → Client); task cũ không có subtask vai trò vẫn dùng khung Approval Sequence task-level cũ. Xem [05-content-task-workflow.md](05-content-task-workflow.md).
 5. **Mở rộng ngoài social media**: module theo dõi thủ công đối tác truyền thông thứ 3 (báo, banner, TV) — không tự động hóa như Facebook/TikTok. Xem [07-publishing-social-collaborator.md](07-publishing-social-collaborator.md).
 6. **Client là actor ngoài Agency**, có profile tái sử dụng xuyên nhiều Agency/Workspace, không phải nội bộ công ty.
 

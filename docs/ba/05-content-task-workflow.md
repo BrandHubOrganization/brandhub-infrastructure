@@ -1,5 +1,9 @@
 # 05 — Content & Task Workflow
 
+> **BA hiện hành 2026-11-10 — Subtask theo vai trò & duyệt từng phần (9 loại task):** Mỗi loại task (trừ LIVESTREAM) có danh mục subtask chuẩn cố định trong code; mỗi vai trò sở hữu một hoặc nhiều phần (section) của trình soạn riêng loại đó. Phần có 2 loại hiển thị: **O** (output — Client thấy & duyệt) và **I** (internal — chỉ agency thấy). Duyệt diễn ra **theo từng phần**, không còn theo cả task: `DRAFT/RETURNED → SUBMITTED → INTERNAL_APPROVED (Manager/supervisor) → CLIENT_APPROVED (Client, chỉ phần O, chỉ khi task requiresClientApproval=true)`. Khi mọi phần O đã `CLIENT_APPROVED`, task cha coi như đã duyệt — bước `reviewStep=CLIENT` task-level cũ (mục 4 bên dưới) được **thay thế hẳn** cho task có subtask theo vai trò; task cũ (subtask không vai trò, tạo trước tính năng này) vẫn giữ nguyên luồng duyệt cũ ở mục 4. Chi tiết đầy đủ 9 danh mục subtask, ma trận quyền, vòng đời phần, API, quota Newsletter: [spec.md](../feature/subtask-role-workspaces/spec.md). Xem mục 3 bên dưới cho toàn bộ 9 loại task cập nhật.
+
+> **TODO chưa làm (kiểm tra 2026-11-13):** báo cáo SRS 141 FR chính thức (`brandhub-final_report/report3/Report3_Software Requirement Specification.docx`, mục 3.6) **chưa có FR nào** cho 6 loại task mới hay mô hình duyệt theo phần — đúng kế hoạch đã ghi ở [spec.md §15](../feature/subtask-role-workspaces/spec.md), làm sau khi code nghiệm thu. Checklist chi tiết ở đó.
+
 > **BA hiện hành 2026-10-18 — FR 3.6.9:** Creator được giao → Manager → một Client active bất kỳ nếu requiresClientApproval. Không QC. Giữ TODO/IN_PROGRESS/IN_REVIEW/FINISHED/CANCELLED và reviewStep riêng. POST dùng `/editor`, một bản nội dung hiện tại được khóa sửa khi IN_REVIEW; không snapshot/diff nội dung lượt cũ. Reject về IN_PROGRESS; gửi lại lượt mới từ Manager. Creator chỉ thu hồi trước Manager decision. Thiếu Client active thì chặn submit và báo Manager bổ sung, không tự bỏ bước. FINISHED không tự publish. Quy tắc này thay thế phần Approval/QC/ngày đăng dự kiến trong các ghi chú lịch sử bên dưới. [Spec v3 và kế hoạch giai đoạn](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md). Code/API và UI giai đoạn 3–5 đã kiểm thử cô lập; feature gate vẫn tắt, Atlas chưa APPLY và chưa nghiệm thu end-to-end/rollout.
 
 > **BA mới đã chốt 2026-10-15:** Task chỉ còn TODO / IN_PROGRESS / IN_REVIEW / CANCELLED / FINISHED. Giao việc là metadata, không còn bước DETAIL_IDENTIFIED/ASSIGNED. Phải có mô tả + deadline hợp lệ trước giao; Creator được giao bấm bắt đầu mới IN_PROGRESS; sau đó Manager khóa sửa/giao lại. IN_REVIEW giữ QC → Manager → Client khi được cấu hình; reject về IN_PROGRESS, duyệt lại từ QC nếu có. Approval do thành viên khác triển khai. Autosave on-blur và action list chỉ assignment/deadline/start. Ghi chú mới này thay thế vòng đời Task lịch sử bên dưới; xem [spec mới](../feature/content-task-workflow/task-five-state-inline-edit/spec.md).
@@ -42,14 +46,104 @@ Backlog KHÔNG đóng — có 3 nguồn tạo Task:
 
 ## 3. Các loại Task — dùng chung khung workflow
 
-**Cập nhật 2026-10-18:** ngoài POST/LIVESTREAM/SURVEY, nền Task hiện có EVENT_PLAN và PRESS_RECOMMENDATION. Đợt FR 3.6.9 chỉ tích hợp nội dung POST qua /editor; các loại khác phối hợp chủ module sau, không tự submit/duyệt giả. Mô tả module chuyên biệt bên dưới giữ phạm vi của người phụ trách.
+**BA hiện hành 2026-11-10 — 9 loại task, danh mục subtask & duyệt theo phần:** thay thế hoàn toàn mô tả "3 loại nội dung" lịch sử bên dưới (giữ Loại 1–3 cũ ở cuối mục này chỉ để tra cứu lịch sử publishing/AI, không còn là danh sách đầy đủ). Nguồn sự thật: [spec.md](../feature/subtask-role-workspaces/spec.md) — mọi field/role đã chốt với user 2026-11-10, khớp code `TaskCatalog.java`.
 
-**[CONFIRMED 2026-09-14]** Task có 3 loại nội dung khác nhau, nhưng đều đi qua chung quy trình duyệt (mục 4).
+Mỗi loại task (trừ LIVESTREAM — ngoài phạm vi theo AGENTS.md) có **danh mục subtask chuẩn cố định trong code**: mỗi vai trò (`subtaskRole`) sở hữu một hoặc nhiều **phần (section)** của trình soạn riêng loại đó. Cột "Hiển thị": **O** = output (Client thấy & duyệt sau khi Manager duyệt nội bộ), **I** = internal (chỉ agency thấy, Client không bao giờ thấy). Quy trình duyệt từng phần: xem mục 4a.
 
-### Loại 1 — Post (Media Platform Post)
-- Viết content, tạo ảnh/video AI, watermark, hashtag — xem chi tiết mục 6, 7.
+### 3.1 POST — Bài đăng mạng xã hội (5 vai trò, trình soạn `/editor`)
 
-### Loại 2 — Livestream (FR 3.6.22 – 3.6.24)
+| subtaskRole | Tên vai trò | Phần | Trường | Hiển thị |
+|---|---|---|---|---|
+| `POST_RESEARCH` | Nghiên cứu / Phỏng vấn | `POST.BRIEF` | ghi chú phỏng vấn, trích dẫn nguồn, file tư liệu (Material) | I |
+| `POST_CONTENT` | Viết content | `POST.CAPTION` | caption, hashtag, CTA | O |
+| `POST_MEDIA` | Media (quay/chụp/thiết kế) | `POST.MEDIA` | danh sách media, watermark | O |
+| `POST_EDITING` | Biên tập | `POST.CAPTION` (chung với Content) | sửa caption/hashtag — chỉ sau khi Content đã nộp (phần ở `SUBMITTED` trở lên) | O |
+| `POST_PUBLISHING` | Đăng bài | `POST.CHANNELS` | kênh đăng (Facebook/Instagram/TikTok/Threads), lịch đăng, nút publish | O |
+
+Viết content/tạo ảnh-video AI/watermark/hashtag: xem thêm mục 6, 7.
+
+### 3.2 SHORT_VIDEO — Video ngắn (mới; dùng lại trình soạn POST + phần Kịch bản)
+
+| subtaskRole | Tên | Phần | Trường | Hiển thị |
+|---|---|---|---|---|
+| `VIDEO_SCRIPT` | Ý tưởng & Kịch bản | `VIDEO.SCRIPT` | ý tưởng, kịch bản theo cảnh (cảnh, lời thoại, ghi chú hình ảnh, thời lượng) | O |
+| `VIDEO_SHOOT` | Quay | `VIDEO.SHOOT` | slot tự do, chưa có schema — chờ module quay/dựng video riêng | I |
+| `VIDEO_EDIT` | Dựng / hậu kỳ | `VIDEO.EDIT` | slot tự do, chưa có schema | O |
+| `VIDEO_PUBLISH` | Caption & Đăng | `VIDEO.CAPTION`, `VIDEO.CHANNELS` | như POST.CAPTION + POST.CHANNELS; kênh giới hạn TikTok, Instagram Reels, Facebook Reels | O |
+
+Quay/dựng video và mọi chức năng sửa video trong app: **ngoài phạm vi** (module riêng, spec chỉ chừa key `VIDEO.SHOOT`/`VIDEO.EDIT`).
+
+### 3.3 SURVEY — Khảo sát (trình soạn hiện có: form builder)
+
+| subtaskRole | Tên | Phần | Trường | Hiển thị |
+|---|---|---|---|---|
+| `SURVEY_DESIGN` | Thiết kế bảng hỏi | `SURVEY.FORM` | câu hỏi (dùng form builder hiện có) | O |
+| `SURVEY_DISTRIBUTE` | Phân phối & thu thập | `SURVEY.DISTRIBUTION` | link public, kênh phát, hạn đóng, chỉ tiêu số phản hồi | O |
+| `SURVEY_ANALYSIS` | Phân tích & báo cáo | `SURVEY.REPORT` | insight, kết luận, đề xuất + số liệu từ phân tích khảo sát | O |
+
+### 3.4 EVENT_PLAN — Kế hoạch sự kiện (trình soạn mới, 5 vai trò)
+
+| subtaskRole | Tên | Phần | Trường | Hiển thị |
+|---|---|---|---|---|
+| `EVENT_AGENDA` | Concept & Agenda | `EVENT.AGENDA` | concept, mục tiêu, thời gian/địa điểm dự kiến, agenda (giờ, hạng mục, phụ trách) | O |
+| `EVENT_LOGISTICS` | Hậu cần & Địa điểm | `EVENT.LOGISTICS` | venue, vendor (tên, hạng mục, chi phí VND, liên hệ), ngân sách tổng, checklist vật tư | I |
+| `EVENT_PROMOTION` | Truyền thông sự kiện | `EVENT.PROMOTION` | kế hoạch truyền thông, danh sách khách mời (tên, đơn vị, trạng thái mời) | O |
+| `EVENT_ONSITE` | Điều phối tại chỗ | `EVENT.RUNSHEET` | run-sheet (giờ, việc, người phụ trách), phân công nhân sự | I |
+| `EVENT_REPORT` | Báo cáo sau sự kiện | `EVENT.REPORT` | kết quả, số khách tham dự, ảnh (Material), bài học | O |
+
+### 3.5 PRESS_RECOMMENDATION — Báo chí (trình soạn mới, **chỉ ghi nhận, không gửi mail**)
+
+| subtaskRole | Tên | Phần | Trường | Hiển thị |
+|---|---|---|---|---|
+| `PRESS_MEDIA_LIST` | Lập danh sách báo | `PRESS.MEDIA_LIST` | tên báo, chuyên mục, nhà báo, email/điện thoại, ghi chú | I |
+| `PRESS_RELEASE` | Viết thông cáo | `PRESS.RELEASE` | tiêu đề, sapo, nội dung, file đính kèm (Material) | O |
+| `PRESS_PITCHING` | Liên hệ & pitching | `PRESS.CONTACT_LOG` | nhật ký liên hệ (ngày, báo, người liên hệ, kênh, kết quả) | I |
+| `PRESS_TRACKING` | Theo dõi đưa tin | `PRESS.COVERAGE` | báo, link bài, ngày đăng, ảnh chụp bài (Material) | O |
+
+Xuất file: thông cáo báo chí xuất **DOCX**, chỉ gồm phần output, đóng dấu "Bản nháp" nếu chưa Client duyệt.
+
+### 3.6 KOL_BOOKING — KOL/Influencer (mới, **chỉ ghi nhận, KOL không có tài khoản, không thanh toán**)
+
+| subtaskRole | Tên | Phần | Trường | Hiển thị |
+|---|---|---|---|---|
+| `KOL_SOURCING` | Tìm & đề xuất KOL | `KOL.SHORTLIST` | tên, kênh (4 nền tảng), link, follower, tỉ lệ tương tác, lý do chọn | O |
+| `KOL_NEGOTIATION` | Đàm phán | `KOL.DEAL` | KOL đã chọn, giá thỏa thuận (VND, **chỉ ghi nhận tham khảo, không tích hợp billing/invoice**), hạng mục deliverable, điều khoản | I |
+| `KOL_BRIEF` | Brief cho KOL | `KOL.BRIEF` | key message, do/don't, hashtag bắt buộc, deadline đăng | O |
+| `KOL_CONTENT_REVIEW` | Duyệt nội dung KOL | `KOL.DRAFT` | bản nháp KOL gửi (agency tự tải lên: caption + media Material), ghi chú duyệt | O |
+| `KOL_TRACKING` | Theo dõi & báo cáo | `KOL.REPORT` | link bài KOL, ngày đăng, view/like/comment/share nhập tay | O |
+
+### 3.7 WORKSHOP (mới; khớp `PackageServiceType.WORKSHOP_SUPPORT`)
+
+| subtaskRole | Tên | Phần | Trường | Hiển thị |
+|---|---|---|---|---|
+| `WORKSHOP_PROGRAM` | Nội dung chương trình | `WORKSHOP.PROGRAM` | chủ đề, agenda, slide/tài liệu (Material) | O |
+| `WORKSHOP_SPEAKER` | Diễn giả | `WORKSHOP.SPEAKERS` | tên, chức danh, chủ đề, trạng thái mời (INVITED/CONFIRMED/DECLINED) | O |
+| `WORKSHOP_LOGISTICS` | Hậu cần | `WORKSHOP.LOGISTICS` | hình thức (offline/online), địa điểm hoặc phòng online (dùng lại phòng họp Google Meet hiện có), chi phí | I |
+| `WORKSHOP_REGISTRATION` | Đăng ký & truyền thông | `WORKSHOP.REGISTRATION` | form đăng ký (dùng lại form builder Survey) + link public, kế hoạch truyền thông | O |
+| `WORKSHOP_REPORT` | Tổng kết | `WORKSHOP.REPORT` | số đăng ký/tham dự, feedback, ảnh, bài học | O |
+
+### 3.8 EMAIL_NEWSLETTER (mới, **gửi thật** qua hạ tầng Mail Template sẵn có — xem mục 9)
+
+| subtaskRole | Tên | Phần | Trường | Hiển thị |
+|---|---|---|---|---|
+| `EMAIL_CONTENT` | Viết nội dung | `EMAIL.CONTENT` | subject, preheader, nội dung khối (dùng block builder Mail Template) | O |
+| `EMAIL_DESIGN` | Thiết kế template | `EMAIL.DESIGN` | layout, màu/logo thương hiệu Client | O |
+| `EMAIL_SEND` | Danh sách & lịch gửi | `EMAIL.AUDIENCE` | nhóm người nhận (recipient group của Client), lịch gửi, nút gửi/test. **Client xác nhận gửi cho ai, khi nào** | O |
+| `EMAIL_REPORT` | Báo cáo | `EMAIL.REPORT` | số đã gửi/thành công/lỗi-bounce/huỷ đăng ký lấy từ mail batch thật; ô nhận xét. **Không làm tracking open/click.** | O |
+
+**Quy tắc riêng EMAIL_NEWSLETTER (chốt 2026-11-10):**
+- Gửi chỉ khi `EMAIL.CONTENT` và `EMAIL.DESIGN` đã `CLIENT_APPROVED` (hoặc `INTERNAL_APPROVED` nếu task không yêu cầu Client duyệt).
+- Quota Newsletter **tách riêng hoàn toàn khỏi quota mail hệ thống** (OTP, thông báo...): quota tháng theo gói — BASIC 1.000 / PRO 10.000 / ENTERPRISE 50.000 email/tháng, tính theo **agency** (mọi workspace/Client của agency dùng chung). Vượt quota → chặn gửi, báo số còn lại.
+- Import CSV danh sách người nhận bắt buộc cột `email, name, consent`; dòng không `consent=true/yes/1` bị loại; email trong suppression bị loại.
+- Mỗi mail có link unsubscribe; **huỷ đăng ký theo Client** — người nhận huỷ ở 1 workspace thì bị chặn mọi Newsletter của Client đó ở **mọi workspace** của agency (khác suppression mail hệ thống vốn theo workspace).
+- Gửi từ domain BrandHub, tên hiển thị = tên thương hiệu Client (không hỗ trợ domain riêng của Client/SPF-DKIM).
+- Không gửi mail pitching tới nhà báo (đó là `PRESS_PITCHING`, chỉ ghi nhật ký nội bộ).
+
+### 3.9 Lịch sử tham khảo (trước 2026-11-10, không còn đầy đủ)
+
+> Giữ lại các mô tả cũ dưới đây chỉ để tra cứu chi tiết Livestream (ngoài phạm vi từ 2026-11-10) và các FR module chuyên biệt (AI, publishing) được tham chiếu từ các mục này — **không dùng làm danh sách loại task**, dùng mục 3.1–3.8 ở trên.
+
+#### Livestream (FR 3.6.22 – 3.6.24, ngoài phạm vi từ 2026-11-10)
 - **Write Livestream Idea** (3.6.22): điền ý tưởng và mục tiêu hướng tới. Role: MANAGER, CREATOR.
 - **Write Livestream Script** (3.6.23): viết kịch bản đầy đủ cho 1 phiên livestream. Role: CREATOR.
 - **Track Livestream Status** (3.6.24): hiển thị tiến độ Live Stream — theo sơ đồ gồm các trạng thái **Pre-live → Live → Post-live → Done/Cancel**. Role: CREATOR.
@@ -62,13 +156,15 @@ Backlog KHÔNG đóng — có 3 nguồn tạo Task:
   - Có người đảm sát, người diễn viên.
   - Trong livestream sẽ có retouch lại các source cắt cam và từ video edit để chạy hook (dùng để đưa lên mới các bạn sắp tiếp).
 
-### Loại 3 — Survey/Form (FR 3.6.25 – 3.6.27)
+#### Survey/Form — FR gốc (FR 3.6.25 – 3.6.27, nội dung field đã cập nhật ở 3.3)
 - **Create Survey** (3.6.25): tạo khảo sát cho workshop. Role: CREATOR.
 - **View Survey Analysis** (3.6.26): coi kết quả tổng quát của khảo sát. Role: MANAGER, CREATOR.
 - **Generate Meeting Link** (3.6.27): tự động tạo link Google Meet. Role: CREATOR.
 - Form Creator (theo sơ đồ): công cụ tạo câu hỏi (Questions) với time slot (0:10, 15:20, 21:30...), có preview.
 
-## 4. Approval Sequence (FR 3.6.9)
+## 4. Approval Sequence (FR 3.6.9) — task cũ, không có subtask theo vai trò
+
+> **Phạm vi từ 2026-11-10:** mục 4 này chỉ còn áp dụng cho task **không có subtask theo vai trò** (tạo trước tính năng 2026-11-10, hoặc task Manager chủ động bỏ hết vai trò khỏi danh mục). Task có subtask theo vai trò (9 loại ở mục 3) dùng luồng duyệt theo phần ở mục 4a — bước `reviewStep=CLIENT` dưới đây bị thay thế hẳn cho nhóm task đó.
 
 BA được người dùng xác nhận 2026-10-18, thay thế quy tắc QC và các vòng duyệt lịch sử:
 
@@ -94,6 +190,52 @@ IN_PROGRESS --lưu bài và Gửi duyệt--> IN_REVIEW / MANAGER
 - Các loại Task khác chỉ chuẩn bị contract, tích hợp nội dung theo chủ module sau. Không thay Yjs/editor chuyên biệt, publishing hoặc Admin moderation của thành viên khác.
 
 Chi tiết AC, API, chống xung đột và kế hoạch 6 giai đoạn: [FR3.6.9](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md). API/POST integration/UI đã kiểm thử cô lập; rollout vẫn tắt, Atlas APPLY và SQL/inbox/Gateway end-to-end còn chờ giai đoạn 6/phối hợp chủ publish.
+
+## 4a. Duyệt từng phần (section-level) — task có subtask theo vai trò
+
+**BA hiện hành 2026-11-10**, nguồn: [spec.md](../feature/subtask-role-workspaces/spec.md) §4, §5. Áp dụng cho mọi task ở mục 3.1–3.8 có subtask gán theo danh mục vai trò.
+
+### Vòng đời 1 phần
+
+```text
+DRAFT ──submit──▶ SUBMITTED ──Manager/supervisor approve──▶ INTERNAL_APPROVED
+  ▲                   │                                            │
+  │◀──return (ghi chú)┘                                            │ (chỉ phần O)
+  │                                                                 ▼
+RETURNED ◀──────── Client return (ghi chú) ─────────────── CLIENT_APPROVED
+```
+
+- Phần **I** (internal) dừng ở `INTERNAL_APPROVED` — là trạng thái cuối, Client không tham gia.
+- Phần **O** (output) cần thêm `CLIENT_APPROVED` nếu task có `requiresClientApproval=true`; nếu `false` thì `INTERNAL_APPROVED` là cuối, Client không thấy luồng duyệt.
+- `RETURNED` = như `DRAFT` kèm ghi chú người trả; chủ phần sửa lại, phần đi lại `SUBMITTED → INTERNAL_APPROVED → CLIENT_APPROVED`. Các phần khác đã duyệt không bị ảnh hưởng.
+- Manager mở lại được phần đã duyệt (về `RETURNED`) khi task cha chưa nộp.
+- Sửa một phần đã duyệt (nội bộ hoặc Client) đưa phần đó về `SUBMITTED`, cần duyệt lại — để không đăng/gửi nội dung Client chưa thấy phiên bản mới nhất.
+
+### Ma trận quyền (tóm tắt, chi tiết xem spec.md §4)
+
+| Đối tượng | Sửa phần mình | Sửa phần khác | Xem phần internal | Duyệt/trả phần |
+|---|---|---|---|---|
+| Điều phối (assignee task cha) | ✔ | ✔ (mọi phần) | ✔ | ✖ |
+| Chủ phần (assignee subtask có vai trò) | ✔ khi DRAFT/RETURNED | ✖ chỉ đọc | ✔ | ✖ |
+| Manager workspace | ✔ mọi phần | ✔ | ✔ | ✔ cấp nội bộ |
+| Supervisor của subtask | theo vai trò khác của họ | — | ✔ | ✔ cấp nội bộ, chỉ phần subtask đó |
+| Client | ✖ | ✖ | ✖ ẩn hoàn toàn | ✔ cấp Client, chỉ phần O, chỉ sau khi Manager duyệt |
+| Người tham gia task khác (không có subtask vai trò/supervisor) | ✖ | ✖ chỉ đọc | ✖ (chỉ Manager/Owner/người tham gia task xem được internal) | ✖ |
+
+- Một người giữ nhiều subtask có vai trò trong cùng task → quyền là **hợp** các phần.
+- Subtask có vai trò tự động chuyển `FINISHED` khi mọi phần nó sở hữu đạt trạng thái cuối — chủ subtask không tự đánh dấu FINISHED.
+- Nộp task cha bị chặn nếu còn phần chưa `INTERNAL_APPROVED` (`TASK_SECTIONS_UNAPPROVED`). Khi mọi phần O đã `CLIENT_APPROVED`, task cha coi như đã duyệt.
+
+### Xuất file & phiên bản
+
+- Xuất file chỉ gồm phần **output**, có logo thương hiệu Client; phần internal không bao giờ vào file. Thông cáo báo chí (PRESS_RECOMMENDATION) xuất **DOCX**; các loại khác xuất **PDF**.
+- Agency (người tham gia task, Manager) xuất ở mọi trạng thái, phần chưa Client duyệt đóng dấu "Bản nháp". Client chỉ xuất được phần đã `CLIENT_APPROVED`.
+- Mỗi lần nộp phần lưu một bản chụp (snapshot) nội dung, xem/so sánh được giữa các bản, không xoá. Kèm nhật ký ai nộp/duyệt/trả/mở lại, ghi chú, thời điểm. Client không xem lịch sử phiên bản, chỉ thấy bản hiện tại.
+- Khôi phục bản cũ: chủ phần (khi DRAFT/RETURNED), điều phối, Manager — chép nội dung bản cũ vào bản nháp hiện tại, phần phải nộp và duyệt lại.
+
+### Thông báo
+
+In-app cho mọi sự kiện nộp/duyệt/trả/mở lại phần. Email cho Client khi có phần chờ Client duyệt, và cho chủ phần khi phần bị trả. Phần chờ Client quá 48h nhắc lại bằng email — **không tự động duyệt**.
 
 ## 5. Các View hỗ trợ Task (FR 3.6.4 – 3.6.8)
 
@@ -148,6 +290,7 @@ Role toàn bộ: CREATOR, CLIENT, MANAGER.
 
 - View/Create/Update/Delete Mail Template, Send Email via Template — CRUD chuẩn cho mẫu email + gửi email thực tế.
 - **[CẬP NHẬT 2026-10-12 — thay thế quyết định 2026-09-17]** Mail Template **thuộc Workspace** (không phải mẫu cá nhân của mọi user). Role dùng: OWNER, MANAGER, CREATOR; CLIENT không. Gửi nhiều người (dán/CSV), async qua hàng đợi, giới hạn theo chuẩn Gmail (450/ngày hệ thống, 100/ngày/Workspace, 200/lần), hẹn giờ, tệp đính kèm, unsubscribe + suppression theo Workspace. Admin quản trị thư viện mẫu hệ thống và dùng làm mẫu cho Broadcast 3.10.1. Chi tiết: `feature/content-task-workflow/3-6-32-send-email-via-template/plan.md` (cùng bộ với các FR `3-6-28` đến `3-6-31`, mỗi FR có đủ spec, plan, task, test).
+- **[BA hiện hành 2026-11-10]** Task **EMAIL_NEWSLETTER** (mục 3.8) dùng **chung hạ tầng gửi mail/suppression** ở trên (mail batch, unsubscribe) nhưng **quota tách riêng hoàn toàn**: giới hạn Gmail 100/ngày/Workspace, 450/ngày hệ thống ở trên chỉ áp dụng mail hệ thống (thông báo, OTP…); Newsletter có bộ đếm quota tháng riêng theo gói (BASIC 1.000 / PRO 10.000 / ENTERPRISE 50.000 email/tháng/agency) + giới hạn tốc độ gửi/ngày cấu hình được, không đụng tới giới hạn ngày của mail hệ thống. Suppression mail hệ thống theo Workspace; suppression Newsletter mở rộng theo **Client** (chặn ở mọi Workspace của agency khi Client đó unsubscribe 1 lần). Chi tiết: [spec.md §3.8, §16.1, §16.6](../feature/subtask-role-workspaces/spec.md).
 
 ## 10. Tham chiếu Media Platform Post (chi tiết trong sơ đồ)
 

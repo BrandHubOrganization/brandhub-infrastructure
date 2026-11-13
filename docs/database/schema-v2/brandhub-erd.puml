@@ -758,15 +758,178 @@ subscription_plans ||--o{ user_subscriptions
 users ||--o{ transactions
 
 ' MongoDB soft refs (no physical FK — dashed line in diagram if needed)
+' ============================================================
+' ADDITIONS SYNCED FROM CODEBASE & MIGRATIONS (2026-11-12)
+' ============================================================
+
+entity "newsletter_usage" as newsletter_usage <<PostgreSQL>> {
+  * agency_id : uuid <<PK, FK>>
+  * period : varchar(10) <<PK>>
+  --
+  * used : integer
+}
+
+entity "product_video_productions" as pv_prod <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * workspace_id : uuid <<FK>>
+  * owner_id : uuid <<FK>>
+  * agency_id : uuid <<FK>>
+  * project_id : uuid
+  * state : varchar(32)
+  * revision : integer
+}
+
+entity "product_video_plans" as pv_plans <<PostgreSQL>> {
+  * production_id : uuid <<PK, FK>>
+  * revision : integer <<PK>>
+  --
+  * plan_hash : varchar(64)
+  * plan_json : jsonb
+}
+
+entity "product_video_quotes" as pv_quotes <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * production_id : uuid <<FK>>
+  * price_id : uuid <<FK>>
+  * unit_credits : bigint
+  * units : integer
+}
+
+entity "product_video_attempts" as pv_attempts <<PostgreSQL>> {
+  * id : uuid <<PK>>
+  --
+  * production_id : uuid <<FK>>
+  * reservation_id : uuid <<FK>>
+  * scene_id : uuid
+  * attempt : integer
+  * state : varchar(32)
+}
+
+entity "product_video_requests" as pv_requests <<PostgreSQL>> {
+  * workspace_id : uuid <<PK, FK>>
+  * owner_id : uuid <<PK, FK>>
+  * request_key : varchar(128) <<PK>>
+  --
+  * production_id : uuid <<FK>>
+  quote_id : uuid <<FK>>
+}
+
+entity "task_sections" as task_sections <<MongoDB>> {
+  * _id : string <<PK>>
+  --
+  * taskId : string
+  * sectionKey : string
+  * status : string
+  * revision : long
+}
+
+entity "task_section_versions" as task_section_versions <<MongoDB>> {
+  * _id : string <<PK>>
+  --
+  * taskId : string
+  * sectionKey : string
+  * versionNo : long
+}
+
+entity "task_section_events" as task_section_events <<MongoDB>> {
+  * _id : string <<PK>>
+  --
+  * taskId : string
+  * sectionKey : string
+  * action : string
+}
+
+entity "material_folders" as material_folders <<MongoDB>> {
+  * _id : string <<PK>>
+  --
+  * scope_type : string
+  workspace_id : string
+  owner_user_id : string
+  parent_folder_id : string
+}
+
+entity "material_versions" as material_versions <<MongoDB>> {
+  * _id : string <<PK>>
+  --
+  * material_id : string
+  * version_number : int
+  * s3_key : string
+}
+
+entity "client_vault_shares" as client_vault_shares <<MongoDB>> {
+  * _id : string <<PK>>
+  --
+  * workspace_id : string
+  * owner_user_id : string
+  * client_profile_id : string
+  * resource_id : string
+}
+
+entity "video_projects" as video_projects <<MongoDB>> {
+  * _id : string <<PK>>
+  --
+  * projectId : string
+  * workspaceId : string
+  * revision : long
+}
+
+entity "video_project_assets" as video_project_assets <<MongoDB>> {
+  * _id : string <<PK>>
+  --
+  * projectId : string
+  * assetId : string
+  * state : string
+}
+
+entity "video_project_upload_sessions" as video_upload_sessions <<MongoDB>> {
+  * _id : string <<PK>>
+  --
+  * projectId : string
+  * assetId : string
+  * state : string
+}
+
+entity "video_auto_edits" as video_auto_edits <<MongoDB>> {
+  * _id : string <<PK>>
+  --
+  * projectId : string
+  * workspaceId : string
+  * state : string
+}
+
+entity "watermark_presets" as watermark_presets <<MongoDB>> {
+  * _id : string <<PK>>
+  --
+  * workspace_id : string
+  client_profile_id : string
+  * name : string
+}
+
+agencies ||--o{ newsletter_usage
+workspaces ||--o{ pv_prod
+users ||--o{ pv_prod
+agencies ||--o{ pv_prod
+pv_prod ||--o{ pv_plans
+pv_prod ||--o{ pv_quotes
+pv_prod ||--o{ pv_attempts
+pv_prod ||--o{ pv_requests
+pv_quotes ||--o{ pv_requests
+tasks ||--o{ task_sections
+tasks ||--o{ task_section_versions
+tasks ||--o{ task_section_events
+video_projects ||--o{ video_project_assets
+video_projects ||--o{ video_upload_sessions
+video_projects ||--o{ video_auto_edits
+
 note as N1
-  MongoDB collections (tasks, task_approvals, posts,
-  content_requests, material_repository, brand_collections,
-  hashtag_collections, content_versions, livestream_sessions,
-  survey_forms, survey_responses, mail_templates,
-  social_accounts, notifications) use SOFT REFERENCE to
-  PostgreSQL — no physical FK constraint, joined at
-  application layer.
-  See docs/database/database-strategy.md section 5.
+  Total synced schema (2026-11-12):
+  - PostgreSQL: 95 tables (93 domain/app + 2 infra/seed)
+  - MongoDB: 52 collections (51 domain/app + 1 seed_runs)
+  MongoDB collections use SOFT REFERENCE to PostgreSQL
+  (no physical FK constraint, joined at application layer).
+  See docs/database/schema-v2/erd-entity-descriptions.md.
 end note
 
 @enduml

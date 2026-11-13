@@ -2348,20 +2348,20 @@ ALTER TABLE package_negotiation_events ADD CONSTRAINT chk_package_event_actor
         OR (action IN ('COUNTER_OFFER','MANAGER_SAVE') AND actor_id IS NOT NULL AND actor_role IN ('OWNER','MANAGER')));
 COMMIT;
 
--- ---- 2026-10-30-product-video-pipeline.sql ----
+-- ---- 2026-10-30-product-video-pipeline.sql (Product Video Production) ----
 BEGIN;
 SET LOCAL lock_timeout='5s';
 SET LOCAL statement_timeout='60s';
 
 CREATE TABLE IF NOT EXISTS product_video_productions (
     id UUID PRIMARY KEY,
-    workspace_id UUID NOT NULL REFERENCES workspaces(id),
-    owner_id UUID NOT NULL REFERENCES users(id),
-    agency_id UUID NOT NULL REFERENCES agencies(id),
+    workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    owner_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    agency_id UUID NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
     project_id UUID NOT NULL,
     state VARCHAR(32) NOT NULL DEFAULT 'PLAN_READY' CHECK(state IN
       ('NEEDS_INPUT','PLAN_READY','GENERATING','RECONCILIATION_REQUIRED','SCENE_FAILED',
-       'EDITING','VALIDATING','RENDER_FAILED','COMPLETED')),
+       'EDITING','VALIDATING','RENDER_FAILED','COMPLETED','DRAFT')),
     revision INTEGER NOT NULL DEFAULT 0 CHECK(revision>=0),
     render_id UUID,
     output_key TEXT,
@@ -2376,7 +2376,7 @@ CREATE TABLE IF NOT EXISTS product_video_productions (
 );
 
 CREATE TABLE IF NOT EXISTS product_video_plans (
-    production_id UUID NOT NULL REFERENCES product_video_productions(id),
+    production_id UUID NOT NULL REFERENCES product_video_productions(id) ON DELETE CASCADE,
     revision INTEGER NOT NULL CHECK(revision>0),
     plan_hash CHAR(64) NOT NULL CHECK(plan_hash ~ '^[a-f0-9]{64}$'),
     plan_json JSONB NOT NULL CHECK(octet_length(plan_json::text)<=262144),
@@ -2386,26 +2386,26 @@ CREATE TABLE IF NOT EXISTS product_video_plans (
 
 CREATE TABLE IF NOT EXISTS product_video_quotes (
     id UUID PRIMARY KEY,
-    production_id UUID NOT NULL,
+    production_id UUID NOT NULL REFERENCES product_video_productions(id) ON DELETE CASCADE,
     revision INTEGER NOT NULL,
     scene_id UUID,
-    price_id UUID NOT NULL REFERENCES ai_credit_operation_prices(id),
+    price_id UUID NOT NULL REFERENCES ai_credit_operation_prices(id) ON DELETE RESTRICT,
     unit_credits BIGINT NOT NULL CHECK(unit_credits>=0),
     units INTEGER NOT NULL CHECK(units BETWEEN 1 AND 3),
     expires_at TIMESTAMPTZ NOT NULL,
     consumed_key VARCHAR(128),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    FOREIGN KEY(production_id,revision) REFERENCES product_video_plans(production_id,revision),
+    FOREIGN KEY(production_id,revision) REFERENCES product_video_plans(production_id,revision) ON DELETE CASCADE,
     CHECK(scene_id IS NULL OR units=1)
 );
 
 CREATE TABLE IF NOT EXISTS product_video_attempts (
     id UUID PRIMARY KEY,
-    production_id UUID NOT NULL,
+    production_id UUID NOT NULL REFERENCES product_video_productions(id) ON DELETE CASCADE,
     revision INTEGER NOT NULL,
     scene_id UUID NOT NULL,
     attempt INTEGER NOT NULL CHECK(attempt>0),
-    reservation_id UUID NOT NULL UNIQUE REFERENCES ai_credit_reservations(id),
+    reservation_id UUID NOT NULL UNIQUE REFERENCES ai_credit_reservations(id) ON DELETE RESTRICT,
     payload_hash CHAR(64) NOT NULL CHECK(payload_hash ~ '^[a-f0-9]{64}$'),
     state VARCHAR(24) NOT NULL DEFAULT 'READY' CHECK(state IN
       ('READY','SUBMITTING','PROCESSING','SUBMISSION_UNKNOWN','COMPLETED','FAILED')),
@@ -2415,18 +2415,18 @@ CREATE TABLE IF NOT EXISTS product_video_attempts (
     error_code VARCHAR(80),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    FOREIGN KEY(production_id,revision) REFERENCES product_video_plans(production_id,revision),
+    FOREIGN KEY(production_id,revision) REFERENCES product_video_plans(production_id,revision) ON DELETE CASCADE,
     UNIQUE(production_id,scene_id,attempt),
     CHECK(state<>'COMPLETED' OR (s3_key IS NOT NULL AND sha256 IS NOT NULL AND file_size>0))
 );
 
 CREATE TABLE IF NOT EXISTS product_video_requests (
-    workspace_id UUID NOT NULL REFERENCES workspaces(id),
-    owner_id UUID NOT NULL REFERENCES users(id),
+    workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    owner_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     request_key VARCHAR(128) NOT NULL,
-    production_id UUID NOT NULL REFERENCES product_video_productions(id),
+    production_id UUID NOT NULL REFERENCES product_video_productions(id) ON DELETE CASCADE,
     request_hash CHAR(64) NOT NULL CHECK(request_hash ~ '^[a-f0-9]{64}$'),
-    quote_id UUID UNIQUE REFERENCES product_video_quotes(id),
+    quote_id UUID UNIQUE REFERENCES product_video_quotes(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY(workspace_id,owner_id,request_key)
 );
@@ -2436,6 +2436,23 @@ CREATE INDEX IF NOT EXISTS idx_product_video_pending ON product_video_production
     WHERE state IN ('GENERATING','RECONCILIATION_REQUIRED','EDITING','VALIDATING');
 CREATE INDEX IF NOT EXISTS idx_product_video_quote ON product_video_quotes(production_id,revision,created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_product_video_attempt ON product_video_attempts(production_id,scene_id,attempt DESC);
+COMMIT;
+
+-- ---- 2026-11-10-newsletter.sql (DA-1274 T5: Newsletter task) ----
+BEGIN;
+ALTER TABLE mail_batches DROP CONSTRAINT IF EXISTS mail_batches_kind_check;
+ALTER TABLE mail_batches ADD CONSTRAINT mail_batches_kind_check CHECK (kind IN ('SEND', 'TEST', 'NEWSLETTER'));
+
+ALTER TABLE mail_suppressions ADD COLUMN IF NOT EXISTS client_profile_id UUID;
+CREATE INDEX IF NOT EXISTS idx_mail_suppressions_client_email
+    ON mail_suppressions (client_profile_id, email_lower) WHERE client_profile_id IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS newsletter_usage (
+    agency_id UUID        NOT NULL REFERENCES agencies(id),
+    period    VARCHAR(10) NOT NULL,
+    used      INTEGER     NOT NULL DEFAULT 0 CHECK (used >= 0),
+    PRIMARY KEY (agency_id, period)
+);
 COMMIT;
 
 -- ---- 2026-11-11-mobile-google-oauth-link.sql ----

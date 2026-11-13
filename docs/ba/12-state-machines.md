@@ -86,7 +86,9 @@ stateDiagram-v2
 - Một workspace có một Campaign. Hoàn thành tiếp tục yêu cầu các Task/Request đạt điều kiện tại [Campaign closure](../feature/media-package-campaign/campaign-closure/spec.md) và [package-driven task](../feature/package-driven-campaign-tasks/spec.md).
 - Campaign Addendum và sửa gói sau triển khai không được mở thêm trong đợt đổi hành trình này. Trạng thái và approval cũ giữ làm dữ liệu lịch sử, cách chuyển đổi chờ kế hoạch kỹ thuật.
 
-## 4. Task — Approval Sequence (hiện hành 2026-10-18)
+## 4. Task — Approval Sequence (hiện hành 2026-10-18) — task cũ, không có subtask theo vai trò
+
+> **Phạm vi từ 2026-11-10:** chỉ áp dụng cho task không có subtask theo vai trò. Task thuộc 1 trong 9 loại ở [05-content-task-workflow.md](05-content-task-workflow.md) mục 3 dùng state machine theo phần ở mục 4a bên dưới.
 
 Nguồn: [spec FR3.6.9 v3](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md). Thay toàn bộ sơ đồ QC/ASSIGNED/skip-approval cũ cho luồng mới; không tự chuyển đổi/xóa dữ liệu legacy.
 
@@ -110,6 +112,27 @@ Nguồn: [spec FR3.6.9 v3](../feature/content-task-workflow/3-6-9-approval-seque
 - Cancel phải xóa bước chờ/đóng metadata, không xóa decision. Không duyệt sau hủy/hoàn thành Campaign; giữ điều kiện Campaign closure hiện có.
 - FINISHED không tự enqueue Publish. Xuất bản là action/module riêng; Admin moderation không thay decision Task.
 - Đây là contract đích của giai đoạn 1, chưa phải implementation đã chạy. Legacy QC/thiếu reviewStep/round chỉ đọc và inventory riêng, không tự backfill.
+
+## 4a. Task — Duyệt từng phần (section-level, hiện hành 2026-11-10)
+
+Nguồn: [spec.md §5](../feature/subtask-role-workspaces/spec.md). Áp dụng cho task thuộc 9 loại ở [05-content-task-workflow.md](05-content-task-workflow.md) mục 3 có subtask gán theo danh mục vai trò.
+
+| Trước | Action hợp lệ | Sau |
+|---|---|---|
+| DRAFT | Chủ phần/điều phối/Manager nộp phần | SUBMITTED |
+| SUBMITTED | Manager hoặc supervisor của subtask approve | INTERNAL_APPROVED |
+| SUBMITTED | Manager hoặc supervisor trả lại kèm ghi chú | RETURNED |
+| INTERNAL_APPROVED, phần O, task requiresClientApproval=true | Client approve | CLIENT_APPROVED |
+| INTERNAL_APPROVED hoặc CLIENT_APPROVED, phần O | Client trả lại kèm ghi chú | RETURNED |
+| RETURNED | Chủ phần sửa lại rồi nộp | SUBMITTED |
+| INTERNAL_APPROVED / CLIENT_APPROVED | Manager mở lại (trước khi task cha nộp) | RETURNED |
+| INTERNAL_APPROVED / CLIENT_APPROVED | Điều phối/Manager sửa nội dung phần | SUBMITTED (cần duyệt lại) |
+
+- Phần internal (I) dừng ở `INTERNAL_APPROVED` — trạng thái cuối, Client không tham gia.
+- Phần output (O) cần `CLIENT_APPROVED` nếu `requiresClientApproval=true`; nếu `false` thì `INTERNAL_APPROVED` là cuối.
+- Subtask có vai trò tự động `FINISHED` khi mọi phần nó sở hữu đạt trạng thái cuối. Nộp task cha chặn nếu còn phần chưa `INTERNAL_APPROVED` (`TASK_SECTIONS_UNAPPROVED`); khi mọi phần O đã `CLIENT_APPROVED`, task cha coi như đã duyệt — thay thế bước `reviewStep=CLIENT` của mục 4.
+- Mỗi lần nộp phần lưu snapshot (không xoá), xem/so sánh được; khôi phục bản cũ chép vào bản nháp hiện tại, phần phải nộp và duyệt lại.
+- Task cũ (trước 2026-11-10, không có subtask vai trò) coi mọi phần ở DRAFT, chủ = điều phối; task đang IN_REVIEW trước khi deploy giữ nguyên luồng mục 4.
 
 ## 5. Task loại Livestream — trạng thái riêng
 

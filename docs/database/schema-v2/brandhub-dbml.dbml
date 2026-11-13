@@ -1,25 +1,16 @@
-  // BrandHub — Database Schema V2 (DBML for dbdiagram.io)
-  // STATUS: DESIGN — init-postgres-v2.sql đã viết (23 bảng) nhưng CHƯA wire vào docker-compose; scripts/init-postgres.sql (V1, 15 bảng) vẫn được mount thật.
-  // Thiết kế cho nghiệp vụ V2: Agency -> Workspace -> Media Package -> Media Campaign -> Task
-  // Nguồn: docs/BA/11-data-entities-glossary.md, docs/database/schema-v2/database-strategy.md
+  // BrandHub — Database Schema (DBML for dbdiagram.io)
+  // STATUS: ACTIVE / SYNCED — Updated 2026-11-12 to match init-postgres-v2.sql (95 tables) & init-mongo.js (52 collections)
+  // See erd-entity-descriptions.md for the full 95 PostgreSQL + 52 MongoDB entity catalog.
   //
-  // PostgreSQL (23 tables — cập nhật 2026-09-16: tách ai_credit_ledgers thành +ai_credit_creator_limits):
-  //   Identity:     users, user_oauth_providers, user_refresh_tokens, user_system_roles
-  //   Organization: agencies, agency_members, agency_invitations, workspaces,
-  //                 workspace_members, workspace_invitations, workspace_templates, client_profiles
-  //   Commerce:     media_packages, workspace_media_packages, media_campaigns
-  //   Collaborator: third_party_collaborators, campaign_collaborators
-  //   Billing:      subscription_plans, user_subscriptions, transactions,
-  //                 ai_credit_ledgers, ai_credit_creator_limits, audit_logs
+  // PostgreSQL (95 tables: 93 domain/application + 2 infra/seed):
+  //   Identity & Auth (5), Organization (8), Commerce & Campaign (8), Collaborators & Hashtags (3),
+  //   Task Content Sync (3), Billing & AI Credits V3 (25), AI Jobs & Product Video (7),
+  //   Storage, Quota & Google Drive Sync (17), Mail & Newsletter (6), Admin/Moderation/Audit (9), Infra/Seed (2).
   //
-  // MongoDB (17 collections — cập nhật 2026-09-16: +livestream_sessions, +survey_forms, +survey_responses,
-  //          +mail_templates, +ai_usage_logs field schema (trước chỉ nhắc tên)):
-  //   business-service: tasks, task_approvals, posts, content_requests, material_repository,
-  //                      brand_collections, hashtag_collections, content_versions,
-  //                      livestream_sessions, survey_forms, survey_responses, mail_templates,
-  //                      social_accounts, notifications
-  //   ai-service:        knowledge_documents, ai_usage_logs
-  //   publisher-service: publish_logs
+  // MongoDB (52 collections: 51 domain/application + 1 seed_runs):
+  //   Tasks, Sections & Surveys (13), Social Publishing (4), Chat & Calls (8),
+  //   Material Repository, Vault & Watermark (8), Video Studio & Auto-Edit (4),
+  //   Mail Templates & Groups (2), Monitoring (4), AI/Knowledge/Notifications/Reports (4), V1/Seed Compat (5).
 
   // ============================================================
   // ENUMS
@@ -1070,4 +1061,257 @@
 
   TableGroup mongodb_ai_service {
     ai_usage_logs
+    knowledge_documents
+  }
+
+  // ============================================================
+  // ADDITIONS SYNCED FROM CODEBASE & MIGRATIONS (2026-11-12)
+  // ============================================================
+
+  Table package_negotiation_events {
+    id uuid [pk]
+    workspace_media_package_id uuid [not null, ref: > workspace_media_packages.id]
+    action varchar(32) [not null]
+    actor_id uuid [ref: > users.id]
+    actor_role varchar(32)
+    comment text
+    created_at timestamptz [not null]
+  }
+
+  Table campaign_versions {
+    id uuid [pk]
+    media_campaign_id uuid [not null, ref: > media_campaigns.id]
+    version_number int [not null]
+    snapshot_json jsonb [not null]
+    created_by uuid [ref: > users.id]
+    created_at timestamptz [not null]
+  }
+
+  Table campaign_review_events {
+    id uuid [pk]
+    media_campaign_id uuid [not null, ref: > media_campaigns.id]
+    action varchar(32) [not null]
+    actor_id uuid [ref: > users.id]
+    comment text
+    created_at timestamptz [not null]
+  }
+
+  Table campaign_deployments {
+    id uuid [pk]
+    media_campaign_id uuid [not null, ref: > media_campaigns.id]
+    workspace_id uuid [not null, ref: > workspaces.id]
+    status varchar(32) [not null]
+    created_at timestamptz [not null]
+  }
+
+  Table workspace_hashtags {
+    id uuid [pk]
+    workspace_id uuid [not null, ref: > workspaces.id]
+    tag varchar(128) [not null]
+    created_at timestamptz [not null]
+  }
+
+  Table newsletter_usage {
+    agency_id uuid [pk, ref: > agencies.id]
+    period varchar(10) [pk]
+    used int [not null]
+  }
+
+  Table product_video_productions {
+    id uuid [pk]
+    workspace_id uuid [not null, ref: > workspaces.id]
+    owner_id uuid [not null, ref: > users.id]
+    agency_id uuid [not null, ref: > agencies.id]
+    project_id uuid [not null, note: 'Soft-ref to Mongo video_projects']
+    state varchar(32) [not null]
+    revision int [not null]
+    render_id uuid
+    output_key text
+    output_sha256 varchar(64)
+    output_size bigint [not null]
+    error_code varchar(64)
+    lease_token uuid
+    lease_until timestamptz
+    created_at timestamptz [not null]
+    updated_at timestamptz [not null]
+  }
+
+  Table product_video_plans {
+    production_id uuid [pk, ref: > product_video_productions.id]
+    revision int [pk]
+    plan_hash varchar(64) [not null]
+    plan_json jsonb [not null]
+    created_at timestamptz [not null]
+  }
+
+  Table product_video_quotes {
+    id uuid [pk]
+    production_id uuid [not null, ref: > product_video_productions.id]
+    revision int [not null]
+    scene_id uuid
+    price_id uuid [not null]
+    unit_credits bigint [not null]
+    units int [not null]
+    expires_at timestamptz [not null]
+    consumed_key varchar(128)
+    created_at timestamptz [not null]
+  }
+
+  Table product_video_attempts {
+    id uuid [pk]
+    production_id uuid [not null, ref: > product_video_productions.id]
+    revision int [not null]
+    scene_id uuid [not null]
+    attempt int [not null]
+    reservation_id uuid [not null]
+    payload_hash varchar(64) [not null]
+    state varchar(32) [not null]
+    s3_key text
+    sha256 varchar(64)
+    file_size bigint [not null]
+    error_code varchar(64)
+    created_at timestamptz [not null]
+    updated_at timestamptz [not null]
+  }
+
+  Table product_video_requests {
+    workspace_id uuid [pk, ref: > workspaces.id]
+    owner_id uuid [pk, ref: > users.id]
+    request_key varchar(128) [pk]
+    production_id uuid [not null, ref: > product_video_productions.id]
+    request_hash varchar(64) [not null]
+    quote_id uuid [ref: > product_video_quotes.id]
+    created_at timestamptz [not null]
+  }
+
+  Table task_sections [headercolor: #10B981] {
+    _id string [pk]
+    workspaceId string [not null]
+    taskId string [not null, ref: > tasks._id]
+    sectionKey string [not null]
+    visibility string [not null]
+    status string [not null]
+    revision long [not null]
+    updatedAt date [not null]
+  }
+
+  Table task_section_versions [headercolor: #10B981] {
+    _id string [pk]
+    workspaceId string [not null]
+    taskId string [not null, ref: > tasks._id]
+    sectionKey string [not null]
+    versionNo long [not null]
+    submittedBy string [not null]
+    submittedAt date [not null]
+  }
+
+  Table task_section_events [headercolor: #10B981] {
+    _id string [pk]
+    workspaceId string [not null]
+    taskId string [not null, ref: > tasks._id]
+    sectionKey string [not null]
+    action string [not null]
+    actorId string [not null]
+    at date [not null]
+  }
+
+  Table material_folders [headercolor: #10B981] {
+    _id string [pk]
+    scope_type string [not null]
+    workspace_id string
+    owner_user_id string
+    name string [not null]
+    parent_folder_id string
+    ancestor_ids array
+  }
+
+  Table material_versions [headercolor: #10B981] {
+    _id string [pk]
+    material_id string [not null]
+    workspace_id string
+    owner_user_id string
+    version_number int [not null]
+    s3_key string [not null]
+    file_size long [not null]
+  }
+
+  Table client_vault_shares [headercolor: #10B981] {
+    _id string [pk]
+    owner_user_id string [not null]
+    workspace_id string [not null]
+    client_profile_id string [not null]
+    resource_type string [not null]
+    resource_id string [not null]
+  }
+
+  Table video_projects [headercolor: #10B981] {
+    _id string [pk]
+    projectId string [not null]
+    workspaceId string [not null]
+    ownerId string [not null]
+    agencyId string [not null]
+    revision long [not null]
+    name string
+  }
+
+  Table video_project_assets [headercolor: #10B981] {
+    _id string [pk]
+    projectId string [not null]
+    assetId string [not null]
+    workspaceId string [not null]
+    state string [not null]
+    canonicalKey string
+  }
+
+  Table video_project_upload_sessions [headercolor: #10B981] {
+    _id string [pk]
+    projectId string [not null]
+    assetId string [not null]
+    workspaceId string [not null]
+    state string [not null]
+    stagingKey string
+    expiresAt date
+  }
+
+  Table video_auto_edits [headercolor: #10B981] {
+    _id string [pk]
+    workspaceId string [not null]
+    projectId string [not null]
+    reservationId string
+    state string [not null]
+    progress int [not null]
+  }
+
+  Table watermark_presets [headercolor: #10B981] {
+    _id string [pk]
+    workspace_id string [not null]
+    client_profile_id string
+    name string [not null]
+    is_default boolean [not null]
+  }
+
+  TableGroup postgresql_product_video {
+    product_video_productions
+    product_video_plans
+    product_video_quotes
+    product_video_attempts
+    product_video_requests
+  }
+
+  TableGroup postgresql_mail_newsletter {
+    newsletter_usage
+  }
+
+  TableGroup mongodb_sections_vault_video {
+    task_sections
+    task_section_versions
+    task_section_events
+    material_folders
+    material_versions
+    client_vault_shares
+    video_projects
+    video_project_assets
+    video_project_upload_sessions
+    video_auto_edits
+    watermark_presets
   }

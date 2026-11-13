@@ -102,7 +102,8 @@ createdAt, updatedAt
 ### `Task`
 ```
 id, workspaceId, campaignId?, campaignWorkItemId?, sourceType, sourceRefId?,
-type (POST | LIVESTREAM | SURVEY | EVENT_PLAN | PRESS_RECOMMENDATION),
+type (POST | LIVESTREAM | SURVEY | EVENT_PLAN | PRESS_RECOMMENDATION | SHORT_VIDEO |
+      KOL_BOOKING | WORKSHOP | EMAIL_NEWSLETTER),
 name, description, dueDate, inputReferences, assigneeId?, requiresClientApproval,
 status (TODO | IN_PROGRESS | IN_REVIEW | FINISHED | CANCELLED),
 reviewStep (MANAGER | CLIENT | null), approvalRound, workflowRevision,
@@ -111,6 +112,31 @@ assignedBy/At, firstStartedBy/At, createdBy/At, updatedAt, cancellation?, typeMe
 
 BA 2026-10-18: không QC/ngày đăng dự kiến trong workflow mới; field/history legacy giữ để tương thích, không tự clean. `sourceRefId` của Campaign writer hiện tại là work-item ID, không tự coi là Campaign ID. `approvalRound` là lượt duyệt, không phiên bản nội dung. Kế hoạch bổ sung `lastSubmission` metadata lượt gần nhất và `posts.task_id` tại [plan FR3.6.9](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/plan.md); chưa migration/implementation trong giai đoạn 1.
 
+**[BA 2026-11-10]** 4 type cuối (`SHORT_VIDEO, KOL_BOOKING, WORKSHOP, EMAIL_NEWSLETTER`) thêm theo [spec subtask-role-workspaces](../feature/subtask-role-workspaces/spec.md). `reviewStep`/`approvalRound` task-level chỉ có ý nghĩa cho task **không có** subtask theo vai trò (xem `Subtask.subtaskRole` bên dưới) — task có subtask vai trò duyệt qua `TaskSection`, không dùng `reviewStep`.
+
+### `Subtask` (nhúng trong `Task.subtasks`, Mongo `TaskDocument.Subtask`)
+
+```
+id, name, assigneeId, supervisorOverrideId?, dueDate, status (TODO | IN_PROGRESS | IN_REVIEW | FINISHED | CANCELLED),
+subtaskRole? (null = subtask tự do; VD "POST_CONTENT", "EVENT_AGENDA" — xem danh mục cố định theo TaskType
+              tại 05-content-task-workflow.md mục 3)
+```
+
+**[BA mới 2026-11-10]** `subtaskRole` xác định subtask sở hữu phần (section) nào của trình soạn (xem `TaskSection` bên dưới); `subtaskRole = null` (subtask tự do hoặc subtask tạo trước tính năng này) không sở hữu phần nào, chỉ là việc tự do như trước. Subtask có `subtaskRole` tự động `FINISHED` khi mọi phần nó sở hữu đạt trạng thái cuối — không tự đánh dấu FINISHED tay. `supervisorOverrideId` mặc định = `Task.assigneeId` nếu không set; là người duyệt nội bộ cấp subtask đó (xem `TaskSection.status`).
+
+### `TaskSection` (phần trong trình soạn chia theo vai trò)
+
+```
+key (TYPE.SECTION, VD "POST.CAPTION", "EVENT.AGENDA" — danh mục cố định theo TaskType, không cấu hình),
+taskId, content (JSON theo schema cố định của section — field khác nhau theo loại, xem 05 mục 3),
+status (DRAFT | SUBMITTED | INTERNAL_APPROVED | CLIENT_APPROVED | RETURNED),
+visibility (OUTPUT | INTERNAL — Client chỉ thấy phần OUTPUT),
+revision (chống ghi đè đồng thời, riêng theo từng phần — không dùng chung workflowRevision của Task),
+returnNote? (ghi chú khi bị trả lại), versions[] (snapshot mỗi lần nộp, không xoá)
+```
+
+**[BA mới 2026-11-10]** Nguồn: [spec.md §5, §9](../feature/subtask-role-workspaces/spec.md). Mỗi section do đúng 1 hoặc nhiều `Subtask.subtaskRole` sở hữu (cố định theo `TaskType`, xem bảng ở 05-content-task-workflow.md mục 3). Vòng đời và ma trận quyền: 05-content-task-workflow.md mục 4a, state machine: 12-state-machines.md mục 4a. POST/SURVEY ghi `content` xuống `PostDocument`/survey hiện có (không trùng lặp dữ liệu); các loại khác ghi vào `TaskDocument.typeMetadata.sections` hoặc collection riêng.
+
 ### `TaskApproval` (lịch sử duyệt)
 ```
 id, taskId, approvalRound, step (MANAGER | CLIENT),
@@ -118,6 +144,16 @@ action (APPROVE | REJECT), actorId (User ID), comment?, createdAt
 ```
 
 Append-only; mục tiêu unique(Task, lượt, bước), tối đa hai decision/lượt; reject bắt buộc comment. Giữ tên `comment`, UI gọi “Nhận xét duyệt”; không thay `task_comments`. Submit/withdraw là chuyển trạng thái, không tạo decision giả. Không snapshot/content-version history mới; không xem lại nội dung cũ qua TaskApproval. QC legacy không bị xóa. [Spec hiện hành](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md).
+
+### `MailRecipientGroup` (MỚI 2026-11-10 — danh sách người nhận Mail Template/Newsletter)
+
+```
+id, workspaceId, name, createdBy, createdAt,
+recipients[]: { email, name, consent? (bool, bắt buộc true cho Newsletter — null trên nhóm lưu trước tính năng),
+                consentSource? (MANUAL | CSV_IMPORT), importedAt? }
+```
+
+Nguồn: [spec.md §9.1, AC13](../feature/subtask-role-workspaces/spec.md). Import CSV bắt buộc cột `email, name, consent`; dòng `consent` khác `true/yes/1` bị loại, email trong suppression bị loại, kết quả trả `{imported, skippedNoConsent, skippedSuppressed, skippedInvalid}`. `consent` chỉ bắt buộc kiểm tra khi gửi Newsletter (`EMAIL_SEND`, 05-content-task-workflow.md mục 3.8); Mail Template thường (mục 9) không kiểm `consent`.
 
 ### `ThirdPartyCollaborator` (SỬA 2026-09-15 — danh bạ chung cấp Agency, không gắn cứng Campaign)
 ```

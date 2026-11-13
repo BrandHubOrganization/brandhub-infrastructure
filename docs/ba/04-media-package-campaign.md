@@ -19,6 +19,25 @@
 
 Một workspace tiếp tục có một Campaign. Manager được sửa gói trước triển khai và đồng bộ kế hoạch/task, giữ thông tin đã nhập ở hạng mục còn hiệu lực. Khi triển khai phải cố định bản gói/kế hoạch dùng cho lượt đó, khóa sau triển khai. Góp ý của Client không trở thành gate duyệt.
 
+## 1a. Hạng mục dịch vụ (PackageServiceType) — mỗi gói gồm nhiều deliverable theo hạng mục
+
+**BA mới 2026-11-10**, nguồn: `PackageServiceType` enum và `CampaignPlanValidator` (code hiện hành) — chưa từng mô tả trong BA trước đây. Mỗi deliverable trong một Media Package khai báo một hạng mục dịch vụ, số lượng (sản lượng) và đơn vị chuẩn; khi triển khai Campaign, mỗi deliverable sinh ra **đúng số lượng task cha** theo loại tương ứng (mục 5 + 05-content-task-workflow.md mục 3).
+
+| PackageServiceType | Đơn vị chuẩn | Sinh ra Task loại | Ghi chú |
+|---|---|---|---|
+| `SOCIAL_POST` | bài | `POST` | Bài đăng mạng xã hội thường |
+| `EVENT_PLANNING` | sự kiện | `EVENT_PLAN` | Chỉ bàn giao kế hoạch & nội dung truyền thông, không quản lý hậu cần/vận hành sự kiện thật |
+| `LIVESTREAM_PREPARATION` | buổi | *(không sinh task — ngoài phạm vi)* | Giữ trong enum cho tương thích lịch sử; **gói custom mới không được chọn hạng mục này** (backend chặn `INVALID_MEDIA_PACKAGE_CONFIGURATION` khi tạo gói mới có hạng mục này — chỉ còn trên gói/template cũ tạo trước khi Livestream bị loại khỏi phạm vi) |
+| `PRESS_RECOMMENDATION` | bài | `PRESS_RECOMMENDATION` | Đề xuất báo chí, chỉ ghi nhận — không gửi mail pitching qua hệ thống |
+| `WORKSHOP_SUPPORT` | buổi | `WORKSHOP` | Hỗ trợ chuẩn bị nội dung/tài liệu workshop |
+| `SHORT_VIDEO` | video | `SHORT_VIDEO` | Video ngắn (TikTok/Reels) |
+| `KOL_BOOKING` | KOL | `KOL_BOOKING` | Booking KOL/Influencer, chỉ ghi nhận — không thanh toán qua hệ thống |
+| `EMAIL_NEWSLETTER` | bản tin | `EMAIL_NEWSLETTER` | Gửi email thật qua hạ tầng Mail Template, quota riêng theo gói (xem 05-content-task-workflow.md mục 9) |
+
+- Tên hạng mục dịch vụ và tên loại Task **không trùng chữ cái** ở 3 trường hợp: `SOCIAL_POST`→`POST`, `EVENT_PLANNING`→`EVENT_PLAN`, `WORKSHOP_SUPPORT`→`WORKSHOP`. 5 hạng mục còn lại trùng tên.
+- Sản lượng (quantity) của một deliverable là **tổng số task cha** sinh ra cho cả Campaign đó, không phải số lượng/tháng — Manager khai khi tạo/tùy chỉnh gói (mục 2 bên dưới).
+- Chi tiết subtask theo vai trò + trình soạn chia phần của từng loại Task sinh ra: [05-content-task-workflow.md mục 3](05-content-task-workflow.md).
+
 ## 2. Media Package — FR 3.5.1 đến 3.5.4
 
 ### 3.5.1 — Tạo gói

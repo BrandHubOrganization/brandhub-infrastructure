@@ -281,6 +281,8 @@ db.createCollection('tasks', {
           plannedStartDate: { bsonType: ['date', 'null'] },
           // Catalogue role (DA-1274); null = free or legacy subtask.
           subtaskRole: { bsonType: ['string', 'null'] },
+          description: { bsonType: ['string', 'null'] },
+          acceptanceCriteria: { bsonType: ['string', 'null'] },
         } } },
         publishDate:            { bsonType: ['date', 'null'] },
         status:                 { enum: ['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'FINISHED', 'CANCELLED'] },
@@ -306,6 +308,7 @@ db.createCollection('tasks', {
         sourceType:             { bsonType: ['string', 'null'] },
         sourceRefId:            { bsonType: ['string', 'null'] },
         createdBy:              { bsonType: ['string', 'null'] },
+        partnerIds:             { bsonType: ['array', 'null'], items: { bsonType: 'string' } },
         ...taskWorkflowFoundation.taskProperties,
         cancellation: {
           bsonType: 'object', required: ['actorId', 'at', 'reasonCode', 'previousStatus'],
@@ -668,6 +671,10 @@ db.tasks.createIndex({ campaignId: 1, campaignWorkItemId: 1 }, {
 db.tasks.createIndex({ sourceType: 1, sourceRefId: 1 }, {
   name: 'uq_tasks_content_request_source', unique: true,
   partialFilterExpression: { sourceType: 'CONTENT_REQUEST', sourceRefId: { $type: 'string' } },
+});
+db.tasks.createIndex({ partnerIds: 1 }, {
+  name: 'idx_tasks_partner_ids',
+  partialFilterExpression: { partnerIds: { $type: 'array' } },
 });
 
 // Optional workflow list and private comment/upload/outbox indexes.
@@ -1140,10 +1147,16 @@ print('BrandHub MongoDB initialized: collections and indexes created.');
   for (const {key,...options} of referenceAttachmentIndexes) db.material_references.createIndex(key,options);
 })();
 
-// Repository Folders, Versions, Client Vault Shares, Surveys, and Watermark Presets.
+// Repository Folders, Material Versions, Client Vault Shares, Surveys, Video Projects, and Watermark Presets
 (() => {
+  const ensureCollection = (name) => {
+    if (!db.getCollectionInfos({ name }).length) {
+      db.createCollection(name);
+    }
+  };
+
   // 1. material_folders
-  db.createCollection('material_folders');
+  ensureCollection('material_folders');
   db.material_folders.createIndex(
     { scope_type: 1, workspace_id: 1, parent_folder_id: 1, normalized_name: 1 },
     { name: 'uq_workspace_folder_name', unique: true, partialFilterExpression: { scope_type: 'WORKSPACE', deleted_at: null } }
@@ -1155,58 +1168,57 @@ print('BrandHub MongoDB initialized: collections and indexes created.');
   db.material_folders.createIndex({ ancestor_ids: 1 }, { name: 'idx_material_folders_ancestors' });
 
   // 2. material_versions
-  db.createCollection('material_versions');
+  ensureCollection('material_versions');
   db.material_versions.createIndex(
     { material_id: 1, version_number: 1 },
-    { name: 'uq_material_version_number', unique: true }
+    { name: 'uq_material_versions_no', unique: true }
   );
 
   // 3. client_vault_shares
-  db.createCollection('client_vault_shares');
+  ensureCollection('client_vault_shares');
   db.client_vault_shares.createIndex(
     { workspace_id: 1, owner_user_id: 1, resource_type: 1, resource_id: 1 },
-    { name: 'uq_client_vault_share', unique: true }
+    { name: 'uq_client_vault_shares_resource', unique: true }
   );
 
-  // 4. materials (folder & vault browsing indexes from 2026-11-04 migration)
-  db.materials.createIndex(
-    { workspace_id: 1, folder_id: 1, deleted_at: 1, sort_key: 1, normalized_name: 1, created_at: -1 },
-    { name: 'idx_materials_folder_browse' }
-  );
-  db.materials.createIndex(
-    { scope_type: 1, owner_user_id: 1, folder_id: 1, deleted_at: 1 },
-    { name: 'idx_materials_vault_browse' }
-  );
-  db.materials.createIndex(
-    { ancestor_folder_ids: 1 },
-    { name: 'idx_materials_ancestors' }
-  );
+  // 4. materials & upload sessions
+  ensureCollection('material_upload_sessions');
+  db.material_upload_sessions.createIndex({ workspace_id: 1, staging_key: 1 }, { name: 'uq_repository_session_key', unique: true });
+  db.materials.createIndex({ workspace_id: 1, folder_id: 1, deleted_at: 1, sort_key: 1, normalized_name: 1, created_at: -1 }, { name: 'idx_materials_folder_sort' });
+  db.materials.createIndex({ scope_type: 1, owner_user_id: 1, folder_id: 1, deleted_at: 1 }, { name: 'idx_materials_vault_folder' });
+  db.materials.createIndex({ ancestor_folder_ids: 1 }, { name: 'idx_materials_ancestor_folders' });
+  db.materials.createIndex({ workspace_id: 1, content_hash: 1 }, { name: 'idx_materials_content_hash' });
 
-  // 5. surveys
-  db.createCollection('surveys');
+  // 5. surveys & survey_responses
+  ensureCollection('surveys');
   db.surveys.createIndex({ taskId: 1 }, { name: 'idx_surveys_task_id' });
   db.surveys.createIndex({ publicToken: 1 }, { name: 'uq_surveys_public_token', unique: true, sparse: true });
   db.surveys.createIndex({ workspaceId: 1, taskId: 1 }, { name: 'idx_surveys_workspace_task' });
 
-  // 6. survey_responses
-  db.createCollection('survey_responses');
-  db.survey_responses.createIndex(
-    { surveyId: 1, submittedAt: -1 },
-    { name: 'idx_survey_responses_survey_submitted' }
-  );
+  ensureCollection('survey_responses');
+  db.survey_responses.createIndex({ surveyId: 1, submittedAt: -1 }, { name: 'idx_survey_responses_survey_submitted' });
+  db.survey_responses.createIndex({ taskId: 1, submittedAt: -1 }, { name: 'idx_survey_responses_task_submitted' });
+
+  // 6. video_projects, video_project_assets, video_project_upload_sessions, video_auto_edits
+  ensureCollection('video_projects');
+  db.video_projects.createIndex({ workspaceId: 1, projectId: 1 }, { name: 'uq_video_projects_ws_project', unique: true });
+  db.video_projects.createIndex({ workspaceId: 1, updatedAt: -1 }, { name: 'idx_video_projects_ws_updated' });
+
+  ensureCollection('video_project_assets');
+  db.video_project_assets.createIndex({ workspaceId: 1, projectId: 1, state: 1 }, { name: 'idx_video_assets_ws_project_state' });
+  db.video_project_assets.createIndex({ projectId: 1, assetId: 1 }, { name: 'uq_video_assets_project_asset', unique: true });
+
+  ensureCollection('video_project_upload_sessions');
+  db.video_project_upload_sessions.createIndex({ workspaceId: 1, projectId: 1, state: 1 }, { name: 'idx_video_upload_sessions_ws_project' });
+  db.video_project_upload_sessions.createIndex({ expiresAt: 1 }, { name: 'idx_video_upload_sessions_expires' });
+
+  ensureCollection('video_auto_edits');
+  db.video_auto_edits.createIndex({ workspaceId: 1, projectId: 1, createdAt: -1 }, { name: 'idx_video_auto_edits_ws_project' });
+  db.video_auto_edits.createIndex({ state: 1, leaseUntil: 1 }, { name: 'idx_video_auto_edits_lease' });
 
   // 7. watermark_presets
-  db.createCollection('watermark_presets');
-  db.watermark_presets.createIndex(
-    { workspace_id: 1, created_at: -1 },
-    { name: 'idx_watermark_presets_workspace_created' }
-  );
-  db.watermark_presets.createIndex(
-    { workspace_id: 1, client_profile_id: 1, created_at: -1 },
-    { name: 'idx_watermark_presets_workspace_client_created' }
-  );
-  db.watermark_presets.createIndex(
-    { workspace_id: 1, client_profile_id: 1, is_default: 1 },
-    { name: 'idx_watermark_presets_default' }
-  );
+  ensureCollection('watermark_presets');
+  db.watermark_presets.createIndex({ workspace_id: 1, created_at: -1 }, { name: 'idx_watermark_presets_workspace_created' });
+  db.watermark_presets.createIndex({ workspace_id: 1, client_profile_id: 1, created_at: -1 }, { name: 'idx_watermark_presets_workspace_client_created' });
+  db.watermark_presets.createIndex({ workspace_id: 1, client_profile_id: 1, is_default: 1 }, { name: 'idx_watermark_presets_default' });
 })();
