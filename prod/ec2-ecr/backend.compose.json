@@ -26,7 +26,7 @@
           "max-file": "3"
         }
       },
-      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/api-gateway:sha-07f8b2c-10",
+      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/api-gateway:sha-34d5747-14",
       "mem_limit": "640m",
       "env_file": [
         {
@@ -83,77 +83,6 @@
           "max-file": "3"
         }
       }
-    },
-    "ai-service": {
-      "init": true,
-      "restart": "unless-stopped",
-      "container_name": "brandhub-ai-service",
-      "command": null,
-      "entrypoint": null,
-      "networks": {
-        "brandhub-network": null
-      },
-      "healthcheck": {
-        "test": [
-          "CMD",
-          "python",
-          "-c",
-          "import urllib.request; urllib.request.urlopen('http://localhost:8082/health')"
-        ],
-        "timeout": "5s",
-        "interval": "15s",
-        "retries": 3,
-        "start_period": "30s"
-      },
-      "logging": {
-        "driver": "json-file",
-        "options": {
-          "max-size": "10m",
-          "max-file": "3"
-        }
-      },
-      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/ai-service:sha-a42b445-36",
-      "mem_limit": "5g",
-      "volumes": [
-        {
-          "type": "volume",
-          "source": "ai-data",
-          "target": "/app/data"
-        },
-        {
-          "type": "volume",
-          "source": "ai-model-cache",
-          "target": "/home/appuser/.cache"
-        }
-      ],
-      "env_file": [
-        {
-          "path": "./env/ai-service.env",
-          "required": true
-        }
-      ],
-      "memswap_limit": "5g",
-      "cpus": 1.5,
-      "cpu_shares": 256,
-      "environment": {
-        "TREND_RUN_DIR": "/app/data/crawler/trend_runs",
-        "REDIS_HOST": "172.31.24.149",
-        "RABBITMQ_HOST": "172.31.24.149",
-        "CHROMADB_HOST": "172.31.24.149"
-      },
-      "extra_hosts": {
-        "redis": "172.31.24.149",
-        "rabbitmq": "172.31.24.149",
-        "chromadb": "172.31.24.149"
-      },
-      "ports": [
-        {
-          "target": 8082,
-          "published": "8082",
-          "host_ip": "172.31.27.199",
-          "protocol": "tcp"
-        }
-      ]
     }
   },
   "networks": {
@@ -161,14 +90,6 @@
       "name": "brandhub-network",
       "driver": "bridge",
       "ipam": {}
-    }
-  },
-  "volumes": {
-    "ai-data": {
-      "name": "brandhub-ai-data"
-    },
-    "ai-model-cache": {
-      "name": "brandhub-ai-model-cache"
     }
   }
 }

@@ -2,16 +2,6 @@
 # Existing EC2 Instances
 # =========================================================
 
-import {
-  to = aws_instance.brandhub["api_gateway"]
-  id = "i-0761e3bd96ca5d4de"
-}
-
-import {
-  to = aws_instance.brandhub["core_services"]
-  id = "i-07283e8467a059e5a"
-}
-
 moved {
   from = aws_instance.brandhub["backend"]
   to   = aws_instance.brandhub["api_gateway"]

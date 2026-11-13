@@ -1,0 +1,47 @@
+# Crawl EC2 (brandhub-crawl). Sessions are held in the API process RAM:
+# a restart/deploy requires an admin to upload sessions again.
+# Optional encrypted proxy/TikTok storage: add -f crawler-connections.compose.yaml.
+name: brandhub-crawl
+services:
+  crawl-service:
+    image: ${CRAWLER_IMAGE:?Set CRAWLER_IMAGE to the crawl-service ECR image}
+    container_name: brandhub-crawl-service
+    restart: unless-stopped
+    init: true
+    env_file: ./env/crawl-service.env
+    volumes:
+      - crawl-data:/app/data
+    # m7i-flex.large has 8 GiB; leave ~1 GiB for the OS and Docker.
+    mem_limit: 7g
+    memswap_limit: 7g
+    shm_size: 256mb
+    environment:
+      APP_PORT: "8084"
+      AI_SERVICE_URL: http://172.31.24.149:8082
+      CRAWLER_STATE_DIR: /app/data/crawler/control
+      CRAWLER_OUTPUT_DIR: /app/data/crawler/output
+      CRAWLER_WORK_DIR: /dev/shm/crawler
+      CRAWLER_SCHEDULER_ENABLED: "true"
+    # Credential-bearing URLs in the env file keep the redis/rabbitmq names.
+    extra_hosts:
+      redis: 172.31.24.149
+      rabbitmq: 172.31.24.149
+    ports:
+      - target: 8084
+        published: "8084"
+        host_ip: 172.31.20.50
+        protocol: tcp
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8084/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+volumes:
+  crawl-data:
+    name: brandhub-crawl-data

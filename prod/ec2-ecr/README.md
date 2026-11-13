@@ -1,4 +1,18 @@
-# Two-EC2 deployment with ECR
+# Three-EC2 deployment with ECR
+
+## Target topology (planned 2026-11-13, not yet applied)
+
+| Host | Type | Containers | Compose |
+| --- | --- | --- | --- |
+| brandhub-api-gateway, 172.31.27.199 | t3.small (2 GiB) | Nginx, API Gateway | `backend.compose.json` |
+| brandhub-core-services, 172.31.24.149 | m7i-flex.large (8 GiB) | AI (8082), Business (8081), Publisher (8083), PostgreSQL, Redis, RabbitMQ, ChromaDB | `service.compose.json` |
+| brandhub-crawl, 172.31.20.50 | m7i-flex.large (8 GiB) | crawl-service (8084, private) | `crawl.compose.yaml` |
+
+Only the gateway is public (80/443). Gateway reaches Business, Publisher and Redis. Crawl reaches AI 8082, RabbitMQ 5672 and Redis 6379 on core; AI reaches crawl 8084. Business calls AI on the shared Docker network.
+
+Private IPs are pinned in `terraform.tfvars`. AI drops from a 5 GiB to a 3 GiB budget because the browser crawler no longer runs inside it. Cutover: apply Terraform, move the AI volumes/env from gateway to core, start crawl, then deploy the AI CI change that targets the core instance.
+
+## Previous two-EC2 layout (2026-11-03, historical)
 
 ## Production rebalance (applied 2026-11-03)
 
