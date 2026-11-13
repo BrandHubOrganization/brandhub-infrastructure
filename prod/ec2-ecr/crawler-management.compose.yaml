@@ -2,13 +2,26 @@
 # Restart/deploy requires an admin to upload sessions again.
 # Optional encrypted proxy/TikTok storage uses crawler-connections.compose.yaml.
 services:
-  ai-service:
+  crawl-service:
+    image: ${CRAWLER_IMAGE:?Set CRAWLER_IMAGE to the standalone crawler image}
+    env_file: ./env/crawl-service.env
+    networks:
+      - brandhub-network
+    volumes:
+      - crawl-data:/app/data
     init: true
     mem_limit: 4608m
     environment:
+      APP_PORT: "8084"
+      AI_SERVICE_URL: http://ai-service:8082
       CRAWLER_STATE_DIR: /app/data/crawler/control
       CRAWLER_OUTPUT_DIR: /app/data/crawler/output
-      TREND_RUN_DIR: /app/data/crawler/trend_runs
       CRAWLER_WORK_DIR: /dev/shm/crawler
       CRAWLER_SCHEDULER_ENABLED: "true"
     shm_size: 256mb
+
+  ai-service:
+    environment:
+      CRAWLER_API_URL: http://crawl-service:8084
+volumes:
+  crawl-data:
