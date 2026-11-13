@@ -1068,25 +1068,10 @@ VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- ============================================================
--- Explicit PostgreSQL demo seed run marker
+-- Explicit PostgreSQL demo seed run marker (Retired by 2026-10-30-drop-seed-runs.sql)
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS seed_runs (
-    dataset          VARCHAR(100) NOT NULL,
-    dataset_version  INTEGER NOT NULL CHECK (dataset_version > 0),
-    run_id           UUID NOT NULL UNIQUE,
-    status           VARCHAR(16) NOT NULL CHECK (status IN ('running', 'complete', 'failed')),
-    last_stage       VARCHAR(64),
-    record_counts    JSONB NOT NULL DEFAULT '{}'::jsonb,
-    manifest         JSONB NOT NULL DEFAULT '{}'::jsonb,
-    failure_summary  VARCHAR(255),
-    started_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
-    completed_at     TIMESTAMPTZ,
-    failed_at        TIMESTAMPTZ,
-    PRIMARY KEY (dataset, dataset_version),
-    CHECK ((status = 'complete') = (completed_at IS NOT NULL)),
-    CHECK ((status = 'failed') = (failed_at IS NOT NULL))
-);
+DROP TABLE IF EXISTS public.seed_runs;
 
 
 COMMIT;
@@ -2134,7 +2119,9 @@ CREATE TABLE IF NOT EXISTS storage_usage_entries (
 );
 CREATE INDEX IF NOT EXISTS idx_storage_entries_scope ON storage_usage_entries(agency_id,workspace_id);
 
-INSERT INTO agency_storage_usage(agency_id) SELECT id FROM agencies ON CONFLICT DO NOTHING;
+INSERT INTO agency_storage_usage(agency_id, inventory_verified_at)
+SELECT id, now() FROM agencies
+ON CONFLICT (agency_id) DO UPDATE SET inventory_verified_at = COALESCE(agency_storage_usage.inventory_verified_at, now());
 ALTER TABLE billing_plan_versions DISABLE TRIGGER billing_plan_version_immutable;
 UPDATE billing_plan_versions SET storage_limit_bytes=21474836480 WHERE code='BASIC' AND storage_limit_bytes<>21474836480;
 ALTER TABLE billing_plan_versions ENABLE TRIGGER billing_plan_version_immutable;
@@ -2359,4 +2346,107 @@ ALTER TABLE package_negotiation_events ADD CONSTRAINT chk_package_event_actor
     CHECK ((action='BASELINE' AND actor_id IS NULL AND actor_role IS NULL)
         OR (action='REQUEST_CHANGE' AND actor_id IS NOT NULL AND actor_role='CLIENT')
         OR (action IN ('COUNTER_OFFER','MANAGER_SAVE') AND actor_id IS NOT NULL AND actor_role IN ('OWNER','MANAGER')));
+COMMIT;
+
+-- ---- 2026-10-30-product-video-pipeline.sql ----
+BEGIN;
+SET LOCAL lock_timeout='5s';
+SET LOCAL statement_timeout='60s';
+
+CREATE TABLE IF NOT EXISTS product_video_productions (
+    id UUID PRIMARY KEY,
+    workspace_id UUID NOT NULL REFERENCES workspaces(id),
+    owner_id UUID NOT NULL REFERENCES users(id),
+    agency_id UUID NOT NULL REFERENCES agencies(id),
+    project_id UUID NOT NULL,
+    state VARCHAR(32) NOT NULL DEFAULT 'PLAN_READY' CHECK(state IN
+      ('NEEDS_INPUT','PLAN_READY','GENERATING','RECONCILIATION_REQUIRED','SCENE_FAILED',
+       'EDITING','VALIDATING','RENDER_FAILED','COMPLETED')),
+    revision INTEGER NOT NULL DEFAULT 0 CHECK(revision>=0),
+    render_id UUID,
+    output_key TEXT,
+    output_sha256 CHAR(64),
+    output_size BIGINT NOT NULL DEFAULT 0 CHECK(output_size>=0),
+    error_code VARCHAR(80),
+    lease_token UUID,
+    lease_until TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CHECK(state<>'COMPLETED' OR (output_key IS NOT NULL AND output_sha256 IS NOT NULL AND output_size>0))
+);
+
+CREATE TABLE IF NOT EXISTS product_video_plans (
+    production_id UUID NOT NULL REFERENCES product_video_productions(id),
+    revision INTEGER NOT NULL CHECK(revision>0),
+    plan_hash CHAR(64) NOT NULL CHECK(plan_hash ~ '^[a-f0-9]{64}$'),
+    plan_json JSONB NOT NULL CHECK(octet_length(plan_json::text)<=262144),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY(production_id,revision)
+);
+
+CREATE TABLE IF NOT EXISTS product_video_quotes (
+    id UUID PRIMARY KEY,
+    production_id UUID NOT NULL,
+    revision INTEGER NOT NULL,
+    scene_id UUID,
+    price_id UUID NOT NULL REFERENCES ai_credit_operation_prices(id),
+    unit_credits BIGINT NOT NULL CHECK(unit_credits>=0),
+    units INTEGER NOT NULL CHECK(units BETWEEN 1 AND 3),
+    expires_at TIMESTAMPTZ NOT NULL,
+    consumed_key VARCHAR(128),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    FOREIGN KEY(production_id,revision) REFERENCES product_video_plans(production_id,revision),
+    CHECK(scene_id IS NULL OR units=1)
+);
+
+CREATE TABLE IF NOT EXISTS product_video_attempts (
+    id UUID PRIMARY KEY,
+    production_id UUID NOT NULL,
+    revision INTEGER NOT NULL,
+    scene_id UUID NOT NULL,
+    attempt INTEGER NOT NULL CHECK(attempt>0),
+    reservation_id UUID NOT NULL UNIQUE REFERENCES ai_credit_reservations(id),
+    payload_hash CHAR(64) NOT NULL CHECK(payload_hash ~ '^[a-f0-9]{64}$'),
+    state VARCHAR(24) NOT NULL DEFAULT 'READY' CHECK(state IN
+      ('READY','SUBMITTING','PROCESSING','SUBMISSION_UNKNOWN','COMPLETED','FAILED')),
+    s3_key TEXT,
+    sha256 CHAR(64),
+    file_size BIGINT CHECK(file_size>=0),
+    error_code VARCHAR(80),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    FOREIGN KEY(production_id,revision) REFERENCES product_video_plans(production_id,revision),
+    UNIQUE(production_id,scene_id,attempt),
+    CHECK(state<>'COMPLETED' OR (s3_key IS NOT NULL AND sha256 IS NOT NULL AND file_size>0))
+);
+
+CREATE TABLE IF NOT EXISTS product_video_requests (
+    workspace_id UUID NOT NULL REFERENCES workspaces(id),
+    owner_id UUID NOT NULL REFERENCES users(id),
+    request_key VARCHAR(128) NOT NULL,
+    production_id UUID NOT NULL REFERENCES product_video_productions(id),
+    request_hash CHAR(64) NOT NULL CHECK(request_hash ~ '^[a-f0-9]{64}$'),
+    quote_id UUID UNIQUE REFERENCES product_video_quotes(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY(workspace_id,owner_id,request_key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_product_video_owner ON product_video_productions(workspace_id,owner_id,created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_product_video_pending ON product_video_productions(updated_at)
+    WHERE state IN ('GENERATING','RECONCILIATION_REQUIRED','EDITING','VALIDATING');
+CREATE INDEX IF NOT EXISTS idx_product_video_quote ON product_video_quotes(production_id,revision,created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_product_video_attempt ON product_video_attempts(production_id,scene_id,attempt DESC);
+COMMIT;
+
+-- ---- 2026-11-11-mobile-google-oauth-link.sql ----
+BEGIN;
+CREATE UNIQUE INDEX IF NOT EXISTS uq_user_oauth_provider
+    ON public.user_oauth_providers (user_id, provider);
+
+INSERT INTO public.brandhub_schema_migrations (version, description)
+VALUES (
+    '20261111_mobile_google_oauth_link_v1',
+    'Enforce unique provider per user for mobile Google OAuth linking'
+)
+ON CONFLICT (version) DO NOTHING;
 COMMIT;
