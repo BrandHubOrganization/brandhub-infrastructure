@@ -35,6 +35,18 @@ output "core_services_private_ip" {
   value = aws_instance.brandhub["core_services"].private_ip
 }
 
+output "crawl_instance_id" {
+  value = aws_instance.brandhub["crawl"].id
+}
+
+output "crawl_private_ip" {
+  value = aws_instance.brandhub["crawl"].private_ip
+}
+
+output "brandhub_crawl_sg_id" {
+  value = aws_security_group.brandhub_crawl.id
+}
+
 output "brandhub_core_sg_id" {
   value = aws_security_group.brandhub_core.id
 }

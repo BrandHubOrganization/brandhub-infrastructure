@@ -76,7 +76,25 @@ The canvas editor (`CanvasTextEditor.tsx` + `richText.ts` + `FormattingToolbar.t
 - **Layout constants were tuned toward Google Docs' real defaults but not matched exactly**: font is Arial 11pt (rendered at 15px, rounded for crisp canvas glyphs) with 1.15 line-height, matching Docs precisely. Page margin is Docs' real 2.54cm (~96px @96dpi) vertically, but a smaller 32px horizontally — the canvas here is a responsive-width panel, not a fixed-width printable page, so a full 96px side margin would consume too much space on narrow screens. This is a deliberate, documented trade-off, not an oversight.
 - Undo/redo uses Yjs's own `UndoManager` scoped to the editor's `Y.Text`, with `captureTimeout: 500` — local edits within 500ms of each other coalesce into one undo step (including every run of a single multi-styled paste, since they're all inserted inside one `yDoc.transact()` call).
 
-## 5. Limitations of This Research
+## 5. V6 Research: Sub-Pixel Cursor Alignment & YayText / Zantext 36-Style Unicode Engine (2026-11-09)
+
+### 5.1 Solving the Multi-Font Wrapped-Line Cursor Desync
+- In V4–V5, `wrapLines` measured plain text with the default font while `wrapRuns` painted styled runs with per-run font families, font sizes (`10pt`–`36pt`), letter spacing, and list prefixes (`• `, `1. `). Whenever a user mixed fonts or sizes on a wrapped paragraph, the caret coordinate diverged from the painted glyph.
+- **V6 Solution (`buildParagraphIndexMap` + `measureRunSliceWidth`)**:
+  - Both hit-testing (`canvasClickToIndex`), caret positioning (`indexToCaretRect`), selection rectangles (`selectionToRects`), and canvas painting now use a **single unified layout pass** (`buildParagraphIndexMap`) that measures every run slice using its exact `fontString(attrs)` and `letterSpacing`, plus the exact list marker prefix width (`listPrefixWidth`) and alignment offset (`left`, `center`, `right`).
+  - Result: Sub-pixel accuracy (`< 1px` delta) across all fonts, sizes, alignments, and wrapped lines.
+
+### 5.2 Why Social Networks Lose Editor Formatting — and How YayText / Zantext Solves It
+- **The Social Media Marketer's Pain Point**: Facebook, Instagram, TikTok, and Threads strip all HTML/CSS styling (`<b>`, `<i>`, `<span style="font-family: ...">`) from post captions, both when submitted via Graph/Posting APIs and when pasted into the native web/mobile composer (`plain/text`). Marketers traditionally had to copy each sentence to third-party sites like **YayText (`yaytext.com`)** or **Zantext**, convert it, and paste it back into Facebook.
+- **BrandHub's Built-in 36-Style YayText / Zantext Architecture (`contentUtils.ts`)**:
+  1. **Mathematical Alphanumeric Symbols (`U+1D400`–`U+1D7FF`)**: Maps Latin letters and digits to `Sans Bold` (`𝗦𝗮𝗻𝘀`), `Sans Italic` (`𝘚𝘢𝘯𝘴`), `Sans Bold Italic` (`𝙎𝙖𝙣𝙨`), `Serif Bold` (`𝐒𝐞𝐫𝐢𝐟`), `Serif Italic` (`𝑆𝑒𝑟𝑖𝑓`, respecting BMP Planck's constant `ℎ` at `U+210E`), `Serif Bold Italic` (`𝑺𝒆𝒓𝒊𝒇`), `Script` (`𝒮𝒸𝓇𝒾𝓅𝓉`), `Bold Script` (`𝓑𝓸𝓵𝓭`), `Fraktur` (`𝔉𝔯𝔞𝔨𝔱𝔲𝔯`), `Bold Fraktur` (`𝕭𝖔𝖑𝖉`), `Double-Struck` (`𝔻𝕠𝕦𝕓𝕝𝕖`), and `Monospace` (`𝙼𝚘𝚗𝚘`).
+  2. **Enclosed Alphanumerics & Regional Indicators (`U+2460`–`U+24FF`, `U+1F130`–`U+1F1FF`)**: Maps promo badges and headlines to `Circled` (`ⒶⒷⒸ`), `Black Bubble` (`🅑🅤🅑🅑🅛🅔 ⓿➊➋`), `Squared` (`🄰🄱🄲`), `Black Square` (`🅱🅻🅰🅲🅺`), `Parenthesized` (`⒫⒜⒭⒠⒩`), and `Regional Indicator Flags` (`🇧 🇷 🇦 🇳 🇩`, inserting controlled spacing so pairs like `VN` do not collapse into a single country flag glyph).
+  3. **Combining Character Overlays (`U+0300`–`U+036F`)**: Appends combining marks after each grapheme cluster for `Underline` (`\u0332`), `Double Underline` (`\u0333`), `Strikethrough` (`\u0336`), `Slashthrough Price` (`\u0338` → `9̸9̸0̸.̸0̸0̸0̸đ̸`), `Tilde Wave` (`\u0334`), `Overline` (`\u0305`), `Under-Asterisks` (`\u0359`), and `Lightning Above` (`\u035B`).
+  4. **Smart Vietnamese Diacritic Handling (`keep-marks` vs. `strip-accents-auto`)**:
+     - For Mathematical Alphanumeric sets, NFD decomposition (`ch.normalize("NFD")`) maps the base ASCII letter (`a` → `𝗮`) while keeping the Vietnamese combining tone/vowel marks (`\u0300`–`\u036f`) attached (`"Khuyến mãi"` → `"𝗞𝗵𝘂𝘆𝗲̂́𝗻 𝗺𝗮̃𝗶"`), and leaves `đ/Đ` plain so no tofu boxes (`□`) appear.
+     - For Enclosed shapes (`🅑🅤🅑🅑🅛🅔`, `🅱🅻🅰🅲🅺`, `🄰🄱🄲`, `⒫⒜⒭`, `🇧 🇷 🇦`) and `Upside-Down` (`qnHpuɐɹᙠ`), combining Vietnamese marks would collide with the enclosing circle/square box on iOS and Android. Therefore, `styleRunText` automatically transliterates Vietnamese characters to clean unaccented ASCII via `stripVietnameseAccents` (`"Khuyến mãi Đặc Biệt"` → `"🅚🅗🅤🅨🅔🅝 🅜🅐🅘 🅓🅐🅒 🅑🅘🅔🅣"`), and exposes an explicit toggle in the UI.
+
+## 6. Limitations of This Research
 
 - The observations about `kix`, the hidden DOM structure, and the offscreen iframe are **external observations** (via DevTools, community technical write-ups, and public discussion from Google engineers) — not official architecture documentation from Google. Google has not published Docs' full source code or technical spec.
 - Google's actual `transform()` algorithm (handling rich-text formatting, not just plain-text insert/delete) has not been published in detail — the OT design for rich text in `plan.md` will need to be designed independently; it cannot be copied from an original source.

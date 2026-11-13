@@ -220,6 +220,40 @@ const taskWorkflowFoundation = (() => {
       index('idx_task_notification_outbox_due', { status: 1, availableAt: 1 }),
       index('idx_task_notification_outbox_lease', { status: 1, leaseUntil: 1 }),
     ] },
+    // Per-section state of role-split task editors (DA-1274). Missing document = virtual DRAFT.
+    { name: 'task_sections', validator: schema(['_id', 'workspaceId', 'taskId', 'sectionKey', 'visibility',
+      'status', 'revision', 'updatedAt'], {
+      _id: string, workspaceId: string, taskId: string, sectionKey: { bsonType: 'string', maxLength: 64 },
+      visibility: { enum: ['OUTPUT', 'INTERNAL'] },
+      status: { enum: ['DRAFT', 'SUBMITTED', 'INTERNAL_APPROVED', 'CLIENT_APPROVED', 'RETURNED'] },
+      revision: { bsonType: ['long', 'int'], minimum: 0 },
+      content: { bsonType: ['object', 'null'] },
+      returnNote: { bsonType: ['string', 'null'], maxLength: 2000 }, returnedBy: nullableString,
+      lastEditorRole: nullableString, clientPendingSince: nullableDate, clientReminderSentAt: nullableDate,
+      updatedAt: date,
+    }), indexes: [
+      index('uq_task_sections_task_key', { taskId: 1, sectionKey: 1 }, { unique: true }),
+      index('idx_task_sections_workspace_status', { workspaceId: 1, status: 1 }),
+      index('idx_task_sections_client_pending', { status: 1, clientPendingSince: 1 }),
+    ] },
+    // Immutable snapshot per section submit (§16.12); never deleted.
+    { name: 'task_section_versions', validator: schema(['_id', 'workspaceId', 'taskId', 'sectionKey',
+      'versionNo', 'submittedBy', 'submittedAt'], {
+      _id: string, workspaceId: string, taskId: string, sectionKey: string,
+      versionNo: { bsonType: ['long', 'int'], minimum: 1 },
+      content: { bsonType: ['object', 'null'] }, submittedBy: string, submittedAt: date,
+    }), indexes: [
+      index('uq_task_section_versions_no', { taskId: 1, sectionKey: 1, versionNo: 1 }, { unique: true }),
+    ] },
+    // Section audit log: submit/approve/return/reopen/restore (§16.12); never deleted.
+    { name: 'task_section_events', validator: schema(['_id', 'workspaceId', 'taskId', 'sectionKey',
+      'action', 'actorId', 'at'], {
+      _id: string, workspaceId: string, taskId: string, sectionKey: string,
+      action: { enum: ['SUBMIT', 'APPROVE', 'CLIENT_APPROVE', 'RETURN', 'CLIENT_RETURN', 'REOPEN', 'RESTORE'] },
+      actorId: string, note: { bsonType: ['string', 'null'], maxLength: 2000 }, at: date,
+    }), indexes: [
+      index('idx_task_section_events_timeline', { taskId: 1, at: 1 }),
+    ] },
   ];
   return { taskProperties, additions };
 })();
@@ -238,12 +272,15 @@ db.createCollection('tasks', {
         workspaceId:            { bsonType: 'string' },
         campaignId:             { bsonType: ['string', 'null'] },
         campaignWorkItemId:     { bsonType: ['string', 'null'] },
-        type:                   { enum: ['POST', 'LIVESTREAM', 'SURVEY', 'EVENT_PLAN', 'PRESS_RECOMMENDATION'] },
+        type:                   { enum: ['POST', 'LIVESTREAM', 'SURVEY', 'EVENT_PLAN', 'PRESS_RECOMMENDATION',
+                                         'SHORT_VIDEO', 'KOL_BOOKING', 'WORKSHOP', 'EMAIL_NEWSLETTER'] },
         name:                   { bsonType: 'string' },
         dueDate:                { bsonType: ['date', 'null'] },
         plannedStartDate:       { bsonType: ['date', 'null'] },
         subtasks: { bsonType: 'array', items: { bsonType: 'object', properties: {
           plannedStartDate: { bsonType: ['date', 'null'] },
+          // Catalogue role (DA-1274); null = free or legacy subtask.
+          subtaskRole: { bsonType: ['string', 'null'] },
         } } },
         publishDate:            { bsonType: ['date', 'null'] },
         status:                 { enum: ['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'FINISHED', 'CANCELLED'] },
@@ -1101,4 +1138,75 @@ print('BrandHub MongoDB initialized: collections and indexes created.');
     for (const {key,...options} of indexes) db.getCollection(name).createIndex(key,options);
   }
   for (const {key,...options} of referenceAttachmentIndexes) db.material_references.createIndex(key,options);
+})();
+
+// Repository Folders, Versions, Client Vault Shares, Surveys, and Watermark Presets.
+(() => {
+  // 1. material_folders
+  db.createCollection('material_folders');
+  db.material_folders.createIndex(
+    { scope_type: 1, workspace_id: 1, parent_folder_id: 1, normalized_name: 1 },
+    { name: 'uq_workspace_folder_name', unique: true, partialFilterExpression: { scope_type: 'WORKSPACE', deleted_at: null } }
+  );
+  db.material_folders.createIndex(
+    { scope_type: 1, owner_user_id: 1, parent_folder_id: 1, normalized_name: 1 },
+    { name: 'uq_vault_folder_name', unique: true, partialFilterExpression: { scope_type: 'CLIENT_VAULT', deleted_at: null } }
+  );
+  db.material_folders.createIndex({ ancestor_ids: 1 }, { name: 'idx_material_folders_ancestors' });
+
+  // 2. material_versions
+  db.createCollection('material_versions');
+  db.material_versions.createIndex(
+    { material_id: 1, version_number: 1 },
+    { name: 'uq_material_version_number', unique: true }
+  );
+
+  // 3. client_vault_shares
+  db.createCollection('client_vault_shares');
+  db.client_vault_shares.createIndex(
+    { workspace_id: 1, owner_user_id: 1, resource_type: 1, resource_id: 1 },
+    { name: 'uq_client_vault_share', unique: true }
+  );
+
+  // 4. materials (folder & vault browsing indexes from 2026-11-04 migration)
+  db.materials.createIndex(
+    { workspace_id: 1, folder_id: 1, deleted_at: 1, sort_key: 1, normalized_name: 1, created_at: -1 },
+    { name: 'idx_materials_folder_browse' }
+  );
+  db.materials.createIndex(
+    { scope_type: 1, owner_user_id: 1, folder_id: 1, deleted_at: 1 },
+    { name: 'idx_materials_vault_browse' }
+  );
+  db.materials.createIndex(
+    { ancestor_folder_ids: 1 },
+    { name: 'idx_materials_ancestors' }
+  );
+
+  // 5. surveys
+  db.createCollection('surveys');
+  db.surveys.createIndex({ taskId: 1 }, { name: 'idx_surveys_task_id' });
+  db.surveys.createIndex({ publicToken: 1 }, { name: 'uq_surveys_public_token', unique: true, sparse: true });
+  db.surveys.createIndex({ workspaceId: 1, taskId: 1 }, { name: 'idx_surveys_workspace_task' });
+
+  // 6. survey_responses
+  db.createCollection('survey_responses');
+  db.survey_responses.createIndex(
+    { surveyId: 1, submittedAt: -1 },
+    { name: 'idx_survey_responses_survey_submitted' }
+  );
+
+  // 7. watermark_presets
+  db.createCollection('watermark_presets');
+  db.watermark_presets.createIndex(
+    { workspace_id: 1, created_at: -1 },
+    { name: 'idx_watermark_presets_workspace_created' }
+  );
+  db.watermark_presets.createIndex(
+    { workspace_id: 1, client_profile_id: 1, created_at: -1 },
+    { name: 'idx_watermark_presets_workspace_client_created' }
+  );
+  db.watermark_presets.createIndex(
+    { workspace_id: 1, client_profile_id: 1, is_default: 1 },
+    { name: 'idx_watermark_presets_default' }
+  );
 })();

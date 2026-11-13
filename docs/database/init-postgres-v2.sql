@@ -1068,25 +1068,10 @@ VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- ============================================================
--- Explicit PostgreSQL demo seed run marker
+-- Explicit PostgreSQL demo seed run marker (Retired by 2026-10-30-drop-seed-runs.sql)
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS seed_runs (
-    dataset          VARCHAR(100) NOT NULL,
-    dataset_version  INTEGER NOT NULL CHECK (dataset_version > 0),
-    run_id           UUID NOT NULL UNIQUE,
-    status           VARCHAR(16) NOT NULL CHECK (status IN ('running', 'complete', 'failed')),
-    last_stage       VARCHAR(64),
-    record_counts    JSONB NOT NULL DEFAULT '{}'::jsonb,
-    manifest         JSONB NOT NULL DEFAULT '{}'::jsonb,
-    failure_summary  VARCHAR(255),
-    started_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
-    completed_at     TIMESTAMPTZ,
-    failed_at        TIMESTAMPTZ,
-    PRIMARY KEY (dataset, dataset_version),
-    CHECK ((status = 'complete') = (completed_at IS NOT NULL)),
-    CHECK ((status = 'failed') = (failed_at IS NOT NULL))
-);
+DROP TABLE IF EXISTS public.seed_runs;
 
 
 COMMIT;
@@ -2134,7 +2119,9 @@ CREATE TABLE IF NOT EXISTS storage_usage_entries (
 );
 CREATE INDEX IF NOT EXISTS idx_storage_entries_scope ON storage_usage_entries(agency_id,workspace_id);
 
-INSERT INTO agency_storage_usage(agency_id) SELECT id FROM agencies ON CONFLICT DO NOTHING;
+INSERT INTO agency_storage_usage(agency_id, inventory_verified_at)
+SELECT id, now() FROM agencies
+ON CONFLICT (agency_id) DO UPDATE SET inventory_verified_at = COALESCE(agency_storage_usage.inventory_verified_at, now());
 ALTER TABLE billing_plan_versions DISABLE TRIGGER billing_plan_version_immutable;
 UPDATE billing_plan_versions SET storage_limit_bytes=21474836480 WHERE code='BASIC' AND storage_limit_bytes<>21474836480;
 ALTER TABLE billing_plan_versions ENABLE TRIGGER billing_plan_version_immutable;
@@ -2255,18 +2242,116 @@ ON CONFLICT DO NOTHING;
 COMMIT;
 
 
--- Product video pipeline (30 October 2026): additive fresh-install schema.
--- Product video durable coordinator. Additive only; no balance/ledger changes or historical backfill.
+-- ---- 2026-11-04-media-package-workspace-scope.sql ----
+ALTER TABLE media_packages
+    ADD COLUMN IF NOT EXISTS custom_workspace_id UUID REFERENCES workspaces(id) ON DELETE RESTRICT;
+
+-- ---- 2026-11-04-repository-storage-addons-client-vault.sql ----
+BEGIN;
+ALTER TABLE billing_plan_versions DISABLE TRIGGER billing_plan_version_immutable;
+UPDATE billing_plan_versions SET storage_limit_bytes=5368709120 WHERE code IN ('BASIC','PERSONAL');
+ALTER TABLE billing_plan_versions ENABLE TRIGGER billing_plan_version_immutable;
+ALTER TABLE agency_storage_reservations ADD COLUMN IF NOT EXISTS owner_user_id uuid REFERENCES users(id);
+ALTER TABLE storage_usage_entries ADD COLUMN IF NOT EXISTS owner_user_id uuid REFERENCES users(id);
+ALTER TABLE billing_orders ALTER COLUMN agency_id DROP NOT NULL;
+ALTER TABLE billing_orders ADD COLUMN IF NOT EXISTS payer_scope text NOT NULL DEFAULT 'AGENCY';
+DO $$ DECLARE item record; BEGIN
+ FOR item IN SELECT conname FROM pg_constraint WHERE conrelid='billing_orders'::regclass AND contype='c' AND pg_get_constraintdef(oid) LIKE '%kind%' LOOP
+  EXECUTE format('ALTER TABLE billing_orders DROP CONSTRAINT %I',item.conname);
+ END LOOP;
+END $$;
+ALTER TABLE billing_orders ADD CONSTRAINT billing_order_kind_supported CHECK(kind IN ('SUBSCRIPTION','CREDIT_TOPUP','STORAGE_ADDON'));
+ALTER TABLE billing_orders ADD CONSTRAINT billing_order_product_supported CHECK(
+ (kind='SUBSCRIPTION' AND plan_version_id IS NOT NULL) OR (kind='CREDIT_TOPUP' AND plan_version_id IS NULL AND period_start IS NULL) OR (kind='STORAGE_ADDON' AND plan_version_id IS NULL));
+ALTER TABLE billing_orders DROP CONSTRAINT IF EXISTS billing_order_payer_scope;
+ALTER TABLE billing_orders ADD CONSTRAINT billing_order_payer_scope CHECK((payer_scope='AGENCY' AND agency_id IS NOT NULL) OR (payer_scope='CLIENT_VAULT' AND agency_id IS NULL AND payer_user_id IS NOT NULL AND kind='STORAGE_ADDON'));
+CREATE UNIQUE INDEX IF NOT EXISTS uq_client_storage_checkout_key ON billing_orders(payer_user_id,kind,idempotency_key) WHERE payer_scope='CLIENT_VAULT';
+ALTER TABLE billing_payment_attempts ALTER COLUMN agency_id DROP NOT NULL;
+ALTER TABLE billing_payments ALTER COLUMN agency_id DROP NOT NULL;
+ALTER TABLE billing_order_fulfillments ALTER COLUMN agency_id DROP NOT NULL;
+ALTER TABLE billing_order_fulfillments DROP CONSTRAINT IF EXISTS billing_order_fulfillments_benefit_type_check;
+ALTER TABLE billing_order_fulfillments ADD CONSTRAINT billing_order_fulfillments_benefit_type_check CHECK(benefit_type IN ('SUBSCRIPTION_PERIOD','CREDIT_GRANT','STORAGE_ADDON'));
+ALTER TABLE billing_payment_attempts DROP CONSTRAINT IF EXISTS storage_attempt_order_identity;
+ALTER TABLE billing_payment_attempts ADD CONSTRAINT storage_attempt_order_identity FOREIGN KEY(order_id) REFERENCES billing_orders(id);
+ALTER TABLE billing_payments DROP CONSTRAINT IF EXISTS storage_payment_attempt_identity;
+ALTER TABLE billing_payments ADD CONSTRAINT storage_payment_attempt_identity FOREIGN KEY(attempt_id) REFERENCES billing_payment_attempts(id);
+ALTER TABLE billing_order_fulfillments DROP CONSTRAINT IF EXISTS storage_fulfillment_order_identity;
+ALTER TABLE billing_order_fulfillments ADD CONSTRAINT storage_fulfillment_order_identity FOREIGN KEY(order_id) REFERENCES billing_orders(id);
+CREATE TABLE IF NOT EXISTS storage_addon_plans (
+ code text PRIMARY KEY, extra_bytes bigint NOT NULL CHECK(extra_bytes>0),
+ price_monthly numeric(18,0) NOT NULL CHECK(price_monthly>0), active boolean NOT NULL DEFAULT true
+);
+INSERT INTO storage_addon_plans(code,extra_bytes,price_monthly) VALUES
+ ('S3_ADDON_25GB',26843545600,49000),('S3_ADDON_100GB',107374182400,149000),('S3_ADDON_500GB',536870912000,499000)
+ ON CONFLICT(code) DO NOTHING;
+CREATE TABLE IF NOT EXISTS storage_addon_subscriptions (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(), agency_id uuid REFERENCES agencies(id), owner_user_id uuid REFERENCES users(id),
+ plan_code text NOT NULL REFERENCES storage_addon_plans(code), extra_bytes bigint NOT NULL CHECK(extra_bytes>0),
+ order_id uuid NOT NULL UNIQUE REFERENCES billing_orders(id), status text NOT NULL CHECK(status IN ('ACTIVE','EXPIRED','CANCELLED')),
+ current_period_start timestamptz NOT NULL, current_period_end timestamptz NOT NULL,
+ CHECK((agency_id IS NULL)<>(owner_user_id IS NULL)), CHECK(current_period_end>current_period_start)
+);
+CREATE INDEX IF NOT EXISTS idx_storage_addon_agency ON storage_addon_subscriptions(agency_id,current_period_end) WHERE status='ACTIVE';
+CREATE INDEX IF NOT EXISTS idx_storage_addon_client ON storage_addon_subscriptions(owner_user_id,current_period_end) WHERE status='ACTIVE';
+CREATE TABLE IF NOT EXISTS client_vault_storage_usage (
+ user_id uuid PRIMARY KEY REFERENCES users(id), used_bytes bigint NOT NULL DEFAULT 0 CHECK(used_bytes>=0),
+ reserved_bytes bigint NOT NULL DEFAULT 0 CHECK(reserved_bytes>=0), version bigint NOT NULL DEFAULT 0,
+ inventory_verified_at timestamptz, updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS client_vault_quota_releases (
+ material_id text PRIMARY KEY, owner_user_id uuid NOT NULL REFERENCES users(id), released_bytes bigint NOT NULL CHECK(released_bytes>=0), created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS repository_vault_migration_receipts (
+ material_id text PRIMARY KEY, agency_id uuid NOT NULL REFERENCES agencies(id), owner_user_id uuid NOT NULL REFERENCES users(id), transferred_bytes bigint NOT NULL CHECK(transferred_bytes>=0), created_at timestamptz NOT NULL DEFAULT now()
+);
+COMMIT;
+
+-- ---- 2026-11-06-manager-led-package-sharing.sql ----
+BEGIN;
+ALTER TABLE media_packages
+    ADD COLUMN IF NOT EXISTS share_token VARCHAR(64),
+    ADD COLUMN IF NOT EXISTS share_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE workspace_media_packages
+    ADD COLUMN IF NOT EXISTS share_token VARCHAR(64),
+    ADD COLUMN IF NOT EXISTS share_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS manager_led BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS preparation_status VARCHAR(16) NOT NULL DEFAULT 'LEGACY',
+    ADD COLUMN IF NOT EXISTS preparation_actor_id UUID,
+    ADD COLUMN IF NOT EXISTS preparation_lease UUID,
+    ADD COLUMN IF NOT EXISTS preparation_lease_until TIMESTAMPTZ,
+    ADD COLUMN IF NOT EXISTS preparation_error VARCHAR(64),
+    ADD COLUMN IF NOT EXISTS last_request_id UUID,
+    ADD COLUMN IF NOT EXISTS last_request_hash VARCHAR(64);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_media_packages_share_token ON media_packages(share_token);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_workspace_media_packages_share_token ON workspace_media_packages(share_token);
+CREATE INDEX IF NOT EXISTS idx_workspace_package_preparation ON workspace_media_packages(preparation_status, preparation_lease_until)
+    WHERE preparation_status IN ('PENDING','PROCESSING');
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='workspace_media_packages'::regclass AND conname='chk_package_preparation_status') THEN
+        ALTER TABLE workspace_media_packages ADD CONSTRAINT chk_package_preparation_status
+            CHECK (preparation_status IN ('LEGACY','PENDING','PROCESSING','READY','FAILED','DEPLOYING','DEPLOYED'));
+    END IF;
+END $$;
+ALTER TABLE package_negotiation_events DROP CONSTRAINT IF EXISTS package_negotiation_events_action_check;
+ALTER TABLE package_negotiation_events ADD CONSTRAINT package_negotiation_events_action_check
+    CHECK (action IN ('BASELINE','REQUEST_CHANGE','COUNTER_OFFER','MANAGER_SAVE'));
+DO $$ DECLARE c RECORD; BEGIN
+    FOR c IN SELECT conname FROM pg_constraint WHERE conrelid='package_negotiation_events'::regclass
+        AND contype='c' AND pg_get_constraintdef(oid) LIKE '%actor_role%' LOOP
+        EXECUTE format('ALTER TABLE package_negotiation_events DROP CONSTRAINT %I', c.conname);
+    END LOOP;
+END $$;
+ALTER TABLE package_negotiation_events DROP CONSTRAINT IF EXISTS chk_package_event_actor;
+ALTER TABLE package_negotiation_events ADD CONSTRAINT chk_package_event_actor
+    CHECK ((action='BASELINE' AND actor_id IS NULL AND actor_role IS NULL)
+        OR (action='REQUEST_CHANGE' AND actor_id IS NOT NULL AND actor_role='CLIENT')
+        OR (action IN ('COUNTER_OFFER','MANAGER_SAVE') AND actor_id IS NOT NULL AND actor_role IN ('OWNER','MANAGER')));
+COMMIT;
+
+-- ---- 2026-10-30-product-video-pipeline.sql ----
 BEGIN;
 SET LOCAL lock_timeout='5s';
 SET LOCAL statement_timeout='60s';
-
-DO $$
-BEGIN
-    IF to_regclass('ai_credit_reservations') IS NULL OR to_regclass('ai_credit_operation_prices') IS NULL THEN
-        RAISE EXCEPTION 'Apply existing DA-974 credit migrations before product video; no changes applied';
-    END IF;
-END $$;
 
 CREATE TABLE IF NOT EXISTS product_video_productions (
     id UUID PRIMARY KEY,
@@ -2289,6 +2374,7 @@ CREATE TABLE IF NOT EXISTS product_video_productions (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     CHECK(state<>'COMPLETED' OR (output_key IS NOT NULL AND output_sha256 IS NOT NULL AND output_size>0))
 );
+
 CREATE TABLE IF NOT EXISTS product_video_plans (
     production_id UUID NOT NULL REFERENCES product_video_productions(id),
     revision INTEGER NOT NULL CHECK(revision>0),
@@ -2297,6 +2383,7 @@ CREATE TABLE IF NOT EXISTS product_video_plans (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY(production_id,revision)
 );
+
 CREATE TABLE IF NOT EXISTS product_video_quotes (
     id UUID PRIMARY KEY,
     production_id UUID NOT NULL,
@@ -2311,6 +2398,7 @@ CREATE TABLE IF NOT EXISTS product_video_quotes (
     FOREIGN KEY(production_id,revision) REFERENCES product_video_plans(production_id,revision),
     CHECK(scene_id IS NULL OR units=1)
 );
+
 CREATE TABLE IF NOT EXISTS product_video_attempts (
     id UUID PRIMARY KEY,
     production_id UUID NOT NULL,
@@ -2331,6 +2419,7 @@ CREATE TABLE IF NOT EXISTS product_video_attempts (
     UNIQUE(production_id,scene_id,attempt),
     CHECK(state<>'COMPLETED' OR (s3_key IS NOT NULL AND sha256 IS NOT NULL AND file_size>0))
 );
+
 CREATE TABLE IF NOT EXISTS product_video_requests (
     workspace_id UUID NOT NULL REFERENCES workspaces(id),
     owner_id UUID NOT NULL REFERENCES users(id),
@@ -2341,6 +2430,7 @@ CREATE TABLE IF NOT EXISTS product_video_requests (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY(workspace_id,owner_id,request_key)
 );
+
 CREATE INDEX IF NOT EXISTS idx_product_video_owner ON product_video_productions(workspace_id,owner_id,created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_product_video_pending ON product_video_productions(updated_at)
     WHERE state IN ('GENERATING','RECONCILIATION_REQUIRED','EDITING','VALIDATING');
@@ -2348,4 +2438,15 @@ CREATE INDEX IF NOT EXISTS idx_product_video_quote ON product_video_quotes(produ
 CREATE INDEX IF NOT EXISTS idx_product_video_attempt ON product_video_attempts(production_id,scene_id,attempt DESC);
 COMMIT;
 
+-- ---- 2026-11-11-mobile-google-oauth-link.sql ----
+BEGIN;
+CREATE UNIQUE INDEX IF NOT EXISTS uq_user_oauth_provider
+    ON public.user_oauth_providers (user_id, provider);
 
+INSERT INTO public.brandhub_schema_migrations (version, description)
+VALUES (
+    '20261111_mobile_google_oauth_link_v1',
+    'Enforce unique provider per user for mobile Google OAuth linking'
+)
+ON CONFLICT (version) DO NOTHING;
+COMMIT;

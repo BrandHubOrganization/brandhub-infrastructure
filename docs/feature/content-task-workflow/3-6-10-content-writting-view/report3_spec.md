@@ -2,59 +2,56 @@
 
 **Function Trigger**
 
-Proposed — not yet implemented. The intended trigger is a Creator opening the Content editor inside a Task Detail of type Post. No Task Detail screen exists in the current system.
+A `Creator`, `Manager`, or `Owner` opens the Content Writing View from a Post Task Detail screen or navigates to `/workspaces/{id}/content-writing`.
 
 **Function Description**
 
-- **Actors / Roles**: Creator. Proposed — not yet implemented.
-- **Purpose**: Let Creators write post content directly in the system using a canvas-based editor that mirrors Google Docs' real rendering technique, with automatic font conversion on publish, a version history built from an operation log, and real-time collaborative editing between multiple Creators (Operational Transformation over WebSocket).
-- **Interface**: Canvas-rendered content editor embedded in the Task Detail page, with a Version History sidebar — proposed; not yet implemented.
-- **Data Processing**: The system would store every edit as a small operation (insert/delete/format at a position) in an append-only log, periodically compacted into snapshots. Concurrent edits from multiple Creators are reconciled server-side (OT transform, or CRDT merge if the Yjs direction in `plan.md` §6 is chosen) and broadcast in real time over WebSocket. None of this exists today — there is no Task entity to attach the editor to, and no WebSocket infrastructure in `brandhub-business-service`.
+- **Actors / Roles**: `Owner, Manager, Creator, Client`
+- **Purpose**: Allow workspace members to compose, format, import/export, and preview social media post content using a pixel-accurate Google Docs / Microsoft Word canvas editor, automatically converting chosen fonts and text effects into platform-compatible Unicode characters (YayText / Zantext standard) for both **direct API auto-publishing** (`Facebook`, `Instagram`, `TikTok`, `Threads`) and **manual 1-click copy-paste** into standard social posts, while maintaining an append-only version history and real-time multi-user collaboration.
+- **Interface**: Google Docs / Word hybrid canvas editor (`816px` page sheet, ruler, zoom controls, Docs/Ribbon toolbar switcher, YayText/Zantext 36-style font converter popover, Google Docs/File import modal, AI Caption assistant with Brand Knowledge status, 4-platform live social preview with plain-text Facebook paste sandbox, and Version History sidebar).
+- **Data Processing**: Every edit is recorded as an append-only Yjs CRDT operation (`TaskContentOperation`) and periodically checkpointed into a `TaskContentSnapshot`. Concurrent edits and live cursor awareness from multiple users are synchronized in real time over STOMP WebSocket (`/ws/tasks`). When copying or publishing, the formatting engine (`toPublishText` / `styleRunText`) converts rich-text runs into Unicode Mathematical Alphanumeric Symbols, Enclosed Alphanumerics (`🅑🅤🅑🅑🅛🅔`, `🅱🅻🅰🅲🅺`, `ⒶⒷⒸ`, `🄰🄱🄲`), and Combining Overlays (`\u0332`, `\u0333`, `\u0336`, `\u0338`) with smart Vietnamese diacritic handling.
 
 **Screen Layout**
 
-Figure — Content Writing View:
+*Figure 72 - Content Writing View*
 
-- Canvas-rendered editor (not DOM/contentEditable) embedded in the Task Detail page — text, cursor, and selection are all drawn pixel-accurately on `<canvas>`.
-- A hidden offscreen input captures keystrokes (IME-aware for Vietnamese input methods); a CSS-animated div renders the blinking cursor at the canvas-computed position.
-- Version History sidebar — list of past snapshots with editor and timestamp, each restorable.
-- Proposed — not yet implemented; the layout is indicative only.
+- Canvas-rendered document sheet (`<canvas>`) with pixel-accurate caret and selection rendering, paired with an off-screen Vietnamese IME-aware input layer.
+- Formatting toolbar supporting Google Docs compact mode and Microsoft Word Ribbon mode, 16+ font families, YayText/Zantext 36-style quick converter (`Font Zantext`), Document Import (`Nhập Google Docs / File`), Document Export (`.docx`, `.md`, `.txt`), and AI Caption generation (`Có BK` / `Không BK`).
+- 4-platform Live Social Preview (`Facebook`, `Instagram`, `TikTok`, `Threads`) with 1-click Unicode Copy (`Copy dán Facebook (Giữ Font)`), Plain-Text Facebook Composer Sandbox (`Thử dán FB`), and Direct API Publish modal (`Đăng bài`).
+- Version History sidebar listing snapshots with author name, timestamp, word-level diff (`Changes`), and 1-click restore (`Restore`).
 
 **Function Details**
 - **Data Specifications**
-    - **Input required**: the Task identifier (taskId); for each edit, an operation (`opType`, `position`, `payload`, `baseSequenceNumber`).
-    - **Input optional**: none.
-    - **System data**: the Task record (type must be `post`), the caller's edit rights on that Task, the operation log and periodic snapshots for that Task's content. No existing table backs any of this yet.
-    - **Output**: proposed — on open, the latest snapshot plus tail operations; on edit, the transformed operation broadcast to every connected client; on restore, the content at the chosen snapshot. Not yet implemented.
+    - **Input required**: Workspace identifier (`workspaceId`), Task identifier (`taskId`), and Yjs CRDT operation updates or imported document content.
+    - **Input optional**: Target social platforms (`Facebook`, `Instagram`, `TikTok`, `Threads`), selected Unicode font/effect preset, Google Docs share URL or uploaded file (`.docx`, `.txt`, `.md`, `.html`), AI Caption prompt.
+    - **System data**: Task record (type `POST`), workspace membership & role permissions, append-only operation log (`task_content_operations`), periodic snapshots (`task_content_snapshots`), connected social accounts, and workspace Brand Knowledge status.
+    - **Output**: Real-time synchronized canvas document, Unicode-converted social post text (`publishText`) copied to system clipboard or published via API to connected social platforms, and restorable version snapshots.
 
 - **Business Rules**
-    - Only a Task of type `post` accepts content writing — otherwise 400 `INVALID_TASK_TYPE_FOR_CONTENT_WRITING`.
-    - Only the assigned Creator or a Manager of the Workspace may edit the content — otherwise 403 FORBIDDEN (approximated, mirrors the general Task-edit access rule since no Content-Writing-specific BR exists yet).
-    - Every edit is an append-only operation; no version is ever overwritten in place.
-    - Concurrent edits from different Creators are reconciled through Operational Transformation (or CRDT merge) rather than locking — both Creators' edits are preserved and the documents converge to the same final state.
-    - Font/encoding is auto-converted to the platform-correct standard at publish time, removing the need to copy through an external tool (Unikey/Yantext) beforehand.
+    - Only a Task of type `POST` supports the Content Writing View.
+    - `Owner`, `Manager`, and `Creator` roles may edit, import, copy, and publish content; `Client` role may view shared content according to workspace permissions.
+    - Every edit is persisted as an append-only operation; restoring an earlier version applies the historical state as a new forward operation so no history is overwritten.
+    - All chosen fonts, bold/italic/underline/strikethrough marks, price slashes, and bullet/numbered lists are automatically converted to Unicode characters upon clipboard copy (`Ctrl+C` or 1-click Copy buttons) and upon API publishing to `Facebook`, `Instagram`, `TikTok`, and `Threads`.
 
 - **Validation**
-    - Task does not exist → Display: generic not-found toast (no MSG code assigned yet).
-    - Task is not of type `post` → Display: generic validation toast (no MSG code assigned yet).
-    - Caller lacks edit rights on the Task → Display: generic forbidden toast (no MSG code assigned yet); WebSocket handshake is rejected outright for the same reason.
-    - Client's `baseSequenceNumber` is older than the oldest retained operation (server already compacted) → client is required to reload the latest snapshot before resubmitting.
+    - Task does not exist or belongs to another workspace → Display not-found notification (`MSG04`).
+    - Task is not of type `POST` → Display validation notification (`MSG12`).
+    - Google Docs import URL is malformed or not publicly shared → Display actionable guidance prompting the user to enable link sharing or upload a `.docx` file.
+    - Empty document → Disable `Sao chép bản đăng`, `Copy dán Facebook (Giữ Font)`, and `Đăng bài` actions until content is entered.
 
 **Functionalities**
 - **Normal Flow**
-    1. A Creator opens the Content editor inside a Task Detail. (Proposed — not yet implemented.)
-    2. The client fetches the latest snapshot and tail operations, renders the canvas, and opens a WebSocket connection.
-    3. As the Creator types, the client creates local operations, renders them optimistically, and streams them to the system over WebSocket.
-    4. The system transforms each incoming operation against any operations committed since the client's last known state, persists it, and broadcasts the transformed operation to every connected client (including other Creators editing the same content).
-    5. Each connected client applies incoming operations to its local state and re-renders the affected canvas region, so all Creators converge to the same document.
+    1. The user opens the Content Writing View for a Post task.
+    2. The system loads the latest content snapshot and tail operations, renders the canvas page, and establishes a real-time WebSocket session (including live peer cursor awareness).
+    3. The user types content directly, imports a Google Docs link / `.docx` file, or generates an AI Caption (`Có BK` / `Không BK`), and applies fonts or YayText/Zantext Unicode styles.
+    4. The system renders the styled text on the canvas, updates the 4-platform Live Social Preview in real time, and streams CRDT operations to connected peers.
+    5. The user either (a) clicks `Copy dán Facebook (Giữ Font)` / presses `Ctrl+C` to copy the Unicode-formatted post for manual pasting onto Facebook, or (b) clicks `Đăng bài` to auto-publish the formatted post directly to selected social platforms (`Facebook`, `Instagram`, `TikTok`, `Threads`).
 
 - **Abnormal Cases**
-    - 2.a1: Task does not exist → 404 TASK_NOT_FOUND. 2.a2: The caller returns to the Task list.
-    - 2.b1: Task is not of type `post` → 400 INVALID_TASK_TYPE_FOR_CONTENT_WRITING. 2.b2: The caller is told Content Writing only applies to Post tasks.
-    - 2.c1: Caller is not the assigned Creator or a Manager → 403 FORBIDDEN, WebSocket handshake rejected. 2.c2: The caller returns to the Task list.
-    - 3.a1: Client loses WebSocket connectivity mid-edit → operations are queued locally (IndexedDB) and resent on reconnect, in order. 3.a2: If the server has since compacted past the client's last known sequence number, the client reloads the latest snapshot before resubmitting queued operations.
-    - 4.a1: Two Creators edit at nearly the same position at the same time → both operations are transformed against each other server-side; neither edit is lost, and both clients converge to the same result (no defined "winner" needed, unlike last-write-wins).
+    - 2.a1: The backend server or WebSocket connection is temporarily unreachable. 2.a2: The system switches to Offline Mode (`Chế độ Ngoại tuyến`), queuing edits in local storage and resynchronizing automatically upon reconnection.
+    - 3.a1: The user imports an unsupported file extension or a private Google Docs link. 3.a2: The system displays a clear validation message and keeps the existing document unchanged.
+    - 5.a1: A target social platform account is not yet connected during Direct API Publish. 5.a2: The system prompts the user to connect the account or use the 1-click `Copy dán Facebook` button to post manually.
 
 **Post-Conditions**
 
-- New operations would be appended to the Task's content log, and periodically compacted into a snapshot. (Proposed — not yet implemented.)
+- New CRDT operations and periodic snapshots are saved to the task's content history, and the Unicode-formatted social post is either copied to the user's clipboard or published to the selected social media platforms.

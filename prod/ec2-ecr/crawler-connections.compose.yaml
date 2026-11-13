@@ -1,6 +1,6 @@
 # Optional: encrypted proxy/TikTok credentials only. Session uploads do not need this.
 services:
-  ai-service:
+  crawl-service:
     environment:
       CRAWLER_SECRET_KEY_FILE: /run/secrets/crawler-master.key
     volumes:

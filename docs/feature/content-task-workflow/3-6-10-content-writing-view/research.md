@@ -1,0 +1,113 @@
+# Research — How Google Docs Really Works & Its Application to FR 3.6.10
+
+> Background research for [spec.md](spec.md) / [plan.md](plan.md) (V3 — canvas-rendering + real-time OT). Not a spec, not an implementation plan — this is a synthesis of the technical knowledge behind the design decisions already locked in.
+>
+> 2026-10-01, updated 2026-10-05 after implementation (see §5).
+
+## 1. Why a Separate Research Doc Was Needed
+
+FR 3.6.10 was originally understood as "a Google-Docs-style rich-text editor" — meaning an ordinary rich-text editor library (TipTap, already installed in `brandhub-web-dashboard`) running on `contentEditable`. Comparing that against how Google Docs actually works revealed the real architecture is fundamentally different — not a UI difference, but a difference in **how content is displayed and how data is synced**. This research captures that finding and the decisions that followed from it.
+
+## 2. How the Real Google Docs Works
+
+### 2.1 Display: Canvas, Not DOM
+
+- Google Docs **does not use HTML/DOM to display text**. All content is drawn directly onto `<canvas>` elements — pixel-accurately.
+- Reason: Google Docs is a print-accurate WYSIWYG tool (*What You See Is What You Get* — A4/A5 page sizing, correct page breaks). Ordinary HTML is prone to line-shift differences across browsers/machines/fonts → page-count errors when printing or exporting to PDF. Canvas gives pixel-level control.
+- Before 2021, Google Docs still used a DOM-based architecture but **had already written its own layout/editing engine**, not relying on real `contentEditable` — it only faked the cursor with a `<div>` + CSS animation. From 2021 onward it fully migrated to canvas-based rendering (confirmed via public discussion from Google engineers on Hacker News).
+- **Virtualization**: only a handful of `<canvas>` elements are created for the page(s) currently in the viewport. Scrolling reuses existing canvases to draw the new page's content, keeping hundred-page documents light. This is the standard windowing/virtualization pattern (similar to `react-window`), applied to canvas instead of a DOM list.
+
+### 2.2 Input: Offscreen `contentEditable` + Fake Cursor
+
+- Since the text is pixels drawn on a canvas, not DOM text nodes, ordinary keyboard/focus events cannot be used directly on the canvas.
+- Google Docs uses a hidden `<iframe>` containing a `contenteditable` field, pushed off-screen (e.g. `translateX(-10000px)`) — solely to **capture keystrokes, IME input, and paste**. It displays nothing; it only receives input and forwards it into internal state.
+- The blinking cursor is actually a `<div>` animated with CSS, positioned using pixel coordinates computed from the canvas text layout.
+- Tables and text-selection highlighting are also drawn by the canvas itself — not via the native `window.getSelection()`.
+
+### 2.3 Accessibility: A Parallel Hidden DOM Layer
+
+- Screen readers cannot read pixels on a canvas.
+- When accessibility mode is enabled, Google Docs quietly builds an additional hidden DOM region containing the real text, in parallel with the canvas, so screen readers can read it.
+
+### 2.4 Data Sync: Operational Transformation (OT), Not "Saving a File"
+
+- Google Docs **does not save/sync a document as a text blob overwritten on every save**. Every edit is a small **operation** (`insert`/`delete` at position X), written to a **revision log** — it never directly mutates the document's "characters."
+- Core algorithm: a function usually written as `transform(opA, opB)` — takes two operations created against the same base state and returns adjusted versions that can be applied one after another while preserving both authors' intent.
+- Example: you type "hello" at position 5, but someone else just deleted characters 2-4 → your operation is transformed: "insert at position 5" becomes "insert at position 3" (because two characters vanished before it).
+- **Persistence**: periodic snapshots (the server stores one snapshot every few thousand operations) + the tail of the operation log — loading a document = the latest snapshot + replaying the remaining log, not a full replay from scratch every time.
+- **Why OT was chosen**: the server already has to see every operation anyway, for access control, rendering, and storage — OT reuses that same data path instead of requiring a separate sync architecture.
+
+### 2.5 Transport: Long Polling, Not WebSocket
+
+- Google Docs uses **Long Polling** via an HTTP request named `bind` (called the *Browser Channel*) — not WebSocket, Server-Sent Events, or WebRTC.
+- The main reason is historical: Google Docs began development around 2006 (as Writely), before WebSocket (standardized in 2011) existed. The Long Polling architecture was kept and incrementally optimized rather than rewritten.
+- Edit data is pushed continuously in small chunks, combined with OT — only position-based edit commands are sent, never the whole file.
+
+### 2.6 State & Internal Naming
+
+- Document state is kept in RAM, organized into formatting segments called **"runs"**.
+- When editing offline, Docs logs commands to `IndexedDB`, syncing once back online.
+- Google Docs' internal codename is **"kix"** — visible through the `_kix` variable, CSS classes like `kix-editor`, `kix-canvas`, etc. (observed via DevTools, not official Google documentation).
+- The client source is minified/bundled with the **Closure Compiler** into one enormous object with nearly 20,000 keys renamed/shortened — unrelated to the architecture, just a build/optimization detail.
+
+## 3. Applying This to FR 3.6.10 — What Stays, What Changes
+
+| Real Google Docs aspect | Decision for FR 3.6.10 | Reason |
+|---|---|---|
+| Canvas rendering | **Kept as-is** | This is the literal user requirement — reproduce the real technique, not just the same UI |
+| Offscreen `contentEditable` input capture | **Kept as-is** | Required for the canvas to receive keystrokes/IME — no other way to do this on the current web platform |
+| Fake CSS cursor | **Kept as-is** | A forced consequence of not using DOM text — there is no native cursor on a canvas |
+| Viewport-based virtualization | **Kept as-is** | Standard pattern, low cost, clear benefit (long documents stay light) |
+| Shadow/off-screen DOM for accessibility | **Kept as-is** | Mandatory for accessibility — no other option when using canvas |
+| Operational Transformation (sync) | **Kept in principle**, **implemented as CRDT (Yjs `Y.Text`)**, not hand-written OT | Hand-written OT at production quality is very hard (well-known edge cases that are notoriously hard to debug — see [plan.md §6](plan.md#6-technical-risks)). Yjs uses CRDT — a different algorithm, but the same goal (convergence with no data loss, no locking) — lower risk since it's already battle-tested in production (Figma, Notion use similar mechanisms). This was a proposal as of 2026-10-01; confirmed as the actual implementation by 2026-10-05 — `Y.Text`'s native `insert(index, text, attributes)`/`format(index, length, attributes)`/`toDelta()` turned out to double as the rich-text attribute engine too, so no separate formatting data structure was needed |
+| Long Polling (Browser Channel `bind`) | **Changed to WebSocket** | The reason Google uses Long Polling is historical (2006, before WebSocket existed) — not a technical advantage worth preserving. WebSocket is the modern standard, Spring Boot already supports it (`spring-boot-starter-websocket`), with lower latency and simpler code |
+| In-RAM "runs" state | **Equivalent**: `TaskContentOperation` (operation log) + `TaskContentSnapshot` | Different name, same principle: operation log + periodic snapshot, never saving full text on every save |
+| IndexedDB offline queue | **Kept as-is** | Same need: the client must keep working while offline, syncing back on reconnect |
+| Internal codename "kix", Closure Compiler | **Not relevant** | Google's internal build/implementation details, no bearing on the design |
+
+## 4. Implementation Notes (added 2026-10-05, after the editor was actually built)
+
+The canvas editor (`CanvasTextEditor.tsx` + `richText.ts` + `FormattingToolbar.tsx` in `brandhub-web-dashboard/src/pages/content-writing/components/`) is live, not just designed. A few decisions made during implementation extend beyond what §3's table anticipated:
+
+- **Rich-text formatting lives entirely in `Y.Text` attributes** — bold/italic/underline/strikethrough/color/highlight/font/size/link/align/listType are all per-character (or paragraph-scoped, for align/listType) attributes passed to `insert()`/`format()`. No separate formatting data structure was needed beyond what `Y.Text` already provides.
+- **List model**: bullet/numbered lists are a paragraph-scoped attribute (`listType: "bullet" | "number"`), the same mechanism as paragraph alignment — not a separate block-type/outline structure. The bullet/number marker is a render-time-only overlay (drawn by `CanvasTextEditor`'s paint step); it is never a stored character. Numbering for "number" lists is computed at render time by counting consecutive preceding paragraphs sharing `listType: "number"` — no index is persisted, so inserting or deleting list items never requires a renumbering pass or risks desyncing a stored number from reality.
+- **A real invariant had to be preserved carefully**: the editor maintains two parallel line-wrap computations — a plain-text one (`wrapLines`, used for caret position/selection highlight/canvas height) and a rich-text one (`wrapRuns`, used only for painting styled text). Both MUST break lines at identical character offsets, or the caret and the painted glyphs desync. This ruled out narrowing the available width for list-indented paragraphs inside `wrapRuns` (which would have made its line breaks diverge from `wrapLines`') — the list indent is instead applied as a paint-time x-offset only, accepting a slightly-longer effective last line for list items as the trade-off.
+- **Paste-with-format**: clipboard HTML is parsed with the browser's native `DOMParser` (no new dependency) into the same run/attribute model used internally. Scope was deliberately narrowed to bold/italic/underline/link/listType — font, color, and size from the clipboard source are dropped so pasted content always matches this editor's own design rather than carrying over arbitrary external styling.
+- **Layout constants were tuned toward Google Docs' real defaults but not matched exactly**: font is Arial 11pt (rendered at 15px, rounded for crisp canvas glyphs) with 1.15 line-height, matching Docs precisely. Page margin is Docs' real 2.54cm (~96px @96dpi) vertically, but a smaller 32px horizontally — the canvas here is a responsive-width panel, not a fixed-width printable page, so a full 96px side margin would consume too much space on narrow screens. This is a deliberate, documented trade-off, not an oversight.
+- Undo/redo uses Yjs's own `UndoManager` scoped to the editor's `Y.Text`, with `captureTimeout: 500` — local edits within 500ms of each other coalesce into one undo step (including every run of a single multi-styled paste, since they're all inserted inside one `yDoc.transact()` call).
+
+## 5. V6 Research: Sub-Pixel Cursor Alignment & YayText / Zantext 36-Style Unicode Engine (2026-11-09)
+
+### 5.1 Solving the Multi-Font Wrapped-Line Cursor Desync
+- In V4–V5, `wrapLines` measured plain text with the default font while `wrapRuns` painted styled runs with per-run font families, font sizes (`10pt`–`36pt`), letter spacing, and list prefixes (`• `, `1. `). Whenever a user mixed fonts or sizes on a wrapped paragraph, the caret coordinate diverged from the painted glyph.
+- **V6 Solution (`buildParagraphIndexMap` + `measureRunSliceWidth`)**:
+  - Both hit-testing (`canvasClickToIndex`), caret positioning (`indexToCaretRect`), selection rectangles (`selectionToRects`), and canvas painting now use a **single unified layout pass** (`buildParagraphIndexMap`) that measures every run slice using its exact `fontString(attrs)` and `letterSpacing`, plus the exact list marker prefix width (`listPrefixWidth`) and alignment offset (`left`, `center`, `right`).
+  - Result: Sub-pixel accuracy (`< 1px` delta) across all fonts, sizes, alignments, and wrapped lines.
+
+### 5.2 Why Social Networks Lose Editor Formatting — and How YayText / Zantext Solves It
+- **The Social Media Marketer's Pain Point**: Facebook, Instagram, TikTok, and Threads strip all HTML/CSS styling (`<b>`, `<i>`, `<span style="font-family: ...">`) from post captions, both when submitted via Graph/Posting APIs and when pasted into the native web/mobile composer (`plain/text`). Marketers traditionally had to copy each sentence to third-party sites like **YayText (`yaytext.com`)** or **Zantext**, convert it, and paste it back into Facebook.
+- **BrandHub's Built-in 36-Style YayText / Zantext Architecture (`contentUtils.ts`)**:
+  1. **Mathematical Alphanumeric Symbols (`U+1D400`–`U+1D7FF`)**: Maps Latin letters and digits to `Sans Bold` (`𝗦𝗮𝗻𝘀`), `Sans Italic` (`𝘚𝘢𝘯𝘴`), `Sans Bold Italic` (`𝙎𝙖𝙣𝙨`), `Serif Bold` (`𝐒𝐞𝐫𝐢𝐟`), `Serif Italic` (`𝑆𝑒𝑟𝑖𝑓`, respecting BMP Planck's constant `ℎ` at `U+210E`), `Serif Bold Italic` (`𝑺𝒆𝒓𝒊𝒇`), `Script` (`𝒮𝒸𝓇𝒾𝓅𝓉`), `Bold Script` (`𝓑𝓸𝓵𝓭`), `Fraktur` (`𝔉𝔯𝔞𝔨𝔱𝔲𝔯`), `Bold Fraktur` (`𝕭𝖔𝖑𝖉`), `Double-Struck` (`𝔻𝕠𝕦𝕓𝕝𝕖`), and `Monospace` (`𝙼𝚘𝚗𝚘`).
+  2. **Enclosed Alphanumerics & Regional Indicators (`U+2460`–`U+24FF`, `U+1F130`–`U+1F1FF`)**: Maps promo badges and headlines to `Circled` (`ⒶⒷⒸ`), `Black Bubble` (`🅑🅤🅑🅑🅛🅔 ⓿➊➋`), `Squared` (`🄰🄱🄲`), `Black Square` (`🅱🅻🅰🅲🅺`), `Parenthesized` (`⒫⒜⒭⒠⒩`), and `Regional Indicator Flags` (`🇧 🇷 🇦 🇳 🇩`, inserting controlled spacing so pairs like `VN` do not collapse into a single country flag glyph).
+  3. **Combining Character Overlays (`U+0300`–`U+036F`)**: Appends combining marks after each grapheme cluster for `Underline` (`\u0332`), `Double Underline` (`\u0333`), `Strikethrough` (`\u0336`), `Slashthrough Price` (`\u0338` → `9̸9̸0̸.̸0̸0̸0̸đ̸`), `Tilde Wave` (`\u0334`), `Overline` (`\u0305`), `Under-Asterisks` (`\u0359`), and `Lightning Above` (`\u035B`).
+  4. **Smart Vietnamese Diacritic Handling (`keep-marks` vs. `strip-accents-auto`)**:
+     - For Mathematical Alphanumeric sets, NFD decomposition (`ch.normalize("NFD")`) maps the base ASCII letter (`a` → `𝗮`) while keeping the Vietnamese combining tone/vowel marks (`\u0300`–`\u036f`) attached (`"Khuyến mãi"` → `"𝗞𝗵𝘂𝘆𝗲̂́𝗻 𝗺𝗮̃𝗶"`), and leaves `đ/Đ` plain so no tofu boxes (`□`) appear.
+     - For Enclosed shapes (`🅑🅤🅑🅑🅛🅔`, `🅱🅻🅰🅲🅺`, `🄰🄱🄲`, `⒫⒜⒭`, `🇧 🇷 🇦`) and `Upside-Down` (`qnHpuɐɹᙠ`), combining Vietnamese marks would collide with the enclosing circle/square box on iOS and Android. Therefore, `styleRunText` automatically transliterates Vietnamese characters to clean unaccented ASCII via `stripVietnameseAccents` (`"Khuyến mãi Đặc Biệt"` → `"🅚🅗🅤🅨🅔🅝 🅜🅐🅘 🅓🅐🅒 🅑🅘🅔🅣"`), and exposes an explicit toggle in the UI.
+
+## 6. Limitations of This Research
+
+- The observations about `kix`, the hidden DOM structure, and the offscreen iframe are **external observations** (via DevTools, community technical write-ups, and public discussion from Google engineers) — not official architecture documentation from Google. Google has not published Docs' full source code or technical spec.
+- Google's actual `transform()` algorithm (handling rich-text formatting, not just plain-text insert/delete) has not been published in detail — the OT design for rich text in `plan.md` will need to be designed independently; it cannot be copied from an original source.
+- There is no real benchmark of latency/performance between Long Polling (the original) and WebSocket (the chosen replacement) in BrandHub's specific context — the decision is based on architectural reasoning (simpler, more modern), not on actual measurement.
+
+## References
+
+- [Google Docs will now use canvas based rendering — Hacker News discussion](https://news.ycombinator.com/item?id=27129858)
+- [Google Docs will move to canvas based rendering instead of DOM](https://www.libhunt.com/posts/255745-google-docs-will-move-to-canvas-based-rendering-instead-of-dom)
+- [Design Google Docs — CRDT & Operational Transformation](https://www.linkedin.com/pulse/design-google-docs-crdt-operational-transformation)
+- [Operational transformation — Wikipedia](https://en.wikipedia.org/wiki/Operational_transformation)
+- [Google Docs System Design — EnjoyAlgorithms](https://www.enjoyalgorithms.com/blog/design-google-docs/)
+- [How Does Google Docs Work — The System Design Newsletter](https://newsletter.systemdesign.one/p/how-does-google-docs-work)
+- [How Operational Transformation Powers Google Docs](https://levelop.dev/blog/google-docs-with-25m-concurrent-editors-conflict-resolution-architecture)
+- [CRDTs vs. Operational Transformation: How Google Docs Handles Collaborative Editing](https://systemdr.systemdrd.com/p/crdts-vs-operational-transformation)
+- A technical analysis write-up the user provided in conversation (2026-10-01) — describing canvas rendering, the offscreen iframe, the "kix" internal codename, the Long Polling `bind` endpoint, and the IndexedDB offline log.

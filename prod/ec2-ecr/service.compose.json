@@ -40,7 +40,7 @@
           "max-file": "3"
         }
       },
-      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/business-service:sha-d9a0bbe-113",
+      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/business-service:sha-b8307d5-181",
       "mem_limit": "1200m",
       "ports": [
         {
@@ -57,7 +57,7 @@
         }
       ],
       "environment": {
-        "AI_SERVICE_URL": "http://172.31.27.199:8082"
+        "AI_SERVICE_URL": "http://ai-service:8082"
       }
     },
     "chromadb": {
@@ -313,6 +313,75 @@
           "required": true
         }
       ]
+    },
+    "ai-service": {
+      "init": true,
+      "restart": "unless-stopped",
+      "container_name": "brandhub-ai-service",
+      "command": null,
+      "entrypoint": null,
+      "networks": {
+        "brandhub-network": null
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8082/health')"
+        ],
+        "timeout": "5s",
+        "interval": "15s",
+        "retries": 3,
+        "start_period": "30s"
+      },
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/ai-service:sha-db02782-65",
+      "mem_limit": "3g",
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "ai-data",
+          "target": "/app/data"
+        },
+        {
+          "type": "volume",
+          "source": "ai-model-cache",
+          "target": "/home/appuser/.cache"
+        }
+      ],
+      "env_file": [
+        {
+          "path": "./env/ai-service.env",
+          "required": true
+        }
+      ],
+      "memswap_limit": "3g",
+      "cpus": 1.5,
+      "cpu_shares": 256,
+      "environment": {
+        "TREND_RUN_DIR": "/app/data/crawler/trend_runs",
+        "CRAWLER_API_URL": "http://172.31.20.50:8084"
+      },
+      "ports": [
+        {
+          "target": 8082,
+          "published": "8082",
+          "host_ip": "172.31.24.149",
+          "protocol": "tcp"
+        }
+      ],
+      "depends_on": [
+        "redis",
+        "rabbitmq",
+        "chromadb"
+      ]
     }
   },
   "networks": {
@@ -334,6 +403,12 @@
     },
     "redis-data": {
       "name": "brandhub-redis-data"
+    },
+    "ai-data": {
+      "name": "brandhub-ai-data"
+    },
+    "ai-model-cache": {
+      "name": "brandhub-ai-model-cache"
     }
   }
 }

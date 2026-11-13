@@ -94,3 +94,9 @@ condition = "AND"
 paths = ['''(?:^|/)plan/brandhub\-master\-plan\.html$''']
 regexTarget = "match"
 regexes = ['''^mongodb\+srv://\&lt;user\&gt;:\&lt;password\&gt;@\&lt;cluster\&gt;\.mongodb\.net[\r\n]*$''']
+
+
+[[allowlists]]
+description = "Immutable ECR Docker image tags (sha-<commit>-<run>)"
+regexTarget = "secret"
+regexes = ['''^sha-[0-9a-f]{7,40}-[0-9]+$''']
