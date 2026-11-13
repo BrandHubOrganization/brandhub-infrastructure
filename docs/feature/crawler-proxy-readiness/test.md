@@ -33,3 +33,13 @@ Chạy: `cd social_crawler && python -m pytest tests/test_proxy_runtime.py -q`
 | `reason=CONNECTION_REFUSED` | Proxy chủ động từ chối (sai IP được phép hoặc proxy chết) |
 | `reason=DNS_FAILED` / `NETWORK_ERROR` | Lỗi mạng phía EC2 |
 | `provider current unavailable: PROXY_PROVIDER_HTTP_...` | API KiotProxy lỗi hoặc key hết hạn |
+
+## Sửa lần 2 (13/11/2026)
+
+| # | Test | Kỳ vọng |
+|---|---|---|
+| W1 | Proxy mới timeout 4 lần, nhận kết nối lần 5 | `check_proxy` thành công, 5 lần kết nối |
+| W2 | Timeout mọi lần | `PROXY_CONNECT_FAILED` sau 12 lần, 11 lần nghỉ; 12 dòng `PROXY_CONNECT_ATTEMPT_FAILED` |
+| W3 | Log run có dòng `[PROXY]` và dòng thô khác | API chi tiết run trả dòng `[PROXY]`, bỏ dòng thô |
+
+Kiểm chứng production 13/11 01:43 UTC (trước sửa lần 2): proxy mới `age=0s` TIMEOUT ở 4.0s, 9.0s, 14.0s → fail.

@@ -19,4 +19,16 @@
       allowed_ip (che 2 số giữa), ttc, age; mỗi lần thử kết nối kèm reason và thời gian; thành công ở lần thử nào.
 - [x] Không đổi số lần thử (giữ 3 như develop).
 - [x] Test: không in key, host, port, mật khẩu.
-- [ ] Deploy, chạy crawl, đọc dòng `[PROXY]` trên Admin → Crawl → Lịch sử để kết luận nguyên nhân.
+- [x] Deploy (`sha-6a21ffb-62`), chạy crawl 13/11 01:43 UTC. Admin không hiện `[PROXY]` vì `detail()` chỉ giữ
+      dòng `[RUN]`/`[CRAWL]`/`[DELIVERY]`/`[WARN]`; đọc file log gốc trên EC2 qua SSM.
+
+## Kết luận và sửa lần 2 (13/11/2026)
+
+- [x] Log gốc run `d235bccacb594cfdaf171b2abc6df876`: đầu run proxy mới (`age=0s`) TIMEOUT lần 1, ok lần 2;
+      lúc đổi proxy định kỳ proxy mới TIMEOUT cả 3 lần (14s) → `proxy refresh failed`, dừng 25 nguồn.
+      Xác nhận nguyên nhân: proxy mới cần hơn 14s mới nhận kết nối.
+- [x] Đưa lại 12 lần thử (~59s) trên nền code diagnostics; log ghi `attempt=x/12`.
+- [x] Admin hiện dòng `[PROXY]` (thêm vào bộ lọc `detail()`; dòng này không chứa key/host/port).
+- [x] Test: `test_proxy_runtime.py` 20 pass; `test_crawler_management.py` 8 pass; toàn bộ crawler 263 pass,
+      2 lỗi có sẵn do môi trường Windows.
+- [ ] Sau deploy: Admin → Crawl → Lịch sử thấy dòng `[PROXY]`, lần đổi proxy không còn `PROXY_CONNECT_FAILED`.
