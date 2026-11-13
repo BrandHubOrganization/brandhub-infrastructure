@@ -117,6 +117,8 @@ services:
     environment:
       - CHROMADB_HOST=chromadb
       - CHROMADB_PORT=8000
+      - CRAWLER_API_URL=http://crawl-service:8084
+      - INTERNAL_SERVICE_KEY=${INTERNAL_SERVICE_KEY:?INTERNAL_SERVICE_KEY is required}
     depends_on:
       chromadb:
         condition: service_started
@@ -126,6 +128,28 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
+    networks:
+      - brandhub-network
+    restart: unless-stopped
+
+  crawl-service:
+    build:
+      context: ../../../../brandhub-crawl
+      dockerfile: Dockerfile
+    init: true
+    env_file: ../../../../brandhub-crawl/.env
+    environment:
+      APP_PORT: "8084"
+      AI_SERVICE_URL: http://ai-service:8082
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:?INTERNAL_SERVICE_KEY is required}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:?RABBITMQ_USERNAME is required}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
+      REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required}@redis:6379/0
+    volumes:
+      - crawl-data:/app/data
+    shm_size: 256mb
     networks:
       - brandhub-network
     restart: unless-stopped
@@ -166,3 +190,6 @@ networks:
   brandhub-network:
     name: brandhub-network
     driver: bridge
+
+volumes:
+  crawl-data:
