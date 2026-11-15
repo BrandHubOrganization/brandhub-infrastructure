@@ -80,3 +80,7 @@
 - [x] Cập nhật Compose/overlay và lệnh deploy CI/CD.
 - [x] Kiểm tra Compose render và generated deployment command giữ cấu hình khác.
 - [x] Chạy CI AI sau thay đổi: flake8 pass, 995 tests pass.
+
+## Mặc định timezone Việt Nam — 2026-11-14
+- [x] Đồng bộ default backend, scheduler và form.
+- [x] Kiểm tra cấu hình thiếu timezone và UTC tường minh; frontend CI PASS, AI unit CI thiếu dependency anthropic.

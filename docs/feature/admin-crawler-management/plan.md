@@ -86,3 +86,6 @@ Runtime ENV đặt sau dependency layer; data/crawler/ bị loại khỏi build 
 
 ## Giới hạn RAM AI 4.5 GiB (2026-11-03)
 Đặt ai-service.mem_limit=4608m trong EC2 Compose và overlay crawler. Workflow AI cập nhật mem_limit cùng image/TREND_RUN_DIR trước recreate, có sẵn backup/rollback compose. Không thay limit service khác, không đổi Docker image/browser code.
+
+## Cập nhật mặc định timezone — 2026-11-14
+Đổi fallback cấu hình, scheduler, readiness và form Admin sang Asia/Ho_Chi_Minh. Form gửi giá trị mặc định đang hiển thị khi lưu. Giữ UTC tường minh. Không migration cấu hình production trong thay đổi này.

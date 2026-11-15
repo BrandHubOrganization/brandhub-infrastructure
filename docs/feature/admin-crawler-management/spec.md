@@ -116,3 +116,6 @@ Build cài đúng binary theo phiên bản CloakBrowser đã pin, không chạy 
 
 ## Giới hạn RAM AI 4.5 GiB (2026-11-03)
 AI Service có giới hạn 4.5 GiB (4608 MiB), thay 2300 MiB, theo yêu cầu sau OOM run 20261103_012405. Đây là giới hạn container, không phải RAM được giữ riêng. Không sửa trực tiếp production.
+
+## Múi giờ mặc định Việt Nam — 2026-11-14
+Cấu hình mới hoặc thiếu timezone dùng Asia/Ho_Chi_Minh. Giữ múi giờ được lưu tường minh, kể cả UTC. Lịch 08:14 mặc định chạy lúc 08:14 Việt Nam. Thực hiện qua code dev, bảo toàn lượt crawl đang chạy.

@@ -98,3 +98,13 @@ Kết quả cuối khi Docker bật: full Dockerfile build exit 0, pinned instal
 Render Compose xác nhận ai-service.mem_limit tương đương 4831838208 bytes. Thực thi generated compose updater trên fixture 2300m: đổi thành 4608m, giữ env khác và memory service khác. YAML hợp lệ, CI flake8/unit pass. Production chỉ nhận cấu hình khi deploy; chưa restart hay retry run.
 
 Kết quả: Compose base và base+overlay render 4608m (4.5 GiB); generated updater áp memory mới và giữ env/limit service khác. Full flake8 pass, pytest unit 995 passed (128 warning có sẵn). Chưa commit/push/deploy, production chưa đổi.
+
+## Regression timezone — 2026-11-14
+Cấu hình thiếu timezone trả Asia/Ho_Chi_Minh. Cron 14 08 * * * có lần chạy kế tiếp 08:14 +07:00. Cấu hình UTC tường minh tiếp tục dùng UTC. Form fallback hiển thị và lưu cùng múi giờ Việt Nam. Chạy lint/unit liên quan và frontend CI.
+
+
+Kết quả 2026-11-14: flake8 app/tests unit PASS; scheduler runtime 13 PASS; validation thiếu timezone → Asia/Ho_Chi_Minh và UTC tường minh PASS. Full AI unit suite bị chặn collection do môi trường thiếu anthropic (13 module lỗi import).
+
+Frontend npm run ci PASS (lint 0 errors, type-check, build, prerender). Các file sinh tự động từ build được khôi phục về trước kiểm tra.
+
+Cập nhật cùng ngày: đã cài anthropic==2.3.0 và google-auth[requests]==2.62.0 vào AI .venv. Full suite chạy được: 1190 PASS, 9 FAIL lần đầu; đã sửa test mặc định timezone và dependency google-auth, chạy lại 21 test liên quan PASS. Bảy test render còn thiếu FFmpeg executable trong PATH local. Lint AI PASS.
