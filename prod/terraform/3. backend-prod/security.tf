@@ -163,31 +163,74 @@ resource "aws_vpc_security_group_egress_rule" "service_all_outbound" {
   ip_protocol = "-1"
 }
 
-# Business on service EC2 -> AI API on gateway EC2.
-resource "aws_vpc_security_group_ingress_rule" "ai_from_services" {
-  security_group_id            = aws_security_group.brandhub_core.id
-  description                  = "Internal services access to AI API"
+# =========================================================
+# BrandHub Crawl Security Group (browser crawler, no public ingress)
+# =========================================================
+
+resource "aws_security_group" "brandhub_crawl" {
+  name        = "brandhub-crawl-sg"
+  description = "Security group for BrandHub Crawl EC2, private API only."
+  vpc_id      = data.aws_vpc.brandhub.id
+
+  tags = {
+    Name        = "brandhub-crawl-sg"
+    Project     = "BrandHub"
+    Environment = var.environment
+    Service     = "crawl"
+    ManagedBy   = "terraform"
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "crawl_ssh" {
+  security_group_id = aws_security_group.brandhub_crawl.id
+  description       = "Admin SSH"
+  cidr_ipv4         = var.admin_ip
+  from_port         = 22
+  to_port           = 22
+  ip_protocol       = "tcp"
+}
+
+resource "aws_vpc_security_group_egress_rule" "crawl_all_outbound" {
+  security_group_id = aws_security_group.brandhub_crawl.id
+  description       = "Allow all outbound traffic"
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
+}
+
+# AI on service EC2 -> crawler management API on crawl EC2.
+resource "aws_vpc_security_group_ingress_rule" "crawl_api_from_ai" {
+  security_group_id            = aws_security_group.brandhub_crawl.id
+  description                  = "AI access to crawler API"
   referenced_security_group_id = aws_security_group.brandhub_service.id
+  from_port                    = 8084
+  to_port                      = 8084
+  ip_protocol                  = "tcp"
+}
+
+# Crawl EC2 -> AI, RabbitMQ and Redis on service EC2.
+resource "aws_vpc_security_group_ingress_rule" "ai_from_crawl" {
+  security_group_id            = aws_security_group.brandhub_service.id
+  description                  = "Crawler access to AI API"
+  referenced_security_group_id = aws_security_group.brandhub_crawl.id
   from_port                    = 8082
   to_port                      = 8082
   ip_protocol                  = "tcp"
 }
 
-# AI on gateway EC2 -> broker/vector store on service EC2.
-resource "aws_vpc_security_group_ingress_rule" "rabbitmq_from_ai" {
+resource "aws_vpc_security_group_ingress_rule" "rabbitmq_from_crawl" {
   security_group_id            = aws_security_group.brandhub_service.id
-  description                  = "AI access to RabbitMQ on service EC2"
-  referenced_security_group_id = aws_security_group.brandhub_core.id
+  description                  = "Crawler access to RabbitMQ"
+  referenced_security_group_id = aws_security_group.brandhub_crawl.id
   from_port                    = 5672
   to_port                      = 5672
   ip_protocol                  = "tcp"
 }
 
-resource "aws_vpc_security_group_ingress_rule" "chroma_from_ai" {
+resource "aws_vpc_security_group_ingress_rule" "redis_from_crawl" {
   security_group_id            = aws_security_group.brandhub_service.id
-  description                  = "AI access to ChromaDB on service EC2"
-  referenced_security_group_id = aws_security_group.brandhub_core.id
-  from_port                    = 8000
-  to_port                      = 8000
+  description                  = "Crawler access to Redis"
+  referenced_security_group_id = aws_security_group.brandhub_crawl.id
+  from_port                    = 6379
+  to_port                      = 6379
   ip_protocol                  = "tcp"
 }

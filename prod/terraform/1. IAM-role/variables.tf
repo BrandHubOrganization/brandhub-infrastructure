@@ -35,6 +35,7 @@ variable "ecr_repositories" {
     "brandhub/ai-service",
     "brandhub/api-gateway",
     "brandhub/business-service",
+    "brandhub/crawl-service",
     "brandhub/publisher-service",
   ]
 }
@@ -43,7 +44,8 @@ variable "ec2_instance_ids" {
   description = "EC2 instance IDs targeted by AWS SSM rolling deployments"
   type        = list(string)
   default = [
-    "i-0761e3bd96ca5d4de",
-    "i-07283e8467a059e5a",
+    "i-0bb4d86f49b9d46ce",
+    "i-063273525abef7802",
+    "i-0cb8fcc2b83af97e5",
   ]
 }

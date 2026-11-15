@@ -1,5 +1,5 @@
 locals {
-  application_images = toset(["api-gateway", "business-service", "publisher-service", "ai-service"])
+  application_images = toset(["api-gateway", "business-service", "publisher-service", "ai-service", "crawl-service"])
 }
 
 resource "aws_ecr_repository" "applications" {
