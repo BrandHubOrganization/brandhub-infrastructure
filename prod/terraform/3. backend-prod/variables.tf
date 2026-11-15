@@ -53,6 +53,7 @@ variable "instances" {
     ami              = string
     instance_type    = string
     key_name         = string
+    private_ip       = optional(string)
     root_volume_size = optional(number, 30)
     root_volume_type = optional(string, "gp3")
   }))
