@@ -1,122 +1,87 @@
-# 04 — Media Package, Campaign và Content Request
+# 04 — Gói Truyền thông, Chiến dịch & Yêu cầu Nội dung (Media Package, Media Campaign & Content Request)
 
-> [<< Về Overview](00-overview.md)
+> [<< 03 - Agency & Workspace](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/03-agency-workspace-management.md) | [Overview](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/00-overview.md) | [Tiếp: 05 - Content & Task Workflow >>](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/05-content-task-workflow.md)
+>
+> **Phạm vi FR chuẩn**: **Mục `3.5 Media Package & Media Campaign` — 13 FR (`3.5.1` – `3.5.13`)** | `UC-040` – `UC-052`.
+> Đã đồng bộ với **8 loại Dịch vụ / Công việc chuẩn (`PackageServiceType` ↔ `TaskType`)**, luồng `Manager-led Package & Campaign Approval`, và luồng **Chiến dịch Cá nhân không cần Gói dịch vụ (`workspaceMode = "PERSONAL"`)**.
 
-> **BA đã chốt 2026-11-05** theo [spec Guest sharing và Manager-led](../feature/media-package-campaign/guest-sharing-manager-led/spec.md). Đợt này chỉ cập nhật đặc tả. Flow Client chọn/đàm phán/duyệt Package và duyệt Campaign hai phía được thay thế trong phạm vi Package/Campaign. Quyền duyệt kết quả Task/bài đăng và Content Request theo spec riêng.
+---
 
-## 1. Hành trình hiện hành
+## 1. Bảng Tổng hợp 13 Yêu cầu Chức năng Chuẩn (`3.5.1` – `3.5.13`)
 
-1. Owner tạo Media Package trong danh mục Agency.
-2. Hệ thống hỗ trợ Owner xuất ảnh/PDF hoặc link guest để quảng bá, gửi cho khách xem.
-3. Khách xem gói được chia sẻ trước khi có tài khoản hoặc membership workspace. Link luôn hiển thị bản mới nhất đã lưu của đúng gói Agency hoặc Custom Package workspace được chia sẻ.
-4. Owner tạo workspace và gán Manager. Chưa bắt buộc có Client.
-5. Manager chốt gói với Client bên ngoài hệ thống.
-6. Manager chọn gói Agency để tùy chỉnh hoặc tạo mới trong workspace, ghi nhận đúng thỏa thuận.
-7. Lưu gói workspace hợp lệ tự tạo một Campaign DRAFT và task lớn theo gói. Lưu lại/retry không sinh trùng.
-8. Manager mời Client vào workspace để xem gói đã ghi nhận, xem kế hoạch và comment góp ý cả khi Campaign còn DRAFT.
-9. Manager hoàn thiện kế hoạch và chủ động triển khai khi đủ điều kiện. Bỏ bước duyệt Campaign hai phía.
-10. Client theo dõi và góp ý. Những thao tác duyệt kết quả Task/nội dung thuộc quy trình riêng.
+| Mã FR | Mã UC | Tên Chức năng Chuẩn (Atomic CRUD FR) | Actors / Roles Chuẩn | Mô tả Nghiệp vụ Cốt lõi |
+| :-: | :-: | :--- | :--- | :--- |
+| **`3.5.1`** | `UC-040` | **Create Media Package** | `Owner` | Tạo mới hoặc tùy chỉnh Gói truyền thông mẫu (`MediaPackage`) ở cấp `Agency` với danh mục các hạng mục dịch vụ, số lượng, đơn vị chuẩn, đơn giá và điều khoản. |
+| **`3.5.2`** | `UC-041` | **View Template Media Package** | `Owner`, `Manager`, `Client` | Xem danh sách và chi tiết các Gói truyền thông mẫu của `Agency` hoặc bảng đề xuất gói gắn với `Workspace` (hỗ trợ xuất PDF đề xuất đa ngôn ngữ & chia sẻ link công khai cho `Guest`). |
+| **`3.5.3`** | `UC-042` | **Request Media Package** | `Manager`, `Client` | Chọn hoặc đề xuất áp dụng một Gói truyền thông cho `Workspace` (`WorkspaceMediaPackage`), tùy chỉnh hạng mục/số lượng theo nhu cầu dự án. |
+| **`3.5.4`** | `UC-043` | **Approve Media Package** | `Owner`, `Manager` | Xác nhận chốt Gói truyền thông cho `Workspace` (`status = APPROVED`) để mở khóa bước lập Chiến dịch truyền thông trong chế độ `AGENCY`. |
+| **`3.5.5`** | `UC-044` | **Create Media Campaign** | `Manager` | Khởi tạo Kế hoạch Chiến dịch truyền thông (`MediaCampaign`): đặt tên, mục tiêu, thời gian bắt đầu/kết thúc, thông điệp chủ đạo và danh sách các hạng mục công việc (`workItems`). |
+| **`3.5.6`** | `UC-045` | **View Media Campaign** | `Owner`, `Manager`, `Creator`, `Client` | Xem chi tiết kế hoạch chiến dịch, tiến độ tổng thể và **Lịch trình Chiến dịch (`CampaignTimelineGrid`)** kèm trạng thái từng Subtask, cờ trễ hạn và cờ chờ `Client` duyệt. |
+| **`3.5.7`** | `UC-046` | **Update Media Campaign** | `Manager` | Cập nhật thông tin chiến dịch, điều chỉnh danh sách hạng mục công việc, thời hạn hoặc phân bổ lại nhân sự trong quá trình thực hiện. |
+| **`3.5.8`** | `UC-047` | **Approve Media Campaign** | `Manager`, `Client` | Chốt kế hoạch chiến dịch và triển khai (`Deploy Campaign`): tự động sinh hàng loạt Công việc cha (`TaskDocument`) kèm đầy đủ bộ **Subtask theo vai trò chuẩn (`TaskCatalog`)**. |
+| **`3.5.9`** | `UC-048` | **Complete Media Campaign** | `Manager` | Đánh dấu hoàn tất Chiến dịch truyền thông (`status = COMPLETED`) sau khi các hạng mục công việc cốt lõi đã hoàn thành và nghiệm thu. |
+| **`3.5.10`** | `UC-049` | **Create Content Request** | `Client` | Khách hàng (`Client`) tạo Yêu cầu nội dung phát sinh (`ContentRequest`) từ `Client Portal` gửi cho đội ngũ `Workspace`. |
+| **`3.5.11`** | `UC-050` | **Track Request Status** | `Manager`, `Client` | Theo dõi trạng thái xử lý của `ContentRequest` (`PENDING` → `APPROVED` / `IN_PROGRESS` / `COMPLETED` / `REJECTED` / `CANCELLED`) và công việc (`Task`) được sinh ra từ yêu cầu đó. |
+| **`3.5.12`** | `UC-051` | **Update Request** | `Manager`, `Client` | `Client` chỉnh sửa nội dung yêu cầu khi còn ở trạng thái `PENDING`; `Manager` tiếp nhận, phản hồi, duyệt chuyển thành `Task` hoặc từ chối kèm lý do. |
+| **`3.5.13`** | `UC-052` | **Cancel Request** | `Client` | `Client` hủy một `ContentRequest` do mình tạo khi yêu cầu đang ở trạng thái `PENDING` (chưa được `Manager` triển khai thành `Task`). |
 
-Một workspace tiếp tục có một Campaign. Manager được sửa gói trước triển khai và đồng bộ kế hoạch/task, giữ thông tin đã nhập ở hạng mục còn hiệu lực. Khi triển khai phải cố định bản gói/kế hoạch dùng cho lượt đó, khóa sau triển khai. Góp ý của Client không trở thành gate duyệt.
+---
 
-> **[Bổ sung 2026-11-15 — Chế độ Không gian Cá nhân (`workspaceMode = PERSONAL`)]**: Trong các Workspace cá nhân (`PERSONAL`), người dùng làm truyền thông tự thân (Solo Creator / Freelancer / Sinh viên) **không bán Gói dịch vụ (`Media Package`) cho khách hàng**. Do đó:
-> - Bước `1. Gói dịch vụ` được ẩn trên thanh Tiến trình Sidebar.
-> - Người dùng có thể khởi tạo trực tiếp **Kế hoạch / Chiến dịch cá nhân** (tự do thêm hạng mục thuộc 8 loại Task chuẩn mà không bị chặn bởi trần số lượng của `WorkspaceMediaPackage`) hoặc bỏ qua luôn Chiến dịch để tạo trực tiếp **Công việc độc lập (`Standalone Task`)** tại bảng Công việc. Xem [spec personal-workspace-mode](../feature/personal-workspace-mode/spec.md).
+## 2. Ánh xạ 8 Loại Hạng mục Dịch vụ (`PackageServiceType`) sang 8 Loại Công việc (`TaskType`)
 
-## 1a. Hạng mục dịch vụ (PackageServiceType) — mỗi gói gồm nhiều deliverable theo hạng mục
+Hệ thống chuẩn hóa 8 loại dịch vụ truyền thông trong Gói dịch vụ (`PackageOfferingValidator` & `CampaignPlanValidator`), ánh xạ 1-đối-1 sang 8 loại Công việc (`TaskType`) khi triển khai chiến dịch:
 
-**BA mới 2026-11-10**, nguồn: `PackageServiceType` enum và `CampaignPlanValidator` (code hiện hành) — chưa từng mô tả trong BA trước đây. Mỗi deliverable trong một Media Package khai báo một hạng mục dịch vụ, số lượng (sản lượng) và đơn vị chuẩn; khi triển khai Campaign, mỗi deliverable sinh ra **đúng số lượng task cha** theo loại tương ứng (mục 5 + 05-content-task-workflow.md mục 3).
+| STT | `PackageServiceType` | `TaskType` sinh ra khi Deploy | Đơn vị chuẩn (`Standard Unit`) | Số lượng Subtask vai trò tự động sinh (`TaskCatalog`) |
+| :-: | :--- | :--- | :-: | :--- |
+| 1 | **`CONTENT_POST`** | `POST` | `"bài"` | 5 vai trò (`POST_RESEARCH`, `POST_CONTENT`, `POST_MEDIA`, `POST_EDITING`, `POST_PUBLISHING`) |
+| 2 | **`SHORT_VIDEO`** | `SHORT_VIDEO` | `"video"` | 4 vai trò (`VIDEO_SCRIPT`, `VIDEO_SHOOT`, `VIDEO_EDIT`, `VIDEO_PUBLISH`) |
+| 3 | **`SURVEY`** | `SURVEY` | `"khảo sát"` | 3 vai trò (`SURVEY_DESIGN`, `SURVEY_DISTRIBUTE`, `SURVEY_ANALYSIS`) |
+| 4 | **`EVENT_PLAN`** | `EVENT_PLAN` | `"sự kiện"` | 5 vai trò (`EVENT_AGENDA`, `EVENT_LOGISTICS`, `EVENT_PROMOTION`, `EVENT_ONSITE`, `EVENT_REPORT`) |
+| 5 | **`PRESS_RECOMMENDATION`** | `PRESS_RECOMMENDATION` | `"thông cáo"` | 4 vai trò (`PRESS_MEDIA_LIST`, `PRESS_RELEASE`, `PRESS_PITCHING`, `PRESS_TRACKING`) |
+| 6 | **`KOL_BOOKING`** | `KOL_BOOKING` | `"KOL"` | 5 vai trò (`KOL_SOURCING`, `KOL_NEGOTIATION`, `KOL_BRIEF`, `KOL_CONTENT_REVIEW`, `KOL_TRACKING`) |
+| 7 | **`WORKSHOP_SUPPORT`** | `WORKSHOP` | `"buổi"` | 5 vai trò (`WORKSHOP_PROGRAM`, `WORKSHOP_SPEAKER`, `WORKSHOP_LOGISTICS`, `WORKSHOP_REGISTRATION`, `WORKSHOP_REPORT`) |
+| 8 | **`EMAIL_NEWSLETTER`** | `EMAIL_NEWSLETTER` | `"bản tin"` | 4 vai trò (`EMAIL_CONTENT`, `EMAIL_DESIGN`, `EMAIL_SEND`, `EMAIL_REPORT`) |
 
-| PackageServiceType | Đơn vị chuẩn | Sinh ra Task loại | Ghi chú |
-|---|---|---|---|
-| `SOCIAL_POST` | bài | `POST` | Bài đăng mạng xã hội thường |
-| `EVENT_PLANNING` | sự kiện | `EVENT_PLAN` | Chỉ bàn giao kế hoạch & nội dung truyền thông, không quản lý hậu cần/vận hành sự kiện thật |
-| `LIVESTREAM_PREPARATION` | buổi | *(không sinh task — ngoài phạm vi)* | Giữ trong enum cho tương thích lịch sử; **gói custom mới không được chọn hạng mục này** (backend chặn `INVALID_MEDIA_PACKAGE_CONFIGURATION` khi tạo gói mới có hạng mục này — chỉ còn trên gói/template cũ tạo trước khi Livestream bị loại khỏi phạm vi) |
-| `PRESS_RECOMMENDATION` | bài | `PRESS_RECOMMENDATION` | Đề xuất báo chí, chỉ ghi nhận — không gửi mail pitching qua hệ thống |
-| `WORKSHOP_SUPPORT` | buổi | `WORKSHOP` | Hỗ trợ chuẩn bị nội dung/tài liệu workshop |
-| `SHORT_VIDEO` | video | `SHORT_VIDEO` | Video ngắn (TikTok/Reels) |
-| `KOL_BOOKING` | KOL | `KOL_BOOKING` | Booking KOL/Influencer, chỉ ghi nhận — không thanh toán qua hệ thống |
-| `EMAIL_NEWSLETTER` | bản tin | `EMAIL_NEWSLETTER` | Gửi email thật qua hạ tầng Mail Template, quota riêng theo gói (xem 05-content-task-workflow.md mục 9) |
+> **Lưu ý tuân thủ `AGENTS.md`**: Hạng mục `LIVESTREAM` đã bị loại bỏ hoàn toàn khỏi phạm vi dự án.
 
-- Tên hạng mục dịch vụ và tên loại Task **không trùng chữ cái** ở 3 trường hợp: `SOCIAL_POST`→`POST`, `EVENT_PLANNING`→`EVENT_PLAN`, `WORKSHOP_SUPPORT`→`WORKSHOP`. 5 hạng mục còn lại trùng tên.
-- Sản lượng (quantity) của một deliverable là **tổng số task cha** sinh ra cho cả Campaign đó, không phải số lượng/tháng — Manager khai khi tạo/tùy chỉnh gói (mục 2 bên dưới).
-- Chi tiết subtask theo vai trò + trình soạn chia phần của từng loại Task sinh ra: [05-content-task-workflow.md mục 3](05-content-task-workflow.md).
+---
 
-## 2. Media Package — FR 3.5.1 đến 3.5.4
+## 3. Đặc tả Luồng Gói Dịch vụ & Chiến dịch theo 2 Chế độ (`AGENCY` vs `PERSONAL`)
 
-### 3.5.1 — Tạo gói
+### 3.1. Trong Chế độ `AGENCY` (`workspaceMode = "AGENCY"`)
+1. **Giai đoạn 1 — Chốt Gói Truyền thông (`3.5.1` – `3.5.4`)**:
+   - `Owner` thiết lập danh mục Gói truyền thông mẫu (`MediaPackage`) tại cấp Agency (`3.5.1`).
+   - Tại Workspace của khách hàng, `Manager` (hoặc `Client` đề xuất) chọn gói mẫu hoặc tùy chỉnh thành `WorkspaceMediaPackage` (`3.5.3`).
+   - Hỗ trợ xuất bảng báo giá/đề xuất gói ra file **PDF đa ngôn ngữ** (`PackageExportRenderer`) hoặc tạo link chia sẻ công khai (`/s/:token`) gửi cho khách hàng xem trước.
+   - Sau khi thống nhất với khách hàng, `Owner`/`Manager` bấm xác nhận chốt gói (`3.5.4 Approve Media Package` → `status = APPROVED`), mở khóa bước 2 trên thanh Tiến trình Sidebar.
+2. **Giai đoạn 2 — Lập & Triển khai Chiến dịch (`3.5.5` – `3.5.9`)**:
+   - `Manager` tạo bản nháp Chiến dịch (`3.5.5`), nhập mục tiêu, ý tưởng và lên danh sách các hạng mục công việc (`CampaignWorkItem`).
+   - `CampaignPlanValidator` kiểm tra tổng số lượng từng loại hạng mục không vượt quá hạn mức của `WorkspaceMediaPackage` đã chốt.
+   - Khi `Manager` bấm **Chốt & Triển khai Chiến dịch (`3.5.8` / `deploy`)**:
+     - Chiến dịch chuyển sang `ACTIVE`.
+     - `CampaignTaskStore.draftTask` tự động sinh các `TaskDocument` cha trong MongoDB, đồng thời **sinh sẵn bộ Subtask theo vai trò chuẩn (`TaskCatalog`)** cho từng Task (mặc định `status = TODO`, `dueDate` = hạn của Task cha, chờ `Manager` gán người phụ trách).
+   - Trong suốt chiến dịch, tất cả các bên theo dõi tiến độ trên `CampaignTimelineGrid` (`3.5.6`), nơi hiển thị trực quan từng Task, các Subtask con, cờ **Trễ hạn (`Overdue`)** và cờ **Chờ Client duyệt (`Awaiting Client`)**.
 
-Owner quản lý danh mục Agency để quảng bá độc lập với workspace. Manager tạo gói thực hiện trong workspace từ mẫu hoặc nhập mới theo thỏa thuận bên ngoài, không cần thêm lượt duyệt Owner/Client.
+### 3.2. Trong Chế độ `PERSONAL` (`workspaceMode = "PERSONAL"`)
+Khi người dùng làm việc trong Không gian Cá nhân hoặc Nhóm bài tập (`workspaceMode = "PERSONAL"`):
+1. **Không bắt buộc Gói dịch vụ (`Package-less Workflow`)**:
+   - Bước `1. Gói dịch vụ` được ẩn khỏi thanh Tiến trình Sidebar.
+   - Nếu người dùng vào trang **Chiến dịch (`/workspaces/:id/campaigns`)** để lập kế hoạch dài hạn (`3.5.5` – `3.5.8`), Backend tự động khởi tạo ngầm một `WorkspaceMediaPackage` khung nội bộ không giới hạn trần số lượng, cho phép người dùng cá nhân tự do thêm bất kỳ số lượng hạng mục nào trong 8 loại `TaskType` và bấm `Deploy` ngay lập tức.
+   - Mọi Task sinh ra từ chiến dịch cá nhân mặc định có `requiresClientApproval = false` và tự gán cho chủ không gian nếu chưa chọn người khác.
+2. **Làm việc không cần Chiến dịch (`Standalone Task Bypass`)**:
+   - Người dùng cá nhân thậm chí không cần vào trang Chiến dịch mà có thể bấm **"+ Tạo công việc mới"** ngay tại trang Công việc (`/workspaces/:id/tasks`) hoặc từ **Bệ phóng Sáng tạo Cá nhân (`Personal Quick Launchpad`)** trên Dashboard để tạo trực tiếp 1 công việc lẻ (hệ thống tự gắn vào chiến dịch cá nhân mặc định chạy ngầm).
 
-Gói workspace giữ nội dung riêng và nguồn tham khảo khi có. Chỉnh gói quảng bá không tự sửa điều khoản gói workspace hoặc Campaign/task. Ngân sách và thời lượng tùy chọn. Giữ tổng sản lượng, đơn vị, dịch vụ và phạm vi bàn giao hiện hành, theo [spec package-driven](../feature/package-driven-campaign-tasks/spec.md).
+---
 
-### 3.5.2 — Guest view và chia sẻ
+## 4. Đặc tả Luồng Yêu cầu Nội dung của Khách hàng (`3.5.10` – `3.5.13`)
 
-Owner xuất gói Agency đã lưu thành ảnh/PDF hoặc chia sẻ link. Manager phụ trách/Owner có quyền quản lý cũng chia sẻ được Custom Package workspace qua ba hình thức này để trao đổi với Client. Guest xem nội dung gói mà không cần đăng nhập. Link đọc bản mới nhất của đúng gói, ảnh/PDF là bản tại thời điểm xuất và có ngày xuất để đối chiếu. Cơ chế bảo mật nâng cao sẽ được bàn với team sau.
-
-Link chỉ hiển thị nội dung và điều khoản của gói được chia sẻ; không trả Client Profile, quyền truy cập workspace, bình luận hoặc lịch sử đàm phán/duyệt. Có link không tự tạo workspace, đơn hàng, xác nhận mua hoặc membership.
-
-### 3.5.3 — Ghi nhận và điều chỉnh thỏa thuận
-
-Manager thực hiện trao đổi/chốt với Client bên ngoài, rồi lưu điều khoản gói trong workspace. Client vào workspace sau để xem thông tin đã ghi nhận. Bỏ hành trình request-change/counter-offer của Client trên hệ thống.
-
-Trước triển khai, chỉnh gói phải đồng bộ Campaign/task, bảo toàn dữ liệu đã nhập và xử lý tác động giảm/đổi hạng mục có xác nhận cần thiết. Gói/kế hoạch đã triển khai được khóa, phát sinh mới theo quy trình bổ sung hiện hành.
-
-### 3.5.4 — Thay bước duyệt Package
-
-Không yêu cầu Client chọn hay duyệt gói. Lưu gói workspace hợp lệ là điểm tự tạo Campaign DRAFT và task, không có bước xác nhận gói riêng sau lưu. Các redirect, checklist và điều kiện chờ Client duyệt Package của flow cũ cần được thay thế khi triển khai.
-
-## 3. Media Campaign — FR 3.5.5 đến 3.5.6
-
-### 3.5.5 — Campaign DRAFT từ gói
-
-Campaign là kế hoạch thực hiện gói đã ghi nhận trong workspace. Backend tự tạo Campaign DRAFT/task khi Manager lưu gói hợp lệ. Manager tiếp tục bổ sung strategy, timeline, brief/deadline và các thông tin thực hiện còn thiếu. Task/subtask theo contract riêng, thành viên bắt đầu khi Campaign IN_PROGRESS.
-
-### 3.5.6 — Client góp ý, Manager triển khai
-
-Client đã tham gia workspace xem/comment góp ý cả bản nháp. Comment lưu người/thời điểm/ngữ cảnh đang xem, không sửa kế hoạch hoặc chuyển trạng thái. Manager quyết định điều chỉnh kế hoạch theo trạng thái cho phép.
-
-Manager triển khai khi kế hoạch/task đủ thông tin và khớp gói. Không yêu cầu trạng thái APPROVED hay timestamp duyệt Campaign hai phía. Lượt triển khai phải cố định bản được dùng, giữ task identity, chống trùng và hỗ trợ retry. Thành công chuyển Campaign IN_PROGRESS, sau đó gói/phạm vi kế hoạch được khóa.
-
-Vòng đời nghiệp vụ đích là DRAFT → IN_PROGRESS → COMPLETED. Điều kiện hoàn thành tiếp tục theo [Campaign closure](../feature/media-package-campaign/campaign-closure/spec.md) và [package-driven task](../feature/package-driven-campaign-tasks/spec.md). Duyệt kết quả Task/bài đăng không được thay bằng comment Campaign.
-
-### Lịch sử và phạm vi thiết kế
-
-Giữ lịch sử đàm phán, approval và dữ liệu cũ để truy vết. Mapping dữ liệu legacy, endpoint, schema và quyền truy cập sẽ chốt trong plan triển khai. Spec này không tạo migration, không xác nhận implementation và không mở thêm Campaign Addendum hoặc checkout/thanh toán.
-
-Các phần Content Request bên dưới giữ phạm vi hiện hành. Những ghi chú lịch sử không liên quan Package/Campaign phải được đọc cùng spec riêng mới nhất đã dẫn.
-
-## 4. Content Request — kênh bổ sung riêng (FR 3.5.7 – 3.5.10)
-
-> **Quyết định người dùng 2026-10-14 (cần đồng bộ với team):** chỉ Client thuộc Workspace có Campaign IN_PROGRESS và deployment SUCCEEDED được tạo Request. Client sửa title/description/type/dueDate hoặc hủy khi PENDING. Deadline từ ngày hiện tại, không trước ngày bắt đầu và không sau ngày kết thúc Campaign, theo timezone Workspace. Manager chủ động tiếp nhận để chuyển IN_PROGRESS và khóa sửa/hủy của Client; sau đó ACCEPTED hoặc DENIED. Hủy là CANCELLED, không xóa. Request được chấp nhận sinh đúng một Task BACKLOG, campaignId=null. Khi Manager đánh dấu Campaign COMPLETED, chặn tạo mới và tự hủy PENDING có lịch sử; IN_PROGRESS tiếp tục xử lý. Hết ngày kế hoạch không tự hoàn thành Campaign. Quy tắc này thay thế quyết định 2026-10-13 giữ PENDING sau hoàn thành.
-
-Đây là 1 luồng **bổ sung, độc lập** với luồng Package/Campaign chính — cho phép Client đề xuất thêm 1 bài đăng cụ thể ngoài kế hoạch Campaign đã duyệt.
-
-### 3.5.7 — Create Content Request
-- Client tạo được bài content mới, chờ Manager coi và quyết định đồng ý làm hay không.
-- Nếu đồng ý → chuyển trạng thái `accepted` để phân chia task cho role khác thực hiện.
-- **[CONFIRMED 2026-09-15]** Nếu Manager từ chối → `denied` là trạng thái **cuối (terminal)**, khác với Task reject. Client không sửa lại được request đã denied — phải tạo Content Request mới hoàn toàn nếu muốn đề xuất lại.
-- Ghi chú thêm: cần **note lại** để sau này tính vào công việc bổ sung (có thể liên quan đến billing/KPI ngoài phạm vi Package gốc).
-- **[CONFIRMED 2026-09-14]** Role list trong CSV ghi cả OWNER/MANAGER/CLIENT, nhưng thực tế hành động **Create chỉ do CLIENT thực hiện** — Owner/Manager có mặt trong role list vì họ có quyền TRUY CẬP xem màn hình này (để duyệt), không phải vì họ tự tạo request cho mình.
-
-### 3.5.8 — Track Request Status
-- Manager điều chỉnh status của yêu cầu do Client đưa lên.
-- Luồng trạng thái: `pending → in progress → accept` (chuyển công việc vào backlog) hoặc `denied`.
-- 4 trạng thái (pending / in progress / accept / denied) **do Agency setting quyết định** — Client hoàn toàn không có quyền tự set trạng thái.
-- Role: MANAGER.
-- **Ghi chú kèm theo trong nguồn** (về Template Media Package, liên quan gián tiếp tới luồng): Template media package bao gồm số lượng bài, thời gian thực hiện, chất lượng nội dung... Team truyền thông thảo luận cụ thể hóa các bài viết → ra kế hoạch truyền thông (tiêu đề bài viết, nền tảng đăng tải...) → thảo luận với Client xem kế hoạch có ok không → ra hợp đồng chính thức để ký. Đây là mô tả luồng thực tế ngoài đời mà hệ thống đang số hóa lại qua Package→Campaign.
-
-### 3.5.9 — Update Request
-- Client điều chỉnh nội dung content muốn thêm vào.
-- **Chỉ được làm khi đang ở trạng thái PENDING**.
-- Role: CLIENT.
-
-### 3.5.10 — Cancel Request
-- Khi Track Request Status đã đổi khỏi PENDING, Client **không còn quyền xóa/hủy** request nữa — hủy chỉ hợp lệ khi status vẫn là PENDING.
-- Role: CLIENT.
-
-## 5. Liên kết với Task backlog
-
-**[CONFIRMED 2026-09-14]** Khi Manager set trạng thái Content Request thành `accepted`, hệ thống **tự động sinh 1 Task mới** trong backlog của Workspace — task này sau đó chảy vào đúng quy trình Task chuẩn (Identify Task Detail → Assign → Approval Sequence...). Xem chi tiết đầy đủ tại [05-content-task-workflow.md](05-content-task-workflow.md).
-
-Ngoài nguồn từ Campaign (mục 3) và Content Request (mục 4), Manager còn được tự do thêm Task thủ công trực tiếp vào backlog bất cứ lúc nào (việc nội bộ, không cần qua Campaign hay Content Request) — xem file 05.
+Luồng `Content Request` phục vụ riêng cho tương tác giữa `Client` và `Manager` trong các Workspace có `workspaceMode = "AGENCY"`:
+1. **`3.5.10 Create Content Request` (`Client`)**:
+   - Từ `Client Portal` (`/workspaces/:id/portal`), `Client` gửi yêu cầu làm thêm hoặc điều chỉnh nội dung (nhập tiêu đề, loại nội dung mong muốn, mô tả yêu cầu, hạn mong muốn và tệp đính kèm). Bản ghi mới có `status = PENDING`.
+2. **`3.5.11 Track Request Status` (`Manager`, `Client`)**:
+   - Cả `Client` và `Manager` xem danh sách và trạng thái thời gian thực của từng yêu cầu, kèm liên kết tới `Task` thực thi sau khi yêu cầu được duyệt.
+3. **`3.5.12 Update Request` (`Manager`, `Client`)**:
+   - Khi yêu cầu đang ở `PENDING`, `Client` có thể sửa nội dung mô tả; `Manager` có thể bấm **Chấp nhận** (tự động chuyển hóa yêu cầu thành một `TaskDocument` trong Workspace để giao cho `Creator`) hoặc **Từ chối** kèm ghi chú phản hồi.
+4. **`3.5.13 Cancel Request` (`Client`)**:
+   - Khi yêu cầu đang ở `PENDING`, `Client` có quyền rút lại / hủy yêu cầu (`status = CANCELLED`).
+- **Hành vi ở chế độ `PERSONAL`**: Vì không có `Client`, mục `Yêu cầu Nội dung (/requests)` được ẩn khỏi Sidebar để tránh dư thừa; người dùng cá nhân tạo trực tiếp Task tại `/tasks`.

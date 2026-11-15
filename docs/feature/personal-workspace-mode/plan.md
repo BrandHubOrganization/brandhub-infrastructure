@@ -1,135 +1,236 @@
-# Plan — Kế hoạch Triển khai Chế độ Không gian Cá nhân (Hybrid Personal Studio + Solo Workspace Mode)
+# Plan — Kế hoạch Kỹ thuật Triển khai Chế độ Không gian Cá nhân (Hybrid Personal Studio + Solo Workspace Mode)
 
-> Bước ② theo `docs/rule/feature-workflow.md`. Dựa trên `spec.md`.
-> Kiến trúc mục tiêu: **Hybrid (Auto-provisioned Personal Hub `Agency` + `Workspace` với `workspaceMode: "PERSONAL" | "AGENCY"`)**.
+> Bước ② theo `docs/rule/feature-workflow.md`. Dựa trên `spec.md` (AC1–AC18).
+> Kiến trúc mục tiêu: **Hybrid (Auto-Provisioned Shadow Personal Hub `Agency` + Workspace-Level Mode `workspaceMode: "PERSONAL" | "AGENCY"`)**.
 
 ---
 
 ## 0. Quyết định Kiến trúc & Bảo toàn Dữ liệu (Zero-Breaking Schema Strategy)
 
-### 0.1. Lưu trữ `workspaceMode` và `isPersonalHub` ở đâu để không phá vỡ DB?
-1. **Ở tầng `Workspace` (`workspaces` table — PostgreSQL)**:
-   - Bảng `workspaces` đã có sẵn cột `settings` kiểu `jsonb NOT NULL DEFAULT '{}'` ([Workspace.java#L53-L56](file:///d:/ProjectCode/BrandHub/brandhub-business-service/src/main/java/com/brandhub/business/model/Workspace.java#L53-L56)).
-   - Chúng ta lưu trực tiếp khóa `"workspaceMode": "PERSONAL" | "AGENCY"` bên trong JSONB `workspaces.settings` và ánh xạ ra trường `workspaceMode` trên `WorkspaceResponse` / `CreateWorkspaceRequest` / `UpdateWorkspaceRequest`.
-   - **Lợi ích**: Không cần chạy `ALTER TABLE` thêm cột bắt buộc, không làm hỏng bất kỳ dữ liệu hay migration cũ nào của các thành viên khác; mọi bản ghi `workspaces` hiện hữu chưa có khóa `workspaceMode` trong `settings` tự động fallback về `"AGENCY"`.
-2. **Ở tầng `Agency` (`agencies` table — PostgreSQL)**:
-   - Để đánh dấu đâu là `Personal Hub` mặc định của người dùng (nhằm tránh tạo trùng nhiều Personal Agency khi bấm nút *"Không gian Cá nhân"*), chúng ta có 2 lựa chọn tương thích ngược 100%:
-     - Dùng quy ước định danh trong `logoIcon` / `tagline` hoặc thêm cột tùy chọn `is_personal BOOLEAN NOT NULL DEFAULT FALSE` (additive migration) hoặc lưu trong metadata. Để an toàn tuyệt đối cho cả môi trường chưa chạy SQL migration mới, Backend hỗ trợ đọc/ghi qua helper kiểm tra `logoIcon == "personal-studio"` kết hợp cờ cấu hình trong `workspaces.settings.isPersonalHub = true`.
+### 0.1. Lưu trữ `workspaceMode` và `isPersonalHub` ở đâu để tương thích ngược 100%?
+
+| Tiêu chí | Phương án A: Lưu trong JSONB `workspaces.settings` + định danh `Agency.logoIcon` (Đã chọn) | Phương án B: Thêm cột SQL `NOT NULL` mới vào bảng `agencies` và `workspaces` |
+| :--- | :--- | :--- |
+| **Ảnh hưởng Migration DB** | **Không bắt buộc chạy DDL mới**: cột `workspaces.settings` (`jsonb NOT NULL DEFAULT '{}'`) và `agencies.logo_icon` đã tồn tại sẵn trong PostgreSQL từ migration gốc. | Phải chạy `ALTER TABLE` trên mọi môi trường trước khi khởi động service; dễ gây lỗi nếu môi trường dev/staging chưa kịp chạy SQL. |
+| **Tương thích ngược (AC2)** | Mọi bản ghi `workspaces` cũ có `settings = "{}"` tự động fallback về `WorkspaceMode.AGENCY`. | Phải backfill toàn bộ bảng. |
+| **Khả năng mở rộng** | Lưu được cả `{"workspaceMode": "PERSONAL", "isPersonalDefault": true, "defaultCampaignId": "..."}` trong cùng JSONB. | Mỗi cờ mới lại phải thêm cột SQL. |
+
+- **Cấu trúc JSONB `workspaces.settings` chuẩn**:
+  ```json
+  {
+    "workspaceMode": "PERSONAL",
+    "isPersonalDefault": true,
+    "defaultPersonalCampaignId": "c1a2b3d4-..."
+  }
+  ```
+- **Quy ước nhận diện `Personal Hub Agency`**:
+  - Bản ghi `Agency` cá nhân do hệ thống tự khởi tạo có `ownerId = currentUser.id` và `logoIcon = "personal-studio"`.
+  - Nhờ là một bản ghi `Agency` chuẩn trong bảng `agencies`, nó tự động thừa hưởng đầy đủ:
+    1. Ví AI Credit (`agency_credit_wallets`) và lịch sử giao dịch (`credit_transactions`).
+    2. Gói cước mặc định (`Basic` trong `user_subscriptions` / `subscriptions`) và thanh toán nâng cấp qua SePay / PayOS.
+    3. Bộ đếm hạn mức gửi Email Newsletter theo tháng (`newsletter_usage`).
 
 ---
 
 ## 1. Thiết kế Backend (`brandhub-business-service`)
 
-### 1.1. Mở rộng DTO & Helper cho `WorkspaceMode`
-- **Mới** `model/enums/WorkspaceMode.java`:
+### 1.1. Enum `WorkspaceMode` & Helper xử lý JSONB `WorkspaceSettingsHelper`
+- **Mới** `src/main/java/com/brandhub/business/model/enums/WorkspaceMode.java`:
   ```java
+  package com.brandhub.business.model.enums;
+
   public enum WorkspaceMode {
       AGENCY,
-      PERSONAL
+      PERSONAL;
+
+      public boolean isPersonal() {
+          return this == PERSONAL;
+      }
   }
   ```
-- **Helper đọc/ghi `workspaces.settings` JSONB**:
-  - Trong `WorkspaceServiceImpl` (hoặc `WorkspaceSettingsHelper`), parse JSON `workspace.getSettings()`:
-    - `extractWorkspaceMode(String settingsJson)` → trả về `WorkspaceMode.PERSONAL` nếu `"PERSONAL".equalsIgnoreCase(node.path("workspaceMode").asText())`, ngược lại trả về `WorkspaceMode.AGENCY`.
-    - `mergeWorkspaceMode(String settingsJson, WorkspaceMode mode)` → cập nhật trường `"workspaceMode"` trong JSONB mà giữ nguyên mọi khóa cấu hình khác trong `settings`.
+- **Mới** `src/main/java/com/brandhub/business/service/impl/WorkspaceSettingsHelper.java`:
+  - Sử dụng `ObjectMapper` để đọc/ghi không phá hủy (`non-destructive merge`) trên chuỗi JSON `Workspace.getSettings()`:
+    - `WorkspaceMode extractMode(String settingsJson)`: trả về `WorkspaceMode.PERSONAL` nếu trường `"workspaceMode"` bằng `"PERSONAL"` (không phân biệt hoa thường); mọi trường hợp khác (`null`, `""`, `"{}"`, JSON lỗi) đều trả về `WorkspaceMode.AGENCY`.
+    - `boolean isPersonalDefault(String settingsJson)`: trả về `true` nếu `"isPersonalDefault": true`.
+    - `String writeMode(String existingSettingsJson, WorkspaceMode mode, Boolean isPersonalDefault)`: giữ nguyên các khóa khác trong `settings`, cập nhật `"workspaceMode"` và `"isPersonalDefault"`.
 - **Cập nhật DTO**:
-  - `CreateWorkspaceRequest.java`:
+  - `dto/workspace/CreateWorkspaceRequest.java`:
     - Thêm `private WorkspaceMode workspaceMode;` (nullable, mặc định `AGENCY`).
-    - Cho phép `managerId` là `null` khi người gọi là `Owner` (nếu `managerId == null`, tự động gán `managerId = currentUserId`).
-  - `UpdateWorkspaceRequest.java`:
-    - Thêm `private WorkspaceMode workspaceMode;` để cho phép nâng cấp/chuyển đổi chế độ giữa `PERSONAL` và `AGENCY`.
-  - `WorkspaceResponse.java`:
-    - Thêm `private WorkspaceMode workspaceMode;` (luôn trả về `"AGENCY"` hoặc `"PERSONAL"`).
+    - Chuyển `@NotNull` trên `managerId` thành kiểm tra có điều kiện trong `WorkspaceServiceImpl`: nếu `workspaceMode == PERSONAL` (hoặc người gọi là `Owner`) mà `managerId == null`, tự động gán `managerId = currentUserId`.
+  - `dto/workspace/UpdateWorkspaceRequest.java`:
+    - Thêm `private WorkspaceMode workspaceMode;` (nullable: nếu truyền khác `null` thì thực hiện chuyển đổi chế độ kèm kiểm tra AC5).
+  - `dto/workspace/PersonalBootstrapRequest.java` (Mới):
+    - Trường tùy chọn `String name;`, `String brandName;`.
+  - `dto/workspace/WorkspaceResponse.java`:
+    - Thêm `private WorkspaceMode workspaceMode;` và `private Boolean isPersonalDefault;`.
+    - Cập nhật hàm `fromEntity(Workspace workspace, ...)` để luôn điền `workspaceMode` từ `WorkspaceSettingsHelper.extractMode(workspace.getSettings())`.
 
-### 1.2. Endpoint Bootstrap Không gian Cá nhân 1 chạm (`POST /api/v1/workspaces/personal/bootstrap`)
-- Trong `WorkspaceController.java` & `WorkspaceService.java`:
-  - Thêm endpoint `POST /api/v1/workspaces/personal/bootstrap` (Body tùy chọn: `{ "name": "Không gian cá nhân của tôi" }`).
-  - Logic xử lý trong `@Transactional`:
-    1. Tìm trong danh sách `Workspace` mà `currentUser` đang là `OWNER` hoặc `MANAGER` (thuộc `Agency` do `currentUser` làm `ownerId`) xem đã có Workspace nào mang `workspaceMode == PERSONAL` và `status == ACTIVE` chưa.
-    2. Nếu **đã tồn tại**: trả về ngay `WorkspaceResponse` của Workspace cá nhân đó (idempotent 100%, gọi nhiều lần không tạo rác).
-    3. Nếu **chưa tồn tại**:
-       - Kiểm tra xem `currentUser` đã có `Agency` cá nhân (`logoIcon = "personal-studio"` hoặc tên mặc định) chưa; nếu chưa thì tạo mới `Agency` (`ownerId = currentUserId`, `name = "Personal Studio — " + displayName`, `category = OTHER`, `companySize = SOLO`, `logoIcon = "personal-studio"`), thêm `AgencyMember` cho `currentUser` và khởi tạo gói/ví mặc định.
-       - Tạo mới `Workspace` với `settings = {"workspaceMode":"PERSONAL","isPersonalDefault":true}`, `timezoneConfig = "Asia/Ho_Chi_Minh"`.
-       - Thêm `WorkspaceMember` cho `currentUser` với role `MANAGER` (đồng thời user là `OWNER` của Agency).
-       - Trả về `WorkspaceResponse` hoàn chỉnh.
+### 1.2. Dịch vụ Khởi tạo 1 chạm `bootstrapPersonalWorkspace` & Chuyển đổi Chế độ
+- Trong `WorkspaceService.java` & `WorkspaceServiceImpl.java`:
+  1. **`WorkspaceResponse bootstrapPersonalWorkspace(UUID currentUserId, PersonalBootstrapRequest request)` (`@Transactional`)**:
+     - **Bước 1 (Kiểm tra Workspace `PERSONAL` hiện có)**:
+       - Truy vấn tất cả `Agency` của `currentUserId` (`agencyRepository.findByOwnerIdAndDeletedAtIsNull(currentUserId)`).
+       - Tìm trong các `Workspace` đang `ACTIVE` của các `Agency` đó xem đã có `Workspace` nào có `WorkspaceSettingsHelper.extractMode(w.getSettings()) == WorkspaceMode.PERSONAL` chưa (ưu tiên bản ghi có `isPersonalDefault == true`).
+       - Nếu tìm thấy → trả về ngay `WorkspaceResponse` của Workspace đó (Idempotent — AC1).
+     - **Bước 2 (Tìm hoặc tạo `Personal Hub Agency`)**:
+       - Tìm `Agency` của `currentUserId` có `logoIcon == "personal-studio"` và `status == ACTIVE`.
+       - Nếu chưa có:
+         - Đọc thông tin `User` (`userRepository.findById(currentUserId)`).
+         - Tạo bản ghi `Agency` mới: `name = "Personal Studio — " + displayName`, `logoIcon = "personal-studio"`, `category = "Personal / Creator"`, `companySize = "1-10"`, `ownerId = currentUserId`, `status = ACTIVE`.
+         - Lưu `Agency`, tạo `AgencyMember` (`ACTIVE`) cho `currentUserId`, và gọi dịch vụ khởi tạo ví AI Credit / gói `Basic` mặc định.
+     - **Bước 3 (Tạo `Workspace` cá nhân mặc định)**:
+       - Tạo `Workspace` mới thuộc `Personal Hub Agency` với `settings = WorkspaceSettingsHelper.writeMode("{}", WorkspaceMode.PERSONAL, true)`, `timezoneConfig = "Asia/Ho_Chi_Minh"`, `status = ACTIVE`.
+       - Tạo `WorkspaceMember` cho `currentUserId` với `workspaceRole = WorkspaceRole.MANAGER`, `status = ACTIVE`.
+       - Trả về `WorkspaceResponse`.
+  2. **Kiểm tra an toàn khi chuyển đổi `AGENCY → PERSONAL` trong `updateWorkspace` (AC4, AC5)**:
+     - Khi `request.getWorkspaceMode() == WorkspaceMode.PERSONAL` và chế độ hiện tại là `AGENCY`:
+       - Kiểm tra `workspaceMemberRepository.existsByWorkspaceIdAndWorkspaceRoleAndStatus(workspaceId, WorkspaceRole.CLIENT, WorkspaceMemberStatus.ACTIVE)`.
+       - Nếu đang có `Client` hoạt động → ném `AppException(ErrorCode.WORKSPACE_MODE_SWITCH_BLOCKED_BY_ACTIVE_CLIENT)`.
+       - Cập nhật `workspace.setSettings(WorkspaceSettingsHelper.writeMode(workspace.getSettings(), WorkspaceMode.PERSONAL, null))`.
 
-### 1.3. Mở khóa Chiến dịch & Công việc không cần `MediaPackage` ở chế độ `PERSONAL`
-1. **Khởi tạo Chiến dịch cá nhân (`MediaCampaignService` / `CampaignPlanValidator`)**:
-   - Hiện tại: Khi tạo hoặc triển khai `MediaCampaign`, hệ thống kiểm tra `workspace.getWorkspaceMediaPackageId() != null` và đối chiếu số lượng hạng mục công việc với `WorkspaceMediaPackage`.
-   - Cập nhật cho `workspaceMode == PERSONAL`:
-     - Cho phép khởi tạo bản nháp và triển khai (`deploy`) `MediaCampaign` ngay cả khi `workspaceMediaPackageId == null` (hoặc tự động tạo một `WorkspaceMediaPackage` nội bộ tự do ngầm nếu DB có ràng buộc FK `NOT NULL` trên `media_campaigns.workspace_media_package_id`).
-     - Bỏ qua bước kiểm tra giới hạn trần số lượng theo gói (`CampaignPlanValidator`) khi `workspaceMode == PERSONAL`, cho phép người dùng cá nhân tự do thêm/bớt bất kỳ hạng mục nào trong 8 loại Task.
-2. **Tạo Công việc độc lập (`Standalone Task` — `TaskController` / `TaskWorkflowService`)**:
-   - Cho phép `Owner` / `Manager` / `Creator` trong Workspace tạo trực tiếp `Task` mới (`POST /api/v1/workspaces/{workspaceId}/tasks`) với:
-     - `type`: 1 trong 8 loại (`POST`, `SHORT_VIDEO`, `SURVEY`, `EVENT_PLAN`, `PRESS_RECOMMENDATION`, `KOL_BOOKING`, `WORKSHOP`, `EMAIL_NEWSLETTER`).
-     - `name`, `description`, `dueDate`, `assigneeId` (mặc định `currentUserId`).
-     - `sourceType = "manual"`, `requiresClientApproval = false` (mặc định khi `workspaceMode == PERSONAL`).
-     - Tự động khởi tạo danh mục Subtask theo vai trò (`TaskCatalog`) hoặc cho phép làm trực tiếp trên Task cha.
+### 1.3. Mở khóa Chiến dịch Cá nhân Không cần `MediaPackage` (`MediaCampaignService` & `CampaignPlanValidator`)
+- **Tự động cấp Gói khung nội bộ khi tạo Chiến dịch trong Workspace `PERSONAL` (AC6)**:
+  - Trong `MediaCampaignServiceImpl`:
+    - Khi tạo hoặc lấy chiến dịch trong Workspace có `workspaceMode == PERSONAL`, nếu `workspace.getWorkspaceMediaPackageId() == null`, hệ thống tự động tạo ngầm một bản ghi `WorkspaceMediaPackage` nội bộ (`status = APPROVED`, `customName = "Personal Studio Unlimited Plan"`) và gắn vào `workspace` để mọi truy vấn JOIN SQL với `workspace_media_packages` hoạt động trơn tru mà người dùng không cần biết tới bước Gói dịch vụ.
+- **Bỏ giới hạn trần số lượng hạng mục trong `CampaignPlanValidator`**:
+  - Khi `WorkspaceSettingsHelper.extractMode(workspace.getSettings()) == WorkspaceMode.PERSONAL`, hàm kiểm tra `validateWorkItemsAgainstPackage` bỏ qua kiểm tra vượt số lượng hạng mục gói, cho phép người dùng thêm tự do bất kỳ hạng mục nào thuộc 8 loại `TaskType`.
+- **Mặc định `requiresClientApproval = false` khi sinh Task trong `CampaignTaskStore.draftTask`**:
+  - Nếu Workspace ở chế độ `PERSONAL`, mọi `TaskDocument` sinh ra từ chiến dịch có `requiresClientApproval = false` và nếu chưa chọn người thực hiện thì gán `assigneeId = currentUserId`.
 
-### 1.4. Cơ chế Tự duyệt 1 chạm (`Solo Self-Approval`)
-1. **Duyệt nhanh cấp Task (`POST /api/v1/workspaces/{workspaceId}/tasks/{taskId}/self-approve` hoặc mở rộng `TaskApprovalService`)**:
-   - Khi Task có `requiresClientApproval = false` (hoặc nằm trong Workspace `PERSONAL`) và người gọi là `Owner` hoặc `Manager` của Workspace:
-     - Cho phép chuyển thẳng Task sang trạng thái hoàn tất đã duyệt (`status = FINISHED`, `reviewStep = null`, `lastSubmission = APPROVED`) và tự động đồng bộ mọi `TaskSection` sang `INTERNAL_APPROVED` + mọi `Subtask` sang `FINISHED`.
-     - Nhờ đó, với bài đăng (`POST` / `SHORT_VIDEO`) hoặc bản tin (`EMAIL_NEWSLETTER`), người dùng cá nhân có thể bấm **"Hoàn tất & Sẵn sàng đăng"** chỉ bằng 1 cú click và sử dụng ngay tính năng **Đăng ngay (Publish Now)** hoặc **Lên lịch đăng (Schedule)**.
+### 1.4. Tạo Công việc Độc lập (`Standalone Task`) & Tự duyệt 1 chạm (`Self-Approve`)
+- **Tạo Công việc Độc lập (`POST /api/v1/workspaces/{workspaceId}/tasks/standalone`)**:
+  - Trong `TaskWorkflowController` / `TaskWorkflowService`:
+    - Thêm `createStandaloneTask(UUID workspaceId, UUID actorId, CreateStandaloneTaskRequest req)`:
+      1. Kiểm tra người gọi là thành viên hợp lệ của Workspace (`Owner`, `Manager`, hoặc `Creator`).
+      2. Nếu `req.getCampaignId() == null`, tìm (hoặc tự động khởi tạo ngầm) một `MediaCampaign` mặc định của Workspace (`name = "Kế hoạch Công việc Cá nhân"`, `status = ACTIVE`) để gán `campaignId`, giúp Task tương thích 100% với bộ lọc chiến dịch và lịch trình.
+      3. Khởi tạo `TaskDocument`:
+         - `type = req.getType()` (đủ 8 loại: `POST`, `SHORT_VIDEO`, `SURVEY`, `EVENT_PLAN`, `PRESS_RECOMMENDATION`, `KOL_BOOKING`, `WORKSHOP`, `EMAIL_NEWSLETTER`).
+         - `title = req.getTitle().trim()`, `description = req.getDescription()`.
+         - `status = TaskStatus.TODO`, `priority = req.getPriority() != null ? req.getPriority() : TaskPriority.MEDIUM`.
+         - `assigneeId = req.getAssigneeId() != null ? req.getAssigneeId() : actorId`.
+         - `dueDate = req.getDueDate() != null ? req.getDueDate() : Instant.now().plus(7, ChronoUnit.DAYS)`.
+         - `sourceType = "manual"`.
+         - `requiresClientApproval = !isPersonalWorkspace && Boolean.TRUE.equals(req.getRequiresClientApproval())`.
+      4. Nếu `Boolean.TRUE.equals(req.getInitRoleSubtasks())` (mặc định `true`), sinh danh sách `Subtask` theo `TaskCatalog.roles(req.getType())` và gán `assigneeId` cho người thực hiện để mở khóa toàn bộ các phần (`TaskSection`).
+      5. Nếu `type` là `POST` hoặc `SHORT_VIDEO`, khởi tạo sẵn bản nháp `PostDocument` liên kết với `taskId` để mở trình soạn thảo ngay.
+- **Tự duyệt & Hoàn tất 1 chạm (`POST /api/v1/workspaces/{workspaceId}/tasks/{taskId}/self-approve`)**:
+  - Trong `TaskApprovalController` / `TaskApprovalService` & `SectionService`:
+    - Thêm `selfApprove(UUID workspaceId, UUID taskId, UUID actorId, String note)`:
+      1. Kiểm tra quyền: Người gọi phải là `Owner` hoặc `Manager` của Workspace (hoặc chủ không gian `PERSONAL`). Nếu không → `FORBIDDEN` (AC9).
+      2. Kiểm tra điều kiện: Nếu Workspace là `AGENCY` và `task.getRequiresClientApproval() == true` → ném `TASK_SELF_APPROVE_NOT_ALLOWED` (AC9).
+      3. Nếu Task đã `CANCELLED` → ném `TASK_INVALID_STATUS_TRANSITION`.
+      4. Nếu Task đã `FINISHED` và `lastSubmission.outcome == APPROVED` → trả về ngay snapshot hiện tại (Idempotent).
+      5. Gọi `sectionService.approveAllForSelfApprove(workspaceId, task, actorId, note)`:
+         - Duyệt qua toàn bộ `TaskCatalog.sectionsOf(task.getType())`, upsert từng `TaskSectionDocument` sang `status = SectionStatus.INTERNAL_APPROVED`, tăng `revision`, ghi `TaskSectionEventDocument`.
+      6. Cập nhật toàn bộ `Subtask` chưa hủy của Task sang `status = FINISHED`.
+      7. Đóng `TaskDocument` sang `status = TaskStatus.FINISHED`, `reviewStep = null`, `lastSubmission = APPROVED` và ghi lịch sử vào `task_approvals`.
+      8. Nếu Task là `POST` / `SHORT_VIDEO`, cập nhật `PostDocument` nháp sang `APPROVED` (sẵn sàng đăng ngay hoặc lên lịch).
 
 ---
 
 ## 2. Thiết kế Frontend (`brandhub-web`)
 
-### 2.1. Types, Services & Store (`workspaceMode`)
-- Cập nhật `src/types/workspace.ts`:
-  - Thêm `export type WorkspaceMode = "AGENCY" | "PERSONAL";`
-  - Thêm `workspaceMode?: WorkspaceMode;` vào `Workspace`, `CreateWorkspacePayload`, `UpdateWorkspacePayload`.
-- Cập nhật `src/services/workspaceService.ts`:
-  - Thêm `bootstrapPersonal(name?: string): Promise<AxiosResponse<ApiResponse<Workspace>>>` gọi `POST /api/v1/workspaces/personal/bootstrap`.
-- Tạo hook tiện ích `useWorkspaceMode(workspaceId?: string)`:
-  - Trả về `{ workspaceMode, isPersonalMode, workspace, isLoading }` để mọi component trong Workspace (`Sidebar`, `ProgressStepper`, `Dashboard`, `CampaignPage`, `TasksPage`, `TaskWorkflowContent`, `Editor`) đọc được tức thì.
+### 2.1. Types, Service & Hook `useWorkspaceMode`
+- `src/types/workspace.ts`:
+  - Thêm `export type WorkspaceMode = "AGENCY" | "PERSONAL";`.
+  - Mở rộng `Workspace`, `CreateWorkspacePayload`, `UpdateWorkspacePayload` với `workspaceMode?: WorkspaceMode;` và `isPersonalDefault?: boolean;`.
+- `src/services/workspaceService.ts`:
+  - Thêm `bootstrapPersonal(payload?: { name?: string; brandName?: string })` gọi `POST /api/v1/workspaces/personal/bootstrap`.
+- `src/services/taskWorkflowService.ts`:
+  - Thêm `createStandaloneTask(workspaceId: string, payload: CreateStandaloneTaskPayload)` gọi `POST /api/v1/workspaces/${workspaceId}/tasks/standalone`.
+  - Thêm `selfApproveTask(workspaceId: string, taskId: string, note?: string)` gọi `POST /api/v1/workspaces/${workspaceId}/tasks/${taskId}/self-approve`.
+- **Mới** `src/hooks/useWorkspaceMode.ts`:
+  - Nhận `workspaceId` (từ `useParams` hoặc truyền vào), đọc từ React Query cache `["workspace", workspaceId]`:
+  - Trả về `{ workspaceMode, isPersonalMode: workspaceMode === "PERSONAL", workspace, isLoading }`.
 
-### 2.2. Trải nghiệm Khởi tạo & Chuyển đổi Không gian Cá nhân
-1. **Tại trang Hub `/agency` & `/workspace` (`src/pages/agency/index.tsx`)**:
-   - Bổ sung thẻ / nút nổi bật **"Không gian Cá nhân (Personal Studio)"** trên thanh công cụ và trong Empty State khi người dùng mới chưa có dữ liệu.
-   - Bấm vào sẽ gọi `workspaceService.bootstrapPersonal()` → tự động set `currentAgencyId` + điều hướng thẳng vào `/workspaces/{id}/dashboard`.
-   - Trên mỗi thẻ `WorkspaceCardItem`, hiển thị nhãn phân biệt rõ ràng: Badge **`Cá nhân (Personal)`** hoặc **`Agency`**.
-2. **Tại trang Tạo Workspace (`src/pages/workspace/create.tsx`)**:
-   - Thêm bộ chọn trực quan ở đầu form:
-     - **Chế độ Cá nhân / Dự án độc lập (`PERSONAL`)**: Form rút gọn (chỉ cần nhập Tên dự án, Lĩnh vực, Múi giờ; tự động gán bản thân làm người quản lý, ẩn các trường thông tin doanh nghiệp rườm rà).
-     - **Chế độ Khách hàng Agency (`AGENCY`)**: Giữ nguyên form đầy đủ như hiện tại.
-3. **Tại trang Cài đặt Workspace (`src/pages/workspace/settings.tsx`)**:
-   - Thêm thẻ **"Chế độ vận hành Không gian làm việc (Workspace Mode)"**: cho phép chuyển đổi linh hoạt giữa `Cá nhân / Dự án tự thân (PERSONAL)` và `Khách hàng Agency (AGENCY)` chỉ bằng 1 nút bấm.
+### 2.2. Khởi tạo Personal Studio, Tạo Workspace & Chuyển đổi Chế độ
+1. **Trang Agency & Workspace Hub (`src/pages/agency/index.tsx`, `WorkspaceCardItem.tsx`, `WorkspaceEmptyState.tsx`)**:
+   - Thêm nút/thẻ nổi bật **"Không gian Cá nhân (Personal Studio)"** gọi `workspaceService.bootstrapPersonal()`:
+     - Sau khi thành công: lưu `currentAgencyId = res.data.agencyId`, làm mới cache và điều hướng thẳng tới `/workspaces/${res.data.id}/dashboard`.
+   - Trên mỗi `WorkspaceCardItem`, hiển thị badge phân biệt **`Cá nhân`** (`bg-brand-orange/10 text-brand-orange`) hoặc **`Agency`**.
+2. **Trang Tạo Workspace (`src/pages/workspace/create.tsx`)**:
+   - Thêm bộ chọn 2 thẻ trực quan ở đầu biểu mẫu:
+     - **Thẻ 1: Cá nhân / Dự án độc lập (`PERSONAL`)** — Tự động ẩn dropdown bắt buộc chọn `Manager` (tự gán chính mình), rút gọn nhãn thành *"Tên dự án / Kênh cá nhân"*.
+     - **Thẻ 2: Khách hàng Agency (`AGENCY`)** — Giữ nguyên biểu mẫu đầy đủ hiện tại.
+3. **Trang Cài đặt Workspace (`src/pages/workspace/settings.tsx`)**:
+   - Thêm khối **"Chế độ vận hành Không gian làm việc (Workspace Mode)"**:
+     - Hiển thị chế độ hiện tại (`PERSONAL` hoặc `AGENCY`) kèm nút chuyển đổi qua lại.
+     - Nếu chuyển `AGENCY → PERSONAL` bị lỗi `WORKSPACE_MODE_SWITCH_BLOCKED_BY_ACTIVE_CLIENT`, hiển thị thông báo rõ ràng bằng tiếng Việt / tiếng Anh.
 
-### 2.3. Giao diện Thích ứng (Adaptive Sidebar, Stepper & Dashboard)
+### 2.3. Giao diện Thích ứng (Sidebar, Stepper, Quick Launchpad, Quick Create Task & Self-Approve)
 1. **Thanh Tiến trình (`src/components/layout/sidebar/SidebarProgressSection.tsx`)**:
-   - Khi `isPersonalMode === true`:
-     - Ẩn bước `1. Gói dịch vụ`.
-     - Chỉ hiển thị 2 bước luôn mở khóa: `1. Kế hoạch / Chiến dịch` và `2. Công việc & Sáng tạo`.
+   - Đọc `isPersonalMode` từ `useWorkspaceMode(workspaceId)`:
+     - Khi `isPersonalMode === true`: ẩn bước `1. Gói dịch vụ`; chỉ hiển thị 2 bước luôn mở khóa: `1. Kế hoạch & Chiến dịch` và `2. Công việc & Sáng tạo`.
 2. **Menu Điều hướng (`src/components/layout/sidebar/sidebarNavConfig.ts` & `SidebarNavSections.tsx`)**:
-   - Thêm thuộc tính `hideInPersonalMode?: boolean` vào `NavItem`:
-     - Ẩn các mục chỉ dành cho mô hình có `Client`: `/clients`, `/client-profile`, `/portal`, `/requests`.
-3. **Bảng điều khiển (`src/pages/workspace/dashboard.tsx`)**:
-   - Khi `isPersonalMode === true`:
-     - Ẩn `PackageStatusBanner` (banner nhắc chọn gói dịch vụ).
-     - Hiển thị **Personal Quick Launchpad (Bệ phóng Sáng tạo Cá nhân)** gồm 5 lối tắt hành động nhanh:
-       1. *Viết bài đăng mới (`POST`)*
-       2. *Tạo kịch bản & Video ngắn (`SHORT_VIDEO`)*
-       3. *Lập kế hoạch Sự kiện / Bài tập lớn (`EVENT_PLAN` / `WORKSHOP`)*
-       4. *Khám phá xu hướng (`Trend Explorer`)*
-       5. *Kết nối tài khoản MXH (`Facebook, Instagram, TikTok, Threads`)*
+   - Thêm cờ `hideInPersonalMode?: boolean` cho các mục `/clients`, `/client-profile`, `/portal`, `/requests` và lọc bỏ khi `isPersonalMode === true`.
+3. **Bệ phóng Sáng tạo Cá nhân trên Dashboard (`src/pages/workspace/dashboard.tsx` & `PersonalQuickLaunchpad.tsx`)**:
+   - Khi `isPersonalMode === true`: ẩn `PackageStatusBanner`, hiển thị `PersonalQuickLaunchpad` với 5 lối tắt tạo nhanh bài đăng, video ngắn, kế hoạch sự kiện/PR/workshop, khám phá xu hướng và kết nối MXH.
+4. **Hộp thoại Tạo Công việc Nhanh (`src/pages/tasks/components/QuickCreateTaskDialog.tsx`)**:
+   - Tích hợp tại thanh công cụ của `/workspaces/:id/tasks` và `PersonalQuickLaunchpad`.
+   - Hỗ trợ chọn đủ **8 loại `TaskType`**, nhập tiêu đề, mô tả, hạn hoàn thành, mức độ ưu tiên, và chọn **"Tạo công việc"** hoặc **"Tạo & Mở trình soạn thảo"**.
+5. **Nút Tự duyệt 1 chạm (`TaskWorkflowContent.tsx`, `TaskApprovalSection.tsx`, `TaskEditorControls.tsx`)**:
+   - Khi `isPersonalMode === true` (hoặc `task.requiresClientApproval === false`) và người dùng là `Owner`/`Manager` (khi Task chưa `FINISHED`), hiển thị nút nổi bật **"Hoàn tất & Duyệt ngay (Self-Approve)"**.
 
-### 2.4. Tạo Công việc Trực tiếp & Tự duyệt 1 chạm trên UI
-1. **Trang Danh sách Công việc (`src/pages/tasks/index.tsx`)**:
-   - Thêm nút **"+ Tạo công việc"** trên thanh công cụ chính, mở hộp thoại chọn nhanh 1 trong 8 loại công việc (`POST`, `SHORT_VIDEO`, `SURVEY`, `EVENT_PLAN`, `PRESS_RECOMMENDATION`, `KOL_BOOKING`, `WORKSHOP`, `EMAIL_NEWSLETTER`), nhập tiêu đề + hạn hoàn thành → tạo xong mở ngay trong trình xem 3 chế độ (`Side Peek` / `Center Modal` / `Full Page`).
-2. **Chi tiết Công việc & Trình soạn thảo (`TaskWorkflowContent.tsx`, `TaskEditorControls.tsx`, `task-editor/index.tsx`)**:
-   - Khi `isPersonalMode === true` (hoặc `requiresClientApproval === false` và user là `Owner`/`Manager`):
-     - Hiển thị nút **"Hoàn tất & Duyệt ngay (Self-Approve)"** để chốt công việc chỉ với 1 chạm, mở khóa ngay nút **"Đăng bài / Lên lịch"** mà không phải qua các bước chờ duyệt trung gian.
+### 2.4. Trình xem 3 chế độ Notion Peek (`src/components/ui/peek-mode.tsx` & `useTaskPanel.ts`)
+- Chuẩn hóa `PeekModeSwitcher` (`Side Peek` | `Center Modal` | `Full Page`) trên toàn bộ danh sách công việc, subtask và bảng dữ liệu.
+- Khắc phục triệt để lỗi giật animation khi mở `Side Peek` bằng `pendingUrlTaskIdRef` trong `useTaskPanel.ts` và bỏ class `transition ease-in-out` xung đột với keyframes `@starting-style` trên `SheetContent` / `DialogContent`.
+- Bổ sung lớp nền làm mờ nhẹ (`bg-black/25 backdrop-blur-[2px]`) trên `SheetOverlay` và `DialogOverlay`.
 
 ---
 
-## 3. Chiến lược Kiểm thử & Đảm bảo Chất lượng
-1. **Backend Unit & Integration Tests (`brandhub-business-service`)**:
-   - Kiểm thử `bootstrapPersonal`: gọi lần 1 tạo mới Agency + Workspace `PERSONAL`; gọi lần 2 trả lại đúng Workspace cũ (idempotent).
-   - Kiểm thử tạo Workspace mới với `workspaceMode = PERSONAL` khi không truyền `managerId` (tự gán `Owner` làm `Manager`).
-   - Kiểm thử tạo Task độc lập và `selfApprove` chuyển thẳng sang `FINISHED` + đồng bộ `TaskSection` sang `INTERNAL_APPROVED`.
-   - Kiểm thử chuyển đổi qua lại `PERSONAL ↔ AGENCY` bảo toàn 100% dữ liệu.
-2. **Frontend Type-check, Unit Tests & Build (`brandhub-web`)**:
-   - Đảm bảo `npm run type-check`, `npm test -- --run` và `npx vite build` xanh 100%.
-   - Kiểm tra song ngữ `vi` / `en` cho toàn bộ khóa mới trong `workspace.json`, `agency.json`, `tasks.json`, `nav.json`.
+## 3. Thiết kế Mobile (`brandhub-mobile-app`)
+
+- Cập nhật `src/types/workspace.ts` thêm `workspaceMode?: 'AGENCY' | 'PERSONAL'`.
+- Trên màn hình danh sách Workspace và chi tiết Task (`TaskDetailScreen.tsx`), hiển thị badge **`Cá nhân` / `Personal`** khi `workspaceMode === 'PERSONAL'` và hỗ trợ nút duyệt hoàn tất nhanh cho `Owner`/`Manager`.
+
+---
+
+## 4. Luồng Dữ liệu Tổng thể (End-to-End Data Flow)
+
+```mermaid
+flowchart TD
+    U["Người dùng (Solo Creator / Freelancer / Sinh viên)"]
+    B["POST /api/v1/workspaces/personal/bootstrap"]
+    A["Personal Hub Agency (logoIcon='personal-studio', Wallet + Basic Plan)"]
+    W["Personal Workspace (settings.workspaceMode='PERSONAL', Role=MANAGER)"]
+    D["Workspace Dashboard (Personal Quick Launchpad)"]
+    C["Luồng 1: Chiến dịch Cá nhân (Không cần MediaPackage)"]
+    T["Luồng 2: Tạo Công việc Độc lập (8 loại TaskType + TaskCatalog Subtasks)"]
+    E["Trình soạn thảo chia phần (POST, SHORT_VIDEO, SURVEY, EVENT, PRESS, KOL, WORKSHOP, EMAIL)"]
+    S["POST /tasks/{taskId}/self-approve (1-Click Self-Approval)"]
+    O["Xuất bản MXH (FB/IG/TikTok/Threads) | Gửi Newsletter | Xuất PDF/DOCX"]
+    UP["PATCH /workspaces/{id} (workspaceMode='AGENCY' — Scale-up giữ nguyên 100% dữ liệu)"]
+
+    U -->|1 chạm| B
+    B -->|Idempotent find-or-create| A
+    A --> W
+    W --> D
+    D --> C
+    D --> T
+    C --> T
+    T --> E
+    E -->|1 chạm hoàn tất| S
+    S -->|Task=FINISHED, Sections=INTERNAL_APPROVED| O
+    W -.->|Khi có khách hàng / mở rộng quy mô| UP
+```
+
+---
+
+## 5. Thứ tự Triển khai & Kiểm chứng (Build Order)
+
+1. **Bước 1 (Backend Foundation)**: `WorkspaceMode`, `WorkspaceSettingsHelper`, DTOs, `ErrorCode`, `bootstrapPersonalWorkspace`, và logic chuyển đổi `PERSONAL ↔ AGENCY` kèm Unit Tests.
+2. **Bước 2 (Backend Campaign, Standalone Task & Self-Approval)**: Mở khóa `MediaCampaign` ở chế độ `PERSONAL`, API `POST /tasks/standalone`, API `POST /tasks/{taskId}/self-approve`, đồng bộ `SectionService` & `TaskApprovalService`, kèm Integration Tests.
+3. **Bước 3 (Frontend Core & Bootstrap Flow)**: Types, `workspaceService.bootstrapPersonal`, `useWorkspaceMode`, nút `Personal Studio` tại `/agency`, form tạo/cài đặt Workspace.
+4. **Bước 4 (Frontend Adaptive UI, Quick Launchpad, Quick Create Task & Self-Approve)**: `SidebarProgressSection`, `sidebarNavConfig`, `PersonalQuickLaunchpad`, `QuickCreateTaskDialog`, nút `Self-Approve`, và kiểm tra 3 chế độ `PeekMode`.
+5. **Bước 5 (i18n, Theme, Mobile & Full Verification)**: Đồng bộ khóa `vi`/`en`, kiểm tra Light/Dark Mode & Responsive, chạy toàn bộ test suite (`mvn test`, `npm run type-check`, `npm test -- --run`, `npx vite build`).
+
+---
+
+## 6. Quản trị Rủi ro (Risk Mitigation)
+
+| Rủi ro | Mức độ | Biện pháp giảm thiểu |
+| :--- | :---: | :--- |
+| Dữ liệu Workspace cũ trong DB có `settings` rỗng hoặc khác cấu trúc gây lỗi khi đọc `workspaceMode` | Cao | `WorkspaceSettingsHelper.extractMode` bọc `try/catch` toàn diện và luôn mặc định trả về `WorkspaceMode.AGENCY`. |
+| Người dùng bấm đúp vào nút "Không gian Cá nhân" tạo ra 2 Personal Studio trùng nhau | Trung bình | Xử lý trong `@Transactional` kèm tìm kiếm theo `ownerId` + `workspaceMode == PERSONAL` trước khi tạo mới. |
+| Các truy vấn thống kê hoặc lịch trình yêu cầu Task phải có `campaignId` hoặc `workspaceMediaPackageId` | Cao | Tự động khởi tạo ngầm (lazy-init) gói khung nội bộ và chiến dịch cá nhân mặc định khi tạo Task độc lập hoặc Chiến dịch cá nhân. |
+| Chuyển từ `AGENCY` sang `PERSONAL` làm ẩn giao diện của `Client` đang hoạt động | Trung bình | Chặn ở Backend với mã lỗi `WORKSPACE_MODE_SWITCH_BLOCKED_BY_ACTIVE_CLIENT` nếu phát hiện có `Client` đang `ACTIVE`. |
