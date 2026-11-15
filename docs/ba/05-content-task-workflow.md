@@ -28,6 +28,7 @@ Backlog KHÔNG đóng — có 3 nguồn tạo Task:
 1. **Từ Media Campaign approve** — xem [04-media-package-campaign.md](04-media-package-campaign.md) mục 3.
 2. **Từ Content Request được accept** — xem [04-media-package-campaign.md](04-media-package-campaign.md) mục 4.
 3. **[CONFIRMED 2026-09-14]** Manager tự do thêm Task thủ công vào backlog bất cứ lúc nào — không bắt buộc phải có nguồn gốc từ Campaign hay Content Request (ví dụ sửa bài cũ, họp chuẩn bị, v.v.; theo Q13 Client cùng Workspace vẫn xem/bình luận được)
+4. **[Bổ sung 2026-11-15 — Chế độ Không gian Cá nhân (`workspaceMode = PERSONAL`)]**: Trong Workspace `PERSONAL`, `Owner`/`Manager` có thể tạo trực tiếp **Công việc độc lập (`Standalone Task`, `sourceType = manual`)** thuộc bất kỳ loại nào trong 8 loại nội dung chuẩn ngay tại trang Danh sách công việc mà không cần Gói dịch vụ hay Chiến dịch. Mặc định `requiresClientApproval = false`, hỗ trợ **Tự duyệt 1 chạm (`Self-Approve`)** để chuyển thẳng Task sang `FINISHED` (`APPROVED`) và đồng bộ các `TaskSection` sang `INTERNAL_APPROVED`, giúp xuất bản hoặc lên lịch đăng bài ngay lập tức. Xem [spec personal-workspace-mode](../feature/personal-workspace-mode/spec.md).
 
 ## 2. Vòng đời 1 Task
 

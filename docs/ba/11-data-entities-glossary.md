@@ -52,6 +52,7 @@ id, agencyId (FK), userId (FK), joinedAt
 ### `Workspace`
 ```
 id, agencyId (FK), name, timezoneConfig, mediaPackageTemplateId (FK, nullable lúc mới tạo),
+settings (JSONB — chứa workspaceMode: "AGENCY" | "PERSONAL", mặc định "AGENCY" [BA 2026-11-15]),
 status (active/soft_deleted/inactive), deletedAt, createdAt, updatedAt
 ```
 

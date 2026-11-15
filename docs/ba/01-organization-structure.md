@@ -102,3 +102,19 @@ Ví dụ: User A có thể là:
 ## 7. Thứ tự nghiệp vụ liên quan (tham chiếu)
 
 Theo BA 2026-11-05, Owner tạo gói quảng bá của Agency và chia sẻ cho khách trước. Sau đó Owner tạo workspace/gán Manager, Manager chốt gói bên ngoài và lưu gói workspace để tự tạo Campaign DRAFT/task, rồi mời Client vào xem và góp ý. Manager hoàn thiện và chủ động triển khai khi đủ điều kiện. Xem [04-media-package-campaign.md](04-media-package-campaign.md).
+
+## 8. Nhánh Không gian Cá nhân & Tác giả Độc lập (Hybrid Personal Studio + Solo Workspace Mode) — [BA mới 2026-11-15]
+
+Để phục vụ nhóm khách hàng làm truyền thông cá nhân, Freelancer, Sinh viên làm đồ án/bài tập hoặc dự án nội bộ không có khách hàng (`Client`) bên ngoài, hệ thống bổ sung kiến trúc **Hybrid Personal Mode** (xem [spec đầy đủ](../feature/personal-workspace-mode/spec.md)) mà **không phá vỡ cấu trúc 3 tầng hay 6 Role chuẩn (`Guest`, `Owner`, `Manager`, `Creator`, `Client`, `Admin`)**:
+
+1. **Personal Hub (Auto-provisioned Shadow Agency)**:
+   - Khi người dùng bấm **"Không gian Cá nhân (Personal Studio)"**, hệ thống tự động khởi tạo ngầm (nếu chưa có) 1 `Agency` cá nhân (`ownerId = currentUser.id`, `logoIcon = "personal-studio"`) kèm gói cước/ví AI Credit mặc định và 1 `Workspace` mặc định có `workspaceMode = "PERSONAL"`.
+   - Người dùng đồng thời giữ vai trò `Owner` (cấp Agency) và `Manager` (cấp Workspace).
+   - Nhờ giữ nguyên thực thể `Agency` bên dưới, toàn bộ hệ thống **Ví AI Credit (`agency_credit_wallets`), Gói cước (`subscriptions`), Hóa đơn (`invoices`) và Định mức Newsletter** hoạt động nguyên vẹn 100% mà không cần tách bảng.
+2. **Phân loại Chế độ Không gian (`workspaceMode: "AGENCY" | "PERSONAL"`)**:
+   - Lưu trong `workspaces.settings` (`jsonb`). Mọi Workspace hiện có mặc định là `"AGENCY"`.
+   - Một người dùng vừa có thể tham gia các Workspace `"AGENCY"` của công ty, vừa sở hữu các Workspace `"PERSONAL"` cho kênh cá nhân hoặc bài tập riêng.
+   - Trong Workspace `"PERSONAL"`:
+     - **Bỏ qua bước `1. Gói dịch vụ (Media Package)` và `Client`**: Tiến trình rút gọn còn `Chiến dịch & Kế hoạch` (tùy chọn) và `Công việc & Sáng tạo` (luôn mở sẵn).
+     - **Tạo Công việc độc lập & Tự duyệt 1 chạm (`Self-Approval`)**: Cho phép tạo trực tiếp đủ 8 loại Task mà không cần Gói dịch vụ, mặc định `requiresClientApproval = false`, hỗ trợ nút **Hoàn tất & Duyệt ngay** để xuất bản/lên lịch đăng bài chỉ với 1 chạm.
+     - **Hỗ trợ Nhóm nhỏ & Nâng cấp (Scale-Up)**: Vẫn cho phép mời bạn cùng nhóm làm `Creator` trong Workspace `"PERSONAL"`, và có thể chuyển đổi từ `"PERSONAL"` sang `"AGENCY"` bất cứ lúc nào trong phần Cài đặt mà giữ nguyên 100% dữ liệu.

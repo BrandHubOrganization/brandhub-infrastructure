@@ -18,6 +18,7 @@
 4. **[Cập nhật 2026-11-10] Task có 9 loại nội dung** (Post, Short Video, Survey/Form, Event Plan, Press Recommendation, KOL Booking, Workshop, Email Newsletter — Livestream ngoài phạm vi). Mỗi loại có danh mục subtask theo vai trò cố định, duyệt **theo từng phần** (section-level, Manager/supervisor → Client); task cũ không có subtask vai trò vẫn dùng khung Approval Sequence task-level cũ. Xem [05-content-task-workflow.md](05-content-task-workflow.md).
 5. **Mở rộng ngoài social media**: module theo dõi thủ công đối tác truyền thông thứ 3 (báo, banner, TV) — không tự động hóa như Facebook/TikTok. Xem [07-publishing-social-collaborator.md](07-publishing-social-collaborator.md).
 6. **Client là actor ngoài Agency**, có profile tái sử dụng xuyên nhiều Agency/Workspace, không phải nội bộ công ty.
+7. **[Cập nhật 2026-11-15] Mô hình Hybrid Không gian Cá nhân (`Personal Studio` + `Workspace Mode: PERSONAL | AGENCY`)**: Cho phép người làm truyền thông cá nhân (Solo Creator, Freelancer, Sinh viên làm bài tập/đồ án) khởi tạo nhanh 1 chạm Không gian Cá nhân (`isPersonalHub = true`, `workspaceMode = PERSONAL`), bỏ qua bước bắt buộc tạo Gói dịch vụ (`Media Package`) & `Client`, hỗ trợ tạo Chiến dịch/Công việc trực tiếp và **Tự duyệt 1 chạm (Self-Approval)**, đồng thời vẫn nâng cấp mượt lên chế độ Đội nhóm/Agency bất cứ lúc nào. Xem [spec chi tiết](../feature/personal-workspace-mode/spec.md) và [01-organization-structure.md](01-organization-structure.md).
 
 ## Cấu trúc bộ tài liệu
 

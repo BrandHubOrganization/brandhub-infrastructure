@@ -48,3 +48,8 @@ File này liệt kê đầy đủ 21 FR nhóm 3.4 kèm chi tiết nghiệp vụ.
 ### Quan hệ Agency Member ↔ Workspace Member
 - Điều kiện để add ai đó vào Workspace: **họ phải đã là Member của Agency đó trước** (FR 3.4.19: "Thêm member trong Agency vào workspace với role cụ thể").
 - Tức là: chưa vào Agency → không thể trực tiếp vào Workspace của Agency đó.
+
+### Chế độ Không gian Cá nhân (`workspaceMode = PERSONAL`) — [Bổ sung 2026-11-15]
+- Khi tạo Workspace mới (FR 3.4.12) với `workspaceMode = "PERSONAL"` hoặc gọi bootstrap Không gian Cá nhân (`POST /api/v1/workspaces/personal/bootstrap`):
+  - Nếu người tạo là `Owner` và không truyền `managerId`, hệ thống **tự động gán chính `Owner` làm `Manager`** của Workspace đó.
+  - `Owner` / `Manager` có thể chuyển đổi `workspaceMode` giữa `"PERSONAL"` và `"AGENCY"` trong phần Cập nhật cấu hình Workspace (FR 3.4.14) để mở rộng từ dự án cá nhân lên dự án khách hàng Agency mà không mất dữ liệu. Xem [spec personal-workspace-mode](../feature/personal-workspace-mode/spec.md).

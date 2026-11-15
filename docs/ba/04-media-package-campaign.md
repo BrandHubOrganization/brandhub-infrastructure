@@ -19,6 +19,10 @@
 
 Một workspace tiếp tục có một Campaign. Manager được sửa gói trước triển khai và đồng bộ kế hoạch/task, giữ thông tin đã nhập ở hạng mục còn hiệu lực. Khi triển khai phải cố định bản gói/kế hoạch dùng cho lượt đó, khóa sau triển khai. Góp ý của Client không trở thành gate duyệt.
 
+> **[Bổ sung 2026-11-15 — Chế độ Không gian Cá nhân (`workspaceMode = PERSONAL`)]**: Trong các Workspace cá nhân (`PERSONAL`), người dùng làm truyền thông tự thân (Solo Creator / Freelancer / Sinh viên) **không bán Gói dịch vụ (`Media Package`) cho khách hàng**. Do đó:
+> - Bước `1. Gói dịch vụ` được ẩn trên thanh Tiến trình Sidebar.
+> - Người dùng có thể khởi tạo trực tiếp **Kế hoạch / Chiến dịch cá nhân** (tự do thêm hạng mục thuộc 8 loại Task chuẩn mà không bị chặn bởi trần số lượng của `WorkspaceMediaPackage`) hoặc bỏ qua luôn Chiến dịch để tạo trực tiếp **Công việc độc lập (`Standalone Task`)** tại bảng Công việc. Xem [spec personal-workspace-mode](../feature/personal-workspace-mode/spec.md).
+
 ## 1a. Hạng mục dịch vụ (PackageServiceType) — mỗi gói gồm nhiều deliverable theo hạng mục
 
 **BA mới 2026-11-10**, nguồn: `PackageServiceType` enum và `CampaignPlanValidator` (code hiện hành) — chưa từng mô tả trong BA trước đây. Mỗi deliverable trong một Media Package khai báo một hạng mục dịch vụ, số lượng (sản lượng) và đơn vị chuẩn; khi triển khai Campaign, mỗi deliverable sinh ra **đúng số lượng task cha** theo loại tương ứng (mục 5 + 05-content-task-workflow.md mục 3).
