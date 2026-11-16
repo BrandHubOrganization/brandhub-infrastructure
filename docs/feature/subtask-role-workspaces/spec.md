@@ -342,7 +342,13 @@ Mỗi khối phần: loading (skeleton), empty (chưa có nội dung — gợi �
 - Trình soạn đầy đủ trên mobile.
 - Đồng soạn real-time nhiều người trên cùng một phần.
 - Gửi email từ domain riêng của Client (SPF/DKIM).
-- Cập nhật baseline 141 FR, CSV FR và SRS — làm sau khi code chạy thật.
+- **Cập nhật baseline 141 FR, CSV FR và SRS — làm sau khi code chạy thật.** Kiểm tra 2026-11-13 (`brandhub-final_report/report3/Report3_Software Requirement Specification.docx`): mục 3.6 Content & Workflow hiện có đúng 35 FR (`3.6.1`–`3.6.35`), **0 lần** nhắc tới Event Plan / Press Recommendation / Short Video / KOL Booking / Workshop / Email Newsletter hay mô hình duyệt theo phần — baseline hoàn toàn chưa cập nhật theo spec này. TODO khi code nghiệm thu xong:
+  - Thêm FR mới cho mỗi subtask role của 6 loại task mới (mẫu: cách `3.6.1`–`3.6.9` mô tả Post hiện tại) — ước ~20–30 FR mới, numbering tiếp nối `3.6.35` hoặc chèn xen kẽ theo nhóm loại task (cần bàn cách đánh số để không vỡ numbering các mục sau).
+  - Viết lại `3.6.9 Approval Sequence` theo mô hình duyệt từng phần (`DRAFT → SUBMITTED → INTERNAL_APPROVED → CLIENT_APPROVED`, §5 spec này) thay vì chuỗi task-level cũ, đồng thời giữ rõ: mô hình cũ vẫn áp dụng cho task không có subtask theo vai trò.
+  - Mục `2.2 Use Cases`: thêm Use Case tương ứng từng FR mới (UC-142 trở lên, hoặc chèn lại numbering — bàn cách làm).
+  - ERD / mục `3.1.5 Entities Description`: thêm `Subtask.subtaskRole`, `TaskSection` (key, content, status, visibility, revision, versions) theo §9 spec này.
+  - Đồng bộ lại CSV FR gốc (`docs/Các FR của hệ thống - Feature_Function Requirement.csv`) và CSV Use Case nếu còn dùng làm nguồn 141 FR.
+  - Giữ nguyên exclusion rule AGENTS.md: Livestream vẫn ngoài phạm vi 141 FR, không thêm FR cho nó dù code có sẵn.
 - Lỗi migration `media_packages.share_enabled`.
 
 ## 16. Quyết định đã chốt (user, 2026-11-10)
