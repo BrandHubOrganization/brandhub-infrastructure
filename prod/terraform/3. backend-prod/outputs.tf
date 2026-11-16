@@ -54,3 +54,15 @@ output "brandhub_core_sg_id" {
 output "brandhub_service_sg_id" {
   value = aws_security_group.brandhub_service.id
 }
+
+output "ai_instance_id" {
+  value = aws_instance.brandhub["ai"].id
+}
+
+output "ai_private_ip" {
+  value = aws_instance.brandhub["ai"].private_ip
+}
+
+output "brandhub_ai_sg_id" {
+  value = aws_security_group.brandhub_ai.id
+}

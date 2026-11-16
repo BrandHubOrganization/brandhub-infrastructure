@@ -58,3 +58,15 @@ variable "instances" {
     root_volume_type = optional(string, "gp3")
   }))
 }
+
+variable "db_backup_bucket_name" {
+  description = "S3 bucket for daily Postgres pg_dump backups"
+  type        = string
+  default     = "brandhub-db-backup-prd-821014378805"
+}
+
+variable "db_backup_retention_days" {
+  description = "Days to keep each Postgres dump in S3"
+  type        = number
+  default     = 14
+}
