@@ -46,7 +46,7 @@ services:
       dockerfile: Dockerfile
     container_name: brandhub-business-service
     ports:
-      - "${BUSINESS_SERVICE_HOST_PORT:?BUSINESS_SERVICE_HOST_PORT is required}:8081"
+      - "127.0.0.1:${BUSINESS_SERVICE_HOST_PORT:?BUSINESS_SERVICE_HOST_PORT is required}:8081"
     environment:
       MONITORING_PUBLIC_API_URL: ${MONITORING_PUBLIC_API_URL:-}
       MONITORING_STORAGE: ${MONITORING_STORAGE:-postgres}
@@ -113,7 +113,7 @@ services:
       dockerfile: Dockerfile
     container_name: brandhub-ai-service
     ports:
-      - "${AI_SERVICE_HOST_PORT:?AI_SERVICE_HOST_PORT is required}:8082"
+      - "127.0.0.1:${AI_SERVICE_HOST_PORT:?AI_SERVICE_HOST_PORT is required}:8082"
     environment:
       - CHROMADB_HOST=chromadb
       - CHROMADB_PORT=8000
@@ -160,7 +160,7 @@ services:
       dockerfile: Dockerfile
     container_name: brandhub-publisher-service
     ports:
-      - "${PUBLISHER_SERVICE_HOST_PORT:?PUBLISHER_SERVICE_HOST_PORT is required}:8083"
+      - "127.0.0.1:${PUBLISHER_SERVICE_HOST_PORT:?PUBLISHER_SERVICE_HOST_PORT is required}:8083"
     environment:
       SERVER_PORT: 8083
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:?SPRING_PROFILES_ACTIVE is required}
@@ -170,6 +170,7 @@ services:
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
       BUSINESS_SERVICE_URL: http://business-service:8081
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:?INTERNAL_SERVICE_KEY is required}
+      AES_SECRET_KEY: ${AES_SECRET_KEY:?AES_SECRET_KEY is required}
       PUBLISH_INTERVAL_MS: ${PUBLISH_INTERVAL_MS:?PUBLISH_INTERVAL_MS is required}
       MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:?MAX_RETRY_ATTEMPTS is required}
     depends_on:
