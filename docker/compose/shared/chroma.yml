@@ -4,7 +4,7 @@ services:
     image: chromadb/chroma:1.5.9
     container_name: brandhub-chromadb
     ports:
-      - "${CHROMADB_HOST_PORT:?CHROMADB_HOST_PORT is required}:8000"
+      - "127.0.0.1:${CHROMADB_HOST_PORT:?CHROMADB_HOST_PORT is required}:8000"
     environment:
       ANONYMIZED_TELEMETRY: "FALSE"
     volumes:

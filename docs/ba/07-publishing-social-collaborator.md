@@ -1,57 +1,76 @@
-# 07 — Publishing & Social + Third-party Collaborator (mở rộng mới)
+# 07 — Kết nối Mạng xã hội, Lên lịch & Xuất bản Đa Nền tảng (Publishing & Social Integration)
 
-> [<< Về Overview](00-overview.md)
+> [<< 06 - AI Features](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/06-ai-features.md) | [Overview](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/00-overview.md) | [Tiếp: 08 - Subscription & Billing >>](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/08-subscription-billing.md)
+>
+> **Phạm vi FR chuẩn**: **Mục `3.8 Publishing & Social` — 15 FR (`3.8.1` – `3.8.15`)** | `UC-107` – `UC-121`.
+> Tuân thủ nghiêm ngặt quy tắc **4 nền tảng mạng xã hội chuẩn: Facebook, Instagram, TikTok, và Threads** (không có Zalo OA theo `AGENTS.md`).
+> *(Lưu ý: Nhóm Danh bạ Cộng tác viên / KOL Directory đã được chuẩn hóa sang mục `3.7.15`–`3.7.19` trong [06-ai-features.md](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/06-ai-features.md)).*
 
-## 1. Publishing & Social (FR 3.8.1 – 3.8.16) — tự động qua API
+---
 
-### Kết nối/ngắt tài khoản
-- **Connect Social Account** (3.8.1): kết nối tài khoản để Client login vào toàn bộ tài khoản đăng bài tự động. Role: CLIENT.
-- **Disconnect Account** (3.8.2): ngắt kết nối, log out khỏi mạng xã hội. Role: CLIENT.
+## 1. Bảng Tổng hợp 15 Yêu cầu Chức năng Chuẩn (`3.8.1` – `3.8.15`)
 
-### Dashboard & tracking
-- **View Dashboard Post** (3.8.3): trang tổng quan trong workspace khi đăng thành công lên social. Role: MEMBER.
-- **View Post Track Detail** (3.8.4): chi tiết bài đăng — reaction, comment, share count. Role: MEMBER.
-- **View Comment Detail List** (3.8.5): danh sách chi tiết comment từ bài post. Role: MEMBER.
-- **Preview Post** (3.8.6): xem trước layout theo từng mạng xã hội khi Creator sửa/làm bài. Role: MEMBER.
-- **Schedule Platform Post** (3.8.7): trang lịch đăng bài, xem theo lịch cụ thể. Role: MEMBER.
-- **View Status Tracking** (3.8.8): theo dõi tiến độ — Pending, In Progress, Done, Fail. Role: MEMBER.
+| Mã FR | Mã UC | Tên Chức năng Chuẩn (Atomic CRUD FR) | Actors / Roles Chuẩn | Mô tả Nghiệp vụ Cốt lõi |
+| :-: | :-: | :--- | :--- | :--- |
+| **`3.8.1`** | `UC-107` | **Connect Social Account** | `Client`, `Manager` *(và `Owner` ở chế độ `PERSONAL`)* | Kết nối tài khoản mạng xã hội chính chủ (Facebook Page, Instagram Business, TikTok Account, Threads Profile) vào Workspace qua giao thức OAuth 2.0. |
+| **`3.8.2`** | `UC-108` | **Disconnect Account** | `Client`, `Manager` *(và `Owner` ở chế độ `PERSONAL`)* | Ngắt kết nối một tài khoản mạng xã hội khỏi Workspace; thu hồi token lưu trữ và dừng các lịch đăng tự động gắn với tài khoản đó. |
+| **`3.8.3`** | `UC-109` | **View Dashboard Post** | `Owner`, `Manager`, `Creator`, `Client` | Xem bảng tổng hợp hiệu quả và danh sách các bài đã đăng trên các kênh mạng xã hội của Workspace (lượt tiếp cận, tương tác, bình luận tổng hợp). |
+| **`3.8.4`** | `UC-110` | **View Posted Detail** | `Owner`, `Manager`, `Creator`, `Client` | Xem chi tiết một bài viết đã xuất bản kèm đường dẫn trực tiếp tới bài đăng gốc trên từng nền tảng và các chỉ số tương tác chi tiết. |
+| **`3.8.5`** | `UC-111` | **Preview Post** | `Owner`, `Manager`, `Creator`, `Client` | Xem trước giao diện hiển thị của bài viết (`Mockup Preview` chuẩn xác theo khung giao diện của Facebook, Instagram, TikTok, Threads trên cả Mobile & Desktop) trước khi duyệt hoặc xuất bản. |
+| **`3.8.6`** | `UC-112` | **Schedule Platform Post** | `Manager`, `Creator` | Thiết lập thời điểm xuất bản tự động (`scheduledAt`) và chọn danh sách nền tảng mục tiêu (`targetPlatforms`) trong phần `POST.CHANNELS` / `VIDEO.CHANNELS`. |
+| **`3.8.7`** | `UC-113` | **Track Post Status** | `Owner`, `Manager`, `Creator`, `Client` | Theo dõi trạng thái xuất bản thời gian thực của từng nền tảng (`SCHEDULED` → `PUBLISHING` → `PUBLISHED` / `PARTIALLY_PUBLISHED` / `FAILED`) kèm thông báo lỗi chi tiết và nút thử đăng lại (`Retry`). |
+| **`3.8.8`** | `UC-114` | **Publish Facebook Post** | `Manager`, `Creator` | Xuất bản bài viết thường (văn bản, bộ ảnh hoặc video) lên Facebook Page qua Meta Graph API. |
+| **`3.8.9`** | `UC-115` | **Publish Facebook Reels** | `Manager`, `Creator` | Xuất bản video ngắn dọc (`9:16`) lên mục Facebook Reels của Fanpage. |
+| **`3.8.10`** | `UC-116` | **Publish Facebook Stories** | `Manager`, `Creator` | Xuất bản tin ngắn 24 giờ (ảnh hoặc video dọc) lên Facebook Page Stories. |
+| **`3.8.11`** | `UC-117` | **Publish Instagram Post** | `Manager`, `Creator` | Xuất bản bài đăng ảnh đơn, album轮播 (Carousel) hoặc video lên tài khoản Instagram Business/Creator. |
+| **`3.8.12`** | `UC-118` | **Publish Instagram Reels** | `Manager`, `Creator` | Xuất bản video ngắn dọc lên Instagram Reels kèm ảnh bìa (`cover`) và caption. |
+| **`3.8.13`** | `UC-119` | **Publish Instagram Stories** | `Manager`, `Creator` | Xuất bản ảnh/video lên Instagram Stories. |
+| **`3.8.14`** | `UC-120` | **Publish TikTok Video** | `Manager`, `Creator` | Xuất bản video ngắn lên kênh TikTok qua TikTok Content Posting API (kèm tùy chọn quyền riêng tư và cho phép bình luận/duet/stitch). |
+| **`3.8.15`** | `UC-121` | **Publish Threads Post** | `Manager`, `Creator` | Xuất bản bài viết văn bản, hình ảnh hoặc video ngắn lên nền tảng Meta Threads qua Threads API. |
 
-### Publish theo từng platform (3.8.9 – 3.8.16)
+---
 
-| FR | Platform + loại content |
-|---|---|
-| 3.8.9 | Publish Facebook Post |
-| 3.8.10 | Publish Facebook Story |
-| 3.8.11 | Publish Facebook Reels |
-| 3.8.12 | Publish Instagram Post |
-| 3.8.13 | Publish Instagram Reels |
-| 3.8.14 | Publish Instagram Story |
-| 3.8.15 | Publish TikTok Video |
-| 3.8.16 | Publish Threads Post |
+## 2. Đặc tả Nghiệp vụ Kết nối Tài khoản Mạng xã hội (`3.8.1` – `3.8.2`)
 
-Tất cả role: MEMBER. Đây là hàng đợi Publish nhận Task loại **Post** đã hoàn thành Approval Sequence (xem [05-content-task-workflow.md](05-content-task-workflow.md) mục 4).
+### 2.1. Quyền Kết nối trong Chế độ `AGENCY` vs. `PERSONAL`
+- **Trong Chế độ `AGENCY` (`workspaceMode = "AGENCY"`)**:
+  - Cả **`Client`** (tại `Client Portal` hoặc trang kết nối) và **`Manager`** (cùng `Owner`) đều có quyền thực hiện OAuth kết nối tài khoản MXH của thương hiệu vào Workspace.
+- **Trong Chế độ `PERSONAL` (`workspaceMode = "PERSONAL"`)**:
+  - Chủ không gian (**`Owner` / `Manager`**) kết nối trực tiếp các kênh Facebook, Instagram, TikTok, Threads cá nhân của mình tại `/workspaces/:id/social-accounts` (hoặc bấm từ **Bệ phóng Sáng tạo Cá nhân — Personal Quick Launchpad** trên Dashboard) mà không cần thông qua bất kỳ tài khoản `Client` nào.
 
-**Lưu ý phạm vi**: nhóm FR này giữ nguyên các platform social hiện có (Facebook, Instagram, TikTok, Threads) — KHÔNG có Zalo OA (đã loại khỏi scope theo quyết định trước — xem lịch sử session, không thuộc phạm vi tài liệu BA này).
+### 2.2. Quản lý Vòng đời Token OAuth
+- Mọi `accessToken` và `refreshToken` của 4 nền tảng được mã hóa an toàn trước khi lưu trữ và được quản lý bởi `brandhub-publisher-service` / `brandhub-business-service`.
+- Khi token sắp hết hạn, dịch vụ tự động gia hạn ngầm (`Token Refresh`); nếu người dùng đổi mật khẩu MXH hoặc thu hồi quyền từ phía nền tảng khiến token hết hiệu lực (`EXPIRED`), hệ thống hiển thị cảnh báo trạng thái cần kết nối lại (`Reconnect`).
 
-## 2. Third-party Collaborator — module MỞ RỘNG mới (chưa có trong CSV gốc, xác nhận qua hỏi-đáp)
+---
 
-**[CONFIRMED 2026-09-14]** Đây là điểm mở rộng nghiệp vụ lớn nhất ngoài phạm vi social media — phản ánh yêu cầu "mở rộng một chiến dịch truyền thông số rộng hơn, có tính lan tỏa nhiều hơn qua nhiều phương tiện truyền thông khác nhau" của Trung.
+## 3. Quy trình Lên lịch, Phê duyệt & Xuất bản Đa Nền tảng (`3.8.5` – `3.8.15`)
 
-### Vấn đề
-- FR 3.7.12 (Recommend Collaborator) chỉ gợi ý AI cho đối tác truyền thông ngoài social media: **báo điện tử, đối tác chạy banner, kênh TV**.
-- Các đối tác này **không có API** như Facebook/TikTok — không thể tự động hóa đăng bài.
-- Nhưng Agency vẫn cần **theo dõi trạng thái hợp tác** với các đối tác đó như 1 phần của Media Campaign.
+### 3.1. Điều kiện Tiên quyết Để Xuất bản (`Publishing Gate`)
+Để đảm bảo không bao giờ đăng nhầm nội dung chưa được phê duyệt lên mạng xã hội:
+1. **Quyền cấu hình kênh & lịch đăng (`POST.CHANNELS` / `VIDEO.CHANNELS`)**:
+   - Người giữ vai trò `POST_PUBLISHING` (với Task `POST`), `VIDEO_PUBLISH` (với Task `SHORT_VIDEO`), Điều phối viên (`assigneeId`), hoặc `Manager` / `Owner` có thể chọn kênh xuất bản và đặt giờ đăng dự kiến (`scheduledAt`) bất cứ lúc nào khi phần còn mở.
+   - Riêng công việc loại `SHORT_VIDEO` chỉ cho phép chọn các kênh hỗ trợ định dạng video ngắn: **TikTok (`3.8.14`), Instagram Reels (`3.8.12`), Facebook Reels (`3.8.9`)**.
+2. **Điều kiện mở khóa Xuất bản thật (`Publish Now` & `PostSchedulePublishJob`)**:
+   - Lệnh xuất bản thật sang `brandhub-publisher-service` (qua hàng đợi RabbitMQ `PublishJobMessage`) **chỉ được kích hoạt khi Công việc cha đã hoàn tất phê duyệt**:
+     - `task.status == TaskStatus.FINISHED` **VÀ** `task.lastSubmission.outcome == ApprovalOutcome.APPROVED`.
+   - **Ở chế độ `AGENCY`**: Đạt được sau khi `Manager` duyệt nội bộ và `Client` duyệt đủ các phần sản phẩm đầu ra (`CLIENT_APPROVED`).
+   - **Ở chế độ `PERSONAL`**: Đạt được **ngay lập tức chỉ với 1 cú nhấp chuột** khi chủ không gian bấm nút **"Hoàn tất & Duyệt ngay (`Self-Approve`)"** (`POST /api/v1/workspaces/{id}/tasks/{taskId}/self-approve`).
 
-### Giải pháp đã chốt
-- Cần **1 module/entity riêng** — "Third-party Collaborator" (tên đề xuất, chưa chốt chính thức) — để lưu:
-  - Thông tin liên hệ đối tác (tên báo/đài/đơn vị chạy banner, người liên hệ, kênh liên hệ).
-  - Trạng thái hợp tác: **đã liên hệ → đang đàm phán → đã chốt → đã lên sóng**.
-- **Không tự động hóa đăng bài** lên các kênh này — chỉ là tracking thủ công do Manager/Creator cập nhật tay.
-- Gắn với **Media Campaign hoặc Task cụ thể** — 1 Campaign có thể có nhiều Collaborator khác nhau.
-- AI Recommend Collaborator (FR 3.7.12, xem [06-ai-features.md](06-ai-features.md)) chỉ đưa ra gợi ý ứng viên ban đầu — không tác động vào trạng thái hợp tác.
+### 3.2. Cơ chế Hủy lịch Tự động Khi Nội dung Bị Trả lại
+- Nếu một bài viết đã được đặt lịch (`status = SCHEDULED`), nhưng trước giờ đăng mà `Client` hoặc `Manager` bấm **Trả lại (`Return`)** một phần nội dung để yêu cầu chỉnh sửa:
+  - Hệ thống tự động đưa Task cha về `IN_PROGRESS` và gọi `PostService.cancelTaskSchedule(workspaceId, taskId)` để chuyển bài viết về `DRAFT`, xóa `scheduledAt`.
+  - Nhờ đó, `PostSchedulePublishJob` (quét định kỳ mỗi 30 giây) sẽ tự động bỏ qua bài viết đó cho đến khi nội dung được sửa, duyệt lại và đặt lịch mới.
 
-### Việc CẦN LÀM tiếp (chưa thiết kế chi tiết)
+### 3.3. Quy chuẩn Kỹ thuật Theo Từng Định dạng Xuất bản (`3.8.8` – `3.8.15`)
 
-> **Xác nhận người dùng 2026-10-13:** E50-08 / DA-949 là danh bạ cấp Agency, chỉ Owner quản lý. Đối tác chưa từng được Campaign dùng có thể xóa; đã dùng chỉ ngừng sử dụng, không được gán mới. Campaign đã liên kết vẫn xem và cập nhật hợp tác theo E50-09 / DA-950. Entity/schema V2 đã có; phần mô tả “chưa có schema” bên dưới là lịch sử. Thiết kế hiện hành: `docs/feature/media-package-campaign/partner-directory/spec.md`. Không mở rộng sang AI/booking/thanh toán. Cần lead/team review thông tin BA chung.
-- Chưa có entity/DB schema chính thức cho Third-party Collaborator — cần thiết kế field cụ thể (tên đối tác, loại kênh, chi phí, người phụ trách, ghi chú, trạng thái, lịch sử thay đổi trạng thái...).
-- Chưa có FR số hiệu chính thức trong CSV — đây là module PHÁT SINH ngoài 109 FR gốc, cần bổ sung số FR mới khi cập nhật CSV chính thức (đề xuất: nhóm vào 3.8, ví dụ 3.8.17 – 3.8.2x, hoặc nhóm riêng 3.11 "Third-party Media Collaboration").
+| Mã FR | Định dạng Xuất bản | Nền tảng | Yêu cầu Nội dung & Media Đầu vào |
+| :-: | :--- | :---: | :--- |
+| **`3.8.8`** | **Facebook Post** | Facebook Page | Văn bản (`caption` ≤ 63.206 ký tự), kèm tùy chọn 1–10 ảnh (JPG/PNG/WebP) hoặc 1 video. |
+| **`3.8.9`** | **Facebook Reels** | Facebook Page | Bắt buộc 1 video dọc (`9:16` khuyến nghị, thời lượng 3s–90s, MP4/MOV) + mô tả ngắn. |
+| **`3.8.10`** | **Facebook Stories** | Facebook Page | Bắt buộc 1 ảnh hoặc 1 video ngắn dọc hiển thị trong 24 giờ. |
+| **`3.8.11`** | **Instagram Post** | Instagram Business | Bắt buộc ít nhất 1 ảnh hoặc album Carousel (tối đa 10 media) + `caption` (≤ 2.200 ký tự, tối đa 30 hashtag). |
+| **`3.8.12`** | **Instagram Reels** | Instagram Business | Bắt buộc 1 video dọc (MP4/MOV, tối đa 15 phút, khuyến nghị ≤ 90s) + `caption` + ảnh bìa tùy chọn. |
+| **`3.8.13`** | **Instagram Stories** | Instagram Business | Bắt buộc 1 ảnh hoặc 1 video ngắn dọc hiển thị trong 24 giờ. |
+| **`3.8.14`** | **TikTok Video** | TikTok | Bắt buộc 1 video (MP4/WebM/MOV, 3s–10 phút) + tiêu đề/caption (≤ 2.200 ký tự). |
+| **`3.8.15`** | **Threads Post** | Threads | Văn bản (≤ 500 ký tự mỗi bài) và/hoặc ảnh/video đính kèm. |
