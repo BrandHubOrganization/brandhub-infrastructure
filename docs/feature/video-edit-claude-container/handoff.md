@@ -7,7 +7,7 @@ docker compose -f compose.video-edit.yml build
 ```
 Thư mục `.video-edit-context/` (khoảng 30 MB, không chứa secret) phải có mặt khi build. Có thể build ở máy owner rồi push image lên ECR, EC2 chỉ cần pull.
 
-## Biến môi trường (`.env.video-edit-container`, xem `.env.video-edit-container.example`)
+## Biến môi trường (`.env.video-edit-container`, xem `video-edit-container.env.example`)
 - `INTERNAL_SERVICE_KEY`, `VIDEO_EDIT_MONGO_URI`, `VIDEO_EDIT_MONGO_DATABASE`
 - `CLAUDE_CODE_OAUTH_TOKEN`: cùng token với ai-service, nằm ở SSM `/brandhub/ai-service/CLAUDE_CODE_OAUTH_TOKEN`
 - `VIDEO_EDIT_BUSINESS_URL`: URL nội bộ của business-service tính từ EC2 mới
