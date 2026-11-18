@@ -10,8 +10,8 @@ locals {
 }
 
 resource "aws_cloudfront_origin_access_control" "web" {
-  name                              = "oac-brandhub-web-devtest.s3.ap-southeast-1.amazonaws-muc4sv5cpy1"
-  description                       = "Created by CloudFront"
+  name                              = "brandhub-web-prd-oac"
+  description                       = "BrandHub frontend S3 origin"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
@@ -31,7 +31,7 @@ resource "aws_cloudfront_distribution" "web" {
   http_version        = "http2"
   price_class         = "PriceClass_All"
   default_root_object = "index.html"
-  aliases             = [var.domain_name]
+  aliases             = var.attach_domain_alias ? [var.domain_name] : []
 
   origin {
     domain_name              = local.s3_origin_domain_name
@@ -75,14 +75,16 @@ resource "aws_cloudfront_distribution" "web" {
     }
   }
 
+  # Without the alias, CloudFront serves its default *.cloudfront.net certificate.
   viewer_certificate {
-    acm_certificate_arn      = aws_acm_certificate.frontend.arn
-    ssl_support_method       = "sni-only"
-    minimum_protocol_version = "TLSv1.2_2021"
+    acm_certificate_arn            = var.attach_domain_alias ? aws_acm_certificate_validation.frontend.certificate_arn : null
+    ssl_support_method             = var.attach_domain_alias ? "sni-only" : null
+    minimum_protocol_version       = var.attach_domain_alias ? "TLSv1.2_2021" : "TLSv1"
+    cloudfront_default_certificate = !var.attach_domain_alias
   }
 
   tags = {
-    Name = "brandhub-web-dev"
+    Name = "brandhub-web-prd"
   }
 
   lifecycle {

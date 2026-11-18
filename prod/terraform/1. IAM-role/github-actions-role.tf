@@ -109,16 +109,22 @@ resource "aws_iam_role_policy" "github_actions_backend_cicd" {
         ]
       },
       {
-        Sid    = "SSMSendCommandToBrandHubEC2"
-        Effect = "Allow"
-        Action = ["ssm:SendCommand"]
-        Resource = concat(
-          ["arn:aws:ssm:${var.aws_region}::document/AWS-RunShellScript"],
-          [
-            for instance_id in var.ec2_instance_ids :
-            "arn:aws:ec2:${var.aws_region}:${var.aws_account_id}:instance/${instance_id}"
-          ]
-        )
+        Sid      = "SSMSendCommandDocument"
+        Effect   = "Allow"
+        Action   = ["ssm:SendCommand"]
+        Resource = ["arn:aws:ssm:${var.aws_region}::document/AWS-RunShellScript"]
+      },
+      {
+        # Scoped by tag instead of instance IDs, so this stack does not depend on the backend stack.
+        Sid      = "SSMSendCommandToBrandHubEC2"
+        Effect   = "Allow"
+        Action   = ["ssm:SendCommand"]
+        Resource = ["arn:aws:ec2:${var.aws_region}:${var.aws_account_id}:instance/*"]
+        Condition = {
+          StringEquals = {
+            "ssm:resourceTag/Project" = "BrandHub"
+          }
+        }
       },
       {
         Sid    = "SSMGetCommandStatus"

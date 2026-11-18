@@ -46,3 +46,6 @@ override.tf.json
 *_override.tf.json
 .terraformrc
 terraform.rc
+
+# Load test accounts
+/loadtest/users.json

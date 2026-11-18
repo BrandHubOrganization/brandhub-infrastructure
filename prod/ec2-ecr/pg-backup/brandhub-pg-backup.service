@@ -1,0 +1,12 @@
+[Unit]
+Description=BrandHub Postgres pg_dump to S3
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/brandhub-pg-backup.sh
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=1800

@@ -52,9 +52,21 @@ variable "instances" {
     name             = string
     ami              = string
     instance_type    = string
-    key_name         = string
+    key_name         = optional(string)
     private_ip       = optional(string)
     root_volume_size = optional(number, 30)
     root_volume_type = optional(string, "gp3")
   }))
+}
+
+variable "db_backup_bucket_name" {
+  description = "S3 bucket for daily Postgres pg_dump backups"
+  type        = string
+  default     = "brandhub-db-backup-prd-134875421878"
+}
+
+variable "db_backup_retention_days" {
+  description = "Days to keep each Postgres dump in S3"
+  type        = number
+  default     = 14
 }

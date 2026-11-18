@@ -35,14 +35,6 @@ output "core_services_private_ip" {
   value = aws_instance.brandhub["core_services"].private_ip
 }
 
-output "crawl_instance_id" {
-  value = aws_instance.brandhub["crawl"].id
-}
-
-output "crawl_private_ip" {
-  value = aws_instance.brandhub["crawl"].private_ip
-}
-
 output "brandhub_crawl_sg_id" {
   value = aws_security_group.brandhub_crawl.id
 }
@@ -53,4 +45,16 @@ output "brandhub_core_sg_id" {
 
 output "brandhub_service_sg_id" {
   value = aws_security_group.brandhub_service.id
+}
+
+output "brandhub_ai_sg_id" {
+  value = aws_security_group.brandhub_ai.id
+}
+
+output "edit_video_instance_id" {
+  value = aws_instance.brandhub["edit_video"].id
+}
+
+output "edit_video_private_ip" {
+  value = aws_instance.brandhub["edit_video"].private_ip
 }

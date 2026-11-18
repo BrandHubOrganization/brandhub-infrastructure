@@ -3,6 +3,8 @@ locals {
     api_gateway   = aws_security_group.brandhub_core.id
     core_services = aws_security_group.brandhub_service.id
     crawl         = aws_security_group.brandhub_crawl.id
+    ai            = aws_security_group.brandhub_ai.id
+    edit_video    = aws_security_group.brandhub_edit_video.id
   }
 }
 

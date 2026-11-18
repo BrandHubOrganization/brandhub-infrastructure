@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "aws_account_id" {
   description = "AWS Account ID"
   type        = string
-  default     = "821014378805"
+  default     = "134875421878"
 }
 
 variable "github_org" {
@@ -25,7 +25,7 @@ variable "github_oidc_thumbprints" {
 variable "frontend_s3_bucket_name" {
   description = "Frontend S3 bucket deployed by GitHub Actions"
   type        = string
-  default     = "brandhub-web-prd"
+  default     = "brandhub-web-prd-134875421878"
 }
 
 variable "ecr_repositories" {
@@ -36,16 +36,7 @@ variable "ecr_repositories" {
     "brandhub/api-gateway",
     "brandhub/business-service",
     "brandhub/crawl-service",
+    "brandhub/edit-video",
     "brandhub/publisher-service",
-  ]
-}
-
-variable "ec2_instance_ids" {
-  description = "EC2 instance IDs targeted by AWS SSM rolling deployments"
-  type        = list(string)
-  default = [
-    "i-0bb4d86f49b9d46ce",
-    "i-063273525abef7802",
-    "i-0cb8fcc2b83af97e5",
   ]
 }

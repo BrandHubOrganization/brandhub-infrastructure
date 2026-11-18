@@ -34,11 +34,17 @@ variable "domain_name" {
 variable "s3_bucket_name" {
   description = "S3 bucket storing static frontend assets"
   type        = string
-  default     = "brandhub-web-prd"
+  default     = "brandhub-web-prd-134875421878"
 }
 
 variable "google_site_verification" {
   description = "Google Site Verification TXT record value for the root domain"
   type        = string
   default     = "google-site-verification=qc51QJXB99MYCUro3L_KhTl5JpDujW9qIMD9fCPNAFM"
+}
+
+variable "attach_domain_alias" {
+  description = "Attach domain_name to CloudFront. Keep false until AWS releases the alias still held by the locked account 821014378805 (CNAMEAlreadyExists)."
+  type        = bool
+  default     = false
 }

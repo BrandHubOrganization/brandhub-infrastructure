@@ -1,5 +1,14 @@
 # BrandHub AWS Production Infrastructure (Terraform)
 
+> **2026-11-18: moved to account 134875421878.** Account 821014378805 is locked (free tier ended). All four
+> stacks were re-created with fresh local state; the old state files are kept as `terraform.tfstate*.account-821014378805`
+> (gitignored) and the old-account `imports.tf` files were removed. S3 bucket names carry the `-134875421878` suffix
+> because the old names still belong to the locked account. Minimal layout on the free plan: `api_gateway` (t3.small)
+> and `core_services` (m7i-flex.large, every backend service and data store). No SSH key pair; use SSM Session Manager.
+> Apply order: 1 IAM -> 2 Route 53 zone (targeted) -> 4 S3 -> 3 backend -> 2 rest, after the registrar points
+> `brandhub.id.vn` at the new zone's name servers.
+
+
 Thư mục này quản lý toàn bộ hạ tầng AWS Production đang chạy thực tế của hệ thống **BrandHub** (AWS Account `821014378805`, Region chính `ap-southeast-1` + `us-east-1` cho CloudFront ACM), được chia thành 3 module độc lập và đã đồng bộ 100% với Terraform State (`No changes`):
 
 ```text
