@@ -12,6 +12,8 @@ resource "aws_route53_zone" "brandhub_public" {
 }
 
 resource "aws_route53_record" "frontend_ipv4" {
+  count = var.attach_domain_alias ? 1 : 0
+
   zone_id = aws_route53_zone.brandhub_public.zone_id
   name    = var.domain_name
   type    = "A"
@@ -24,6 +26,8 @@ resource "aws_route53_record" "frontend_ipv4" {
 }
 
 resource "aws_route53_record" "frontend_ipv6" {
+  count = var.attach_domain_alias ? 1 : 0
+
   zone_id = aws_route53_zone.brandhub_public.zone_id
   name    = var.domain_name
   type    = "AAAA"

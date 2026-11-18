@@ -334,3 +334,13 @@ resource "aws_vpc_security_group_ingress_rule" "chromadb_from_ai" {
   to_port                      = 8000
   ip_protocol                  = "tcp"
 }
+
+# Minimal layout: AI runs on the core EC2, so the gateway reaches it there.
+resource "aws_vpc_security_group_ingress_rule" "ai_on_core_from_gateway" {
+  security_group_id            = aws_security_group.brandhub_service.id
+  description                  = "Gateway access to AI API on core EC2"
+  referenced_security_group_id = aws_security_group.brandhub_core.id
+  from_port                    = 8082
+  to_port                      = 8082
+  ip_protocol                  = "tcp"
+}
