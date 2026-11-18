@@ -1,145 +1,163 @@
-# 12 — State Machines (sơ đồ trạng thái chi tiết)
+# 12 — Máy Trạng Thái Toàn Hệ Thống (System State Machines)
 
-> **Ưu tiên BA 2026-10-18 cho Task:** mục 4 hiện hành và [FR 3.6.9 v3](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md) thay quy tắc QC/trạng thái trung gian của các ghi chú cũ. Một bản POST qua /editor, khóa nội dung khi review; reject/withdraw hợp lệ về IN_PROGRESS, gửi lại lượt mới; FINISHED không tự publish. Giai đoạn 1 là tài liệu, chưa có implementation Approval.
+> [<< 11 - Data Entities & Glossary](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/11-data-entities-glossary.md) | [Overview](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/00-overview.md)
+>
+> Tài liệu này định nghĩa toàn bộ các Máy Trạng Thái (State Machines) đang vận hành trong hệ thống **BrandHub**, bao gồm cả vòng đời duyệt từng phần (`TaskSection`), tự duyệt 1 chạm (`Self-Approve` trong chế độ `PERSONAL`), hủy lịch tự động khi trả bài, và tạm giữ/quyết toán ví AI Credit.
 
-> **BA mới đã chốt 2026-10-15:** Task chỉ còn TODO / IN_PROGRESS / IN_REVIEW / CANCELLED / FINISHED. Giao việc là metadata, không còn bước DETAIL_IDENTIFIED/ASSIGNED. Phải có mô tả + deadline hợp lệ trước giao; Creator được giao bấm bắt đầu mới IN_PROGRESS; sau đó Manager khóa sửa/giao lại. IN_REVIEW giữ QC → Manager → Client khi được cấu hình; reject về IN_PROGRESS, duyệt lại từ QC nếu có. Approval do thành viên khác triển khai. Autosave on-blur và action list chỉ assignment/deadline/start. Ghi chú mới này thay thế vòng đời Task lịch sử bên dưới; xem [spec mới](../feature/content-task-workflow/task-five-state-inline-edit/spec.md).
+---
 
-> [<< Về Overview](00-overview.md)
-> Mục đích: mô tả chi tiết TỪNG cạnh chuyển trạng thái (transition) — điều kiện, ai được phép bấm — cho các entity có vòng đời phức tạp. Bổ sung cho mô tả bằng lời ở các file 04, 05, 07.
+## 1. Máy Trạng Thái Không Gian Làm Việc & Chế Độ Vận Hành (`Workspace` & `WorkspaceMode`)
 
-## 1. Content Request
-
-> **Quyết định mới nhất 2026-10-14 thay thế các ghi chú lịch sử về xử lý Request sau hoàn thành bên dưới:** Task được chấp nhận gắn Campaign hiện tại và giữ Request nguồn; mọi Task chưa COMPLETED/CANCELLED và Request IN_PROGRESS chặn Manager hoàn thành Campaign. Sau hoàn thành thành công, PENDING tự hủy bằng durable queue; không tạo/sửa/tiếp nhận mới. Hủy Task là thao tác riêng có lựa chọn, lý do chung và xác nhận. Xem [Campaign closure](../feature/media-package-campaign/campaign-closure/spec.md).
-
+### 1.1. Trạng thái Vòng đời `Workspace.status`
 ```
-        create (CLIENT)
-              │
-              ▼
-         [PENDING] ──────update (CLIENT, chỉ khi PENDING)────────────┐
-              │                                                        │
-   set in_progress (MANAGER)                                          │
-              │                                                        ▼
-              ▼                                                  (vẫn PENDING)
-      [IN_PROGRESS]
-        │           │
- accept(MANAGER)  deny(MANAGER)
-        │           │
-        ▼           ▼
-   [ACCEPTED]    [DENIED]
-        │
-        ▼
-  tự động sinh 1 Task mới (xem mục 3)
-
-  PENDING ──cancel (CLIENT tạo Request)──► CANCELLED (terminal)
+[Tạo Workspace (3.4.13) hoặc Bootstrap Personal Studio]
+                         │
+                         ▼
+                      ACTIVE ◄──── Restore (3.4.18, Owner/Manager) ────┐
+                      │    │                                           │
+  Archive (3.4.17) ───┘    └──── Delete (3.4.16, Owner) ───▶ DELETED   │
+         │                                                             │
+         ▼                                                             │
+     ARCHIVED (Chỉ đọc, dừng mọi job xuất bản tự động) ─────────────────┘
 ```
 
-| Từ | Đến | Ai bấm | Điều kiện |
-|---|---|---|---|
-| (mới) | PENDING | CLIENT | Create Content Request |
-| PENDING | PENDING (update nội dung) | CLIENT | Chỉ khi đang PENDING |
-| PENDING | CANCELLED | CLIENT tạo Request | Hủy mềm; chỉ khi PENDING |
-| PENDING | IN_PROGRESS | MANAGER thuộc Workspace | Bấm “Tiếp nhận yêu cầu”; xem trang không chuyển trạng thái; lưu người/thời điểm |
-| IN_PROGRESS | ACCEPTED | MANAGER | → tự sinh Task mới |
-| IN_PROGRESS | DENIED | MANAGER | Kết thúc, không sinh Task |
-| ACCEPTED/DENIED/CANCELLED | * | KHÔNG AI | Trạng thái cuối, không mở lại |
-
-Xác nhận người dùng 2026-10-13: IN_PROGRESS hiển thị “Đang xem xét”, không phải Task đang thực hiện. Client chỉ sửa title/description/type/dueDate và hủy trong PENDING. Chỉ tạo mới khi Campaign IN_PROGRESS, deployment SUCCEEDED; không tạo khi COMPLETED. Request đã có tiếp tục xử lý sau hoàn thành, không tự hủy. Các thay đổi BA chung cần lead/team review theo team guide.
-
-## 2. Media Package — hành trình Manager quản lý
-
-BA chốt 2026-11-05, theo [spec mới](../feature/media-package-campaign/guest-sharing-manager-led/spec.md). Sơ đồ này thay flow đàm phán/duyệt Package hai phía của đặc tả cũ.
-
-```mermaid
-flowchart TD
-    A[Gói quảng bá của Agency] --> B[Owner xuất ảnh/PDF hoặc link guest]
-    B --> C[Khách xem trước khi có tài khoản/workspace]
-    C --> D[Owner tạo workspace và gán Manager]
-    D --> E[Manager chốt gói bên ngoài]
-    E --> F[Manager lưu gói workspace hợp lệ]
-    F --> G[Tự tạo Campaign DRAFT và task lớn]
-    G --> H[Mời Client vào xem/góp ý]
-    G --> I[Manager chỉnh trước triển khai]
-    I --> G
-    G --> J[Cố định bản gói/kế hoạch khi triển khai]
+### 1.2. Chuyển đổi Chế độ `settings.workspaceMode` (`PERSONAL ↔ AGENCY`)
+```
+┌───────────────────────────────────────────┐
+│        workspaceMode = "PERSONAL"         │
+│ • Không cần MediaPackage / Client         │
+│ • Mở sẵn Chiến dịch & Tạo Task độc lập    │
+│ • Hỗ trợ Tự duyệt 1 chạm (Self-Approve)   │
+└─────────────────────┬─────────────────────┘
+                      │  ▲
+   Scale-up (3.4.15)  │  │ Simplify (3.4.15): Chỉ cho phép khi KHÔNG có
+   (Giữ nguyên 100%   │  │ Client đang ACTIVE và không có phần chờ Client
+    dữ liệu)          ▼  │ (Vi phạm → 409 WORKSPACE_MODE_SWITCH_BLOCKED_BY_ACTIVE_CLIENT)
+┌─────────────────────┴─────────────────────┐
+│         workspaceMode = "AGENCY"          │
+│ • Quy trình 3 bước: Gói → Chiến dịch → Việc│
+│ • Có Client Portal & Duyệt 2 cấp          │
+└───────────────────────────────────────────┘
 ```
 
-- Manager chọn gói mẫu Agency để tùy chỉnh hoặc tạo mới. Client không chọn, đàm phán hoặc duyệt Package trong hệ thống.
-- Link guest luôn đọc bản gói Agency mới nhất đã lưu. Gói workspace giữ nội dung riêng, không tự đổi theo danh mục.
-- Lưu lại/retry dùng cùng Campaign/task. Trước triển khai được chỉnh và đồng bộ an toàn, giữ thông tin công việc đã nhập.
-- Gói/phạm vi kế hoạch được cố định khi triển khai và khóa sau triển khai. Trạng thái dữ liệu cũ như CLIENT_REQUESTED_CHANGE, AGENCY_COUNTERED và APPROVED cần mapping trong plan, không tự xóa hoặc tạo approval giả.
+---
 
-## 3. Media Campaign — Client xem/góp ý, Manager triển khai
+## 2. Máy Trạng Thái Gói Dịch Vụ, Chiến Dịch & Yêu Cầu Nội Dung (`3.5.1` – `3.5.13`)
 
-```mermaid
-stateDiagram-v2
-    [*] --> DRAFT: Manager lưu gói workspace hợp lệ
-    DRAFT --> DRAFT: Manager hoàn thiện kế hoạch hoặc đồng bộ gói trước triển khai
-    DRAFT --> IN_PROGRESS: Manager triển khai, công việc được xác nhận đầy đủ
-    IN_PROGRESS --> COMPLETED: Manager hoàn thành, đạt điều kiện closure hiện hành
+### 2.1. Gói Truyền thông của Workspace (`WorkspaceMediaPackage`)
+```
+DRAFT ──(Request 3.5.3)──▶ REQUESTED ──(Approve 3.5.4 bởi Owner/Manager)──▶ APPROVED (Mở khóa Chiến dịch)
+```
+*(Trong chế độ `PERSONAL`, hệ thống tự cấp ngầm gói khung ở trạng thái `APPROVED` ngay từ đầu).*
+
+### 2.2. Chiến dịch Truyền thông (`MediaCampaign`)
+```
+DRAFT ──(Deploy / Approve 3.5.8)──▶ ACTIVE (Sinh Task cha + Subtask theo TaskCatalog)
+                                      │
+                        (Complete 3.5.9 bởi Manager)
+                                      ▼
+                                  COMPLETED
 ```
 
-- Client đã tham gia workspace xem/comment góp ý cả DRAFT. Góp ý không chuyển trạng thái, không tạo approval hoặc điều kiện chờ Client đồng ý.
-- Bỏ bước APPROVED và gate Agency/Client duyệt cùng phiên bản trong flow mới.
-- Deployment có thể có trạng thái tiến trình riêng. Khi triển khai phải cố định bản gói/kế hoạch, ngăn sửa đồng thời và cho retry cùng bản khi lỗi/gián đoạn, giữ định danh công việc đã có.
-- Chuyển IN_PROGRESS sau khi xác nhận đủ công việc theo gói. Task đã được tạo từ lúc lưu gói, được giữ thông tin khi triển khai.
-- Chỉ bắt đầu thực hiện Task khi Campaign IN_PROGRESS theo contract Task. Duyệt kết quả Task/bài đăng vẫn theo module riêng.
-- Một workspace có một Campaign. Hoàn thành tiếp tục yêu cầu các Task/Request đạt điều kiện tại [Campaign closure](../feature/media-package-campaign/campaign-closure/spec.md) và [package-driven task](../feature/package-driven-campaign-tasks/spec.md).
-- Campaign Addendum và sửa gói sau triển khai không được mở thêm trong đợt đổi hành trình này. Trạng thái và approval cũ giữ làm dữ liệu lịch sử, cách chuyển đổi chờ kế hoạch kỹ thuật.
-
-## 4. Task — Approval Sequence (hiện hành 2026-10-18)
-
-Nguồn: [spec FR3.6.9 v3](../feature/content-task-workflow/3-6-9-approval-sequence-creator-manager-client/spec.md). Thay toàn bộ sơ đồ QC/ASSIGNED/skip-approval cũ cho luồng mới; không tự chuyển đổi/xóa dữ liệu legacy.
-
-| Trước | Action hợp lệ | Sau |
-|---|---|---|
-| TODO | Assignee Creator bắt đầu; description + dueDate hợp lệ | IN_PROGRESS, ghi firstStartedAt/By |
-| IN_PROGRESS | Assignee lưu bài POST hợp lệ và submit | IN_REVIEW / MANAGER |
-| IN_REVIEW / MANAGER | Manager approve, không cần Client | FINISHED |
-| IN_REVIEW / MANAGER | Manager approve, cần Client | IN_REVIEW / CLIENT |
-| IN_REVIEW / CLIENT | Một Client active bất kỳ approve | FINISHED |
-| IN_REVIEW / MANAGER hoặc CLIENT | Đúng người duyệt reject có lý do | IN_PROGRESS |
-| IN_REVIEW / MANAGER, chưa decision | Assignee Creator withdraw | IN_PROGRESS |
-| Task chưa kết thúc | Flow cancel được cấp quyền hiện có | CANCELLED |
-
-- Không có QC; chỉ năm trạng thái. reviewStep chỉ có MANAGER/CLIENT lúc IN_REVIEW, null ngoài review.
-- Lượt đầu 1, mỗi submit lại thành công sau reject/withdraw tăng lượt; decision cũ append-only nhưng không hiệu lực cho lượt mới. Chỉ APPROVE/REJECT tạo decision, tối đa hai/lượt.
-- Withdraw không được sau Manager decision; race với decision chỉ một bên thắng. Client đầu tiên quyết định hợp lệ kết thúc bước Client; người khác dùng màn hình cũ bị conflict.
-- Thiếu Client active khi được yêu cầu thì chặn submit, báo Manager bổ sung. Hết Client khi đã chờ thì giữ bước/Manager approval, không tự skip. Thay Manager thì Manager active hiện tại được duyệt.
-- POST dùng /editor và một Post hiện tại; khóa sửa khi review, reject/withdraw hợp lệ mới sửa lại. Chưa quản lý snapshot/khôi phục nội dung lượt trước; lịch sử là decision, không phải bản nội dung.
-- First-start evidence giữ nguyên qua reject/withdraw; Manager vẫn khóa sửa brief/deadline/giao lại. Task FINISHED/CANCELLED không reopen; bình luận vẫn theo FR3.6.3.
-- Cancel phải xóa bước chờ/đóng metadata, không xóa decision. Không duyệt sau hủy/hoàn thành Campaign; giữ điều kiện Campaign closure hiện có.
-- FINISHED không tự enqueue Publish. Xuất bản là action/module riêng; Admin moderation không thay decision Task.
-- Đây là contract đích của giai đoạn 1, chưa phải implementation đã chạy. Legacy QC/thiếu reviewStep/round chỉ đọc và inventory riêng, không tự backfill.
-
-## 5. Task loại Livestream — trạng thái riêng
-
+### 2.3. Yêu cầu Nội dung của Khách hàng (`ContentRequest` — `3.5.10`..`3.5.13`)
 ```
-[PRE_LIVE] ──(bắt đầu buổi live)──► [LIVE] ──(kết thúc buổi live)──► [POST_LIVE] ──► [DONE]
-    │                                  │
-    └──────────(hủy buổi live)─────────┴──────────────────────────────────────► [CANCEL]
+                       ┌──(Client hủy 3.5.13)──────────▶ CANCELLED
+                       │
+[Client tạo 3.5.10] ──▶ PENDING ──(Manager duyệt 3.5.12)──▶ APPROVED (Tự sinh TaskDocument)
+                       │
+                       └──(Manager từ chối 3.5.12)─────▶ REJECTED
 ```
 
-- `PRE_LIVE`: chuẩn bị (idea, script, setup, quay chuẩn bị — xem checklist ở [05-content-task-workflow.md](05-content-task-workflow.md) mục 3).
-- `LIVE`: đang phát trực tiếp.
-- `POST_LIVE`: xử lý sau live (retouch, cắt clip highlight để chạy hook).
-- `DONE`/`CANCEL`: 2 trạng thái kết thúc — Cancel có thể xảy ra ở bất kỳ giai đoạn PRE_LIVE hoặc LIVE.
-- State này lồng bên trong Task chính (Task cha vẫn đi qua Approval Sequence ở mục 4 sau khi Livestream state đạt DONE).
+---
 
-## 6. Third-party Collaborator — trạng thái hợp tác
+## 3. Máy Trạng Thái Phần Soạn Thảo (`TaskSection`) & Công Việc (`TaskDocument`)
 
+### 3.1. Vòng đời Phần Soạn thảo (`TaskSection.status` — 8 Loại `TaskType`)
 ```
-[CONTACTED] ──► [NEGOTIATING] ──► [CONFIRMED] ──► [LIVE_ON_AIR]
+  ┌──────────(Luồng Tự duyệt 1 chạm: POST /tasks/{id}/self-approve ở chế độ PERSONAL)──────────┐
+  │                                                                                            ▼
+DRAFT ──(Chủ phần Submit)──▶ SUBMITTED ──(Manager/Supervisor Approve)──▶ INTERNAL_APPROVED (Cuối với phần I
+  ▲                             │                                           │  hoặc khi requiresClientApproval=false)
+  │◀──(Manager Return + note)───┘                                           │
+  │                                                      (Với phần O khi requiresClientApproval=true)
+  │                                                                         ▼
+RETURNED ◀────────────(Client Return + note)──────────────────────── CLIENT_APPROVED (Trạng thái cuối phần O)
+  ▲
+  └───────────────────(Manager Reopen trước khi Task đóng)──────────────────┘
+```
+- **Quy tắc tự động đồng bộ Subtask vai trò (`syncRoleSubtasks`)**:
+  - Một `Subtask` có `subtaskRole != null` **tự động chuyển sang `FINISHED`** ngay khi toàn bộ các phần (`TaskSection`) mà vai trò đó sở hữu đạt trạng thái cuối (`INTERNAL_APPROVED` hoặc `CLIENT_APPROVED`).
+  - Nếu bất kỳ phần nào bị `Return` hoặc `Reopen`, `Subtask` đó tự động quay về `IN_PROGRESS`.
+
+### 3.2. Vòng đời Công việc Cha (`TaskDocument.status`)
+```
+          ┌──────────(1-Click Self-Approve trong chế độ PERSONAL)───────────┐
+          │                                                                 ▼
+TODO ──▶ IN_PROGRESS ──(Submit Task khi đủ phần INTERNAL_APPROVED)──▶ IN_REVIEW ──▶ FINISHED (APPROVED)
+  ▲           ▲                                                         │               │
+  │           └────────────(Manager / Client Return phần)───────────────┘               │
+  └────────────────────────(Client Return phần sau khi đã FINISHED → Hủy lịch đăng)─────┘
 ```
 
-- Cập nhật hoàn toàn thủ công bởi Manager/Creator — không có transition tự động, không có API bên thứ 3 kích hoạt chuyển trạng thái (khác hẳn Task/Post publish tự động qua API).
-- Có thể revert lùi trạng thái (ví dụ từ NEGOTIATING quay lại CONTACTED nếu đàm phán đổ vỡ) — không phải chuỗi 1 chiều cứng nhắc như Task Approval Sequence.
+---
 
-## 7. Post — trạng thái Publish (sau khi Task hoàn thành)
+## 4. Máy Trạng Thái Bài Đăng MXH (`PostDocument`) & Bản Tin Email (`MailBatch`)
 
+### 4.1. Bài đăng Mạng xã hội (`PostDocument.status` — FB, IG, TikTok, Threads)
 ```
-[FINISHED Task] --thao tác xuất bản riêng--> [PENDING publish] ──► [IN_PROGRESS] ──► [DONE] hoặc [FAIL]
+DRAFT ──(Task cha đạt FINISHED/APPROVED)──▶ APPROVED / SCHEDULED (scheduledAt)
+  ▲                                                  │
+  │ (Tự động về DRAFT & xóa scheduledAt              │ (Publish Now hoặc PostSchedulePublishJob
+  │  nếu Client trả lại phần trước giờ đăng)          │  đẩy qua RabbitMQ sang publisher-service)
+  │                                                  ▼
+  └───────────────────────────────────────────── PUBLISHING
+                                                     │
+                        ┌────────────────────────────┼────────────────────────────┐
+                        ▼                            ▼                            ▼
+                    PUBLISHED               PARTIALLY_PUBLISHED                 FAILED
+              (Thành công mọi kênh)       (Thành công một số kênh)         (Cho phép Retry)
 ```
 
-- Tương ứng FR 3.8.8 View Status Tracking: "Pending, In Progress, Done, Fail".
-- BA 2026-10-18: cạnh xuất bản trên là thao tác riêng của module publishing, không phải side-effect tự động của Task approval. Không đổi queue/callback hoặc cơ chế retry của module đó.
-- **[CONFIRMED 2026-09-17]** `FAIL` **có retry tự động, theo config** — số lần retry và backoff không hardcode, đọc từ setting (kế thừa tiền lệ retry 3 lần exponential backoff ở hệ thống cũ làm giá trị mặc định, nhưng phải config được để chỉnh khi cần mà không cần deploy lại code publisher-service).
+### 4.2. Đợt gửi Email Mẫu & Newsletter (`MailBatch.status`)
+```
+QUEUED / SCHEDULED ──(MailDeliveryService claimNext)──▶ PROCESSING
+       │                                                    │
+ (Cancel khi Client                                         ├──(Đủ quota)────────────▶ COMPLETED
+  trả phần EMAIL)                                           │
+       ▼                                                    └──(Chạm trần ngày/tháng)─▶ DEFERRED (Chờ chu kỳ kế tiếp)
+   CANCELLED
+```
+
+---
+
+## 5. Máy Trạng Thái Hóa Đơn SePay, Tạm Giữ AI Credit & Kiểm Duyệt Admin
+
+### 5.1. Hóa đơn Thanh toán SePay / PayOS (`Invoice.status`)
+```
+PENDING (Hiển thị mã VietQR) ──(SePay Webhook xác nhận giao dịch hợp lệ)──▶ PAID (Cấp gói & Credit)
+   │
+   ├──(Quá hạn thanh toán TTL)──▶ EXPIRED
+   └──(Người dùng hủy đơn)──────▶ CANCELLED
+```
+
+### 5.2. Giao dịch Tạm giữ & Quyết toán AI Credit (`CreditReservation.status`)
+```
+[Gọi tác vụ AI tính phí: CONTENT / AMBASSADOR / IMAGE / VIDEO]
+                         │
+                         ▼
+                 HOLD (Reserved)
+                 ├──(AI trả kết quả thành công)──▶ SETTLED (Trừ Plan Credit trước, Purchased Credit sau)
+                 └──(AI lỗi hoặc Timeout)────────▶ RELEASED (Hoàn trả 100% số dư khả dụng)
+```
+
+### 5.3. Hàng đợi Kiểm duyệt Nội dung của Admin (`ModerationItem.status` — `3.10.4` & `3.10.5`)
+```
+[Bài viết bị gắn cờ tại bước 3.6.33 Check Compliance Content]
+                         │
+                         ▼
+                   PENDING_REVIEW
+                   ├──(Admin Approve)──▶ APPROVED (Gỡ cờ cảnh báo)
+                   └──(Admin Reject)───▶ REJECTED (Chặn nội dung + Cập nhật Violation Status 3.10.5)
+```
+
+> **Ghi chú tuân thủ `AGENTS.md`**: Máy trạng thái `LivestreamSession` đã được gỡ bỏ hoàn toàn khỏi hệ thống.

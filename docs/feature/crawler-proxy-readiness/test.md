@@ -16,3 +16,20 @@ Chạy: `cd social_crawler && python -m pytest tests/test_proxy_runtime.py -q`
 |---|---|---|
 | 12/11/2026 | Xin proxy `new`, thử TCP + CONNECT mỗi giây | Sẵn sàng ở giây 18,1 |
 | Sau deploy | Admin → Crawl → Lịch sử | Lần chạy dùng proxy mới không còn `PROXY_CONNECT_FAILED` |
+
+## Diagnostics
+
+| # | Test | Kỳ vọng |
+|---|---|---|
+| D1 | Lỗi tạm rồi thành công | stdout có `[PROXY] connect ok attempt=2/3`, không có mật khẩu/host/port |
+| D2 | Timeout mọi lần | stdout có đúng 3 dòng `PROXY_CONNECT_ATTEMPT_FAILED ... reason=TIMEOUT` |
+| D3 | `current` hết hạn → `new` | stdout có `provider current not reusable`, `provider new: ... allowed_ip=13.x.x.126`, `note=...`; không có key/host/port |
+
+Đọc kết quả trên production:
+
+| Dòng log | Ý nghĩa |
+|---|---|
+| `reason=TIMEOUT` ở cả 3 lần, `age` nhỏ | Proxy mới chưa sẵn sàng (cần chờ lâu hơn) |
+| `reason=CONNECTION_REFUSED` | Proxy chủ động từ chối (sai IP được phép hoặc proxy chết) |
+| `reason=DNS_FAILED` / `NETWORK_ERROR` | Lỗi mạng phía EC2 |
+| `provider current unavailable: PROXY_PROVIDER_HTTP_...` | API KiotProxy lỗi hoặc key hết hạn |

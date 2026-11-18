@@ -11,3 +11,12 @@
       2 lỗi có sẵn do môi trường Windows/worktree (cũng lỗi trên code chưa sửa).
 - [x] Commit local trên nhánh riêng (không push).
 - [ ] Sau khi merge + deploy: kiểm tra trang Admin → Crawl → Lịch sử không còn `PROXY_CONNECT_FAILED`.
+
+## Diagnostics (12/11/2026, sau khi PR #70 bị revert ở PR #71)
+
+- [x] Tìm lý do log Admin thiếu chi tiết: Admin chỉ giữ stdout, stderr bị bỏ (`crawler_management.py`, `stderr=DEVNULL`).
+- [x] `proxy_runtime.py` in `[PROXY] ...` ra stdout: nguồn proxy (current/new), location, authMode, authNote,
+      allowed_ip (che 2 số giữa), ttc, age; mỗi lần thử kết nối kèm reason và thời gian; thành công ở lần thử nào.
+- [x] Không đổi số lần thử (giữ 3 như develop).
+- [x] Test: không in key, host, port, mật khẩu.
+- [ ] Deploy, chạy crawl, đọc dòng `[PROXY]` trên Admin → Crawl → Lịch sử để kết luận nguyên nhân.
