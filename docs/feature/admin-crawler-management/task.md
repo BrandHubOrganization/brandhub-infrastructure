@@ -84,3 +84,11 @@
 ## Mặc định timezone Việt Nam — 2026-11-14
 - [x] Đồng bộ default backend, scheduler và form.
 - [x] Kiểm tra cấu hình thiếu timezone và UTC tường minh; frontend CI PASS, AI unit CI thiếu dependency anthropic.
+
+## Bỏ trạng thái chờ hợp nhất — 2026-11-17
+- [x] Sửa reader, projection và cache fallback trong brandhub-crawl.
+- [x] Regression publication completed/partial, resolution pending/running/failed và crawler còn hoạt động; 50 unit tests PASS, compileall PASS.
+
+
+- [x] Dọn hợp đồng và bản dịch web/crawl; bảo toàn code thuật toán.
+- [x] CI crawl 317 PASS; web npm run ci PASS; push crawl develop 9ee7eab và web feature/admin-ai-campaign e4ac0bed.

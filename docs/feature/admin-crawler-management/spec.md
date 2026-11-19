@@ -119,3 +119,10 @@ AI Service có giới hạn 4.5 GiB (4608 MiB), thay 2300 MiB, theo yêu cầu s
 
 ## Múi giờ mặc định Việt Nam — 2026-11-14
 Cấu hình mới hoặc thiếu timezone dùng Asia/Ho_Chi_Minh. Giữ múi giờ được lưu tường minh, kể cả UTC. Lịch 08:14 mặc định chạy lúc 08:14 Việt Nam. Thực hiện qua code dev, bảo toàn lượt crawl đang chạy.
+
+## Hoàn tất pipeline sau khi bỏ entity resolution — 2026-11-17
+Crawl-service kết thúc COMPLETED hoặc PARTIAL sau khi publication được xác nhận và crawler kết thúc. Bỏ điều kiện chờ entity resolution, kể cả Redis hoặc cache lịch sử còn pending/running/RESOLVING. Giữ kiểm tra publication theo thời điểm recovery và lỗi nguồn.
+
+
+## Dọn hợp đồng Admin — 2026-11-17
+Frontend và crawl-service bỏ trường/trạng thái entity resolution khỏi luồng hiện hành. Giữ mã thuật toán gộp node trong lịch sử/khu vực phát triển, không xóa mã AI theo yêu cầu. Cache cũ được đọc tương thích, publication quyết định terminal, lượt recovery đang chạy vẫn RUNNING. Commit/push web và crawl sau CI.

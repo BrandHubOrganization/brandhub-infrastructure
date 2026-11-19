@@ -89,3 +89,10 @@ Runtime ENV đặt sau dependency layer; data/crawler/ bị loại khỏi build 
 
 ## Cập nhật mặc định timezone — 2026-11-14
 Đổi fallback cấu hình, scheduler, readiness và form Admin sang Asia/Ho_Chi_Minh. Form gửi giá trị mặc định đang hiển thị khi lưu. Giữ UTC tường minh. Không migration cấu hình production trong thay đổi này.
+
+## Sửa trạng thái sau tách crawl-service — 2026-11-17
+Chuẩn hóa entity_resolution thành skipped/FEATURE_REMOVED trong lớp đọc trạng thái. Loại nhánh RESOLVING tại _view và chuẩn hóa cache cũ có databaseSaved. Test qua runs và start_selected để lượt đã công bố không khóa lượt mới. Thay đổi code dev.
+
+
+## Dọn hợp đồng và bản dịch
+Bỏ resolutionStatus/entity_resolution khỏi output crawl và types/schema frontend. Bỏ nhãn RESOLVING và lỗi yêu cầu APOC. Chỉ giữ nhánh đọc cache RESOLVING lịch sử để chuyển trạng thái hợp lệ. Không xóa thuật toán, không thay Neo4j MERGE phục vụ ghi dữ liệu.

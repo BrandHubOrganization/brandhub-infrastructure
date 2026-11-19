@@ -108,3 +108,15 @@ Kết quả 2026-11-14: flake8 app/tests unit PASS; scheduler runtime 13 PASS; v
 Frontend npm run ci PASS (lint 0 errors, type-check, build, prerender). Các file sinh tự động từ build được khôi phục về trước kiểm tra.
 
 Cập nhật cùng ngày: đã cài anthropic==2.3.0 và google-auth[requests]==2.62.0 vào AI .venv. Full suite chạy được: 1190 PASS, 9 FAIL lần đầu; đã sửa test mặc định timezone và dependency google-auth, chạy lại 21 test liên quan PASS. Bảy test render còn thiếu FFmpeg executable trong PATH local. Lint AI PASS.
+
+## Regression bỏ hợp nhất — 2026-11-17
+Publication completed + crawl SUCCESS trả COMPLETED dù resolution pending/running/failed. Publication partial hoặc nguồn lỗi trả PARTIAL. Chưa công bố vẫn PROCESSING/AGGREGATING; recovery đang chạy giữ RUNNING. Cache cũ RESOLVING đã lưu DB chuyển terminal; không có pipeline active giả trong runs. Reader không phụ thuộc Redis :resolution.
+
+
+Kết quả 2026-11-17: crawl-service unit tests 50 PASS, compileall và git diff --check PASS. Production chỉ đọc xác nhận a3e2f03085d441acb5c6b6b72745f812 đã publish, 44/44 batch nhưng còn RESOLVING do reader cũ.
+
+Toàn bộ lệnh CI crawl python -m pytest tests social_crawler/tests -q: 315 passed (46.08s).
+
+Kiểm chứng output crawl không có metadata resolution, cache RESOLVING cũ không khóa run mới, recovery đang chạy không terminal sớm. Kiểm tra bản dịch vi/en song song, không còn lời nhắc cài APOC, chạy npm run ci và pytest tests social_crawler/tests.
+
+Cleanup cuối: CI crawl 317 passed (27.13s); frontend npm run ci PASS gồm lint/type-check/build/prerender. Push crawl 9ee7eab, web e4ac0bed. Code thuật toán AI không chỉnh sửa.
