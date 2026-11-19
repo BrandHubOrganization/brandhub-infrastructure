@@ -1,0 +1,27 @@
+# On the core EC2, next to the main stack: wakes the crawl EC2 for AI.
+# AI (brandhub-ai EC2) calls CRAWLER_API_URL=http://172.31.24.149:8084 (published below).
+name: brandhub-core-wake
+services:
+  waker:
+    image: python:3.12-alpine
+    container_name: brandhub-waker
+    command: ["python", "-u", "/app/waker.py"]
+    environment:
+      AWS_REGION: ap-southeast-1
+      WAKE_TARGETS: crawl=${CRAWL_INSTANCE_ID:?Set CRAWL_INSTANCE_ID}
+    volumes: [{type: bind, source: ./wake/waker.py, target: /app/waker.py, read_only: true}]
+    networks: [brandhub-network]
+    mem_limit: 64m
+    restart: unless-stopped
+  crawl-gate:
+    image: nginx:stable-alpine
+    container_name: brandhub-crawl-gate
+    volumes: [{type: bind, source: ./wake/crawl-gate.nginx.conf, target: /etc/nginx/conf.d/default.conf, read_only: true}]
+    networks: [brandhub-network]
+    ports: ["172.31.24.149:8084:8084"]
+    depends_on: [waker]
+    mem_limit: 64m
+    restart: unless-stopped
+networks:
+  brandhub-network:
+    external: true

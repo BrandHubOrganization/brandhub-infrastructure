@@ -1,0 +1,17 @@
+# On the gateway EC2, next to backend.compose.json: Nginx /edit-video/ falls back to this when Edit_Video sleeps.
+name: brandhub-gateway-wake
+services:
+  waker:
+    image: python:3.12-alpine
+    container_name: brandhub-waker
+    command: ["python", "-u", "/app/waker.py"]
+    environment:
+      AWS_REGION: ap-southeast-1
+      WAKE_TARGETS: edit-video=${EDIT_VIDEO_INSTANCE_ID:?Set EDIT_VIDEO_INSTANCE_ID}
+    volumes: [{type: bind, source: ./wake/waker.py, target: /app/waker.py, read_only: true}]
+    networks: [brandhub-network]
+    mem_limit: 64m
+    restart: unless-stopped
+networks:
+  brandhub-network:
+    external: true

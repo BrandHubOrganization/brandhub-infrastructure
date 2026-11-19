@@ -26,7 +26,7 @@
           "max-file": "3"
         }
       },
-      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/api-gateway:sha-34d5747-14",
+      "image": "${GATEWAY_IMAGE:?Set GATEWAY_IMAGE}",
       "mem_limit": "640m",
       "env_file": [
         {
