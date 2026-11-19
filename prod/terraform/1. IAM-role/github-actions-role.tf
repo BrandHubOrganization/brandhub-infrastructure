@@ -132,7 +132,22 @@ resource "aws_iam_role_policy" "github_actions_backend_cicd" {
         Action = [
           "ssm:GetCommandInvocation",
           "ssm:ListCommandInvocations",
+          "ssm:DescribeInstanceInformation",
         ]
+        Resource = "*"
+      },
+      {
+        # Deploys to hosts that sleep when idle (crawl, edit-video) start them first.
+        Sid       = "WakeSleepingBrandHubEC2"
+        Effect    = "Allow"
+        Action    = ["ec2:StartInstances"]
+        Resource  = ["arn:aws:ec2:${var.aws_region}:${var.aws_account_id}:instance/*"]
+        Condition = { StringEquals = { "aws:ResourceTag/Wakeable" = "true" } }
+      },
+      {
+        Sid      = "DescribeBrandHubEC2"
+        Effect   = "Allow"
+        Action   = ["ec2:DescribeInstances", "ec2:DescribeInstanceStatus"]
         Resource = "*"
       }
     ]

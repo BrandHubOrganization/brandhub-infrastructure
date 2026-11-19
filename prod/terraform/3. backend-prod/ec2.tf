@@ -26,6 +26,9 @@ resource "aws_instance" "brandhub" {
   # Instances need outbound internet (ECR, crawl targets) and there is no NAT.
   associate_public_ip_address = true
 
+  # Wakeable hosts stop themselves when idle (wake/idle-sleep.sh): `shutdown` must stop, never terminate.
+  instance_initiated_shutdown_behavior = "stop"
+
   vpc_security_group_ids = [
     local.instance_security_groups[each.key]
   ]
@@ -47,6 +50,8 @@ resource "aws_instance" "brandhub" {
   metadata_options {
     http_endpoint = "enabled"
     http_tokens   = "required"
+    # 2 hops: containers (the waker) reach IMDSv2 for the instance role credentials.
+    http_put_response_hop_limit = 2
   }
 
   tags = {
@@ -55,5 +60,7 @@ resource "aws_instance" "brandhub" {
     Environment = var.environment
     Service     = each.key
     ManagedBy   = "terraform"
+    # IAM lets the wakers start only instances with Wakeable = true.
+    Wakeable = tostring(each.value.wake_on_request)
   }
 }

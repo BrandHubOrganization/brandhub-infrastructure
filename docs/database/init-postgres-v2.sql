@@ -1062,9 +1062,9 @@ CREATE INDEX IF NOT EXISTS idx_content_req_completion_jobs_created
 
 INSERT INTO subscription_plans (name, display_name, price_monthly, max_workspaces, ai_credits_month, features, is_active)
 VALUES
-    ('BASIC', 'Basic', 490000, 3, 200, '["scheduling", "approval_workflow"]'::jsonb, TRUE),
-    ('PRO', 'Pro', 990000, 10, 1000, '["scheduling", "approval_workflow", "ai_content", "analytics"]'::jsonb, TRUE),
-    ('ENTERPRISE', 'Enterprise', 2990000, -1, 5000, '["all_features", "unlimited_workspaces", "dedicated_support"]'::jsonb, TRUE)
+    ('BASIC', 'Basic', 0, 1, 0, '["workspace_1","members_3","clients_1","storage_2gb","newsletter_1000","purchased_credit","workspace_cap"]'::jsonb, TRUE),
+    ('PRO', 'Plus / Pro', 7500000, 10, 5000, '["workspace_10","members_15","clients_30","storage_100gb","newsletter_10000","priority_support","early_renewal"]'::jsonb, TRUE),
+    ('ENTERPRISE', 'Enterprise', 0, 50, 25000, '["workspace_50","members_100","clients_200","storage_1tb","newsletter_50000","dedicated_sla_24_7","cycle_renewal"]'::jsonb, TRUE)
 ON CONFLICT (name) DO NOTHING;
 
 -- ============================================================
@@ -2464,6 +2464,94 @@ INSERT INTO public.brandhub_schema_migrations (version, description)
 VALUES (
     '20261111_mobile_google_oauth_link_v1',
     'Enforce unique provider per user for mobile Google OAuth linking'
+)
+ON CONFLICT (version) DO NOTHING;
+COMMIT;
+
+-- ---- 2026-11-18-agency-subscription-entitlements.sql ----
+BEGIN;
+ALTER TABLE billing_plan_versions DISABLE TRIGGER billing_plan_version_immutable;
+
+UPDATE billing_plan_versions
+   SET display_name = 'Basic',
+       price_monthly = 0,
+       max_active_workspaces = 1,
+       max_internal_members = 3,
+       max_clients = 1,
+       storage_limit_bytes = 2000000000,
+       monthly_ai_credits = 0,
+       max_concurrent_ai_jobs = 1,
+       version_retention_days = 7,
+       trash_retention_days = 7,
+       activity_retention_days = 30,
+       features = COALESCE(features, '{}'::jsonb) || '{"price_usd_monthly":0,"newsletter_email_quota":1000,"support_level":"STANDARD_TICKET","early_renewal":"NONE","downgrade_allowed":false}'::jsonb,
+       is_sellable = true
+ WHERE code = 'BASIC';
+
+UPDATE billing_plan_versions
+   SET display_name = 'Plus / Pro',
+       max_active_workspaces = 10,
+       max_internal_members = 15,
+       max_clients = 30,
+       storage_limit_bytes = 100000000000,
+       monthly_ai_credits = 5000,
+       max_concurrent_ai_jobs = 3,
+       version_retention_days = 90,
+       trash_retention_days = 30,
+       activity_retention_days = 180,
+       features = COALESCE(features, '{}'::jsonb) || '{"price_usd_monthly":300,"newsletter_email_quota":10000,"support_level":"PRIORITY","early_renewal":"AGENCY_PLUS_RENEWAL","downgrade_allowed":false}'::jsonb
+ WHERE code = 'PLUS';
+
+UPDATE billing_plan_versions
+   SET price_monthly = COALESCE(price_monthly, 7500000),
+       is_sellable = true
+ WHERE code = 'PLUS'
+   AND version = (SELECT max(version) FROM billing_plan_versions WHERE code = 'PLUS');
+
+UPDATE billing_plan_versions
+   SET display_name = 'Enterprise',
+       max_active_workspaces = 50,
+       max_internal_members = 100,
+       max_clients = 200,
+       storage_limit_bytes = 1000000000000,
+       monthly_ai_credits = 25000,
+       max_concurrent_ai_jobs = 10,
+       version_retention_days = 365,
+       trash_retention_days = 90,
+       activity_retention_days = 365,
+       features = COALESCE(features, '{}'::jsonb) || '{"price_usd_monthly":null,"newsletter_email_quota":50000,"support_level":"DEDICATED_SLA_24_7","early_renewal":"MONTHLY_YEARLY_CYCLE","downgrade_allowed":false}'::jsonb
+ WHERE code = 'ENTERPRISE';
+
+ALTER TABLE billing_plan_versions ENABLE TRIGGER billing_plan_version_immutable;
+
+UPDATE subscription_plans
+   SET display_name = 'Basic',
+       price_monthly = 0,
+       max_workspaces = 1,
+       ai_credits_month = 0,
+       features = '["workspace_1","members_3","clients_1","storage_2gb","newsletter_1000","purchased_credit","workspace_cap"]'::jsonb
+ WHERE name = 'BASIC';
+
+UPDATE subscription_plans
+   SET display_name = 'Plus / Pro',
+       price_monthly = 7500000,
+       max_workspaces = 10,
+       ai_credits_month = 5000,
+       features = '["workspace_10","members_15","clients_30","storage_100gb","newsletter_10000","priority_support","early_renewal"]'::jsonb
+ WHERE name = 'PRO';
+
+UPDATE subscription_plans
+   SET display_name = 'Enterprise',
+       price_monthly = 0,
+       max_workspaces = 50,
+       ai_credits_month = 25000,
+       features = '["workspace_50","members_100","clients_200","storage_1tb","newsletter_50000","dedicated_sla_24_7","cycle_renewal"]'::jsonb
+ WHERE name = 'ENTERPRISE';
+
+INSERT INTO public.brandhub_schema_migrations (version, description)
+VALUES (
+    '20261118_agency_subscription_entitlements_v1',
+    'Align Basic/Plus-Pro/Enterprise pricing, quotas, retention windows, and feature flags'
 )
 ON CONFLICT (version) DO NOTHING;
 COMMIT;

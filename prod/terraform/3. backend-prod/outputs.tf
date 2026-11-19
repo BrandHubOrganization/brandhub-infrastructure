@@ -58,3 +58,11 @@ output "edit_video_instance_id" {
 output "edit_video_private_ip" {
   value = aws_instance.brandhub["edit_video"].private_ip
 }
+
+output "crawl_instance_id" {
+  value = aws_instance.brandhub["crawl"].id
+}
+
+output "crawl_private_ip" {
+  value = aws_instance.brandhub["crawl"].private_ip
+}

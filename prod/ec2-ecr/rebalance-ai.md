@@ -1,5 +1,7 @@
 # AI migration between the existing EC2 instances
 
+> **Account 134875421878 (2026-11-19):** AI runs on `brandhub-ai` `i-0f7857edf71b6bb3f` (`172.31.20.60`); see `DEPLOY-acct134.md`.
+>
 > **Superseded 2026-11-16:** AI now runs alone on `brandhub-ai` (`i-0c91c9509effc20e4`, `172.31.20.60`, c7i-flex.large 4 GiB) from `ai.compose.json` (3 GiB limit, Redis/RabbitMQ/Chroma via `extra_hosts` to `172.31.24.149`). Business and crawl use `AI_SERVICE_URL=http://172.31.20.60:8082`. The old `brandhub-ai-service` container on the service EC2 is stopped (`restart=no`) and its volumes kept for rollback; backups are in `rebalance-ai-20261116T*` on the service and crawl hosts.
 
 Status: applied to production on 2026-11-03 with user authorization. The procedure below is retained as a migration/rollback reference.

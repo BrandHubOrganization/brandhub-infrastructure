@@ -5,7 +5,7 @@
       "init": true,
       "restart": "unless-stopped",
       "container_name": "brandhub-ai-service",
-      "image": "821014378805.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/ai-service:sha-4917f86-68",
+      "image": "${AI_IMAGE:?Set AI_IMAGE}",
       "env_file": [
         {
           "path": "./env/ai-service.env",
@@ -14,7 +14,7 @@
       ],
       "environment": {
         "TREND_RUN_DIR": "/app/data/crawler/trend_runs",
-        "CRAWLER_API_URL": "http://172.31.20.50:8084",
+        "CRAWLER_API_URL": "http://172.31.24.149:8084",
         "HF_HOME": "/home/appuser/.cache/huggingface",
         "HF_HUB_CACHE": "/home/appuser/.cache/huggingface/hub",
         "SENTENCE_TRANSFORMERS_HOME": "/home/appuser/.cache/huggingface/hub"
