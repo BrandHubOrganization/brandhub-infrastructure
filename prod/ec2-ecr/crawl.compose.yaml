@@ -11,13 +11,13 @@ services:
     env_file: ./env/crawl-service.env
     volumes:
       - crawl-data:/app/data
-    # m7i-flex.large has 8 GiB; leave ~1 GiB for the OS and Docker.
-    mem_limit: 7g
-    memswap_limit: 7g
+    # c7i-flex.large has 4 GiB; leave ~0.8 GiB for the OS and Docker.
+    mem_limit: 3200m
+    memswap_limit: 3200m
     shm_size: 256mb
     environment:
       APP_PORT: "8084"
-      AI_SERVICE_URL: http://172.31.24.149:8082
+      AI_SERVICE_URL: http://172.31.20.60:8082
       CRAWLER_STATE_DIR: /app/data/crawler/control
       CRAWLER_OUTPUT_DIR: /app/data/crawler/output
       CRAWLER_WORK_DIR: /dev/shm/crawler

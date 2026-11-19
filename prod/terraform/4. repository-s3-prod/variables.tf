@@ -1,7 +1,7 @@
 variable "aws_account_id" {
   description = "AWS account ID that owns the BrandHub production infrastructure"
   type        = string
-  default     = "821014378805"
+  default     = "134875421878"
 
   validation {
     condition     = can(regex("^[0-9]{12}$", var.aws_account_id))
@@ -29,7 +29,7 @@ variable "environment" {
 variable "repository_s3_bucket_name" {
   description = "Private S3 bucket storing Workspace Repository & Client Personal Vault files (5GB Free default + monthly add-ons)"
   type        = string
-  default     = "brandhub-media"
+  default     = "brandhub-media-134875421878"
 }
 
 variable "service_iam_role_name" {

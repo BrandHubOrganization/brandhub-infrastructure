@@ -20,7 +20,7 @@ db.createCollection('users', {
       properties: {
         email:        { bsonType: 'string' },
         full_name:    { bsonType: 'string' },
-        role:         { enum: ['ADMIN', 'AGENCY_OWNER', 'ACCOUNT_MANAGER', 'CONTENT_CREATOR', 'BRAND_CLIENT'] },
+        role:         { enum: ['ADMIN', 'OWNER', 'MANAGER', 'CREATOR', 'CLIENT'] },
         status:       { enum: ['ACTIVE', 'SUSPENDED', 'DELETED'] },
         is_active:    { bsonType: 'bool' },
         created_at:   { bsonType: 'date' },
