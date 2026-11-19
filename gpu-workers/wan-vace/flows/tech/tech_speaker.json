@@ -1,0 +1,50 @@
+{
+  "name": "tech_speaker",
+  "product_name": "bluetooth speaker",
+  "product_image": "speaker-reference.jpg",
+  "seed": 20261121,
+  "views": [
+    "the front view with the red JBL badge",
+    "the end view of one teal rubber end cap",
+    "the back view of the fabric with the strap",
+    "the speaker standing upright on one end cap"
+  ],
+  "story": "Tech feature demo 20 s: ONE feature = it keeps playing in the rain. Problem -> feature -> result, brand in the first 2 s. Add music and logo in the edit; it must play through the whole ad.",
+  "storyboard_prompts": [
+    "Image 1 is the product photo: use exactly this product, its shape, materials, colours and logos. Create ONE storyboard image made of a 2x2 grid of four equal photo panels, edge to edge, with no borders, no gaps, no text and no numbers. Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Product commercial, 9:16 vertical frame, 50mm lens, shallow depth of field. The speaker in every panel: a cylindrical portable bluetooth speaker wrapped in teal woven fabric, rounded teal rubber end caps, a small red rectangular JBL badge in the middle of the fabric, and a braided teal carrying strap. Panel 1 (top left): HOOK: macro of heavy raindrops hitting the teal fabric around the red JBL badge, droplets bouncing up off the fabric. Panel 2 (top right): PROBLEM: a sunny backyard party table suddenly hit by rain; friends seen from the chest down only, wet T-shirts and arms with real skin; nobody looks at the camera grab plates and run; the speaker stands on the table among cups. Panel 3 (bottom left): FEATURE: the speaker alone on the soaked wooden table in pouring rain, water streaming off its rubber end caps, puddles around it. Grey summer rain, wet surfaces, cool soft daylight from above, dark shadows under the table. Panel 4 (bottom right): PICK UP: a wet hand lifts the speaker by its braided strap, water dripping from it. The speaker has the same shape, size and colour in every panel; it is about as long as a forearm. Candid, unretouched photographs with natural imperfections: real crumbs, dust, fingerprints, uneven light, slight lens vignetting. No extra products, no added text, no watermark.",
+    "Image 1 is the product photo: use exactly this product, its shape, materials, colours and logos. Create ONE storyboard image made of a 2x2 grid of four equal photo panels, edge to edge, with no borders, no gaps, no text and no numbers. Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Product commercial, 9:16 vertical frame, 50mm lens, shallow depth of field. The speaker in every panel: a cylindrical portable bluetooth speaker wrapped in teal woven fabric, rounded teal rubber end caps, a small red rectangular JBL badge in the middle of the fabric, and a braided teal carrying strap. Panel 1 (top left): RESULT: under a porch roof, friends seen from the chest down only, wet T-shirts and arms with real skin; nobody looks at the camera dance; the wet speaker stands on the wooden rail, rain behind. Panel 2 (top right): PACK SHOT: the speaker on a wet dark stone, the rain stopping, sun breaking through, droplets on the fabric. Panel 3 (bottom left): PACK SHOT CLOSER: the same speaker filling the middle of the frame, the red JBL badge sharp, droplets glittering. Panel 4 (bottom right): DETAIL: macro of the braided strap and the teal end cap with water beads. The speaker has the same shape, size and colour in every panel. Candid, unretouched photographs with natural imperfections: real crumbs, dust, fingerprints, uneven light, slight lens vignetting. No extra products, no added text, no watermark."
+  ],
+  "segments": [
+    {
+      "start": 0,
+      "frames": 33,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Product commercial, 9:16 vertical frame, 50mm lens, shallow depth of field. The speaker: a cylindrical portable bluetooth speaker wrapped in teal woven fabric, rounded teal rubber end caps, a small red rectangular JBL badge in the middle of the fabric, and a braided teal carrying strap. Macro: heavy raindrops hit the teal fabric around the red JBL badge and bounce off; the fabric throbs slightly with the bass, flicking the water into tiny jumps."
+    },
+    {
+      "start": 1,
+      "frames": 49,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Product commercial, 9:16 vertical frame, 50mm lens, shallow depth of field. Handheld: the frame drifts and bobs slightly, focus breathes and lands a moment late. A sunny backyard party table; rain suddenly pours down. friends seen from the chest down only, wet T-shirts and arms with real skin; nobody looks at the camera; they grab plates and run for cover, a cup tips over. The speaker stays on the table: a cylindrical portable bluetooth speaker wrapped in teal woven fabric, rounded teal rubber end caps, a small red rectangular JBL badge in the middle of the fabric, and a braided teal carrying strap."
+    },
+    {
+      "start": 2,
+      "frames": 65,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Product commercial, 9:16 vertical frame, 50mm lens, shallow depth of field. Grey summer rain, wet surfaces, cool soft daylight from above, dark shadows under the table. The speaker: a cylindrical portable bluetooth speaker wrapped in teal woven fabric, rounded teal rubber end caps, a small red rectangular JBL badge in the middle of the fabric, and a braided teal carrying strap, alone on the soaked table in pouring rain. Water streams off its end caps and bounces on the fabric with every bass beat; it keeps playing."
+    },
+    {
+      "start": 3,
+      "frames": 49,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Product commercial, 9:16 vertical frame, 50mm lens, shallow depth of field. Handheld: the frame drifts and bobs slightly, focus breathes and lands a moment late. Grey summer rain, wet surfaces, cool soft daylight from above, dark shadows under the table. A wet hand runs in, grabs the speaker by its braided strap and lifts it; water drips and swings off it. The speaker: a cylindrical portable bluetooth speaker wrapped in teal woven fabric, rounded teal rubber end caps, a small red rectangular JBL badge in the middle of the fabric, and a braided teal carrying strap."
+    },
+    {
+      "start": 4,
+      "frames": 49,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Product commercial, 9:16 vertical frame, 50mm lens, shallow depth of field. Handheld: the frame drifts and bobs slightly, focus breathes and lands a moment late. Under a porch roof, rain behind. friends seen from the chest down only, wet T-shirts and arms with real skin; nobody looks at the camera; they laugh and dance loosely, shaking water off their arms. The wet speaker stands on the wooden rail: a cylindrical portable bluetooth speaker wrapped in teal woven fabric, rounded teal rubber end caps, a small red rectangular JBL badge in the middle of the fabric, and a braided teal carrying strap."
+    },
+    {
+      "start": 5,
+      "end_panel": 6,
+      "frames": 73,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Product commercial, 9:16 vertical frame, 50mm lens, shallow depth of field. The speaker: a cylindrical portable bluetooth speaker wrapped in teal woven fabric, rounded teal rubber end caps, a small red rectangular JBL badge in the middle of the fabric, and a braided teal carrying strap, on a wet dark stone. The rain stops, sunlight breaks through and the droplets glitter; the camera pushes in slowly until the speaker fills the middle of the frame."
+    }
+  ]
+}
