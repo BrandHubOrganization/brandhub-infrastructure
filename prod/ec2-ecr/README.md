@@ -48,7 +48,7 @@ Each server runs from `/home/ec2-user/brandhub/ecr`. Backend uses `backend.compo
 
 Private runtime environment files are in `env/` on each host, mode 0600; directories are 0700. Local deployment env/JWT material is retained outside tracked source under `keep-local-only/ecr-deploy-20261029/private/`. Do not commit or bake these files into images.
 
-Backend needs `env/api-gateway.env`. Service needs separate env files for business-service, publisher-service, ai-service, postgres, redis and rabbitmq (MongoDB Atlas and Neo4j AuraDB are hosted externally). Missing runtime env files intentionally prevent Compose startup.
+Backend needs `env/api-gateway.env`. For the Video Space edit chat it also sets `EDIT_VIDEO_URL=https://api.brandhub.id.vn`, `EDIT_VIDEO_PATH_PREFIX=/edit-video` (through Nginx, so the waker starts a sleeping edit server) and `EDIT_VIDEO_API_KEY` (the Edit_Video server key, also in SSM `/brandhub/edit-video/EDIT_API_KEY`). Without them the `/api/v1/edit-video` route answers errors. Service needs separate env files for business-service, publisher-service, ai-service, postgres, redis and rabbitmq (MongoDB Atlas and Neo4j AuraDB are hosted externally). Missing runtime env files intentionally prevent Compose startup.
 
 PostgreSQL uses the complete exported schema at `init/schema.sql`. The SQL file must be readable by the container's postgres user (0644). Initialization runs only for an empty data volume. The database has schema only; old data was not restored after the explicitly authorized EC2 replacement. Never use `down -v` during application updates.
 
