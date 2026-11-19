@@ -18,7 +18,7 @@ removed: Business (`DefaultCredentialsProvider`) and AI (boto3) use the EC2 inst
 through a temporary S3 prefix deleted right after, never as SSM command text.
 
 PostgreSQL was restored from `docs/database/backups/brandhub_postgres_full_20261112.dump` (93 tables, 1099 users,
-857 workspaces). `core.compose.json` does not mount `init/schema.sql`: the dump already contains the schema.
+857 workspaces), then replaced on 2026-11-19 by `brandhub_full_dump_2026-11-19.sql` (`brandhub` only: 90 tables, 1265 users; pre-restore dump at `s3://brandhub-db-backup-prd-134875421878/postgres/brandhub-before-restore-20261119T144845Z.dump`). `core.compose.json` does not mount `init/schema.sql`: the dump already contains the schema.
 
 TLS: Let's Encrypt for `api.brandhub.id.vn` (standalone on first issue), renewed by
 `brandhub-certificate-renew.timer` on the gateway.
