@@ -1,0 +1,31 @@
+# Production on brandhub-edit-video (172.31.20.80). The image comes from ECR; nothing is built here.
+#   EDIT_VIDEO_IMAGE=134875421878.dkr.ecr.ap-southeast-1.amazonaws.com/brandhub/edit-video:<tag> \
+#     docker compose -f compose.prod.yml up -d --wait
+# Only the gateway reaches 8095 (security group); clients use https://api.brandhub.id.vn/edit-video/.
+services:
+  edit-video:
+    image: ${EDIT_VIDEO_IMAGE:?Set EDIT_VIDEO_IMAGE to the brandhub/edit-video ECR image}
+    container_name: brandhub-edit-video
+    init: true
+    ports: ["172.31.20.80:8095:8095"]
+    env_file: ["./env/edit-video.env"]
+    volumes:
+      - edit-video-data:/data
+      - edit-video-claude:/home/worker/.claude
+      - edit-video-cache:/workspace/DemoVideo/.cache
+    # m7i-flex.large: 2 vCPU / 8 GiB; leave ~1.5 GiB for the OS and Docker.
+    mem_limit: 6500m
+    memswap_limit: 6500m
+    cpus: 1.9
+    pids_limit: 512
+    read_only: true
+    tmpfs: ["/tmp:size=1g", "/home/worker/.cache/claude:size=64m", "/home/worker/.cache/fontconfig:size=64m",
+            "/home/worker/.npm:size=256m"]
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}
+    restart: unless-stopped
+volumes:
+  edit-video-data: {name: brandhub-edit-video-data}
+  edit-video-claude: {name: brandhub-edit-video-claude}
+  edit-video-cache: {name: brandhub-edit-video-cache}

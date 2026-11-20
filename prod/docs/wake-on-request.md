@@ -1,7 +1,7 @@
 # Sleep when idle, wake on request (crawl, edit-video)
 
 `brandhub-crawl` (i-0288d396a5d5b9b06, 172.31.20.50) and `brandhub-edit-video` (i-0ec7bf59c53fb7d0b, 172.31.20.80)
-stop themselves when idle and start again when work arrives. Terraform: `3. backend-prod/wake.tf`, instances with
+stop themselves when idle and start again when work arrives. Terraform: `terraform/3-backend/wake.tf`, instances with
 `wake_on_request = true` (tag `Wakeable=true`).
 
 ```
@@ -35,7 +35,7 @@ on edit-video, `UnauthorizedOperation` on gateway and core). The scheduler role 
 **Crawl caveat**: Facebook/Threads sessions are RAM-only by design. After every wake they must be uploaded again
 through the management API. Proxy and TikTok connections are stored encrypted on disk and survive.
 
-**Change crawl times**: `crawl_schedule_times` in `3. backend-prod` (HH:MM, Asia/Ho_Chi_Minh), then apply.
+**Change crawl times**: `crawl_schedule_times` in `terraform/3-backend` (HH:MM, Asia/Ho_Chi_Minh), then apply.
 
 ## Install
 
@@ -43,9 +43,9 @@ through the management API. Proxy and TikTok connections are stored encrypted on
   `idle-sleep.sh` to `/usr/local/bin/brandhub-idle-sleep.sh`, units to `/etc/systemd/system`, write
   `/etc/brandhub/idle-sleep.env`, `systemctl enable --now brandhub-idle-sleep.timer`; crawl also gets
   `crawl-kick.sh` at `/usr/local/bin/brandhub-crawl-kick.sh`).
-- gateway: copy `waker.py` to `./wake/`, then
+- gateway: copy `hosts/_shared/wake/waker.py` to `./wake/`, then
   `EDIT_VIDEO_INSTANCE_ID=i-0ec7bf59c53fb7d0b docker compose -f gateway-wake.compose.yaml up -d` and reload Nginx.
-- core: copy `waker.py` and `crawl-gate.nginx.conf` to `./wake/`, then
+- core: copy `hosts/_shared/wake/waker.py` and `hosts/core/crawl-gate.nginx.conf` to `./wake/`, then
   `CRAWL_INSTANCE_ID=i-0288d396a5d5b9b06 docker compose -f core-wake.compose.yaml up -d`.
 
 ## Verified 2026-11-18

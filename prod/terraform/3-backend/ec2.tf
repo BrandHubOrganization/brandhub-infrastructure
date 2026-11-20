@@ -26,7 +26,7 @@ resource "aws_instance" "brandhub" {
   # Instances need outbound internet (ECR, crawl targets) and there is no NAT.
   associate_public_ip_address = true
 
-  # Wakeable hosts stop themselves when idle (wake/idle-sleep.sh): `shutdown` must stop, never terminate.
+  # Wakeable hosts stop themselves when idle (hosts/_shared/idle-sleep/idle-sleep.sh): `shutdown` must stop, never terminate.
   instance_initiated_shutdown_behavior = "stop"
 
   vpc_security_group_ids = [

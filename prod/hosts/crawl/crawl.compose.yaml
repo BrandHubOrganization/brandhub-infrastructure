@@ -22,7 +22,7 @@ services:
       CRAWLER_STATE_DIR: /app/data/crawler/control
       CRAWLER_OUTPUT_DIR: /app/data/crawler/output
       CRAWLER_WORK_DIR: /dev/shm/crawler
-      # The host sleeps when idle, so EventBridge Scheduler drives scheduled crawls (wake/crawl-kick.sh).
+      # The host sleeps when idle, so EventBridge Scheduler drives scheduled crawls (crawl-kick.sh).
       CRAWLER_SCHEDULER_ENABLED: "false"
     # Credential-bearing URLs in the env file keep the redis/rabbitmq names.
     extra_hosts:
