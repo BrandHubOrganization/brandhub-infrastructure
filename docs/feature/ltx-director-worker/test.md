@@ -22,3 +22,10 @@
 Still pending: actual `/object_info` conversion for both full templates on the VM, GPU memory/quality and Vietnamese voice checks, live polling/media/S3 delivery, browser light/dark checks and public worker configuration. VM is off at the user's request. `start_api.py` performs schema compilation before exposing a new worker; failure requires diagnosis before claiming deployment success.
 
 Deployment: upload the ZIP, extract under `/workspace`, run `bash /workspace/ltx_video_bundle/setup.sh`. Public API targets 10200, GUI targets 10101. Backend LTX URL/key settings remain opt-in; a built ZIP is not evidence that the web is connected to a live worker. Stable `API_KEY` in the VM `.env` can be reused across rentals; an automatically generated key changes on a fresh VM and must be updated privately in backend settings.
+
+## Revision 2026-11-18 (VACE)
+- Worker: missing key 401 on /health and submit; bad script and GIF upload 422; media path traversal 400; real unbox_perfume canvas compiles (subgraph expanded, LoadImage = uploaded name only, one SaveVideo `video/vace_<job>`); completed job lists the MP4.
+- Director: both examples validate and reach the worker with `script_json`; character adds an `extra_images` part; size follows aspect ratio; segment 1 `prev`, out-of-range panel, non-4n+1 frames and a 30 s script are rejected without a submit.
+- Live (pending): `/health` through ngrok returned ok with key, 401 without (2026-11-18). GPU render not yet run.
+- Web (product-video): submit disabled without product photo or brief; brief capped at 1000; GIF/oversize rejected with
+  a message; generate sends duration 20 + images; completed job shows the video; failure shows the error. Check both themes.

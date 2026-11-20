@@ -1,6 +1,6 @@
 # =========================================================
-# Postgres pg_dump backups (no EBS snapshots)
-# Written daily by brandhub-pg-backup.timer on the service EC2.
+# Daily DB dumps (no EBS snapshots)
+# Written at 00:00 Asia/Ho_Chi_Minh by the db-backup container on the core EC2.
 # =========================================================
 
 resource "aws_s3_bucket" "db_backup" {
@@ -45,17 +45,29 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "db_backup" {
 resource "aws_s3_bucket_lifecycle_configuration" "db_backup" {
   bucket = aws_s3_bucket.db_backup.id
 
+  # Only objects written by db-backup carry retention=daily; files already in the
+  # bucket (e.g. the 2026-11-19 pre-restore dump) have no tag and are kept.
   rule {
-    id     = "expire-old-dumps"
+    id     = "expire-daily-dumps"
     status = "Enabled"
 
     filter {
-      prefix = "postgres/"
+      tag {
+        key   = "retention"
+        value = "daily"
+      }
     }
 
     expiration {
       days = var.db_backup_retention_days
     }
+  }
+
+  rule {
+    id     = "abort-incomplete-uploads"
+    status = "Enabled"
+
+    filter {}
 
     abort_incomplete_multipart_upload {
       days_after_initiation = 1
@@ -98,8 +110,8 @@ resource "aws_iam_role_policy" "ec2_db_backup_put" {
     Statement = [
       {
         Effect   = "Allow"
-        Action   = ["s3:PutObject"]
-        Resource = "${aws_s3_bucket.db_backup.arn}/postgres/*"
+        Action   = ["s3:PutObject", "s3:PutObjectTagging"]
+        Resource = [for db in ["postgres", "redis", "chroma", "mongo", "neo4j"] : "${aws_s3_bucket.db_backup.arn}/${db}/*"]
       }
     ]
   })
