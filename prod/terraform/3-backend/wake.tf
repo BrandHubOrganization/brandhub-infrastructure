@@ -2,7 +2,7 @@
 # Wake on request / sleep when idle (crawl, edit_video)
 #   - Wakers (gateway: edit_video, core: crawl) call ec2:StartInstances with the shared EC2 role.
 #   - EventBridge Scheduler wakes crawl at crawl_schedule_times and starts a scheduled crawl over SSM.
-#   - Each wakeable host stops itself when idle (ec2-ecr/wake/idle-sleep.sh).
+#   - Each wakeable host stops itself when idle (hosts/_shared/idle-sleep/idle-sleep.sh).
 # =========================================================
 
 locals {

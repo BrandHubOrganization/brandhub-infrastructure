@@ -1,5 +1,5 @@
 # Private keys and credentials
-/key_pair/
+/key_pair/  # removed 2026-11-21, archived in keep-local-only
 *.pem
 *.key
 *.ppk
@@ -49,3 +49,11 @@ terraform.rc
 
 # Load test accounts
 /loadtest/users.json
+
+# Per-host runtime files (secrets / image tags) and host-only data
+hosts/*/env/
+hosts/*/.env
+hosts/*/init/
+hosts/*/letsencrypt/
+hosts/*/acme-webroot/
+hosts/*/secrets/

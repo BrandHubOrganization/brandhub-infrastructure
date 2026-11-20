@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - 'prod/ec2-ecr/db-backup/**'
+      - 'prod/hosts/core/db-backup/**'
       - '.github/workflows/db-backup.yml'
   workflow_dispatch:
 
@@ -22,7 +22,7 @@ jobs:
     runs-on: ${{ fromJSON(vars.CI_RUNNER || '"ubuntu-latest"') }}
     defaults:
       run:
-        working-directory: prod/ec2-ecr/db-backup
+        working-directory: prod/hosts/core/db-backup
     steps:
       - uses: actions/checkout@v4
 
@@ -47,7 +47,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: prod/ec2-ecr/db-backup
+          context: prod/hosts/core/db-backup
           platforms: linux/amd64
           push: true
           tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:sha-${{ github.sha }}

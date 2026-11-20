@@ -45,10 +45,11 @@ resource "aws_s3_bucket_public_access_block" "app" {
   for_each = aws_s3_bucket.app
   bucket   = each.value.id
 
-  block_public_acls       = true
-  ignore_public_acls      = true
-  block_public_policy     = true
-  restrict_public_buckets = true
+  block_public_acls  = true
+  ignore_public_acls = true
+  # media serves image/* publicly (logos, banners, avatars stored as plain S3 URLs)
+  block_public_policy     = each.key != "media"
+  restrict_public_buckets = each.key != "media"
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "app" {
@@ -82,7 +83,7 @@ resource "aws_s3_bucket_policy" "app" {
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
+    Statement = concat([
       {
         Sid       = "DenyInsecureTransport"
         Effect    = "Deny"
@@ -93,7 +94,15 @@ resource "aws_s3_bucket_policy" "app" {
           Bool = { "aws:SecureTransport" = "false" }
         }
       }
-    ]
+      ], each.key == "media" ? [
+      {
+        Sid       = "PublicReadImages"
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = "s3:GetObject"
+        Resource  = "${each.value.arn}/image/*"
+      }
+    ] : [])
   })
 
   depends_on = [aws_s3_bucket_public_access_block.app]
