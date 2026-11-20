@@ -304,6 +304,54 @@
           "required": true
         }
       ]
+    },
+    "db-backup": {
+      "restart": "unless-stopped",
+      "container_name": "brandhub-db-backup",
+      "image": "${DB_BACKUP_IMAGE:?Set DB_BACKUP_IMAGE}",
+      "env_file": [
+        {
+          "path": "./env/db-backup.env",
+          "required": true
+        }
+      ],
+      "environment": {
+        "PGHOST": "postgres",
+        "REDIS_HOST": "redis",
+        "CHROMA_DATA_DIR": "/chroma",
+        "BACKUP_BUCKET": "brandhub-db-backup-prd-134875421878",
+        "AWS_REGION": "ap-southeast-1",
+        "TZ": "Asia/Ho_Chi_Minh"
+      },
+      "networks": {
+        "brandhub-network": null
+      },
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy",
+          "required": true
+        },
+        "redis": {
+          "condition": "service_healthy",
+          "required": true
+        }
+      },
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "chroma-data",
+          "target": "/chroma",
+          "read_only": true,
+          "volume": {}
+        },
+        {
+          "type": "volume",
+          "source": "db-backup-state",
+          "target": "/var/lib/db-backup",
+          "volume": {}
+        }
+      ],
+      "mem_limit": "512m"
     }
   },
   "networks": {
@@ -325,6 +373,9 @@
     },
     "redis-data": {
       "name": "brandhub-redis-data"
+    },
+    "db-backup-state": {
+      "name": "brandhub-db-backup-state"
     }
   }
 }
