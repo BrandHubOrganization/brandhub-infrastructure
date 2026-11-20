@@ -1,0 +1,55 @@
+{
+  "name": "tvc_tumbler",
+  "product_name": "tumbler",
+  "product_image": "tumbler-reference.png",
+  "seed": 20261115,
+  "size": [
+    1024,
+    576
+  ],
+  "views": [
+    "the front view with the printed word reduce",
+    "the side view with the handle in profile",
+    "the back view, the handle behind",
+    "the top view of the clear lid and the straw"
+  ],
+  "story": "TVC 20 s, Google ABCD (Attention, Branding, Connection, Direction). Why: on a hot hike her water is warm, but this tumbler still has ice at sunset. Shots: 1 hook (0-2 s) ice splashes into the tumbler, logo visible = brand in the first 5 s; 2 problem (2-5 s) hot dusty trail, she wipes sweat; 3 use (5-9 s) she pulls it from her backpack and sips; 4 proof (9-12 s) sunset, the lid opens, ice still inside; 5 detail (12-15 s) macro of the handle grip and steel base; 6 pack shot (15-20 s) on a rock, push-in, room for logo and call to action. Add music, SFX, logo and the line in the edit.",
+  "storyboard_prompts": [
+    "Image 1 is the product photo: use exactly this product, its shape, materials, colours and logos. Create ONE storyboard image made of a 2x2 grid of four equal photo panels, edge to edge, with no borders, no gaps, no text and no numbers. Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Wide 16:9 panels, a TV commercial. Cinematic commercial, 16:9 frame, 50mm lens, shallow depth of field. The tumbler in every panel: a large mint-green glossy insulated tumbler: a slightly tapered body, a raised mint-green band near the top, a matching mint-green C-shaped handle, a clear plastic lid with a mint-green straw, a brushed steel ring at the base, and the grey word 'reduce' printed vertically on the side. Panel 1 (top left): HOOK: extreme close-up of the open tumbler without its lid on a sun-bleached wooden bench, clear ice cubes splashing into it, cold water droplets flying, the grey word 'reduce' visible on the side. Panel 2 (top right): PROBLEM: a dusty mountain trail under hard midday sun from the upper right, one side lit, the other in deep shadow, heat shimmer in the distance. a young woman hiker in a sweat-darkened light-grey T-shirt, seen from the chest down only, dusty forearms with sun-flushed skin and fine pores, a small backpack strap on her shoulder; she never looks at the camera; she wipes sweat from her neck with the back of her hand, a scratched plastic water bottle hanging warm from her pack. Panel 3 (bottom left): USE: the same trail; a young woman hiker in a sweat-darkened light-grey T-shirt, seen from the chest down only, dusty forearms with sun-flushed skin and fine pores, a small backpack strap on her shoulder; she never looks at the camera; she holds the tumbler by its handle and sips through the straw, condensation-free mint-green body glinting in the sun. Panel 4 (bottom right): PROOF: the same tumbler on a flat rock at sunset, the lid flipped open, clear ice cubes still floating inside, long orange light, dust in the air. The tumbler has the same shape, proportions and colour in every panel; it is about the height of her forearm. Candid, unretouched photographs with natural imperfections: real dust, fingerprints, uneven light, slight lens vignetting. No extra products, no added text, no watermark.",
+    "Image 1 is the product photo: use exactly this product, its shape, materials, colours and logos. Create ONE storyboard image made of a 2x2 grid of four equal photo panels, edge to edge, with no borders, no gaps, no text and no numbers. Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Wide 16:9 panels, a TV commercial. Cinematic commercial, 16:9 frame, 50mm lens, shallow depth of field. The tumbler in every panel: a large mint-green glossy insulated tumbler: a slightly tapered body, a raised mint-green band near the top, a matching mint-green C-shaped handle, a clear plastic lid with a mint-green straw, a brushed steel ring at the base, and the grey word 'reduce' printed vertically on the side. Panel 1 (top left): DETAIL: macro of a dusty hand gripping the mint-green handle, the brushed steel base ring catching the sun, tiny scratches on the gloss. Panel 2 (top right): PACK SHOT: the tumbler with lid and straw stands alone on a flat grey rock at sunset, a misty valley far behind, empty sky on the right for a logo, medium shot. Panel 3 (bottom left): PACK SHOT CLOSER: the same tumbler on the rock filling the middle-left of the frame, golden light along its glossy body, empty sky on the right. Panel 4 (bottom right): USE END: the tumbler is clipped back into the side pocket of her small backpack lying on the trail. The tumbler has the same shape, proportions and colour in every panel. Candid, unretouched photographs with natural imperfections: real dust, fingerprints, uneven light, slight lens vignetting. No extra products, no added text, no watermark."
+  ],
+  "segments": [
+    {
+      "start": 0,
+      "frames": 33,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Cinematic commercial, 16:9 frame, 50mm lens, shallow depth of field. The tumbler: a large mint-green glossy insulated tumbler: a slightly tapered body, a raised mint-green band near the top, a matching mint-green C-shaped handle, a clear plastic lid with a mint-green straw, a brushed steel ring at the base, and the grey word 'reduce' printed vertically on the side, its lid off, on a sun-bleached wooden bench. Slow motion: clear ice cubes tumble into it one by one, cold water splashes up and droplets fly, settling on the wood."
+    },
+    {
+      "start": 1,
+      "frames": 49,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Cinematic commercial, 16:9 frame, 50mm lens, shallow depth of field. Hard midday sun from the upper right, one side lit, the other in deep shadow, heat shimmer in the distance. A dusty mountain trail; a young woman hiker in a sweat-darkened light-grey T-shirt, seen from the chest down only, dusty forearms with sun-flushed skin and fine pores, a small backpack strap on her shoulder; she never looks at the camera. Handheld, the frame bounces with her steps. She stops, breathing hard, wipes the sweat from her neck with the back of her hand, gravel shifting under her boots and dust rising."
+    },
+    {
+      "start": 2,
+      "end_panel": 7,
+      "frames": 65,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Cinematic commercial, 16:9 frame, 50mm lens, shallow depth of field. Hard midday sun from the upper right, one side lit, the other in deep shadow, heat shimmer in the distance. a young woman hiker in a sweat-darkened light-grey T-shirt, seen from the chest down only, dusty forearms with sun-flushed skin and fine pores, a small backpack strap on her shoulder; she never looks at the camera. She reaches back, pulls the tumbler from her backpack side pocket: a large mint-green glossy insulated tumbler: a slightly tapered body, a raised mint-green band near the top, a matching mint-green C-shaped handle, a clear plastic lid with a mint-green straw, a brushed steel ring at the base, and the grey word 'reduce' printed vertically on the side. She lifts it by the handle, takes a long sip through the straw, lowers it and clips it back into the side pocket."
+    },
+    {
+      "start": 3,
+      "frames": 49,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Cinematic commercial, 16:9 frame, 50mm lens, shallow depth of field. Sunset, long low orange light from the left, dust in the air. The tumbler: a large mint-green glossy insulated tumbler: a slightly tapered body, a raised mint-green band near the top, a matching mint-green C-shaped handle, a clear plastic lid with a mint-green straw, a brushed steel ring at the base, and the grey word 'reduce' printed vertically on the side, on a flat rock. A dusty hand flips the lid open; clear ice cubes still float inside and knock gently against the wall."
+    },
+    {
+      "start": 4,
+      "frames": 41,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Cinematic commercial, 16:9 frame, 50mm lens, shallow depth of field. Macro. The tumbler: a large mint-green glossy insulated tumbler: a slightly tapered body, a raised mint-green band near the top, a matching mint-green C-shaped handle, a clear plastic lid with a mint-green straw, a brushed steel ring at the base, and the grey word 'reduce' printed vertically on the side. A dusty hand tightens its grip on the mint-green handle and lifts it a few centimetres; the brushed steel base ring catches the sun, tiny scratches on the gloss."
+    },
+    {
+      "start": 5,
+      "end_panel": 6,
+      "frames": 81,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Cinematic commercial, 16:9 frame, 50mm lens, shallow depth of field. The tumbler: a large mint-green glossy insulated tumbler: a slightly tapered body, a raised mint-green band near the top, a matching mint-green C-shaped handle, a clear plastic lid with a mint-green straw, a brushed steel ring at the base, and the grey word 'reduce' printed vertically on the side, alone on a flat grey rock at sunset, a misty valley far behind, empty sky on the right. The camera pushes in slowly and smoothly until the tumbler fills the middle-left of the frame; a little dust drifts through the light, everything else stays still."
+    }
+  ]
+}

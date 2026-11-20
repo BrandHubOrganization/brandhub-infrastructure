@@ -1,0 +1,31 @@
+{
+  "name": "asmr_lipstick",
+  "product_name": "lipstick",
+  "product_image": "lipstick-reference.jpg",
+  "seed": 20261117,
+  "views": [
+    "the front view with the pink cap on",
+    "the front view uncapped, the pink bullet fully twisted up",
+    "the side view uncapped, the slanted tip in profile",
+    "the top view looking down onto the slanted tip"
+  ],
+  "story": "Why: the satisfying first use of a new lipstick. Cap off, twist up, a swatch on the wrist. Add cap click and twist sounds in the edit.",
+  "storyboard_prompt": "Image 1 is the product photo: use exactly this product, its shape, materials, colours and logos. Create ONE storyboard image made of a 2x2 grid of four equal photo panels, edge to edge, with no borders, no gaps, no text and no numbers. Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Every panel: Macro ASMR close-up, 100mm macro lens, very shallow depth of field, handheld macro: tiny drifts and slow focus pulls, slow gentle movements. Soft window light from the left on a creased pale pink silk cloth, the right side in soft shadow. Only the same young woman's hands and forearms: real skin with fine pores, knuckle creases, a faint vein on the back of the hand, slightly dry fingertips, short soft-pink nails with a tiny chip. The lipstick: a lipstick: a soft pink matte square base, a short pale-mauve inner collar, a polished silver metal sleeve with faint fingerprints, a pastel pink slanted lipstick bullet, and a matching soft pink square cap. Panel 1 (top left): macro: the closed lipstick with its pink cap on lies on the silk, two fingertips resting on the cap. Panel 2 (top right): macro: the cap is pulled off and lies on its side on the LEFT; the silver sleeve shows, the pink bullet only just visible. Panel 3 (bottom left): macro: fingers hold the base upright; the pastel pink slanted bullet is fully twisted up out of the silver sleeve, its surface with fine real texture. Panel 4 (bottom right): macro: the tip of the bullet draws a soft creamy pink swatch on the inside of her wrist, skin creases and pores visible, the cap still on the silk on the LEFT. The same lipstick, light and silk in all four panels; the lipstick about the length of her finger. Candid, unretouched photographs with natural imperfections: real dust, fingerprints, uneven light, slight lens vignetting. No extra products, no added text, no watermark.",
+  "segments": [
+    {
+      "end_panel": 1,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Macro ASMR close-up, 100mm macro lens, very shallow depth of field, handheld macro: tiny drifts and slow focus pulls, slow gentle movements. Soft window light from the left on a creased pale pink silk cloth, the right side in soft shadow. Only the same young woman's hands and forearms: real skin with fine pores, knuckle creases, a faint vein on the back of the hand, slightly dry fingertips, short soft-pink nails with a tiny chip. The lipstick: a lipstick: a soft pink matte square base, a short pale-mauve inner collar, a polished silver metal sleeve with faint fingerprints, a pastel pink slanted lipstick bullet, and a matching soft pink square cap. Two fingertips take the pink cap and pull it off very slowly, with a little resistance and a soft release, then lay it on its side on the silk on the LEFT.",
+      "frames": 89
+    },
+    {
+      "end_panel": 2,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Macro ASMR close-up, 100mm macro lens, very shallow depth of field, handheld macro: tiny drifts and slow focus pulls, slow gentle movements. Soft window light from the left on a creased pale pink silk cloth, the right side in soft shadow. Only the same young woman's hands and forearms: real skin with fine pores, knuckle creases, a faint vein on the back of the hand, slightly dry fingertips, short soft-pink nails with a tiny chip. The lipstick: a lipstick: a soft pink matte square base, a short pale-mauve inner collar, a polished silver metal sleeve with faint fingerprints, a pastel pink slanted lipstick bullet, and a matching soft pink square cap, uncapped. The fingers hold the lipstick upright and slowly twist the base in small steps; the pastel pink slanted bullet rises out of the silver sleeve.",
+      "frames": 89
+    },
+    {
+      "end_panel": 3,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Macro ASMR close-up, 100mm macro lens, very shallow depth of field, handheld macro: tiny drifts and slow focus pulls, slow gentle movements. Soft window light from the left on a creased pale pink silk cloth, the right side in soft shadow. Only the same young woman's hands and forearms: real skin with fine pores, knuckle creases, a faint vein on the back of the hand, slightly dry fingertips, short soft-pink nails with a tiny chip. The lipstick: a lipstick: a soft pink matte square base, a short pale-mauve inner collar, a polished silver metal sleeve with faint fingerprints, a pastel pink slanted lipstick bullet, and a matching soft pink square cap, uncapped and twisted up. The inside of her left wrist comes into frame; the tip presses into the skin and glides slowly across it, leaving a soft creamy pink swatch, the skin dimpling under the pressure.",
+      "frames": 89
+    }
+  ]
+}
