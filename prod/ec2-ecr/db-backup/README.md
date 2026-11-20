@@ -3,7 +3,7 @@
 Replaces the old `pg-backup` systemd job. Runs on the core EC2 as the `db-backup` service in `core.compose.json`.
 
 - Schedule: 00:00 Asia/Ho_Chi_Minh every day (APScheduler inside the container), all five databases one after another.
-- Target: `s3://brandhub-db-backup-prd-134875421878/<db>/`, SSE-S3, deleted after 7 days (`db_backup_retention_days`).
+- Target: `s3://brandhub-db-backup-prd-134875421878/<db>/`, SSE-S3. Each dump is tagged `retention=daily` and expires after 1 day (`db_backup_retention_days`), so only the latest copy stays. Files without that tag (older dumps already in the bucket) are never expired.
 - The EC2 role can only `PutObject` under `postgres/ redis/ chroma/ mongo/ neo4j/`; it cannot list, read or delete dumps. Restore with an admin AWS identity.
 - Admin → Recovery shows the last result per DB and can start "Backup now" for selected DBs through business-service (`/api/v1/admin/backups`).
 - A DB whose env is missing is reported as `skipped`, not failed.
