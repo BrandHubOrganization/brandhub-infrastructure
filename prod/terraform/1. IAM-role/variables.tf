@@ -36,6 +36,7 @@ variable "ecr_repositories" {
     "brandhub/api-gateway",
     "brandhub/business-service",
     "brandhub/crawl-service",
+    "brandhub/db-backup",
     "brandhub/edit-video",
     "brandhub/publisher-service",
   ]

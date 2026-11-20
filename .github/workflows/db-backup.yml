@@ -1,0 +1,56 @@
+name: DB Backup Image
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'prod/ec2-ecr/db-backup/**'
+      - '.github/workflows/db-backup.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: ap-southeast-1
+  ECR_REGISTRY: 134875421878.dkr.ecr.ap-southeast-1.amazonaws.com
+  ECR_REPOSITORY: brandhub/db-backup
+
+jobs:
+  build:
+    runs-on: ${{ fromJSON(vars.CI_RUNNER || '"ubuntu-latest"') }}
+    defaults:
+      run:
+        working-directory: prod/ec2-ecr/db-backup
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Test
+        run: |
+          pip install -q -r requirements-dev.txt
+          python -m pytest -q
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: prod/ec2-ecr/db-backup
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:sha-${{ github.sha }}
+
+      - name: Image tag
+        run: echo "DB_BACKUP_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:sha-${{ github.sha }}" >> "$GITHUB_STEP_SUMMARY"

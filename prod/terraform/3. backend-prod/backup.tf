@@ -1,6 +1,6 @@
 # =========================================================
-# Postgres pg_dump backups (no EBS snapshots)
-# Written daily by brandhub-pg-backup.timer on the service EC2.
+# Daily DB dumps (no EBS snapshots)
+# Written at 00:00 Asia/Ho_Chi_Minh by the db-backup container on the core EC2.
 # =========================================================
 
 resource "aws_s3_bucket" "db_backup" {
@@ -49,9 +49,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "db_backup" {
     id     = "expire-old-dumps"
     status = "Enabled"
 
-    filter {
-      prefix = "postgres/"
-    }
+    filter {}
 
     expiration {
       days = var.db_backup_retention_days
@@ -99,7 +97,7 @@ resource "aws_iam_role_policy" "ec2_db_backup_put" {
       {
         Effect   = "Allow"
         Action   = ["s3:PutObject"]
-        Resource = "${aws_s3_bucket.db_backup.arn}/postgres/*"
+        Resource = [for db in ["postgres", "redis", "chroma", "mongo", "neo4j"] : "${aws_s3_bucket.db_backup.arn}/${db}/*"]
       }
     ]
   })

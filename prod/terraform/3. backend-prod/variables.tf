@@ -62,15 +62,15 @@ variable "instances" {
 }
 
 variable "db_backup_bucket_name" {
-  description = "S3 bucket for daily Postgres pg_dump backups"
+  description = "S3 bucket for daily DB dumps (postgres, redis, chroma, mongo, neo4j)"
   type        = string
   default     = "brandhub-db-backup-prd-134875421878"
 }
 
 variable "db_backup_retention_days" {
-  description = "Days to keep each Postgres dump in S3"
+  description = "Days to keep each DB dump in S3"
   type        = number
-  default     = 14
+  default     = 7
 }
 
 variable "crawl_schedule_times" {
