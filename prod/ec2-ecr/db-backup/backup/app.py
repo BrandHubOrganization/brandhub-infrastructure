@@ -19,13 +19,15 @@ from .runner import BackupRunner, BusyError
 
 log = logging.getLogger("db-backup")
 TIMEZONE = "Asia/Ho_Chi_Minh"
+# The bucket lifecycle expires only objects with this tag, so older files stay.
+UPLOAD_ARGS = {"ServerSideEncryption": "AES256", "Tagging": "retention=daily"}
 
 
 def s3_uploader(bucket: str, region: str):
     client = boto3.client("s3", region_name=region)
 
     def upload(path: Path, key: str) -> None:
-        client.upload_file(str(path), bucket, key, ExtraArgs={"ServerSideEncryption": "AES256"})
+        client.upload_file(str(path), bucket, key, ExtraArgs=UPLOAD_ARGS)
 
     return upload
 

@@ -110,3 +110,18 @@ def test_api_requires_token_and_validates(tmp_path, uploads):
     assert bad.status_code == 400
     started = client.post("/run", json={"dbs": ["postgres"]}, headers={"X-Backup-Token": "t0ken"})
     assert started.status_code == 202
+
+
+def test_uploads_are_tagged_for_daily_expiry(monkeypatch, tmp_path):
+    import backup.app as app_module
+
+    calls = []
+
+    class FakeS3:
+        def upload_file(self, filename, bucket, key, ExtraArgs=None):
+            calls.append((bucket, key, ExtraArgs))
+
+    monkeypatch.setattr(app_module.boto3, "client", lambda *a, **k: FakeS3())
+    app_module.s3_uploader("bkt", "ap-southeast-1")(tmp_path / "x.dump", "postgres/x.dump")
+    assert calls == [("bkt", "postgres/x.dump",
+                      {"ServerSideEncryption": "AES256", "Tagging": "retention=daily"})]
