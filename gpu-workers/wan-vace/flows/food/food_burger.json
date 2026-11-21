@@ -1,0 +1,50 @@
+{
+  "name": "food_burger",
+  "product_name": "cheeseburger",
+  "product_image": "burger-reference.jpg",
+  "seed": 20261120,
+  "views": [
+    "the front view, the cheese slice draping over the patty",
+    "the side view, the layers in profile",
+    "the top view of the sesame-seed bun",
+    "the burger cut in half, the cross-section facing the camera"
+  ],
+  "story": "Food hero 19 s, ABCD. Why: a late-night craving, made irresistible. One hero motion per shot: 1 sizzle (hook) 2 cheese melt 3 bun pressed down 4 cut in half, steam 5 cheese pull 6 hero push-in. Add sizzle SFX, music and logo in the edit.",
+  "storyboard_prompts": [
+    "Image 1 is the product photo: use exactly this product, its shape, materials, colours and logos. Create ONE storyboard image made of a 2x2 grid of four equal photo panels, edge to edge, with no borders, no gaps, no text and no numbers. Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Food commercial, 9:16 vertical frame, macro to close-up, 100mm lens, shallow depth of field, slow motion. Warm tungsten key light from the back left, rim light catching steam and fat, the right side in deep warm shadow, a dark scorched wooden board and a cast-iron grill. The same burger in every shot; no new ingredients appear, nothing changes shape on its own. Panel 1 (top left): HOOK: macro of the thick beef patty on a black cast-iron grill, fat spitting and sizzling, smoke curling up, a dark crust forming. Panel 2 (top right): MELT: a square slice of yellow cheddar on top of the patty on the grill, the corners softening and sliding down the sides, glossy. Panel 3 (bottom left): ASSEMBLE: a hand presses the sesame top bun down onto a classic cheeseburger: a soft golden sesame-seed bun, a thick dark-seared beef patty, one square slice of yellow cheddar melting over the patty, and frilly green lettuce under the patty on the dark board, juice beading at the edge. Panel 4 (bottom right): CUT: the cheeseburger cut cleanly in half on the board, steam rising from the pink-brown cross-section, melted cheese and lettuce layers visible. The same light, board and grill in every panel. Candid, unretouched photographs with natural imperfections: real crumbs, dust, fingerprints, uneven light, slight lens vignetting. No extra products, no added text, no watermark.",
+    "Image 1 is the product photo: use exactly this product, its shape, materials, colours and logos. Create ONE storyboard image made of a 2x2 grid of four equal photo panels, edge to edge, with no borders, no gaps, no text and no numbers. Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Food commercial, 9:16 vertical frame, macro to close-up, 100mm lens, shallow depth of field, slow motion. Warm tungsten key light from the back left, rim light catching steam and fat, the right side in deep warm shadow, a dark scorched wooden board and a cast-iron grill. The same burger in every shot; no new ingredients appear, nothing changes shape on its own. Panel 1 (top left): PULL: a hand lifts one half of the cheeseburger, long strands of melted cheese stretching between the two halves. Panel 2 (top right): HERO: a classic cheeseburger: a soft golden sesame-seed bun, a thick dark-seared beef patty, one square slice of yellow cheddar melting over the patty, and frilly green lettuce under the patty, whole, on the dark wooden board, a few fries and a crumpled paper beside it, steam rising, medium close-up. Panel 3 (bottom left): HERO CLOSER: the same whole cheeseburger filling the frame, sesame seeds and glossy cheese in sharp detail, steam drifting through the rim light. Panel 4 (bottom right): BITE: the whole cheeseburger with one bite taken out of the front, crumbs on the board. The same light and board in every panel. Candid, unretouched photographs with natural imperfections: real crumbs, dust, fingerprints, uneven light, slight lens vignetting. No extra products, no added text, no watermark."
+  ],
+  "segments": [
+    {
+      "start": 0,
+      "frames": 33,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Food commercial, 9:16 vertical frame, macro to close-up, 100mm lens, shallow depth of field, slow motion. Warm tungsten key light from the back left, rim light catching steam and fat, the right side in deep warm shadow, a dark scorched wooden board and a cast-iron grill. The thick beef patty sizzles on the cast-iron grill: fat spits and pops, smoke curls up through the warm rim light, the crust darkens. Only this one motion."
+    },
+    {
+      "start": 1,
+      "frames": 49,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Food commercial, 9:16 vertical frame, macro to close-up, 100mm lens, shallow depth of field, slow motion. Warm tungsten key light from the back left, rim light catching steam and fat, the right side in deep warm shadow, a dark scorched wooden board and a cast-iron grill. A slice of yellow cheddar lies on the sizzling patty; it softens, its corners droop and slide slowly down the sides of the patty, glossy and bubbling at the edge. Only this one motion."
+    },
+    {
+      "start": 2,
+      "frames": 49,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Food commercial, 9:16 vertical frame, macro to close-up, 100mm lens, shallow depth of field, slow motion. Warm tungsten key light from the back left, rim light catching steam and fat, the right side in deep warm shadow, a dark scorched wooden board and a cast-iron grill. Only the same person's hands and forearms: real skin with fine pores, knuckle creases, a faint vein on the back of the hand, short natural nails. The burger: a classic cheeseburger: a soft golden sesame-seed bun, a thick dark-seared beef patty, one square slice of yellow cheddar melting over the patty, and frilly green lettuce under the patty. The hand presses the sesame top bun down gently; the bun springs back a little, juice beads at the edge of the patty. The same burger in every shot; no new ingredients appear, nothing changes shape on its own."
+    },
+    {
+      "start": 3,
+      "frames": 49,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Food commercial, 9:16 vertical frame, macro to close-up, 100mm lens, shallow depth of field, slow motion. Warm tungsten key light from the back left, rim light catching steam and fat, the right side in deep warm shadow, a dark scorched wooden board and a cast-iron grill. The burger: a classic cheeseburger: a soft golden sesame-seed bun, a thick dark-seared beef patty, one square slice of yellow cheddar melting over the patty, and frilly green lettuce under the patty, cut in half on the dark board. The two halves ease apart a few millimetres; thick steam rises from the cross-section into the rim light. The same burger in every shot; no new ingredients appear, nothing changes shape on its own."
+    },
+    {
+      "start": 4,
+      "frames": 49,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Food commercial, 9:16 vertical frame, macro to close-up, 100mm lens, shallow depth of field, slow motion. Warm tungsten key light from the back left, rim light catching steam and fat, the right side in deep warm shadow, a dark scorched wooden board and a cast-iron grill. Only the same person's hands and forearms: real skin with fine pores, knuckle creases, a faint vein on the back of the hand, short natural nails. The burger: a classic cheeseburger: a soft golden sesame-seed bun, a thick dark-seared beef patty, one square slice of yellow cheddar melting over the patty, and frilly green lettuce under the patty, cut in half. The hand lifts one half slowly; long glossy strands of melted cheese stretch between the halves, sag and break. The same burger in every shot; no new ingredients appear, nothing changes shape on its own."
+    },
+    {
+      "start": 5,
+      "end_panel": 6,
+      "frames": 81,
+      "prompt": "Shot on a 35mm film camera, Kodak Portra 400, visible film grain, slight halation around highlights, natural unretouched colours, a real photograph, not a render. Food commercial, 9:16 vertical frame, macro to close-up, 100mm lens, shallow depth of field, slow motion. Warm tungsten key light from the back left, rim light catching steam and fat, the right side in deep warm shadow, a dark scorched wooden board and a cast-iron grill. The burger: a classic cheeseburger: a soft golden sesame-seed bun, a thick dark-seared beef patty, one square slice of yellow cheddar melting over the patty, and frilly green lettuce under the patty, whole on the dark board with a few fries. The camera pushes in slowly until it fills the frame; steam drifts through the rim light, everything else still. The same burger in every shot; no new ingredients appear, nothing changes shape on its own."
+    }
+  ]
+}

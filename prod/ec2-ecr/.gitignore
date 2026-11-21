@@ -1,5 +1,0 @@
-env/
-init/
-letsencrypt/
-acme-webroot/
-*.log
