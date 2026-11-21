@@ -56,6 +56,9 @@ variable "instances" {
     private_ip       = optional(string)
     root_volume_size = optional(number, 30)
     root_volume_type = optional(string, "gp3")
+    # The AI host was created outside Terraform with an unencrypted root volume;
+    # changing encryption would replace the instance, so it is declared per host.
+    root_volume_encrypted = optional(bool, true)
     # Sleeps when idle and is started again by a request (wake/) or a schedule.
     wake_on_request = optional(bool, false)
   }))
