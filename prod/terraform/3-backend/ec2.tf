@@ -37,7 +37,7 @@ resource "aws_instance" "brandhub" {
     volume_size           = each.value.root_volume_size
     volume_type           = each.value.root_volume_type
     delete_on_termination = true
-    encrypted             = true
+    encrypted             = each.value.root_volume_encrypted
 
     tags = {
       Name        = "${each.value.name}-root-volume"
@@ -45,6 +45,12 @@ resource "aws_instance" "brandhub" {
       Environment = var.environment
       ManagedBy   = "terraform"
     }
+  }
+
+  lifecycle {
+    # The AI host was created by hand with its own user_data; changing it would stop the
+    # instance. No Terraform-managed host sets user_data.
+    ignore_changes = [user_data]
   }
 
   metadata_options {
