@@ -2585,3 +2585,43 @@ INSERT INTO brandhub_schema_migrations (version, description)
 VALUES ('20261118_agency_billing_cycles_v1', 'Prepaid 3/6/12-month Agency plans with monthly credit tranches')
 ON CONFLICT (version) DO NOTHING;
 COMMIT;
+
+-- ---- 2026-11-21-user-notification-realtime.sql ----
+-- Realtime in-app notifications: every inbox row announces its recipient on commit.
+-- business-service LISTENs on 'user_notification' and pushes a STOMP signal to
+-- /user/queue/notifications. Postgres folds identical payloads in one transaction,
+-- so an Admin broadcast emits one NOTIFY per recipient, not per statement.
+-- Idempotent; safe to run multiple times.
+CREATE OR REPLACE FUNCTION notify_user_notification() RETURNS trigger AS $$
+BEGIN
+    PERFORM pg_notify('user_notification', NEW.user_id::text);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trg_user_notification_notify
+    AFTER INSERT ON user_notifications
+    FOR EACH ROW EXECUTE FUNCTION notify_user_notification();
+
+-- ---- 2026-11-21-engagement-reminders.sql ----
+-- Automatic engagement mails M1–M5 (docs/superpowers/plans/2026-11-21-profile-data-utilization/04-auto-mail.md).
+-- One row per (kind, recipient, subject) reminder stream; the unique key makes the hourly
+-- EngagementReminderJob idempotent and its sent_count compare-and-set stops double sends.
+-- Idempotent; safe to run multiple times.
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS engagement_reminders (
+    id uuid PRIMARY KEY,
+    kind varchar(32) NOT NULL,              -- M1..M5
+    recipient_id uuid NOT NULL,
+    subject_id uuid NOT NULL,               -- user / campaign / package / workspace
+    sent_count int NOT NULL DEFAULT 0,
+    first_triggered_at timestamptz NOT NULL,
+    last_sent_at timestamptz,
+    resolved_at timestamptz,
+    CONSTRAINT uq_engagement_reminders UNIQUE (kind, recipient_id, subject_id)
+);
+CREATE INDEX IF NOT EXISTS idx_engagement_reminders_open
+    ON engagement_reminders (kind) WHERE resolved_at IS NULL;
+
+COMMIT;
