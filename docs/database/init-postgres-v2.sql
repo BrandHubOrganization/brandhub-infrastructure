@@ -265,6 +265,7 @@ CREATE TABLE IF NOT EXISTS agencies (
     location       VARCHAR(255),
     brand_color    VARCHAR(9),
     logo_icon      VARCHAR(50),
+    company_type   VARCHAR(20)      NOT NULL DEFAULT 'AGENCY' CHECK (company_type IN ('AGENCY', 'PERSONAL')),
     tagline        VARCHAR(140),
     founded_year   INTEGER,
     facebook_url   VARCHAR(255),
@@ -2553,6 +2554,32 @@ VALUES (
     '20261118_agency_subscription_entitlements_v1',
     'Align Basic/Plus-Pro/Enterprise pricing, quotas, retention windows, and feature flags'
 )
+ON CONFLICT (version) DO NOTHING;
+
+COMMIT;
+
+-- ---- 2026-11-18-agency-plan-prices.sql ----
+-- FR 3.9.1 Upgrade Plan: publish Agency plan prices (Business & Finance sheet, 2026-11-18).
+-- Plus 990.000 VND/month is sold via SePay; Enterprise 3.990.000 VND/month is shown but sold through sales contact.
+-- Plan versions are immutable (billing_guard_plan_version), so each price is a new version copied from the latest one.
+-- Idempotent; safe to run multiple times. psql -X -v ON_ERROR_STOP=1
+BEGIN;
+INSERT INTO billing_plan_versions (code, version, display_name, price_monthly, currency,
+  max_active_workspaces, max_internal_members, max_clients, storage_limit_bytes, monthly_ai_credits,
+  max_concurrent_ai_jobs, version_retention_days, trash_retention_days, activity_retention_days, features, is_sellable)
+SELECT v.code, v.version + 1, v.display_name, p.price, v.currency,
+  v.max_active_workspaces, v.max_internal_members, v.max_clients, v.storage_limit_bytes, v.monthly_ai_credits,
+  v.max_concurrent_ai_jobs, v.version_retention_days, v.trash_retention_days, v.activity_retention_days, v.features, p.sellable
+FROM (VALUES ('PLUS', 990000::numeric, true), ('ENTERPRISE', 3990000::numeric, false)) AS p(code, price, sellable)
+JOIN LATERAL (SELECT * FROM billing_plan_versions b WHERE b.code = p.code ORDER BY b.version DESC LIMIT 1) v ON true
+WHERE v.price_monthly IS DISTINCT FROM p.price;
+
+-- Only the newest Plus version stays on sale.
+UPDATE billing_plan_versions b SET is_sellable = false
+ WHERE b.code = 'PLUS' AND b.is_sellable
+   AND b.version < (SELECT max(version) FROM billing_plan_versions WHERE code = 'PLUS');
+COMMIT;
+
 -- ---- 2026-11-18-agency-billing-cycles.sql ----
 -- FR 3.9.1 / 3.9.2: prepaid multi-month Agency subscriptions (3, 6, 12 months) with a discount.
 -- Run after 2026-11-18-agency-plan-prices.sql. Idempotent. psql -X -v ON_ERROR_STOP=1
@@ -2624,4 +2651,126 @@ CREATE TABLE IF NOT EXISTS engagement_reminders (
 CREATE INDEX IF NOT EXISTS idx_engagement_reminders_open
     ON engagement_reminders (kind) WHERE resolved_at IS NULL;
 
+COMMIT;
+
+-- ---- 2026-11-22-studio-plans.sql ----
+-- Studio plans for Personal companies (docs/feature/studio-personal-plans/plan.md section 2) + Enterprise 500 GB (AC12).
+-- STUDIO_* versions are AGENCY scope (generated billing_scope), so they ride the existing Agency billing tables.
+-- Run after 2026-11-22-agency-company-type.sql. Idempotent; safe to run multiple times. psql -X -v ON_ERROR_STOP=1
+BEGIN;
+ALTER TABLE billing_plan_versions DROP CONSTRAINT IF EXISTS billing_plan_versions_code_check;
+ALTER TABLE billing_plan_versions ADD CONSTRAINT billing_plan_versions_code_check
+  CHECK (code IN ('PERSONAL', 'BASIC', 'PLUS', 'ENTERPRISE', 'STUDIO_FREE', 'STUDIO_PLUS', 'STUDIO_PRO'));
+
+INSERT INTO billing_plan_versions (code, version, display_name, price_monthly,
+  max_active_workspaces, max_internal_members, max_clients, storage_limit_bytes, monthly_ai_credits,
+  max_concurrent_ai_jobs, version_retention_days, trash_retention_days, activity_retention_days, features, is_sellable)
+VALUES
+  ('STUDIO_FREE', 1, 'Studio Free', 0, 1, 1, 0, 2147483648, 100, 1, 7, 7, 30,
+   '{"product_line":"STUDIO","newsletter_email_quota":0,"support_level":"STANDARD_TICKET","early_renewal":"NONE","downgrade_allowed":false}'::jsonb, true),
+  ('STUDIO_PLUS', 1, 'Studio Plus', 99000, 3, 1, 0, 5368709120, 900, 1, 30, 30, 90,
+   '{"product_line":"STUDIO","newsletter_email_quota":0,"support_level":"STANDARD_TICKET","early_renewal":"AGENCY_PLUS_RENEWAL","downgrade_allowed":false}'::jsonb, true),
+  ('STUDIO_PRO', 1, 'Studio Pro', 299000, 10, 3, 0, 32212254720, 2400, 2, 90, 30, 180,
+   '{"product_line":"STUDIO","newsletter_email_quota":0,"support_level":"STANDARD_TICKET","early_renewal":"AGENCY_PLUS_RENEWAL","downgrade_allowed":false}'::jsonb, true)
+ON CONFLICT (code, version) DO NOTHING;
+
+INSERT INTO billing_plan_cycle_prices (plan_version_id, period_months, price)
+SELECT v.id, c.months, c.price
+FROM (VALUES ('STUDIO_PLUS', 3, 279000), ('STUDIO_PLUS', 6, 529000), ('STUDIO_PLUS', 12, 949000),
+             ('STUDIO_PRO', 3, 849000), ('STUDIO_PRO', 6, 1599000), ('STUDIO_PRO', 12, 2869000)) AS c(code, months, price)
+JOIN billing_plan_versions v ON v.code = c.code AND v.version = 1
+ON CONFLICT (plan_version_id, period_months) DO NOTHING;
+
+-- Personal companies on the Agency free plan move to Studio Free. Free plans have no periods/orders, so only the
+-- subscription row changes; paid Personal subscriptions (if any) are left for manual review.
+UPDATE agency_subscriptions s
+   SET plan_version_id = f.id, version = s.version + 1, updated_at = now()
+  FROM agencies a, billing_plan_versions p,
+       (SELECT id FROM billing_plan_versions WHERE code = 'STUDIO_FREE' ORDER BY version DESC LIMIT 1) f
+ WHERE a.id = s.agency_id AND a.company_type = 'PERSONAL'
+   AND p.id = s.plan_version_id AND p.code = 'BASIC';
+
+-- Enterprise storage 1 TB -> 500 GB as a new version (versions are immutable); price and benefits copied.
+-- Existing subscriptions keep the version they point at.
+INSERT INTO billing_plan_versions (code, version, display_name, price_monthly, currency,
+  max_active_workspaces, max_internal_members, max_clients, storage_limit_bytes, monthly_ai_credits,
+  max_concurrent_ai_jobs, version_retention_days, trash_retention_days, activity_retention_days, features, is_sellable)
+SELECT v.code, v.version + 1, v.display_name, v.price_monthly, v.currency,
+  v.max_active_workspaces, v.max_internal_members, v.max_clients, 500000000000, v.monthly_ai_credits,
+  v.max_concurrent_ai_jobs, v.version_retention_days, v.trash_retention_days, v.activity_retention_days, v.features, v.is_sellable
+FROM (SELECT * FROM billing_plan_versions WHERE code = 'ENTERPRISE' ORDER BY version DESC LIMIT 1) v
+WHERE v.storage_limit_bytes <> 500000000000;
+
+INSERT INTO billing_plan_cycle_prices (plan_version_id, period_months, price)
+SELECT n.id, c.period_months, c.price
+FROM (SELECT * FROM billing_plan_versions WHERE code = 'ENTERPRISE' ORDER BY version DESC LIMIT 1) n
+JOIN billing_plan_versions o ON o.code = n.code AND o.version = n.version - 1
+JOIN billing_plan_cycle_prices c ON c.plan_version_id = o.id
+WHERE n.storage_limit_bytes = 500000000000
+ON CONFLICT (plan_version_id, period_months) DO NOTHING;
+
+UPDATE billing_plan_versions b SET is_sellable = false
+ WHERE b.code = 'ENTERPRISE' AND b.is_sellable
+   AND b.version < (SELECT max(version) FROM billing_plan_versions WHERE code = 'ENTERPRISE');
+
+INSERT INTO brandhub_schema_migrations (version, description)
+VALUES ('20261122_studio_plans_v1', 'Studio Free/Plus/Pro plans for Personal companies; Enterprise storage 500 GB')
+ON CONFLICT (version) DO NOTHING;
+COMMIT;
+
+-- ---- 2026-11-22-admin-plan-editor.sql ----
+-- Admin Plan Editor (docs/feature/admin-plan-editor): audit log of admin plan changes.
+-- Plan versions stay immutable: an edit inserts a new version, a sale toggle flips is_sellable.
+-- Idempotent; safe to run multiple times. psql -X -v ON_ERROR_STOP=1
+BEGIN;
+CREATE TABLE IF NOT EXISTS billing_plan_change_log (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  plan_code text NOT NULL,
+  plan_version_id uuid NOT NULL REFERENCES billing_plan_versions(id) ON DELETE RESTRICT,
+  action text NOT NULL CHECK (action IN ('NEW_VERSION', 'ENABLE_SALE', 'DISABLE_SALE')),
+  actor_user_id uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  reason text NOT NULL CHECK (char_length(btrim(reason)) BETWEEN 3 AND 500),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_billing_plan_change_log_code ON billing_plan_change_log (plan_code, created_at DESC);
+
+INSERT INTO brandhub_schema_migrations (version, description)
+VALUES ('20261122_admin_plan_editor_v1', 'Admin plan editor change log')
+ON CONFLICT (version) DO NOTHING;
+COMMIT;
+
+-- ---- 2026-11-22-plus-display-name.sql ----
+-- Agency PLUS display name "Plus / Pro" -> "Plus".
+-- Plan versions are immutable (billing_guard_plan_version), so the rename is a new PLUS version copied from the latest
+-- one (price, benefits, sellable flag and cycle prices unchanged). Existing subscriptions keep the version they point at.
+-- Run after 2026-11-22-studio-plans.sql. Idempotent; safe to run multiple times. psql -X -v ON_ERROR_STOP=1
+BEGIN;
+INSERT INTO billing_plan_versions (code, version, display_name, price_monthly, currency,
+  max_active_workspaces, max_internal_members, max_clients, storage_limit_bytes, monthly_ai_credits,
+  max_concurrent_ai_jobs, version_retention_days, trash_retention_days, activity_retention_days, features, is_sellable)
+SELECT v.code, v.version + 1, 'Plus', v.price_monthly, v.currency,
+  v.max_active_workspaces, v.max_internal_members, v.max_clients, v.storage_limit_bytes, v.monthly_ai_credits,
+  v.max_concurrent_ai_jobs, v.version_retention_days, v.trash_retention_days, v.activity_retention_days, v.features, v.is_sellable
+FROM (SELECT * FROM billing_plan_versions WHERE code = 'PLUS' ORDER BY version DESC LIMIT 1) v
+WHERE v.display_name <> 'Plus';
+
+INSERT INTO billing_plan_cycle_prices (plan_version_id, period_months, price)
+SELECT n.id, c.period_months, c.price
+FROM (SELECT * FROM billing_plan_versions WHERE code = 'PLUS' ORDER BY version DESC LIMIT 1) n
+JOIN billing_plan_versions o ON o.code = n.code AND o.version = n.version - 1
+JOIN billing_plan_cycle_prices c ON c.plan_version_id = o.id
+WHERE n.display_name = 'Plus'
+ON CONFLICT (plan_version_id, period_months) DO NOTHING;
+
+-- Only the newest Plus version stays on sale.
+UPDATE billing_plan_versions b SET is_sellable = false
+ WHERE b.code = 'PLUS' AND b.is_sellable
+   AND b.version < (SELECT max(version) FROM billing_plan_versions WHERE code = 'PLUS');
+
+-- Legacy catalog row (mutable table).
+UPDATE subscription_plans SET display_name = 'Plus' WHERE name = 'PRO' AND display_name <> 'Plus';
+
+INSERT INTO brandhub_schema_migrations (version, description)
+VALUES ('20261122_plus_display_name_v1', 'Agency PLUS display name Plus / Pro -> Plus (new plan version)')
+ON CONFLICT (version) DO NOTHING;
 COMMIT;
