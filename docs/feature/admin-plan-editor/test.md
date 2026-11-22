@@ -7,11 +7,11 @@
 | 3 | AC2 | Lưu không đổi gì | `PLAN_UNCHANGED` || PASS (unit) |
 | 4 | AC3 | Giá BASIC ≠ 0 / thiếu giá 12 tháng gói trả phí | `VALIDATION_ERROR` || PASS (unit) |
 | 5 | AC4 | Gửi `expectedVersion` cũ | `PLAN_VERSION_CONFLICT` || PASS (unit) |
-| 6 | AC5 | Tắt bán STUDIO_PRO | Trang chọn gói không cho thanh toán; log DISABLE_SALE || Dialog OK, chưa bấm xác nhận |
+| 6 | AC5 | Tắt bán STUDIO_PRO | Trang chọn gói không cho thanh toán; log DISABLE_SALE || PASS (E2E tắt→bật STUDIO_PRO) |
 | 7 | AC5 | Tắt bán BASIC | `PLAN_SALE_LOCKED` || PASS (unit) |
 | 8 | AC6 | Mở lịch sử PLUS | Phiên bản mới→cũ + người sửa, lý do || PASS (E2E) |
 | 9 | AC7 | Agency đang ở PLUS bản cũ | Hạn mức/credit vẫn theo bản cũ || PASS (SQL local) |
-| 10 | AC8 | Guest mở landing | Giá/hạn mức khớp DB; đổi gói → landing đổi || PASS (E2E, gọi thẳng Business) |
-| 11 | — | Không phải Admin gọi API admin | 403 || chưa test |
-| 12 | AC9 | Đổi vi/en | Không vỡ UI, không lộ key || chưa test |
+| 10 | AC8 | Guest mở landing | Giá/hạn mức khớp DB; đổi gói → landing đổi || PASS (E2E; gateway 8080 trả 200 sau restart) |
+| 11 | — | Không phải Admin gọi API admin | 403 || PASS (E2E user1 → 403 FORBIDDEN) |
+| 12 | AC9 | Đổi vi/en | Không vỡ UI, không lộ key || PASS (E2E; sửa số nhiều versionMeta) |
 | 13 | AC10 | Đổi light/dark | Đủ tương phản || PASS (E2E dark) |
