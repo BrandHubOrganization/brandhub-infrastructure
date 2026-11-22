@@ -126,3 +126,11 @@ Crawl-service kết thúc COMPLETED hoặc PARTIAL sau khi publication được 
 
 ## Dọn hợp đồng Admin — 2026-11-17
 Frontend và crawl-service bỏ trường/trạng thái entity resolution khỏi luồng hiện hành. Giữ mã thuật toán gộp node trong lịch sử/khu vực phát triển, không xóa mã AI theo yêu cầu. Cache cũ được đọc tương thích, publication quyết định terminal, lượt recovery đang chạy vẫn RUNNING. Commit/push web và crawl sau CI.
+
+## Timezone dropdown — 2026-11-22
+Múi giờ thẳng hàng với giờ chạy. Dropdown tìm theo nhãn và IANA, hỗ trợ bàn phím và no-result, giữ múi giờ đã chọn.
+
+## Readiness và lịch retry — 2026-11-22
+Readiness đo trực tiếp có retry hữu hạn khi probe lỗi. Scheduler retry HTTP 503 với cùng requestId, không bỏ qua lỗi cấu hình hay tạo trùng lượt. Log nêu dependency và loại exception, không chứa credentials.
+
+Heartbeat Chroma phải hủy được HTTP đang chờ khi timeout, không để SDK thread tiếp tục treo.

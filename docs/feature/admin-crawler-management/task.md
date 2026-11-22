@@ -92,3 +92,11 @@
 
 - [x] Dọn hợp đồng và bản dịch web/crawl; bảo toàn code thuật toán.
 - [x] CI crawl 317 PASS; web npm run ci PASS; push crawl develop 9ee7eab và web feature/admin-ai-campaign e4ac0bed.
+
+## Timezone dropdown — 2026-11-22
+- [x] Chỉnh timezone field alignment và search; lint/type-check PASS, browser keyboard/mobile/dark PASS.
+
+## Readiness và lịch retry — 2026-11-22
+- [x] Bổ sung chẩn đoán, probe retry, dispatch retry idempotent, regression và CI.
+
+- [x] Chuyển heartbeat sang async HTTP hữu hạn và test timeout/recovery/auth/URL.

@@ -96,3 +96,11 @@ Chuẩn hóa entity_resolution thành skipped/FEATURE_REMOVED trong lớp đọc
 
 ## Dọn hợp đồng và bản dịch
 Bỏ resolutionStatus/entity_resolution khỏi output crawl và types/schema frontend. Bỏ nhãn RESOLVING và lỗi yêu cầu APOC. Chỉ giữ nhánh đọc cache RESOLVING lịch sử để chuyển trạng thái hợp lệ. Không xóa thuật toán, không thay Neo4j MERGE phục vụ ghi dữ liệu.
+
+## Timezone dropdown — 2026-11-22
+Timezone field dùng Popover, Input và Button sẵn có. Flex column loại baseline gap của trigger. Search bỏ dấu, tìm cả label và IANA.
+
+## Readiness và lịch retry — 2026-11-22
+Probe AI tối đa hai lần, timeout mỗi lần 3s. Crawl chờ dependencies tối đa 10s. Scheduled endpoint nhận requestId ổn định từ scheduler, retry 503 tối đa 3 lần cách 5s; giữ replay receipt/start lock.
+
+Chroma heartbeat dùng httpx AsyncClient với URL/headers/TLS từ cấu hình client hiện hành, tổng deadline 3s mỗi lần; không đổi luồng dữ liệu SDK.

@@ -120,3 +120,15 @@ Toàn bộ lệnh CI crawl python -m pytest tests social_crawler/tests -q: 315 p
 Kiểm chứng output crawl không có metadata resolution, cache RESOLVING cũ không khóa run mới, recovery đang chạy không terminal sớm. Kiểm tra bản dịch vi/en song song, không còn lời nhắc cài APOC, chạy npm run ci và pytest tests social_crawler/tests.
 
 Cleanup cuối: CI crawl 317 passed (27.13s); frontend npm run ci PASS gồm lint/type-check/build/prerender. Push crawl 9ee7eab, web e4ac0bed. Code thuật toán AI không chỉnh sửa.
+
+## Timezone dropdown — 2026-11-22
+Kiểm tra tìm Việt Nam/Ho_Chi_Minh/UTC, không kết quả, ArrowUp/Down Enter Escape, disabled; hàng controls cùng đáy trên desktop và không tràn trên mobile.
+Timezone QA 2026-11-22: ESLint component PASS, tsc app PASS. Playwright đo chênh lệch đáy controls 0px; tìm IANA/không dấu, no-results, Arrow/Enter/Escape PASS; kiểm tra mobile và dark mode bằng ảnh fixture local.
+
+## Readiness và lịch retry — 2026-11-22
+Mock Chroma lỗi lần đầu rồi hồi phục, lỗi liên tục false và có log. Kiểm tra HTTP503 rồi accepted dùng cùng payload/requestId; 401/409 không retry; giới hạn retry 3. Đo kết nối local và scheduler không khởi động crawl ngoài lịch trong QA.
+
+- Async heartbeat giữ URL, headers, TLS; timeout hai lần trả false, timeout rồi phục hồi trả true; health local trở lại ready sau reload.
+
+Kết quả 2026-11-22: crawl CI 325 PASS (32.05s); AI flake8 app tests/unit PASS; AI dependency/fetch regression 8 PASS (15.17s). Bốn vòng local heartbeat, AI dependencies và management health đều thành công sau đợt reload. Chưa restart scheduler runtime nên dispatch retry áp dụng ở lần khởi động tiếp theo. Không sửa production.
+Tracing: local 15:50 fire đúng giờ, scheduled POST 503 lúc 15:50:05 rồi next-fire sang ngày sau. 15:58 readiness CHROMA_UNAVAILABLE nhưng direct dependencies ngay sau đó true. SDK Chroma local HTTP timeout=None; timeout asyncio.to_thread không hủy HTTP nền. Chưa có log exception thời điểm 15:50 nên chưa xác định được sự cố server Chroma gốc ở lần đó.
