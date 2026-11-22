@@ -3,6 +3,7 @@
 --     (agency_members has no soft-delete column; restore from the backup table if needed).
 --   * workspace_members rows for non-owners in personal-company workspaces are deactivated (is_active = false).
 --   * pending agency/workspace invitations of personal companies are revoked.
+--   * the owner is (re)activated as MANAGER in every personal workspace.
 -- Run after 2026-11-22-agency-company-type.sql. Idempotent. psql -X -v ON_ERROR_STOP=1
 BEGIN;
 CREATE TABLE IF NOT EXISTS personal_extra_members_backup_20261122 (LIKE agency_members INCLUDING DEFAULTS);
@@ -21,6 +22,19 @@ UPDATE workspace_members wm SET is_active = false, updated_at = now()
 FROM workspaces w JOIN agencies a ON a.id = w.agency_id
 WHERE w.id = wm.workspace_id AND a.company_type = 'PERSONAL' AND wm.is_active
   AND wm.user_id IS DISTINCT FROM a.owner_id;
+
+-- The owner must stay a working member (MANAGER) of every personal workspace, including ones another user created;
+-- chat and other content tools reject the bare OWNER role.
+UPDATE workspace_members wm SET role = 'MANAGER', is_active = true, updated_at = now()
+FROM workspaces w JOIN agencies a ON a.id = w.agency_id
+WHERE w.id = wm.workspace_id AND a.company_type = 'PERSONAL' AND w.deleted_at IS NULL
+  AND wm.user_id = a.owner_id AND (NOT wm.is_active OR wm.role <> 'MANAGER');
+
+INSERT INTO workspace_members (workspace_id, user_id, role, added_by, is_active)
+SELECT w.id, a.owner_id, 'MANAGER', a.owner_id, true
+FROM workspaces w JOIN agencies a ON a.id = w.agency_id
+WHERE a.company_type = 'PERSONAL' AND w.deleted_at IS NULL
+  AND NOT EXISTS (SELECT 1 FROM workspace_members wm WHERE wm.workspace_id = w.id AND wm.user_id = a.owner_id);
 
 UPDATE agency_invitations ai SET status = 'REVOKED'
 FROM agencies a
