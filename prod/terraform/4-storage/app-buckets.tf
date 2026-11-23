@@ -1,17 +1,13 @@
 # =========================================================================
-# Application media buckets used by the services' runtime config
-#   S3_BUCKET / S3_BUCKET_NAME (business, ai, image worker) -> brandhubmedia-<account>
-#   S3_AI_BUCKET (business)                                 -> brandhub-ai-media-<account>
-#   S3_BUCKET for crawler output (ai)                       -> crawler-social-<account>
-# The original names are still owned by the locked account 821014378805,
-# so every bucket carries this account ID as a suffix.
+# Social Crawler S3 bucket & Vast.ai image/video worker IAM user
+#   Runtime media (S3_BUCKET / S3_BUCKET_NAME / AWS_S3_BUCKET) is consolidated
+#   into aws_s3_bucket.repository ("brandhub-media-<account>") in s3.tf.
+#   S3_BUCKET for crawler output (ai / crawl) -> crawler-social-<account>
 # =========================================================================
 
 locals {
   app_buckets = {
-    media    = "brandhubmedia-${var.aws_account_id}"
-    ai_media = "brandhub-ai-media-${var.aws_account_id}"
-    crawler  = "crawler-social-${var.aws_account_id}"
+    crawler = "crawler-social-${var.aws_account_id}"
   }
 }
 
@@ -45,11 +41,10 @@ resource "aws_s3_bucket_public_access_block" "app" {
   for_each = aws_s3_bucket.app
   bucket   = each.value.id
 
-  block_public_acls  = true
-  ignore_public_acls = true
-  # media serves image/* publicly (logos, banners, avatars stored as plain S3 URLs)
-  block_public_policy     = each.key != "media"
-  restrict_public_buckets = each.key != "media"
+  block_public_acls       = true
+  ignore_public_acls      = true
+  block_public_policy     = true
+  restrict_public_buckets = true
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "app" {
@@ -65,25 +60,13 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "app" {
   }
 }
 
-resource "aws_s3_bucket_cors_configuration" "app_media" {
-  bucket = aws_s3_bucket.app["media"].id
-
-  cors_rule {
-    allowed_methods = ["GET", "PUT", "HEAD"]
-    allowed_origins = var.allowed_cors_origins
-    allowed_headers = ["*"]
-    expose_headers  = ["ETag"]
-    max_age_seconds = 3000
-  }
-}
-
 resource "aws_s3_bucket_policy" "app" {
   for_each = aws_s3_bucket.app
   bucket   = each.value.id
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = concat([
+    Statement = [
       {
         Sid       = "DenyInsecureTransport"
         Effect    = "Deny"
@@ -94,15 +77,7 @@ resource "aws_s3_bucket_policy" "app" {
           Bool = { "aws:SecureTransport" = "false" }
         }
       }
-      ], each.key == "media" ? [
-      {
-        Sid       = "PublicReadImages"
-        Effect    = "Allow"
-        Principal = "*"
-        Action    = "s3:GetObject"
-        Resource  = "${each.value.arn}/image/*"
-      }
-    ] : [])
+    ]
   })
 
   depends_on = [aws_s3_bucket_public_access_block.app]
@@ -130,9 +105,8 @@ resource "aws_iam_role_policy" "runtime_app_buckets" {
   })
 }
 
-# The Vast.ai image worker runs outside AWS. It gets an IAM user limited to its own prefix.
-# The access key is created by a human (console or `aws iam create-access-key`), never by Terraform,
-# so the secret never lands in Terraform state.
+# The Vast.ai image/video worker runs outside AWS. It gets an IAM user limited to the ai/* prefix
+# on the unified brandhub-media-<account> bucket.
 resource "aws_iam_user" "image_worker" {
   name = "brandhub-image-worker-${var.environment}"
 
@@ -153,24 +127,27 @@ resource "aws_iam_user_policy" "image_worker" {
       {
         Effect    = "Allow"
         Action    = ["s3:ListBucket"]
-        Resource  = aws_s3_bucket.app["media"].arn
-        Condition = { StringLike = { "s3:prefix" = ["qwen-ambassador/*"] } }
+        Resource  = aws_s3_bucket.repository.arn
+        Condition = { StringLike = { "s3:prefix" = ["ai/*", "qwen-ambassador/*"] } }
       },
       {
         Effect   = "Allow"
         Action   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
-        Resource = "${aws_s3_bucket.app["media"].arn}/qwen-ambassador/*"
+        Resource = [
+          "${aws_s3_bucket.repository.arn}/ai/*",
+          "${aws_s3_bucket.repository.arn}/qwen-ambassador/*"
+        ]
       }
     ]
   })
 }
 
 output "app_bucket_names" {
-  description = "Runtime media buckets: set S3_BUCKET(_NAME), S3_AI_BUCKET and the crawler S3_BUCKET to these"
+  description = "Additional runtime buckets (crawler)"
   value       = { for k, b in aws_s3_bucket.app : k => b.bucket }
 }
 
 output "image_worker_iam_user" {
-  description = "IAM user for the Vast.ai image worker; create its access key manually"
+  description = "IAM user for the Vast.ai worker; create its access key manually"
   value       = aws_iam_user.image_worker.name
 }

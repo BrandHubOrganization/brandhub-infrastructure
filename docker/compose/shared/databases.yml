@@ -28,9 +28,36 @@ services:
     networks:
       - brandhub-network
 
+  mongodb:
+    image: mongo:7.0
+    container_name: brandhub-mongodb
+    restart: unless-stopped
+    ports:
+      - "${MONGODB_HOST_PORT:-27017}:27017"
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE:-brandhub}
+    volumes:
+      - mongodb_data:/data/db
+      - type: bind
+        source: ../../../docs/database/init-mongo.js
+        target: /docker-entrypoint-initdb.d/init-mongo.js
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - brandhub-network
+
 volumes:
   postgres_data:
     name: brandhub-postgres-v2-data
+  mongodb_data:
+    name: brandhub-mongodb-data
 
 networks:
   brandhub-network:

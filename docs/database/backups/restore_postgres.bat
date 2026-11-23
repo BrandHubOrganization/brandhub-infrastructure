@@ -7,7 +7,7 @@ REM Replace existing PostgreSQL database with the latest full backup (Schema + D
 REM Usage:
 REM   restore_postgres.bat
 REM   restore_postgres.bat -Force
-REM   restore_postgres.bat -BackupFile "brandhub_postgres_full_20261112.sql"
+REM   restore_postgres.bat -BackupFile "brandhub_postgres_full_20261123.dump"
 REM ============================================================================
 
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0restore_postgres.ps1" %*

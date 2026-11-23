@@ -100,7 +100,7 @@ resource "aws_s3_bucket_policy" "db_backup" {
   depends_on = [aws_s3_bucket_public_access_block.db_backup]
 }
 
-# EC2 role may only add new dumps; it cannot list, read or delete them.
+# EC2 role may put, list, and read daily dumps for backup & point-in-time restore.
 resource "aws_iam_role_policy" "ec2_db_backup_put" {
   name = "brandhub-db-backup-put"
   role = "brandhub-ec2-ecr-pull"
@@ -110,7 +110,12 @@ resource "aws_iam_role_policy" "ec2_db_backup_put" {
     Statement = [
       {
         Effect   = "Allow"
-        Action   = ["s3:PutObject", "s3:PutObjectTagging"]
+        Action   = ["s3:ListBucket"]
+        Resource = aws_s3_bucket.db_backup.arn
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["s3:PutObject", "s3:PutObjectTagging", "s3:GetObject"]
         Resource = [for db in ["postgres", "redis", "chroma", "mongo", "neo4j"] : "${aws_s3_bucket.db_backup.arn}/${db}/*"]
       }
     ]

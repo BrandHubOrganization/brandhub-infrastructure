@@ -1,8 +1,9 @@
 """Internal API for the db-backup container (not published outside the compose network).
 
-GET  /status          last result per database
-POST /run {"dbs": []} start a backup of the selected databases
-GET  /health          liveness, no token
+GET  /status                         last result & 30-day history per database
+POST /run {"dbs": []}                start a backup of the selected databases
+POST /restore {"dbs": [], "date": ""} start a point-in-time restore from S3
+GET  /health                         liveness, no token
 """
 import hmac
 import logging
@@ -19,7 +20,7 @@ from .runner import BackupRunner, BusyError
 
 log = logging.getLogger("db-backup")
 TIMEZONE = "Asia/Ho_Chi_Minh"
-# The bucket lifecycle expires only objects with this tag, so older files stay.
+# The bucket lifecycle expires only objects with this tag after db_backup_retention_days (30d).
 UPLOAD_ARGS = {"ServerSideEncryption": "AES256", "Tagging": "retention=daily"}
 
 
@@ -32,13 +33,25 @@ def s3_uploader(bucket: str, region: str):
     return upload
 
 
+def s3_downloader(bucket: str, region: str):
+    client = boto3.client("s3", region_name=region)
+
+    def download(key: str, dest: Path) -> None:
+        client.download_file(bucket, key, str(dest))
+
+    return download
+
+
 def create_app(runner: BackupRunner | None = None, token: str | None = None, schedule: bool = True) -> FastAPI:
     token = token if token is not None else os.environ.get("BACKUP_TOKEN", "")
     if not token:
         raise RuntimeError("BACKUP_TOKEN is required")
+    bucket = os.environ.get("BACKUP_BUCKET", "")
+    region = os.environ.get("AWS_REGION", "ap-southeast-1")
     runner = runner or BackupRunner(
         Path(os.environ.get("BACKUP_STATE_FILE", "/var/lib/db-backup/state.json")),
-        s3_uploader(os.environ["BACKUP_BUCKET"], os.environ.get("AWS_REGION", "ap-southeast-1")),
+        s3_uploader(bucket, region),
+        download=s3_downloader(bucket, region),
     )
 
     def nightly() -> None:
@@ -67,6 +80,10 @@ def create_app(runner: BackupRunner | None = None, token: str | None = None, sch
     class RunRequest(BaseModel):
         dbs: list[str]
 
+    class RestoreRequest(BaseModel):
+        dbs: list[str]
+        date: str
+
     @app.get("/health")
     def health() -> dict:
         return {"status": "ok"}
@@ -79,6 +96,16 @@ def create_app(runner: BackupRunner | None = None, token: str | None = None, sch
     def run(body: RunRequest) -> dict:
         try:
             runner.start(body.dbs, trigger="manual")
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except BusyError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        return runner.status()
+
+    @app.post("/restore", status_code=202, dependencies=[Depends(authorize)])
+    def restore(body: RestoreRequest) -> dict:
+        try:
+            runner.start_restore(body.dbs, body.date, trigger="restore")
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         except BusyError as exc:
