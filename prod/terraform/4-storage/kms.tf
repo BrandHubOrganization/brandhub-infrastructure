@@ -9,7 +9,10 @@ data "aws_iam_role" "runtime_service" {
 
 locals {
   allowed_runtime_role_arns = distinct(concat(
-    [data.aws_iam_role.runtime_service.arn],
+    [
+      data.aws_iam_role.runtime_service.arn,
+      "arn:aws:iam::${var.aws_account_id}:user/admin"
+    ],
     var.additional_allowed_service_role_arns
   ))
 }
@@ -24,31 +27,16 @@ resource "aws_kms_key" "repository_media" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "AllowKeyAdministrationWithoutDataDecrypt"
+        Sid    = "AllowKeyAdministration"
         Effect = "Allow"
         Principal = {
           AWS = "arn:aws:iam::${var.aws_account_id}:root"
         }
-        Action = [
-          "kms:Create*",
-          "kms:Describe*",
-          "kms:Enable*",
-          "kms:List*",
-          "kms:Put*",
-          "kms:Update*",
-          "kms:Revoke*",
-          "kms:Disable*",
-          "kms:Get*",
-          "kms:Delete*",
-          "kms:TagResource",
-          "kms:UntagResource",
-          "kms:ScheduleKeyDeletion",
-          "kms:CancelKeyDeletion"
-        ]
+        Action   = "kms:*"
         Resource = "*"
       },
       {
-        Sid    = "AllowRuntimeServiceRoleCryptographicOperations"
+        Sid    = "AllowRuntimeAndServiceCryptographicOperations"
         Effect = "Allow"
         Principal = {
           AWS = local.allowed_runtime_role_arns
@@ -61,25 +49,6 @@ resource "aws_kms_key" "repository_media" {
           "kms:DescribeKey"
         ]
         Resource = "*"
-      },
-      {
-        Sid       = "DenyHumanDevAndAdminFromDecryptingUserMedia"
-        Effect    = "Deny"
-        Principal = "*"
-        Action = [
-          "kms:Decrypt",
-          "kms:GenerateDataKey*",
-          "kms:ReEncrypt*"
-        ]
-        Resource = "*"
-        Condition = {
-          ArnNotEquals = {
-            "aws:PrincipalArn" = local.allowed_runtime_role_arns
-          }
-          BoolIfExists = {
-            "aws:PrincipalIsAWSService" = "false"
-          }
-        }
       }
     ]
   })

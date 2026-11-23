@@ -94,6 +94,7 @@ if (Get-Command docker -ErrorAction SilentlyContinue) {
 }
 
 $ResetSql = @"
+SET client_min_messages = warning;
 SELECT pg_terminate_backend(pid)
 FROM pg_stat_activity
 WHERE datname = '$DbName'
