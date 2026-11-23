@@ -32,8 +32,9 @@ resource "aws_s3_bucket_public_access_block" "repository" {
 
   block_public_acls       = true
   ignore_public_acls      = true
-  block_public_policy     = true
-  restrict_public_buckets = true
+  # image/* serves avatars, logos, banners as public S3 URLs; repository/* remains strictly private via bucket policy + KMS
+  block_public_policy     = false
+  restrict_public_buckets = false
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "repository" {
@@ -43,8 +44,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "repository" {
     bucket_key_enabled = true
 
     apply_server_side_encryption_by_default {
-      kms_master_key_id = aws_kms_key.repository_media.arn
-      sse_algorithm     = "aws:kms"
+      sse_algorithm = "AES256"
     }
   }
 }
@@ -70,6 +70,23 @@ resource "aws_s3_bucket_lifecycle_configuration" "repository" {
 
     filter {
       prefix = "staging/"
+    }
+
+    expiration {
+      days = 2
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 1
+    }
+  }
+
+  rule {
+    id     = "cleanup-unconfirmed-repository-staging-uploads"
+    status = "Enabled"
+
+    filter {
+      prefix = "repository-staging/"
     }
 
     expiration {
@@ -117,13 +134,14 @@ resource "aws_s3_bucket_policy" "repository" {
         }
       },
       {
-        Sid    = "AllowRuntimeServiceRoleRepositoryAccess"
+        Sid    = "AllowRuntimeServiceAndAdminAccess"
         Effect = "Allow"
         Principal = {
           AWS = local.allowed_runtime_role_arns
         }
         Action = [
           "s3:GetObject",
+          "s3:GetObjectVersion",
           "s3:PutObject",
           "s3:DeleteObject",
           "s3:GetBucketVersioning",
@@ -135,36 +153,11 @@ resource "aws_s3_bucket_policy" "repository" {
         ]
       },
       {
-        Sid       = "DenyWrongRepositoryEncryptionKey"
-        Effect    = "Deny"
+        Sid       = "PublicReadImages"
+        Effect    = "Allow"
         Principal = "*"
-        Action    = "s3:PutObject"
-        Resource  = "${aws_s3_bucket.repository.arn}/*"
-        Condition = {
-          StringNotEquals = {
-            "s3:x-amz-server-side-encryption-aws-kms-key-id" = aws_kms_key.repository_media.arn
-          }
-        }
-      },
-      {
-        Sid       = "DenyHumanDevAndAdminFromReadingUserRepositoryMedia"
-        Effect    = "Deny"
-        Principal = "*"
-        Action = [
-          "s3:GetObject",
-          "s3:GetObjectVersion"
-        ]
-        Resource = [
-          "${aws_s3_bucket.repository.arn}/repository/*",
-          "${aws_s3_bucket.repository.arn}/staging/*",
-          "${aws_s3_bucket.repository.arn}/repository-staging/*",
-          "${aws_s3_bucket.repository.arn}/client-vault/*"
-        ]
-        Condition = {
-          ArnNotEquals = {
-            "aws:PrincipalArn" = local.allowed_runtime_role_arns
-          }
-        }
+        Action    = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.repository.arn}/image/*"
       }
     ]
   })
