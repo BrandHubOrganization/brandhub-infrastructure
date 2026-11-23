@@ -13,7 +13,7 @@
 .EXAMPLE
     .\restore_postgres.ps1
     .\restore_postgres.ps1 -Force
-    .\restore_postgres.ps1 -BackupFile "brandhub_postgres_full_20261112.sql"
+    .\restore_postgres.ps1 -BackupFile "brandhub_postgres_full_20261123.dump"
 #>
 
 param(
@@ -23,7 +23,7 @@ param(
     [string]$DbName        = $(if ($env:POSTGRES_DB) { $env:POSTGRES_DB } else { "brandhub" }),
     [string]$DbHost        = $(if ($env:POSTGRES_HOST) { $env:POSTGRES_HOST } else { "localhost" }),
     [int]$DbPort           = $(if ($env:POSTGRES_PORT) { [int]$env:POSTGRES_PORT } else { 5432 }),
-    [string]$BackupFile    = "",
+    [string]$BackupFile    = "brandhub_postgres_full_20261123.dump",
     [switch]$Force
 )
 
@@ -37,30 +37,31 @@ function Assert-LastExitCode([string]$StepName) {
 }
 
 # 1. Xác định file backup
-if ([string]::IsNullOrWhiteSpace($BackupFile)) {
-    $LatestSql = Get-ChildItem -Path $ScriptDir -Filter "brandhub_postgres_full_*.sql" |
-        Sort-Object LastWriteTime -Descending |
-        Select-Object -First 1
-    $LatestDump = Get-ChildItem -Path $ScriptDir -Filter "brandhub_postgres_full_*.dump" |
-        Sort-Object LastWriteTime -Descending |
-        Select-Object -First 1
-
-    if ($LatestSql) {
-        $BackupPath = $LatestSql.FullName
-    } elseif ($LatestDump) {
-        $BackupPath = $LatestDump.FullName
-    } else {
-        Write-Error "Không tìm thấy file backup (brandhub_postgres_full_*.sql hoặc *.dump) trong $ScriptDir"
-        exit 1
-    }
-} else {
-    $BackupPath = if ([System.IO.Path]::IsPathRooted($BackupFile)) {
+$BackupPath = $null
+if (-not [string]::IsNullOrWhiteSpace($BackupFile)) {
+    $Candidate = if ([System.IO.Path]::IsPathRooted($BackupFile)) {
         $BackupFile
     } else {
         Join-Path $ScriptDir $BackupFile
     }
-    if (-not (Test-Path $BackupPath)) {
-        Write-Error "File backup không tồn tại: $BackupPath"
+    if (Test-Path $Candidate) {
+        $BackupPath = (Resolve-Path $Candidate).Path
+    } elseif ($BackupFile -ne "brandhub_postgres_full_20261123.dump") {
+        Write-Error "File backup không tồn tại: $Candidate"
+        exit 1
+    }
+}
+
+if (-not $BackupPath) {
+    $LatestBackup = @(
+        Get-ChildItem -Path $ScriptDir -Filter "brandhub_postgres_full_*.dump"
+        Get-ChildItem -Path $ScriptDir -Filter "brandhub_postgres_full_*.sql"
+    ) | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+
+    if ($LatestBackup) {
+        $BackupPath = $LatestBackup.FullName
+    } else {
+        Write-Error "Không tìm thấy file backup (brandhub_postgres_full_*.dump hoặc *.sql) trong $ScriptDir"
         exit 1
     }
 }
