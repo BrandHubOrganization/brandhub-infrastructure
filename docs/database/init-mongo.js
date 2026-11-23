@@ -167,6 +167,8 @@ const taskWorkflowFoundation = (() => {
     detailIdentifiedAt: nullableDate, detailIdentifiedBy: nullableString,
     assignedAt: nullableDate, assignedBy: nullableString,
     firstStartedAt: nullableDate, firstStartedBy: nullableString,
+    // When the task last entered FINISHED (role-based dashboards); unset on reopen.
+    finishedAt: nullableDate,
   };
   const additions = [
     { name: 'tasks', properties: taskProperties, indexes: [
@@ -647,6 +649,7 @@ db.social_accounts.createIndex(
 db.posts.createIndex({ workspace_id: 1, status: 1 }, { name: 'idx_posts_ws_status' });
 db.posts.createIndex({ workspace_id: 1, scheduled_at: 1 }, { name: 'idx_posts_ws_scheduled_at' });
 db.posts.createIndex({ workspace_id: 1, client_id: 1 }, { name: 'idx_posts_ws_client_id' });
+db.posts.createIndex({ workspace_id: 1, status: 1, published_at: -1 }, { name: 'idx_posts_ws_status_published' });
 db.posts.createIndex({ task_id: 1 }, { name: 'uq_posts_task', unique: true,
   partialFilterExpression: { task_id: { $type: 'string' } } });
 
@@ -660,6 +663,9 @@ db.tasks.createIndex({ workspaceId: 1, status: 1 }, { name: 'idx_tasks_workspace
 db.tasks.createIndex({ workspaceId: 1, assigneeId: 1 }, { name: 'idx_tasks_workspace_assignee' });
 db.tasks.createIndex({ workspaceId: 1, type: 1 }, { name: 'idx_tasks_workspace_type' });
 db.tasks.createIndex({ workspaceId: 1, campaignId: 1 }, { name: 'idx_tasks_workspace_campaign' });
+// Role-based dashboards: finished-in-range and due-in-range counters.
+db.tasks.createIndex({ workspaceId: 1, finishedAt: -1 }, { name: 'idx_tasks_workspace_finished_at' });
+db.tasks.createIndex({ workspaceId: 1, dueDate: 1 }, { name: 'idx_tasks_workspace_due_date' });
 db.tasks.createIndex({ campaignId: 1, campaignWorkItemId: 1 }, {
   name: 'uq_tasks_campaign_work_item', unique: true,
   partialFilterExpression: {
