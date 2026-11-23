@@ -19,3 +19,6 @@
    targeted ESLint, local-only pure/schema checks and Playwright CLI browser QA:
    fixture-only API responses, both languages/themes, 3 sizes, keyboard, retries,
    no mock fixture bundled in application. Screenshots under output/playwright.
+
+## Graph-first revision — 2026-11-22
+Reuse HopGraphScan. Update AdminTrendGraphPanel default and collapsed detail search; TrendGraphOverview owns filter visibility and passes into Workspace/OverviewGraphCanvas. Workspace preserves ranked root through visibility filters, hides posts and inspector by default, opens inspector on explicit selection. Add delayed hover hook + reusable property preview, canvas node shapes and edge arrows/labels. Keep bounded readable labels for dense graphs. Update vi/admin.json and en/admin.json. Browser fixture QA in ignored keep-local-only, full npm run ci.

@@ -58,3 +58,6 @@ Pass isolated validation, traversal/security/error tests, Business compile and
 read-only live Neo4j smoke checks if available. No new test artifacts committed;
 local checks belong in ignored keep-local-only. No migration, seeding, graph
 editing, arbitrary query API, automatic restart, Bloom UI, vector plot or push.
+
+## Trend list ordering — 2026-11-22
+Danh sách /trends ưu tiên date giảm dần; cùng ngày ưu tiên score giảm dần. Score thiếu xếp sau score có giá trị. Dùng id và elementId tăng dần làm khóa phụ để phân trang ổn định khi điểm bằng nhau. Không thay đổi score đã lưu hoặc thứ tự node search.

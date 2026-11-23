@@ -8,3 +8,6 @@
 - [x] Verify encoded Trend IDs, Unicode and literal query text over HTTP.
 - [x] Run isolated API/service/security/limit checks and Java compile.
 - [x] Run read-only Neo4j smoke; document results and remaining limitations.
+
+## Trend list ordering — 2026-11-22
+- [x] Đổi SEARCH; lint, kiểm tra read-only Neo4j thứ tự và hai trang liên tiếp; ghi kết quả.

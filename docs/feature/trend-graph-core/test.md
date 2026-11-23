@@ -56,3 +56,10 @@ foundation checks passed again. An independent checkout of the staged Business
 tree compiled offline successfully, with replay-only sources omitted. Python
 syntax was checked on the staged graph files. Expanded-node paths are included
 in the API contract; these checks do not claim a new end-to-end live graph test.
+
+## Trend list ordering — 2026-11-22
+Kiểm tra ngày mới trước, score giảm dần trong ngày, score thiếu xếp cuối và khóa phụ ổn định; ghép hai trang khớp truy vấn cùng giới hạn tổng. Chạy lint Python, không ghi database hay khởi chạy crawl.
+
+Kết quả: flake8 file sửa PASS; git diff --check PASS. Truy vấn trực tiếp Neo4j read-only 40 trend: date/score đúng thứ tự và 2 trang 20 bản ghi khớp một trang 40. Top score: 20.4152, 20.1484, 19.4833, 18.4163, 18.384. Không sửa dữ liệu.
+
+Lint toàn bộ app tests/unit PASS. API local còn trả thứ tự cũ sau WatchFiles báo Reloading (16:20:43); chưa restart thủ công để tránh ảnh hưởng worker. Cần restart AI local để nạp thay đổi trước khi xác nhận qua giao diện.

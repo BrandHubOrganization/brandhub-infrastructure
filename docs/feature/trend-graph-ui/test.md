@@ -56,3 +56,10 @@ build and changed-file ESLint in an isolated local checkout without replay-only
 files. No new dependency, test code, image, environment file or local tool is
 included in the commit. Some later UI components exceed the suggested 300-line
 size; component decomposition is deferred rather than mixed into this commit.
+
+## Graph-first revision — 2026-11-22
+Verify default overview root/topology loads automatically, scans disconnected components and can pause/resume. Default posts/incident edges hidden and can be restored, root remains top1. Filters and details closed initially; open/close/Escape and click node/edge work without resetting camera or reload. Hover node/edge for 650ms shows properties, pointer leave/drag/zoom cancels stale preview, hover never opens inspector. Types use shape/color/legend; edges directed/labeled, no fabricated links. Deep link still loads selected trend. Verify keyboard lists, vi/en, light/dark, 375/768/1440 and npm run ci.
+
+Browser fixture verification PASS: default overview auto-scans both connected/disconnected components (8 loaded, 7 displayed because post hidden); restoring posts shows 8. Filter toggle preserves API call count. Delayed node and edge hover, edge click inspector, close/Escape, keyboard node selection, pause/resume, explicit trend deep link PASS. 375/768/1440 no horizontal page overflow; vi/en and light/dark inspected. Root/adjacent layout and camera resize adjusted after visual review. Fixture and screenshots remain local-only; no DB writes, model calls or production changes.
+
+Final npm run ci PASS (exit 0): ESLint 0 errors with 227 existing warnings, app/node TypeScript, editor build, app production build and 105-page prerender. Browser fixture suite PASS including keyboard selection and pause/resume. Dev server localhost:3000 returns updated graph-first module (HTTP 200). Build-generated unrelated tracked SEO files restored; existing vendor/font-urls change preserved. No commit/push performed.

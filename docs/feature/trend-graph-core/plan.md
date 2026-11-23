@@ -34,3 +34,6 @@
   service restart is performed during implementation. JWT/Gateway live smoke is
   separate from isolated controller and direct Neo4j checks.
 - Driver reference: https://neo4j.com/docs/api/python-driver/current/api.html
+
+## Trend list ordering — 2026-11-22
+Đổi ORDER BY của SEARCH trước SKIP/LIMIT: date DESC, score IS NULL ASC, score DESC, id ASC, elementId ASC. Frontend giữ nguyên thứ tự API; không thay UI/i18n.

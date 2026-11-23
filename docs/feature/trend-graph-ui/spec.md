@@ -40,3 +40,6 @@ and edge endpoints. Catalog is a backend vocabulary contract, not a health probe
 the UI needs only graph/search responses. Done after build/lint and isolated browser
 checks. Live authenticated HTTP validation depends on running Business/AI services.
 No commits/push, no new tests in src; local verification remains keep-local-only.
+
+## Graph-first revision — 2026-11-22
+Default entry opens full graph, top-1 latest-day score root, BFS relatives then disconnected components; retain explicit trend deep links. Hide CrawledPost and incident edges by default without changing loaded graph data or synthesizing edges. Filters default closed. Click node/edge opens dismissible details; delayed 650ms hover exposes properties, Escape dismisses. Distinguish node types by shape/color/labels and directed edge relation labels. Keep real-data loading/pause/retry, viewport stability and keyboard inspection. No pipeline/LLM upgrade. New UI labels remain parallel vi/en; shared theme tokens, light/dark, responsive 375/768/1440 required.
