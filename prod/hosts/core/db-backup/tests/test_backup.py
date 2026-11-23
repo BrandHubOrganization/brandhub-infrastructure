@@ -125,3 +125,81 @@ def test_uploads_are_tagged_for_daily_expiry(monkeypatch, tmp_path):
     app_module.s3_uploader("bkt", "ap-southeast-1")(tmp_path / "x.dump", "postgres/x.dump")
     assert calls == [("bkt", "postgres/x.dump",
                       {"ServerSideEncryption": "AES256", "Tagging": "retention=daily"})]
+
+
+def test_history_keeps_30_days_and_computes_deltas(tmp_path):
+    from datetime import datetime, timedelta
+    from zoneinfo import ZoneInfo
+    from backup.runner import _update_history
+
+    today = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).date()
+    d_old_expired = (today - timedelta(days=35)).strftime("%Y-%m-%d")
+    d1 = (today - timedelta(days=5)).strftime("%Y-%m-%d")
+    d2 = (today - timedelta(days=1)).strftime("%Y-%m-%d")
+    d3 = today.strftime("%Y-%m-%d")
+
+    existing = [
+        {"date": d_old_expired, "size_bytes": 100, "keys": ["postgres/old.dump"]},
+        {"date": d1, "size_bytes": 1000, "keys": ["postgres/d1.dump"]},
+        {"date": d2, "size_bytes": 1500, "keys": ["postgres/d2.dump"]},
+    ]
+    history, monthly_delta = _update_history(
+        existing,
+        {"date": d3, "finished_at": "2026-11-23T00:00:00+00:00", "size_bytes": 1200, "keys": ["postgres/d3.dump"]},
+    )
+
+    assert [h["date"] for h in history] == [d3, d2, d1]
+    assert history[0]["delta_bytes"] == -300
+    assert history[1]["delta_bytes"] == 500
+    assert history[2]["delta_bytes"] == 0
+    assert monthly_delta == 200
+
+
+def test_restore_downloads_snapshot_and_records_last_restore(tmp_path):
+    import json
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    snap_date = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).strftime("%Y-%m-%d")
+    stored: dict[str, bytes] = {}
+    restored_payloads: list[bytes] = []
+
+    def upload(path: Path, key: str):
+        stored[key] = path.read_bytes()
+
+    def download(key: str, dest: Path):
+        dest.write_bytes(stored[key])
+
+    def dumper(work: Path, ts: str):
+        p = work / f"brandhub-{ts}.dump"
+        p.write_bytes(b"backup-v1")
+        return [p]
+
+    def restorer(files: list[Path]):
+        restored_payloads.append(files[0].read_bytes())
+
+    runner = BackupRunner(
+        tmp_path / "state.json",
+        upload,
+        dumpers={"postgres": dumper},
+        download=download,
+        restorers={"postgres": restorer},
+    )
+    status = runner.run(["postgres"], "manual")
+    assert status["retention_days"] == 30
+    assert len(status["databases"]["postgres"]["history"]) == 1
+
+    restored_status = runner.restore(["postgres"], snap_date)
+    pg = restored_status["databases"]["postgres"]
+    assert pg["status"] == "success"
+    assert pg["action"] == "restore"
+    assert pg["last_restore"]["date"] == snap_date
+    assert restored_payloads == [b"backup-v1"]
+    assert len(pg["history"]) == 1
+
+    client = TestClient(create_app(runner, token="t0ken", schedule=False))
+    bad_date = client.post("/restore", json={"dbs": ["postgres"], "date": "1999-01-01"}, headers={"X-Backup-Token": "t0ken"})
+    assert bad_date.status_code == 400
+    ok = client.post("/restore", json={"dbs": ["postgres"], "date": snap_date}, headers={"X-Backup-Token": "t0ken"})
+    assert ok.status_code == 202
+

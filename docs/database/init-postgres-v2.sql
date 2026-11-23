@@ -2670,7 +2670,7 @@ VALUES
    '{"product_line":"STUDIO","newsletter_email_quota":0,"support_level":"STANDARD_TICKET","early_renewal":"NONE","downgrade_allowed":false}'::jsonb, true),
   ('STUDIO_PLUS', 1, 'Studio Plus', 99000, 3, 1, 0, 5368709120, 900, 1, 30, 30, 90,
    '{"product_line":"STUDIO","newsletter_email_quota":0,"support_level":"STANDARD_TICKET","early_renewal":"AGENCY_PLUS_RENEWAL","downgrade_allowed":false}'::jsonb, true),
-  ('STUDIO_PRO', 1, 'Studio Pro', 299000, 10, 3, 0, 32212254720, 2400, 2, 90, 30, 180,
+  ('STUDIO_PRO', 1, 'Studio Pro', 299000, 10, 1, 0, 32212254720, 2400, 2, 90, 30, 180,
    '{"product_line":"STUDIO","newsletter_email_quota":0,"support_level":"STANDARD_TICKET","early_renewal":"AGENCY_PLUS_RENEWAL","downgrade_allowed":false}'::jsonb, true)
 ON CONFLICT (code, version) DO NOTHING;
 

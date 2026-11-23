@@ -49,3 +49,9 @@ docs/dashboard/jira_status.json
 **/backups/*.archive
 **/backups/*.gz
 **/backups/*.zip
+
+# Terraform variable files and local backups
+*.tfvars
+*.tfvars.bak*
+!*.tfvars.example
+*.bak*

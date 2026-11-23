@@ -73,7 +73,7 @@ variable "db_backup_bucket_name" {
 variable "db_backup_retention_days" {
   description = "Days to keep each db-backup dump (tagged retention=daily) in S3"
   type        = number
-  default     = 1
+  default     = 30
 }
 
 variable "crawl_schedule_times" {
