@@ -25,6 +25,21 @@ resource "aws_cloudfront_function" "public_routes" {
   code    = file("${path.module}/functions/brandhub-public-routes.js")
 }
 
+# Feeds/sitemaps stay crawlable but must not show up as search results
+# (Google had indexed /sitemap.xml as a page).
+resource "aws_cloudfront_response_headers_policy" "noindex_files" {
+  name    = "brandhub-noindex-files"
+  comment = "X-Robots-Tag noindex for sitemap, rss and llms files"
+
+  custom_headers_config {
+    items {
+      header   = "X-Robots-Tag"
+      value    = "noindex"
+      override = true
+    }
+  }
+}
+
 resource "aws_cloudfront_distribution" "web" {
   enabled             = true
   is_ipv6_enabled     = true
@@ -52,6 +67,20 @@ resource "aws_cloudfront_distribution" "web" {
     function_association {
       event_type   = "viewer-request"
       function_arn = aws_cloudfront_function.public_routes.arn
+    }
+  }
+
+  dynamic "ordered_cache_behavior" {
+    for_each = ["*.xml", "/llms*.txt"]
+    content {
+      path_pattern               = ordered_cache_behavior.value
+      target_origin_id           = local.s3_origin_id
+      viewer_protocol_policy     = "redirect-to-https"
+      allowed_methods            = ["GET", "HEAD"]
+      cached_methods             = ["GET", "HEAD"]
+      compress                   = true
+      cache_policy_id            = local.managed_caching_optimized_policy_id
+      response_headers_policy_id = aws_cloudfront_response_headers_policy.noindex_files.id
     }
   }
 
