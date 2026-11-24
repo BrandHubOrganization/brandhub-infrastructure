@@ -23,7 +23,7 @@ Define and govern BrandHub's complete database-backed **2-Product-Line × 6-Plan
 ## 3. Consolidated Acceptance Criteria
 
 1. **2-Product-Line × 6-Plan Matrix (`studio-personal-plans`, `subscription-four-plan-catalog`, `subscription-catalog-api-ui`):**
-   - **Personal Studio Line (`company_type = PERSONAL`, `maxMembers = 1`):** `STUDIO_FREE`, `STUDIO_PLUS`, `STUDIO_PRO` (tailored solo workspace limits, S3 vault quota, AI credit grants, self-approval workflow `POST /tasks/{id}/self-approve`, `POST /api/v1/workspaces/personal/bootstrap`).
+   - **Personal Studio Line (`company_type = PERSONAL`, `maxMembers = 1`, `3` on `STUDIO_PRO`):** `STUDIO_FREE`, `STUDIO_PLUS`, `STUDIO_PRO` (tailored solo workspace limits, S3 vault quota, AI credit grants, self-approval workflow `POST /tasks/{id}/self-approve`, `POST /api/v1/workspaces/personal/bootstrap`).
    - **Business Agency Line (`company_type = AGENCY`):** `BASIC`, `PLUS`, `ENTERPRISE` (multi-workspace, multi-member `Owner / Manager / Creator / Client` collaboration, full 3-tier approval).
 2. **Multi-Cycle Pricing & Renewal (`1 / 3 / 6 / 12` Months, `agency-plus-renewal`, `agency-plus-style`):** `billing_plan_cycle_prices` stores exact cycle prices per plan; active `PLUS` / `STUDIO_PLUS` / `STUDIO_PRO` subscribers can renew early (extending `current_period_end` without losing remaining days) and display semantic `Plus`/`Pro` tier badges.
 3. **Personal-to-Agency Transition (`personal-agency-transition`):** A `PERSONAL` Studio `Owner` can upgrade/convert `company_type` from `PERSONAL` to `AGENCY`, unlocking multi-member invitations (`agency_invitations`) and mapping studio entitlements cleanly to the Business Agency catalog without losing Workspaces, Materials, or Posts.
@@ -51,7 +51,7 @@ Define and govern BrandHub's complete database-backed **2-Product-Line × 6-Plan
 
 ## 6. Error Handling, Security & Edge Cases
 
-- **Single-User Invariant on `PERSONAL` Studio (`2026-11-22-studio-single-user.sql`):** Attempting to invite internal members or clients into a `PERSONAL` company rejects with `403/409` instructing transition to `AGENCY` mode first.
+- **Member Cap on `PERSONAL` Studio (`2026-11-22-studio-single-user.sql`, `2026-11-24-studio-pro-members.sql`):** `STUDIO_FREE` and `STUDIO_PLUS` are one user; `STUDIO_PRO` allows 3 internal members (owner + 2). Clients are never allowed in a `PERSONAL` company (`maxClients = 0`). Inviting beyond the cap rejects with `403/409` instructing transition to `AGENCY` mode first.
 - **Active Subscriber Isolation on Admin Price Edit:** Editing a plan's price on `/admin?view=plans` affects new orders/renewals only; active `agency_subscription_periods` retain their contracted price and entitlements until period end.
 
 ## 7. Related Specifications & References
