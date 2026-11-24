@@ -1,5 +1,7 @@
 # BrandHub — Jira Task Language Cleanup Tracking
 
+> [<< Knowledge Base Home](../../index.md) · [Project Plans](../README.md) · [Audit Logs](./README.md)
+
 > Mục đích: theo dõi tiến độ sửa summary task Jira còn lẫn tiếng Việt không dấu → tiếng Anh hoàn toàn.
 > Ngày lập: 2026-09-03
 > Nguồn: quét toàn bộ 666 task project `DA` qua Jira API, lọc theo từ khóa tiếng Việt đặc trưng (không lẫn từ tiếng Anh trùng âm như "vs"/"or").
@@ -16,6 +18,8 @@
 ---
 
 ## Tiến độ tổng quan
+
+> **Lưu ý đối chiếu snapshot:** Bảng thống kê và danh sách checkbox bên dưới giữ nguyên snapshot đầu ca kiểm toán (`3/72` — thời điểm mới chỉ có Epic `E22` hoàn tất trước khi chạy script). Toàn bộ **69/72** task còn lại đã được cập nhật hàng loạt thành công qua Jira REST API (`PUT` trả `204`) trong cùng ngày `2026-09-03`, đạt **72/72 (100%)**.
 
 | Epic | Số task | Đã sửa |
 |---|---|---|

@@ -1,8 +1,8 @@
 # 11 — Từ Điển Thực Thể Dữ Liệu & Kiến Trúc Lưu Trữ Đa Cơ Sở Dữ Liệu (Data Entities & Glossary)
 
-> [<< 10 - Roles & Permissions Matrix](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/10-roles-permissions-matrix.md) | [Overview](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/00-overview.md) | [Tiếp: 12 - State Machines >>](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/12-state-machines.md)
+> Navigation: [← BA Index](./README.md) · [← 10 - Roles & Permissions Matrix](./10-roles-permissions-matrix.md) · [Tiếp: 12 - State Machines →](./12-state-machines.md)
 >
-> Tài liệu này tổng hợp toàn bộ các thực thể nghiệp vụ (Domain Entities) của hệ thống **BrandHub**, phân bổ trên 4 hệ quản trị cơ sở dữ liệu (**PostgreSQL**, **MongoDB**, **Neo4j**, **Redis**) và đối chiếu trực tiếp với **141 Yêu cầu Chức năng (`3.2.1` – `3.10.14`)**.
+> Tài liệu này tổng hợp toàn bộ các thực thể nghiệp vụ (Domain Entities) của hệ thống **BrandHub**, phân bổ trên hệ lưu trữ đa cơ sở dữ liệu (**PostgreSQL — 97 bảng**, **MongoDB — 52 collections**, **ChromaDB**, **Neo4j**, **Redis**) và đối chiếu trực tiếp với **141 Yêu cầu Chức năng (`3.2.1` – `3.10.14`)** (danh mục chi tiết từng bảng xem tại [ERD Entity Descriptions](../database/schema/erd-entity-descriptions.md)).
 
 ---
 
@@ -62,7 +62,7 @@
 | **`Collaborator`** (`collaborators`) | Mongo | `id`, `agencyId`, `name`, `platforms`, `niche`, `followerCount`, `engagementRate`, `rateCardVnd`, `contactInfo` | Hồ sơ KOL / Influencer / Cộng tác viên trong danh bạ Agency (`3.7.15`–`3.7.19`). |
 | **`SocialAccount`** (`social_accounts`) | Postgres | `id`, `workspace_id`, **`platform (FACEBOOK \| INSTAGRAM \| TIKTOK \| THREADS)`**, `account_id`, `account_name`, `access_token_enc`, `status (CONNECTED \| EXPIRED \| DISCONNECTED)` | Tài khoản mạng xã hội kết nối vào Workspace (`3.8.1`, `3.8.2`). Chỉ hỗ trợ đúng 4 nền tảng chuẩn. |
 | **`AgencyCreditWallet` & `WorkspaceCreditLimit`** (`agency_credit_wallets`, `workspace_credit_limits`) | Postgres | `agency_id`, `plan_balance`, `purchased_balance`, `held_balance`; `workspace_id`, **`cap (BIGINT NULLABLE)`**, `used_in_period`, `held_in_period`, `revision` | Kiến trúc Ví tổng cấp Agency + Trần ngân sách cấp Workspace (`3.9.4`–`3.9.6`). `cap = NULL` là không giới hạn riêng; `cap = 0` là chặn tác vụ tính phí. |
-| **`SubscriptionPlan`, `UserSubscription` & `Invoice`** | Postgres | `plan_code (BASIC \| PLUS \| ENTERPRISE)`, `price_vnd`, `credit_grant`; `invoice_code`, `sepay_reference`, `amount_vnd`, `status (PENDING \| PAID \| EXPIRED \| CANCELLED)` | Quản lý gói cước, thanh toán VietQR qua SePay và đối soát doanh thu (`3.9.1`–`3.9.3`, `3.10.6`–`3.10.14`). |
+| **`SubscriptionPlan`, `AgencySubscription` & `BillingOrder`** | Postgres | `plan_code (STUDIO_FREE \| STUDIO_PLUS \| STUDIO_PRO \| BASIC \| PLUS \| ENTERPRISE)`, `price_vnd`, `credit_grant`; `sepay_reference`, `amount_vnd`, `status (PENDING \| PAID \| EXPIRED \| CANCELLED)` | Quản lý 6 gói cước thuộc 2 dòng sản phẩm, thanh toán **SePay (VietQR)** nâng cấp gói / nạp thêm credit và đối soát doanh thu (`3.9.1`–`3.9.6`, `3.10.10`–`3.10.14`). |
 
 ---
 

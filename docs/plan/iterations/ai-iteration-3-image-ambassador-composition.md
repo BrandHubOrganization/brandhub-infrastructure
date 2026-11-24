@@ -1,5 +1,7 @@
 # AI Iteration 3 — Image, Ambassador & Composition
 
+> [<< Knowledge Base Home](../../index.md) · [Project Plans](../README.md) · [AI Iterations](./README.md)
+
 **Timeline:** Parallel with Sprints 9–10 (Weeks 17–20)
 **Duration:** 2 weeks
 **Goal:** Implement the full AI image pipeline — text-to-image generation, virtual brand ambassador (InstantID), and image composition (background removal + layer compositing).
@@ -14,7 +16,7 @@
 | AI-07 | Virtual Brand Ambassador (InstantID) | Tuấn |
 | AI-08 | Image Composition Pipeline | Tuấn |
 
-> 🔀 **Rebalance sau Sprint 4:** Lộc chuyển hẳn sang AI Sub-lead (điều phối, không trực tiếp code 2 pipeline này nữa). AI-06 chuyển sang Ân (cùng nhóm "generative content" với AI-09 Video, đã quen pattern async + S3). AI-08 chuyển sang Tuấn (cùng nhóm "image pipeline" với AI-07 Ambassador). Chi tiết: [Rebalance Log](../jira-status-audit-2026-07-11.md#rebalance-log--sau-sprint-4).
+> 🔀 **Rebalance sau Sprint 4:** Lộc chuyển hẳn sang AI Sub-lead (điều phối, không trực tiếp code 2 pipeline này nữa). AI-06 chuyển sang Ân (cùng nhóm "generative content" với AI-09 Video, đã quen pattern async + S3). AI-08 chuyển sang Tuấn (cùng nhóm "image pipeline" với AI-07 Ambassador). Chi tiết: [Rebalance Log](../audit/jira-status-audit-2026-07-11.md#rebalance-log--sau-sprint-4).
 
 **Prerequisites from Iteration 1:**
 - InstantID selected as ambassador tool (DA-AI01-01/02 decision)

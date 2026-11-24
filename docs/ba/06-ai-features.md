@@ -1,9 +1,9 @@
-# 06 — Hệ sinh thái Tính năng AI, Đồ thị Tri thức Xu hướng & Đề xuất Cộng tác viên (AI Features)
+# 06 — Hệ sinh thái Tính năng AI, Đồ thị Tri thức Xu hướng & Đề xuất Đối tác (AI Features)
 
-> [<< 05 - Content & Task Workflow](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/05-content-task-workflow.md) | [Overview](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/00-overview.md) | [Tiếp: 07 - Publishing & Social >>](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/07-publishing-social-collaborator.md)
+> Navigation: [← BA Overview & Hub](./README.md) · [← 05 - Content & Workflow](./05-content-task-workflow.md) · [Tiếp: 07 - Publishing & Social →](./07-publishing-social.md)
 >
-> **Phạm vi FR chuẩn**: **Mục `3.7 AI Features` — 19 FR (`3.7.1` – `3.7.19`)** | `UC-088` – `UC-106`.
-> Đã loại bỏ hoàn toàn tính năng sinh kịch bản Livestream (`Generate Livestream Script`) theo `AGENTS.md` và đồng bộ 100% với kiến trúc **RAG Brand Knowledge**, **Neo4j Trend Knowledge Graph**, **AI Video Studio**, **Collaborator Directory & AI Recommendation**, cùng cơ chế **4 Nhóm Tác vụ AI Tính phí vs. Tác vụ Miễn phí (`workspace-credit-unification`)**.
+> **Phạm vi FR chuẩn**: **Mục `3.7 AI Features` — 19 FR (`3.7.1` – `3.7.19`)** | `UC-088` – `UC-106` · Use Cases chi tiết: [use-cases/05-ai-features.md](./use-cases/05-ai-features.md) · Đặc tả SRS: [06-ai-features](../feature/srs/06-ai-features/README.md).
+> Đã loại bỏ hoàn toàn tính năng sinh kịch bản Livestream theo `AGENTS.md` và đồng bộ 100% với kiến trúc **Brand Hybrid GraphRAG**, **Neo4j Trend Knowledge Graph**, **ComfyUI + Qwen Image 2.1**, **Wan 2.2 Fun VACE 14B + Wan 2.2 S2V 14B**, **Collaborator Directory & AI Recommendation**, cùng cơ chế **4 Nhóm Tác vụ AI Tính phí vs. Tác vụ Miễn phí**.
 
 ---
 
@@ -11,11 +11,11 @@
 
 | Mã FR | Mã UC | Tên Chức năng Chuẩn (Atomic CRUD FR) | Actors / Roles Chuẩn | Phân loại Credit | Mô tả Nghiệp vụ Cốt lõi |
 | :-: | :-: | :--- | :--- | :-: | :--- |
-| **`3.7.1`** | `UC-088` | **View Trending Topics Suggestions** | `Owner`, `Manager`, `Creator` | Miễn phí | Xem danh sách chủ đề xu hướng nóng đa nền tảng (TikTok, Facebook, Instagram, YouTube, Google News) được cá nhân hóa theo lĩnh vực của Workspace. |
-| **`3.7.2`** | `UC-089` | **View AI Trend Knowledge Graph** | `Owner`, `Manager`, `Creator` | Miễn phí | Khám phá trực quan Đồ thị Tri thức Xu hướng (`Neo4j Knowledge Graph`) thể hiện mối liên hệ giữa Chủ đề (`Topic`), Từ khóa (`Keyword`), Hashtag, Thực thể thương hiệu và Ý tưởng nội dung. |
-| **`3.7.3`** | `UC-090` | **View Brand Knowledge Documents** | `Owner`, `Manager`, `Creator` | Miễn phí | Xem danh sách các tài liệu tri thức thương hiệu (`Brand Knowledge Documents`) đã nạp vào kho RAG của Workspace cùng trạng thái băm vector (`INDEXED`). |
-| **`3.7.4`** | `UC-091` | **Upload Brand Knowledge Document** | `Owner`, `Manager`, `Creator` | Miễn phí | Tải lên tài liệu nhận diện thương hiệu, hồ sơ sản phẩm, cẩm nang giọng văn (PDF, DOCX, TXT, MD) để `brandhub-ai-service` phân mảnh và tạo vector embedding làm ngữ cảnh RAG. |
-| **`3.7.5`** | `UC-092` | **Delete Brand Knowledge Document** | `Owner`, `Manager` | Miễn phí | Xóa tài liệu tri thức thương hiệu khỏi Workspace và gỡ bỏ các đoạn vector embedding tương ứng. |
+| **`3.7.1`** | `UC-088` | **View Trending Topics Suggestions** | `Owner`, `Manager`, `Creator` | Miễn phí | Xem bảng điều khiển chủ đề & từ khóa xu hướng thịnh hành tại Việt Nam (tính điểm bùng nổ BM25 kết hợp xếp hạng đồ thị Neo4j Personalized PageRank & Betweenness Centrality, `BR-45`). |
+| **`3.7.2`** | `UC-089` | **View AI Trend Knowledge Graph** | `Owner`, `Manager`, `Creator`, `Admin` | Miễn phí | Khám phá trực quan Đồ thị Tri thức Xu hướng (`Neo4j Knowledge Graph`) thể hiện mối liên hệ giữa Chủ đề (`Topic`), Từ khóa (`Keyword`), Hashtag và Thực thể (`BR-45`). |
+| **`3.7.3`** | `UC-090` | **View Brand Knowledge Documents** | `Owner`, `Manager`, `Creator`, `Client` | Miễn phí | Xem danh sách và tìm kiếm ngữ nghĩa các tài liệu Brand Guideline trong kho RAG của Workspace cùng trạng thái vector hóa (`PENDING`, `INDEXED`, `FAILED`, `BR-20`, `BR-46`). |
+| **`3.7.4`** | `UC-091` | **Upload Brand Knowledge Document** | `Owner`, `Manager`, `Client` | Miễn phí | Tải lên tài liệu Brand Guideline (`PDF`, `DOCX`, `TXT`, `HTML` ≤ 10 MB hoặc Web URL) để lưu S3, băm nhỏ văn bản và tạo vector nhúng trong phân vùng ChromaDB riêng của Workspace (`BR-20`, `BR-46`). |
+| **`3.7.5`** | `UC-092` | **Delete Brand Knowledge Document** | `Owner`, `Manager`, `Client` | Miễn phí | Xóa tài liệu Brand Guideline trên S3 đồng thời xóa sạch các đoạn vector nhúng tương ứng trong ChromaDB (`BR-20`, `BR-47`). |
 | **`3.7.6`** | `UC-093` | **Generate Caption** | `Owner`, `Manager`, `Creator` | **Tính phí** (`CONTENT_GENERATE`) | Sinh nội dung bài viết / caption đa nền tảng kết hợp ngữ cảnh thương hiệu (RAG) và xu hướng Neo4j; hỗ trợ tinh chỉnh biến thể (`CAPTION_VARIANTS` — miễn phí) và làm mượt văn phong tự nhiên (`Content Humanizer`). |
 | **`3.7.7`** | `UC-094` | **Generate Ambassador** | `Owner`, `Manager`, `Creator` | **Tính phí** (`AMBASSADOR_GENERATE`) | Khởi tạo hình mẫu Đại sứ Thương hiệu ảo bằng AI (`Virtual Brand Ambassador` — ngoại hình, phong cách, trang phục, bối cảnh) và sinh bảng góc mặt nhân vật (`CHARACTER_SHEET` — miễn phí). |
 | **`3.7.8`** | `UC-095` | **View Image Style Template** | `Owner`, `Manager`, `Creator` | Miễn phí | Duyệt thư viện mẫu phong cách hình ảnh thương mại (`Commercial Image Presets` — Studio, Lifestyle, Minimalist, Luxury, Cyber, Seasonal...). |
@@ -25,11 +25,11 @@
 | **`3.7.12`** | `UC-099` | **Export File** | `Owner`, `Manager`, `Creator` | Miễn phí | Xuất nội dung AI đã tạo hoặc lưu trực tiếp hình ảnh/video/văn bản về thiết bị hoặc đẩy thẳng vào `Material Library` / phần `TaskSection` của công việc đang mở. |
 | **`3.7.13`** | `UC-100` | **Crawl Schedule Config** | `Admin` | Hệ thống | Cấu hình lịch trình thu thập dữ liệu xu hướng tự động (`Crawler Cron Schedule`), nguồn thu thập đa nền tảng và kích hoạt chạy đường ống xu hướng tức thì (`Run Pipeline Now`). |
 | **`3.7.14`** | `UC-101` | **Suggest Hashtag Trend** | `Owner`, `Manager`, `Creator` | Miễn phí (`HASHTAG_GENERATE`) | Gợi ý bộ Hashtag theo ngữ cảnh nội dung bài viết kết hợp dữ liệu xu hướng thực tế trong Workspace. |
-| **`3.7.15`** | `UC-102` | **View Collaborator Directory** | `Owner`, `Manager`, `Creator` | Miễn phí | Xem danh bạ đối tác / KOL / KOC / Influencer / Freelancer (`Collaborator Directory`) của Agency kèm bộ lọc theo lĩnh vực, nền tảng, lượng người theo dõi và mức giá tham khảo. |
-| **`3.7.16`** | `UC-103` | **Create Collaborator Profile** | `Owner`, `Manager` | Miễn phí | Thêm mới hồ sơ đối tác / KOL vào danh bạ của Agency (Tên, Lĩnh vực, Kênh MXH, Lượng follower, Tỷ lệ tương tác, Đơn giá tham khảo, Thông tin liên hệ). |
-| **`3.7.17`** | `UC-104` | **Update Collaborator Profile** | `Owner`, `Manager` | Miễn phí | Cập nhật thông tin hồ sơ, chỉ số tương tác hoặc ghi chú hợp tác của KOL/Cộng tác viên trong danh bạ. |
-| **`3.7.18`** | `UC-105` | **Remove Collaborator Profile** | `Owner`, `Manager` | Miễn phí | Xóa hồ sơ KOL/Cộng tác viên khỏi danh bạ của Agency. |
-| **`3.7.19`** | `UC-106` | **Recommend Collaborator** | `Owner`, `Manager`, `Creator` | Miễn phí | Hệ thống AI phân tích mục tiêu chiến dịch, ngành hàng, ngân sách và đối tượng mục tiêu để đề xuất danh sách KOL/Cộng tác viên phù hợp nhất kèm điểm tương thích (`Match Score`) và lý do đề xuất. |
+| **`3.7.15`** | `UC-102` | **View Collaborator Directory** | `Owner`, `Manager` | Miễn phí | Xem và lọc danh bạ đối tác truyền thông bên thứ ba của Agency (KOL/KOC, Báo điện tử, Trang treo Banner, Kênh truyền hình TV, `BR-20`, `BR-51`). |
+| **`3.7.16`** | `UC-103` | **Create Collaborator Profile** | `Owner`, `Manager` | Miễn phí | Thêm mới hồ sơ đối tác truyền thông bên thứ ba vào danh bạ của Agency (Tên, Phân loại kênh, Lĩnh vực, Quy mô độc giả/follower, Đơn giá dự kiến, Liên hệ, `BR-15`, `BR-51`). |
+| **`3.7.17`** | `UC-104` | **Update Collaborator Profile** | `Owner`, `Manager` | Miễn phí | Cập nhật thông tin hồ sơ đối tác và tiến độ hợp tác trong chiến dịch (`CONTACTED -> NEGOTIATING -> CONFIRMED -> LIVE_ON_AIR -> COMPLETED`, `BR-51`). |
+| **`3.7.18`** | `UC-105` | **Remove Collaborator Profile** | `Owner`, `Manager` | Miễn phí | Xóa mềm hoặc ngừng kích hoạt hồ sơ đối tác truyền thông khỏi danh bạ hoạt động của Agency mà vẫn bảo toàn lịch sử chi phí/nghiệm thu cũ (`BR-15`, `BR-51`). |
+| **`3.7.19`** | `UC-106` | **Recommend Collaborator** | `Owner`, `Manager` | Miễn phí | Hệ thống AI phân tích mục tiêu chiến dịch, ngành hàng và ngân sách để đề xuất thông minh danh sách đối tác truyền thông bên thứ ba phù hợp kèm điểm tương thích (`BR-51`, `BR-52`). |
 
 ---
 
@@ -69,10 +69,32 @@
 
 ## 3. Cơ chế Trừ AI Credit trong Chế độ `AGENCY` và `PERSONAL`
 
-Theo kiến trúc hợp nhất tại `docs/feature/workspace-credit-unification/spec.md`:
+Theo kiến trúc hợp nhất tại [08 - Subscription & Billing](./08-subscription-billing.md) và đặc tả [3.9 Subscription & Billing](../feature/srs/08-subscription-billing/README.md):
 1. **Nguồn tiền duy nhất (`Single Funding Source`)**: Mọi chi phí AI đều được trừ từ ví `agency_credit_wallets` của `Agency` (hoặc của `Personal Hub Agency` khi ở chế độ `PERSONAL`), ưu tiên trừ **Plan Credit (credit theo chu kỳ gói)** trước rồi mới trừ **Purchased Credit (credit mua thêm không hết hạn)**.
 2. **Trần ngân sách cấp Workspace (`Workspace Credit Cap`)**:
    - `Owner` có thể đặt hạn mức `workspaceLimit` cho từng Workspace (hoặc để `NULL` = dùng tự do theo số dư ví tổng; `0` = khóa các tác vụ AI tính phí).
    - Cả `Owner`, `Manager` và `Creator` khi dùng AI trong một Workspace đều tiêu thụ ngân sách của Workspace đó.
 3. **4 Nhóm Tác vụ Tính phí Duy nhất**:
    - Chỉ đúng 4 nhóm `CONTENT_GENERATE`, `AMBASSADOR_GENERATE`, `COMMERCIAL_IMAGE`, `VIDEO_GENERATE` mới trừ credit theo bảng giá cố định của `Admin`. Mọi thao tác AI hỗ trợ khác đều miễn phí (`unit_credits = 0`).
+
+---
+
+## 4. Bảng Tham chiếu Quy tắc Nghiệp vụ (`BR-45` – `BR-52`)
+
+| Mã BR | Tên Quy tắc | Quy định Ràng buộc Cụ thể | FR Áp dụng |
+| :-: | :--- | :--- | :--- |
+| `BR-45` | **Làm mới Xu hướng Định kỳ & Dự phòng Cache** | Đường ống xu hướng kết hợp lọc spam (`T1`), nhãn PhoBERT (`T2`), điểm đột biến 4 tín hiệu (`T4_BurstStep`) và độ lan truyền đồ thị Neo4j (`T6`), lưu đệm Redis ZSET (`TTL 6h`). Nếu nguồn cào gián đoạn, giao diện hiển thị bản chụp xu hướng hợp lệ gần nhất thay vì báo lỗi trắng trang. | `3.7.1`, `3.7.2`, `3.7.13`, `3.7.14` |
+| `BR-46` | **Kiểm định Magic-Byte & Cô lập Kho Brand RAG** | Tệp tải lên kho tri thức (`PDF`, `DOCX`, `TXT`, `HTML` ≤ `10 MB`) được xác thực chữ ký byte thực tế, cắt khúc `500` ký tự (`overlap 50`) và lập chỉ mục vector `384` chiều vào phân vùng ChromaDB cô lập riêng theo thương hiệu/Workspace. | `3.7.3`, `3.7.4` |
+| `BR-47` | **Xóa Đồng bộ Ba Tầng cho Tài liệu RAG** | Khi xóa tài liệu Brand Knowledge (`3.7.5`), hệ thống dọn sạch đồng bộ tệp gốc trên S3, bản ghi `knowledge_documents` trong MongoDB và toàn bộ các vector chunks tương ứng trong ChromaDB/Neo4j. | `3.7.5` |
+| `BR-48` | **Giữ chỗ Trước, Khấu trừ Sau (`Hold-Settle-Release`)** | Trước khi gọi `brandhub-ai-service`, `brandhub-business-service` kiểm tra trần `workspace_credit_limits` và khóa tạm số credit trên `ai_credit_reservations`; chỉ khấu trừ thật khi nhận kết quả hợp lệ, tự động giải phóng `100%` nếu lỗi hoặc quá hạn. | `3.7.6`, `3.7.7`, `3.7.9`, `3.7.11` |
+| `BR-49` | **Chống Ảo giác & Kiểm duyệt Đầu ra AI** | Caption sinh ra bắt buộc tuân thủ dữ kiện trong `RAG Context` (ưu tiên Groq Llama 3, tự động chuyển dự phòng sang Anthropic Claude khi quá tải) và đi qua lớp kiểm tra an toàn cộng đồng trước khi trả về trình soạn thảo. | `3.7.6` |
+| `BR-50` | **Khóa Kịch bản Video VACE & Bảo toàn Khuôn mặt Đại sứ** | Kịch bản sinh video sản phẩm (`ltx_director.py`) được kiểm định JSON Schema (`15–21s`, `16 FPS`, độ dài đoạn `4n+1`) trước khi gửi xuống GPU worker **Wan 2.2 Fun VACE 14B + Qwen Image 2.1 + S2V**. | `3.7.7`–`3.7.12` |
+| `BR-51` | **Phạm vi Danh bạ Đối tác cấp Agency** | Hồ sơ `third_party_collaborators` thuộc sở hữu cấp `Agency` để tái sử dụng xuyên suốt các `MediaCampaign` thông qua bảng liên kết `campaign_collaborators`; xóa đối tác là xóa mềm để bảo toàn lịch sử chiến dịch cũ. | `3.7.15`–`3.7.18` |
+| `BR-52` | **Xếp hạng Tương thích Đối tác theo Ngữ cảnh Chiến dịch** | Gợi ý đối tác AI (`3.7.19`) chấm điểm dựa trên độ khớp ngành hàng, kênh truyền thông, quy mô tệp độc giả và trần ngân sách của chiến dịch đang mở. | `3.7.19` |
+
+---
+
+## 5. Tham chiếu Kiến trúc Kỹ thuật Liên quan
+
+- Kiến trúc dịch vụ AI & Hợp đồng REST nội bộ: [AI Service Architecture](../architecture/ai-service-architecture.md) · [Business ↔ AI REST Contract](../architecture/business-ai-rest-contract.md).
+- Thuật toán NLP, Burst, GraphRAG & GPU Worker Wan VACE: [AI Models & Research Hub](../ai-models/README.md).

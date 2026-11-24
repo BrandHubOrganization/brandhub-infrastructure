@@ -1,5 +1,7 @@
 # AI Iteration 4 — Video, Integration & Documentation
 
+> [<< Knowledge Base Home](../../index.md) · [Project Plans](../README.md) · [AI Iterations](./README.md)
+
 **Timeline:** Parallel with Sprints 11–12 (Weeks 21–24)
 **Duration:** 2 weeks
 **Goal:** Integrate Google Veo for AI video generation, finalize all FastAPI endpoints, complete integration with business-service, and produce all AI research reports for the capstone.

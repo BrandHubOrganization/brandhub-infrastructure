@@ -1,4 +1,6 @@
 # Báo Cáo Phân Tích Sâu Luồng Cào Dữ Liệu Xu Hướng (Crawl Trend Flow Analysis)
+
+> [<< Knowledge Base Home](../index.md) · [AI Models & Research](./README.md) · [AI Service Architecture](../architecture/ai-service-architecture.md)
 **Mã tài liệu:** AI-4.99-BLUEPRINT  
 **Dự án:** BrandHub AI Trend System  
 
@@ -301,7 +303,7 @@ Hệ thống tính điểm tổng hợp: $Final\_Score = Anomaly\_Score \times G
 ### [BƯỚC 4]: Đồng bộ Caching & Lưu trữ cơ sở dữ liệu lai
 
 #### 1. Ghi đồng thời kết quả xếp hạng xu hướng (Task `99-06`)
-Chi tiết thiết kế luồng lưu trữ đệm và ghi đè xem tại: [Tài liệu Thiết kế Luồng Lưu Trữ Đệm Redis và Ghi Đè Neo4j (Upsert Flow)](file:///d:/FPT/FA26/brandhub-infrastructure/docs/database/DA-AI04-99-06-redis-neo4j-upsert-flow.md).
+Chi tiết thiết kế luồng lưu trữ đệm và ghi đè xem tại: [Tài liệu Thiết kế Luồng Lưu Trữ Đệm Redis và Ghi Đè Neo4j (Upsert Flow)](../database/ai-vector/redis-neo4j-upsert-flow.md).
 
 *   **Ghi Cache Redis:**
     Đẩy Top 5 trend vào Redis Sorted Set với key `trends:vn:2026-07-18:food` (sử dụng dấu gạch ngang phân tách ngày theo chuẩn `DA-E06-06`):
@@ -329,7 +331,7 @@ Chi tiết thiết kế luồng lưu trữ đệm và ghi đè xem tại: [Tài 
     ```
 
 #### 2. Nạp tri thức chi tiết phục vụ GraphRAG (Task `99-05`)
-Chi tiết thiết kế sơ đồ dữ liệu lai xem tại: [Tài liệu Thiết kế Cấu trúc Cơ sở Dữ liệu Lai (ChromaDB + Neo4j)](file:///d:/FPT/FA26/brandhub-infrastructure/docs/database/DA-AI04-99-05-hybrid-db-schema.md).
+Chi tiết thiết kế sơ đồ dữ liệu lai xem tại: [Tài liệu Thiết kế Cấu trúc Cơ sở Dữ liệu Lai (ChromaDB + Neo4j)](../database/ai-vector/hybrid-db-schema.md).
 
 *   **Nạp vào ChromaDB (Lưu trữ Vector):**
     ```json
