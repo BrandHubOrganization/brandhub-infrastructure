@@ -339,6 +339,7 @@ CREATE TABLE IF NOT EXISTS client_profiles (
     tagline         VARCHAR(255),
     founded_year    INTEGER,
     budget_range    VARCHAR(50),
+    brand_dna       JSONB        NOT NULL DEFAULT '{}'::jsonb,
     created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
