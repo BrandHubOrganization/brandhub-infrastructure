@@ -109,6 +109,7 @@ Alphabetical filename sorting is **unsafe** on `2026-11-18` and `2026-11-22` bec
 | 23 | `2026-11-22` | [`postgres/2026-11-22-plus-display-name.sql`](postgres/2026-11-22-plus-display-name.sql) | *(5/6)* Updates Agency `PLUS` display name from `"Plus / Pro"` to `"Plus"` |
 | 24 | `2026-11-22` | [`postgres/2026-11-22-admin-plan-editor.sql`](postgres/2026-11-22-admin-plan-editor.sql) | *(6/6)* Creates `billing_plan_change_log` audit table for `Admin` plan catalog edits |
 | 25 | `2026-11-23` | [`postgres/2026-11-23-studio-default-name.sql`](postgres/2026-11-23-studio-default-name.sql) | Normalizes untouched auto-generated `"Personal Studio — <name>"` labels to `"Studio — <name>"` |
+| 26 | `2026-11-24` | [`postgres/2026-11-24-studio-pro-members.sql`](postgres/2026-11-24-studio-pro-members.sql) | Sets `STUDIO_PRO` internal members back to `3` (*requires #22*) |
 
 ---
 
