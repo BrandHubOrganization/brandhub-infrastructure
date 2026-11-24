@@ -1,7 +1,7 @@
 -- =============================================================================
 -- Patch: Update Running PostgreSQL Container Without Deleting Volumes
 -- Run this directly into brandhub-postgres container:
---   Get-Content brandhub-infrastructure\docs\database\patch-update-running-db.sql | docker exec -i brandhub-postgres psql -U brandhub -d brandhub
+--   Get-Content brandhub-infrastructure\database\scripts\patch-update-running-db.sql | docker exec -i brandhub-postgres psql -U brandhub -d brandhub
 -- =============================================================================
 
 BEGIN;

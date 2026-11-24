@@ -1,8 +1,8 @@
 // BrandHub — MongoDB initialization script
 // For a fresh local MongoDB volume only (docker-entrypoint-initdb.d/init-mongo.js).
 // Do NOT run this file against existing MongoDB Atlas data. Apply the ordered
-// scripts in docs/database/migrations instead; see mongo-atlas-migrations.md.
-// Includes Task approval foundation metadata through 2026-10-18 (no snapshots/backfill).
+// scripts in database/migrations/mongodb/ instead; see ../migrations/README.md.
+// Synchronized through 2026-11-24.
 // Task workflow foundation is schema only; application implementation/legacy review are separate.
 
 db = db.getSiblingDB('brandhub');
@@ -90,7 +90,7 @@ db.createCollection('social_accounts', {
       required: ['workspace_id', 'platform', 'account_name', 'account_id', 'encrypted_token', 'encrypted_iv', 'token_expires_at', 'token_status', 'is_active', 'created_at', 'updated_at'],
       properties: {
         workspace_id:   { bsonType: 'string' },
-        platform:       { enum: ['FACEBOOK', 'INSTAGRAM', 'TIKTOK', 'THREADS', 'ZALO_OA'] },
+        platform:       { enum: ['FACEBOOK', 'INSTAGRAM', 'TIKTOK', 'THREADS'] },
         account_name:   { bsonType: 'string' },
         account_id:     { bsonType: 'string' },
         encrypted_token:{ bsonType: 'string' },
@@ -114,7 +114,7 @@ db.createCollection('posts', {
         task_id:       { bsonType: ['string', 'null'], minLength: 1 },
         created_by:    { bsonType: 'string' },
         content_text:  { bsonType: 'string' },
-        platform:      { enum: ['FACEBOOK', 'INSTAGRAM', 'TIKTOK', 'THREADS', 'ZALO_OA'] },
+        platform:      { enum: ['FACEBOOK', 'INSTAGRAM', 'TIKTOK', 'THREADS'] },
         status:        { enum: ['DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'REJECTED', 'SCHEDULED', 'IN_PROGRESS', 'PUBLISHING', 'PUBLISHED', 'FAILED', 'CANCELLED'] },
         scheduled_at:  { bsonType: ['date', 'null'] },
         ai_generated:  { bsonType: 'bool' },
@@ -135,7 +135,7 @@ db.createCollection('content_requests', {
         workspaceId: { bsonType: 'string' }, requestedBy: { bsonType: 'string' },
         title: { bsonType: 'string', minLength: 1, maxLength: 255 },
         description: { bsonType: 'string', maxLength: 10000 },
-        type: { enum: ['POST', 'LIVESTREAM', 'SURVEY'] }, dueDate: { bsonType: 'date' },
+        type: { enum: ['POST', 'SURVEY'] }, dueDate: { bsonType: 'date' },
         status: { enum: ['PENDING', 'IN_PROGRESS', 'ACCEPTED', 'DENIED', 'CANCELLED'] },
         version: { bsonType: ['long', 'int', 'double', 'decimal'], minimum: 1, multipleOf: 1 },
         history: { bsonType: 'array' }, generatedTaskId: { bsonType: ['string', 'null'] },
@@ -274,7 +274,7 @@ db.createCollection('tasks', {
         workspaceId:            { bsonType: 'string' },
         campaignId:             { bsonType: ['string', 'null'] },
         campaignWorkItemId:     { bsonType: ['string', 'null'] },
-        type:                   { enum: ['POST', 'LIVESTREAM', 'SURVEY', 'EVENT_PLAN', 'PRESS_RECOMMENDATION',
+        type:                   { enum: ['POST', 'SURVEY', 'EVENT_PLAN', 'PRESS_RECOMMENDATION',
                                          'SHORT_VIDEO', 'KOL_BOOKING', 'WORKSHOP', 'EMAIL_NEWSLETTER'] },
         name:                   { bsonType: 'string' },
         dueDate:                { bsonType: ['date', 'null'] },
@@ -565,7 +565,7 @@ db.createCollection('publish_logs', {
       properties: {
         workspace_id: { bsonType: 'string' },
         post_id:      { bsonType: 'string' },
-        platform:     { enum: ['FACEBOOK', 'INSTAGRAM', 'TIKTOK', 'THREADS', 'ZALO_OA'] },
+        platform:     { enum: ['FACEBOOK', 'INSTAGRAM', 'TIKTOK', 'THREADS'] },
         result:       { enum: ['SUCCESS', 'FAILED', 'RETRYING'] },
         retry_count:  { bsonType: 'int' },
       },
@@ -1089,8 +1089,6 @@ db.chat_calls.createIndex({ state: 1, expiresAt: 1 }, { name: 'idx_chat_calls_ex
 // Seed run audit markers.
 db.createCollection('seed_runs');
 
-print('BrandHub MongoDB initialized: collections and indexes created.');
-
 
 // Chat uploads and immutable repository references (2026-11-08). Metadata only; no seed/storage writes.
 (() => {
@@ -1187,9 +1185,7 @@ print('BrandHub MongoDB initialized: collections and indexes created.');
     { name: 'uq_client_vault_shares_resource', unique: true }
   );
 
-  // 4. materials & upload sessions
-  ensureCollection('material_upload_sessions');
-  db.material_upload_sessions.createIndex({ workspace_id: 1, staging_key: 1 }, { name: 'uq_repository_session_key', unique: true });
+  // 4. materials folder & vault indexes (material_upload_sessions & uq_repository_session_key created above)
   db.materials.createIndex({ workspace_id: 1, folder_id: 1, deleted_at: 1, sort_key: 1, normalized_name: 1, created_at: -1 }, { name: 'idx_materials_folder_sort' });
   db.materials.createIndex({ scope_type: 1, owner_user_id: 1, folder_id: 1, deleted_at: 1 }, { name: 'idx_materials_vault_folder' });
   db.materials.createIndex({ ancestor_folder_ids: 1 }, { name: 'idx_materials_ancestor_folders' });
@@ -1228,3 +1224,5 @@ print('BrandHub MongoDB initialized: collections and indexes created.');
   db.watermark_presets.createIndex({ workspace_id: 1, client_profile_id: 1, created_at: -1 }, { name: 'idx_watermark_presets_workspace_client_created' });
   db.watermark_presets.createIndex({ workspace_id: 1, client_profile_id: 1, is_default: 1 }, { name: 'idx_watermark_presets_default' });
 })();
+
+print('BrandHub MongoDB initialized: collections and indexes created.');

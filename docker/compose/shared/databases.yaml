@@ -1,4 +1,4 @@
-# PostgreSQL. Init SQL runs only with an empty data directory.
+# PostgreSQL 17 and MongoDB 7.0. Init scripts run only when each data volume is empty.
 
 services:
   postgres:
@@ -14,7 +14,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - type: bind
-        source: ../../../docs/database/init-postgres-v2.sql
+        source: ../../../database/init/init-postgres-v2.sql
         target: /docker-entrypoint-initdb.d/init-postgres-v2.sql
         read_only: true
         bind:
@@ -39,7 +39,7 @@ services:
     volumes:
       - mongodb_data:/data/db
       - type: bind
-        source: ../../../docs/database/init-mongo.js
+        source: ../../../database/init/init-mongo.js
         target: /docker-entrypoint-initdb.d/init-mongo.js
         read_only: true
         bind:

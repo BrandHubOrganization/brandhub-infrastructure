@@ -5,12 +5,12 @@ setlocal
 REM ============================================================================
 REM Replace existing PostgreSQL database with the latest full backup (Schema + Data)
 REM Usage:
-REM   restore_postgres.bat
-REM   restore_postgres.bat -Force
-REM   restore_postgres.bat -BackupFile "brandhub_postgres_full_20261123.dump"
+REM   restore-postgres.bat
+REM   restore-postgres.bat -Force
+REM   restore-postgres.bat -BackupFile "brandhub_postgres_full_20261123.dump"
 REM ============================================================================
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0restore_postgres.ps1" %*
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0restore-postgres.ps1" %*
 set EXIT_CODE=%ERRORLEVEL%
 
 if not "%EXIT_CODE%"=="0" (

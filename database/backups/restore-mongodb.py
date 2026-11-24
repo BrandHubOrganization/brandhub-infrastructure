@@ -5,7 +5,7 @@ from the newest brandhub_mongodb_full_*.ejson in this directory.
 
 Usage:
   Set MONGODB_URI in the environment, then run:
-  python restore_mongodb.py [DATABASE_NAME]
+  python restore-mongodb.py [DATABASE_NAME]
 """
 import glob
 import os

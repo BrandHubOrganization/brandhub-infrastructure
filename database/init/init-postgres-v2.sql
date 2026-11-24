@@ -1,24 +1,26 @@
 -- ============================================================
 -- BrandHub PostgreSQL Init Script — V2
 -- Purpose: Agency -> Workspace -> Media Package -> Media Campaign -> Task model.
--- Replaces init-postgres.sql (V1). See docs/database/migration/migration-plan-v1-to-v2.md.
+-- Replaces V1 init-postgres.sql. See ../migrations/README.md for ordered upgrades.
 --
--- Fresh database bootstrap; existing databases must use docs/database/migrations/.
+-- Fresh database bootstrap; existing databases must use database/migrations/postgres/ (../migrations/README.md).
 -- CREATE IF NOT EXISTS does not upgrade existing table definitions.
--- Synchronized with PostgreSQL migrations through 2026-10-14.
--- Scope: PostgreSQL-owned entities only. MongoDB collections are not mirrored here.
+-- Synchronized with PostgreSQL migrations through 2026-11-24.
+-- Scope: PostgreSQL-owned entities only (97 unique tables; 6 active Studio & Agency plans:
+--   STUDIO_FREE / STUDIO_PLUS / STUDIO_PRO + BASIC / PLUS / ENTERPRISE; SePay VietQR default).
+-- MongoDB collections are initialized separately in init-mongo.js.
 --
--- Decisions confirmed 2026-09-16 (docs/database/migration/migration-plan-v1-to-v2.md §0):
---   - client_profiles / media_packages / tasks+task_approvals: per DBML as-is.
---   - workspace_member_permissions: DROPPED, not recreated (YAGNI — 4 fixed roles suffice).
---   - No data migration from V1 — dev/staging drop & recreate.
+-- Baseline design decisions (2026-09-16 .. 2026-11-24):
+--   - client_profiles / media_packages / tasks+task_approvals: per schema baseline.
+--   - workspace_member_permissions: DROPPED, not recreated (YAGNI — canonical fixed roles suffice).
+--   - No data migration from V1 — fresh bootstrap only.
 --   - workspace_member_role: OWNER removed (Agency-level only), now MANAGER/CREATOR/CLIENT.
---     Agency Owner participating in a workspace holds MANAGER or CREATOR like anyone else.
---   - agency_members: added role column (OWNER/MEMBER) — explicit instead of deriving from agencies.owner_id.
+--     An Owner participating in a workspace holds MANAGER or CREATOR like any other internal member.
+--   - agency_members: explicit role column (OWNER/MEMBER/CLIENT) instead of deriving solely from agencies.owner_id.
 --   - workspace_members: at most 1 active MANAGER per workspace (no co-manage), enforced via partial unique index.
---   - workspaces: added created_by for audit consistency with other tables.
+--   - workspaces: created_by tracked for audit consistency across tables.
 --
--- PostgreSQL tables (52):
+-- PostgreSQL tables (97 unique tables across 10 domains):
 --   Identity:     users, user_oauth_providers, user_refresh_tokens, user_system_roles,
 --                 account_activation_tokens, subscription_plan_changes
 --   Organization: agencies, agency_members, agency_invitations, workspaces,
@@ -27,13 +29,31 @@
 --   Commerce:     media_packages, workspace_media_packages, package_negotiation_events,
 --                 media_campaigns, campaign_versions, campaign_review_events, campaign_deployments
 --   Content & Outbox: tasks, task_content_operations, task_content_snapshots,
---                 content_request_completion_jobs
+--                 content_request_completion_jobs, engagement_reminders
 --   Collaborator: third_party_collaborators, campaign_collaborators
---   Mail Sending: mail_attachments, mail_batches, mail_deliveries, mail_send_quota, mail_suppressions
+--   Storage/Vault: system_storage_pools, agency_storage_usage, agency_storage_reservations,
+--                 storage_usage_entries, material_quota_releases, material_audit_receipts,
+--                 storage_addon_plans, storage_addon_subscriptions, client_vault_storage_usage,
+--                 client_vault_quota_releases, repository_vault_migration_receipts,
+--                 agency_drive_connections, workspace_drive_folders, repository_drive_states,
+--                 repository_drive_generations, repository_drive_objects, repository_drive_operations
+--   AI & Video:   ai_caption_generations, ai_video_jobs, ai_credit_operation_prices,
+--                 ai_credit_reservations, product_video_productions, product_video_plans,
+--                 product_video_quotes, product_video_attempts, product_video_requests
+--   Mail Sending: mail_attachments, mail_batches, mail_deliveries, mail_send_quota, mail_suppressions,
+--                 newsletter_usage
 --   Admin & Mod:  user_strikes, sanction_reviews, admin_account_operations, admin_email_outbox,
---                 admin_notifications, admin_report_exports, content_moderation_reviews, user_notifications
---   Billing:      subscription_plans, user_subscriptions, transactions,
---                 audit_logs
+--                 admin_notifications, admin_report_exports, content_moderation_reviews,
+--                 user_notifications, audit_logs, brandhub_schema_migrations
+--   Billing:      subscription_plans, user_subscriptions, transactions, billing_plan_versions,
+--                 billing_plan_cycle_prices, billing_plan_change_log, agency_subscriptions,
+--                 agency_subscription_periods, billing_orders, billing_payments,
+--                 billing_payment_attempts, billing_payment_events, billing_order_fulfillments,
+--                 billing_outbox_events, billing_audit_events, agency_credit_wallets,
+--                 credit_grants, credit_usage_periods, credit_operations,
+--                 credit_reservation_allocations, credit_entries, workspace_credit_limits,
+--                 workspace_credit_usage, subscription_observation_jobs,
+--                 subscription_operational_issues, subscription_provider_checks
 -- ============================================================
 
 BEGIN;
@@ -795,32 +815,10 @@ CREATE TABLE IF NOT EXISTS campaign_collaborators (
     UNIQUE (media_campaign_id, collaborator_id)
 );
 
-CREATE OR REPLACE FUNCTION mark_collaborator_usage_on_link()
-RETURNS TRIGGER LANGUAGE plpgsql AS $$
-DECLARE active BOOLEAN;
-BEGIN
-    SELECT is_active INTO active
-      FROM third_party_collaborators
-     WHERE id = NEW.collaborator_id
-     FOR UPDATE;
-    IF active IS NULL THEN
-        RAISE EXCEPTION USING ERRCODE = '23503', MESSAGE = 'collaborator does not exist';
-    END IF;
-    IF NOT active THEN
-        RAISE EXCEPTION USING ERRCODE = '23514', MESSAGE = 'collaborator is inactive';
-    END IF;
-    UPDATE third_party_collaborators
-       SET first_used_at = COALESCE(first_used_at, NOW()),
-           version = version + 1
-     WHERE id = NEW.collaborator_id;
-    RETURN NEW;
-END;
-$$;
-
+-- Note: partner usage and active-partner validation on campaign_collaborators are enforced by
+-- guard_campaign_partner_usage() / trg_campaign_partner_usage below (single trigger; avoids double version bump).
 DROP TRIGGER IF EXISTS trg_campaign_collaborator_mark_used ON campaign_collaborators;
-CREATE TRIGGER trg_campaign_collaborator_mark_used
-BEFORE INSERT ON campaign_collaborators
-FOR EACH ROW EXECUTE FUNCTION mark_collaborator_usage_on_link();
+DROP FUNCTION IF EXISTS mark_collaborator_usage_on_link();
 
 -- ============================================================
 -- Workspace hashtags group
@@ -959,7 +957,7 @@ FOR EACH ROW EXECUTE FUNCTION prevent_audit_log_mutation();
 
 -- ============================================================
 -- Mail sending (FR 3.6.28-3.6.32)
--- Mirrors docs/database/migrations/2026-10-12-create-mail-sending-tables.sql for fresh databases.
+-- Mirrors database/migrations/postgres/2026-10-12-create-mail-sending-tables.sql for fresh databases.
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS mail_attachments (
@@ -1078,7 +1076,7 @@ DROP TABLE IF EXISTS public.seed_runs;
 COMMIT;
 
 -- =====================================================================
--- Admin Management (FR 3.10.x) — folded in from docs/database/migrations after
+-- Admin Management (FR 3.10.x) — folded in from database/migrations/postgres after
 -- verification (test DB twice, dev DB twice). Keep in sync with those files.
 -- =====================================================================
 
@@ -1236,6 +1234,8 @@ CREATE TABLE IF NOT EXISTS content_moderation_reviews (
     content_hash CHAR(64) NOT NULL,
     workspace_id UUID,
     author_id UUID NOT NULL REFERENCES users(id),
+    -- Note: 'COPYRIGHT' is retained strictly for legacy DTO/test compatibility (ModerationFlagRequest.Source);
+    -- automated plagiarism/copyright scanning is de-scoped (active workflows emit FLAGGED_AUTHOR and COMPLIANCE only).
     source VARCHAR(20) NOT NULL CHECK (source IN ('FLAGGED_AUTHOR','COMPLIANCE','COPYRIGHT')),
     reason VARCHAR(2000) NOT NULL,
     status VARCHAR(10) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING','APPROVED','BLOCKED')),

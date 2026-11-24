@@ -11,9 +11,9 @@
     4. Nạp toàn bộ collections, $jsonSchema validators, indexes và documents từ file .ejson vào database đích bằng mongosh trong container (không cần cài Python/pymongo trên máy).
 
 .EXAMPLE
-    .\restore_mongodb.ps1
-    .\restore_mongodb.ps1 -Force
-    .\restore_mongodb.ps1 -BackupFile "brandhub_mongodb_full_20261123.ejson" -Force
+    .\restore-mongodb.ps1
+    .\restore-mongodb.ps1 -Force
+    .\restore-mongodb.ps1 -BackupFile "brandhub_mongodb_full_20261123.ejson" -Force
 #>
 
 param(
@@ -96,7 +96,7 @@ $RunningContainer = (docker ps --filter "name=^/${ContainerName}$" --format "{{.
 if ($RunningContainer.Trim() -ne $ContainerName) {
     Write-Host "[1/4] Container '$ContainerName' chưa chạy. Đang thêm/khởi động MongoDB vào stack 'brandhub'..." -ForegroundColor Yellow
 
-    $InfraRoot = (Resolve-Path (Join-Path $ScriptDir "..\..\..")).Path
+    $InfraRoot = (Resolve-Path (Join-Path $ScriptDir "..\..")).Path
     $ComposeDir = Join-Path $InfraRoot "docker\compose"
     $ComposeFile = Join-Path $ComposeDir "dev\compose.yaml"
     $EnvFile = Join-Path $ComposeDir ".env"
@@ -125,7 +125,7 @@ if ($RunningContainer.Trim() -ne $ContainerName) {
                 Assert-LastExitCode "docker network create brandhub-network"
             }
 
-            $InitMongoPath = Join-Path $InfraRoot "docs\database\init-mongo.js"
+            $InitMongoPath = Join-Path $InfraRoot "database\init\init-mongo.js"
             $RunArgs = @(
                 "run", "-d",
                 "--name", $ContainerName,

@@ -5,16 +5,13 @@ setlocal
 REM ============================================================================
 REM Add/start brandhub-mongodb container in brandhub and restore .ejson backup
 REM Usage:
-REM   restore_mongodb.bat
-REM   restore_mongodb.bat -BackupFile "brandhub_mongodb_full_20261123.ejson"
-REM   restore_mongodb.bat -DbName "brandhub"
+REM   restore-mongodb.bat
+REM   restore-mongodb.bat -Force
+REM   restore-mongodb.bat -BackupFile "brandhub_mongodb_full_20261123.ejson" -Force
+REM   restore-mongodb.bat -DbName "brandhub"
 REM ============================================================================
 
-set "EXTRA_ARGS="
-echo.%* | findstr /I /C:"-Force" >nul
-if errorlevel 1 set "EXTRA_ARGS=-Force"
-
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0restore_mongodb.ps1" %EXTRA_ARGS% %*
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0restore-mongodb.ps1" %*
 set EXIT_CODE=%ERRORLEVEL%
 
 if not "%EXIT_CODE%"=="0" (

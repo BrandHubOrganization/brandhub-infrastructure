@@ -11,9 +11,9 @@
     5. Kiểm tra số lượng bảng và phiên bản migration sau khi khôi phục.
 
 .EXAMPLE
-    .\restore_postgres.ps1
-    .\restore_postgres.ps1 -Force
-    .\restore_postgres.ps1 -BackupFile "brandhub_postgres_full_20261123.dump"
+    .\restore-postgres.ps1
+    .\restore-postgres.ps1 -Force
+    .\restore-postgres.ps1 -BackupFile "brandhub_postgres_full_20261123.dump"
 #>
 
 param(
