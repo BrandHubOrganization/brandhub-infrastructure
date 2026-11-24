@@ -1,6 +1,6 @@
 """Build a ComfyUI canvas flow (Wan 2.2 Fun VACE 14B) from a director script.
 
-  python build_vace_flow.py wan_vace_bundle/director/examples/sneaker_pov_20s.json wan_vace_bundle/WanVACE_Sneaker_20s_GUI.json
+  python build_vace_flow.py flows/unbox/unbox_sneaker.json flows/unbox/WanVACE_unbox_sneaker_20s_GUI.json
 
 Shape (the director only fills text):
   storyboard  one 2x2 Qwen grid per entry of `storyboard_prompts` (or one `storyboard_prompt`) -> panels K0, K1, ...
@@ -21,7 +21,7 @@ import uuid
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-BUNDLE = HERE / 'wan_vace_bundle'
+BUNDLE = HERE / 'wan-vace-bundle'
 LENGTH, OVERLAP, FPS = 85, 8, 16
 STEPS, SPLIT = 8, 4       # lightx2v: 4 high-noise + 4 low-noise steps at cfg 1
 NEG = ('色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，'

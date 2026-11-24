@@ -1,4 +1,4 @@
-# On the gateway EC2, next to backend.compose.json: Nginx /edit-video/ falls back to this when Edit_Video sleeps.
+# On the gateway EC2, next to gateway.compose.json: Nginx /edit-video/ falls back to this when Edit_Video sleeps.
 name: brandhub-gateway-wake
 services:
   waker:
