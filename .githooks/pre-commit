@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+if command -v python3 >/dev/null 2>&1 && python3 -c "import sys" >/dev/null 2>&1; then
+  PY="python3"
+elif command -v python >/dev/null 2>&1 && python -c "import sys" >/dev/null 2>&1; then
+  PY="python"
+else
+  echo "[pre-commit] ERROR: Python 3 is required. See SECURITY.md." >&2
+  exit 1
+fi
+
+"$PY" scripts/security/check_sensitive_paths.py --staged
+
+GITLEAKS="$(git config --get brandhub.gitleaksPath || true)"
+if [ -z "$GITLEAKS" ]; then
+  GITLEAKS="gitleaks"
+fi
+if ! "$GITLEAKS" version >/dev/null 2>&1; then
+  echo "[pre-commit] ERROR: gitleaks not found ($GITLEAKS). Install Gitleaks 8.30.1 or set 'git config --local brandhub.gitleaksPath /path/to/gitleaks'. See SECURITY.md." >&2
+  exit 1
+fi
+
+"$GITLEAKS" protect --staged --config .gitleaks.toml --redact=100 --no-banner

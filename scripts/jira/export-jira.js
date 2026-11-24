@@ -1,28 +1,27 @@
 #!/usr/bin/env node
 /**
- * Export status/assignee thật từ Jira ra jira_status.json cho dashboard đọc.
- * Không qua MCP (hay treo) — gọi thẳng Jira REST API v3.
+ * Export status/assignee thật từ Jira ra docs/plan/jira-status.json cho docs-site dashboard đọc.
+ * Gọi thẳng Jira REST API v3.
  *
  * Setup 1 lần:
  *   1. Tạo API token: https://id.atlassian.com/manage-profile/security/api-tokens
- *   2. Copy .env.example -> .env ở gốc repo (brandhub-infrastructure/.env), điền JIRA_EMAIL + JIRA_API_TOKEN
+ *   2. Copy .env.example -> .env ở gốc repo (brandhub-infrastructure/.env),
+ *      điền JIRA_SITE, JIRA_EMAIL, JIRA_API_TOKEN
  *
- * Chạy (từ gốc repo hoặc từ scripts/):
- *   node scripts/export-jira.js
+ * Chạy (từ bất kỳ thư mục nào):
+ *   node scripts/jira/export-jira.js
  *
- * Kết quả: ghi docs/plan/jira_status.json
+ * Kết quả: ghi docs/plan/jira-status.json
  */
 
 const fs = require('fs');
 const path = require('path');
 
-// ── Config ──────────────────────────────────────────────────────────
-const JIRA_SITE = process.env.JIRA_SITE || 'letritrung2605.atlassian.net';
+const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const PROJECT_KEY = 'DA';
-const OUT_PATH = path.join(__dirname, '..', 'docs', 'plan', 'jira_status.json');
+const OUT_PATH = path.join(REPO_ROOT, 'docs', 'plan', 'jira-status.json');
 
-// Map tên hiển thị Jira (đủ dạng lệch: "27.Nguyễn Chơn Phước", "Nguyen Thanh Loc (K18 DN)"...)
-// về đúng tên ngắn dùng trong Master Plan, để merge theo assignee không bị lệch.
+// Map tên hiển thị Jira về đúng tên ngắn dùng trong Master Plan để merge theo assignee chính xác.
 const NAME_MAP = [
   [/trung/i, 'Trung'],
   [/l[oộ]c/i, 'Lộc'],
@@ -36,22 +35,28 @@ function normalizeAssigneeName(displayName) {
   for (const [re, name] of NAME_MAP) {
     if (re.test(displayName)) return name;
   }
-  return displayName; // không khớp ai trong team -> giữ nguyên để dễ debug
+  return displayName;
 }
 
-// Load .env nếu có (không phụ thuộc thư viện ngoài) — .env nằm ở gốc repo
+// Load .env ở gốc repo (không phụ thuộc thư viện ngoài)
 function loadEnv() {
-  const envPath = path.join(__dirname, '..', '.env');
+  const envPath = path.join(REPO_ROOT, '.env');
   if (!fs.existsSync(envPath)) return;
-  const lines = fs.readFileSync(envPath, 'utf8').split('\n');
+  const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
   for (const line of lines) {
     const m = line.match(/^([A-Z_]+)=(.*)$/);
     if (m && !process.env[m[1]]) process.env[m[1]] = m[2].trim();
   }
 }
 
+function resolveJiraBaseUrl(rawSite) {
+  const cleaned = (rawSite || 'https://letritrung2605.atlassian.net').trim().replace(/\/+$/, '');
+  return /^https?:\/\//i.test(cleaned) ? cleaned : `https://${cleaned}`;
+}
+
 async function main() {
   loadEnv();
+  const baseUrl = resolveJiraBaseUrl(process.env.JIRA_SITE);
   const email = process.env.JIRA_EMAIL;
   const token = process.env.JIRA_API_TOKEN;
 
@@ -66,7 +71,7 @@ async function main() {
   let nextPageToken = null;
   let page = 1;
 
-  console.log(`Đang export project ${PROJECT_KEY} từ ${JIRA_SITE}...`);
+  console.log(`Đang export project ${PROJECT_KEY} từ ${baseUrl}...`);
 
   do {
     const body = {
@@ -76,7 +81,7 @@ async function main() {
       ...(nextPageToken ? { nextPageToken } : {}),
     };
 
-    const res = await fetch(`https://${JIRA_SITE}/rest/api/3/search/jql`, {
+    const res = await fetch(`${baseUrl}/rest/api/3/search/jql`, {
       method: 'POST',
       headers: {
         Authorization: `Basic ${auth}`,
@@ -94,7 +99,7 @@ async function main() {
     const data = await res.json();
     for (const issue of data.issues || []) {
       const idMatch = issue.fields.summary.match(/\[(DA-[A-Za-z0-9-]+)\]/i);
-      if (!idMatch) continue; // bỏ task không có bracket prefix (task rác, task cũ không format)
+      if (!idMatch) continue;
       tasks.push({
         taskId: idMatch[1].toUpperCase(),
         jiraKey: issue.key,

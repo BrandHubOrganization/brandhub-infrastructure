@@ -5,7 +5,7 @@ on:
     branches: [main, develop]
     paths:
       - 'prod/hosts/core/db-backup/**'
-      - '.github/workflows/db-backup.yml'
+      - '.github/workflows/prod-db-backup-image.yml'
   workflow_dispatch:
 
 permissions:

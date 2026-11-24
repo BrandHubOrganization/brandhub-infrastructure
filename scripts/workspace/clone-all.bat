@@ -2,6 +2,7 @@
 setlocal
 
 rem Clone or pull the seven BrandHub repositories beside brandhub-infrastructure.
+rem Located at brandhub-infrastructure\scripts\workspace\clone-all.bat -> ..\..\.. is workspace parent.
 set "ORG_NAME=BrandHubOrganization"
 set "BASE_URL=https://github.com/%ORG_NAME%"
 set "FAILED=0"
@@ -12,13 +13,13 @@ if errorlevel 1 (
     exit /b 1
 )
 
-pushd "%~dp0..\.."
+pushd "%~dp0..\..\.."
 if errorlevel 1 (
     echo [ERROR] Cannot access the workspace directory.
     exit /b 1
 )
 
-echo Synchronizing repositories from %ORG_NAME%...
+echo Synchronizing repositories from %ORG_NAME% in %CD%...
 for %%R in (
     brandhub-ai-service
     brandhub-api-gateway

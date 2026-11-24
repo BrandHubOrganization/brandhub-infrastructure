@@ -1,4 +1,4 @@
-name: Deploy Frontend with Docs
+name: Deploy Docs Site
 
 on:
   push:
@@ -7,7 +7,9 @@ on:
       - develop
     paths:
       - 'docs/**'
-      - 'frontend/**'
+      - 'docs-site/**'
+      - '.github/workflows/docs-site-deploy.yml'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -24,16 +26,19 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: docs-site/package-lock.json
 
-      - name: Install and Build Frontend
+      - name: Install and Build Docs Site
+        env:
+          VITEPRESS_BASE: ${{ vars.VITEPRESS_BASE || format('/{0}/', github.event.repository.name) }}
         run: |
-          cd frontend
-          npm install
+          cd docs-site
+          npm ci
           npm run build
-          
+          touch .vitepress/dist/.nojekyll
+
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: frontend/.vitepress/dist
+          folder: docs-site/.vitepress/dist
           branch: gh-pages
