@@ -1,0 +1,65 @@
+# PostgreSQL 17 and MongoDB 7.0. Init scripts run only when each data volume is empty.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: brandhub-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_HOST_PORT:?POSTGRES_HOST_PORT is required}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - type: bind
+        source: ../../../database/init/init-postgres-v2.sql
+        target: /docker-entrypoint-initdb.d/init-postgres-v2.sql
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - brandhub-network
+
+  mongodb:
+    image: mongo:7.0
+    container_name: brandhub-mongodb
+    restart: unless-stopped
+    ports:
+      - "${MONGODB_HOST_PORT:-27017}:27017"
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE:-brandhub}
+    volumes:
+      - mongodb_data:/data/db
+      - type: bind
+        source: ../../../database/init/init-mongo.js
+        target: /docker-entrypoint-initdb.d/init-mongo.js
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - brandhub-network
+
+volumes:
+  postgres_data:
+    name: brandhub-postgres-v2-data
+  mongodb_data:
+    name: brandhub-mongodb-data
+
+networks:
+  brandhub-network:
+    name: brandhub-network
+    driver: bridge

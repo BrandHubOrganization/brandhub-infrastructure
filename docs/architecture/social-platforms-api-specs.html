@@ -39,7 +39,6 @@
   .tk {color: #000000;}
   .th {color: #000000;}
   .ig {background: -webkit-linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;}
-  .yt {color: #FF0000;}
 
   /* Additional Sections */
   .section-title { font-size: 20px; color: #111; margin: 40px 0 20px; border-bottom: 2px solid #EBEBEB; padding-bottom: 10px; }
@@ -183,40 +182,6 @@
     </div>
   </div>
 
-  <!-- YOUTUBE -->
-  <div class="card">
-    <div class="card-header">
-      <i class="ti ti-brand-youtube yt"></i>
-      <h2>YouTube Data API</h2>
-    </div>
-    <div class="card-body">
-      <div class="info-row"><div class="info-label">Version Pinned:</div><div class="info-value">v3</div></div>
-      <div class="info-row"><div class="info-label">Authentication:</div><div class="info-text">OAuth 2.0 User Access Token</div></div>
-      <div class="info-row"><div class="info-label">Endpoint:</div><div class="info-value">/upload/youtube/v3/videos</div></div>
-      <div class="info-row"><div class="info-label">Rate Limits:</div><div class="info-text">10,000 units/day (~6 uploads)</div></div>
-      
-      <div class="gotchas">
-        <strong>Gotchas:</strong> Uploading costs 1,600 quota units! Shorts use the same endpoint (vertical, < 60s).
-      </div>
-      
-      <div class="code-section">
-        <div class="code-title">Init Resumable Upload</div>
-        <div class="code-box">
-<span class="comment">// POST .../upload/youtube/v3/videos?uploadType=resumable</span>
-{
-  <span class="prop">"snippet"</span>: {
-    <span class="prop">"title"</span>: <span class="string">"BrandHub Video"</span>,
-    <span class="prop">"description"</span>: <span class="string">"Amazing! #Shorts"</span>,
-    <span class="prop">"tags"</span>: [<span class="string">"brandhub"</span>]
-  },
-  <span class="prop">"status"</span>: {
-    <span class="prop">"privacyStatus"</span>: <span class="string">"public"</span>
-  }
-}</div>
-      </div>
-    </div>
-  </div>
-
 </div>
 
 <h2 class="section-title">1. Rate Limit Thực Tế Từng Platform (Thứ Dev Phải Handled)</h2>
@@ -265,7 +230,7 @@
   <h3><i class="ti ti-brand-instagram ig"></i> 1.4 Instagram Graph API (v19.0)</h3>
   <p>Dùng chung hạ tầng với Meta, nên cơ chế Rate Limit cũng sử dụng thuật toán Token Bucket dựa trên CPU Time.</p>
   <ul>
-    <li><strong>Giới hạn chung:</strong> 200 requests / user / giờ đối với tài khoản Professional (Creator/Business).</li>
+    <li><strong>Giới hạn chung:</strong> 200 requests / user / giờ đối với tài khoản Professional (Creator/Business) và tối đa 50 bài xuất bản qua API / 24h.</li>
   </ul>
   <p><strong>Thực tế Dev xử lý:</strong></p>
   <ul>
@@ -274,25 +239,10 @@
   </ul>
 </div>
 
-<div class="content-block">
-  <h3><i class="ti ti-brand-youtube yt"></i> 1.5 YouTube Data API (v3)</h3>
-  <p>YouTube không tính theo số lượng request mà tính theo <strong>Quota Units</strong>.</p>
-  <ul>
-    <li>Mỗi Project trên Google Cloud (GCP) mặc định được cấp <strong>10,000 quota units / ngày</strong>.</li>
-    <li>Đăng 1 video (tính cả quá trình init) tốn <strong>1,600 units</strong>.</li>
-    <li>Nghĩa là tối đa 1 project chỉ đăng được khoảng <strong>6 videos / ngày</strong>!</li>
-  </ul>
-  <p><strong>Thực tế Dev xử lý:</strong></p>
-  <ul>
-    <li>Khi hết Quota, YouTube API sẽ trả về HTTP 403 với lỗi <code>quotaExceeded</code>.</li>
-    <li>Hạn mức sẽ được reset lại vào lúc <strong>00:00 Pacific Time (PT)</strong> hàng ngày.</li>
-  </ul>
-</div>
-
 <h2 class="section-title">2. Dev Xử Lý Trong Code &amp; Architecture Như Thế Nào?</h2>
 
 <div class="content-block">
-  <p>Để <code>publisher-service</code> chạy ổn định, không bao giờ gọi trực tiếp API đăng bài từ HTTP Client thông thường mà phải qua Queue &amp; Rate Limiter Pattern.</p>
+  <p>Để <code>publisher-service</code> chạy ổn định trên đúng 4 nền tảng chính thức (<strong>Facebook, Instagram, TikTok, Threads</strong>), không bao giờ gọi trực tiếp API đăng bài từ HTTP Client thông thường mà phải qua Queue &amp; Rate Limiter Pattern.</p>
   <div class="ascii-art">
 [API / Client] ──> [Publisher Queue (Redis/RabbitMQ)] 
                          │
@@ -302,7 +252,7 @@
                          ├── (Check Token Bucket / Leaky Bucket)
                          ├── (Check Header Usage)
                          ▼
-           [External Platform APIs (FB/TikTok/Threads)]
+        [External Platform APIs (FB/IG/TikTok/Threads)]
   </div>
 
   <h4>Cách 1: Sử dụng Token Bucket Algorithm (Key-Value Redis)</h4>
@@ -310,7 +260,7 @@
   <ul>
     <li><strong>TikTok:</strong> Set Redis Rate Limiter cho API init post = 5 requests / 60s per user_id.</li>
     <li><strong>Threads:</strong> Counter Redis lưu số post trong ngày (<code>threads:post_count:{user_id}:{date}</code>) &le; 250.</li>
-    <li><strong>YouTube:</strong> Redis lưu tổng quota đã dùng trong ngày cho từng project (<code>youtube:quota_usage:{project_id}:{date}</code>). Trước khi đẩy job qua Queue, nếu cộng thêm 1600 mà &gt; 10000 thì block sớm (Early Reject).</li>
+    <li><strong>Instagram:</strong> Counter Redis lưu số bài publish qua API trong 24h (<code>ig:post_count:{account_id}:{date}</code>) &le; 50 để chặn sớm trước khi chạm trần Meta.</li>
   </ul>
 
   <h4>Cách 2: Handle Response Header &amp; Exponential Backoff (Bắt buộc)</h4>
@@ -319,7 +269,7 @@
   <ul>
     <li><strong>Facebook / Instagram:</strong> Nếu nhận lỗi <code>code: 4</code> hoặc <code>code: 17</code> (User/App level rate limit) &rarr; Delay Worker ít nhất 15 - 30 phút. Không retry ngay lập tức.</li>
     <li><strong>TikTok:</strong> Nếu dính HTTP 429 hoặc <code>code: ok_rate_limit</code> &rarr; Đọc header <code>Retry-After</code> (nếu có) hoặc hoãn lại 1 - 5 phút.</li>
-    <li><strong>YouTube:</strong> Nếu dính HTTP 403 <code>quotaExceeded</code> &rarr; Pause Worker/Job đối với project này cho đến 00:00 PT ngày hôm sau (không dùng exponential backoff vài phút vì không có tác dụng).</li>
+    <li><strong>Threads:</strong> Nếu vượt ngưỡng container creation hoặc chạm cờ chống spam &rarr; Backoff tối thiểu 5 - 15 phút trước khi đẩy lại.</li>
   </ul>
 
   <h4>Cách 3: Media Polling Status Management (Xử lý bất đồng bộ)</h4>

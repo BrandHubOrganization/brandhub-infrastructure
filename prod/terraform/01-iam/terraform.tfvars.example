@@ -1,0 +1,14 @@
+aws_region              = "ap-southeast-1"
+aws_account_id          = "134875421878"
+github_org              = "BrandHubOrganization"
+frontend_s3_bucket_name = "brandhub-web-prd-134875421878"
+
+ecr_repositories = [
+  "brandhub/ai-service",
+  "brandhub/api-gateway",
+  "brandhub/business-service",
+  "brandhub/crawl-service",
+  "brandhub/db-backup",
+  "brandhub/edit-video",
+  "brandhub/publisher-service",
+]

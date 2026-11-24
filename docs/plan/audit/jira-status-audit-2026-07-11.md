@@ -1,5 +1,7 @@
 # BrandHub — Jira Status Audit
 
+> [<< Knowledge Base Home](../../index.md) · [Project Plans](../README.md) · [Audit Logs](./README.md)
+
 > Nguồn: Jira project `DA` — https://letritrung2605.atlassian.net
 > Phạm vi: issuetype = Task (không tính Epic, Subtask, Bug)
 > Cập nhật lần 2 — số liệu đã đối soát lại toàn bộ 406 task (lần audit đầu bị lỗi đếm do cursor phân trang sai, dẫn đến tổng ảo 455 và unassigned ảo 221 — số đúng là 406 / 172)

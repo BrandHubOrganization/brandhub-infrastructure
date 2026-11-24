@@ -17,7 +17,7 @@ services:
     shm_size: 256mb
     environment:
       APP_PORT: "8084"
-      # Minimal layout: AI and the data stores run on the core EC2.
+      # AI runs on dedicated brandhub-ai EC2 (172.31.20.60); Redis and RabbitMQ run on core EC2 (172.31.24.149).
       AI_SERVICE_URL: http://172.31.20.60:8082
       CRAWLER_STATE_DIR: /app/data/crawler/control
       CRAWLER_OUTPUT_DIR: /app/data/crawler/output

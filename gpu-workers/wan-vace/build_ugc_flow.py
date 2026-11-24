@@ -1,6 +1,6 @@
 """Build a UGC talking-review flow (Wan 2.2 S2V 14B, lip-sync to a voice file) from a director script.
 
-  python build_ugc_flow.py flows/ugc/ugc_perfume.json flows/ugc/S2V_Ugc_Perfume_GUI.json
+  python build_ugc_flow.py flows/ugc/ugc_sunscreen.json flows/ugc/S2V_ugc_sunscreen_GUI.json
 
 Base: ComfyUI's official template video_wan2_2_14B_s2v.json (resources/s2v_template.json), lightning half only
 (4 steps, cfg 1). Changes: the slow 20-step copy below it is removed; Qwen makes the presenter photo (a creator
@@ -13,7 +13,7 @@ import json
 import sys
 from pathlib import Path
 
-RES = Path(__file__).resolve().parent / 'wan_vace_bundle/resources'
+RES = Path(__file__).resolve().parent / 'wan-vace-bundle/resources'
 CUT_Y = 1600          # template: lightning flow above this y, the 20-step duplicate below it
 
 

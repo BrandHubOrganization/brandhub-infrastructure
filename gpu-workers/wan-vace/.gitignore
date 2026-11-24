@@ -1,6 +1,6 @@
 __pycache__/
 .pytest_cache/
 *_GUI.json
-wan_vace_bundle.zip
-wan_vace_bundle/.api_key
-wan_vace_bundle/logs/
+wan-vace-bundle.zip
+wan-vace-bundle/.api_key
+wan-vace-bundle/logs/

@@ -1,1 +1,0 @@
-Verify empty prompt and each preset at AI API boundary, multipart worker transport, invalid preset rejection, and three image roles. Verify frontend build/lint/types. Live GPU output and browser light/dark checks require running environment; do not claim them without execution.

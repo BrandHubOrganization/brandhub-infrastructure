@@ -1,1 +1,0 @@
-Keep existing Gateway /api/v1/** business route and JsonNode forwarding. Add validated preset and optional prompt in AI schema, pass to worker without competing prompt synthesis. Update Web client and existing editor controls; add vi/en keys using existing theme tokens.

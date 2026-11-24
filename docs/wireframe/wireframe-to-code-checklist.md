@@ -1,4 +1,6 @@
 # CHECK-LIST: TỪ WIREFRAME ĐẾN CODE (REACT + SHADCN/UI)
+
+> [<< Knowledge Base Home](../index.md) · [Wireframes Index](./README.md) · [V2 Wireframe Blueprint](./wireframe-blueprint.md)
 **Dự án:** BrandHub MVP  
 **Mục tiêu:** Hướng dẫn quy trình chuẩn hóa từng bước để lập trình viên Frontend chuyển đổi từ bản vẽ wireframe Figma sang mã nguồn React thực tế sử dụng tối đa thư viện `shadcn/ui` có sẵn.
 
@@ -66,7 +68,7 @@
 
 ## GIAI ĐOẠN 5: PHÂN QUYỀN GIAO DIỆN (ROLE-BASED RENDERING) — V2
 
-> Nghiệp vụ role đổi hoàn toàn: role gán **theo từng Workspace** (không cố định toàn cục) — 1 User có thể là `OWNER` ở Workspace A và `CREATOR` ở Workspace B cùng lúc. Xem `docs/ba/01-organization-structure.md`, `docs/ba/10-roles-permissions-matrix.md`.
+> Nghiệp vụ role đổi hoàn toàn: role gán **theo từng Workspace** (không cố định toàn cục) — 1 User có thể là `OWNER` ở Workspace A và `CREATOR` ở Workspace B cùng lúc. Xem [../ba/01-organization-structure.md](../ba/01-organization-structure.md), [../ba/10-roles-permissions-matrix.md](../ba/10-roles-permissions-matrix.md).
 
 - [ ] **5.1. Triển khai Auth Context hoặc Hook phân quyền:**
   - [ ] Xây dựng hook `useWorkspaceRole()` (KHÔNG dùng `useUser().role` toàn cục) — trả về role của User **trong Workspace đang active** (`OWNER`/`MANAGER`/`CREATOR`/`CLIENT`), lấy theo `workspaceId` hiện tại, không cache dùng chung qua các Workspace khác nhau.
@@ -74,13 +76,13 @@
 - [ ] **5.2. Điều khiển Ẩn/Hiện phần tử (Visibility Matrix):**
   - [ ] **Trong Task Detail Page (thay Editor Page cũ):**
     - [ ] Nếu là `CREATOR` và Task đang ở `IN_PROGRESS`/`ASSIGNED`: hiện nút "Gửi duyệt". Ẩn thanh công cụ duyệt.
-    - [ ] Nếu role hiện tại khớp bước Approval Sequence đang active (`QC_REVIEW`/`MANAGER_REVIEW`/`CLIENT_REVIEW` — xem `docs/ba/12-state-machines.md`): hiện nút "Approve"/"Reject" ở Preview panel. Không hardcode theo tên role — check theo `task.currentStep` khớp với role.
-    - [ ] Khi Task bị reject và quay về `ASSIGNED`: hiển thị badge "giữ approval các bước trước" nếu có step trước đã pass (rule mới, xem `docs/ba/13_Confirmations_Round2_2026-09-15.md` mục 4) — không xoá lịch sử approve cũ trên UI.
+    - [ ] Nếu role hiện tại khớp bước Approval Sequence đang active (`QC_REVIEW`/`MANAGER_REVIEW`/`CLIENT_REVIEW` — xem [../ba/12-state-machines.md](../ba/12-state-machines.md)): hiện nút "Approve"/"Reject" ở Preview panel. Không hardcode theo tên role — check theo `task.currentStep` khớp với role.
+    - [ ] Khi Task bị reject và quay về `ASSIGNED`: hiển thị badge "giữ approval các bước trước" nếu có step trước đã pass (rule mới, xem [../ba/05-content-task-workflow.md](../ba/05-content-task-workflow.md)) — không xoá lịch sử approve cũ trên UI.
   - [ ] **Trong Workspace Dashboard Page:**
     - [ ] Ẩn nút "Xoá Workspace" nếu không phải `OWNER` (chỉ Owner xoá được, kể cả Manager cũng không).
     - [ ] Chặn truy cập (Redirect sang Client Portal) nếu role hiện tại là `CLIENT`.
   - [ ] **Trong Agency List/Dashboard Page (mới, không có ở bản V1):**
-    - [ ] Chỉ `OWNER` của Agency thấy nút "Tạo Workspace mới" (FR 3.4.12) và nút "Xoá Agency".
+    - [ ] Chỉ `OWNER` của Agency thấy nút "Tạo Workspace mới" (FR 3.4.14) và nút "Xoá Agency".
   - [ ] **Trong Package/Campaign Negotiation Page (mới):**
     - [ ] Nút "Approve" chỉ bật khi role hiện tại (`OWNER`/`MANAGER` hoặc `CLIENT`) chưa approve bản mới nhất; đã approve rồi thì disable kèm tooltip "Đang chờ bên còn lại approve".
     - [ ] `CREATOR` không có route vào trang này — chặn ở router level, không chỉ ẩn UI.
@@ -94,7 +96,7 @@
 - [ ] **6.2. Thiết lập Trạng thái Tải dữ liệu (Loading/Skeleton):**
   - [ ] Khi `aiLoading === true`, hiển thị component `Skeleton` đè lên vùng soạn thảo và Preview để ngăn tương tác.
 - [ ] **6.3. Tích hợp Toast Thông Báo:**
-  - [ ] Gọi hàm `toast()` từ hook `useToast` khi Creator bấm gửi bài duyệt thành công, khi AM phê duyệt bài đăng, hoặc khi tải tài liệu RAG lên thành công.
+  - [ ] Gọi hàm `toast()` từ hook `useToast` khi Creator bấm gửi bài duyệt thành công, khi Manager phê duyệt bài đăng, hoặc khi tải tài liệu RAG lên thành công.
 
 ---
 
@@ -109,3 +111,16 @@
   - [ ] Render timeline dọc chứa các Card bài đăng chi tiết trong ngày được chọn.
 - [ ] **7.3. Triển khai Sticky Bottom Bar cho Post Preview:**
   - [ ] Trên mobile, khi ở view Post Preview, cố định nút Phê duyệt và Từ chối bằng class `fixed/sticky bottom-0 left-0 right-0 border-t bg-background p-3 flex gap-2`.
+
+---
+
+## GIAI ĐOẠN 8: TIÊU CHUẨN PRODUCTION TRÊN `brandhub-web` (REACT 19 + TAILWIND V4 + REALTIME)
+
+- [ ] **8.1. Đa ngôn ngữ bắt buộc (`i18next` v26 — `vi.json` & `en.json`):**
+  - [ ] Tuyệt đối không hardcode chuỗi văn bản tiếng Việt hoặc tiếng Anh trực tiếp trong JSX; mọi nhãn giao diện, placeholder, thông báo lỗi (`MSG01`–`MSG60`) phải khai báo song song trong cả `vi.json` và `en.json`.
+- [ ] **8.2. Hệ màu Semantic Tokens (Light / Dark Mode trên Tailwind CSS `4.3`):**
+  - [ ] Sử dụng biến ngữ nghĩa (`bg-background`, `text-foreground`, `bg-card`, `border-border`, `text-muted-foreground`) từ `shadcn` `4.13` / `@astryxdesign/theme-neutral`, không gán cứng mã màu hex làm vỡ chế độ Dark Mode.
+- [ ] **8.3. Trình soạn thảo Cộng tác & Kênh Thời gian thực:**
+  - [ ] Trình soạn thảo nội dung theo từng `TaskSection` sử dụng **TipTap `3.35`** đồng bộ trạng thái cộng tác qua **Yjs `13.6`** và hỗ trợ chuyển đổi chữ kiểu Unicode cho 4 nền tảng (**Facebook, Instagram, TikTok, Threads**).
+  - [ ] Kênh chat Workspace, trạng thái đã đọc và hộp thư thông báo kết nối qua **`@stomp/stompjs` `7.3`**, tích hợp gọi thoại/video phòng chat qua **`agora-rtc-sdk-ng` `4.24.9`**.
+  - [ ] Lịch công việc & lịch xuất bản sử dụng **FullCalendar `6.1.21`** chuẩn hóa theo múi giờ IANA của Workspace; biểu đồ thống kê & doanh thu SePay sử dụng **Recharts `3.10.1`**; mã QR thanh toán **SePay (VietQR)** và **2FA TOTP** render bằng **`qrcode.react` `4.2.0`**.

@@ -1,5 +1,7 @@
 # 🏗️ Brand Knowledge Base RAG Pipeline Architecture & Design Specifications
 
+> Navigation: [← Knowledge Base Hub](../index.md) · [← Architecture Index](./README.md) · [AI Service Architecture](./ai-service-architecture.md) · [ChromaDB Collection Design](../database/ai-vector/chromadb-collection-design.md)
+
 ## 📋 Document Information
 - **Title**: Brand Knowledge Base RAG Pipeline Architecture & Specifications
 - **System**: BrandHub AI Infrastructure & Services (`brandhub-ai-service`)
@@ -43,9 +45,9 @@ flowchart TD
         direction TB
 
         %% VECTOR BRANCH
-        subgraph VECTOR ["⚡ Vector Pipeline (Primary & Backup Embedding)"]
-            V_EMBED["Embedding Engine<br/>• Primary: all-MiniLM-L6-v2 (384d)<br/>• Backup: text-embedding-3-small (1536d)"]
-            V_DB[("ChromaDB Vector Store<br/>Collection: client_{clientId}<br/>(Cosine HNSW Index)")]
+        subgraph VECTOR ["⚡ Vector Pipeline (384-Dim Aligned Embedding)"]
+            V_EMBED["Embedding Engine (384d)<br/>• Primary: intfloat/multilingual-e5-small (384d)<br/>• Local Fallback: all-MiniLM-L6-v2 (384d)"]
+            V_DB[("ChromaDB Vector Store<br/>Collection: client_{clientId} / brandhub_rag<br/>(Cosine HNSW Index, dim=384)")]
             V_EMBED --> V_DB
         end
 
@@ -292,16 +294,17 @@ def delete_document_chunks(client_id: str, document_id: str) -> int:
 
 ## 5. ⚡ Embedding Engine & Model Failover Strategy
 
-### 5.1 Embedding Model Alignment
-- **PRIMARY MODEL**: `all-MiniLM-L6-v2`
-  - **Dimensions**: 384-dimensional dense vectors
-  - **Execution**: Local CPU/GPU execution via HuggingFace `SentenceTransformers` (`sentence-transformers/all-MiniLM-L6-v2`)
+### 5.1 Embedding Model & Vector Dimension Alignment (`384d`)
+- **PRIMARY RUNTIME MODEL (`brandhub_rag` / bilingual VI–EN)**: `intfloat/multilingual-e5-small`
+  - **Dimensions**: `384`-dimensional dense vectors
+  - **Execution**: Local CPU/GPU execution via HuggingFace `SentenceTransformers`
   - **Distance Metric**: Cosine Distance (\(1 - \text{CosineSimilarity}\))
+- **SECONDARY / BENCHMARK 384D MODEL**: `all-MiniLM-L6-v2`
+  - **Dimensions**: `384`-dimensional dense vectors
   - **Latency**: \(\le 15\text{ms}\) per chunk
-- **BACKUP MODEL**: `text-embedding-3-small`
-  - **Dimensions**: 1536-dimensional dense vectors
-  - **Execution**: External API call to OpenAI Embeddings API
-  - **Usage**: Used as fallback in case of local GPU OOM or model initialization failures.
+- **IMPORTANT — ChromaDB Fixed-Dimension Constraint**:
+  - A single ChromaDB HNSW collection enforces a **fixed embedding dimensionality** set on first write (`384` dimensions). Mixing `384`-dimensional vectors (`intfloat/multilingual-e5-small` / `all-MiniLM-L6-v2`) with `1536`-dimensional vectors (`text-embedding-3-small`) inside the same ChromaDB collection raises a runtime dimension-mismatch exception and corrupts cosine similarity search.
+  - Therefore, runtime failover **must stay within compatible `384d` models** on the primary collection (or route any external `1536d` provider to a dedicated `*_1536d` shadow collection with full re-indexing).
 
 ### 5.2 Cosine Similarity Mathematical Formula
 Cosine similarity between query vector \(\mathbf{q}\) and chunk vector \(\mathbf{d}\):
@@ -310,19 +313,16 @@ Cosine similarity between query vector \(\mathbf{q}\) and chunk vector \(\mathbf
 \text{CosineSimilarity}(\mathbf{q}, \mathbf{d}) = \frac{\mathbf{q} \cdot \mathbf{d}}{\|\mathbf{q}\| \|\mathbf{d}\|} = \frac{\sum_{i=1}^{n} q_i d_i}{\sqrt{\sum_{i=1}^{n} q_i^2} \sqrt{\sum_{i=1}^{n} d_i^2}}
 \]
 
-### 5.3 Model Failover Circuit Breaker Logic
+### 5.3 Dimension-Safe Model Failover Logic
 ```python
 def generate_embeddings(texts: list[str]) -> list[list[float]]:
     try:
-        # Primary: Local all-MiniLM-L6-v2 execution
-        return primary_sentence_transformer.encode(texts).tolist()
+        # Primary 384d bilingual model (Vietnamese + English)
+        return primary_e5_small_model.encode(texts, normalize_embeddings=True).tolist()
     except Exception as e:
-        logger.warning(f"Primary embedding failed ({e}). Triggering backup text-embedding-3-small.")
-        # Backup: OpenAI Embeddings API fallback
-        return openai_client.embeddings.create(
-            input=texts,
-            model="text-embedding-3-small"
-        ).data[0].embedding
+        logger.warning(f"Primary 384d model failed ({e}). Falling back to local 384d MiniLM.")
+        # Dimension-compatible 384d fallback (never mix 1536d into a 384d ChromaDB collection)
+        return fallback_minilm_384d_model.encode(texts, normalize_embeddings=True).tolist()
 ```
 
 ---

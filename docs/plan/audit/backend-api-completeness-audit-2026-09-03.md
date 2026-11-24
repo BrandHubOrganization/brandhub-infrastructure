@@ -1,5 +1,7 @@
 # BrandHub — Backend API Completeness Audit
 
+> [<< Knowledge Base Home](../../index.md) · [Project Plans](../README.md) · [Audit Logs](./README.md)
+
 > Phạm vi: các epic BACKEND còn task chưa Done trên Jira (theo snapshot phiên trước — không re-pull được Jira lần này, không có token khả dụng trong phiên audit này; dựa trên đối chiếu docs + code thực tế, coi code là nguồn sự thật).
 > Nguồn đối chiếu: `docs/feature/*/spec.md` (business spec), `docs/api/endpoints/*.md` (API contract), source thực tế `brandhub-business-service`, `brandhub-ai-service`, `brandhub-publisher-service`.
 > Ngày: 2026-09-03

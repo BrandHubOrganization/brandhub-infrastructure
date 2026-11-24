@@ -2,4 +2,4 @@ name: brandhub
 
 include:
   - ../dev/compose.yaml
-  - ../shared/chroma.yml
+  - ../shared/chroma.yaml

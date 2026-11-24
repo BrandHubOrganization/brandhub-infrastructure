@@ -1,5 +1,7 @@
 # AI Iteration 5 — GraphRAG Trend Detection
 
+> [<< Knowledge Base Home](../../index.md) · [Project Plans](../README.md) · [AI Iterations](./README.md)
+
 **Timeline:** Parallel with Sprints 13–14 (Weeks 25–28) — after Iteration 4
 **Duration:** 2 weeks
 **Goal:** Upgrade the trend crawler (AI-05) from keyword-only into a full GraphRAG pipeline — multi-modal ingest (audio/video via STT), BM25 + semantic scoring, and a Graph DB layer that captures entity relationships, so trend suggestions carry real context (who, what brand, what event) instead of a bare keyword list.

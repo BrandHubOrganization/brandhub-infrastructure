@@ -1,62 +1,83 @@
-# Local run architecture
+# Local Run Architecture (`docker/compose/` + Host Services)
 
-Ghi lại cách stack local thực sự lắp ráp, khác README gốc (README mô tả 1 file `docker-compose.yml` gộp — file này không tồn tại).
+> Navigation: [← Knowledge Base Hub](../index.md) · [← Architecture Index](./README.md) · [Technical Overview](./technical-overview.md) · [Production Deployment](../operations/deployment-acct134.md)
 
-## Compose file split
+Describes how BrandHub's local Docker Compose v2 infrastructure stacks (`docker/`) integrate with host-run microservices, web SPA, and Expo mobile clients during daily development and full-stack integration testing.
 
-`docker/` có 3 file compose độc lập, ghép bằng `-f`:
+---
 
-- `docker-compose.infra.yml` — hạ tầng nền: postgres, redis, rabbitmq, chromadb, neo4j. Không mở port ra host (trừ khi có overlay dev).
-- `docker-compose.dev.yml` — overlay chỉ thêm `ports:` cho các service trên (để connect từ host) + thêm service `pgadmin`.
-- `docker-compose.apps.yml` — 5 service ứng dụng: api-gateway, business-service, ai-service, publisher-service, web-dashboard. Build từ Dockerfile của từng repo sibling (`../../brandhub-*`).
+## 1. Modular Docker Compose `include:` Graph
 
-`scripts/run-compose.bat`:
+Located in `brandhub-infrastructure/docker/`, the local stack uses Docker Compose v2.20+ `include:` composition across two primary launchers (`docker/run_dev.bat` and `docker/run_dev_ai.bat`, also driven by the `run-brandhub` desktop GUI) and **6 reusable fragments** in `docker/compose/shared/`:
+
+```text
+docker/
+├── run_dev.bat ─────────► compose/run-compose.bat dev    ──► compose/dev/compose.yaml
+│                                                               ├── shared/databases.yaml
+│                                                               └── shared/cache-broker.yaml
+├── run_dev_ai.bat ──────► compose/run-compose.bat dev-ai ──► compose/dev-ai/compose.yaml
+│                                                               ├── ../dev/compose.yaml
+│                                                               └── shared/chroma.yaml
+├── clear_brandhub.bat   (Label-scoped teardown of brandhub* containers, volumes, networks & images)
+└── compose/
+    ├── .env.example     (121-line tracked template copied to gitignored compose/.env on first run)
+    ├── seed-guide.md    (DataSeeder SEED_ENABLED=true & database/backups/restore-* workflow)
+    └── shared/
+        ├── databases.yaml      # postgres:17-alpine (:5432) + mongo:7.0 (:27017) + init bind-mounts
+        ├── cache-broker.yaml   # redis:7.2-alpine (:6379, 256mb AOF) + rabbitmq:3.12-management-alpine (:5672/:15672)
+        ├── chroma.yaml         # chromadb/chroma:1.5.9 (127.0.0.1:8000, pinned with brandhub-ai-service)
+        ├── neo4j.yaml          # Optional (-f): neo4j:5.26-community (:7474 HTTP / :7687 Bolt)
+        ├── pgadmin.yaml        # Optional (-f): dpage/pgadmin4:9 (127.0.0.1:5050)
+        └── apps.yaml           # Optional (-f): builds gateway, business, ai, publisher, crawl from sibling repos
 ```
-docker compose -f docker-compose.infra.yml -f docker-compose.dev.yml up -d          # mặc định
-docker compose -f docker-compose.infra.yml -f docker-compose.apps.yml -f docker-compose.dev.yml up -d   # mode "full"
-```
 
-Lý do tách: dev thường không cần build lại 5 app image (chạy `mvn spring-boot:run`/`npm run dev` trực tiếp cho hot-reload), chỉ cần infra. `full` dùng khi cần test nguyên cụm Docker (staging-like).
+### Why Infrastructure and App Containers Are Split
 
-## MongoDB không có trong compose
+During active coding, engineers run `.\run_dev.bat up` (or `.\run_dev_ai.bat up` when working on AI/RAG) so stateful data stores run reliably in Docker while Java (`./mvnw spring-boot:run`), Python (`uvicorn app.main:app --reload --port 8082`), and React (`npm run dev`) run directly on the host with sub-second hot reload. Layering `-f compose/shared/apps.yaml` builds all 5 backend containers onto `brandhub-network` for staging-parity verification.
 
-`business-service` có biến `MONGODB_URI`/`MONGODB_DATABASE` nhưng không có service `mongo` nào trong `docker-compose.infra.yml`. Kết luận: Mongo dùng cloud (Atlas), không self-host local. `docs/database/init-mongo.js` tồn tại nhưng chạy tay nhắm vào cluster Atlas, không phải qua `docker-entrypoint-initdb.d`.
+---
 
-## Dependency chain khi lên full stack
+## 2. Container Port, Volume & Bootstrap Matrix
 
-```
-postgres/redis/rabbitmq (healthy)
+All containers join the fixed bridge network **`brandhub-network`**:
+
+| Container | Pinned Image | Host Port(s) | Named Docker Volume | First-Boot / Runtime Behavior |
+| :--- | :--- | :--- | :--- | :--- |
+| `brandhub-postgres` | `postgres:17-alpine` | `5432` | `brandhub-postgres-v2-data` | Mounts `database/init/init-postgres-v2.sql` read-only (`97` tables + `6` Studio/Agency SePay plans) when volume is empty |
+| `brandhub-mongodb` | `mongo:7.0` | `27017` | `brandhub-mongodb-data` | Mounts `database/init/init-mongo.js` read-only (`52` collections + `$jsonSchema` validators + indexes) when volume is empty |
+| `brandhub-redis` | `redis:7.2-alpine` | `6379` | `brandhub-redis-data` | Runs `--requirepass`, `--appendonly yes`, `--maxmemory 256mb`, `--maxmemory-policy allkeys-lru` |
+| `brandhub-rabbitmq` | `rabbitmq:3.12-management-alpine` | `5672`, `15672` | `brandhub-rabbitmq-data` | AMQP broker (`:5672`) + Management UI (`http://localhost:15672`) |
+| `brandhub-chromadb` | `chromadb/chroma:1.5.9` | `127.0.0.1:8000` | `brandhub-chroma-data` | Telemetry disabled; `/api/v2/heartbeat` TCP healthcheck |
+| `brandhub-neo4j` *(opt)* | `neo4j:5.26-community` | `7474`, `7687` | `brandhub-neo4j-data` | Local Trend Knowledge Graph (`database/migrations/neo4j/` indexes) |
+| `brandhub-pgadmin` *(opt)* | `dpage/pgadmin4:9` | `127.0.0.1:5050` | `brandhub-pgadmin-data` | Import `database/init/pgadmin-servers.json` to connect to `postgres:5432` |
+
+> **Existing Volume Catch-Up**: Docker `/docker-entrypoint-initdb.d/*` scripts run **only** on empty volumes. On an older local volume, apply ordered scripts from `database/migrations/` (or `database/scripts/patch-update-running-db.sql`), or run `docker\clear_brandhub.bat` for a clean slate (see [Team Workflow Guide](../guides/team-workflow-guide.md)).
+
+---
+
+## 3. Host Application Port & Dependency Topology
+
+```text
+brandhub-web (Vite 8 :3000)  &  brandhub-mobile-app (Expo 58 Metro :8090)
         │
+        │ HTTP /api/v1/**  +  WebSocket STOMP /ws/chat & /ws/tasks
         ▼
-business-service ──▶ (Postgres, Redis, RabbitMQ, Mongo Atlas)
+brandhub-api-gateway (:8080) ──► Redis (:6379, JWT blacklist + rate limit)
         │
-        ▼
-api-gateway ──▶ business-service + ai-service (qua HTTP nội bộ, chờ service_started)
+        ├──► brandhub-business-service (:8081)
+        │       ├──► PostgreSQL (:5432) + MongoDB (:27017) + Redis (:6379)
+        │       ├──► RabbitMQ (:5672, publisher.job.exchange) ──► brandhub-publisher-service (:8083)
+        │       └──► brandhub-ai-service (:8082, X-Internal-Key)
+        │               ├──► ChromaDB (:8000) + Neo4j (:7687) + Redis (:6379)
+        │               └──► brandhub-crawl (:8084) / Vast.ai GPU Worker (:10200)
         │
-        ▼
-web-dashboard (nginx, chỉ depends_on api-gateway, không chờ healthy — chỉ chờ container start)
-
-ai-service ──▶ chromadb (chờ service_started, không healthy — Chroma healthcheck riêng nhưng không phải depends_on condition)
-publisher-service ──▶ rabbitmq (healthy)
+        └──► brandhub-publisher-service (:8083, GET /api/v1/social/{fb,ig,tiktok,threads}/{authorize,callback})
 ```
 
-api-gateway là entrypoint duy nhất từ ngoài (port 8080) cho mọi client (web, mobile). business-service/ai-service/publisher-service không expose ra ngoài mạng thật trong production, nhưng compose local vẫn mở port host để debug trực tiếp (8081/8082/8083).
+### Mobile Client Networking (`brandhub-mobile-app`)
 
-## Mobile app (Expo) — không nằm trong compose
-
-`brandhub-mobile-app` không có Dockerfile/service trong `docker-compose.apps.yml` — chạy ngoài Docker bằng Metro bundler (`npm run dev`, mặc định port `8090` theo `package.json` — đổi khỏi mặc định Expo `8081` vì trùng port host của `business-service`). Gọi API qua `EXPO_PUBLIC_API_BASE_URL` trỏ thẳng `api-gateway` (port 8080), cùng entrypoint với web-dashboard — không có route riêng cho mobile ở gateway.
-
-Thiết bị thật/emulator không resolve được `localhost` của máy host — `.env` phải dùng IP LAN máy chạy backend (`http://<local-ip>:8080`), hoặc `http://10.0.2.2:8080` khi test trên Android emulator (AVD).
-
-## Networking
-
-Toàn bộ chung 1 bridge network `brandhub-network` (external name cố định, không prefix theo project) — cho phép service gọi nhau qua tên container (`http://business-service:8081`) bất kể compose file nào tạo ra network trước.
-
-## Điểm khác biệt với README.md hiện tại
-
-`brandhub-infrastructure/README.md` mô tả sai:
-- Nói có 1 `docker-compose.yml` — thực tế 3 file (`infra`/`apps`/`dev`), xem trên.
-- Nói `mongo` là container local — thực tế Atlas cloud, không có service.
-- Bảng port/image trong README dùng version cũ (`postgres:16-alpine`, `rabbitmq:3.13`) — thực tế `docker-compose.infra.yml` dùng `postgres:17-alpine`, `rabbitmq:3.12-management-alpine`.
-
-README chưa được cập nhật lại theo scope hiện tại — ghi nhận ở đây để không bị lẫn khi debug setup.
+- **Metro Bundler Port (`8090`)**: Moved off Expo's default `8081` so it never collides with `brandhub-business-service` (`:8081`).
+- **Gateway Endpoint (`EXPO_PUBLIC_API_BASE_URL`)**:
+  - **Android Emulator (AVD)**: `http://10.0.2.2:8080`
+  - **iOS Simulator**: `http://localhost:8080`
+  - **Physical Device (Expo Go / Dev Client)**: `http://<host-lan-ipv4>:8080` (ensure Windows Firewall allows inbound TCP `8080` and `8090` on Private networks).

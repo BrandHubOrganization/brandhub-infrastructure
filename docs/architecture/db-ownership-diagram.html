@@ -233,25 +233,24 @@ em     { font-style: italic; color: #555; }
         <div class="db-row">
           <div class="db-card dbc-mongo">
             <i class="ti ti-database dc-icon"></i>
-            <div class="dc-name">MongoDB — 14 col.</div>
+            <div class="dc-name">MongoDB — 49 col.</div>
             <div class="dc-cols">
               tasks · task_approvals<br>
               posts · content_requests<br>
-              material_repository<br>
-              brand/hashtag_collections<br>
-              content_versions · livestream<br>
-              survey_forms/responses<br>
-              mail_templates<br>
+              materials · folders · versions<br>
+              chat_channels · chat_messages<br>
+              surveys · survey_responses<br>
+              mail_templates · video_projects<br>
               social_accounts · notifications
             </div>
           </div>
           <div class="db-card dbc-pg">
             <i class="ti ti-database dc-icon"></i>
-            <div class="dc-name">PostgreSQL — 23 tbl.</div>
+            <div class="dc-name">PostgreSQL — 97 tbl.</div>
             <div class="dc-cols">
-              Identity (4) · Organization (8)<br>
-              Commerce (3) · Collaborator (2)<br>
-              Billing (6)
+              Identity (5) · Organization (9)<br>
+              Commerce (8) · Collaborator (2)<br>
+              Billing &amp; Credits (27) · Storage/Mail/Admin (46)
             </div>
           </div>
         </div>
@@ -380,7 +379,7 @@ em     { font-style: italic; color: #555; }
         <div style="margin-top:8px;padding-top:7px;border-top:1px solid #E0E0E0">
           <div class="no-db-item">
             <i class="ti ti-arrow-back" style="color:#7986CB"></i>
-            HTTP callback → business-service after publish success/fail
+            RabbitMQ callback (business.publish_callback.queue) → business-service
           </div>
         </div>
       </div>
@@ -455,7 +454,7 @@ em     { font-style: italic; color: #555; }
       <i class="ti ti-server" style="font-size:13px"></i>
       business-service
     </div>
-    <strong>Sole owner</strong> của PostgreSQL (23 bảng), 14 MongoDB collection nghiệp vụ, và Redis.
+    <strong>Sole owner</strong> của PostgreSQL (97 bảng), 49 MongoDB collection nghiệp vụ, và namespace Redis xác thực.
     Mọi CRUD đều qua service này.
     ai-service và publisher-service <strong>không được</strong> kết nối trực tiếp vào bất kỳ DB nào trong nhóm này.
   </div>
@@ -465,9 +464,9 @@ em     { font-style: italic; color: #555; }
       <i class="ti ti-brain" style="font-size:13px"></i>
       ai-service
     </div>
-    <strong>Sole owner</strong> của ChromaDB, ghi vào S3, và 2 MongoDB collection (<code style="font-size:9.5px">knowledge_documents</code>, <code style="font-size:9.5px">ai_usage_logs</code>).
+    <strong>Sole owner</strong> của ChromaDB, Neo4j Trend Graph, ghi vào S3, và 2 MongoDB collection (<code style="font-size:9.5px">knowledge_documents</code>, <code style="font-size:9.5px">ai_usage_logs</code>).
     Không bao giờ kết nối PostgreSQL hay MongoDB business collections.
-    Lấy business context (Workspace/Agency/brand info) qua <em>REST API</em> từ business-service khi cần.
+    Nhận business context (Workspace/Agency/brand info) qua <em>Internal REST API</em> từ business-service.
   </div>
 
   <div class="rule-card rc-pub">
@@ -477,7 +476,7 @@ em     { font-style: italic; color: #555; }
     </div>
     Chỉ sở hữu 1 collection riêng (<code style="font-size:9.5px">publish_logs</code>).
     Toàn bộ data cần để publish (nội dung + token + config) được đóng gói trong RabbitMQ message bởi business-service trước khi enqueue.
-    Sau publish gửi callback HTTP.
+    Sau publish gửi phản hồi qua RabbitMQ (<code style="font-size:9.5px">business.publish_callback.queue</code>).
   </div>
 
 </div>
@@ -485,8 +484,8 @@ em     { font-style: italic; color: #555; }
 <!-- Schema Reference -->
 <div style="margin-top:20px;border:1px solid #E0E0E0;border-radius:12px;overflow:hidden">
   <div style="background:#F5F5F5;padding:10px 16px;border-bottom:1px solid #E0E0E0;display:flex;gap:20px;align-items:center">
-    <span style="font-size:11.5px;font-weight:700;color:#333">Schema Reference — V2</span>
-    <span style="font-size:10px;color:#999">Nguồn: docs/database/schema-v2/brandhub-dbml.dbml · init-postgres-v2.sql</span>
+    <span style="font-size:11.5px;font-weight:700;color:#333">Schema Reference — Current Baseline (97 PG + 52 Mongo)</span>
+    <span style="font-size:10px;color:#999">Nguồn: database/init/init-postgres-v2.sql · database/init/init-mongo.js</span>
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:#fff">
@@ -494,36 +493,36 @@ em     { font-style: italic; color: #555; }
     <!-- PostgreSQL -->
     <div style="padding:12px 16px;border-right:1px solid #E8E8E8">
       <div style="font-size:11px;font-weight:700;color:#444;margin-bottom:8px;display:flex;align-items:center;gap:6px">
-        <i class="ti ti-database" style="font-size:13px;color:#336791"></i> PostgreSQL — 23 tables (business-service)
+        <i class="ti ti-database" style="font-size:13px;color:#336791"></i> PostgreSQL — 97 tables (business-service)
       </div>
 
       <table style="width:100%;border-collapse:collapse;font-size:10px">
         <thead>
           <tr style="background:#F5F5F5">
             <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Nhóm</th>
-            <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Bảng</th>
+            <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Bảng tiêu biểu</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">Identity (4)</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">users, user_oauth_providers, user_refresh_tokens, user_system_roles</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">Identity (5)</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">users, user_oauth_providers, user_refresh_tokens, user_system_roles, account_activation_tokens</td>
           </tr>
           <tr style="background:#FAFAFA">
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">Organization (8)</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">agencies, agency_members, agency_invitations, workspaces, workspace_members, workspace_invitations, workspace_templates, client_profiles</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">Organization (9)</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">agencies, agency_members, agency_invitations, workspaces, workspace_members, workspace_invitations, workspace_templates, client_profiles, workspace_hashtags</td>
           </tr>
           <tr>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">Commerce (3)</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">media_packages, workspace_media_packages, media_campaigns</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">Commerce (8)</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">media_packages, workspace_media_packages, package_negotiation_events, media_campaigns, campaign_versions, campaign_review_events, campaign_deployments</td>
           </tr>
           <tr style="background:#FAFAFA">
             <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">Collaborator (2)</td>
             <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">third_party_collaborators, campaign_collaborators</td>
           </tr>
           <tr>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">Billing (6)</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">subscription_plans, user_subscriptions, transactions, ai_credit_ledgers, ai_credit_creator_limits, audit_logs</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">Billing &amp; Credits (27)</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">subscription_plans, agency_subscriptions, billing_orders, billing_payments, transactions (SePay), agency_credit_wallets, workspace_credit_limits, ai_credit_operation_prices, ai_credit_reservations, credit_operations, credit_entries</td>
           </tr>
         </tbody>
       </table>
@@ -532,20 +531,20 @@ em     { font-style: italic; color: #555; }
     <!-- MongoDB -->
     <div style="padding:12px 16px">
       <div style="font-size:11px;font-weight:700;color:#444;margin-bottom:8px;display:flex;align-items:center;gap:6px">
-        <i class="ti ti-database" style="font-size:13px;color:#4CAF50"></i> MongoDB — 17 collections (3 services)
+        <i class="ti ti-database" style="font-size:13px;color:#4CAF50"></i> MongoDB — 52 collections (3 services)
       </div>
 
       <table style="width:100%;border-collapse:collapse;font-size:10px">
         <thead>
           <tr style="background:#F5F5F5">
             <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Service</th>
-            <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Collections</th>
+            <th style="text-align:left;padding:4px 8px;border:1px solid #E0E0E0;color:#555;font-weight:600">Collections tiêu biểu</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">business (14)</td>
-            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">tasks, task_approvals, posts, content_requests, material_repository, brand_collections, hashtag_collections, content_versions, livestream_sessions, survey_forms, survey_responses, mail_templates, social_accounts, notifications</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">business (49)</td>
+            <td style="padding:4px 8px;border:1px solid #EBEBEB;font-family:monospace;color:#333;font-size:9px">tasks, task_approvals, task_sections, posts, post_versions, content_requests, materials, material_folders, material_versions, surveys, survey_responses, mail_templates, social_accounts, chat_channels, chat_messages, video_projects, notifications</td>
           </tr>
           <tr style="background:#FAFAFA">
             <td style="padding:4px 8px;border:1px solid #EBEBEB;color:#666;white-space:nowrap">ai (2)</td>

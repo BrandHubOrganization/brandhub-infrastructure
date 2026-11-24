@@ -1,0 +1,13 @@
+aws_account_id            = "134875421878"
+aws_region                = "ap-southeast-1"
+environment               = "prod"
+repository_s3_bucket_name = "brandhub-media-134875421878"
+service_iam_role_name     = "brandhub-ec2-ecr-pull"
+
+additional_allowed_service_role_arns = []
+
+allowed_cors_origins = [
+  "https://brandhub.id.vn",
+  "https://www.brandhub.id.vn",
+  "http://localhost:3000",
+]
