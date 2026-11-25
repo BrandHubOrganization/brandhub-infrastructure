@@ -1,4 +1,4 @@
-# 04-task-chat-vault — Task Workflow, Realtime Workspace Chat & Encrypted S3 Vault (3 Modules)
+# 04-task-chat-vault — Task Workflow, Realtime Workspace Chat, Reference Hub & Encrypted S3 Vault (4 Modules)
 
 > **Navigation:** [← Feature Master Index](../../README.md) · [← Modules Master Index](../README.md) · [SRS 3.6 Content & Workflow](../../srs/05-content-task-workflow/README.md) · [BA Domain Spec](../../../ba/05-content-task-workflow.md) · [Workflow Rule](../../../rule/feature-workflow.md)
 
@@ -17,11 +17,12 @@ Core daily collaboration and asset security architecture uniting the 5-state inl
 
 ---
 
-## 2. Consolidated Modules (`3`)
+## 2. Consolidated Modules (`4`)
 
 | Module Slug | Scope & Engineering Title | Core Codebase Touchpoints | Lifecycle Artefacts (`spec → plan → task → test`) |
 | :--- | :--- | :--- | :--- |
 | `task-subtask-and-inline-workflow` | **Five-State Inline Task Editing, Role-Scoped Subtasks & Sectioned Specialized Editors** | `TODO -> IN_PROGRESS -> INTERNAL_REVIEW -> CLIENT_REVIEW -> APPROVED` workflow, role-locked subtasks, specialized Post/Survey/Video task sections | [Spec](./task-subtask-and-inline-workflow/spec.md) · [Plan](./task-subtask-and-inline-workflow/plan.md) · [Task](./task-subtask-and-inline-workflow/task.md) · [Test](./task-subtask-and-inline-workflow/test.md) |
+| `reference-hub-and-algorithmic-curation` | **Smart Reference Hub, Shared Moodboard & Client-Side Algorithmic Curation Engine** | `WorkspaceReferenceController`, MongoDB `workspace_moodboard_items`, `ReferencePreviewModal` (TextRank), Content Kit Tripartite Pairing, Facet Clustering, CIELAB $\Delta E$ Color Harmony, Storyboard B-roll Assigner & Session Rocchio + MMR | [Spec](./reference-hub-and-algorithmic-curation/spec.md) · [Plan](./reference-hub-and-algorithmic-curation/plan.md) · [Task](./reference-hub-and-algorithmic-curation/task.md) · [Test](./reference-hub-and-algorithmic-curation/test.md) |
 | `workspace-chat-and-voice-calls` | **Workspace Realtime Chat Channels, Threads, Mentions, Slash References, Scheduled Messages & 1:1 Voice Calls** | STOMP `/ws/chat`, `PUBLIC` / `PRIVATE` / `DIRECT` channels, `/task` & `/material` rich cards, `@mentions` inbox, DND mute, `ChatCallController` 1:1 voice | [Spec](./workspace-chat-and-voice-calls/spec.md) · [Plan](./workspace-chat-and-voice-calls/plan.md) · [Task](./workspace-chat-and-voice-calls/task.md) · [Test](./workspace-chat-and-voice-calls/test.md) |
 | `s3-folder-vault-security` | **Encrypted S3 Material Repository, Storage Add-Ons, Client Folder Vault & Google Drive Sync** | `RepositoryEnvelopeCrypto` (`AES-256-GCM`), 5 GB free + add-on quota (`StorageQuotaService`), `Client` cross-workspace Vault share, Google Drive tree import | [Spec](./s3-folder-vault-security/spec.md) · [Plan](./s3-folder-vault-security/plan.md) · [Task](./s3-folder-vault-security/task.md) · [Test](./s3-folder-vault-security/test.md) |
 
