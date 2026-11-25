@@ -203,3 +203,52 @@ def test_restore_downloads_snapshot_and_records_last_restore(tmp_path):
     ok = client.post("/restore", json={"dbs": ["postgres"], "date": snap_date}, headers={"X-Backup-Token": "t0ken"})
     assert ok.status_code == 202
 
+
+def test_sync_s3_history_backfills_multiday_snapshots_and_enables_restore(tmp_path):
+    from datetime import datetime, timedelta
+    from zoneinfo import ZoneInfo
+
+    today = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).date()
+    d_old = (today - timedelta(days=2)).strftime("%Y-%m-%d")
+    d_new = today.strftime("%Y-%m-%d")
+
+    restored_keys: list[str] = []
+
+    def list_history(dbs: list[str]) -> dict[str, list[dict]]:
+        return {
+            "postgres": [
+                {
+                    "date": d_new,
+                    "finished_at": f"{d_new}T00:00:00+00:00",
+                    "size_bytes": 2500,
+                    "keys": ["postgres/brandhub-new.dump"],
+                },
+                {
+                    "date": d_old,
+                    "finished_at": f"{d_old}T00:00:00+00:00",
+                    "size_bytes": 2000,
+                    "keys": ["postgres/brandhub-old.dump"],
+                },
+            ]
+        }
+
+    runner = BackupRunner(
+        tmp_path / "state.json",
+        lambda p, k: None,
+        dumpers={"postgres": write_file("pg")},
+        download=lambda key, dest: restored_keys.append(key) or dest.write_bytes(b"dump"),
+        restorers={"postgres": lambda files: None},
+        list_history=list_history,
+    )
+    status = runner.status()
+    pg = status["databases"]["postgres"]
+    assert pg["status"] == "success"
+    assert [h["date"] for h in pg["history"]] == [d_new, d_old]
+    assert pg["history"][0]["delta_bytes"] == 500
+    assert pg["history"][1]["delta_bytes"] == 0
+    assert pg["monthly_delta_bytes"] == 500
+
+    runner.restore(["postgres"], d_old)
+    assert restored_keys == ["postgres/brandhub-old.dump"]
+
+
