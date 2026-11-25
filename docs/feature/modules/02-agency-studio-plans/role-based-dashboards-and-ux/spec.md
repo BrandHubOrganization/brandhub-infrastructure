@@ -62,3 +62,6 @@ Unify BrandHub's cross-cutting navigation, **3-tier Role-Based Dashboards** (`Pe
 
 - **Definition of Done:** Production code verified across backend, AI/publisher workers, Web, and Mobile; `vi.json` + `en.json` parity verified; Light/Dark mode audited; all automated verification suites in [test.md](./test.md) passing.
 - **Out of Scope:** De-scoped SRS items (livestream features, subscription plan downgrades, PayOS/VNPay/Stripe gateways, Zalo OA publishing, or copyright/plagiarism scanning).
+### Bộ đếm và lối vào công việc trên Web
+
+Bảng điều khiển cá nhân, Agency và Workspace dùng số liệu tổng quan đã phân quyền. Nút cá nhân hiển thị số việc đang giữ, việc gấp, việc bị trả lại hoặc chờ người dùng duyệt theo dữ liệu có thể xử lý. Owner thấy việc quá hạn và chưa giao của Agency. Manager thấy các số tương ứng trong Workspace phụ trách. Mỗi nút và thẻ mở đúng danh sách chi tiết. Thanh bên hiển thị số việc gấp và chờ duyệt theo Workspace, hoặc số chờ duyệt ở lối vào Agency. Badge chỉ hiện khi có việc. Dùng khóa giao diện `dashboard.analytics.actions` và `dashboard.analytics.overviewKpi` song song VI/EN và màu theo theme sáng/tối.
