@@ -32,6 +32,7 @@ services:
     image: mongo:7.0
     container_name: brandhub-mongodb
     restart: unless-stopped
+    command: ["--replSet", "rs0", "--bind_ip_all"]
     ports:
       - "${MONGODB_HOST_PORT:-27017}:27017"
     environment:
@@ -45,7 +46,14 @@ services:
         bind:
           create_host_path: false
     healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--quiet",
+          "--eval",
+          "try { rs.status().ok } catch (e) { rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'localhost:27017'}]}).ok }",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
