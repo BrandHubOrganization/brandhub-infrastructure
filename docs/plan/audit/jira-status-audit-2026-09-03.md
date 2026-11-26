@@ -1,5 +1,7 @@
 # BrandHub — Jira Status Audit
 
+> [<< Knowledge Base Home](../../index.md) · [Project Plans](../README.md) · [Audit Logs](./README.md)
+
 > Nguồn: Jira project `DA` — https://letritrung2605.atlassian.net
 > Phạm vi: issuetype = Task (không tính Epic, Subtask, Bug)
 > Cập nhật lần 5 — 2026-09-03 (sau khi chuyển 186 task tài liệu To Do sang Sprint 7)

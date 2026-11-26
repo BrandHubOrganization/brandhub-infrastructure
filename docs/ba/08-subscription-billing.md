@@ -1,95 +1,99 @@
-# 08 — Gói Cước, Thanh Toán SePay (VietQR) & Quản Trị Ví AI Credit (Subscription, Billing & AI Credit)
+# 08 — Gói Cước, Thanh Toán SePay (VietQR) & Ví AI Credit (Subscription & Billing)
 
-> [<< 07 - Publishing & Social](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/07-publishing-social-collaborator.md) | [Overview](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/00-overview.md) | [Tiếp: 09 - Admin Management >>](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/09-admin-management.md)
+> Navigation: [← BA Overview & Hub](./README.md) · [← 07 - Publishing & Social](./07-publishing-social.md) · [Tiếp: 09 - Admin Functions →](./09-admin-functions.md)
 >
-> **Phạm vi FR chuẩn**: **Mục `3.9 Subscription & Billing` — 6 FR (`3.9.1` – `3.9.6`)** | `UC-122` – `UC-127`.
-> Tuân thủ tuyệt đối `AGENTS.md` (**Không có Downgrade Plan**, **Chỉ dùng cổng thanh toán SePay / PayOS VietQR**) và kiến trúc hợp nhất **Ví AI Credit cấp Agency + Trần Ngân sách cấp Workspace (`workspace-credit-unification`)**.
+> **Phạm vi FR chuẩn**: **Mục `3.9 Subscription & Billing` — 6 FR (`3.9.1` – `3.9.6`)** | `UC-122` – `UC-127` · Use Cases chi tiết: [use-cases/07-subscription.md](./use-cases/07-subscription.md) · Đặc tả SRS: [08-subscription-billing](../feature/srs/08-subscription-billing/README.md).
+> Tuân thủ tuyệt đối `AGENTS.md` (**Không có Downgrade Plan**, **Chỉ sử dụng cổng thanh toán SePay (VietQR)**) và mô hình tài chính chi tiết tại `brandhub-pricing-model.xlsx`.
 
 ---
 
 ## 1. Bảng Tổng hợp 6 Yêu cầu Chức năng Chuẩn (`3.9.1` – `3.9.6`)
 
-| Mã FR | Mã UC | Tên Chức năng Chuẩn (Atomic CRUD FR) | Actors / Roles Chuẩn | Mô tả Nghiệp vụ Cốt lõi |
+| Mã FR | Mã UC | Tên Chức năng Chuẩn (141-FR Baseline) | Actors / Roles Chuẩn | Mô tả Nghiệp vụ Cốt lõi |
 | :-: | :-: | :--- | :--- | :--- |
-| **`3.9.1`** | `UC-122` | **Upgrade Plan** | `Owner`, `Manager`, `Creator`, `Client` | Xem bảng so sánh các gói dịch vụ (`Basic`, `Plus` / `Pro`, `Enterprise`) và khởi tạo đơn nâng cấp hoặc gia hạn gói cước cho `Agency` / `Personal Hub`. |
-| **`3.9.2`** | `UC-123` | **Make Payment (SePay)** | `Owner` | Thực hiện thanh toán đơn hàng nâng cấp gói cước hoặc mua gói thông qua mã **VietQR động (SePay / PayOS)**; hệ thống đối soát tự động qua Webhook và kích hoạt quyền lợi tức thì. |
-| **`3.9.3`** | `UC-124` | **View Invoice History** | `Owner`, `Admin` | Xem danh sách lịch sử hóa đơn và giao dịch thanh toán (`PENDING`, `PAID`, `EXPIRED`, `CANCELLED`), xem chi tiết và xuất chứng từ hóa đơn. |
-| **`3.9.4`** | `UC-125` | **View AI Credit Tracking** | `Owner`, `Manager`, `Creator` | Theo dõi số dư ví AI Credit của `Agency`, mức tiêu thụ và phần đang tạm giữ (`workspaceUsed` + `workspaceHeld`) của từng `Workspace`, cùng lịch sử giao dịch chi tiết theo từng tác vụ AI. |
-| **`3.9.5`** | `UC-126` | **Buy Credit** | `Owner` | Mua bổ sung gói AI Credit (credit mua thêm không bị hết hạn cuối chu kỳ) thông qua luồng thanh toán SePay / PayOS. |
-| **`3.9.6`** | `UC-127` | **Set Credit** | `Owner` | Thiết lập, điều chỉnh hoặc gỡ bỏ **trần ngân sách AI Credit cho từng Workspace (`workspaceLimit`)** thuộc `Agency` (`PUT /api/v1/agencies/{agencyId}/credit/workspaces/{workspaceId}/limit`). |
+| **`3.9.1`** | `UC-122` | **Upgrade Plan** | `Owner` | Nâng cấp gói đăng ký dịch vụ từ gói mặc định lên gói cao hơn trên `/subscription/plans` (**chỉ hỗ trợ nâng cấp lên cấp cao hơn, đã lược bỏ luồng hạ cấp gói trực tiếp**, `BR-15`, `BR-58`, `BR-59`). |
+| **`3.9.2`** | `UC-123` | **Make Payment (SePay)** | `Owner` | Thực hiện thanh toán đơn hàng nâng cấp gói cước hoặc mua thêm AI Credit thông qua cổng **SePay (VietQR)** (`/billing/checkout/:transactionId`). Khởi tạo giao dịch `PENDING` tuân thủ ACID trong PostgreSQL; khi nhận Webhook chữ ký hợp lệ từ SePay sẽ xử lý bất biến (`idempotent`) chuyển sang `PAID` và kích hoạt ngay quyền lợi (`BR-58`–`BR-61`). |
+| **`3.9.3`** | `UC-124` | **View Invoice History** | `Owner` | Xem lịch sử toàn bộ các giao dịch thanh toán (`PAID`, `PENDING`, `EXPIRED`, `FAILED`) và tải xuống hóa đơn điện tử dạng PDF tại `/billing/invoices` (`BR-15`, `BR-61`). |
+| **`3.9.4`** | `UC-125` | **View AI Credit Tracking** | `Owner`, `Manager` | Giám sát chi tiết lượng AI Credit đã tiêu thụ, lượng đang tạm giữ và số dư còn lại theo thời gian thực (`/billing/credits`) theo từng loại tác vụ AI, từng Workspace và kỳ thanh toán tháng (lượng credit định kỳ hàng tháng không cộng dồn sang tháng sau, `BR-48`, `BR-60`, `BR-64`). |
+| **`3.9.5`** | `UC-126` | **Buy Credit** | `Owner` | Mua bổ sung các gói nạp thêm AI Credit (`Top-up Credit Packs`) qua cổng **SePay (VietQR)** (`3.9.2`) và cộng ngay số lượng AI Credit mua thêm vào tổng quỹ khả dụng của Agency sau khi thanh toán thành công (`BR-15`, `BR-59`, `BR-60`). |
+| **`3.9.6`** | `UC-127` | **Set Credit** | `Owner` | Thiết lập và điều chỉnh hạn mức tiêu thụ AI Credit tối đa hàng tháng cho từng Workspace trực thuộc Agency (`/agency/:id/workspaces/:id/credit-limit`) sao cho không thấp hơn mức Workspace đó đã tiêu thụ trong kỳ hiện tại (`BR-15`, `BR-48`, `BR-60`, `BR-64`). |
 
 ---
 
-## 2. Cơ cấu Gói Cước (`Subscription Plans`) & Quyền lợi Định mức
+## 2. Cơ cấu 2 Dòng Sản phẩm & 6 Gói Cước Chuẩn (`Subscription Plans`)
 
-Hệ thống cung cấp 3 hạng gói cước chuẩn áp dụng chung cho cả `Agency` B2B và `Personal Hub` cá nhân:
+Hệ thống phục vụ cả người sáng tạo cá nhân (`Personal Studio`) và doanh nghiệp truyền thông (`Agency Suite`) thông qua **2 dòng sản phẩm (6 gói cước)**:
 
-| Quyền lợi / Định mức | **`Basic` (Gói Mặc định / Miễn phí)** | **`Plus` / `Pro` (Gói Chuyên nghiệp)** | **`Enterprise` (Gói Doanh nghiệp / Quy mô lớn)** |
-| :--- | :---: | :---: | :---: |
-| **Cách kích hoạt** | Tự động cấp ngay khi tạo `Agency` hoặc `Personal Studio` | Nâng cấp/Gia hạn qua SePay (`3.9.1`, `3.9.2`) | Nâng cấp/Gia hạn qua SePay (`3.9.1`, `3.9.2`) |
-| **Định mức AI Credit cấp theo chu kỳ (`Plan Credit`)** | Theo cấu hình gói của `Admin` (`3.10.7`) | Theo cấu hình gói của `Admin` + ưu đãi giao diện `Plus` (`agency-plus-style`) | Định mức cao nhất theo cấu hình của `Admin` |
-| **Định mức Gửi Email Newsletter (`newsletter.quota.*`)** | **1.000 email / tháng / agency** | **10.000 email / tháng / agency** | **50.000 email / tháng / agency** |
-| **Hỗ trợ Nâng cấp & Gia hạn (`Renewal`)** | Có thể nâng cấp lên `Plus` hoặc `Enterprise` bất kỳ lúc nào | Hỗ trợ gia hạn sớm (`agency-plus-renewal`) hoặc nâng cấp lên `Enterprise` | Hỗ trợ gia hạn theo chu kỳ tháng/năm |
+| Dòng sản phẩm | Mã Gói Cước (`plan_code`) | Cấp bậc | Đặc trưng Quyền lợi & Hạn mức |
+| :--- | :--- | :---: | :--- |
+| **1. BrandHub AI Studio** *(Chế độ `PERSONAL` / Solo Creator)* | `STUDIO_FREE` → `STUDIO_PLUS` → `STUDIO_PRO` | 3 bậc nâng cấp | Tối ưu cho cá nhân/nhóm nhỏ: cấp định mức `Plan Credit` hàng tháng tăng dần, dung lượng kho tư liệu, số kênh MXH cá nhân và hạn mức gửi bản tin. |
+| **2. BrandHub Agency Suite** *(Chế độ `AGENCY` B2B)* | `BASIC` → `PLUS` → `ENTERPRISE` | 3 bậc nâng cấp | Quản trị đa Workspace / đa `Client`: mở rộng số lượng Workspace, thành viên, kênh mạng xã hội, định mức gửi Email Newsletter (`1.000` / `10.000` / `50.000` email/tháng) và quỹ `Plan Credit` lớn. |
 
-> **Quy tắc bất biến theo `AGENTS.md`**: Hệ thống **không có chức năng Hạ cấp gói (`Downgrade Plan`)**.
+> **Quy tắc bất biến**: Hệ thống chỉ cho phép **nâng cấp lên gói cao hơn hoặc gia hạn (`3.9.1 Upgrade Plan`)**; không hỗ trợ hạ cấp trực tiếp (`Downgrade Plan`).
 
 ---
 
-## 3. Luồng Thanh Toán Tự Động Qua SePay / PayOS (VietQR — `3.9.1`..`3.9.3`)
+## 3. Luồng Thanh Toán ACID Qua Cổng SePay (VietQR — `3.9.1`..`3.9.3`)
 
-```
+```text
 [Owner chọn Nâng cấp gói (3.9.1) hoặc Mua thêm Credit (3.9.5)]
        │
        ▼
-[Backend tạo Order + Invoice (status = PENDING) kèm mã tham chiếu thanh toán duy nhất]
+[Backend tạo Order + Transaction (status = PENDING) trong PostgreSQL kèm mã tham chiếu duy nhất]
        │
        ▼
-[Frontend hiển thị mã VietQR động (Số tài khoản, Ngân hàng, Số tiền chính xác, Nội dung chuyển khoản)]
+[Frontend hiển thị mã VietQR động của SePay (Ngân hàng, Số tài khoản, Số tiền, Nội dung tham chiếu)]
        │
-       ├──(Người dùng quét QR trên App Ngân hàng)──▶ [Cổng SePay / PayOS nhận biến động số dư]
+       ├──(Owner quét QR trên ứng dụng Ngân hàng)──▶ [Cổng SePay ghi nhận biến động số dư]
        │                                                       │
        │                                                       ▼
-       │                                    [Webhook gọi về Backend (xác thực chữ ký & chống trùng lặp Idempotent)]
+       │                                    [SePay gửi Webhook xác thực chữ ký về Backend (Idempotent)]
        │                                                       │
        ▼                                                       ▼
-[Trạng thái Invoice chuyển sang PAID] ──▶ [Cấp gói Subscription mới + Ghi nhận Plan Credit / Purchased Credit vào Ví Agency]
+[Trạng thái chuyển sang PAID] ──▶ [Kích hoạt gói Subscription mới / Cộng Credit vào agency_credit_wallets]
 ```
-
-- **Chống ghi nhận trùng (`Idempotency`)**: Một giao dịch thanh toán hoặc callback Webhook từ SePay bị gửi lặp nhiều lần tuyệt đối không bao giờ cộng tiền hay kích hoạt gói 2 lần.
-- **Lịch sử Hóa đơn (`3.9.3 View Invoice History`)**:
-  - `Owner` xem toàn bộ hóa đơn của `Agency` / `Personal Hub` mình sở hữu tại `/agency/billing`.
-  - `Admin` xem và đối soát toàn bộ hóa đơn trên toàn hệ thống kèm thống kê doanh thu tại `/admin/revenue`.
 
 ---
 
-## 4. Kiến trúc Hợp nhất Ví AI Credit & Trần Ngân sách Workspace (`3.9.4` – `3.9.6`)
+## 4. Kiến trúc Ví AI Credit Cấp Agency & Trần Ngân sách Workspace (`3.9.4` – `3.9.6`)
 
-Theo đặc tả chuẩn đã chốt tại `docs/feature/workspace-credit-unification/spec.md`:
+1. **Một Ví Tổng cấp Agency (`agency_credit_wallets`) & Hai Lớp Số dư**:
+   - **`Plan Credit` (Credit định kỳ theo gói)**: Làm mới hàng tháng theo chu kỳ gói, không cộng dồn sang kỳ sau.
+   - **`Purchased Credit` (Credit mua thêm tại `3.9.5`)**: Bảo lưu không hết hạn theo chu kỳ tháng.
+   - **Thứ tự khấu trừ**: Luôn ưu tiên trừ `Plan Credit` trước, hết `Plan Credit` mới trừ sang `Purchased Credit`.
+2. **Trần Ngân sách cấp Workspace (`workspace_credit_limits` — `3.9.6 Set Credit`)**:
+   - `Owner` cấu hình trần tiêu thụ hàng tháng cho từng Workspace (`cap = null` là không giới hạn riêng theo ví tổng; `cap = N > 0` giới hạn tổng `used + held <= N`; `cap = 0` khóa tác vụ tính phí trong Workspace đó).
+3. **Quy trình Giữ chỗ & Quyết toán Nguyên tử (`ai_credit_reservations`)**:
+   - Chỉ 4 nhóm tác vụ tính phí (`CONTENT_GENERATE`, `AMBASSADOR_GENERATE`, `COMMERCIAL_IMAGE`, `VIDEO_GENERATE`) trừ credit theo bảng đơn giá hệ thống (`3.10.10`–`3.10.12`).
+   - Trước khi gọi sang `ai-service`, `business-service` khóa tạm credit (`HOLD`); khi AI hoàn tất mới chốt trừ (`SETTLE`), nếu AI lỗi hoặc timeout sẽ tự động hoàn trả 100% (`RELEASE`).
 
-### 4.1. Một Ví Tổng cấp Agency (`Single Agency Wallet`) & Hai Nguồn Credit
-- Mỗi `Agency` (bao gồm cả `Personal Hub`) có **duy nhất 1 ví `agency_credit_wallets`** là nguồn tiền thực tế cho mọi Workspace trực thuộc.
-- Trong ví chia làm 2 lớp số dư (`Credit Grants`):
-  1. **`Plan Credit` (Credit định kỳ theo gói)**: Được cấp khi kích hoạt/gia hạn gói cước và làm mới theo chu kỳ gói.
-  2. **`Purchased Credit` (Credit mua thêm — Non-expiring)**: Không bị hết hạn khi kết thúc chu kỳ gói; ngay cả khi gói trả phí đã hết hạn, người dùng vẫn được phép tiêu số `Purchased Credit` còn lại.
-- **Thứ tự ưu tiên khấu trừ**: Hệ thống luôn trừ **`Plan Credit` trước**, khi hết `Plan Credit` mới trừ sang **`Purchased Credit`**.
+---
 
-### 4.2. Trần Ngân sách cấp Workspace (`Workspace Credit Cap` — `3.9.6 Set Credit`)
-- Hệ thống **đã bãi bỏ hoàn toàn hạn mức cá nhân theo từng thành viên** (các lệnh ghi hạn mức cá nhân cũ trả mã `410 Gone — CREDIT_PERSONAL_LIMIT_RETIRED`).
-- Thay vào đó, `Owner` kiểm soát ngân sách theo từng **`Workspace`** (`PUT /api/v1/agencies/{agencyId}/credit/workspaces/{workspaceId}/limit` với `{ cap: number | null, expectedRevision: number }`):
-  - **`cap = null` (Không giới hạn riêng — Unlimited)**: Workspace được phép sử dụng tự do miễn là ví tổng của Agency còn số dư khả dụng.
-  - **`cap = N` (`N > 0`)**: Tổng lượng credit đã dùng (`workspaceUsed`) cộng lượng đang tạm giữ (`workspaceHeld`) của mọi thành viên (`Owner`, `Manager`, `Creator`) trong Workspace đó trong chu kỳ hiện tại không được vượt quá `N`.
-  - **`cap = 0`**: Khóa hoàn toàn các tác vụ AI tính phí trong Workspace đó (các tác vụ AI miễn phí vẫn hoạt động bình thường).
-- **Phân quyền hiển thị**:
-  - `Owner` xem và chỉnh sửa được hạn mức của tất cả các Workspace trong Agency.
-  - `Manager` và `Creator` chỉ xem được hạn mức và mức sử dụng (`workspaceLimit`, `workspaceUsed`, `workspaceHeld`) của chính các Workspace mà họ đang tham gia, không lộ số dư riêng tư của các Workspace khác.
+## 5. Bảng Tham chiếu Quy tắc Nghiệp vụ (`BR-58` – `BR-61`, `BR-64`)
 
-### 4.3. Quy trình Tạm giữ & Quyết toán Nguyên tử (`Reserve → Settle / Release`)
-1. **Kiểm tra bảng giá cố định của Admin**:
-   - Chỉ đúng **4 nhóm tác vụ** sử dụng bảng giá của Admin (`3.10.10`–`3.10.12`):
-     1. `CONTENT_GENERATE` (Sinh bài viết / caption mới — `3.7.6`)
-     2. `AMBASSADOR_GENERATE` (Sinh đại sứ thương hiệu — `3.7.7`)
-     3. `COMMERCIAL_IMAGE` (Sinh ảnh thương mại — `3.7.9`)
-     4. `VIDEO_GENERATE` (Sinh video AI — `3.7.11`)
-   - Các tác vụ `CAPTION_VARIANTS` (tinh chỉnh biến thể), `HASHTAG_GENERATE` (`3.7.14`), `CHARACTER_SHEET` luôn miễn phí (`unit_credits = 0`, `rate_version = FREE_V1`).
-2. **Tạm giữ (`Reserve / HOLD`)**: Trước khi gọi sang nhà cung cấp AI (không bao giờ gọi HTTP bên ngoài bên trong transaction tài chính), hệ thống khóa ví Agency và kiểm tra đồng thời số dư khả dụng của Agency và trần của Workspace, sau đó tạo bản ghi tạm giữ.
-3. **Quyết toán (`Settle / Release`)**: Khi AI trả kết quả thành công, hệ thống chốt trừ credit (`SETTLE`); nếu AI thất bại, hệ thống giải phóng khoản tạm giữ (`RELEASE`) để người dùng không bao giờ bị mất oan credit.
+| Mã BR | Tên Quy tắc | Quy định Ràng buộc Cụ thể | FR Áp dụng |
+| :-: | :--- | :--- | :--- |
+| `BR-58` | **Chỉ Nâng cấp Gói & Áp dụng Tức thì Hạn mức** | Hệ thống chỉ cho phép nâng cấp lên bậc gói cao hơn trong cùng dòng hoặc nâng cấp từ dòng `STUDIO_*` lên dòng `Agency` (`BASIC`/`PLUS`/`ENTERPRISE`) hoặc gia hạn chu kỳ tháng/năm (`billing_plan_cycle_prices`); **tuyệt đối không hỗ trợ luồng hạ cấp gói (`Downgrade Plan`)**. | `3.9.1`, `3.9.2` |
+| `BR-59` | **Thanh toán Duy nhất qua SePay (VietQR) & Xử lý Webhook Bất biến** | Mọi đơn hàng nâng cấp gói (`3.9.1`), mua thêm AI Credit (`3.9.5`) hoặc mua thêm dung lượng (`storage_addon_plans`) đều thanh toán qua **SePay (VietQR)**; sự kiện webhook từ SePay được ghi vào `billing_payment_events` và đối chiếu khóa chống trùng (`idempotent`) trước khi chuyển đơn sang `PAID` và cấp phát quyền lợi tại `billing_order_fulfillments`. | `3.9.2`, `3.9.5`, `3.10.13` |
+| `BR-60` | **Thứ tự Ưu tiên Khấu trừ Sổ cái Ví AI Credit** | Ví tổng `agency_credit_wallets` phân bổ từng lô `credit_grants`: luôn khấu trừ lô `Plan Credit` (có hạn theo kỳ tháng, không cộng dồn sang kỳ mới) trước, chỉ khi hết sạch mới khấu trừ sang lô `Purchased Credit` (mua thêm không hết hạn). Xem lại lịch sử nội dung cũ (`3.6.34`) không phát sinh bút toán trừ mới. | `3.9.4`–`3.9.6` |
+| `BR-61` | **Tính Bất biến của Chứng từ Hóa đơn & Sổ cái Giao dịch** | Bản ghi `transactions`, `billing_payments` và `billing_audit_events` trong PostgreSQL là bất biến (append-only); mọi hóa đơn `PAID` đều có thể kết xuất chứng từ điện tử PDF và đối soát trực tiếp trên bảng doanh thu của `Admin`. | `3.9.2`, `3.9.3`, `3.10.13`, `3.10.14` |
+| `BR-64` | **Ràng buộc Trần Ngân sách Workspace & Khóa Giá Tại Thời điểm Đặt chỗ** | Khi `Owner` cập nhật trần `workspace_credit_limits` (`3.9.6 Set Credit`), giá trị mới không được nhỏ hơn tổng credit mà Workspace đó đã tiêu thụ + đang giữ chỗ trong kỳ hiện hành; khi `Admin` đổi bảng giá (`3.10.11`), các lệnh `ai_credit_reservations` đã giữ chỗ trước đó vẫn quyết toán theo mức giá cũ lúc đặt chỗ. | `3.9.4`, `3.9.6`, `3.10.10`–`3.10.12` |
+
+---
+
+## 6. Ánh xạ Hệ thống Bảng Sổ cái PostgreSQL (`Billing V3` — 29 Bảng)
+
+Toàn bộ dữ liệu tài chính và sổ cái AI Credit được lưu trữ độc quyền trên **PostgreSQL 17** (`brandhub-business-service`):
+- **Danh mục & Chu kỳ gói**: `subscription_plans`, `billing_plan_versions`, `billing_plan_cycle_prices`, `billing_plan_change_log`, `user_subscriptions`, `subscription_plan_changes`, `agency_subscriptions`, `agency_subscription_periods`.
+- **Đơn hàng & Thanh toán SePay**: `billing_orders`, `billing_payment_attempts`, `billing_payment_events`, `billing_payments`, `billing_order_fulfillments`, `transactions`, `subscription_operational_issues`, `subscription_observation_jobs`, `subscription_provider_checks`.
+- **Sổ cái Kép AI Credit**: `agency_credit_wallets`, `credit_grants`, `workspace_credit_limits`, `credit_usage_periods`, `workspace_credit_usage`, `ai_credit_operation_prices`, `ai_credit_reservations`, `credit_reservation_allocations`, `credit_operations`, `credit_entries`, `billing_outbox_events`, `billing_audit_events`.
+
+### Lộ trình Nâng cấp Gói Cước Hợp lệ (`Upgrade-Only Matrix`)
+
+| Gói Hiện tại | Các Gói Đích Được Phép Nâng Cấp (`3.9.1 Upgrade Plan`) | Quy tắc Chuyển đổi Quyền lợi |
+| :--- | :--- | :--- |
+| `STUDIO_FREE` | `STUDIO_PLUS`, `STUDIO_PRO`, `BASIC`, `PLUS`, `ENTERPRISE` | Mở khóa ngay hạn mức mới sau khi đơn hàng **SePay (VietQR)** chuyển sang `PAID`. |
+| `STUDIO_PLUS` | `STUDIO_PRO`, `BASIC`, `PLUS`, `ENTERPRISE` | Chuyển thẳng từ `Personal Studio` lên `Agency Suite` giữ nguyên 100% dữ liệu & `Purchased Credit`. |
+| `STUDIO_PRO` | `BASIC`, `PLUS`, `ENTERPRISE` | Nâng cấp sang vận hành đa `Workspace` / đa `Client` B2B. |
+| `BASIC` | `PLUS`, `ENTERPRISE` | Mở rộng trần `Workspace`, thành viên, định mức gửi Newsletter và lô `Plan Credit` tháng. |
+| `PLUS` | `ENTERPRISE` | Cấp bậc doanh nghiệp cao nhất (không có gói cao hơn; chỉ gia hạn chu kỳ hoặc mua thêm `Top-up Credit`). |

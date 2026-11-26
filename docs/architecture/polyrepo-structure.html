@@ -320,9 +320,8 @@ body {
       <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">PlatformAdapter.java</span><span class="t-cm"> — interface: publish(PostPublishJob)</span></div>
       <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">FacebookAdapter.java</span><span class="t-cm"> — Graph API v19</span></div>
       <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">InstagramAdapter.java</span><span class="t-cm"> — Instagram Basic Display API</span></div>
-      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">TikTokAdapter.java</span><span class="t-cm"> — TikTok Content Posting API</span></div>
-      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">ThreadsAdapter.java</span><span class="t-cm"> — Threads API</span></div>
-      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;└── </span><span class="t-file">ZaloOAAdapter.java</span><span class="t-cm"> — Zalo OA v2</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">TikTokAdapter.java</span><span class="t-cm"> — TikTok Content Posting API v2</span></div>
+      <div><span class="t-d">│&nbsp;&nbsp;&nbsp;└── </span><span class="t-file">ThreadsAdapter.java</span><span class="t-cm"> — Threads Publishing API</span></div>
       <div><span class="t-d">├── </span><span class="t-dir">service/</span><span class="t-cm"> — PublisherService · TokenDecryptService · RetryService</span></div>
       <div><span class="t-d">├── </span><span class="t-dir">config/</span><span class="t-cm"> — RabbitMQConfig · SchedulerConfig · RetryConfig</span></div>
       <div><span class="t-d">└── </span><span class="t-dir">model/</span><span class="t-cm"> — PostPublishJob · PublishResult · PlatformType</span></div>
@@ -343,7 +342,7 @@ body {
         <div class="meta-title">Retry Policy</div>
         <div class="meta-item"><i class="ti ti-refresh"></i><span>30s → 60s → 120s</span></div>
         <div class="meta-item"><i class="ti ti-alert-triangle"></i><span>Dead-letter queue</span></div>
-        <div class="meta-item"><i class="ti ti-arrow-back"></i><span>HTTP callback → biz</span></div>
+        <div class="meta-item"><i class="ti ti-arrow-back"></i><span>RabbitMQ callback → biz</span></div>
       </div>
     </div>
   </div>
@@ -405,7 +404,7 @@ body {
   <div class="card-head">
     <i class="ti ti-layout-dashboard"></i>
     <div class="head-info">
-      <div class="head-name">brandhub-web-dashboard</div>
+      <div class="head-name">brandhub-web</div>
       <div class="head-sub">Agency management panel · Content calendar · Analytics · Client portal</div>
     </div>
     <span class="tech-badge">React + Vite + TypeScript</span>
@@ -522,35 +521,37 @@ body {
     <i class="ti ti-settings"></i>
     <div class="head-info">
       <div class="head-name">brandhub-infrastructure</div>
-      <div class="head-sub">Docker Compose · DB init scripts · Deployment docs · Architecture diagrams</div>
+      <div class="head-sub">Docker Compose · Operational DBs &amp; Migrations · AWS Terraform/Hosts · GPU Workers · VitePress Knowledge Base</div>
     </div>
-    <span class="tech-badge">Docker + Shell + Docs</span>
+    <span class="tech-badge">Terraform + Docker + Docs</span>
   </div>
   <div class="card-body">
     <div class="tree" style="column-count:2;column-gap:24px">
       <div style="break-inside:avoid">
-        <div><span class="t-dir">docker/</span></div>
-        <div><span class="t-d">├── </span><span class="t-file">docker-compose.yml</span><span class="t-cm"> — full dev stack: 6 services + MongoDB + PostgreSQL + Redis + RabbitMQ + ChromaDB + pgAdmin</span></div>
-        <div><span class="t-d">├── </span><span class="t-file">docker-compose.prod.yml</span><span class="t-cm"> — production overrides (no pgAdmin, resource limits)</span></div>
-        <div><span class="t-d">└── </span><span class="t-file">.env.example</span><span class="t-cm"> — tổng hợp tất cả env vars của 6 services</span></div>
+        <div><span class="t-dir">database/</span></div>
+        <div><span class="t-d">├── </span><span class="t-dir">init/</span><span class="t-cm"> — init-postgres-v2.sql (97 PG tables + 6 plans), init-mongo.js (52 collections)</span></div>
+        <div><span class="t-d">├── </span><span class="t-dir">migrations/</span><span class="t-cm"> — postgres/, mongodb/, neo4j/ (ordered incremental scripts)</span></div>
+        <div><span class="t-d">└── </span><span class="t-dir">backups/</span><span class="t-cm"> — restore-postgres.* / restore-mongodb.* + scripts/</span></div>
         <div class="t-sep"></div>
-        <div><span class="t-dir">scripts/</span></div>
-        <div><span class="t-d">├── </span><span class="t-file">init-mongo.js</span><span class="t-cm"> — tạo 12 collections (V1) + validators + indexes</span></div>
-        <div><span class="t-d">├── </span><span class="t-file">init-postgres.sql</span><span class="t-cm"> — tạo 15 tables (V1) + indexes + seed 4 plans</span></div>
-        <div><span class="t-d">├── </span><span class="t-file">pgadmin-servers.json</span><span class="t-cm"> — pgAdmin server config</span></div>
-        <div><span class="t-d">├── </span><span class="t-file">start-all.sh</span><span class="t-cm"> / </span><span class="t-file">start-all.ps1</span><span class="t-cm"> — start full stack including mobile</span></div>
-        <div><span class="t-d">└── </span><span class="t-file">start-no-mobile.sh</span><span class="t-cm"> / </span><span class="t-file">start-no-mobile.ps1</span><span class="t-cm"> — start stack without mobile container</span></div>
+        <div><span class="t-dir">docker/</span></div>
+        <div><span class="t-d">├── </span><span class="t-file">run_dev.bat</span><span class="t-cm"> / </span><span class="t-file">run_dev_ai.bat</span><span class="t-cm"> — local dev stacks (+ ChromaDB)</span></div>
+        <div><span class="t-d">├── </span><span class="t-dir">compose/dev/</span><span class="t-cm"> &amp; </span><span class="t-dir">dev-ai/</span><span class="t-cm"> — compose.yaml entrypoints + .env.example</span></div>
+        <div><span class="t-d">└── </span><span class="t-dir">compose/shared/*.yaml</span><span class="t-cm"> — databases, apps, neo4j, pgadmin fragments</span></div>
+        <div class="t-sep"></div>
+        <div><span class="t-dir">prod/</span> &amp; <span class="t-dir">gpu-workers/</span> &amp; <span class="t-dir">scripts/</span></div>
+        <div><span class="t-d">├── </span><span class="t-dir">prod/hosts/</span><span class="t-cm"> — gateway/, core/ (+ db-backup), ai/, crawl/, edit-video/, shared/</span></div>
+        <div><span class="t-d">├── </span><span class="t-dir">prod/terraform/</span><span class="t-cm"> — 01-iam → 02-frontend → 03-backend → 04-storage + loadtest/</span></div>
+        <div><span class="t-d">└── </span><span class="t-dir">gpu-workers/wan-vace/</span><span class="t-cm"> &amp; </span><span class="t-dir">scripts/</span><span class="t-cm"> — Wan 2.2 VACE bundle + workspace/jira/security</span></div>
       </div>
       <div style="break-inside:avoid">
-        <div><span class="t-dir">docs/</span></div>
-        <div><span class="t-d">├── </span><span class="t-dir">api/</span><span class="t-cm"> — business-service.yaml · ai-service.yaml · publisher-service.yaml (Swagger/OpenAPI)</span></div>
-        <div><span class="t-d">├── </span><span class="t-dir">architecture/</span></div>
-        <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">architecture.html</span><span class="t-cm"> — system architecture diagram</span></div>
-        <div><span class="t-d">│&nbsp;&nbsp;&nbsp;├── </span><span class="t-file">db-ownership-diagram.html</span><span class="t-cm"> — DB ownership + schema reference</span></div>
-        <div><span class="t-d">│&nbsp;&nbsp;&nbsp;└── </span><span class="t-file">polyrepo-structure.html</span><span class="t-cm"> — this file</span></div>
-        <div><span class="t-d">└── </span><span class="t-dir">deployment/</span><span class="t-cm"> — server-setup.md · env-guide.md · release-checklist.md</span></div>
+        <div><span class="t-dir">docs-site/</span> <span class="t-cm">&amp;</span> <span class="t-dir">docs/</span></div>
+        <div><span class="t-d">├── </span><span class="t-dir">docs-site/</span><span class="t-cm"> — VitePress portal, generate-tree.js, interactive Workload Dashboard</span></div>
+        <div><span class="t-d">├── </span><span class="t-dir">docs/adr/</span><span class="t-cm"> &amp; </span><span class="t-dir">architecture/</span><span class="t-cm"> — ADRs 001–004 · blueprints · interactive diagrams</span></div>
+        <div><span class="t-d">├── </span><span class="t-dir">docs/api/</span><span class="t-cm"> &amp; </span><span class="t-dir">database/</span><span class="t-cm"> — Business (630) + AI (68) endpoints · ERDs · DBML · Redis/Vector</span></div>
+        <div><span class="t-d">├── </span><span class="t-dir">docs/ba/</span><span class="t-cm"> &amp; </span><span class="t-dir">feature/</span><span class="t-cm"> — 141 canonical SRS FRs + 26 consolidated modules (8 groups)</span></div>
+        <div><span class="t-d">└── </span><span class="t-dir">docs/ai-models/</span><span class="t-cm"> · </span><span class="t-dir">operations/</span><span class="t-cm"> · </span><span class="t-dir">wireframe/</span><span class="t-cm"> · </span><span class="t-dir">screenshots/</span><span class="t-cm"> · </span><span class="t-dir">plan/</span><span class="t-cm"> · </span><span class="t-dir">archive/</span></div>
         <div class="t-sep"></div>
-        <div><span class="t-file">README.md</span><span class="t-cm"> — tổng quan + links đến tất cả 6 repos + quick-start guide</span></div>
+        <div><span class="t-file">README.md</span><span class="t-cm"> · </span><span class="t-file">SECURITY.md</span><span class="t-cm"> — repository hub, Gitleaks hooks &amp; CI workflows</span></div>
       </div>
     </div>
     <div class="meta">
@@ -560,14 +561,15 @@ body {
         <div class="meta-item"><i class="ti ti-circle-dot"></i><span>Business :8081</span></div>
         <div class="meta-item"><i class="ti ti-circle-dot"></i><span>AI :8082</span></div>
         <div class="meta-item"><i class="ti ti-circle-dot"></i><span>Publisher :8083</span></div>
-        <div class="meta-item"><i class="ti ti-circle-dot"></i><span>Web :3000</span></div>
+        <div class="meta-item"><i class="ti ti-circle-dot"></i><span>Crawl :8084 · Edit-Video :8095</span></div>
+        <div class="meta-item"><i class="ti ti-circle-dot"></i><span>Web :5173 · Mobile :8090</span></div>
       </div>
       <div class="meta-block">
         <div class="meta-title">Data stores</div>
         <div class="meta-item"><i class="ti ti-database"></i><span>MongoDB :27017</span></div>
         <div class="meta-item"><i class="ti ti-database"></i><span>PostgreSQL :5432</span></div>
         <div class="meta-item"><i class="ti ti-database"></i><span>Redis :6379</span></div>
-        <div class="meta-item"><i class="ti ti-vector"></i><span>ChromaDB :8000</span></div>
+        <div class="meta-item"><i class="ti ti-vector"></i><span>ChromaDB :8000 · Neo4j :7474/:7687</span></div>
         <div class="meta-item"><i class="ti ti-mail"></i><span>RabbitMQ :5672/:15672</span></div>
       </div>
     </div>

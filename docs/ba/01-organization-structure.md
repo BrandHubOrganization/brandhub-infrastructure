@@ -1,6 +1,6 @@
 # 01 — Cấu trúc Tổ chức & Kiến trúc Không gian Lai (Organization Structure & Hybrid Workspace Architecture)
 
-> [<< Về Overview](file:///D:/ProjectCode\BrandHub\brandhub-infrastructure\docs\ba\00-overview.md) | [Tiếp: 02 - Authentication & Profile >>](file:///D:/ProjectCode\BrandHub\brandhub-infrastructure\docs\ba\02-authentication-profile.md)
+> Navigation: [← BA Index](./README.md) · [← 00 - Overview](./README.md) · [Tiếp: 02 - Authentication & Profile →](./02-authentication-profile.md)
 
 ---
 
@@ -64,7 +64,7 @@ Một tài khoản người dùng vật lý (`User`) có thể giữ các vai tr
 2. **Giữa các Workspace trong cùng một Agency**:
    - Nhân sự B thuộc `Agency X` có thể được bổ nhiệm làm **`Manager`** tại `Workspace 1` (dự án thương hiệu A), nhưng chỉ là **`Creator`** hỗ trợ viết bài tại `Workspace 2` (dự án thương hiệu B).
 3. **Trong cùng một Workspace**:
-   - Mỗi người dùng chỉ có **1 bản ghi vai trò (`WorkspaceRole`: `MANAGER`, `Creator`, hoặc `CLIENT`)** trong một `Workspace` cụ thể (`UNIQUE (workspace_id, user_id)`).
+   - Mỗi người dùng chỉ có **1 bản ghi vai trò (`WorkspaceRole`: `MANAGER`, `CREATOR`, hoặc `CLIENT`)** trong một `Workspace` cụ thể (`UNIQUE (workspace_id, user_id)`).
    - Riêng `Owner` của Agency chứa Workspace đó mặc định có quyền quản trị cấp cao trên mọi Workspace thuộc Agency của mình; khi tạo Workspace ở chế độ `PERSONAL`, `Owner` được gán trực tiếp làm `MANAGER` của Workspace đó.
 
 ---

@@ -1,5 +1,7 @@
 # Nghiên cứu Mô hình Tạo ảnh Quảng cáo
 
+> [<< Knowledge Base Home](../index.md) · [AI Models & Research](./README.md) · [AI Service Architecture](../architecture/ai-service-architecture.md)
+
 ## 📑 Mục Lục Nhanh
 1. [Text-to-image / Base Model](#1-text-to-image--base-model)
 2. [Virtual Try-On (Thử đồ ảo)](#2-virtual-try-on-thử-đồ-ảo)

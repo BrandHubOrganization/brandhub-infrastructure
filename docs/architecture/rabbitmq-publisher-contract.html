@@ -6,7 +6,12 @@
 <title>BrandHub — RabbitMQ Publisher Contract</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
-.bh {font-size:11px;color:var(--color-text-primary);padding:10px;font-family:system-ui,-apple-system,sans-serif;}
+:root {
+  --color-text-primary: #1a1a2e;
+  --color-text-secondary: #57606a;
+  --color-background-primary: #ffffff;
+}
+.bh {font-size:11px;color:var(--color-text-primary, #1a1a2e);padding:10px;font-family:system-ui,-apple-system,sans-serif;background:#F7F8FA;}
 .l-svc {background:#FEF3E2;border:1px solid #ECC97A;border-radius:10px;padding:15px;text-align:center;}
 .l-mq {background:#FDE8D8;border:1px solid #E09060;border-radius:10px;padding:15px;display:flex;flex-direction:column;gap:10px;align-items:center;}
 .ll {font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:#888;margin-bottom:10px;}

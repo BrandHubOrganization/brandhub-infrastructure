@@ -1,4 +1,4 @@
-"""Build every flow in flows/<genre>/ from its director script, then zip wan_vace_bundle.zip (allowlist; never models or keys).
+"""Build every flow in flows/<genre>/ from its director script, then zip wan-vace-bundle.zip (allowlist; never models or keys).
 
   python package_vace.py
 
@@ -13,7 +13,7 @@ from build_ugc_flow import build as build_ugc
 from build_vace_flow import build_canvas
 
 ROOT = Path(__file__).resolve().parent
-B, FLOWS = ROOT / 'wan_vace_bundle', ROOT / 'flows'
+B, FLOWS = ROOT / 'wan-vace-bundle', ROOT / 'flows'
 
 for old in FLOWS.glob('*/*_GUI.json'):
     old.unlink()
@@ -27,13 +27,14 @@ for src in sorted(FLOWS.glob('*/*.json')):
     out.write_text(json.dumps(graph, ensure_ascii=False, indent=2), encoding='utf-8')
     print(f'{out.relative_to(ROOT)}: {len(graph["nodes"])} nodes')
 
-files = [ROOT / 'build_vace_flow.py', ROOT / 'build_ugc_flow.py', B / 'setup.sh', B / 'README_VI.md',
+files = [ROOT / 'README.md', ROOT / 'build_vace_flow.py', ROOT / 'build_ugc_flow.py', B / 'setup.sh',
          B / 'vace_api.py', B / 'canvas_api.py', B / 'start_api.py', B / 'requirements-api.txt',
-         B / 'director/PROMPT_RULES_WAN.md', *sorted((B / 'resources').glob('*.json'))]
+         B / 'director/prompt-rules-wan.md',
+         *sorted((B / 'resources').glob('*.json'))]
 files += sorted(p for p in FLOWS.rglob('*') if p.is_file() and p.suffix in ('.json', '.md', '.png', '.webp', '.jpg', '.mp3', '.wav'))
-out = ROOT / 'wan_vace_bundle.zip'
+out = ROOT / 'wan-vace-bundle.zip'
 with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
     for p in files:
         rel = p.relative_to(ROOT).as_posix()
-        z.write(p, 'wan_vace_bundle/' + rel if rel.startswith('flows/') else rel)
+        z.write(p, 'wan-vace-bundle/' + rel if rel.startswith('flows/') else rel)
 print(f'{len(files)} files -> {out} ({out.stat().st_size:,} bytes)')

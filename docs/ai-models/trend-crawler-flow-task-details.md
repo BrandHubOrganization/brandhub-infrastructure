@@ -1,4 +1,6 @@
 # Chi Tiết Nhiệm Vụ Epic AI-4.99 (Trend Crawler Flow Task Details)
+
+> [<< Knowledge Base Home](../index.md) · [AI Models & Research](./README.md) · [AI Service Architecture](../architecture/ai-service-architecture.md)
 **Epic:** `AI-4.99 — Analyze deeply crawl trend flow`  
 **Dự án:** BrandHub AI Trend System  
 
@@ -241,3 +243,15 @@ Tài liệu này định nghĩa chi tiết 7 nhiệm vụ phân tích kỹ thu�
 - Tài liệu Blueprint cần lưu trực tiếp trong thư mục tài liệu thiết kế của dự án để làm tài liệu đối chiếu (Reference) trong suốt quá trình code.
 
 **Dependencies:** Blocked by: DA-AI04-99-03, DA-AI04-99-05, DA-AI04-99-06.
+
+---
+
+## Quyết Định Thiết Kế Hạ Tầng Cào & Đồng Bộ Đồ Thị (Architecture Decisions)
+
+1. **Chiến lược Text-First Social Ingestion (Loại bỏ phụ thuộc GPU STT ở tầng Crawl):**
+   - Thay vì tải tệp video MP4/MP3 hàng loạt về tách âm thanh bằng Whisper trên GPU cục bộ (tốn băng thông và chi phí phần cứng), tầng thu thập tập trung vào **caption bài đăng, siêu dữ liệu hashtag/sound của TikTok Creative Center, nhóm Facebook công khai, bình luận top (`topComments`) và Google Trends**.
+   - Văn bản bài đăng + bình luận của người dùng chứa đầy đủ thực thể thực tế (`KOL`, `món ăn`, `địa điểm`, `sản phẩm`), giảm hơn 90% chi phí tính toán định kỳ và cho phép chạy gọn trên cụm container CPU tiêu chuẩn (`crawl` host).
+2. **Chống chặn IP & Điều phối Cổng Cào (`Proxy Rotation` & `crawl-gate`):**
+   - Các luồng cào TikTok và Facebook Public Groups bắt buộc đi qua lớp xoay vòng Proxy dân cư, ngẫu nhiên hóa `User-Agent`/headers và kiểm soát nhịp gọi qua `APScheduler` (chu kỳ 6 giờ) cùng dịch vụ bảo vệ `crawl-gate` trên môi trường production.
+3. **Background Entity Resolution định kỳ 12 giờ (`DA-AI03-09`):**
+   - Để ngăn đồ thị Neo4j bị phân mảnh bởi các biến thể tên gọi trên mạng xã hội (ví dụ `"HN"` và `"Hà Nội"`, hoặc biệt danh viết tắt của cùng một KOL), tiến trình ngầm chạy mỗi 12 giờ đối chiếu độ tương đồng ngữ nghĩa embedding + chuẩn hóa chuỗi để hợp nhất (`MERGE`) các node trùng lặp mà không làm mất cạnh tương tác lịch sử.

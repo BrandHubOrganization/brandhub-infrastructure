@@ -1,8 +1,8 @@
 # 04 — Gói Truyền thông, Chiến dịch & Yêu cầu Nội dung (Media Package, Media Campaign & Content Request)
 
-> [<< 03 - Agency & Workspace](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/03-agency-workspace-management.md) | [Overview](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/00-overview.md) | [Tiếp: 05 - Content & Task Workflow >>](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/05-content-task-workflow.md)
+> Navigation: [← BA Overview & Hub](./README.md) · [← 03 - Agency & Workspace](./03-agency-workspace.md) · [Tiếp: 05 - Content & Task Workflow →](./05-content-task-workflow.md)
 >
-> **Phạm vi FR chuẩn**: **Mục `3.5 Media Package & Media Campaign` — 13 FR (`3.5.1` – `3.5.13`)** | `UC-040` – `UC-052`.
+> **Phạm vi FR chuẩn**: **Mục `3.5 Media Package & Media Campaign` — 13 FR (`3.5.1` – `3.5.13`)** | `UC-040` – `UC-052` · Use Cases chi tiết: [use-cases/03-media-package-campaign.md](./use-cases/03-media-package-campaign.md) · Đặc tả SRS: [04-media-package-campaign](../feature/srs/04-media-package-campaign/README.md).
 > Đã đồng bộ với **8 loại Dịch vụ / Công việc chuẩn (`PackageServiceType` ↔ `TaskType`)**, luồng `Manager-led Package & Campaign Approval`, và luồng **Chiến dịch Cá nhân không cần Gói dịch vụ (`workspaceMode = "PERSONAL"`)**.
 
 ---
@@ -13,17 +13,17 @@
 | :-: | :-: | :--- | :--- | :--- |
 | **`3.5.1`** | `UC-040` | **Create Media Package** | `Owner` | Tạo mới hoặc tùy chỉnh Gói truyền thông mẫu (`MediaPackage`) ở cấp `Agency` với danh mục các hạng mục dịch vụ, số lượng, đơn vị chuẩn, đơn giá và điều khoản. |
 | **`3.5.2`** | `UC-041` | **View Template Media Package** | `Owner`, `Manager`, `Client` | Xem danh sách và chi tiết các Gói truyền thông mẫu của `Agency` hoặc bảng đề xuất gói gắn với `Workspace` (hỗ trợ xuất PDF đề xuất đa ngôn ngữ & chia sẻ link công khai cho `Guest`). |
-| **`3.5.3`** | `UC-042` | **Request Media Package** | `Manager`, `Client` | Chọn hoặc đề xuất áp dụng một Gói truyền thông cho `Workspace` (`WorkspaceMediaPackage`), tùy chỉnh hạng mục/số lượng theo nhu cầu dự án. |
-| **`3.5.4`** | `UC-043` | **Approve Media Package** | `Owner`, `Manager` | Xác nhận chốt Gói truyền thông cho `Workspace` (`status = APPROVED`) để mở khóa bước lập Chiến dịch truyền thông trong chế độ `AGENCY`. |
-| **`3.5.5`** | `UC-044` | **Create Media Campaign** | `Manager` | Khởi tạo Kế hoạch Chiến dịch truyền thông (`MediaCampaign`): đặt tên, mục tiêu, thời gian bắt đầu/kết thúc, thông điệp chủ đạo và danh sách các hạng mục công việc (`workItems`). |
-| **`3.5.6`** | `UC-045` | **View Media Campaign** | `Owner`, `Manager`, `Creator`, `Client` | Xem chi tiết kế hoạch chiến dịch, tiến độ tổng thể và **Lịch trình Chiến dịch (`CampaignTimelineGrid`)** kèm trạng thái từng Subtask, cờ trễ hạn và cờ chờ `Client` duyệt. |
-| **`3.5.7`** | `UC-046` | **Update Media Campaign** | `Manager` | Cập nhật thông tin chiến dịch, điều chỉnh danh sách hạng mục công việc, thời hạn hoặc phân bổ lại nhân sự trong quá trình thực hiện. |
-| **`3.5.8`** | `UC-047` | **Approve Media Campaign** | `Manager`, `Client` | Chốt kế hoạch chiến dịch và triển khai (`Deploy Campaign`): tự động sinh hàng loạt Công việc cha (`TaskDocument`) kèm đầy đủ bộ **Subtask theo vai trò chuẩn (`TaskCatalog`)**. |
-| **`3.5.9`** | `UC-048` | **Complete Media Campaign** | `Manager` | Đánh dấu hoàn tất Chiến dịch truyền thông (`status = COMPLETED`) sau khi các hạng mục công việc cốt lõi đã hoàn thành và nghiệm thu. |
-| **`3.5.10`** | `UC-049` | **Create Content Request** | `Client` | Khách hàng (`Client`) tạo Yêu cầu nội dung phát sinh (`ContentRequest`) từ `Client Portal` gửi cho đội ngũ `Workspace`. |
-| **`3.5.11`** | `UC-050` | **Track Request Status** | `Manager`, `Client` | Theo dõi trạng thái xử lý của `ContentRequest` (`PENDING` → `APPROVED` / `IN_PROGRESS` / `COMPLETED` / `REJECTED` / `CANCELLED`) và công việc (`Task`) được sinh ra từ yêu cầu đó. |
-| **`3.5.12`** | `UC-051` | **Update Request** | `Manager`, `Client` | `Client` chỉnh sửa nội dung yêu cầu khi còn ở trạng thái `PENDING`; `Manager` tiếp nhận, phản hồi, duyệt chuyển thành `Task` hoặc từ chối kèm lý do. |
-| **`3.5.13`** | `UC-052` | **Cancel Request** | `Client` | `Client` hủy một `ContentRequest` do mình tạo khi yêu cầu đang ở trạng thái `PENDING` (chưa được `Manager` triển khai thành `Task`). |
+| **`3.5.3`** | `UC-042` | **Request Media Package** | `Owner`, `Manager`, `Client` | Đề xuất và đàm phán điều chỉnh gói truyền thông (`WorkspaceMediaPackage` — giá, thời lượng, số lượng hạng mục) qua từng vòng cho đến khi thống nhất (`BR-25`, `BR-26`). |
+| **`3.5.4`** | `UC-043` | **Approve Media Package** | `Owner`, `Manager`, `Client` | Phê duyệt chốt gói truyền thông khi cả hai bên (`Agency` và `Client`) đồng thuận (`status = APPROVED`, `BR-26`, `BR-27`) để mở khóa bước lập Chiến dịch truyền thông. |
+| **`3.5.5`** | `UC-044` | **Create Media Campaign** | `Owner`, `Manager` | Khởi tạo Kế hoạch Chiến dịch truyền thông (`MediaCampaign`): đặt tên, mục tiêu, lộ trình `Start`/`End Date` và danh sách các hạng mục bài viết dự kiến (`workItems`, `BR-27`). |
+| **`3.5.6`** | `UC-045` | **View Media Campaign** | `Owner`, `Manager`, `Creator`, `Client` | Xem chi tiết kế hoạch chiến dịch, lịch sử phiên bản, luồng phản hồi và **Lịch trình Chiến dịch (`CampaignTimelineGrid`)** kèm trạng thái từng Subtask (`BR-27`, `BR-28`). |
+| **`3.5.7`** | `UC-046` | **Update Media Campaign** | `Owner`, `Manager`, `Client` | Cập nhật nội dung Kế hoạch Chiến dịch truyền thông và gửi phản hồi điều chỉnh khi chiến dịch đang ở trạng thái nháp / chờ duyệt (`BR-27`–`BR-30`). |
+| **`3.5.8`** | `UC-047` | **Approve Media Campaign** | `Owner`, `Manager`, `Client` | Phê duyệt và kích hoạt triển khai Chiến dịch (`ACTIVE`): tự động đẩy toàn bộ hạng mục công việc vào Task Backlog kèm bộ **Subtask theo vai trò chuẩn (`TaskCatalog`, `BR-29`)**. |
+| **`3.5.9`** | `UC-048` | **Complete Media Campaign** | `Owner`, `Manager` | Nghiệm thu và hoàn tất Chiến dịch truyền thông (`status = COMPLETED`), đồng thời tự động hủy (`CANCELLED`) các yêu cầu phát sinh còn treo `PENDING` thuộc chiến dịch đó (`BR-30`). |
+| **`3.5.10`** | `UC-049` | **Create Content Request** | `Owner`, `Manager`, `Client` | Tạo yêu cầu nội dung bổ sung/phát sinh ngoài kế hoạch ban đầu (`status = PENDING`, `BR-31`). |
+| **`3.5.11`** | `UC-050` | **Track Request Status** | `Owner`, `Manager`, `Client` | Theo dõi và điều phối trạng thái Yêu cầu nội dung (`PENDING → IN_PROGRESS → ACCEPTED / DENIED`); khi chuyển sang `ACCEPTED`, tự động sinh `Task` đẩy vào Backlog (`BR-31`, `BR-33`). |
+| **`3.5.12`** | `UC-051` | **Update Request** | `Owner`, `Manager`, `Client` | Chỉnh sửa nội dung của Yêu cầu phát sinh khi còn ở trạng thái `PENDING`; khóa chỉnh sửa ngay khi đã chuyển sang `IN_PROGRESS`, `ACCEPTED` hoặc `DENIED` (`BR-32`). |
+| **`3.5.13`** | `UC-052` | **Cancel Request** | `Owner`, `Manager`, `Client` | Hủy yêu cầu nội dung phát sinh khi đang ở trạng thái `PENDING` (`status = CANCELLED`, `BR-32`). |
 
 ---
 
@@ -78,10 +78,33 @@ Khi người dùng làm việc trong Không gian Cá nhân hoặc Nhóm bài t�
 Luồng `Content Request` phục vụ riêng cho tương tác giữa `Client` và `Manager` trong các Workspace có `workspaceMode = "AGENCY"`:
 1. **`3.5.10 Create Content Request` (`Client`)**:
    - Từ `Client Portal` (`/workspaces/:id/portal`), `Client` gửi yêu cầu làm thêm hoặc điều chỉnh nội dung (nhập tiêu đề, loại nội dung mong muốn, mô tả yêu cầu, hạn mong muốn và tệp đính kèm). Bản ghi mới có `status = PENDING`.
-2. **`3.5.11 Track Request Status` (`Manager`, `Client`)**:
-   - Cả `Client` và `Manager` xem danh sách và trạng thái thời gian thực của từng yêu cầu, kèm liên kết tới `Task` thực thi sau khi yêu cầu được duyệt.
-3. **`3.5.12 Update Request` (`Manager`, `Client`)**:
-   - Khi yêu cầu đang ở `PENDING`, `Client` có thể sửa nội dung mô tả; `Manager` có thể bấm **Chấp nhận** (tự động chuyển hóa yêu cầu thành một `TaskDocument` trong Workspace để giao cho `Creator`) hoặc **Từ chối** kèm ghi chú phản hồi.
-4. **`3.5.13 Cancel Request` (`Client`)**:
-   - Khi yêu cầu đang ở `PENDING`, `Client` có quyền rút lại / hủy yêu cầu (`status = CANCELLED`).
+2. **`3.5.11 Track Request Status` (`Owner`, `Manager`, `Client`)**:
+   - Theo dõi và điều phối trạng thái của từng yêu cầu qua 4 trạng thái chuẩn: `PENDING -> IN_PROGRESS -> ACCEPTED` (hoặc `DENIED`). Khi phía Agency (`Owner`/`Manager`) chuyển sang `ACCEPTED`, hệ thống tự động sinh một `TaskDocument` đẩy vào Task Backlog của Workspace.
+3. **`3.5.12 Update Request` (`Owner`, `Manager`, `Client`)**:
+   - Người tạo chỉnh sửa tiêu đề, mô tả, hạn mong muốn hoặc tệp tham khảo khi yêu cầu đang ở trạng thái `PENDING`; ngay khi đã chuyển sang `IN_PROGRESS`, `ACCEPTED` hoặc `DENIED` thì nội dung yêu cầu bị khóa không cho sửa (`BR-32`).
+4. **`3.5.13 Cancel Request` (`Owner`, `Manager`, `Client`)**:
+   - Khi yêu cầu đang ở `PENDING`, người tạo có quyền hủy yêu cầu (`status = CANCELLED`, `BR-32`).
 - **Hành vi ở chế độ `PERSONAL`**: Vì không có `Client`, mục `Yêu cầu Nội dung (/requests)` được ẩn khỏi Sidebar để tránh dư thừa; người dùng cá nhân tạo trực tiếp Task tại `/tasks`.
+
+---
+
+## 5. Bảng Tham chiếu Quy tắc Nghiệp vụ (`BR-25` – `BR-33`)
+
+| Mã BR | Tên Quy tắc | Quy định Ràng buộc Cụ thể | FR Áp dụng |
+| :-: | :--- | :--- | :--- |
+| `BR-25` | **Sao chép Độc lập Gói Truyền thông** | Tùy chỉnh Gói dịch vụ trong một `Workspace` tạo bản sao điều khoản riêng trên `workspace_media_packages`, không bao giờ làm thay đổi `MediaPackage` mẫu gốc của `Agency`. | `3.5.1`–`3.5.3` |
+| `BR-26` | **Đồng thuận Nguyên tử 2 Bên (`Two-Party ACID Approval`)** | Ở chế độ `AGENCY`, gói dịch vụ chỉ đạt `APPROVED` khi cả `approved_by_agency_at` và `approved_by_client_at` đều khác `NULL`; bất kỳ chỉnh sửa nào lên điều khoản/số lượng sẽ tự động đặt lại chữ ký của bên đối diện về `NULL` trong cùng giao dịch PostgreSQL. | `3.5.3`, `3.5.4` |
+| `BR-27` | **Mở khóa Chiến dịch từ Gói Đã Duyệt** | Trong chế độ `AGENCY`, chỉ được khởi tạo và phê duyệt `MediaCampaign` khi `Workspace` đã có `WorkspaceMediaPackage` ở trạng thái `APPROVED` và tổng hạng mục chiến dịch không vượt trần gói. | `3.5.4`–`3.5.8` |
+| `BR-28` | **Lịch sử Phiên bản Chiến dịch (`CampaignVersion`)** | Mỗi lần cập nhật kế hoạch chiến dịch hoặc gửi phản hồi đàm phán đều lưu lại snapshot `campaign_versions` và sự kiện `campaign_review_events` để đối chiếu. | `3.5.6`, `3.5.7` |
+| `BR-29` | **Sinh Công việc Chống Trùng lặp (`Idempotent Deploy`)** | Khi phê duyệt triển khai chiến dịch (`3.5.8`), `campaign_deployments` sinh nguyên tử các `TaskDocument` và `Subtask` vai trò chuẩn trong MongoDB kèm khóa chống sinh trùng hạng mục. | `3.5.8` |
+| `BR-30` | **Nghiệm thu Chiến dịch & Dọn Yêu cầu Treo** | Khi chiến dịch chuyển sang `COMPLETED` (`3.5.9`), hệ thống khóa tạo mới hạng mục trong chiến dịch đó và tự động chuyển các `Content Request` đang treo `PENDING` thuộc chiến dịch sang `CANCELLED`. | `3.5.7`, `3.5.9` |
+| `BR-31` | **Máy Trạng thái Yêu cầu Nội dung 1 Chiều** | `Content Request` tuân thủ chu trình `PENDING → IN_PROGRESS → ACCEPTED / DENIED` (hoặc `CANCELLED` từ `PENDING`); `DENIED` và `CANCELLED` là trạng thái kết thúc không thể mở lại. | `3.5.10`, `3.5.11` |
+| `BR-32` | **Khóa Sửa / Hủy Yêu cầu sau Tiếp nhận** | Người tạo chỉ được chỉnh sửa (`3.5.12`) hoặc hủy (`3.5.13`) khi yêu cầu còn ở `PENDING`; ngay khi `Manager`/`Owner` chuyển sang `IN_PROGRESS` thì nội dung yêu cầu gốc được khóa cố định. | `3.5.12`, `3.5.13` |
+| `BR-33` | **Tự động Khởi tạo Task khi Chấp thuận Yêu cầu** | Khi `Content Request` chuyển sang `ACCEPTED`, hệ thống tự động khởi tạo một `TaskDocument` liên kết mã yêu cầu và đồng bộ ngược trạng thái hoàn tất qua `content_request_completion_jobs`. | `3.5.11`, `3.6.1`, `3.6.2` |
+
+---
+
+## 6. Ánh xạ Thực thể Cơ sở Dữ liệu (`PostgreSQL` ↔ `MongoDB`)
+
+- **PostgreSQL (`brandhub-business-service`)**: `media_packages`, `workspace_media_packages`, `package_negotiation_events`, `media_campaigns`, `campaign_versions`, `campaign_review_events`, `campaign_deployments`, `content_request_completion_jobs` (xem [ERD Entity Descriptions](../database/schema/erd-entity-descriptions.md)).
+- **MongoDB (`brandhub-business-service`)**: `content_requests`, `tasks`, `task_sections` (liên kết mềm về `media_campaigns.id` và `workspaces.id`).

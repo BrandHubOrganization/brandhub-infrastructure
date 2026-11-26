@@ -10,7 +10,7 @@ import httpx
 from fastapi.testclient import TestClient
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'wan_vace_bundle'))
+sys.path.insert(0, str(ROOT / 'wan-vace-bundle'))
 SCRIPT = json.loads((ROOT / 'flows/unbox/unbox_perfume.json').read_text(encoding='utf-8'))
 KEY = {'X-API-Key': 'test-worker-key'}
 PID = '12345678-1234-4234-8234-123456789012'

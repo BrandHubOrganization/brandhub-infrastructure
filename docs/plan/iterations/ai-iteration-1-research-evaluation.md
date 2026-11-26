@@ -1,5 +1,7 @@
 # AI Iteration 1 — Research & Evaluation
 
+> [<< Knowledge Base Home](../../index.md) · [Project Plans](../README.md) · [AI Iterations](./README.md)
+
 **Timeline:** Parallel with Sprints 5–6 (Weeks 9–12)
 **Duration:** 2 weeks
 **Goal:** Evaluate AI tools for all 3 tracks (ambassador, video, image composition) and set up the ai-service project foundation.

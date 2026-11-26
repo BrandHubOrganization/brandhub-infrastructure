@@ -1,5 +1,7 @@
 # AI Iteration 2 — RAG, LLM & Trends
 
+> [<< Knowledge Base Home](../../index.md) · [Project Plans](../README.md) · [AI Iterations](./README.md)
+
 **Timeline:** Parallel with Sprints 7–8 (Weeks 13–16)
 **Duration:** 2 weeks
 **Goal:** Build the complete RAG knowledge base pipeline, integrate LLM content generation with anti-hallucination safeguards, and implement the trend crawler service.

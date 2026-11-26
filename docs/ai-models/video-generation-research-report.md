@@ -1,52 +1,102 @@
-# Video Generation Research Report (Google Veo)
+# AI Video Generation Architecture & Model Evaluation Report
 
-## 1. Tóm tắt API Google Veo
-Google Veo là mô hình AI tạo video tiên tiến, hỗ trợ Text-to-Video, Image-to-Video và Video-to-Video.
-- **Mô hình chính**: `veo-3.1-flash` (nhanh, tối ưu cho ứng dụng thực tế).
-- **Chi phí dự kiến**: 
-  - 1080p: $0.40 cho mỗi 5s.
-  - 720p: $0.15 cho mỗi 5s.
-  *(Bảng dự toán tính năng Video Chaining chi tiết xem bên dưới)*
-- **Giới hạn kỹ thuật**: 
-  - Thời lượng hỗ trợ: 4s, 6s, 8s (tối đa cho 1 API call).
-  - Tỉ lệ khung hình: 16:9, 9:16.
-  - Tốc độ khung hình: 24 FPS.
+> [<< Knowledge Base Home](../index.md) · [AI Models & Research](./README.md) · [AI Service Architecture](../architecture/ai-service-architecture.md)
 
-### Bảng Dự Toán Chi Phí Sinh Video Đa Phân Đoạn (Chaining)
+This specification documents BrandHub's end-to-end AI video generation research and final production architecture powering **AI Video Generation (`FR 3.7.9`–`3.7.11`)** and **Product Video Studio (`FR 3.6.34`–`3.6.35`)**:
+1. **Phase 1 Evaluation**: Commercial API benchmarking (`veo-3.1-flash`) across **30 standardized marketing prompt templates**.
+2. **Phase 2 Production Architecture**: Self-hosted **Wan 2.2 Fun VACE 14B + Qwen Image 2.1 + Wan 2.2 S2V 14B** on Vast.ai GPU workers (`gpu-workers/wan-vace/`), orchestrated by `brandhub-ai-service/app/services/ltx_director.py` and paired with FFmpeg server-side timeline rendering (`brandhub-edit-video`).
 
-| Thời lượng mong muốn | Kỹ thuật gọi API | Chi phí (1080p) | Chi phí (720p) | Tổng thời gian Render (Ước tính) |
-|---|---|---|---|---|
-| **5 giây** | 1 Lần gọi API | $0.40 | $0.15 | ~20 giây |
-| **10 giây** | 2 Lần gọi (Nối 1 lần) | $0.80 | $0.30 | ~45 giây |
-| **15 giây** | 3 Lần gọi (Nối 2 lần) | $1.20 | $0.45 | ~75 giây |
-| **20 giây** | 4 Lần gọi (Nối 3 lần) | $1.60 | $0.60 | ~110 giây |
+---
 
-## 2. Top 5 Mẹo Viết Prompt Tối Ưu (Áp dụng từ Prompt Leaks)
-Qua quá trình phân tích các system prompt xuất sắc từ Claude/Cursor (system_prompts_leaks) và quá trình benchmark 30 template, đây là 5 quy tắc vàng:
+## 1. Phase 1 Commercial API Evaluation (`veo-3.1-flash`)
 
-1. **Cấu trúc tuyến tính (Linear Structure):** Bắt đầu bằng bối cảnh lớn -> nhân vật/sản phẩm chính -> hành động -> phong cách camera -> ánh sáng. Giúp AI ưu tiên render đúng chủ thể trước.
-2. **Loại bỏ từ thừa (Noise Reduction):** Thay vì viết "Xin hãy tạo một video về...", hãy viết trực diện: "A 5-second cinematic shot of [Product]".
-3. **Mô tả chất liệu & Ánh sáng (Texture & Lighting):** AI video phản hồi rất tốt với các từ khóa vật lý: *volumetric lighting, ray tracing, sharp focus, matte finish, glowing neon*.
-4. **Tham số hóa chuyển động (Motion Parameters):** Đừng chỉ nói "camera di chuyển", hãy dùng các thuật ngữ điện ảnh chuẩn xác như *slow pan left, dynamic zoom in, drone tracking shot*.
-5. **Giới hạn chi tiết chuyển động:** Tránh yêu cầu quá nhiều hành động phức tạp nối tiếp nhau trong cùng 1 video 5 giây (ví dụ: người đi bộ rồi quay lại mỉm cười rồi cầm điện thoại). Hãy giữ 1 hành động cốt lõi cho mỗi cú máy (shot).
+During AI Iteration 1 & 4, Google Veo (`veo-3.1-flash`) was evaluated as an API-first baseline for Text-to-Video and Image-to-Video generation:
+- **Pricing Baseline**: `$0.40` per 5s clip at `1080p` (`$0.15` per 5s clip at `720p`).
+- **API Constraints**: 4s / 6s / 8s single-call clip cap, `16:9` or `9:16` aspect ratios, `24 FPS`.
 
-## 3. Bảng Benchmark 30 Prompts (Trích xuất ngẫu nhiên)
+### Multi-Segment Chaining Cost Projection (API Baseline)
 
-| ID | Template Name | Thời gian (s) | Chất lượng (1-5) | Chi phí (USD) | Ghi chú |
-|---|---|---|---|---|---|
-| 01 | Product Intro - Static | 18 | 4.8 | $0.40 | Chi tiết bề mặt sản phẩm xuất sắc. |
-| 02 | Product Intro - Pan | 21 | 4.5 | $0.40 | Chuyển động mượt, không bị warp. |
-| 05 | Lifestyle - Zoom In | 25 | 4.2 | $0.40 | Hơi mất nét ở giây cuối. |
-| 12 | Unboxing - Static | 19 | 4.9 | $0.40 | Ánh sáng studio cực kỳ chân thực. |
-| ... | *(Toàn bộ 30 templates đã được lưu trong `video_templates.py`)* | ~20 | 4.6 (TB) | $0.40 | Đạt chuẩn Production. |
+| Target Duration | API Chaining Strategy | 1080p Cost | 720p Cost | Estimated Render Latency |
+| :--- | :--- | :--- | :--- | :--- |
+| **5 seconds** | 1 API call | `$0.40` | `$0.15` | ~20s |
+| **10 seconds** | 2 chained calls (1 stitch) | `$0.80` | `$0.30` | ~45s |
+| **15 seconds** | 3 chained calls (2 stitches) | `$1.20` | `$0.45` | ~75s |
+| **20 seconds** | 4 chained calls (3 stitches) | `$1.60` | `$0.60` | ~110s |
 
-## 4. Giải pháp Vượt Giới Hạn: Kỹ thuật Nối Khung Hình (Video Chaining)
-Giới hạn lớn nhất của Veo hiện tại là thời lượng tối đa 8s cho mỗi lần render. Để tạo ra các video dài (10s, 15s, 20s) phục vụ Marketing, BrandHub đã áp dụng kiến trúc Video Chaining:
+### Why Production Migrated Beyond Pure Veo Chaining
+While last-frame feedback chaining solved basic continuity, commercial API calls suffered from three production blockers for Vietnamese e-commerce agencies:
+1. **Packaging & Label Drift**: Pure text/single-frame I2V drifted brand logos and Vietnamese packaging typography across cuts.
+2. **Strict Commercial Safety False Positives**: Benign skincare/fashion studio shots were intermittently rejected by opaque upstream safety filters.
+3. **Unit Economics at 15–21s**: Multi-segment commercial TVCs cost `$1.20–$1.60` per render without deterministic start/end keyframe locking (`FLF2V`) or lip-synced Vietnamese speech (`S2V`).
 
-1. **Multi-segment Templates (Task 343)**: Thay vì dùng một câu lệnh duy nhất, prompt được bẻ thành 3 Hồi (Ví dụ: Intro -> Action -> Detail). Giúp cốt truyện tiến triển thay vì lặp lại.
-2. **Image-to-Video Feedback Loop**: Lấy chính frame cuối (Last frame) của đoạn video 5s đầu tiên để làm đầu vào `image_url` (Character Reference) cho lần gọi API thứ hai. Việc này đảm bảo tỷ lệ khuôn mặt và vật liệu sản phẩm được "khóa" chặt, không bị biến dạng khi đổi cảnh.
-3. **FFmpeg Stitching (Task 299)**: Các đoạn video ngắn được đẩy vào một Background Task ngầm. Hệ thống sử dụng công cụ FFmpeg để "hàn" chúng lại thành một file MP4 dài 15s mượt mà duy nhất trước khi đẩy lên S3.
+---
 
-## 5. Hạn chế & Rủi ro
-- **Giới hạn nội dung**: Google Veo có bộ lọc an toàn rất gắt. Các video có chứa cảnh bạo lực, nội dung nhạy cảm, hoặc nhãn hiệu/người nổi tiếng có bản quyền sẽ bị từ chối ngay ở bước API (Fail-fast).
-- **Vấn đề "biến dạng" (Warping)**: Trong các lệnh `subject_walk`, nếu camera zoom cùng lúc, hình thể nhân vật ở cuối video có xu hướng bị lỗi tỷ lệ. Cách khắc phục: Khóa tĩnh camera khi nhân vật di chuyển nhanh.
+## 2. Production Video Architecture: Wan 2.2 Fun VACE 14B + Qwen Image 2.1 + S2V
+
+In production, `brandhub-ai-service` (`app/services/ltx_director.py`) acts as an **AI Director**, compiling user briefs and product/ambassador photos into a schema-validated JSON shooting script executed by the ComfyUI GPU worker (`gpu-workers/wan-vace/`).
+
+```mermaid
+flowchart LR
+    BIZ["brandhub-business-service<br/>(ProductVideoStore + AI Credits)"]
+    DIR["brandhub-ai-service<br/>ltx_director.py (Claude Director)"]
+    VACE["Vast.ai GPU Worker (wan-vace)<br/>Qwen Image 2.1 + Wan 2.2 VACE 14B + S2V"]
+    FFM["FFmpeg Postprocess<br/>add_music() + brandhub-edit-video (:8095)"]
+    S3["AWS S3 Media Bucket"]
+
+    BIZ -->|"Reserve credits + submit brief"| DIR
+    DIR -->|"Validate script.schema.json<br/>POST multipart /jobs"| VACE
+    VACE -->|"Poll /jobs/{id} → silent/S2V MP4"| DIR
+    DIR -->|"Mix CC0 WAV (-af afade) + faststart"| FFM
+    FFM -->|"Upload final MP4 + thumbnail"| S3
+```
+
+### 2.1 Core Runtime Constants & Guardrails (`ltx_director.py` ↔ `build_vace_flow.py`)
+
+| Parameter | Production Value | Enforcement Rule |
+| :--- | :--- | :--- |
+| **Frame Rate (`FPS`)** | `16 FPS` | Deterministic timeline grid shared between `ltx_director.py` and ComfyUI `WanVaceToVideo`. |
+| **Segment Length (`DEFAULT_FRAMES`)** | `85 frames` (`5.31s`) | Every segment frame count MUST satisfy `4n + 1` (`check_script()` rejects invalid counts before touching GPU). |
+| **Chained Seam (`OVERLAP`)** | `8 frames` (`0.5s`) | When `start = "prev"`, the last 8 frames of segment `i-1` condition the VACE control stream of segment `i`. |
+| **Total Output Window** | `15.0s – 21.0s` | Validated via `MIN_SECONDS = 15`, `MAX_SECONDS = 21` prior to worker submission. |
+| **Resolutions (`SIZES`)** | `9:16` (`576×1024`), `16:9` (`1024×576`) | Native vertical Reels/TikTok/Shorts and horizontal widescreen TVC profiles. |
+| **Director Fallback** | Anthropic API → Claude CLI | Primary `generate_claude()` call with automatic fallback to `claude_cli()` (`VIDEO_DIRECTOR_MODEL`, stdin-isolated). |
+
+### 2.2 Multi-Stage GPU Synthesis Pipeline (`gpu-workers/wan-vace/`)
+1. **4-Angle Qwen Turnaround Sheet (`views`)**: Qwen Image 2.1 synthesizes consistent front/side/three-quarter/detail product reference sheets from `reference_image` (attachment 1) so packaging geometry never warps during camera orbit.
+2. **Storyboard Panel Grids (`K0..K3` or `K0..K7`)**: Qwen Image Edit renders one or two `2×2` contact sheets (`storyboard_prompt` / `storyboard_prompts`). When a Virtual Ambassador or model photo is supplied (`character_image_base64` / `extra_images`), it is injected as **image 3** so every panel preserves exact facial identity.
+3. **Wan 2.2 Fun VACE 14B Motion Synthesis**: Each segment runs either **First-Last-Frame-to-Video (`FLF2V`)** between storyboard panels (`start: K_a`, `end_panel: K_b`) or **seam-chained continuation** (`start: "prev"`) with `8`-frame latent overlap.
+4. **Wan 2.2 S2V 14B Lip-Sync (`ugc` genre)**: For talking-head UGC scripts, TTS audio drives `WanSoundImageToVideo` for frame-accurate Vietnamese lip synchronization.
+5. **Audio Mastering & Studio Timeline (`add_music` & `brandhub-edit-video`)**: `ltx_director.py` mixes looped CC0 background tracks (`app/resources/product-video/music/*.wav`, `0.5s` fade-in, `1.5s` fade-out, `aac 192k`, `+faststart`). Users can subsequently refine cuts, captions, and overlays in the Web Video Studio backed by `brandhub-edit-video` (`:8095`).
+
+---
+
+## 3. Prompt Engineering Rules & 30-Prompt Benchmark Summary
+
+### 3.1 Five Production Prompt Rules (Applied in `DIRECTOR_PROMPT.md` & `prompt-rules-wan.md`)
+1. **Linear Scene Ordering**: Structure every segment prompt strictly as *Environment/Stage → Hero Product/Subject → Single Physical Action → Camera Trajectory → Lighting & Material Texture*.
+2. **Zero Meta-Instruction Noise**: Never use conversational filler (`"Please generate a video of..."`); open directly with framing and physical optics (`"Close-up 50mm studio shot of..."`).
+3. **Physical Surface & Lighting Anchors**: Specify tangible lighting and surface cues (*softbox key light, specular glass highlight, matte anodized aluminum, natural window rim light*) while avoiding synthetic CGI buzzwords that cause plastic skin.
+4. **Explicit Cinematographic Camera Verbs**: Parameterize camera motion with unambiguous verbs (*slow dolly in, locked-off tripod, gentle pan right, tabletop macro push*)—see [camera-movement-ai-prompts.md](./camera-movement-ai-prompts.md).
+5. **One Core Action per 5-Second Beat**: Restrict each `85`-frame (`5.3s`) segment to a single physical action; never combine rapid subject locomotion with simultaneous zoom/orbit, which causes limb or label warping.
+
+### 3.2 Benchmark Across 30 Standardized Marketing Prompts
+
+All 30 standardized marketing video prompt templates were benchmarked for render latency, surface/motion fidelity (`1–5`), and per-segment cost during Phase 1 (`video_templates.py` baseline) prior to codifying the VACE storyboard presets:
+
+| Template ID | Template Archetype | Avg Render Time (5s) | Visual Fidelity (`1–5`) | Baseline API Cost | Key Engineering Finding |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| `01` | **Product Intro — Static Hero** | `18s` | `4.8` | `$0.40` | Crispest packaging typography and specular material fidelity; adopted as `K0` opening anchor. |
+| `02` | **Product Intro — Slow Pan** | `21s` | `4.5` | `$0.40` | Smooth horizontal parallax without edge warping when subject remains stationary. |
+| `05` | **Lifestyle — Dynamic Zoom In** | `25s` | `4.2` | `$0.40` | Minor focus softening in final frames under unconstrained I2V; resolved in VACE via `end_panel` FLF2V lock. |
+| `12` | **Unboxing — Locked Tabletop** | `19s` | `4.9` | `$0.40` | Natural hand-object interaction and realistic studio shadow falloff (`example_unbox_chained.json`). |
+| `01–30` | **Full 30-Template Suite (Aggregate)** | `~20s` / beat | **`4.6` avg** | `$0.40` / beat | Static & single-axis camera moves (` dolly`, `pan`, `locked`) consistently outperform compound camera + subject motion. |
+
+---
+
+## 4. Operational Risks & Mitigations
+
+| Risk / Failure Mode | Root Cause | Production Mitigation |
+| :--- | :--- | :--- |
+| **Subject / Label Warping on Compound Motion** | Simultaneous fast subject movement (`subject_walk`) + camera zoom degrades latent geometry in trailing frames. | Lock tripod camera when subject moves rapidly, or lock product stationary during camera orbit + supply 4-angle Qwen turnaround sheet. |
+| **Malformed LLM Shooting Script** | LLM outputs invalid frame counts (not `4n+1`), out-of-range panel indices, or total duration outside `15–21s`. | `check_script()` validates `script.schema.json` + exact frame/panel math in `brandhub-ai-service` before allocating GPU worker time. |
+| **GPU Cold-Start / Spot Interruption** | Ephemeral Vast.ai GPU worker offline or restarting. | Credit reservation in PostgreSQL (`ai_credit_reservations` + `product_video_attempts`) only captures credits upon verified output delivery; failed jobs release reserved credits automatically. |
