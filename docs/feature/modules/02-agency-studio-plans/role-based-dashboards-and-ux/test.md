@@ -55,3 +55,8 @@ npx jest --runInBand
 - [x] Consolidates all historical PR sub-specs (`role-based-dashboards`, `dashboard-experience`, `agency-profile-presentation`, `agency-invitation-email-language`, `workspace-timezone-consistency`, `navigation-ux-linked-demo-data`, `landing-lab-replaced-apps`, `admin-ui-consistency`, `duplicate-workspace`) into one production-verified module specification.
 - [x] Strictly enforces the 6 canonical system roles (`Guest`, `Owner`, `Manager`, `Creator`, `Client`, `Admin`).
 - [x] Key-parallel `vi.json` + `en.json` localization and Light/Dark semantic token contrast verified across Web and Mobile.
+### Hồi quy bộ đếm và lối vào công việc trên Web
+
+- Dữ liệu mô phỏng có lớn hơn 20 công việc. Tổng trên thẻ và danh sách mở từ thẻ phải khớp.
+- Mở việc gấp/chờ duyệt từ Dashboard và Sidebar. Danh sách phải giữ đúng phạm vi và bộ lọc. Số 0 bỏ badge ở Sidebar. Chuyển Workspace thay số ngay khi có dữ liệu của Workspace mới.
+- Kiểm tra Agency của Owner và Manager, thao tác duyệt, hai ngôn ngữ VI/EN, giao diện sáng/tối và điều hướng bằng bàn phím.

@@ -29,6 +29,10 @@ Consolidate BrandHub's end-to-end Task authoring and execution UX: simplified 5-
 5. **Internationalization (`vi.json` + `en.json`):** Every user-facing string, tooltip, dialog prompt, status badge, and error banner uses key-parallel translations (`tasks.{workflow,inline,subtasks,sections,unsavedConfirm}.*` in `src/i18n/locales/{vi,en}/tasks.json`) on `brandhub-web` and `tr()` (`en.json` + `vi/common.json`) on `brandhub-mobile-app` with zero hardcoded Vietnamese or English strings in JSX/TSX.
 6. **Light & Dark Mode Compliance:** All surfaces, drawers, badges, charts, and interactive controls use semantic CSS variables / Tailwind `dark:` variants on Web and `useAppPreferences().palette` tokens on Mobile, achieving WCAG AA contrast in both Light and Dark themes.
 
+7. **Editable KOL spreadsheet (Web):** Users can open an editable field directly in the spreadsheet, including empty values and structured shortlist rows. Both views reflect edits immediately through the same section draft. Section permissions apply to both views, and existing save and review actions handle the shared draft. The new spreadsheet hint and controls are available in Vietnamese and English and use semantic theme tokens in light and dark modes.
+
+8. **Task file exports (Web):** The workspaces for Post, Short Video, Survey, Event, Press, KOL, Workshop, and Newsletter offer separate PDF, Word, and Excel downloads with format icons. The same options are available from task overview surfaces that show exportable work. Exports follow the existing section visibility, draft labeling, and authorization rules. Controls use parallel Vietnamese and English labels and semantic light/dark styling.
+
 ## 4. UI / UX Surfaces & Lifecycle States
 
 - **Web Surfaces (`brandhub-web`):** `pages/tasks/{index,detail}.tsx`, `pages/tasks/components/views/*`, `pages/tasks/{event,kol,newsletter,press,survey,workshop}-editor/index.tsx`, `components/task-sections/SectionReturnDialog.tsx`

@@ -51,3 +51,8 @@
 | **Stage 2 — Technical Plan** | [plan.md](./plan.md) | Touched repositories/classes, schema invariants, data flow, build order & risks |
 | **Stage 3 — Implementation Checklist** | `task.md` (this file) | Sequential backend, frontend, mobile, i18n, theme, and observability tasks |
 | **Stage 4 — Verification Matrix** | [test.md](./test.md) | 16-case Normal/Boundary/Abnormal/Security/i18n/Theme suite & CLI commands |
+### Bộ đếm và lối vào công việc trên Web
+
+- Đồng bộ QuickActions, KpiStrip và Sidebar với overview và drill.
+- Cập nhật `vi/dashboard.json` và `en/dashboard.json`.
+- Kiểm tra số 0, chuyển Workspace, phạm vi Owner và Manager, bàn phím, giao diện sáng/tối và kích thước hẹp.

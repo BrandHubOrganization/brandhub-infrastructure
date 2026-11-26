@@ -27,6 +27,12 @@
 - [x] **T10 — Update `vi.json` + `en.json` in Parallel:** Populate all UI keys in `tasks.{workflow,inline,subtasks,sections,unsavedConfirm}.*` in `src/i18n/locales/{vi,en}/tasks.json` and mobile locale files (`en.json` + `vi/common.json`) with zero hardcoded strings.
 - [x] **T11 — Audit Light & Dark Mode Tokens:** Verify contrast, borders, overlays, and charts across `375px`, `768px`, and `1440px` in Light and Dark themes (`dark:` variants & `useAppPreferences().palette`).
 
+- [x] **KOL spreadsheet:** Reuse workspace field editors and verify that edits and permission checks work in both views.
+- [x] **KOL spreadsheet localization:** Update both Web `editor.json` locale files and verify light and dark modes.
+
+- [x] **Task file export:** Add explicit formats, audit task workspace and overview entry points, and improve PDF, Word, and Excel layouts.
+- [x] **Export locale:** Update both Web `editor.json` locale files and reuse the shared theme-aware menu.
+
 ## 5. Observability, Security Hygiene & Rollout Readiness (Plan §5–§6)
 
 - [x] **T12 — Verify `X-Request-Id` Correlation & Secret Redaction:** Confirm gateway, backend, and worker logs propagate `X-Request-Id` and never emit raw JWTs, OAuth tokens, internal keys, or unmasked credentials.
