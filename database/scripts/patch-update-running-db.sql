@@ -302,7 +302,60 @@ CREATE TABLE IF NOT EXISTS repository_vault_migration_receipts (
 ALTER TABLE admin_email_outbox
 ADD COLUMN IF NOT EXISTS attachment_ref VARCHAR(100);
 
--- 7. Record schema migrations
+-- 7. Workspace post templates, engagement reminders, billing cycles, plan change log, agency company_type, client_profiles brand_dna
+CREATE TABLE IF NOT EXISTS workspace_post_templates (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id uuid NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    title varchar(200) NOT NULL,
+    caption text NOT NULL,
+    category varchar(60),
+    platforms jsonb,
+    hashtags jsonb,
+    created_by uuid NOT NULL,
+    deleted_at timestamptz,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_workspace_post_templates_ws
+    ON workspace_post_templates (workspace_id, created_at DESC) WHERE deleted_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS engagement_reminders (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    kind varchar(64) NOT NULL,
+    recipient_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    subject_id uuid NOT NULL,
+    first_triggered_at timestamptz NOT NULL DEFAULT now(),
+    last_sent_at timestamptz NOT NULL DEFAULT now(),
+    sent_count integer NOT NULL DEFAULT 1,
+    resolved_at timestamptz,
+    UNIQUE (kind, recipient_id, subject_id)
+);
+
+CREATE TABLE IF NOT EXISTS billing_plan_cycle_prices (
+    plan_version_id uuid NOT NULL REFERENCES billing_plan_versions(id) ON DELETE CASCADE,
+    period_months integer NOT NULL CHECK (period_months IN (3, 6, 12)),
+    price numeric(18, 0) NOT NULL CHECK (price >= 0),
+    created_at timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (plan_version_id, period_months)
+);
+
+CREATE TABLE IF NOT EXISTS billing_plan_change_log (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    plan_code text NOT NULL,
+    plan_version_id uuid NOT NULL REFERENCES billing_plan_versions(id) ON DELETE RESTRICT,
+    action text NOT NULL CHECK (action IN ('NEW_VERSION', 'ENABLE_SALE', 'DISABLE_SALE')),
+    actor_user_id uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    reason text NOT NULL CHECK (char_length(btrim(reason)) BETWEEN 3 AND 500),
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE agencies
+ADD COLUMN IF NOT EXISTS company_type VARCHAR(20) NOT NULL DEFAULT 'AGENCY';
+
+ALTER TABLE client_profiles
+ADD COLUMN IF NOT EXISTS brand_dna JSONB NOT NULL DEFAULT '{}'::jsonb;
+
+-- 8. Record schema migrations
 INSERT INTO
     brandhub_schema_migrations (version, description)
 VALUES (
@@ -328,6 +381,14 @@ VALUES (
     (
         '20261106_manager_led_package_sharing',
         'Manager-led package preparation and guest sharing'
+    ),
+    (
+        '20261119_workspace_post_templates_v1',
+        'Post templates table (PostTemplate entity)'
+    ),
+    (
+        '20261123_client_profile_brand_dna_v1',
+        'Add brand_dna JSONB to client_profiles for AI trend-fit and caption generation'
     )
 ON CONFLICT (version) DO NOTHING;
 

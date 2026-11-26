@@ -22,18 +22,38 @@ DO $$ BEGIN
 END $$;
 
 CREATE TABLE IF NOT EXISTS third_party_collaborators (
-    id           UUID              PRIMARY KEY DEFAULT gen_random_uuid(),
-    agency_id    UUID              NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
-    partner_name VARCHAR(255)      NOT NULL,
-    type         collaborator_type NOT NULL DEFAULT 'OTHER',
-    contact_info JSONB             NOT NULL DEFAULT '{}'::jsonb,
-    notes        TEXT,
-    is_active    BOOLEAN           NOT NULL DEFAULT TRUE,
-    first_used_at TIMESTAMPTZ,
-    version      INTEGER           NOT NULL DEFAULT 1,
-    created_at   TIMESTAMPTZ       NOT NULL DEFAULT NOW(),
-    updated_at   TIMESTAMPTZ       NOT NULL DEFAULT NOW()
+    id                     UUID              PRIMARY KEY DEFAULT gen_random_uuid(),
+    agency_id              UUID              NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
+    partner_name           VARCHAR(255)      NOT NULL,
+    partner_type           collaborator_type NOT NULL DEFAULT 'OTHER',
+    contact_info           JSONB             NOT NULL DEFAULT '{}'::jsonb,
+    notes                  TEXT,
+    is_active              BOOLEAN           NOT NULL DEFAULT TRUE,
+    first_used_at          TIMESTAMPTZ,
+    usage_history_verified BOOLEAN           NOT NULL DEFAULT FALSE,
+    version                BIGINT            NOT NULL DEFAULT 0,
+    created_by             UUID              REFERENCES users(id) ON DELETE RESTRICT,
+    created_at             TIMESTAMPTZ       NOT NULL DEFAULT NOW(),
+    updated_at             TIMESTAMPTZ       NOT NULL DEFAULT NOW()
 );
+
+-- Ensure legacy databases that had 'type' instead of 'partner_type' or lacked new columns are upgraded safely
+DO $$ BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'third_party_collaborators' AND column_name = 'type'
+    ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'third_party_collaborators' AND column_name = 'partner_type'
+    ) THEN
+        ALTER TABLE third_party_collaborators RENAME COLUMN type TO partner_type;
+    END IF;
+END $$;
+
+ALTER TABLE IF EXISTS third_party_collaborators
+    ADD COLUMN IF NOT EXISTS partner_type collaborator_type NOT NULL DEFAULT 'OTHER',
+    ADD COLUMN IF NOT EXISTS usage_history_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS created_by UUID REFERENCES users(id) ON DELETE RESTRICT;
 
 CREATE INDEX IF NOT EXISTS idx_collaborators_agency_id
     ON third_party_collaborators (agency_id);

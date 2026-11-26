@@ -1223,6 +1223,11 @@ db.createCollection('seed_runs');
   db.watermark_presets.createIndex({ workspace_id: 1, created_at: -1 }, { name: 'idx_watermark_presets_workspace_created' });
   db.watermark_presets.createIndex({ workspace_id: 1, client_profile_id: 1, created_at: -1 }, { name: 'idx_watermark_presets_workspace_client_created' });
   db.watermark_presets.createIndex({ workspace_id: 1, client_profile_id: 1, is_default: 1 }, { name: 'idx_watermark_presets_default' });
+
+  // 8. workspace_moodboard_items (Reference Hub / Moodboard)
+  ensureCollection('workspace_moodboard_items');
+  db.workspace_moodboard_items.createIndex({ workspaceId: 1, createdAt: -1 }, { name: 'idx_moodboard_ws_created' });
+  db.workspace_moodboard_items.createIndex({ workspaceId: 1, campaignId: 1, createdAt: -1 }, { name: 'idx_moodboard_ws_campaign' });
 })();
 
 print('BrandHub MongoDB initialized: collections and indexes created.');
