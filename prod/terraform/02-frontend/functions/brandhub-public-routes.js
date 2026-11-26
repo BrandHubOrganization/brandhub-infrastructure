@@ -32,6 +32,8 @@ function handler(event) {
         request.uri = '/blog/index.html';
     } else if (uri.indexOf('/blog/') === 0 && uri.indexOf('.') === -1) {
         request.uri = uri + '/index.html';
+    } else if (uri === '/academy' || (uri.indexOf('/academy/') === 0 && uri.indexOf('.') === -1)) {
+        request.uri = uri + '/index.html';
     }
 
     return request;

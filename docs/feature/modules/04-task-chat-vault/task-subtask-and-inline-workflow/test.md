@@ -34,6 +34,18 @@
 | `M15` | i18n | `VI` <-> `EN` live language toggle | Switch locale between Vietnamese and English on Web & Mobile | All strings in `tasks.{workflow,inline,subtasks,sections,unsavedConfirm}.*` in `src/i18n/locales/{vi,en}/tasks.json` translate cleanly; `0` raw keys or truncated labels | Pass |
 | `M16` | Theme | `Light` <-> `Dark` mode & viewports | Inspect `375px`, `768px`, `1440px` in Light and Dark themes | Semantic CSS variables & `useAppPreferences().palette` pass WCAG AA contrast | Pass |
 
+### KOL spreadsheet regression
+
+- Edit a KOL report number and a structured shortlist value in the spreadsheet. The corresponding workspace field and spreadsheet summary reflect the shared draft immediately. Reverse the edit from the workspace and verify the spreadsheet updates.
+- Verify a locked section displays values without edit controls. Confirm the selected workspace step follows the field being edited and the spreadsheet drawer stays open on a narrow viewport.
+- In Vietnamese and English, verify labels and keyboard operation. In light and dark modes, verify that the inline controls are usable without horizontal page overflow.
+
+### Task export regression
+
+- Request each explicit format and verify MIME type, filename extension, and file contents. Verify the press and ordinary defaults when the selector is omitted.
+- Read Vietnamese text and draft stamps in PDF and Word. Verify A4 layout, page numbering, and long text wrapping. Verify Excel headings, typed numeric metrics, and printing options.
+- Verify the three choices in the KOL spreadsheet workspace and inspect the shared entry points, including the Survey overview and Post workspace.
+
 ## 3. Test Isolation & Reproducible CLI Commands
 
 - **Fixture & Database Isolation:** Automated suites run against disposable Testcontainers / isolated local test schemas and mocked external HTTP providers (`WireMock` / `httpx` mocks) — never mutating shared development or production databases or triggering live external bank/social API writes.

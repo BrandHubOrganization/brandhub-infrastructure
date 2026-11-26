@@ -36,6 +36,10 @@ Consolidates the technical architecture for `subtask-role-workspaces`, `task-cre
 5. **Phase 5 — Key-Parallel i18n (`vi`/`en`) & Light/Dark Theme Audit:** Synchronize translation namespaces and verify semantic color tokens across Light and Dark modes.
 6. **Phase 6 — Multi-Layer Verification:** Execute unit, integration, contract, and browser/mobile E2E suites documented in [test.md](./test.md).
 
+For the KOL spreadsheet, reuse the field controls from the workspace form and bind them to the existing section draft. Show a single inline editor at a time and keep the mobile review drawer open while selecting the corresponding workspace step. Add parallel labels to the Web `editor.json` locale files and use the existing theme tokens.
+
+Task export accepts explicit `format=pdf|docx|xlsx`. Omitted format retains the previous default for existing callers. Share the Web dropdown, persist local section drafts when exporting from a workspace, and keep the backend's visibility policy. Use A4 documents with clear typography and pagination, and Excel sheets with readable widths, printed headers, and typed metrics. Update the existing Postman request and Web `editor.json` translations.
+
 ## 5. Localization (`vi.json` + `en.json`), Theme Tokens & Observability Plan
 
 - **Key-Parallel Locale Synchronization:** Every new or updated label in `tasks.{workflow,inline,subtasks,sections,unsavedConfirm}.*` in `src/i18n/locales/{vi,en}/tasks.json` is committed simultaneously in `vi` and `en` bundles on `brandhub-web` and mirrored in `brandhub-mobile-app/src/i18n/locales/en.json` + `src/i18n/locales/vi/common.json` (verified by `mobileI18nParity.test.ts` and `i18nCoverage.test.ts`).

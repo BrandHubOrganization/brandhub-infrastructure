@@ -1,27 +1,27 @@
-# Platform Architecture, AI Pipeline & Mobile Feature Modules (26 Consolidated Modules)
+# Platform Architecture, AI Pipeline & Mobile Feature Modules (27 Consolidated Modules)
 
 > **Navigation:** [← Feature Master Index](../README.md) · [SRS 141 FRs](../srs/README.md) · **Platform & Mobile Modules** · [BA Baseline](../../ba/README.md) · [Workflow Rule](../../rule/feature-workflow.md) · [Archived Report Drafts](../../archive/reports/README.md)
 
-This directory organizes **26 authoritative, deeply consolidated cross-cutting, infrastructure, AI pipeline, observability, and mobile engineering modules** (`104` lifecycle files across **8 domain categories**), complementing the [141 Canonical SRS Functional Requirements](../srs/README.md). Duplicate PR-level micro-specs for atomic CRUD features have been absorbed directly into their canonical SRS FR folders, eliminating fragmented 3-line stubs while preserving 100% of production architectural decisions, schemas, and test matrices.
+This directory organizes **27 authoritative, deeply consolidated cross-cutting, infrastructure, AI pipeline, observability, and mobile engineering modules** (`108` lifecycle files across **8 domain categories**), complementing the [141 Canonical SRS Functional Requirements](../srs/README.md). Duplicate PR-level micro-specs for atomic CRUD features have been absorbed directly into their canonical SRS FR folders, eliminating fragmented 3-line stubs while preserving 100% of production architectural decisions, schemas, and test matrices.
 
 Every module strictly enforces:
 - **4-File Sequential Lifecycle:** `spec.md → plan.md → task.md → test.md` per [Feature Workflow](../../rule/feature-workflow.md).
 - **6 Canonical System Roles:** `Guest`, `Owner`, `Manager`, `Creator`, `Client`, and `Admin`.
 - **Key-Parallel Localization & Theme Parity:** `vi.json` + `en.json` parity (`tr()` on Mobile) and semantic Light/Dark mode tokens (`dark:` variants on Web, `useAppPreferences().palette` on Mobile).
 
-## 1. Category Overview (8 Categories · 26 Modules · 104 Lifecycle Files)
+## 1. Category Overview (8 Categories · 27 Modules · 108 Lifecycle Files)
 
 | Category Directory | Domain Focus | Modules | Index |
 | :--- | :--- | :---: | :--- |
 | [`01-identity-gateway/`](./01-identity-gateway/README.md) | **Identity, API Gateway & Edge Security** | **2** | [Open Category Index →](./01-identity-gateway/README.md) |
 | [`02-agency-studio-plans/`](./02-agency-studio-plans/README.md) | **Agency, Personal Studio, Dashboards & Realtime Notifications** | **3** | [Open Category Index →](./02-agency-studio-plans/README.md) |
 | [`03-campaign-package-delivery/`](./03-campaign-package-delivery/README.md) | **Media Package Sharing, Campaign Timeline & Delivery Closure** | **2** | [Open Category Index →](./03-campaign-package-delivery/README.md) |
-| [`04-task-chat-vault/`](./04-task-chat-vault/README.md) | **Task Workflow, Realtime Workspace Chat & Encrypted S3 Vault** | **3** | [Open Category Index →](./04-task-chat-vault/README.md) |
+| [`04-task-chat-vault/`](./04-task-chat-vault/README.md) | **Task Workflow, Realtime Workspace Chat, Reference Hub & Encrypted S3 Vault** | **4** | [Open Category Index →](./04-task-chat-vault/README.md) |
 | [`05-ai-rag-and-crawler/`](./05-ai-rag-and-crawler/README.md) | **AI Trend Crawler, Neo4j Knowledge Graph & Brand RAG** | **3** | [Open Category Index →](./05-ai-rag-and-crawler/README.md) |
 | [`06-ai-media-and-video-studio/`](./06-ai-media-and-video-studio/README.md) | **AI Commercial Image, Product Video & Conversational Video Studio** | **3** | [Open Category Index →](./06-ai-media-and-video-studio/README.md) |
 | [`07-billing-publisher-and-observability/`](./07-billing-publisher-and-observability/README.md) | **Billing Verification, Publisher Resilience & System Health Observability** | **3** | [Open Category Index →](./07-billing-publisher-and-observability/README.md) |
 | [`08-mobile-application/`](./08-mobile-application/README.md) | **BrandHub Mobile Application (Expo SDK 58 / React Native 0.88)** | **7** | [Open Category Index →](./08-mobile-application/README.md) |
-| **Total** | **All 8 Consolidated Module Categories** | **26** | **104 Lifecycle Docs** |
+| **Total** | **All 8 Consolidated Module Categories** | **27** | **108 Lifecycle Docs** |
 
 ## 2. Complete Consolidated Module Directory
 
@@ -50,13 +50,14 @@ Manager-led Media Package offering models, token-gated `Guest` sharing, determin
 | :--- | :--- | :--- |
 | `manager-led-media-package-sharing` | Manager-Led Media Package Offering Models, Public Guest Share Token & Task Seeding | [Spec](./03-campaign-package-delivery/manager-led-media-package-sharing/spec.md) · [Plan](./03-campaign-package-delivery/manager-led-media-package-sharing/plan.md) · [Task](./03-campaign-package-delivery/manager-led-media-package-sharing/task.md) · [Test](./03-campaign-package-delivery/manager-led-media-package-sharing/test.md) |
 | `campaign-timeline-and-closure` | Interactive Campaign Gantt Timeline, Partner Cooperation, Request Validation & Campaign Closure | [Spec](./03-campaign-package-delivery/campaign-timeline-and-closure/spec.md) · [Plan](./03-campaign-package-delivery/campaign-timeline-and-closure/plan.md) · [Task](./03-campaign-package-delivery/campaign-timeline-and-closure/task.md) · [Test](./03-campaign-package-delivery/campaign-timeline-and-closure/test.md) |
-### 2.4 [04-task-chat-vault — Task Workflow, Realtime Workspace Chat & Encrypted S3 Vault](./04-task-chat-vault/README.md) (3)
+### 2.4 [04-task-chat-vault — Task Workflow, Realtime Workspace Chat, Reference Hub & Encrypted S3 Vault](./04-task-chat-vault/README.md) (4)
 
-Five-state inline Task workflow, role-scoped Subtasks & sectioned specialized editors, full Workspace realtime STOMP Chat + 1:1 Voice Calls, and KMS envelope-encrypted S3 Vault + Client Vault + Google Drive sync.
+Five-state inline Task workflow, role-scoped Subtasks & sectioned specialized editors, Smart Reference Hub & Shared Moodboard with 5 deterministic client-side curation algorithms, full Workspace realtime STOMP Chat + 1:1 Voice Calls, and KMS envelope-encrypted S3 Vault + Client Vault + Google Drive sync.
 
 | Module Slug | Consolidated Engineering Scope | Artefacts (`spec → plan → task → test`) |
 | :--- | :--- | :--- |
 | `task-subtask-and-inline-workflow` | Five-State Inline Task Editing, Role-Scoped Subtasks & Sectioned Specialized Editors | [Spec](./04-task-chat-vault/task-subtask-and-inline-workflow/spec.md) · [Plan](./04-task-chat-vault/task-subtask-and-inline-workflow/plan.md) · [Task](./04-task-chat-vault/task-subtask-and-inline-workflow/task.md) · [Test](./04-task-chat-vault/task-subtask-and-inline-workflow/test.md) |
+| `reference-hub-and-algorithmic-curation` | Smart Reference Hub, Shared Moodboard & Client-Side Algorithmic Curation Engine | [Spec](./04-task-chat-vault/reference-hub-and-algorithmic-curation/spec.md) · [Plan](./04-task-chat-vault/reference-hub-and-algorithmic-curation/plan.md) · [Task](./04-task-chat-vault/reference-hub-and-algorithmic-curation/task.md) · [Test](./04-task-chat-vault/reference-hub-and-algorithmic-curation/test.md) |
 | `workspace-chat-and-voice-calls` | Workspace Realtime Chat Channels, Threads, Mentions, Slash References, Scheduled Messages & 1:1 Voice Calls | [Spec](./04-task-chat-vault/workspace-chat-and-voice-calls/spec.md) · [Plan](./04-task-chat-vault/workspace-chat-and-voice-calls/plan.md) · [Task](./04-task-chat-vault/workspace-chat-and-voice-calls/task.md) · [Test](./04-task-chat-vault/workspace-chat-and-voice-calls/test.md) |
 | `s3-folder-vault-security` | Encrypted S3 Material Repository, Storage Add-Ons, Client Folder Vault & Google Drive Sync | [Spec](./04-task-chat-vault/s3-folder-vault-security/spec.md) · [Plan](./04-task-chat-vault/s3-folder-vault-security/plan.md) · [Task](./04-task-chat-vault/s3-folder-vault-security/task.md) · [Test](./04-task-chat-vault/s3-folder-vault-security/test.md) |
 ### 2.5 [05-ai-rag-and-crawler — AI Trend Crawler, Neo4j Knowledge Graph & Brand RAG](./05-ai-rag-and-crawler/README.md) (3)

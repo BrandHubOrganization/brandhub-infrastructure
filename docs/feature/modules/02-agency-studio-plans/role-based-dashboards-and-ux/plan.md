@@ -45,3 +45,6 @@ Consolidates the technical architecture for `role-based-dashboards`, `dashboard-
 ## 6. Engineering Risks & Mitigations
 
 - **Timezone Drift Between Browser and Server:** Mitigated by passing explicit IANA `timezone` and serializing ISO-8601 `OffsetDateTime` timestamps.
+### Hiển thị việc cần xử lý trên Web
+
+Tái sử dụng dữ liệu overview và mã drill của `components/dashboard`, dùng chung cache tại Sidebar và giữ cập nhật khi thao tác. Thay các thẻ Workspace tính từ danh sách xem trước bằng KpiStrip. Cập nhật nhãn phạm vi trong `src/i18n/locales/{vi,en}/dashboard.json`. Dùng lại tuyến và quyền hiện hành.
