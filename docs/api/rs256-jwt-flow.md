@@ -187,9 +187,9 @@ openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out private.pem
 Ví dụ cấu trúc file `private.pem` (nội dung thật lưu trong biến môi trường bảo mật, tuyệt đối không commit lên Git):
 
 ```text
------BEGIN PRIVATE KEY-----
-<BASE64_ENCODED_PKCS8_PRIVATE_KEY_FROM_SECRET_STORE>
------END PRIVATE KEY-----
+-----BEGIN [PKCS8 PRIVATE KEY]-----
+<pkcs8-base64-payload-from-secret-store>
+-----END [PKCS8 PRIVATE KEY]-----
 ```
 
 

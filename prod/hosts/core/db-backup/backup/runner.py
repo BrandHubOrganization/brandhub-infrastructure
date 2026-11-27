@@ -95,7 +95,7 @@ class BackupRunner:
         self.list_history = list_history
         self._lock = threading.Lock()
         self._state_lock = threading.Lock()
-        self._last_s3_sync = 0.0
+        self._last_s3_sync: float | None = None
         self._mark_interrupted()
 
     def _mark_interrupted(self) -> None:
@@ -112,7 +112,7 @@ class BackupRunner:
         if self.list_history is None:
             return
         now_ts = time.monotonic()
-        if not force and now_ts - self._last_s3_sync < 60:
+        if not force and self._last_s3_sync is not None and now_ts - self._last_s3_sync < 60:
             return
         try:
             discovered = self.list_history(list(self.dumpers))
