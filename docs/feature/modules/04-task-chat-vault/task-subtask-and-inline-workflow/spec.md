@@ -13,6 +13,8 @@
 
 ## 1. Objective & Architectural Motivation
 
+The [Agency social-post workflow](./agency-social-post-workflow.md) specifies the approved Web changes for image posts and Reels, including the process and permission diagrams.
+
 Consolidate BrandHub's end-to-end Task authoring and execution UX: simplified 5-state Task workflow (`TODO`, `IN_PROGRESS`, `INTERNAL_REVIEW`, `CLIENT_REVIEW`, `APPROVED` / `PUBLISHED`), inline field editing (`TaskWorkflowController`), `Creator` assignment & auto-start on 'Write Post' (`task-write-start`), role-scoped **Subtasks** (`CampaignSubtaskController`) & **Multi-Section Specialized Task Editors** (`TaskSectionController` for Event, KOL, Newsletter, Press, Survey, Workshop), unsaved-change navigation guards, and 100% real Campaign/Task data binding.
 
 ## 2. User Stories
@@ -32,6 +34,13 @@ Consolidate BrandHub's end-to-end Task authoring and execution UX: simplified 5-
 7. **Editable KOL spreadsheet (Web):** Users can open an editable field directly in the spreadsheet, including empty values and structured shortlist rows. Both views reflect edits immediately through the same section draft. Section permissions apply to both views, and existing save and review actions handle the shared draft. The new spreadsheet hint and controls are available in Vietnamese and English and use semantic theme tokens in light and dark modes.
 
 8. **Task file exports (Web):** The workspaces for Post, Short Video, Survey, Event, Press, KOL, Workshop, and Newsletter offer separate PDF, Word, and Excel downloads with format icons. The same options are available from task overview surfaces that show exportable work. Exports follow the existing section visibility, draft labeling, and authorization rules. Controls use parallel Vietnamese and English labels and semantic light/dark styling.
+
+9. **Multi-Role Parity, Supervisor Inheritance & Automatic Parent Task Settlement (`v4.0` — [BA 13](../../../../ba/13-task-status-and-approval-governance.md)):**
+   - **`Owner` Operational Parity:** Workspace `Owner` holds full parity with `Manager` across `SectionPolicy` (`EDIT`, `SUBMIT`, `APPROVE`, `RETURN`, `REOPEN`, `RESTORE`), `TaskWorkflowService.start()`, `TaskPlatformPolicy` (`targetPlatforms`), and `CampaignSubtaskService` (both Campaign and Standalone tasks).
+   - **Supervisor Inheritance & Anti-Self-Supervision (`BR-34a`):** Subtask/section supervision resolves via `subtask.supervisorOverrideId ?? task.supervisorId ?? defaultManager`. A `Creator` may never act as their own `supervisorId`; `Self-Approve` (`POST /tasks/{taskId}/self-approve`) is strictly restricted to `workspaceMode = "PERSONAL"`.
+   - **Auto-Start on Subtask Draft Save:** When a `TODO` Task satisfies brief/campaign prerequisites, the first valid section or post draft save by the `Coordinator` or an assigned `Section Owner` automatically transitions the parent Task to `IN_PROGRESS`.
+   - **Automatic Parent Task Settlement (`Section → Subtask → Task`):** Approving the final required `TaskSection` automatically transitions the parent Task to `FINISHED` (when `requiresClientApproval = false` or once all `OUTPUT` sections reach `CLIENT_APPROVED`) or to `IN_REVIEW (CLIENT)` (when all sections reach `INTERNAL_APPROVED` and `requiresClientApproval = true`). Returning (`CLIENT_RETURN`) or reopening (`REOPEN` by `Owner`/`Manager`) a section on an unpublished `IN_REVIEW`/`FINISHED` Task reopens only that section (`RETURNED`), reverts the parent Task to `IN_PROGRESS`, and cancels scheduled publication.
+   - **Static & Contextual `TaskStatusControl`:** Terminal tasks (`FINISHED`, `CANCELLED`) and read-only viewers render a clean static status badge without an empty dropdown chevron (`⌄`), paired with inline section-approval progress (`X/Y sections approved`).
 
 ## 4. UI / UX Surfaces & Lifecycle States
 

@@ -69,13 +69,21 @@ Mỗi `TaskDocument` thuộc **1 trong 8 loại `TaskType` chuẩn**, trong đó
 
 ## 3. Quy trình Phê duyệt 3 Tầng (`3.6.9`) vs. Tự duyệt 1 Chạm (`PERSONAL`)
 
-- **Chế độ `AGENCY` (`Creator -> [QC] -> Manager -> Client`)**:
-  - `Creator` hoàn thành phần nội dung và nhấn `Submit` → chụp bản ghi `TaskSectionVersion` bất biến.
-  - Nếu có gán kiểm tra chéo nội bộ (`QC`), qua bước QC trước khi trình `Manager` duyệt nội bộ (`INTERNAL_APPROVED`).
-  - Với các phần đầu ra (**`O`**) trên Task có `requiresClientApproval = true`, trình tiếp lên `Client` phê duyệt cuối cùng (`CLIENT_APPROVED`).
-  - Nếu bất kỳ cấp nào nhấn `Reject` / `Return` (bắt buộc nhập lý do), tiến trình quay về bước `Creator` đầu tiên để chỉnh sửa, đồng thời tự động hủy lịch đăng (`PostService.cancelTaskSchedule`) nếu bài đã hẹn giờ và bảo toàn toàn bộ nhật ký duyệt của các vòng trước.
+> Đặc tả chi tiết ma trận vai trò (`Owner`, `Manager`, `Creator`, `Client` × `Coordinator`, `Task Supervisor`, `Section Owner`), tự động chốt trạng thái Task cha và rào chắn chống nhảy cóc xem tại [13-task-status-and-approval-governance.md](./13-task-status-and-approval-governance.md).
+
+- **Chế độ `AGENCY` (`Creator -> Owner / Manager / Task Supervisor -> Client`)**:
+  - **Đồng quyền điều hành `Owner` & `Manager`**: `Owner` có đầy đủ quyền giao việc, chọn nền tảng đích (`targetPlatforms`), quản lý công việc con, bắt đầu công việc và duyệt/trả lại/mở lại `TaskSection` / `Task` tương đương `Manager`.
+  - **Quy tắc Người giám sát (`task.supervisorId` & `subtask.supervisorOverrideId`)**: `task.supervisorId` kế thừa tự động xuống mọi công việc con/phần việc chưa gán người giám sát riêng. Nghiêm cấm `Creator` tự làm Người giám sát cho chính mình (`supervisorId != assigneeId` khi `assignee` là `Creator`); mọi `Owner` và `Manager` đang hoạt động đều có thể phê duyệt nội bộ hỗ trợ để tránh tắc nghẽn.
+  - **Tự động chốt trạng thái Task cha (`Auto-Settlement`)**:
+    - `Creator` hoàn thành phần nội dung và nhấn `Submit` → chụp bản ghi `TaskSectionVersion` bất biến.
+    - `Owner`, `Manager` hoặc `Supervisor` hợp lệ duyệt nội bộ (`INTERNAL_APPROVED`).
+    - Ngay khi **100% các phần của Task đạt `INTERNAL_APPROVED`** (và không còn công việc con tự do chưa đóng):
+      - Nếu `requiresClientApproval = false`: Task cha **tự động chuyển ngay sang `FINISHED` (`Hoàn thành`)** và bài đăng liên kết chuyển sang `SCHEDULED` / `APPROVED` (không bắt bấm gửi duyệt tổng lần hai).
+      - Nếu `requiresClientApproval = true`: Task cha **tự động chuyển sang `IN_REVIEW` (`reviewStep = "CLIENT"`)** và ngay khi `Client` duyệt xong phần đầu ra (`OUTPUT`) cuối cùng (`CLIENT_APPROVED`), Task cha **tự động chuyển sang `FINISHED` (`Hoàn thành`)**.
+    - Nếu bất kỳ cấp nào nhấn `Reject` / `Return` (bắt buộc nhập lý do) hoặc `Owner`/`Manager` nhấn `Reopen` phần trên Task chưa xuất bản, phần đó về `RETURNED`, Task cha quay về `IN_PROGRESS`, đồng thời tự động hủy lịch đăng (`PostService.cancelTaskSchedule`) và bảo toàn 100% nhật ký duyệt của các vòng trước.
+  - **Chống nhảy cóc (`Anti-Bypass`) & Tắt `Self-Approve` ở `AGENCY`**: Cấm chuyển thẳng sang `IN_REVIEW` hoặc `FINISHED` qua `PATCH /tasks/{id}/status`, kéo thả Kanban hay Thanh thao tác hàng loạt; nút `Self-Approve` bị vô hiệu hóa hoàn toàn trong chế độ `AGENCY`.
 - **Chế độ `PERSONAL` (`Self-Approve` 1 chạm)**:
-  - Chủ không gian (`Owner`/`Manager`) có thể tạo trực tiếp `Standalone Task` cho cả 8 loại công việc và nhấn **"Hoàn tất & Duyệt ngay"** để chuyển nguyên tử toàn bộ các phần sang `APPROVED`, mở khóa xuất bản ngay lập tức.
+  - Chủ không gian (`Owner`/`Manager`) có thể tạo trực tiếp `Standalone Task` cho cả 8 loại công việc và nhấn **"Hoàn tất & Tự duyệt"** để chuyển nguyên tử toàn bộ các phần sang `INTERNAL_APPROVED` và Task sang `FINISHED`, mở khóa xuất bản ngay lập tức.
 
 ---
 

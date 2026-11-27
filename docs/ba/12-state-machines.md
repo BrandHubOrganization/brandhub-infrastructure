@@ -72,30 +72,34 @@ DRAFT ──(Deploy / Approve 3.5.8)──▶ ACTIVE (Sinh Task cha + Subtask th
 
 ### 3.1. Vòng đời Phần Soạn thảo (`TaskSection.status` — 8 Loại `TaskType`)
 ```
-  ┌──────────(Luồng Tự duyệt 1 chạm: POST /tasks/{id}/self-approve ở chế độ PERSONAL)──────────┐
+  ┌──────────(Luồng Tự duyệt 1 chạm: POST /tasks/{id}/self-approve CHỈ ở chế độ PERSONAL)──────┐
   │                                                                                            ▼
-DRAFT ──(Chủ phần Submit)──▶ SUBMITTED ──(Manager/Supervisor Approve)──▶ INTERNAL_APPROVED (Cuối với phần I
-  ▲                             │                                           │  hoặc khi requiresClientApproval=false)
-  │◀──(Manager Return + note)───┘                                           │
-  │                                                      (Với phần O khi requiresClientApproval=true)
-  │                                                                         ▼
-RETURNED ◀────────────(Client Return + note)──────────────────────── CLIENT_APPROVED (Trạng thái cuối phần O)
+DRAFT ──(Chủ phần Submit)──▶ SUBMITTED ──(Owner/Manager/Supervisor Approve)──▶ INTERNAL_APPROVED (Cuối với phần I
+  ▲                             │                                                │  hoặc khi requiresClientApproval=false)
+  │◀──(Owner/Manager/Sup Return)┘                                                │
+  │                                                           (Với phần O khi requiresClientApproval=true)
+  │                                                                              ▼
+RETURNED ◀────────────(Client Return + note)───────────────────────────── CLIENT_APPROVED (Trạng thái cuối phần O)
   ▲
-  └───────────────────(Manager Reopen trước khi Task đóng)──────────────────┘
+  └───────────────────(Owner / Manager Reopen trước khi bài xuất bản)────────────┘
 ```
+- **Quy tắc kế thừa Người giám sát (`effectiveSupervisor`)**: Nếu `Subtask` có `supervisorOverrideId` thì dùng người đó; nếu không có thì kế thừa **`task.supervisorId`** (Người giám sát của Task cha), sau đó mới fallback về `defaultManager` (`Owner`/`Manager`). `Creator` không bao giờ được làm Người giám sát cho phần/công việc do chính mình thực hiện.
 - **Quy tắc tự động đồng bộ Subtask vai trò (`syncRoleSubtasks`)**:
-  - Một `Subtask` có `subtaskRole != null` **tự động chuyển sang `FINISHED`** ngay khi toàn bộ các phần (`TaskSection`) mà vai trò đó sở hữu đạt trạng thái cuối (`INTERNAL_APPROVED` hoặc `CLIENT_APPROVED`).
+  - Một `Subtask` có `subtaskRole != null` **tự động chuyển sang `FINISHED`** ngay khi toàn bộ các phần (`TaskSection`) mà vai trò đó sở hữu đạt trạng thái cuối (`finalState`: `INTERNAL_APPROVED` đối với phần `INTERNAL` hoặc khi `requiresClientApproval = false`, `CLIENT_APPROVED` đối với phần `OUTPUT` khi `requiresClientApproval = true`).
   - Nếu bất kỳ phần nào bị `Return` hoặc `Reopen`, `Subtask` đó tự động quay về `IN_PROGRESS`.
 
-### 3.2. Vòng đời Công việc Cha (`TaskDocument.status`)
+### 3.2. Vòng đời Công việc Cha (`TaskDocument.status`) & Tự động Chốt (`Auto-Settlement`)
 ```
-          ┌──────────(1-Click Self-Approve trong chế độ PERSONAL)───────────┐
-          │                                                                 ▼
-TODO ──▶ IN_PROGRESS ──(Submit Task khi đủ phần INTERNAL_APPROVED)──▶ IN_REVIEW ──▶ FINISHED (APPROVED)
-  ▲           ▲                                                         │               │
-  │           └────────────(Manager / Client Return phần)───────────────┘               │
-  └────────────────────────(Client Return phần sau khi đã FINISHED → Hủy lịch đăng)─────┘
+          ┌──────────(1-Click Self-Approve CHỈ trong chế độ PERSONAL)───────────────┐
+          │                                                                         ▼
+TODO ──▶ IN_PROGRESS ──(Đủ 100% phần INTERNAL_APPROVED & cần Client)──▶ IN_REVIEW (CLIENT) ──▶ FINISHED (APPROVED)
+          │   ▲   ▲         │                                                  │                    │
+          │   │   │         └──(Đủ 100% phần INTERNAL_APPROVED & KHÔNG cần Client → TỰ ĐỘNG CHỐT)───┘
+          │   │   └────────────(Owner / Manager / Supervisor / Client Return phần)──────────────────┤
+          │   └────────────────(Client Return hoặc Owner/Manager Reopen phần trước giờ đăng)────────┘
+          └────(Task đơn không chia Subtask: Submit → IN_REVIEW [MANAGER → CLIENT] → Approve → FINISHED)
 ```
+- **Rào chắn Chống Nhảy Cóc (`Anti-Bypass`)**: API `PATCH /tasks/{id}/status`, kéo thả Kanban và Thanh thao tác hàng loạt (`Bulk Action`) **bị chặn tuyệt đối (`409 TASK_WORKFLOW_REQUIRED`)** không cho chuyển thẳng sang `IN_REVIEW` hoặc `FINISHED` khi chưa đi qua luồng nộp và phê duyệt hợp lệ; thao tác chuyển sang `CANCELLED` chỉ dành cho `Owner` và `Manager`.
 
 ---
 

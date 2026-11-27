@@ -17,8 +17,11 @@ Consolidates the technical architecture for `subtask-role-workspaces`, `task-cre
 
 ## 2. Core Technical Design & Data Model Invariants
 
+- **Agency social posts:** Follow the [shared Image and Reel workflow plan](./agency-social-post-workflow.md#implementation-plan) for task creation, destination permissions, step routing and media handoff. The existing task types and section routes continue to resolve saved work.
+
 - **Catalog-Driven Section Schemas (`TaskCatalogController`):** `GET /api/v1/task-catalog/{taskType}` defines the exact section blueprint for each specialized task type so Web and Mobile validate identical section keys.
-- **Granular Section Return (`SectionReturnDialog`):** Returning a single section reopens only that section for `Creator` revision while keeping approved sibling sections locked.
+- **Granular Section Return & Reopen (`SectionReturnDialog` & `SectionService`):** Returning (`CLIENT_RETURN`) or reopening (`REOPEN` by `Owner`/`Manager` prior to live publication) a single section reopens only that section (`RETURNED`) for `Creator` revision while keeping approved sibling sections locked, reverting the parent Task to `IN_PROGRESS`, and cancelling scheduled social/email dispatch.
+- **Automatic Parent Settlement & Anti-Bypass Guards ([FR 3.6.9 Plan](../../../srs/05-content-task-workflow/3-6-9-approval-sequence-creator-manager-client/plan.md)):** `SectionService.approve()` invokes `TaskApprovalService.settleSections()` on both internal and client approvals so parent Tasks transition automatically to `IN_REVIEW (CLIENT)` and `FINISHED` without redundant manual submit steps, while `TaskServiceImpl.updateStatus()` blocks direct Kanban/Bulk jumps to `IN_REVIEW` or `FINISHED`.
 
 ## 3. End-to-End Data & Control Flow
 
