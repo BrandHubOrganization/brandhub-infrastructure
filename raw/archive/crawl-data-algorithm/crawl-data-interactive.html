@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrandHub — Trend Detection Pipeline (Interactive)</title>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/d3@7/dist/d3.min.js"></script>
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #fff; color: #24292f; padding: 40px; }
+  h1 { text-align: center; font-size: 28px; margin-bottom: 6px; color: #1f6feb; }
+  .subtitle { text-align: center; color: #57606a; margin-bottom: 32px; font-size: 14px; }
+  h2 { color: #1f6feb; margin: 40px 0 16px; font-size: 20px; border-bottom: 1px solid #d0d7de; padding-bottom: 8px; }
+  h3 { color: #24292f; font-size: 15px; margin: 0 0 10px; }
+
+  .tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
+  .tab-btn { padding: 8px 18px; border-radius: 20px; border: 1px solid #d0d7de; background: #f6f8fa; color: #57606a; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .tab-btn.active { background: #0969da; color: #fff; border-color: #0969da; }
+
+  .panel { max-width: 1180px; margin: 0 auto 30px; background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 12px; padding: 24px; }
+
+  /* pipeline nodes */
+  .stage-node { border-radius: 10px; padding: 12px 16px; font-size: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,.08); border: 2px solid; min-width: 140px; background: #fff; transition: transform .2s, box-shadow .2s; cursor: pointer; pointer-events: all; }
+  .stage-node:hover { transform: scale(1.04); }
+  .stage-node .t { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+  .stage-node .s { color: #57606a; font-size: 10.5px; }
+  .stage-node.active { transform: scale(1.06); box-shadow: 0 4px 14px rgba(9,105,218,.35); }
+  .stage-node.selected { outline: 3px solid #0969da; outline-offset: 2px; }
+
+  .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 18px; align-items: center; flex-wrap: wrap; }
+  .btn { padding: 7px 16px; border-radius: 6px; border: 1px solid #0969da; background: #0969da; color: #fff; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+  .btn.secondary { background: #fff; color: #0969da; }
+  .badge-log { font-family: Consolas, monospace; font-size: 11px; color: #57606a; background: #fff; border: 1px solid #d0d7de; border-radius: 6px; padding: 8px 12px; max-width: 520px; min-height: 20px; }
+
+  .stage-detail { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 18px 22px; margin-top: 12px; }
+  .stage-detail .head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .stage-detail .dot { width: 14px; height: 14px; border-radius: 4px; }
+  .stage-detail .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px; }
+  .io-box { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 10px 12px; font-size: 11.5px; }
+  .io-box .lbl { font-weight: 700; color: #57606a; font-size: 10.5px; text-transform: uppercase; margin-bottom: 6px; letter-spacing: .03em; }
+  .io-box pre { font-family: Consolas, monospace; font-size: 11px; white-space: pre-wrap; word-break: break-word; color: #1f2328; }
+  .code-block { background: #0d1117; color: #c9d1d9; border-radius: 8px; padding: 14px 16px; font-family: Consolas, monospace; font-size: 11.5px; line-height: 1.6; overflow-x: auto; }
+  .code-block .kw { color: #ff7b72; } .code-block .fn { color: #d2a8ff; } .code-block .str { color: #a5d6ff; } .code-block .cm { color: #8b949e; }
+  .desc-text { font-size: 13px; color: #57606a; line-height: 1.7; margin-bottom: 12px; }
+  .desc-text strong { color: #1f2328; }
+
+  /* graph */
+  .graph-toolbar { display: flex; gap: 14px; align-items: center; justify-content: center; margin-bottom: 12px; font-size: 12px; color: #57606a; flex-wrap: wrap; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+  .filter-chip { padding: 4px 10px; border-radius: 14px; border: 1px solid #d0d7de; background: #fff; cursor: pointer; font-size: 11.5px; }
+  .filter-chip.on { background: #ddf4ff; border-color: #54aeff; color: #0969da; font-weight: 600; }
+  .search-box { padding: 6px 10px; border: 1px solid #d0d7de; border-radius: 6px; font-size: 12px; width: 200px; }
+
+  .stat-row { display: flex; gap: 12px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+  .stat-card { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 10px 18px; text-align: center; min-width: 100px; }
+  .stat-card .v { font-size: 20px; font-weight: 700; color: #0969da; }
+  .stat-card .l { font-size: 10.5px; color: #57606a; margin-top: 2px; }
+
+  .detail-panel { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 14px 18px; margin-top: 14px; font-size: 12.5px; color: #57606a; line-height: 1.6; }
+  .detail-panel strong { color: #1f2328; }
+  .detail-panel .chip { display: inline-block; background: #ddf4ff; color: #0969da; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin: 2px 3px 2px 0; }
+
+  /* data table */
+  .data-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; font-size: 12px; }
+  .data-table th { background: #eaeef2; text-align: left; padding: 9px 12px; color: #1f2328; font-weight: 700; border-bottom: 1px solid #d0d7de; }
+  .data-table td { padding: 9px 12px; border-bottom: 1px solid #eaeef2; color: #57606a; }
+  .data-table tr:hover td { background: #f6f8fa; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 600; }
+  .pill.platform-tiktok { background: #000; color: #fff; }
+  .pill.platform-facebook { background: #1877f2; color: #fff; }
+  .pill.platform-youtube { background: #ff0000; color: #fff; }
+
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .bar-label { width: 130px; font-size: 12px; color: #1f2328; font-weight: 600; text-align: right; flex-shrink: 0; }
+  .bar-track { flex: 1; background: #eaeef2; border-radius: 4px; height: 18px; position: relative; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; }
+  .bar-val { font-size: 10.5px; color: #fff; font-weight: 700; }
+
+  .note { background: #fff8c5; border-left: 4px solid #d4a72c; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; font-size: 12.5px; line-height: 1.6; color: #7a5901; }
+  .note strong { color: #7a5901; }
+
+  #fallback { max-width: 900px; margin: 0 auto; background: #ffe7e7; border: 1px solid #cf222e; border-radius: 8px; padding: 16px 20px; font-size: 13px; color: #86181d; display: none; }
+
+  footer { text-align: center; color: #afb8c1; font-size: 12px; margin-top: 50px; padding-top: 20px; border-top: 1px solid #d0d7de; }
+
+  /* ===== Static doc tab (namespaced, ported from crawData_diagram.html) ===== */
+  .static-doc { max-width: 1180px; margin: 0 auto; }
+  .static-doc h2 { color: #1f6feb; margin: 40px 0 16px; font-size: 20px; border-bottom: 1px solid #d0d7de; padding-bottom: 8px; }
+  .static-doc h2:first-child { margin-top: 8px; }
+  .static-doc h3 { color: #24292f; margin: 24px 0 12px; font-size: 16px; }
+  .static-doc .sd-diagram { max-width: 1100px; margin: 0 auto 30px; background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 12px; padding: 30px; overflow-x: auto; }
+  .static-doc .sd-flow-svg { width: 100%; min-width: 900px; }
+  .static-doc .sd-flow-svg text { font-family: 'Segoe UI', system-ui, sans-serif; }
+  .static-doc .sd-box-label { fill: #1f2328; font-size: 13px; font-weight: 600; text-anchor: middle; }
+  .static-doc .sd-box-sub { fill: #57606a; font-size: 11px; text-anchor: middle; }
+  .static-doc .sd-arrow { stroke: #0969da; stroke-width: 2; fill: none; }
+  .static-doc .sd-arrow-green { stroke: #2da44e; stroke-width: 2; fill: none; }
+  .static-doc .sd-step-label { fill: #24292f; font-size: 11px; }
+  .static-doc .sd-step-num { fill: #0969da; font-size: 10px; font-weight: 700; }
+  .static-doc .sd-legend { display: flex; gap: 24px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap; }
+  .static-doc .sd-legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #57606a; }
+  .static-doc .sd-legend-line { width: 30px; height: 3px; border-radius: 2px; }
+  .static-doc .sd-legend-line.solid { background: #0969da; }
+  .static-doc .sd-legend-line.dashed { background: #6e7681; }
+  .static-doc .sd-legend-line.green { background: #2da44e; }
+  .static-doc .sd-legend-line.yellow { background: #d4a72c; }
+  .static-doc .sd-note { background: #f6f8fa; border-left: 4px solid #0969da; padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; font-size: 13px; line-height: 1.6; color: #57606a; }
+  .static-doc .sd-note strong { color: #1f2328; }
+  .static-doc .sd-claim-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+  .static-doc .sd-claim-table th { background: #f6f8fa; color: #1f2328; text-align: left; padding: 10px 12px; border: 1px solid #d0d7de; font-weight: 600; }
+  .static-doc .sd-claim-table td { padding: 10px 12px; border: 1px solid #d0d7de; color: #57606a; }
+  .static-doc .sd-claim-table td:first-child { color: #0969da; font-family: monospace; }
+  .static-doc .sd-step-list { margin: 16px 0; }
+  .static-doc .sd-step-item { display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start; }
+  .static-doc .sd-step-marker { flex-shrink: 0; width: 28px; height: 28px; background: #0969da; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+  .static-doc .sd-step-content { flex: 1; }
+  .static-doc .sd-step-content strong { color: #1f2328; }
+  .static-doc .sd-step-content p { color: #57606a; font-size: 13px; line-height: 1.6; margin: 4px 0; }
+  .static-doc .sd-inline-code { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 8px 12px; font-family: 'Consolas', monospace; font-size: 12px; line-height: 1.4; margin: 6px 0; white-space: pre-wrap; word-break: break-all; }
+  .static-doc .sd-hl { background: #fff8c5; color: #9e6a03; padding: 1px 6px; border-radius: 3px; font-weight: 600; }
+  .static-doc .sd-diagram-detail { max-width: 1100px; margin: -18px auto 30px; background: #fff; border: 1px solid #d0d7de; border-top: none; border-radius: 0 0 12px 12px; padding: 20px 30px 24px; }
+  .static-doc .sd-diagram-detail h3 { color: #0969da; font-size: 16px; margin-bottom: 14px; }
+  .static-doc .sd-flow-item { display: flex; gap: 14px; margin-bottom: 18px; }
+  .static-doc .sd-flow-num { flex-shrink: 0; width: 32px; height: 32px; background: #ddf4ff; color: #0969da; border: 2px solid #0969da; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; }
+  .static-doc .sd-flow-body { flex: 1; }
+  .static-doc .sd-flow-body strong { color: #1f2328; font-size: 14px; }
+  .static-doc .sd-flow-body p { color: #57606a; font-size: 13px; line-height: 1.7; margin: 4px 0 6px; }
+  .static-doc .sd-flow-body ul { color: #57606a; font-size: 13px; line-height: 1.7; margin: 4px 0; padding-left: 20px; }
+  .static-doc .sd-flow-body ul code, .static-doc .sd-flow-body p code { background: #f6f8fa; padding: 1px 5px; border-radius: 3px; font-size: 12px; border: 1px solid #d0d7de; }
+  .static-doc .sd-key-point { margin-top: 14px; padding: 12px 16px; background: #fff8c5; border-left: 4px solid #d4a72c; border-radius: 0 8px 8px 0; font-size: 13px; line-height: 1.6; color: #7a5901; }
+  .static-doc .sd-key-point strong { color: #7a5901; }
+</style>
+</head>
+<body>
+
+<h1>BrandHub — Trend Detection Pipeline (Interactive Demo)</h1>
+<p class="subtitle">Animated data flow + Knowledge Graph explorer + Data table · data mẫu minh hoạ, click để xem chi tiết</p>
+
+<div id="fallback">
+  Không load được React/D3 từ CDN (có thể do mất mạng hoặc trình duyệt chặn). Kiểm tra kết nối internet rồi reload trang (F5).
+</div>
+<div id="root"></div>
+
+<footer>BrandHub — idea_algorithm / crawData.m4a · Interactive prototype (React + D3, CDN, no build step)</footer>
+
+<script>
+if (typeof React === "undefined" || typeof ReactDOM === "undefined" || typeof d3 === "undefined") {
+  document.getElementById("fallback").style.display = "block";
+} else {
+  runApp();
+}
+
+function runApp() {
+  const e = React.createElement;
+  const { useState, useEffect, useRef, useMemo } = React;
+
+  /* ================= SAMPLE DATA ================= */
+
+  const PIPELINE_STAGES = [
+    { id: "crawl", t: "Crawler", s: "TikTok / FB / YouTube", x: 20,  y: 150, color: "#54aeff",
+      desc: "Thu thập video/audio/text đa nguồn từ social platform và web mỗi ngày. Job chạy nền (background job) do backend orchestrator (Spring Boot / Node.js) quản lý lịch chạy, retry, rate-limit theo platform.",
+      input: "GET https://api.tiktok.com/discover?hashtag=foodtrend&limit=200\n(hoặc scrape HTML nếu không có API chính thức)",
+      output: "128 raw items:\n{ url, platform: \"tiktok\", video_path, caption, author, posted_at, view_count }",
+      code: `<span class="kw">async def</span> <span class="fn">crawl_hashtag</span>(hashtag: str, limit: int = 200):
+    items = <span class="kw">await</span> tiktok_client.discover(hashtag, limit)
+    <span class="kw">for</span> item <span class="kw">in</span> items:
+        <span class="kw">await</span> job_queue.push(<span class="str">"stt_pending"</span>, item)
+    <span class="kw">return</span> len(items)  <span class="cm"># 128</span>` },
+
+    { id: "stt", t: "Whisper STT", s: "RTX 4050 local", x: 220, y: 60,  color: "#2da44e",
+      desc: "Giải mã audio/video track sang text bằng Whisper chạy local trên GPU RTX 4050 — không gọi API STT trả phí (Google Speech-to-Text, AssemblyAI…), giảm chi phí đáng kể khi crawl khối lượng lớn hàng ngày.",
+      input: "video_path: \"/tmp/tiktok_8821.mp4\"\nduration: 34s",
+      output: "{ text: \"quán này mới mở ở quận 1, trà sữa ngon...\", language: \"vi\", segments: [...] }",
+      code: `<span class="kw">from</span> faster_whisper <span class="kw">import</span> WhisperModel
+
+model = WhisperModel(<span class="str">"base"</span>, device=<span class="str">"cuda"</span>, compute_type=<span class="str">"float16"</span>)
+
+<span class="kw">def</span> <span class="fn">transcribe</span>(video_path: str) -> str:
+    segments, info = model.transcribe(video_path, language=<span class="str">"vi"</span>)
+    <span class="kw">return</span> <span class="str">" "</span>.join(s.text <span class="kw">for</span> s <span class="kw">in</span> segments)
+    <span class="cm"># RTX 4050: ~4.2x realtime với model "base"</span>` },
+
+    { id: "norm", t: "Normalize", s: "clean text", x: 220, y: 240, color: "#2da44e",
+      desc: "Chuẩn hoá text thô: loại bỏ ký tự thừa, sửa lỗi chính tả cơ bản, tách câu, gắn metadata nguồn (platform, timestamp, author). Đầu ra thống nhất format cho các bước scoring/embedding.",
+      input: "\"quán này mới mở ở quận 1  trà sữa ngon lắmmm 🧋🧋\"",
+      output: "\"Quán này mới mở ở Quận 1. Trà sữa ngon.\" + metadata { platform, author, posted_at }",
+      code: `<span class="kw">def</span> <span class="fn">normalize_text</span>(raw: str) -> str:
+    text = re.sub(<span class="str">r"\\s+"</span>, <span class="str">" "</span>, raw).strip()
+    text = remove_emoji(text)
+    text = fix_repeated_chars(text)  <span class="cm"># "ngonnn" -> "ngon"</span>
+    <span class="kw">return</span> text.capitalize_sentences()` },
+
+    { id: "bm25", t: "BM25 Score", s: "keyword rank", x: 430, y: 60,  color: "#d4a72c",
+      desc: "Chấm điểm từ khóa bằng BM25 thay vì TF-IDF thường — giải quyết term frequency saturation, phạt văn bản dài, giúp trích trending keyword chính xác hơn. Điểm này dùng để rank + prune node sau này.",
+      input: "corpus: 118 văn bản đã normalize\nquery terms: [\"trà sữa\", \"quán mới\", \"review\"]",
+      output: "{ \"trà sữa\": 12.4, \"review\": 9.8, \"quán mới\": 8.1, \"ngon\": 5.2 }",
+      code: `<span class="kw">from</span> rank_bm25 <span class="kw">import</span> BM25Okapi
+
+tokenized = [doc.split() <span class="kw">for</span> doc <span class="kw">in</span> corpus]
+bm25 = BM25Okapi(tokenized)
+scores = bm25.get_scores(<span class="str">"trà sữa"</span>.split())
+<span class="cm"># score(D,Q) = Σ IDF(qi)·f(qi,D)(k1+1) / [f(qi,D)+k1(1-b+b|D|/avgdl)]</span>` },
+
+    { id: "embed", t: "Embedding", s: "sentence-transformers", x: 430, y: 240, color: "#d4a72c",
+      desc: "Encode text thành vector semantic bằng model mã nguồn mở (sentence-transformers), song song với BM25. Vector này lưu vào Vector DB để phục vụ semantic search (tìm theo ý định, không cần khớp từ khóa).",
+      input: "\"Quán này mới mở ở Quận 1. Trà sữa ngon.\"",
+      output: "vector[384]: [0.021, -0.184, 0.093, ...]",
+      code: `<span class="kw">from</span> sentence_transformers <span class="kw">import</span> SentenceTransformer
+
+model = SentenceTransformer(<span class="str">"paraphrase-multilingual-MiniLM-L12-v2"</span>)
+vec = model.encode(text)  <span class="cm"># shape (384,)</span>` },
+
+    { id: "vec", t: "ChromaDB", s: "vector store", x: 660, y: 150, color: "#2da44e",
+      desc: "Vector DB đã có sẵn trong repo brandhub-ai-service (config trong app/core/config.py). Lưu vector + metadata, phục vụ semantic search khi user hỏi \"gợi ý trend đồ ăn\" — tìm đúng cửa vào (entry point) không cần khớp chính xác từ khóa.",
+      input: "vector[384] + metadata { doc_id, platform, keywords }",
+      output: "collection.add(ids, embeddings, metadatas) → ack",
+      code: `<span class="kw">import</span> chromadb
+client = chromadb.HttpClient(host=settings.chromadb_host, port=settings.chromadb_port)
+collection = client.get_or_create_collection(<span class="str">"trends"</span>)
+collection.add(ids=[doc_id], embeddings=[vec], metadatas=[meta])` },
+
+    { id: "graph", t: "Neo4j", s: "entity graph", x: 660, y: 320, color: "#cf222e",
+      desc: "Graph DB — chưa có trong repo, cần deploy container + driver mới. Lưu entity (KOL, brand, topic, hashtag) và quan hệ logic giữa chúng. Vấn đề lớn: Entity Resolution — node trùng ngữ nghĩa cần merge định kỳ.",
+      input: "entities: [\"Trà sữa\", \"Gong Cha\", \"Trấn Thành\"], relations: [(KOL)-[MENTIONS]->(Trend)]",
+      output: "42 node mới tạo, 3 case merge trùng phát hiện",
+      code: `<span class="kw">from</span> neo4j <span class="kw">import</span> GraphDatabase
+driver = GraphDatabase.driver(settings.neo4j_uri, auth=(user, pwd))
+
+<span class="kw">def</span> <span class="fn">link_entity</span>(session, kol, trend):
+    session.run(
+        <span class="str">"MERGE (k:KOL {name:$kol}) MERGE (t:Trend {name:$trend}) "</span>
+        <span class="str">"MERGE (k)-[:MENTIONS]->(t)"</span>, kol=kol, trend=trend)` },
+
+    { id: "rag", t: "GraphRAG Builder", s: "context assembly", x: 890, y: 240, color: "#0969da",
+      desc: "Vector search (Chroma) xác định entry point theo ngữ nghĩa → traversal trong Neo4j mở rộng mạng lưới liên quan → prune node điểm BM25 thấp → build context đầy đủ (keyword + ngữ cảnh sự kiện) cho LLM.",
+      input: "user query: \"gợi ý trend đồ ăn\"",
+      output: "context (620 tokens): \"Trend trà sữa đang lên tại Q1, liên quan Gong Cha, Trấn Thành nhắc đến ngày 28/6...\"",
+      code: `entry_ids = chroma_collection.query(query_embeddings=[q_vec], n_results=3)
+subgraph = neo4j_traverse(entry_ids, max_depth=2)
+pruned = [n <span class="kw">for</span> n <span class="kw">in</span> subgraph <span class="kw">if</span> n.bm25_score > THRESHOLD]
+context = build_prompt_context(pruned)` },
+
+    { id: "llm", t: "LLM Prompt", s: "Groq / Anthropic", x: 1080, y: 240, color: "#eb6834",
+      desc: "Context đưa vào LLM (đã config sẵn trong brandhub-ai-service: Groq hoặc Anthropic) để sinh content. Prompt không chỉ chứa keyword SEO mà cần thiết kế \"hook\" — điểm thu hút 3 giây đầu, vì nền tảng đánh giá qua Retention Rate.",
+      input: "context (620 tokens) + system prompt \"viết caption TikTok, có hook mở đầu\"",
+      output: "\"Trà sữa mới ở Q1 khiến Trấn Thành cũng phải ghé — bạn đã thử chưa? 🧋👀\"",
+      code: `response = groq_client.chat.completions.create(
+    model=<span class="str">"llama-3.1-70b"</span>,
+    messages=[{ <span class="str">"role"</span>: <span class="str">"system"</span>, <span class="str">"content"</span>: HOOK_PROMPT_TEMPLATE },
+              { <span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: context }])` },
+  ];
+
+  const EDGES = [
+    ["crawl","stt"], ["crawl","norm"], ["stt","bm25"], ["norm","embed"],
+    ["bm25","vec"], ["embed","vec"], ["bm25","graph"], ["embed","graph"],
+    ["vec","rag"], ["graph","rag"], ["rag","llm"],
+  ];
+
+  const SAMPLE_LOGS = [
+    "Crawler: fetched 128 video từ TikTok #foodtrend",
+    "Whisper: transcribed 128 audio segments (RTX 4050, 4.2x realtime)",
+    "Normalize: cleaned + dedup 118 văn bản hợp lệ",
+    "BM25: top keyword — \"trà sữa\" (12.4), \"review\" (9.8), \"quán mới\" (8.1)",
+    "Embedding: 118 vector đã lưu vào ChromaDB",
+    "Neo4j: 42 entity mới, 3 merge trùng (\"Trấn Thành\" ↔ \"MC Trấn Thành\")",
+    "GraphRAG: entry point qua vector search → mở rộng 6 node liên quan",
+    "LLM: prompt build xong (820 tokens) → gửi Groq generate content",
+  ];
+
+  const GRAPH_NODES = [
+    { id: "trend_tra_sua", label: "Trà sữa", type: "trend", size: 26 },
+    { id: "trend_food_street", label: "Ẩm thực đường phố", type: "trend", size: 22 },
+    { id: "trend_gym", label: "Gym & Fitness", type: "trend", size: 18 },
+    { id: "quan_A", label: "Gong Cha", type: "brand", size: 18 },
+    { id: "quan_B", label: "Phúc Long", type: "brand", size: 18 },
+    { id: "quan_C", label: "Katinat", type: "brand", size: 15 },
+    { id: "kol_1", label: "Trấn Thành", type: "kol", size: 20 },
+    { id: "kol_1b", label: "MC Trấn Thành", type: "kol_dup", size: 12 },
+    { id: "kol_2", label: "Chi Pu", type: "kol", size: 16 },
+    { id: "kol_3", label: "Độ Mixi", type: "kol", size: 17 },
+    { id: "topic_review", label: "Review đồ ăn", type: "topic", size: 22 },
+    { id: "topic_food", label: "Ẩm thực đường phố", type: "topic", size: 20 },
+    { id: "topic_lifestyle", label: "Lifestyle", type: "topic", size: 16 },
+    { id: "platform_tt", label: "TikTok", type: "platform", size: 24 },
+    { id: "platform_fb", label: "Facebook", type: "platform", size: 18 },
+    { id: "platform_yt", label: "YouTube", type: "platform", size: 16 },
+    { id: "event_1", label: "Mở cửa hàng mới Q1", type: "event", size: 14 },
+    { id: "event_2", label: "Livestream 28/6", type: "event", size: 12 },
+    { id: "hashtag_1", label: "#tradsua2026", type: "hashtag", size: 16 },
+    { id: "hashtag_2", label: "#foodtrend", type: "hashtag", size: 14 },
+  ];
+
+  const GRAPH_EDGES = [
+    ["trend_tra_sua","quan_A"], ["trend_tra_sua","quan_B"], ["trend_tra_sua","hashtag_1"],
+    ["kol_1","trend_tra_sua"], ["kol_1b","quan_A"], ["kol_2","trend_tra_sua"],
+    ["kol_3","trend_gym"], ["topic_review","trend_tra_sua"], ["topic_review","topic_food"],
+    ["platform_tt","trend_tra_sua"], ["platform_tt","kol_1"], ["platform_fb","kol_2"],
+    ["platform_yt","kol_3"], ["quan_A","event_1"], ["quan_A","event_2"],
+    ["hashtag_1","platform_tt"], ["hashtag_2","trend_food_street"], ["trend_food_street","quan_C"],
+    ["topic_food","quan_C"], ["topic_lifestyle","kol_2"],
+  ];
+
+  const TYPE_COLOR = {
+    trend: "#0969da", brand: "#2da44e", kol: "#8250df", kol_dup: "#d4a72c",
+    topic: "#cf222e", platform: "#54aeff", event: "#eb6834", hashtag: "#57606a",
+  };
+
+  const NODE_DETAIL = {
+    trend_tra_sua: "Trend chính đang lên — BM25 score 12.4, xuất hiện trong 34 video crawl 7 ngày qua. 3 brand liên quan, 2 KOL nhắc đến.",
+    kol_1: "KOL nổi bật nhắc đến trend. Có 1 node trùng ngữ nghĩa (\"MC Trấn Thành\") — case study Entity Resolution.",
+    kol_1b: "Node trùng với \"Trấn Thành\" — minh hoạ vấn đề Entity Resolution cần merge trong Neo4j (embedding similarity + alias dictionary).",
+    topic_review: "Chủ đề bao trùm nhiều trend con — mức độ liên kết cao trong graph, entry point tốt cho GraphRAG traversal.",
+    trend_food_street: "Trend phụ liên quan ẩm thực đường phố, tách biệt cluster với trend trà sữa nhưng share chung topic \"Ẩm thực\".",
+  };
+
+  const RAW_ITEMS = [
+    { id: "tt_8821", platform: "tiktok", author: "@quananhme", caption: "Trà sữa mới mở ở Q1, review nè", views: "245K", bm25: 12.4, status: "indexed" },
+    { id: "tt_8830", platform: "tiktok", author: "@foodie_sg", caption: "Gong Cha có vị mới cực ngon", views: "89K", bm25: 9.1, status: "indexed" },
+    { id: "fb_1102", platform: "facebook", author: "Ẩm Thực SG", caption: "Top 5 quán trà sữa hot nhất tháng này", views: "12K", bm25: 8.7, status: "indexed" },
+    { id: "yt_5591", platform: "youtube", author: "Độ Mixi", caption: "Thử thách ăn 10 ly trà sữa", views: "1.2M", bm25: 6.3, status: "pending_stt" },
+    { id: "tt_8845", platform: "tiktok", author: "@trend_daily", caption: "Trấn Thành ghé quán trà sữa mới", views: "580K", bm25: 11.8, status: "indexed" },
+    { id: "tt_8850", platform: "tiktok", author: "@streetfood_vn", caption: "Ẩm thực đường phố Sài Gòn về đêm", views: "156K", bm25: 7.2, status: "pending_stt" },
+    { id: "fb_1105", platform: "facebook", author: "Foodie Club", caption: "Katinat mở chi nhánh mới", views: "34K", bm25: 5.9, status: "indexed" },
+    { id: "tt_8860", platform: "tiktok", author: "@chipu_fan", caption: "Chi Pu review trà sữa ngon xỉu", views: "410K", bm25: 10.5, status: "indexed" },
+  ];
+
+  const BM25_KEYWORDS = [
+    { term: "trà sữa", score: 12.4 }, { term: "review", score: 9.8 },
+    { term: "quán mới", score: 8.1 }, { term: "ngon", score: 5.2 },
+    { term: "Trấn Thành", score: 11.8 }, { term: "Gong Cha", score: 7.4 },
+    { term: "ẩm thực đường phố", score: 7.2 }, { term: "Katinat", score: 5.9 },
+  ].sort((a,b)=>b.score-a.score);
+
+  /* ================= PIPELINE TAB ================= */
+
+  function PipelineFlow() {
+    const [running, setRunning] = useState(false);
+    const [activeStage, setActiveStage] = useState(null);
+    const [selectedStage, setSelectedStage] = useState(PIPELINE_STAGES[0]);
+    const [log, setLog] = useState("Nhấn Play để chạy mô phỏng luồng dữ liệu, hoặc click 1 node để xem chi tiết.");
+    const timerRef = useRef(null);
+    const stepRef = useRef(0);
+    const ORDER = ["crawl","stt","norm","bm25","embed","vec","graph","rag","llm"];
+
+    useEffect(() => {
+      if (!running) return;
+      stepRef.current = 0;
+      timerRef.current = setInterval(() => {
+        const i = stepRef.current;
+        if (i >= ORDER.length) {
+          clearInterval(timerRef.current);
+          setRunning(false);
+          setActiveStage(null);
+          setLog("Hoàn tất 1 vòng pipeline. Nhấn Play để chạy lại.");
+          return;
+        }
+        setActiveStage(ORDER[i]);
+        setLog(SAMPLE_LOGS[i] || "");
+        stepRef.current += 1;
+      }, 1200);
+      return () => clearInterval(timerRef.current);
+    }, [running]);
+
+    const stageById = Object.fromEntries(PIPELINE_STAGES.map(s => [s.id, s]));
+    const W = 1230, H = 400;
+
+    return e("div", { className: "panel" },
+      e("div", { className: "controls" },
+        e("button", { className: "btn", onClick: () => setRunning(r => !r) }, running ? "⏸ Pause" : "▶ Play mô phỏng"),
+        e("button", { className: "btn secondary", onClick: () => { setRunning(false); setActiveStage(null); setLog("Đã reset."); } }, "⟲ Reset"),
+        e("div", { className: "badge-log" }, log)
+      ),
+      e("div", { style: { position: "relative", width: "100%", aspectRatio: `${W} / ${H}`, minHeight: 340 } },
+        e("svg", { width: "100%", height: "100%", viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: "xMidYMid meet", style: { position: "absolute", inset: 0 } },
+          e("defs", null,
+            e("marker", { id: "arr", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 6, markerHeight: 6, orient: "auto" },
+              e("path", { d: "M0 0L10 5L0 10Z", fill: "#c3c8cf" })
+            )
+          ),
+          EDGES.map(([a,b], i) => {
+            const A = stageById[a], B = stageById[b];
+            const ax = A.x + 70, ay = A.y + 26, bx = B.x, by = B.y + 26;
+            const isActive = activeStage === a || activeStage === b;
+            return e("line", {
+              key: i, x1: ax, y1: ay, x2: bx, y2: by,
+              stroke: isActive ? "#0969da" : "#c3c8cf", strokeWidth: isActive ? 2.5 : 1.5,
+              markerEnd: "url(#arr)", opacity: isActive ? 1 : 0.5,
+            });
+          })
+        ),
+        e("div", { style: { position: "absolute", inset: 0, pointerEvents: "none" } },
+          PIPELINE_STAGES.map(s =>
+            e("div", {
+              key: s.id,
+              className: "stage-node" + (activeStage === s.id ? " active" : "") + (selectedStage && selectedStage.id === s.id ? " selected" : ""),
+              style: {
+                position: "absolute",
+                left: (s.x / W * 100) + "%",
+                top: (s.y / H * 100) + "%",
+                borderColor: s.color,
+                width: 140,
+              },
+              onClick: () => setSelectedStage(s),
+            },
+              e("div", { className: "t", style: { color: s.color } }, s.t),
+              e("div", { className: "s" }, s.s)
+            )
+          )
+        )
+      ),
+      selectedStage && e("div", { className: "stage-detail" },
+        e("div", { className: "head" },
+          e("div", { className: "dot", style: { background: selectedStage.color } }),
+          e("h3", null, selectedStage.t + " — " + selectedStage.s)
+        ),
+        e("p", { className: "desc-text" }, selectedStage.desc),
+        e("div", { className: "grid2" },
+          e("div", { className: "io-box" }, e("div", { className: "lbl" }, "Input mẫu"), e("pre", null, selectedStage.input)),
+          e("div", { className: "io-box" }, e("div", { className: "lbl" }, "Output mẫu"), e("pre", null, selectedStage.output))
+        ),
+        e("div", { className: "lbl", style: { marginBottom: 6, color: "#57606a", fontWeight: 700, fontSize: 10.5, textTransform: "uppercase" } }, "Code minh hoạ (Python)"),
+        e("div", { className: "code-block", dangerouslySetInnerHTML: { __html: selectedStage.code } })
+      )
+    );
+  }
+
+  /* ================= KNOWLEDGE GRAPH TAB ================= */
+
+  function KnowledgeGraph() {
+    const svgRef = useRef(null);
+    const [selected, setSelected] = useState(null);
+    const [query, setQuery] = useState("");
+    const [activeTypes, setActiveTypes] = useState(Object.keys(TYPE_COLOR));
+    const simRef = useRef(null);
+    const nodesElRef = useRef(null);
+    const labelsElRef = useRef(null);
+
+    const toggleType = (type) => {
+      setActiveTypes(prev => prev.includes(type) ? prev.filter(t=>t!==type) : [...prev, type]);
+    };
+
+    useEffect(() => {
+      const width = 1140, height = 480;
+      const svg = d3.select(svgRef.current);
+      svg.selectAll("*").remove();
+
+      const nodes = GRAPH_NODES.map(d => Object.assign({}, d));
+      const links = GRAPH_EDGES.map(([s,t]) => ({ source: s, target: t }));
+
+      const sim = d3.forceSimulation(nodes)
+        .force("link", d3.forceLink(links).id(d => d.id).distance(85).strength(0.55))
+        .force("charge", d3.forceManyBody().strength(-240))
+        .force("center", d3.forceCenter(width/2, height/2))
+        .force("collide", d3.forceCollide().radius(d => d.size + 12));
+      simRef.current = sim;
+
+      const g = svg.append("g");
+      svg.call(d3.zoom().scaleExtent([0.4, 2.5]).on("zoom", (ev) => g.attr("transform", ev.transform)));
+
+      const link = g.append("g").selectAll("line").data(links).join("line")
+        .attr("stroke", "#d0d7de").attr("stroke-width", 1.5);
+
+      const node = g.append("g").selectAll("circle").data(nodes).join("circle")
+        .attr("r", d => d.size)
+        .attr("fill", d => TYPE_COLOR[d.type] || "#999")
+        .attr("fill-opacity", 0.85)
+        .attr("stroke", "#fff").attr("stroke-width", 2)
+        .style("cursor", "pointer")
+        .call(d3.drag()
+          .on("start", (ev,d) => { if (!ev.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
+          .on("drag", (ev,d) => { d.fx=ev.x; d.fy=ev.y; })
+          .on("end", (ev,d) => { if (!ev.active) sim.alphaTarget(0); d.fx=null; d.fy=null; }))
+        .on("click", (ev,d) => setSelected(d));
+      nodesElRef.current = node;
+
+      const label = g.append("g").selectAll("text").data(nodes).join("text")
+        .text(d => d.label).attr("font-size", 10.5).attr("fill", "#1f2328")
+        .attr("text-anchor", "middle").attr("dy", d => -d.size - 6)
+        .style("pointer-events", "none").style("font-weight", 600);
+      labelsElRef.current = label;
+
+      sim.on("tick", () => {
+        link.attr("x1", d=>d.source.x).attr("y1", d=>d.source.y)
+            .attr("x2", d=>d.target.x).attr("y2", d=>d.target.y);
+        node.attr("cx", d=>d.x).attr("cy", d=>d.y);
+        label.attr("x", d=>d.x).attr("y", d=>d.y);
+      });
+
+      return () => sim.stop();
+    }, []);
+
+    useEffect(() => {
+      if (!nodesElRef.current) return;
+      const matchQuery = (d) => !query || d.label.toLowerCase().includes(query.toLowerCase());
+      const matchType = (d) => activeTypes.includes(d.type);
+      const visible = (d) => matchQuery(d) && matchType(d);
+      nodesElRef.current.attr("opacity", d => visible(d) ? 1 : 0.1);
+      labelsElRef.current.attr("opacity", d => visible(d) ? 1 : 0.1);
+    }, [query, activeTypes]);
+
+    const typeCounts = GRAPH_NODES.reduce((acc,n) => { acc[n.type]=(acc[n.type]||0)+1; return acc; }, {});
+
+    return e("div", { className: "panel" },
+      e("div", { className: "graph-toolbar" },
+        e("input", { className: "search-box", placeholder: "Tìm entity (VD: Trấn Thành)", value: query, onChange: ev => setQuery(ev.target.value) }),
+        Object.entries(TYPE_COLOR).map(([type,color]) =>
+          e("span", {
+            key: type,
+            className: "filter-chip" + (activeTypes.includes(type) ? " on" : ""),
+            onClick: () => toggleType(type),
+          }, e("span", { className: "legend-dot", style: { background: color } }), type + " (" + (typeCounts[type]||0) + ")")
+        )
+      ),
+      e("svg", { ref: svgRef, width: "100%", viewBox: "0 0 1140 480", style: { minWidth: 950, background: "#fff", borderRadius: 8, border: "1px solid #d0d7de" } }),
+      e("div", { className: "stat-row" },
+        e("div", { className: "stat-card" }, e("div", { className: "v" }, GRAPH_NODES.length), e("div", { className: "l" }, "Entity nodes")),
+        e("div", { className: "stat-card" }, e("div", { className: "v" }, GRAPH_EDGES.length), e("div", { className: "l" }, "Relationships")),
+        e("div", { className: "stat-card" }, e("div", { className: "v" }, typeCounts.kol_dup || 0), e("div", { className: "l" }, "Cần Entity Resolution")),
+        e("div", { className: "stat-card" }, e("div", { className: "v" }, typeCounts.trend || 0), e("div", { className: "l" }, "Trend cluster"))
+      ),
+      selected
+        ? e("div", { className: "detail-panel" },
+            e("strong", null, selected.label), " ", e("span", { className: "chip" }, selected.type),
+            e("p", { style: { marginTop: 6 } }, NODE_DETAIL[selected.id] || "Node trong Knowledge Graph — click node khác để xem chi tiết, kéo thả để sắp xếp lại layout.")
+          )
+        : e("div", { className: "detail-panel" }, "Click vào 1 node để xem chi tiết. Kéo thả để sắp xếp, cuộn để zoom, gõ tìm kiếm hoặc bấm chip để filter theo loại entity.")
+    );
+  }
+
+  /* ================= DATA TABLE TAB ================= */
+
+  function DataTable() {
+    const maxScore = Math.max(...BM25_KEYWORDS.map(k=>k.score));
+    const colorFor = (i) => ["#0969da","#2da44e","#d4a72c","#cf222e","#8250df"][i % 5];
+
+    return e("div", { className: "panel" },
+      e("h3", null, "Raw crawled items — 8/128 mẫu"),
+      e("div", { className: "note" },
+        e("strong", null, "Ghi chú: "), "Đây là data mẫu minh hoạ format thực tế sẽ lưu ở MongoDB (metadata) sau khi qua pipeline. Cột ", e("code",null,"status"), " phản ánh trạng thái xử lý: ", e("code",null,"pending_stt"), " chưa qua Whisper, ", e("code",null,"indexed"), " đã vào ChromaDB + Neo4j."
+      ),
+      e("table", { className: "data-table" },
+        e("thead", null, e("tr", null,
+          e("th", null, "ID"), e("th", null, "Platform"), e("th", null, "Author"),
+          e("th", null, "Caption"), e("th", null, "Views"), e("th", null, "BM25"), e("th", null, "Status")
+        )),
+        e("tbody", null, RAW_ITEMS.map(item =>
+          e("tr", { key: item.id },
+            e("td", null, item.id),
+            e("td", null, e("span", { className: "pill platform-" + item.platform }, item.platform)),
+            e("td", null, item.author),
+            e("td", null, item.caption),
+            e("td", null, item.views),
+            e("td", null, item.bm25.toFixed(1)),
+            e("td", null, item.status === "indexed"
+              ? e("span", { style: { color: "#2da44e", fontWeight: 600 } }, "✓ indexed")
+              : e("span", { style: { color: "#d4a72c", fontWeight: 600 } }, "⏳ pending_stt"))
+          )
+        ))
+      ),
+
+      e("h3", { style: { marginTop: 28 } }, "BM25 Top Keywords"),
+      e("div", { style: { background: "#fff", border: "1px solid #d0d7de", borderRadius: 8, padding: 18 } },
+        BM25_KEYWORDS.map((k,i) =>
+          e("div", { key: k.term, className: "bar-row" },
+            e("div", { className: "bar-label" }, k.term),
+            e("div", { className: "bar-track" },
+              e("div", { className: "bar-fill", style: { width: (k.score/maxScore*100) + "%", background: colorFor(i) } },
+                e("span", { className: "bar-val" }, k.score.toFixed(1))
+              )
+            )
+          )
+        )
+      )
+    );
+  }
+
+  /* ================= STATIC DOC TAB (ported from crawData_diagram.html) ================= */
+
+  const STATIC_DOC_HTML = `
+<div class="sd-legend">
+  <span class="sd-legend-item"><span class="sd-legend-line solid"></span> Luồng dữ liệu chính</span>
+  <span class="sd-legend-item"><span class="sd-legend-line yellow"></span> Scoring / xử lý</span>
+  <span class="sd-legend-item"><span class="sd-legend-line green"></span> Output / response</span>
+  <span class="sd-legend-item"><span class="sd-legend-line dashed"></span> Phụ thuộc / tham chiếu</span>
+</div>
+
+<h2>1. Data Ingest — Crawl đến Text chuẩn hoá</h2>
+<div class="sd-diagram">
+<svg class="sd-flow-svg" viewBox="0 0 1050 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="sd-arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#0969da"/></marker>
+    <filter id="sd-shadow"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.4"/></filter>
+  </defs>
+  <rect x="30" y="100" width="170" height="80" rx="8" fill="#ddf4ff" stroke="#54aeff" stroke-width="2" filter="url(#sd-shadow)"/>
+  <text x="115" y="136" class="sd-box-label">Crawler</text>
+  <text x="115" y="154" class="sd-box-sub">video / audio / text</text>
+  <text x="115" y="168" class="sd-box-sub">đa nguồn (social, web)</text>
+  <rect x="250" y="80" width="190" height="120" rx="8" fill="#dafbe1" stroke="#2da44e" stroke-width="2" filter="url(#sd-shadow)"/>
+  <text x="345" y="110" class="sd-box-label">Speech-to-Text</text>
+  <rect x="270" y="126" width="150" height="34" rx="6" fill="#ebedf0" stroke="#afb8c1" stroke-width="1"/>
+  <text x="345" y="148" fill="#0550ae" font-size="11" text-anchor="middle" font-weight="600">Whisper (local)</text>
+  <text x="345" y="180" fill="#57606a" font-size="10" text-anchor="middle">chạy trên RTX 4050</text>
+  <rect x="490" y="100" width="170" height="80" rx="8" fill="#fff8c5" stroke="#d4a72c" stroke-width="2" filter="url(#sd-shadow)"/>
+  <text x="575" y="136" class="sd-box-label">Normalize</text>
+  <text x="575" y="154" class="sd-box-sub">làm sạch, chuẩn hoá text</text>
+  <rect x="710" y="60" width="300" height="160" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="2" filter="url(#sd-shadow)"/>
+  <text x="860" y="90" class="sd-box-label">Backend (Job Orchestrator)</text>
+  <text x="860" y="108" class="sd-box-sub">Spring Boot / Node.js</text>
+  <rect x="730" y="122" width="260" height="34" rx="6" fill="#ebedf0" stroke="#afb8c1" stroke-width="1"/>
+  <text x="860" y="144" fill="#1f2328" font-size="11" text-anchor="middle">Quản lý background crawl jobs</text>
+  <rect x="730" y="164" width="260" height="34" rx="6" fill="#ebedf0" stroke="#afb8c1" stroke-width="1"/>
+  <text x="860" y="186" fill="#1f2328" font-size="11" text-anchor="middle">Xử lý luồng dữ liệu lớn hàng ngày</text>
+  <line x1="200" y1="140" x2="240" y2="140" class="sd-arrow" marker-end="url(#sd-arrowhead)"/>
+  <text x="220" y="130" class="sd-step-num">①</text>
+  <line x1="440" y1="140" x2="480" y2="140" class="sd-arrow" marker-end="url(#sd-arrowhead)"/>
+  <text x="460" y="130" class="sd-step-num">②</text>
+  <line x1="660" y1="140" x2="700" y2="140" class="sd-arrow" marker-end="url(#sd-arrowhead)"/>
+  <text x="680" y="130" class="sd-step-num">③</text>
+</svg>
+</div>
+
+<div class="sd-diagram-detail">
+<h3>Giải thích sơ đồ 1 — Ingest Pipeline</h3>
+<div class="sd-flow-item">
+  <div class="sd-flow-num">①</div>
+  <div class="sd-flow-body">
+    <strong>Crawler thu thập dữ liệu đa nguồn</strong>
+    <p>Crawl video, audio, text từ social platform (TikTok, Facebook…) và web. Dữ liệu đổ về mỗi ngày với khối lượng lớn — cần backend chịu tải background job liên tục.</p>
+  </div>
+</div>
+<div class="sd-flow-item">
+  <div class="sd-flow-num">②</div>
+  <div class="sd-flow-body">
+    <strong>Speech-to-Text bằng Whisper chạy local</strong>
+    <p>Video/audio giải mã về text bằng Whisper chạy trên <code>RTX 4050</code> — tận dụng phần cứng sẵn có, giảm phụ thuộc API trả phí. Đây là bước bắt buộc để AI hiểu được nội dung phi văn bản.</p>
+  </div>
+</div>
+<div class="sd-flow-item">
+  <div class="sd-flow-num">③</div>
+  <div class="sd-flow-body">
+    <strong>Normalize & giao backend orchestrate</strong>
+    <p>Text được chuẩn hoá rồi đẩy vào backend (Spring Boot / Node.js) — service này quản lý job crawl chạy ngầm và xử lý luồng dữ liệu lớn đổ về hàng ngày.</p>
+  </div>
+</div>
+<div class="sd-key-point">
+  <strong>Điểm quan trọng:</strong> Chạy Whisper + embedding model local trên RTX 4050 thay vì gọi API trả phí — giảm chi phí vận hành đáng kể ở giai đoạn crawl khối lượng lớn.
+</div>
+</div>
+
+<h2>2. Scoring & Storage — BM25 + GraphRAG</h2>
+<div class="sd-diagram">
+<svg class="sd-flow-svg" viewBox="0 0 1100 480" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="sd-arrowhead2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#0969da"/></marker>
+    <marker id="sd-arrowhead-green2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#2da44e"/></marker>
+    <filter id="sd-shadow2"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.4"/></filter>
+  </defs>
+  <rect x="20" y="180" width="150" height="70" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="2" filter="url(#sd-shadow2)"/>
+  <text x="95" y="212" class="sd-box-label">Text chuẩn hoá</text>
+  <text x="95" y="230" class="sd-box-sub">từ pipeline ①</text>
+  <rect x="220" y="120" width="220" height="190" rx="8" fill="#fff8c5" stroke="#d4a72c" stroke-width="2" filter="url(#sd-shadow2)"/>
+  <text x="330" y="150" class="sd-box-label">Scoring Layer</text>
+  <rect x="240" y="168" width="180" height="40" rx="6" fill="#ebedf0" stroke="#afb8c1" stroke-width="1"/>
+  <text x="330" y="188" fill="#1f2328" font-size="11" text-anchor="middle">BM25 keyword scoring</text>
+  <text x="330" y="202" fill="#57606a" font-size="10" text-anchor="middle">trending keyword rank</text>
+  <rect x="240" y="218" width="180" height="40" rx="6" fill="#ebedf0" stroke="#afb8c1" stroke-width="1"/>
+  <text x="330" y="238" fill="#0550ae" font-size="11" text-anchor="middle">Embedding (open-source)</text>
+  <text x="330" y="252" fill="#57606a" font-size="10" text-anchor="middle">semantic vector</text>
+  <rect x="240" y="268" width="180" height="30" rx="6" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+  <text x="330" y="287" fill="#57606a" font-size="10" text-anchor="middle">prune node theo BM25 thấp</text>
+  <rect x="500" y="30" width="220" height="110" rx="8" fill="#ddf4ff" stroke="#54aeff" stroke-width="2" filter="url(#sd-shadow2)"/>
+  <text x="610" y="60" class="sd-box-label">Graph DB (Neo4j)</text>
+  <text x="610" y="80" class="sd-box-sub">Entity + quan hệ logic</text>
+  <text x="610" y="96" class="sd-box-sub">"Node A ↔ Node B"</text>
+  <text x="610" y="114" fill="#cf222e" font-size="10" text-anchor="middle">⚠ cần Entity Resolution</text>
+  <rect x="500" y="160" width="220" height="110" rx="8" fill="#dafbe1" stroke="#2da44e" stroke-width="2" filter="url(#sd-shadow2)"/>
+  <text x="610" y="190" class="sd-box-label">Vector DB (Milvus / Qdrant)</text>
+  <text x="610" y="210" class="sd-box-sub">Semantic search theo ý định</text>
+  <text x="610" y="226" class="sd-box-sub">match prompt user</text>
+  <rect x="780" y="90" width="280" height="150" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="2" filter="url(#sd-shadow2)"/>
+  <text x="920" y="120" class="sd-box-label">GraphRAG Context Builder</text>
+  <rect x="800" y="136" width="240" height="34" rx="6" fill="#ebedf0" stroke="#afb8c1" stroke-width="1"/>
+  <text x="920" y="158" fill="#1f2328" font-size="11" text-anchor="middle">Vector search → điểm vào</text>
+  <rect x="800" y="178" width="240" height="34" rx="6" fill="#ebedf0" stroke="#afb8c1" stroke-width="1"/>
+  <text x="920" y="200" fill="#1f2328" font-size="11" text-anchor="middle">Graph traversal → mạng lưới liên quan</text>
+  <rect x="800" y="220" width="240" height="16" rx="6" fill="#fff8c5" stroke="#d4a72c" stroke-width="1"/>
+  <rect x="820" y="330" width="200" height="70" rx="8" fill="#eb6834" fill-opacity="0.12" stroke="#eb6834" stroke-width="2" filter="url(#sd-shadow2)"/>
+  <text x="920" y="360" class="sd-box-label">Prompt / LLM</text>
+  <text x="920" y="378" class="sd-box-sub">keyword + ngữ cảnh sự kiện</text>
+  <line x1="170" y1="215" x2="210" y2="215" class="sd-arrow" marker-end="url(#sd-arrowhead2)"/>
+  <line x1="440" y1="180" x2="490" y2="90" class="sd-arrow" marker-end="url(#sd-arrowhead2)"/>
+  <text x="450" y="140" class="sd-step-num">①</text>
+  <line x1="440" y1="240" x2="490" y2="215" class="sd-arrow" marker-end="url(#sd-arrowhead2)"/>
+  <text x="450" y="235" class="sd-step-num">②</text>
+  <line x1="720" y1="90" x2="790" y2="160" class="sd-arrow" marker-end="url(#sd-arrowhead2)"/>
+  <line x1="720" y1="215" x2="790" y2="180" class="sd-arrow" marker-end="url(#sd-arrowhead2)"/>
+  <text x="750" y="150" class="sd-step-num">③</text>
+  <line x1="920" y1="240" x2="920" y2="320" class="sd-arrow-green" marker-end="url(#sd-arrowhead-green2)"/>
+  <text x="930" y="285" class="sd-step-num">④</text>
+</svg>
+</div>
+
+<div class="sd-diagram-detail">
+<h3>Giải thích sơ đồ 2 — Scoring & GraphRAG</h3>
+<div class="sd-flow-item">
+  <div class="sd-flow-num">①</div>
+  <div class="sd-flow-body">
+    <strong>BM25 chấm điểm keyword</strong>
+    <p>Thay vì TF-IDF thông thường, dùng BM25 — giải quyết <em>term frequency saturation</em> và phạt văn bản dài, giúp trích trending keyword chính xác hơn. Công thức:</p>
+    <div class="sd-inline-code">score(D,Q) = Σ IDF(qi) · f(qi,D)(k1+1) / [f(qi,D) + k1(1-b+b·|D|/avgdl)]</div>
+    <p>Điểm BM25 dùng để rank keyword và <strong>prune</strong> (cắt tỉa) node có điểm thấp trước khi đưa vào LLM context.</p>
+  </div>
+</div>
+<div class="sd-flow-item">
+  <div class="sd-flow-num">②</div>
+  <div class="sd-flow-body">
+    <strong>Embedding song song để lưu Vector DB</strong>
+    <p>Text qua mô hình embedding mã nguồn mở → vector semantic, lưu vào Vector DB (Milvus/Qdrant) phục vụ semantic search.</p>
+  </div>
+</div>
+<div class="sd-flow-item">
+  <div class="sd-flow-num">③</div>
+  <div class="sd-flow-body">
+    <strong>Ghi song song vào Graph DB và Vector DB</strong>
+    <p>Entity + quan hệ ghi vào Graph DB (Neo4j) để giữ liên kết logic giữa các thực thể trong cùng trend. Vector DB giữ khả năng match ý định người dùng ("gợi ý trend đồ ăn") mà không cần khớp chính xác từ khóa.</p>
+  </div>
+</div>
+<div class="sd-flow-item">
+  <div class="sd-flow-num">④</div>
+  <div class="sd-flow-body">
+    <strong>GraphRAG Context Builder ghép kết quả</strong>
+    <p>Vector search xác định điểm vào (entry point) theo ngữ nghĩa → traversal trong Graph DB để lấy toàn bộ mạng lưới liên quan → prune theo BM25 → build prompt đủ sâu, bao gồm cả keyword lẫn ngữ cảnh sự kiện, gửi vào LLM.</p>
+  </div>
+</div>
+<div class="sd-key-point">
+  <strong>Điểm quan trọng:</strong> Không chọn Graph HOẶC Vector — kết hợp cả hai (GraphRAG) là xu hướng kiến trúc Agentic AI bộ nhớ dài hạn hiện tại. Vector DB tìm đúng cửa vào, Graph DB mở rộng đúng ngữ cảnh liên kết.
+</div>
+</div>
+
+<h2>3. So Sánh Graph DB vs Vector DB</h2>
+<table class="sd-claim-table">
+  <tr><th>Đặc điểm</th><th>Graph DB (Neo4j)</th><th>Vector DB (Milvus/Qdrant)</th><th>Kết hợp (GraphRAG)</th></tr>
+  <tr>
+    <td>Thế mạnh chính</td>
+    <td>Lưu trữ &amp; truy xuất quan hệ logic cực tốt (Node A ↔ Node B)</td>
+    <td>Semantic search dựa trên ý định, không cần khớp chính xác từ khóa</td>
+    <td>Semantic search rồi trích toàn bộ mạng lưới liên quan</td>
+  </tr>
+  <tr>
+    <td>Điểm yếu</td>
+    <td>Không hiểu ngữ nghĩa tương đồng ("đồ ăn" vs "thực phẩm")</td>
+    <td>Mất ngữ cảnh tuyến tính, cấu trúc liên kết sự kiện</td>
+    <td>Pipeline phức tạp, chi phí vận hành cao hơn</td>
+  </tr>
+  <tr>
+    <td>Vai trò trong hệ thống</td>
+    <td>Tìm entity liên kết mạnh trong cùng một trend</td>
+    <td>Nhận diện prompt người dùng: "gợi ý trend đồ ăn"</td>
+    <td>Trả prompt đủ sâu — cả từ khóa lẫn ngữ cảnh sự kiện</td>
+  </tr>
+</table>
+<div class="sd-note">
+  Đây chính là kiến trúc <strong>GraphRAG</strong> — retrieval augmented generation kết hợp graph traversal, đang là xu hướng chuẩn cho các hệ thống Agentic AI cần bộ nhớ dài hạn.
+</div>
+
+<h2>4. Thách Thức Cần Lưu Ý</h2>
+<div class="sd-step-list">
+  <div class="sd-step-item">
+    <div class="sd-step-marker">1</div>
+    <div class="sd-step-content">
+      <strong>Entity Resolution (chuẩn hoá thực thể)</strong>
+      <p>Graph phình to mỗi ngày (giống mạng lưới Obsidian) → xuất hiện node trùng ngữ nghĩa, VD node <code>"Trấn Thành"</code> và <code>"MC Trấn Thành"</code> là cùng một thực thể nhưng tồn tại song song. Nếu không xử lý sẽ làm rác Knowledge Graph theo thời gian.</p>
+      <p><span class="sd-hl">Hướng giải:</span> cơ chế merge node bằng embedding similarity + alias dictionary, hoặc LLM-based entity resolution job chạy định kỳ.</p>
+    </div>
+  </div>
+  <div class="sd-step-item">
+    <div class="sd-step-marker">2</div>
+    <div class="sd-step-content">
+      <strong>Độ trễ khi ghép context / Token limit</strong>
+      <p>Ghép một mạng lưới node thành đoạn văn bản (context) dài để đưa vào LLM có thể vượt quá Context Window hoặc làm chậm thời gian phản hồi.</p>
+      <p><span class="sd-hl">Hướng giải:</span> tinh chỉnh prune — cắt bỏ node có điểm BM25 thấp trước khi đưa vào LLM; giới hạn depth traversal; cache context đã build cho trend phổ biến.</p>
+    </div>
+  </div>
+  <div class="sd-step-item">
+    <div class="sd-step-marker">3</div>
+    <div class="sd-step-content">
+      <strong>Bản chất thuật toán của nền tảng (TikTok/Facebook)</strong>
+      <p>Nền tảng không chỉ đánh giá nội dung qua từ khóa, mà còn qua mức độ giữ chân người dùng (<strong>Retention Rate</strong>). Prompt tạo ra không chỉ cần chứa từ khóa SEO, mà còn phải thiết kế được "hook" — điểm thu hút trong 3 giây đầu tiên.</p>
+      <p><span class="sd-hl">Hướng giải:</span> thêm scoring layer riêng cho "hook strength" khi build prompt — không chỉ trend keyword mà cả cấu trúc gợi ý mở đầu.</p>
+    </div>
+  </div>
+</div>
+<div class="sd-key-point">
+  <strong>Việc cần làm tiếp:</strong> chọn Graph DB / Vector DB cụ thể phù hợp infra hiện có · thiết kế entity resolution pipeline · thiết kế prune strategy (ngưỡng BM25, depth limit) · thiết kế hook scoring cho prompt · POC Whisper local trên RTX 4050 đo tốc độ/độ chính xác thực tế.
+</div>
+`;
+
+  function StaticDoc() {
+    return e("div", { className: "panel static-doc", dangerouslySetInnerHTML: { __html: STATIC_DOC_HTML } });
+  }
+
+  /* ================= APP ================= */
+
+  function App() {
+    const [tab, setTab] = useState("pipeline");
+    return e("div", null,
+      e("div", { className: "tabs" },
+        e("button", { className: "tab-btn" + (tab==="doc"?" active":""), onClick: () => setTab("doc") }, "0. Tổng quan (Static)"),
+        e("button", { className: "tab-btn" + (tab==="pipeline"?" active":""), onClick: () => setTab("pipeline") }, "1. Animated Pipeline"),
+        e("button", { className: "tab-btn" + (tab==="graph"?" active":""), onClick: () => setTab("graph") }, "2. Knowledge Graph"),
+        e("button", { className: "tab-btn" + (tab==="data"?" active":""), onClick: () => setTab("data") }, "3. Data & BM25 Scores")
+      ),
+      tab === "doc" ? e(StaticDoc) : tab === "pipeline" ? e(PipelineFlow) : tab === "graph" ? e(KnowledgeGraph) : e(DataTable)
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")).render(e(App));
+}
+</script>
+</body>
+</html>
