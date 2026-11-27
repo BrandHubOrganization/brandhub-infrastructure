@@ -14,7 +14,8 @@ resource "aws_iam_role_policy" "runtime_repository_s3_kms" {
         Effect = "Allow"
         Action = [
           "s3:GetBucketVersioning",
-          "s3:ListBucket"
+          "s3:ListBucket",
+          "s3:ListBucketMultipartUploads"
         ]
         Resource = aws_s3_bucket.repository.arn
       },
@@ -24,7 +25,9 @@ resource "aws_iam_role_policy" "runtime_repository_s3_kms" {
         Action = [
           "s3:GetObject",
           "s3:PutObject",
-          "s3:DeleteObject"
+          "s3:DeleteObject",
+          "s3:ListMultipartUploadParts",
+          "s3:AbortMultipartUpload"
         ]
         Resource = "${aws_s3_bucket.repository.arn}/*"
       },

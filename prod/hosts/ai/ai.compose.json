@@ -17,7 +17,8 @@
         "CRAWLER_API_URL": "http://172.31.24.149:8084",
         "HF_HOME": "/home/appuser/.cache/huggingface",
         "HF_HUB_CACHE": "/home/appuser/.cache/huggingface/hub",
-        "SENTENCE_TRANSFORMERS_HOME": "/home/appuser/.cache/huggingface/hub"
+        "SENTENCE_TRANSFORMERS_HOME": "/home/appuser/.cache/huggingface/hub",
+        "AGY_CLI_DISABLE_AUTO_UPDATE": "true"
       },
       "extra_hosts": [
         "redis:172.31.24.149",
@@ -45,6 +46,21 @@
           "type": "volume",
           "source": "ai-model-cache",
           "target": "/home/appuser/.cache"
+        },
+        {
+          "type": "volume",
+          "source": "ai-agy-gemini",
+          "target": "/home/appuser/.gemini"
+        },
+        {
+          "type": "volume",
+          "source": "ai-agy-keyring",
+          "target": "/home/appuser/.local/share/keyrings"
+        },
+        {
+          "type": "volume",
+          "source": "ai-codex-auth",
+          "target": "/home/appuser/.codex"
         }
       ],
       "healthcheck": {
@@ -74,6 +90,15 @@
     },
     "ai-model-cache": {
       "name": "brandhub-ai-model-cache"
+    },
+    "ai-agy-gemini": {
+      "name": "brandhub-ai-agy-gemini"
+    },
+    "ai-agy-keyring": {
+      "name": "brandhub-ai-agy-keyring"
+    },
+    "ai-codex-auth": {
+      "name": "brandhub-ai-codex-auth"
     }
   }
 }

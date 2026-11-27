@@ -4,11 +4,13 @@ Status, 30-day size delta history, and restore metadata are stored in state.json
 on the container volume.
 """
 import json
+import logging
 import re
 import shutil
 import subprocess
 import tempfile
 import threading
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Callable
@@ -18,7 +20,9 @@ from .dumpers import DUMPERS, RESTORERS, Dumper, Restorer, SkipDump
 
 UploadFn = Callable[[Path, str], None]
 DownloadFn = Callable[[str, Path], None]
+ListHistoryFn = Callable[[list[str]], dict[str, list[dict]]]
 _SECRET = re.compile(r"(\w+://)[^@\s/]*@")
+log = logging.getLogger("db-backup")
 
 RETENTION_DAYS = 30
 LOCAL_TZ = ZoneInfo("Asia/Ho_Chi_Minh")
@@ -81,14 +85,17 @@ class BackupRunner:
         dumpers: dict[str, Dumper] | None = None,
         download: DownloadFn | None = None,
         restorers: dict[str, Restorer] | None = None,
+        list_history: ListHistoryFn | None = None,
     ):
         self.state_file = state_file
         self.upload = upload
         self.download = download
         self.dumpers = dumpers or DUMPERS
         self.restorers = restorers or RESTORERS
+        self.list_history = list_history
         self._lock = threading.Lock()
         self._state_lock = threading.Lock()
+        self._last_s3_sync = 0.0
         self._mark_interrupted()
 
     def _mark_interrupted(self) -> None:
@@ -101,7 +108,75 @@ class BackupRunner:
     def databases(self) -> list[str]:
         return list(self.dumpers)
 
+    def _sync_s3_history(self, force: bool = False) -> None:
+        if self.list_history is None:
+            return
+        now_ts = time.monotonic()
+        if not force and now_ts - self._last_s3_sync < 60:
+            return
+        try:
+            discovered = self.list_history(list(self.dumpers))
+        except Exception as exc:  # noqa: BLE001
+            log.warning("S3 backup discovery skipped: %s", exc)
+            return
+        self._last_s3_sync = time.monotonic()
+        if not any(discovered.values()):
+            return
+        cutoff = (datetime.now(LOCAL_TZ).date() - timedelta(days=RETENTION_DAYS - 1)).strftime("%Y-%m-%d")
+        with self._state_lock:
+            state = self._read()
+            changed = False
+            for db, s3_history in discovered.items():
+                if not s3_history:
+                    continue
+                entry = dict(state.get(db) or {})
+                by_date: dict[str, dict] = {}
+                for item in entry.get("history") or []:
+                    d = item.get("date")
+                    if d and d >= cutoff:
+                        by_date[d] = dict(item)
+                for snap in s3_history:
+                    d = snap.get("date")
+                    if d and d >= cutoff:
+                        by_date[d] = dict(snap)
+                if not by_date:
+                    continue
+                ordered = sorted(by_date.values(), key=lambda x: x["date"], reverse=True)[:RETENTION_DAYS]
+                for idx, item in enumerate(ordered):
+                    if idx + 1 < len(ordered):
+                        item["delta_bytes"] = int(item.get("size_bytes") or 0) - int(ordered[idx + 1].get("size_bytes") or 0)
+                    else:
+                        item["delta_bytes"] = 0
+                monthly_delta = (
+                    int(ordered[0].get("size_bytes") or 0) - int(ordered[-1].get("size_bytes") or 0)
+                    if len(ordered) >= 2
+                    else 0
+                )
+                latest = ordered[0]
+                if entry.get("status") not in ("queued", "running"):
+                    if not entry.get("status"):
+                        entry["status"] = "success"
+                        entry["action"] = "backup"
+                    entry["finished_at"] = entry.get("finished_at") or latest.get("finished_at")
+                    if entry.get("size_bytes") is None:
+                        entry["size_bytes"] = latest.get("size_bytes")
+                entry["last_success"] = {
+                    "finished_at": latest.get("finished_at"),
+                    "size_bytes": latest.get("size_bytes"),
+                    "keys": latest.get("keys") or [],
+                }
+                entry["history"] = ordered
+                entry["monthly_delta_bytes"] = monthly_delta
+                state[db] = entry
+                changed = True
+            if changed:
+                self.state_file.parent.mkdir(parents=True, exist_ok=True)
+                tmp = self.state_file.with_suffix(".tmp")
+                tmp.write_text(json.dumps(state, indent=2), encoding="utf-8")
+                tmp.replace(self.state_file)
+
     def status(self) -> dict:
+        self._sync_s3_history()
         with self._state_lock:
             state = self._read()
         return {
@@ -151,14 +226,25 @@ class BackupRunner:
         if self.download is None:
             raise ValueError("Restore downloader is not configured")
         resolved: list[tuple[str, dict]] = []
+        missing = False
         with self._state_lock:
             for db in dbs:
                 if db not in self.restorers:
                     raise ValueError(f"No restorer configured for {db}")
                 snap = self._find_snapshot(db, date)
                 if snap is None:
-                    raise ValueError(f"No backup snapshot found for {db} on {date}")
+                    missing = True
+                    break
                 resolved.append((db, snap))
+        if missing:
+            self._sync_s3_history(force=True)
+            resolved = []
+            with self._state_lock:
+                for db in dbs:
+                    snap = self._find_snapshot(db, date)
+                    if snap is None:
+                        raise ValueError(f"No backup snapshot found for {db} on {date}")
+                    resolved.append((db, snap))
         return resolved
 
     def start_restore(self, dbs: list[str], date: str, trigger: str = "restore") -> None:

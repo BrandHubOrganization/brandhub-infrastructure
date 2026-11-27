@@ -119,6 +119,12 @@ services:
       - CHROMADB_PORT=8000
       - CRAWLER_API_URL=http://crawl-service:8084
       - INTERNAL_SERVICE_KEY=${INTERNAL_SERVICE_KEY:?INTERNAL_SERVICE_KEY is required}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET:-brandhub-media}
+      - S3_BUCKET=${AWS_S3_BUCKET:-brandhub-media}
+      - AWS_REGION=${AWS_S3_REGION:-ap-southeast-1}
+      - AWS_DEFAULT_REGION=${AWS_S3_REGION:-ap-southeast-1}
     depends_on:
       chromadb:
         condition: service_started

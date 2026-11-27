@@ -50,6 +50,11 @@ variable "allowed_cors_origins" {
   default = [
     "https://brandhub.id.vn",
     "https://www.brandhub.id.vn",
+    "https://brandhub.vn",
+    "https://www.brandhub.vn",
+    "https://app.brandhub.io",
     "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:8090",
   ]
 }

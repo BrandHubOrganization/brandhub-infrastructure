@@ -8,18 +8,23 @@ GET  /health                         liveness, no token
 import hmac
 import logging
 import os
+import re
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import boto3
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel
 
-from .runner import BackupRunner, BusyError
+from .runner import BackupRunner, BusyError, RETENTION_DAYS
 
 log = logging.getLogger("db-backup")
 TIMEZONE = "Asia/Ho_Chi_Minh"
+LOCAL_TZ = ZoneInfo(TIMEZONE)
+_TS_RE = re.compile(r"-(\d{8}T\d{6}Z)\.")
 # The bucket lifecycle expires only objects with this tag after db_backup_retention_days (30d).
 UPLOAD_ARGS = {"ServerSideEncryption": "AES256", "Tagging": "retention=daily"}
 
@@ -42,6 +47,63 @@ def s3_downloader(bucket: str, region: str):
     return download
 
 
+def s3_history_lister(bucket: str, region: str):
+    client = boto3.client("s3", region_name=region)
+
+    def list_history(dbs: list[str]) -> dict[str, list[dict]]:
+        cutoff = (datetime.now(LOCAL_TZ).date() - timedelta(days=RETENTION_DAYS - 1)).strftime("%Y-%m-%d")
+        paginator = client.get_paginator("list_objects_v2")
+        result: dict[str, list[dict]] = {}
+        for db in dbs:
+            by_date: dict[str, dict] = {}
+            try:
+                for page in paginator.paginate(Bucket=bucket, Prefix=f"{db}/"):
+                    for obj in page.get("Contents") or []:
+                        key = obj.get("Key") or ""
+                        if not key or key.endswith("/") or "before-restore" in key:
+                            continue
+                        match = _TS_RE.search(key)
+                        if match:
+                            dt = datetime.strptime(match.group(1), "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc)
+                        else:
+                            dt = obj.get("LastModified")
+                            if not isinstance(dt, datetime):
+                                continue
+                            if dt.tzinfo is None:
+                                dt = dt.replace(tzinfo=timezone.utc)
+                        date_str = dt.astimezone(LOCAL_TZ).strftime("%Y-%m-%d")
+                        if date_str < cutoff:
+                            continue
+                        iso_ts = dt.astimezone(timezone.utc).isoformat(timespec="seconds")
+                        size = int(obj.get("Size") or 0)
+                        slot = by_date.get(date_str)
+                        if slot is None:
+                            by_date[date_str] = {
+                                "date": date_str,
+                                "finished_at": iso_ts,
+                                "size_bytes": size,
+                                "keys": [key],
+                            }
+                        else:
+                            slot["size_bytes"] += size
+                            slot["keys"].append(key)
+                            if iso_ts > slot["finished_at"]:
+                                slot["finished_at"] = iso_ts
+            except Exception as exc:  # noqa: BLE001
+                log.warning("Failed to list S3 backups for %s: %s", db, exc)
+                continue
+            ordered = sorted(by_date.values(), key=lambda x: x["date"], reverse=True)[:RETENTION_DAYS]
+            for idx, item in enumerate(ordered):
+                if idx + 1 < len(ordered):
+                    item["delta_bytes"] = int(item["size_bytes"]) - int(ordered[idx + 1]["size_bytes"])
+                else:
+                    item["delta_bytes"] = 0
+            result[db] = ordered
+        return result
+
+    return list_history
+
+
 def create_app(runner: BackupRunner | None = None, token: str | None = None, schedule: bool = True) -> FastAPI:
     token = token if token is not None else os.environ.get("BACKUP_TOKEN", "")
     if not token:
@@ -52,6 +114,7 @@ def create_app(runner: BackupRunner | None = None, token: str | None = None, sch
         Path(os.environ.get("BACKUP_STATE_FILE", "/var/lib/db-backup/state.json")),
         s3_uploader(bucket, region),
         download=s3_downloader(bucket, region),
+        list_history=s3_history_lister(bucket, region) if bucket else None,
     )
 
     def nightly() -> None:
