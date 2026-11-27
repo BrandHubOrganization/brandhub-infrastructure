@@ -387,16 +387,18 @@ CREATE TABLE IF NOT EXISTS workspaces (
     website         VARCHAR(255),
     phone           VARCHAR(30),
     location        VARCHAR(255),
-    description     VARCHAR(500),
+    description     VARCHAR(4000),
     brand_color     VARCHAR(9),
     logo_icon       VARCHAR(50),
-    logo_url        VARCHAR(255),
+    logo_url        VARCHAR(512),
     banner_url      VARCHAR,
     tagline         VARCHAR(140),
     founded_year    INTEGER,
     facebook_url    VARCHAR(255),
     linkedin_url    VARCHAR(255),
     instagram_url   VARCHAR(255),
+    tiktok_url      VARCHAR(255),
+    threads_url     VARCHAR(255),
     status          entity_status     NOT NULL DEFAULT 'ACTIVE',
     deleted_at      TIMESTAMPTZ,
     created_at      TIMESTAMPTZ       NOT NULL DEFAULT NOW(),
@@ -2672,7 +2674,7 @@ VALUES
    '{"product_line":"STUDIO","newsletter_email_quota":0,"support_level":"STANDARD_TICKET","early_renewal":"NONE","downgrade_allowed":false}'::jsonb, true),
   ('STUDIO_PLUS', 1, 'Studio Plus', 99000, 3, 1, 0, 5368709120, 900, 1, 30, 30, 90,
    '{"product_line":"STUDIO","newsletter_email_quota":0,"support_level":"STANDARD_TICKET","early_renewal":"AGENCY_PLUS_RENEWAL","downgrade_allowed":false}'::jsonb, true),
-  ('STUDIO_PRO', 1, 'Studio Pro', 299000, 10, 1, 0, 32212254720, 2400, 2, 90, 30, 180,
+  ('STUDIO_PRO', 1, 'Studio Pro', 299000, 10, 3, 0, 32212254720, 2400, 2, 90, 30, 180,
    '{"product_line":"STUDIO","newsletter_email_quota":0,"support_level":"STANDARD_TICKET","early_renewal":"AGENCY_PLUS_RENEWAL","downgrade_allowed":false}'::jsonb, true)
 ON CONFLICT (code, version) DO NOTHING;
 
@@ -2774,5 +2776,33 @@ UPDATE subscription_plans SET display_name = 'Plus' WHERE name = 'PRO' AND displ
 
 INSERT INTO brandhub_schema_migrations (version, description)
 VALUES ('20261122_plus_display_name_v1', 'Agency PLUS display name Plus / Pro -> Plus (new plan version)')
+ON CONFLICT (version) DO NOTHING;
+COMMIT;
+
+-- ---- 2026-11-24-studio-pro-members.sql ----
+BEGIN;
+INSERT INTO billing_plan_versions (code, version, display_name, price_monthly, currency,
+  max_active_workspaces, max_internal_members, max_clients, storage_limit_bytes, monthly_ai_credits,
+  max_concurrent_ai_jobs, version_retention_days, trash_retention_days, activity_retention_days, features, is_sellable)
+SELECT v.code, v.version + 1, v.display_name, v.price_monthly, v.currency,
+  v.max_active_workspaces, 3, v.max_clients, v.storage_limit_bytes, v.monthly_ai_credits,
+  v.max_concurrent_ai_jobs, v.version_retention_days, v.trash_retention_days, v.activity_retention_days, v.features, v.is_sellable
+FROM (SELECT * FROM billing_plan_versions WHERE code = 'STUDIO_PRO' ORDER BY version DESC LIMIT 1) v
+WHERE v.max_internal_members <> 3;
+
+INSERT INTO billing_plan_cycle_prices (plan_version_id, period_months, price)
+SELECT n.id, c.period_months, c.price
+FROM (SELECT * FROM billing_plan_versions WHERE code = 'STUDIO_PRO' ORDER BY version DESC LIMIT 1) n
+JOIN billing_plan_versions o ON o.code = n.code AND o.version = n.version - 1
+JOIN billing_plan_cycle_prices c ON c.plan_version_id = o.id
+WHERE n.max_internal_members = 3
+ON CONFLICT (plan_version_id, period_months) DO NOTHING;
+
+UPDATE billing_plan_versions b SET is_sellable = false
+ WHERE b.code = 'STUDIO_PRO' AND b.is_sellable
+   AND b.version < (SELECT max(version) FROM billing_plan_versions WHERE code = 'STUDIO_PRO');
+
+INSERT INTO brandhub_schema_migrations (version, description)
+VALUES ('20261124_studio_pro_members_v1', 'Studio Pro 1 -> 3 internal members')
 ON CONFLICT (version) DO NOTHING;
 COMMIT;
