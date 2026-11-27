@@ -147,8 +147,11 @@ resource "aws_s3_bucket_policy" "repository" {
           "s3:GetObjectVersion",
           "s3:PutObject",
           "s3:DeleteObject",
+          "s3:ListMultipartUploadParts",
+          "s3:AbortMultipartUpload",
           "s3:GetBucketVersioning",
-          "s3:ListBucket"
+          "s3:ListBucket",
+          "s3:ListBucketMultipartUploads"
         ]
         Resource = [
           aws_s3_bucket.repository.arn,
