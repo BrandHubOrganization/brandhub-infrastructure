@@ -18,7 +18,11 @@
         "HF_HOME": "/home/appuser/.cache/huggingface",
         "HF_HUB_CACHE": "/home/appuser/.cache/huggingface/hub",
         "SENTENCE_TRANSFORMERS_HOME": "/home/appuser/.cache/huggingface/hub",
-        "AGY_CLI_DISABLE_AUTO_UPDATE": "true"
+        "AGY_CLI_DISABLE_AUTO_UPDATE": "true",
+        "CODEX_HOME": "/home/appuser/.codex",
+        "CODEX_AUTH_JSON_PATH": "/home/appuser/.codex/auth.json",
+        "CODEX_CLI_MANAGED_AUTH": "true",
+        "DBUS_SESSION_BUS_ADDRESS": "unix:path=/tmp/brandhub-auth-bus"
       },
       "extra_hosts": [
         "redis:172.31.24.149",
