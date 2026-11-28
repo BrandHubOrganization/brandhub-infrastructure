@@ -1,5 +1,5 @@
 # Private keys and credentials
-/key_pair/
+/key_pair/  # removed 2026-11-21, archived in keep-local-only
 *.pem
 *.key
 *.ppk
@@ -38,6 +38,7 @@ Desktop.ini
 *.tfstate.*
 *.tfvars
 *.tfvars.json
+!*.tfvars.example
 crash.log
 crash.*.log
 override.tf
@@ -46,3 +47,14 @@ override.tf.json
 *_override.tf.json
 .terraformrc
 terraform.rc
+
+# Load test accounts
+/loadtest/users.json
+
+# Per-host runtime files (secrets / image tags) and host-only data
+hosts/*/env/
+hosts/*/.env
+hosts/*/init/
+hosts/*/letsencrypt/
+hosts/*/acme-webroot/
+hosts/*/secrets/

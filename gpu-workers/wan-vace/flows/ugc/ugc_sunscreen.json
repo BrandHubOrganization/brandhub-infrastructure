@@ -1,0 +1,14 @@
+{
+  "name": "ugc_sunscreen",
+  "product_image": "sunscreen-reference.jpg",
+  "voice_audio": "ugc_voice.mp3",
+  "seed": 20261119,
+  "size": [
+    576,
+    1024
+  ],
+  "chunks": 4,
+  "story": "UGC review. Why: she shares the sunscreen she uses every morning. She talks TO the phone camera: the one genre where looking at the lens is right. Lips follow the uploaded voice file.",
+  "presenter_prompt": "Image 1 is the product photo: use exactly this sunscreen tube, its shape, colours, logo and text. Create ONE vertical photo: a candid phone-camera selfie video still of a young Vietnamese woman, about 25, shoulder-length dark hair with flyaway strands, almost no makeup, real skin with visible pores, a few freckles and slightly shiny T-zone, a creased white linen shirt, standing on a sunny balcony with potted plants and a drying rack behind her, framed from the waist up, slightly off-centre. Hard morning sun from the left, one side of her face lit, the other in shadow. She holds a squeeze tube of sunscreen lotion with a dark brown wood-grain printed body, yellow SUN BUM lettering, a yellow cartoon face with sunglasses, a large number 30, and a pale yellow flip-top cap upright at chest height in her right hand, the label facing the camera, mouth slightly open as if mid-sentence. Shot on a phone, natural unretouched colours, slight noise in the shadows. No added text, no watermark.",
+  "prompt": "A candid phone video: a young woman stands on a sunny balcony and talks naturally to the camera, reviewing a sunscreen. She holds a squeeze tube of sunscreen lotion with a dark brown wood-grain printed body, yellow SUN BUM lettering, a yellow cartoon face with sunglasses, a large number 30, and a pale yellow flip-top cap at chest height in her right hand, turns the label toward the camera while she speaks, squeezes the tube a little, and gestures loosely with her left hand. Natural head movement, blinking and small pauses, hair moving in the breeze, hard morning sun from the left, real skin texture, the phone on a tripod with a slight wobble."
+}

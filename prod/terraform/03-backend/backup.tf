@@ -1,0 +1,127 @@
+# =========================================================
+# Daily DB dumps (no EBS snapshots)
+# Written at 00:00 Asia/Ho_Chi_Minh by the db-backup container on the core EC2.
+# =========================================================
+
+resource "aws_s3_bucket" "db_backup" {
+  bucket = var.db_backup_bucket_name
+
+  tags = {
+    Name        = var.db_backup_bucket_name
+    Project     = "BrandHub"
+    Environment = var.environment
+    Service     = "db-backup"
+    ManagedBy   = "terraform"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "db_backup" {
+  bucket = aws_s3_bucket.db_backup.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_ownership_controls" "db_backup" {
+  bucket = aws_s3_bucket.db_backup.id
+
+  rule {
+    object_ownership = "BucketOwnerEnforced"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "db_backup" {
+  bucket = aws_s3_bucket.db_backup.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "db_backup" {
+  bucket = aws_s3_bucket.db_backup.id
+
+  # Only objects written by db-backup carry retention=daily; files already in the
+  # bucket (e.g. the 2026-11-19 pre-restore dump) have no tag and are kept.
+  rule {
+    id     = "expire-daily-dumps"
+    status = "Enabled"
+
+    filter {
+      tag {
+        key   = "retention"
+        value = "daily"
+      }
+    }
+
+    expiration {
+      days = var.db_backup_retention_days
+    }
+  }
+
+  rule {
+    id     = "abort-incomplete-uploads"
+    status = "Enabled"
+
+    filter {}
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 1
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "db_backup" {
+  bucket = aws_s3_bucket.db_backup.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "DenyInsecureTransport"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:*"
+        Resource = [
+          aws_s3_bucket.db_backup.arn,
+          "${aws_s3_bucket.db_backup.arn}/*",
+        ]
+        Condition = {
+          Bool = { "aws:SecureTransport" = "false" }
+        }
+      }
+    ]
+  })
+
+  depends_on = [aws_s3_bucket_public_access_block.db_backup]
+}
+
+# EC2 role may put, list, and read daily dumps for backup & point-in-time restore.
+resource "aws_iam_role_policy" "ec2_db_backup_put" {
+  name = "brandhub-db-backup-put"
+  role = "brandhub-ec2-ecr-pull"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:ListBucket"]
+        Resource = aws_s3_bucket.db_backup.arn
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["s3:PutObject", "s3:PutObjectTagging", "s3:GetObject"]
+        Resource = [for db in ["postgres", "redis", "chroma", "mongo", "neo4j"] : "${aws_s3_bucket.db_backup.arn}/${db}/*"]
+      }
+    ]
+  })
+}
+
+output "db_backup_bucket" {
+  value = aws_s3_bucket.db_backup.bucket
+}

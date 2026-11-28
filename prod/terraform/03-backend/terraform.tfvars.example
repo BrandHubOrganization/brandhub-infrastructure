@@ -1,0 +1,49 @@
+aws_account_id = "134875421878"
+aws_region     = "ap-southeast-1"
+environment    = "prod"
+admin_ip       = "203.0.113.10/32"
+
+vpc_id    = "vpc-0123456789abcdef0"
+subnet_id = "subnet-0123456789abcdef0"
+
+instances = {
+  api_gateway = {
+    name          = "brandhub-api-gateway"
+    ami           = "ami-0123456789abcdef0"
+    instance_type = "t3.small"
+    private_ip    = "172.31.27.199"
+  }
+  core_services = {
+    name             = "brandhub-core-services"
+    ami              = "ami-0123456789abcdef0"
+    instance_type    = "m7i-flex.large"
+    private_ip       = "172.31.24.149"
+    root_volume_size = 50
+  }
+  ai = {
+    name                  = "brandhub-ai"
+    ami                   = "ami-0123456789abcdef0"
+    instance_type         = "c7i-flex.large"
+    private_ip            = "172.31.20.60"
+    root_volume_encrypted = false
+  }
+  crawl = {
+    name            = "brandhub-crawl"
+    ami             = "ami-0123456789abcdef0"
+    instance_type   = "c7i-flex.large"
+    private_ip      = "172.31.20.50"
+    wake_on_request = true
+  }
+  edit_video = {
+    name            = "brandhub-edit-video"
+    ami             = "ami-0123456789abcdef0"
+    instance_type   = "m7i-flex.large"
+    private_ip      = "172.31.20.80"
+    wake_on_request = true
+  }
+}
+
+db_backup_bucket_name    = "brandhub-db-backup-prd-134875421878"
+db_backup_retention_days = 30
+crawl_schedule_times     = ["02:00"]
+crawl_wake_lead_minutes  = 10

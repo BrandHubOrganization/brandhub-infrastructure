@@ -1,87 +1,78 @@
-# UC 07 — Subscription (UC-90 → UC-96)
+# UC 07 — Subscription & Billing (`UC-122` – `UC-127`)
 
-> [<< Về Overview](../00-overview.md) · Nguồn FR: [08-subscription-billing.md](../08-subscription-billing.md)
-> Nguồn UC gốc: `Các FR của hệ thống - Use Case.csv`
-> **Lưu ý:** Plan gắn với User/Owner (tầng Agency), không mua riêng theo từng Workspace.
-
-## Bảng tổng hợp
-
-| UC ID | Use Case | Actor(s) | Related FR |
-|---|---|---|---|
-| UC-90 | Upgrade Plan | USER | 3.9.1 |
-| UC-91 | Downgrade/Cancel Plan | OWNER | 3.9.2 |
-| UC-92 | Make Payment via PayOS | USER | 3.9.3 |
-| UC-93 | View Invoice History | OWNER | 3.9.4 |
-| UC-94 | View AI Credit Tracking | CREATOR/OWNER | 3.9.5 |
-| UC-95 | Buy AI Credit | CREATOR/OWNER | 3.9.6 |
-| UC-96 | Set AI Credit Limit | OWNER | 3.9.7 |
+> [<< 06-publishing-social.md](./06-publishing-social.md) | [UC Index](./README.md) | [Domain BA Spec: 08-subscription-billing.md](../08-subscription-billing.md) | [08-admin-functions.md >>](./08-admin-functions.md)
+>
+> Đồng bộ chuẩn xác 1-đối-1 với `Các FR của hệ thống - Feature_Function Requirement.csv` và `AGENTS.md`. Chỉ sử dụng **6 Vai trò Hệ thống Chuẩn (`Guest`, `Owner`, `Manager`, `Creator`, `Client`, `Admin`)**.
 
 ---
 
-## UC-90 — Upgrade Plan
+## 1. Bảng Tổng Hợp Use Cases (6 UCs)
 
-- **Actor(s):** USER
-- **Description:** Upgrade from the Basic plan to Pro/Enterprise for more Workspaces, AI credits, and advanced features.
-- **Precondition:** User currently on a lower-tier plan (default new user = Basic).
-- **Main Flow:**
-  1. USER selects a higher tier (Pro/Enterprise).
-  2. System proceeds to payment (UC-92).
-  3. On successful payment, plan tier upgraded — limits (max Workspaces, AI credit) increased.
+| UC ID | Use Case Title | Canonical Actor(s) | Related FR | Business Rules |
+| :-: | :--- | :--- | :-: | :--- |
+| `UC-122` | Upgrade Plan | `Owner` | `3.9.1` | `BR-15, BR-58, BR-59` |
+| `UC-123` | Make Payment (SePay) | `Owner` | `3.9.2` | `BR-15, BR-58, BR-59, BR-60, BR-61` |
+| `UC-124` | View Invoice History | `Owner` | `3.9.3` | `BR-15, BR-61` |
+| `UC-125` | View AI Credit Tracking | `Owner`, `Manager` | `3.9.4` | `BR-48, BR-60, BR-64` |
+| `UC-126` | Buy Credit | `Owner` | `3.9.5` | `BR-15, BR-59, BR-60` |
+| `UC-127` | Set Credit | `Owner` | `3.9.6` | `BR-15, BR-48, BR-60, BR-64` |
 
-## UC-91 — Downgrade/Cancel Plan
+---
 
-- **Actor(s):** OWNER
-- **Description:** Cancel the current plan when no longer needed.
-- **Precondition:** OWNER has an active paid plan.
-- **Main Flow:**
-  1. OWNER requests downgrade/cancel.
-  2. System schedules the change (e.g., effective at next billing cycle) or applies immediately per policy.
+## UC-122 — Upgrade Plan
 
-## UC-92 — Make Payment via PayOS
+- **Related FR:** `3.9.1` (3.9 Subscription & Billing)
+- **Canonical Actor(s):** `Owner`
+- **Business Rules:** `BR-15, BR-58, BR-59`
+- **System Messages:** `MSG02, MSG03, MSG07, MSG36, MSG55`
+- **Specification & Flow:** Nâng cấp gói đăng ký dịch vụ của Agency từ gói mặc định (Basic/Free) lên gói cao hơn (PLUS hoặc Enterprise) trên màn hình Subscription Plans (/subscription/plans). Hệ thống chỉ hỗ trợ nâng cấp lên gói có cấp bậc cao hơn (đã lược bỏ luồng hạ cấp gói trực tiếp) để mở rộng giới hạn số lượng Workspace, số lượng thành viên, số kênh mạng xã hội kết nối và định mức AI Credit hàng tháng (BR-58).
 
-- **Actor(s):** USER
-- **Description:** Create a payment transaction for plan upgrades or credit purchases, ensuring ACID compliance.
-- **Precondition:** User initiated an upgrade (UC-90) or credit purchase (UC-95).
-- **Main Flow:**
-  1. USER confirms payment details.
-  2. System creates a Transaction and calls PayOS.
-  3. On confirmed payment, System commits the Transaction atomically (ACID) and applies the plan/credit change.
-- **Alternate Flow:**
-  - A1. Payment fails/cancelled → Transaction rolled back, no plan/credit change applied.
+---
 
-## UC-93 — View Invoice History
+## UC-123 — Make Payment (SePay)
 
-- **Actor(s):** OWNER
-- **Description:** View the account's transaction history.
-- **Precondition:** At least one completed Transaction.
-- **Main Flow:**
-  1. OWNER opens Invoice History.
-  2. System lists past transactions (plan upgrades, credit purchases).
+- **Related FR:** `3.9.2` (3.9 Subscription & Billing)
+- **Canonical Actor(s):** `Owner`
+- **Business Rules:** `BR-15, BR-58, BR-59, BR-60, BR-61`
+- **System Messages:** `MSG07, MSG36, MSG56`
+- **Specification & Flow:** Thực hiện thanh toán đơn hàng nâng cấp gói cước hoặc mua thêm AI Credit thông qua cổng thanh toán VietQR SePay (Make Payment SePay — /billing/checkout/:transactionId). Hệ thống khởi tạo giao dịch ở trạng thái PENDING tuân thủ nghiêm ngặt tính chất ACID trong PostgreSQL, sinh mã QR chuyển khoản ngân hàng chứa mã tham chiếu duy nhất; khi nhận Webhook xác thực chữ ký hợp lệ từ SePay, hệ thống xử lý bất biến (idempotent) để chuyển giao dịch sang PAID và kích hoạt ngay quyền lợi gói/credit (BR-59).
 
-## UC-94 — View AI Credit Tracking
+---
 
-- **Actor(s):** CREATOR/OWNER
-- **Description:** Monitor the amount of AI credit used within the current month.
-- **Precondition:** User has Workspace access.
-- **Main Flow:**
-  1. CREATOR views their own usage; OWNER views Agency-wide usage across all Creators.
-  2. System displays credit consumed this month (image/content/video generation).
+## UC-124 — View Invoice History
 
-## UC-95 — Buy AI Credit
+- **Related FR:** `3.9.3` (3.9 Subscription & Billing)
+- **Canonical Actor(s):** `Owner`
+- **Business Rules:** `BR-15, BR-61`
+- **System Messages:** `MSG01, MSG02, MSG03, MSG07`
+- **Specification & Flow:** Xem lịch sử toàn bộ các giao dịch thanh toán và tải xuống hóa đơn điện tử dạng PDF của tài khoản/Agency (View Invoice History — /billing/invoices). Hiển thị Mã hóa đơn, Loại giao dịch (Nâng cấp gói / Mua thêm AI Credit), Số tiền, Phương thức thanh toán (SePay VietQR), Trạng thái (PAID, PENDING, EXPIRED, FAILED), Thời gian giao dịch và nút tải tệp hóa đơn PDF (BR-61).
 
-- **Actor(s):** CREATOR/OWNER
-- **Description:** Purchase additional AI credit.
-- **Precondition:** Existing plan credit allowance exhausted.
-- **Main Flow:**
-  1. OWNER initiates a credit purchase (goes through UC-92 payment flow).
-  2. System adds purchased credit to the Agency's balance.
-- **Business Rule:** Only OWNER can buy credit — Creator cannot purchase credit for themself directly.
+---
 
-## UC-96 — Set AI Credit Limit
+## UC-125 — View AI Credit Tracking
 
-- **Actor(s):** OWNER
-- **Description:** Set a spending limit on AI credit usage for Creators.
-- **Precondition:** OWNER of the Agency.
-- **Main Flow:**
-  1. OWNER selects a Creator, sets a per-Creator credit usage cap.
-  2. System enforces the cap — Creator's AI actions blocked once their individual limit is reached, even if the Agency's shared pool still has balance.
+- **Related FR:** `3.9.4` (3.9 Subscription & Billing)
+- **Canonical Actor(s):** `Owner`, `Manager`
+- **Business Rules:** `BR-48, BR-60, BR-64`
+- **System Messages:** `MSG01, MSG02, MSG03, MSG07`
+- **Specification & Flow:** Giám sát chi tiết lượng AI Credit đã tiêu thụ và số dư còn lại theo thời gian thực (View AI Credit Tracking — /billing/credits). Thống kê lượng credit mà các Creator đã sử dụng theo từng loại tác vụ AI (Generate Caption, Image, Video, Virtual Ambassador), theo từng Workspace và theo kỳ thanh toán tháng (lượng credit định kỳ hàng tháng không cộng dồn sang tháng sau, BR-48, BR-60).
+
+---
+
+## UC-126 — Buy Credit
+
+- **Related FR:** `3.9.5` (3.9 Subscription & Billing)
+- **Canonical Actor(s):** `Owner`
+- **Business Rules:** `BR-15, BR-59, BR-60`
+- **System Messages:** `MSG01, MSG02, MSG03, MSG07, MSG36, MSG55`
+- **Specification & Flow:** Mua bổ sung các gói nạp thêm AI Credit (Top-up Credit Packs) khi Agency sử dụng hết định mức credit có sẵn trong gói PLUS/Enterprise (Buy Credit — /billing/credits/buy). Khởi tạo giao dịch thanh toán qua SePay (3.9.2) và cộng ngay số lượng AI Credit mua thêm vào tổng quỹ khả dụng của Agency sau khi thanh toán thành công (BR-59, BR-60).
+
+---
+
+## UC-127 — Set Credit
+
+- **Related FR:** `3.9.6` (3.9 Subscription & Billing)
+- **Canonical Actor(s):** `Owner`
+- **Business Rules:** `BR-15, BR-48, BR-60, BR-64`
+- **System Messages:** `MSG01, MSG03, MSG07, MSG57`
+- **Specification & Flow:** Thiết lập và điều chỉnh hạn mức tiêu thụ AI Credit tối đa hàng tháng cho từng Workspace trực thuộc Agency (Set Credit — /agency/:id/workspaces/:id/credit-limit). Giúp Owner kiểm soát phân bổ ngân sách AI giữa các dự án/nhãn hàng; tổng hạn mức cấp cho các Workspace không vượt quá quỹ credit của Agency và không thấp hơn số credit mà Workspace đó đã tiêu thụ trong kỳ hiện tại (BR-60).

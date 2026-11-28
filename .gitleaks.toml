@@ -16,28 +16,28 @@ regexes = ['''^(?:password|pass|test|testpass|user|postgres|brandhub|changeme|yo
 [[allowlists]]
 description = "Reviewed documentation example, not a live credential"
 condition = "AND"
-paths = ['''(?:^|/)docs/feature/repository/remove\-material\-repository/spec\.md$''']
+paths = ['''(?:^|/)docs/feature/.*(?:remove\-material\-repository|3\-6\-14\-remove\-material\-repository|s3\-folder\-vault\-security).*''']
 regexTarget = "match"
 regexes = ['''^media\.s3_key\ ==\ material\.s3_key`[\r\n]*$''']
 
 [[allowlists]]
 description = "Reviewed documentation example, not a live credential"
 condition = "AND"
-paths = ['''(?:^|/)docs/feature/repository/remove\-material\-repository/spec\.md$''']
+paths = ['''(?:^|/)docs/feature/.*(?:remove\-material\-repository|3\-6\-14\-remove\-material\-repository|s3\-folder\-vault\-security).*''']
 regexTarget = "match"
 regexes = ['''^media\.s3_key":\ material\.s3_key\ [\r\n]*$''']
 
 [[allowlists]]
 description = "Reviewed documentation example, not a live credential"
 condition = "AND"
-paths = ['''(?:^|/)docs/feature/system\-health\-mongodb\-refactor/test\.md$''']
+paths = ['''(?:^|/)docs/feature/.*(?:system\-health\-mongodb|3\-10\-3\-system\-health\-monitoring).*''']
 regexTarget = "match"
 regexes = ['''^mongodb\+srv://<test_user>:<test_password>@<cluster>\.mongodb\.net[\r\n]*$''']
 
 [[allowlists]]
 description = "Reviewed documentation example, not a live credential"
 condition = "AND"
-paths = ['''(?:^|/)docs/feature/system\-health\-mongodb\-refactor/test\.md$''']
+paths = ['''(?:^|/)docs/feature/.*(?:system\-health\-mongodb|3\-10\-3\-system\-health\-monitoring).*''']
 regexTarget = "match"
 regexes = ['''^mongodb\+srv://<setup_user>:<setup_password>@<cluster>\.mongodb\.net[\r\n]*$''']
 
@@ -94,7 +94,6 @@ condition = "AND"
 paths = ['''(?:^|/)plan/brandhub\-master\-plan\.html$''']
 regexTarget = "match"
 regexes = ['''^mongodb\+srv://\&lt;user\&gt;:\&lt;password\&gt;@\&lt;cluster\&gt;\.mongodb\.net[\r\n]*$''']
-
 
 [[allowlists]]
 description = "Immutable ECR Docker image tags (sha-<commit>-<run>)"

@@ -1,5 +1,7 @@
 # Quy định Git Commit Convention — BrandHub
 
+> Navigation: [← Knowledge Base Hub](../index.md) · [← Rules Index](./README.md) · [Team Workflow Guide →](../guides/team-workflow-guide.md)
+>
 > Áp dụng bắt buộc cho toàn bộ thành viên dự án DA (Đồ Án FPT 2026).  
 > Tuân thủ đúng giúp Jira tự động liên kết commit, branch, PR vào đúng task.
 
@@ -198,7 +200,7 @@ git pull origin <branch-name>
   - Nếu `git pull` báo **Already up to date** hoặc tự merge/fast-forward
     thành công, không có dòng `CONFLICT` nào → an toàn, sang bước 6.
   - Nếu `git pull` báo **CONFLICT (content)**: mở từng file bị đánh dấu
-    `<<<<<<<`, xử lý thủ công, sau đó:
+    xung đột (`conflict markers`), xử lý thủ công, sau đó:
     ```bash
     git add <file-đã-giải-quyết>
     git commit -m "chore(DA-<id>): resolve merge conflict with <branch-name>"

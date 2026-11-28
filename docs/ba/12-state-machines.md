@@ -1,6 +1,6 @@
 # 12 — Máy Trạng Thái Toàn Hệ Thống (System State Machines)
 
-> [<< 11 - Data Entities & Glossary](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/11-data-entities-glossary.md) | [Overview](file:///D:/ProjectCode/BrandHub/brandhub-infrastructure/docs/ba/00-overview.md)
+> Navigation: [← BA Index](./README.md) · [← 11 - Data Entities & Glossary](./11-data-entities-glossary.md) · [141 Use Cases →](./use-cases/README.md)
 >
 > Tài liệu này định nghĩa toàn bộ các Máy Trạng Thái (State Machines) đang vận hành trong hệ thống **BrandHub**, bao gồm cả vòng đời duyệt từng phần (`TaskSection`), tự duyệt 1 chạm (`Self-Approve` trong chế độ `PERSONAL`), hủy lịch tự động khi trả bài, và tạm giữ/quyết toán ví AI Credit.
 
@@ -9,20 +9,18 @@
 ## 1. Máy Trạng Thái Không Gian Làm Việc & Chế Độ Vận Hành (`Workspace` & `WorkspaceMode`)
 
 ### 1.1. Trạng thái Vòng đời `Workspace.status`
-```
-[Tạo Workspace (3.4.13) hoặc Bootstrap Personal Studio]
+```text
+[Tạo Workspace (3.4.14) hoặc Bootstrap Personal Studio]
                          │
                          ▼
-                      ACTIVE ◄──── Restore (3.4.18, Owner/Manager) ────┐
-                      │    │                                           │
-  Archive (3.4.17) ───┘    └──── Delete (3.4.16, Owner) ───▶ DELETED   │
-         │                                                             │
-         ▼                                                             │
-     ARCHIVED (Chỉ đọc, dừng mọi job xuất bản tự động) ─────────────────┘
+                      ACTIVE ◄──── Khôi phục trong hạn 30 ngày (BR-16, Owner) ────┐
+                         │                                                         │
+                         └──── Delete Workspace (3.4.17, Owner) ───▶ INACTIVE / DELETED_PENDING
+                               (Chỉ đọc, dừng mọi job xuất bản tự động, bảo lưu 30 ngày)
 ```
 
 ### 1.2. Chuyển đổi Chế độ `settings.workspaceMode` (`PERSONAL ↔ AGENCY`)
-```
+```text
 ┌───────────────────────────────────────────┐
 │        workspaceMode = "PERSONAL"         │
 │ • Không cần MediaPackage / Client         │
@@ -30,13 +28,13 @@
 │ • Hỗ trợ Tự duyệt 1 chạm (Self-Approve)   │
 └─────────────────────┬─────────────────────┘
                       │  ▲
-   Scale-up (3.4.15)  │  │ Simplify (3.4.15): Chỉ cho phép khi KHÔNG có
+   Scale-up (3.4.16)  │  │ Simplify (3.4.16): Chỉ cho phép khi KHÔNG có
    (Giữ nguyên 100%   │  │ Client đang ACTIVE và không có phần chờ Client
     dữ liệu)          ▼  │ (Vi phạm → 409 WORKSPACE_MODE_SWITCH_BLOCKED_BY_ACTIVE_CLIENT)
 ┌─────────────────────┴─────────────────────┐
 │         workspaceMode = "AGENCY"          │
 │ • Quy trình 3 bước: Gói → Chiến dịch → Việc│
-│ • Có Client Portal & Duyệt 2 cấp          │
+│ • Có Client Portal & Duyệt 3 tầng         │
 └───────────────────────────────────────────┘
 ```
 
@@ -59,13 +57,13 @@ DRAFT ──(Deploy / Approve 3.5.8)──▶ ACTIVE (Sinh Task cha + Subtask th
                                   COMPLETED
 ```
 
-### 2.3. Yêu cầu Nội dung của Khách hàng (`ContentRequest` — `3.5.10`..`3.5.13`)
-```
-                       ┌──(Client hủy 3.5.13)──────────▶ CANCELLED
-                       │
-[Client tạo 3.5.10] ──▶ PENDING ──(Manager duyệt 3.5.12)──▶ APPROVED (Tự sinh TaskDocument)
-                       │
-                       └──(Manager từ chối 3.5.12)─────▶ REJECTED
+### 2.3. Yêu cầu Nội dung phát sinh (`ContentRequest` — `3.5.10`..`3.5.13`)
+```text
+                        ┌──(Hủy khi đang PENDING — 3.5.13)────────────────▶ CANCELLED
+                        │
+[Tạo mới 3.5.10] ──────▶ PENDING ──(Tiếp nhận 3.5.11)──▶ IN_PROGRESS ──(Chấp nhận 3.5.11)──▶ ACCEPTED (Tự sinh TaskDocument)
+                                                               │
+                                                               └──(Từ chối 3.5.11)────────▶ DENIED (Trạng thái cuối)
 ```
 
 ---
@@ -74,30 +72,34 @@ DRAFT ──(Deploy / Approve 3.5.8)──▶ ACTIVE (Sinh Task cha + Subtask th
 
 ### 3.1. Vòng đời Phần Soạn thảo (`TaskSection.status` — 8 Loại `TaskType`)
 ```
-  ┌──────────(Luồng Tự duyệt 1 chạm: POST /tasks/{id}/self-approve ở chế độ PERSONAL)──────────┐
+  ┌──────────(Luồng Tự duyệt 1 chạm: POST /tasks/{id}/self-approve CHỈ ở chế độ PERSONAL)──────┐
   │                                                                                            ▼
-DRAFT ──(Chủ phần Submit)──▶ SUBMITTED ──(Manager/Supervisor Approve)──▶ INTERNAL_APPROVED (Cuối với phần I
-  ▲                             │                                           │  hoặc khi requiresClientApproval=false)
-  │◀──(Manager Return + note)───┘                                           │
-  │                                                      (Với phần O khi requiresClientApproval=true)
-  │                                                                         ▼
-RETURNED ◀────────────(Client Return + note)──────────────────────── CLIENT_APPROVED (Trạng thái cuối phần O)
+DRAFT ──(Chủ phần Submit)──▶ SUBMITTED ──(Owner/Manager/Supervisor Approve)──▶ INTERNAL_APPROVED (Cuối với phần I
+  ▲                             │                                                │  hoặc khi requiresClientApproval=false)
+  │◀──(Owner/Manager/Sup Return)┘                                                │
+  │                                                           (Với phần O khi requiresClientApproval=true)
+  │                                                                              ▼
+RETURNED ◀────────────(Client Return + note)───────────────────────────── CLIENT_APPROVED (Trạng thái cuối phần O)
   ▲
-  └───────────────────(Manager Reopen trước khi Task đóng)──────────────────┘
+  └───────────────────(Owner / Manager Reopen trước khi bài xuất bản)────────────┘
 ```
+- **Quy tắc kế thừa Người giám sát (`effectiveSupervisor`)**: Nếu `Subtask` có `supervisorOverrideId` thì dùng người đó; nếu không có thì kế thừa **`task.supervisorId`** (Người giám sát của Task cha), sau đó mới fallback về `defaultManager` (`Owner`/`Manager`). `Creator` không bao giờ được làm Người giám sát cho phần/công việc do chính mình thực hiện.
 - **Quy tắc tự động đồng bộ Subtask vai trò (`syncRoleSubtasks`)**:
-  - Một `Subtask` có `subtaskRole != null` **tự động chuyển sang `FINISHED`** ngay khi toàn bộ các phần (`TaskSection`) mà vai trò đó sở hữu đạt trạng thái cuối (`INTERNAL_APPROVED` hoặc `CLIENT_APPROVED`).
+  - Một `Subtask` có `subtaskRole != null` **tự động chuyển sang `FINISHED`** ngay khi toàn bộ các phần (`TaskSection`) mà vai trò đó sở hữu đạt trạng thái cuối (`finalState`: `INTERNAL_APPROVED` đối với phần `INTERNAL` hoặc khi `requiresClientApproval = false`, `CLIENT_APPROVED` đối với phần `OUTPUT` khi `requiresClientApproval = true`).
   - Nếu bất kỳ phần nào bị `Return` hoặc `Reopen`, `Subtask` đó tự động quay về `IN_PROGRESS`.
 
-### 3.2. Vòng đời Công việc Cha (`TaskDocument.status`)
+### 3.2. Vòng đời Công việc Cha (`TaskDocument.status`) & Tự động Chốt (`Auto-Settlement`)
 ```
-          ┌──────────(1-Click Self-Approve trong chế độ PERSONAL)───────────┐
-          │                                                                 ▼
-TODO ──▶ IN_PROGRESS ──(Submit Task khi đủ phần INTERNAL_APPROVED)──▶ IN_REVIEW ──▶ FINISHED (APPROVED)
-  ▲           ▲                                                         │               │
-  │           └────────────(Manager / Client Return phần)───────────────┘               │
-  └────────────────────────(Client Return phần sau khi đã FINISHED → Hủy lịch đăng)─────┘
+          ┌──────────(1-Click Self-Approve CHỈ trong chế độ PERSONAL)───────────────┐
+          │                                                                         ▼
+TODO ──▶ IN_PROGRESS ──(Đủ 100% phần INTERNAL_APPROVED & cần Client)──▶ IN_REVIEW (CLIENT) ──▶ FINISHED (APPROVED)
+          │   ▲   ▲         │                                                  │                    │
+          │   │   │         └──(Đủ 100% phần INTERNAL_APPROVED & KHÔNG cần Client → TỰ ĐỘNG CHỐT)───┘
+          │   │   └────────────(Owner / Manager / Supervisor / Client Return phần)──────────────────┤
+          │   └────────────────(Client Return hoặc Owner/Manager Reopen phần trước giờ đăng)────────┘
+          └────(Task đơn không chia Subtask: Submit → IN_REVIEW [MANAGER → CLIENT] → Approve → FINISHED)
 ```
+- **Rào chắn Chống Nhảy Cóc (`Anti-Bypass`)**: API `PATCH /tasks/{id}/status`, kéo thả Kanban và Thanh thao tác hàng loạt (`Bulk Action`) **bị chặn tuyệt đối (`409 TASK_WORKFLOW_REQUIRED`)** không cho chuyển thẳng sang `IN_REVIEW` hoặc `FINISHED` khi chưa đi qua luồng nộp và phê duyệt hợp lệ; thao tác chuyển sang `CANCELLED` chỉ dành cho `Owner` và `Manager`.
 
 ---
 
@@ -132,12 +134,12 @@ QUEUED / SCHEDULED ──(MailDeliveryService claimNext)──▶ PROCESSING
 
 ## 5. Máy Trạng Thái Hóa Đơn SePay, Tạm Giữ AI Credit & Kiểm Duyệt Admin
 
-### 5.1. Hóa đơn Thanh toán SePay / PayOS (`Invoice.status`)
-```
-PENDING (Hiển thị mã VietQR) ──(SePay Webhook xác nhận giao dịch hợp lệ)──▶ PAID (Cấp gói & Credit)
+### 5.1. Hóa đơn Thanh toán SePay (VietQR — `3.9.2`, `3.9.3`)
+```text
+PENDING (Hiển thị mã VietQR SePay) ──(SePay Webhook xác nhận giao dịch hợp lệ)──▶ PAID (Cấp gói & Credit)
    │
    ├──(Quá hạn thanh toán TTL)──▶ EXPIRED
-   └──(Người dùng hủy đơn)──────▶ CANCELLED
+   └──(Hủy đơn / lỗi giao dịch)──▶ FAILED / CANCELLED
 ```
 
 ### 5.2. Giao dịch Tạm giữ & Quyết toán AI Credit (`CreditReservation.status`)

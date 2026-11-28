@@ -1,0 +1,9 @@
+[Unit]
+Description=Stop this BrandHub EC2 when its service is idle
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/brandhub/idle-sleep.env
+ExecStart=/usr/local/bin/brandhub-idle-sleep.sh

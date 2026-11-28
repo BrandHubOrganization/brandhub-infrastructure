@@ -1,0 +1,3 @@
+# BrandHub Academy and editorial publication
+
+Guest can discover and play the existing public lessons through their current URLs. Signed-in learners resume from their existing progress. Admin can create content, edit a draft, preview it, publish it, and restore a prior published revision into a draft. MongoDB owns editorial course, lesson, and Blog content. Existing PostgreSQL lesson identities and progress remain valid. The public site and its static search artifacts use one release snapshot of published content. The approved learning scope includes the syllabus, progress, notes, and materials.

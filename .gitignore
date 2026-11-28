@@ -1,17 +1,27 @@
-# ── Secrets ──────────────────────────────────────────────────
+# ── Secrets & Environment Files ───────────────────────────────
 .env
 .env.*
 !.env.example
-!docker/.env.example
+!docker/compose/.env.example
 
-# ── Node / VitePress ─────────────────────────────────────────
+# ── Node / Docs Site (VitePress) ──────────────────────────────
 node_modules/
-frontend/node_modules/
-frontend/.vitepress/cache/
-frontend/.vitepress/dist/
 dist/
 .vitepress/cache/
 .vitepress/dist/
+docs-site/node_modules/
+docs-site/.vitepress/cache/
+docs-site/.vitepress/dist/
+docs-site/dist/
+docs-site/docs-tree.json
+
+# Note: docs/plan/jira-status.json is intentionally tracked for the docs-site workload dashboard.
+
+# ── Python ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
 
 # ── OS / Editor ───────────────────────────────────────────────
 .DS_Store
@@ -19,33 +29,36 @@ Thumbs.db
 .idea/
 .vscode/settings.json
 
-# ── Logs ─────────────────────────────────────────────────────
+# ── Logs ──────────────────────────────────────────────────────
 *.log
 logs/
 
-# Machine-specific repairs, funding scripts, inventories and verification artifacts.
-# These are not shared migrations or application setup.
+# ── Local-only operational scratch ────────────────────────────
+# Machine-specific repairs, funding scripts, inventories, and verification artifacts.
 keep-local-only/
 
-# ── Docker volumes (local data) ──────────────────────────────
+# ── Docker local data directories ─────────────────────────────
 postgres-data/
 mongo-data/
 redis-data/
 
-# ── Dashboard (docs/dashboard) ──────────────────────────────────
-docs/dashboard/jira_status.json
-
-# Security: private credentials and database snapshots
-.env.*
-!.env.example
+# ── Security: private credentials & database snapshots ────────
 *.dump
 *.rdb
 *.p12
 *.pfx
 *.jks
+database/backups/*.sql
+database/backups/*.ejson
 **/backups/*.sql
 **/backups/*.ejson
 **/backups/*.bson
 **/backups/*.archive
 **/backups/*.gz
 **/backups/*.zip
+
+# ── Terraform variable files & local backups ──────────────────
+*.tfvars
+*.tfvars.bak*
+!*.tfvars.example
+*.bak*
