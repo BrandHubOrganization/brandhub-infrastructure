@@ -1,0 +1,3 @@
+Implement in InsertElementCommand shared by file import, asset insertion, paste and drag/drop. Use the final placed video timing and existing audio separation builder and placement logic. Preserve trims, speed, volume and volume animation. Only separate hasAudio=true and enabled source audio.
+Run source-audio separation after project media is loaded, before editor display. Reuse existing batch and separation commands; persist locally. Investigate preview component lifecycle with the exact sample file.
+Set last-frame bookkeeping only on render success, release lock in finally, throttle error retries at 500ms.

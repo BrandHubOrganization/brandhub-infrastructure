@@ -1,0 +1,2 @@
+# Plan
+Reuse platform/host-appearance.ts to inherit strong action orange and radius from host. Update editor Button primitives, tool rail, panel surfaces, preview/properties headings and outer workspace header. Add parallel editor locale JSON files and a host-context subscription hook. Keep parent global theme and unrelated pages unchanged. Validate editor TypeScript/build, light/dark screenshots and narrow layout with local fixture; no database changes.
