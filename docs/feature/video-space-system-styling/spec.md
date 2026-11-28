@@ -1,0 +1,2 @@
+# Video Space system styling
+Use BrandHub's existing Campaign workspace and shared controls as the reference. Keep media, rendering and timeline behavior intact. Match inherited light/dark tokens, 6px controls and card hierarchy; give tools a vertical navigation rail with a clear selected state and keyboard focus. Reduce duplicate header decoration. Localize the changed panel chrome in parallel Vietnamese/English dictionaries. Preserve saved panel sizes.
