@@ -28,9 +28,9 @@ Authoritative production deployment state and operational log for BrandHub in **
 
 ## 3. Storage, KMS Repository Vault & Database State (`02-frontend` & `04-storage`)
 
-- **Repository & Client Vault Bucket (`brandhub-media-134875421878`)**:
+- **Unified Media, Repository & Client Vault Bucket (`brandhub-media-134875421878`)**:
   - `brandhub-business-service` stores `repository/` and `repository-staging/` objects encrypted with SSE-KMS (`alias/brandhub-repository-media-prod`) plus application-layer envelope encryption (`RepositoryEnvelopeCrypto`, `REPOSITORY_STORAGE_SYSTEMS3_BUCKET`, `REPOSITORY_SYSTEM_S3_KMS_KEY_ID`). Bucket policy enforces strict least privilege so console admin users cannot read raw tenant vault objects directly.
-- **Public Rendered Media Bucket (`brandhubmedia-134875421878`)**: Serves public `image/*` deliverables while keeping non-public prefixes private.
+  - Public `image/*` deliverables (avatars, workspace/agency/client logos, banners) and `ai/*` outputs are served from the same consolidated `brandhub-media-134875421878` bucket (`AWS_S3_BUCKET=brandhub-media-134875421878`, `AWS_S3_LOCAL_FALLBACK_ENABLED=false`).
 - **Frontend Edge (`brandhub-web-prd-134875421878` + CloudFront)**: Serves the `brandhub-web` Vite SPA (`VITE_API_BASE_URL=https://api.brandhub.id.vn`) behind CloudFront Function `prod/terraform/02-frontend/functions/brandhub-public-routes.js`.
 - **PostgreSQL & Nightly Backups (`brandhub-db-backup-prd-134875421878`)**:
   - `core.compose.json` runs against the restored production volume and applies incremental SQL migrations from `database/migrations/postgres/` (`97` tables in current baseline).
