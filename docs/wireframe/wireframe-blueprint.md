@@ -1,10 +1,12 @@
 # BRANDHUB WIREFRAME BLUEPRINT & SOLUTIONS ARCHITECTURE (V2)
 
+> [<< Knowledge Base Home](../index.md) · [Wireframes Index](./README.md) · [BA Overview](../ba/README.md) · [Wireframe-to-Code Checklist](./wireframe-to-code-checklist.md)
+
 **Dự án:** BrandHub (AI-Powered Multi-Channel Media Campaign Platform)
-**Vai trò:** UX/UI Specialist & Solutions Architect (shadcn/ui Specialist)
-**Version:** 2.0 (V2 — nghiệp vụ mới, 2026-09-15)
-**Nguồn nghiệp vụ:** `docs/ba/00-overview.md` — cấu trúc Agency → Workspace → Media Package → Media Campaign → Task
-**Target Breakpoints:** Desktop (1440px) & Mobile (375px)
+**Vai trò:** UX/UI Specialist & Solutions Architect (`shadcn/ui` + Tailwind CSS v4)
+**Version:** 2.1 (Đồng bộ production `brandhub-web` React 19.2 / Vite 8.3 / Tailwind 4.3)
+**Nguồn nghiệp vụ:** [../ba/README.md](../ba/README.md) — cấu trúc `Agency → Workspace → Media Package → Media Campaign → Task` (hỗ trợ cả chế độ `AGENCY` và `PERSONAL`)
+**Target Breakpoints:** Desktop (`1440px`) & Mobile (`375px`)
 
 ---
 
@@ -12,12 +14,12 @@
 
 ### 1. Thay đổi cấu trúc lớn nhất so với bản V1
 
-- **Thêm tầng Agency**: trước đây User vào thẳng Workspace, giờ User sở hữu Agency, Agency chứa nhiều Workspace. Cần 2 màn hình mới: **Agency List/Dashboard** và **Agency Member Management** (tách biệt Workspace Management).
-- **Role gán theo từng Workspace**, không cố định toàn cục — UI phải hiển thị rõ "vai trò của bạn trong Workspace này" ở Header, vì cùng 1 User có thể là OWNER ở Workspace A và CREATOR ở Workspace B.
-- **Bỏ "Content Editor" đơn lẻ, thay bằng chuỗi**: Media Package (chọn mẫu) → Media Campaign (đàm phán + duyệt) → Task Backlog (tự sinh) → Task Detail (thực hiện + Approval Sequence 4 bước) → Publish. UI cần màn hình riêng cho từng bước, không gộp vào 1 trang Editor như V1.
-- **Task có 3 loại** (Post / Livestream / Survey-Form) dùng chung khung Approval Sequence — Task Board phải phân biệt loại bằng icon/tag, nhưng luồng duyệt (Kanban column) giống nhau.
-- **Zalo OA bị loại khỏi scope** — mọi chỗ V1 có "Zalo" trong preview/kênh đăng phải bỏ, chỉ còn Facebook / Instagram / TikTok / Threads.
-- **Third-party Collaborator** (báo, banner, TV) — module mới, không thuộc social publish, cần màn hình riêng dạng CRM danh bạ.
+- **Thêm tầng Agency & Chế độ Hybrid (`AGENCY` / `PERSONAL`)**: trước đây User vào thẳng Workspace, giờ User sở hữu `Agency` (hoặc `Personal Hub` khởi tạo 1 chạm), `Agency` chứa nhiều `Workspace`. Có 2 màn hình cấp công ty: **Agency List/Dashboard** và **Agency Members, Templates & Invitations** (tách biệt Workspace Members).
+- **Role gán theo từng Workspace**, không cố định toàn cục — UI luôn hiển thị rõ vai trò của người dùng trong Workspace hiện hành (`Owner`, `Manager`, `Creator`, `Client`) ở Header, vì cùng 1 User có thể là `Owner` ở Agency A và `Creator` hoặc `Client` ở Workspace của Agency B.
+- **Chuỗi vận hành 3 bước chuẩn (và lối tắt `Personal Studio`)**: `Media Package` (chọn mẫu / đàm phán 2 bên) → `Media Campaign` (`CampaignTimelineGrid` + triển khai tự động) → `Task Backlog` (4 chế độ xem `List`, `Calendar`, `Gantt`, `Kanban`) → `Task Detail` (chia theo `TaskSection` + Approval Sequence `Creator -> Manager -> Client` hoặc `Self-Approve` 1 chạm ở chế độ `PERSONAL`) → `Publish`.
+- **Task hỗ trợ đúng 8 loại `TaskType` chuẩn**: `POST`, `SHORT_VIDEO`, `SURVEY`, `EVENT_PLAN`, `PRESS_RECOMMENDATION`, `KOL_BOOKING`, `WORKSHOP`, `EMAIL_NEWSLETTER` (loại bỏ hoàn toàn Livestream) dùng chung khung Approval Sequence và phân quyền `SectionPolicy`.
+- **Chỉ hỗ trợ đúng 4 nền tảng MXH chuẩn**: **Facebook, Instagram, TikTok, và Threads** (loại bỏ hoàn toàn Zalo OA khỏi mọi màn hình preview/kênh đăng).
+- **Third-party Collaborator** (`KOL/KOC`, báo điện tử, banner, TV — `FR 3.7.15`–`3.7.19`) — màn hình danh bạ đối tác cấp Agency tích hợp đề xuất thông minh bằng AI.
 
 ### 2. Bảng Ma Trận Phân Quyền (Role Access Matrix) — V2
 
@@ -43,7 +45,7 @@
 2. **AI State Visibility**: khi AI sinh nội dung (text/ảnh/video), khoá field liên quan bằng `Skeleton`, hiển thị `Progress`/`Loader2`.
 3. **Feedback Loops**: `Toast` cho thông báo nhanh, `Dialog` cho xác nhận quan trọng (xoá Workspace, reject Task), `Alert` cho lỗi nghiêm trọng.
 4. **Workspace context luôn hiển thị**: Header mọi trang trong Workspace phải show tên Workspace + role hiện tại của User trong Workspace đó (không phải role toàn cục).
-5. **Approval state luôn có stepper**: mọi màn hình liên quan Task/Package/Campaign phải hiển thị progress-stepper theo state machine (xem `docs/ba/12-state-machines.md`), không chỉ 1 badge trạng thái đơn.
+5. **Approval state luôn có stepper**: mọi màn hình liên quan Task/Package/Campaign phải hiển thị progress-stepper theo state machine (xem [../ba/12-state-machines.md](../ba/12-state-machines.md)), không chỉ 1 badge trạng thái đơn.
 
 ---
 
@@ -90,7 +92,7 @@ Không đổi so với V1: `Tabs`, `Input`, `Label`, `Button` (`default`/`outlin
 #### 1. Bố cục tổng quan (Desktop 1440px)
 Màn hình gốc sau login (thay cho Main Dashboard cũ). Không có sidebar Workspace — đây là tầng trên Workspace.
 - **Header:** Logo, avatar dropdown, nút "Tạo Agency mới".
-- **Main Content:** Grid card liệt kê các Agency User sở hữu (mỗi Agency = 1 Owner cố định, xem `docs/ba/01-organization-structure.md`).
+- **Main Content:** Grid card liệt kê các Agency User sở hữu (mỗi Agency = 1 Owner cố định, xem [../ba/01-organization-structure.md](../ba/01-organization-structure.md)).
 - Click vào 1 Agency → vào **Agency Dashboard** (danh sách Workspace bên trong).
 
 #### 2. Sơ đồ Wireframe (ASCII Art)
@@ -123,13 +125,13 @@ Agency Dashboard (sau khi click 1 Agency):
 
 #### 3. Bản đồ Component shadcn/ui
 - **Thẻ Agency/Workspace:** `Card` + `Avatar`/`AvatarGroup` (cluster member).
-- **Tạo Agency/Workspace:** `Dialog` với form `Input` (tên) — theo FR 3.4.3/3.4.12, Workspace bắt buộc gán Manager ngay lúc tạo (`Select` chọn Member làm Manager, có thể tự chọn Owner).
+- **Tạo Agency/Workspace:** `Dialog` với form `Input` (tên) — theo FR 3.4.3/3.4.14, Workspace bắt buộc gán Manager ngay lúc tạo (`Select` chọn Member làm Manager, có thể tự chọn Owner).
 - **Tab Agency Dashboard:** `Tabs` (`Workspaces`/`Members`/`Profile`).
 - **Badge trạng thái Package:** `Badge` (`secondary` NEGOTIATING, `success` ACTIVE).
 
 #### 4. Giao diện biến thể theo Role
 - **Owner:** Thấy toàn bộ Agency mình sở hữu, nút Tạo Agency/Workspace, nút Xoá Agency (soft-delete 30 ngày).
-- **Member khác của Agency (chưa vào Workspace nào)**: thấy Agency nhưng không thấy nút Tạo Workspace (chỉ Owner tạo được — FR 3.4.12).
+- **Member khác của Agency (chưa vào Workspace nào)**: thấy Agency nhưng không thấy nút Tạo Workspace (chỉ Owner tạo được — FR 3.4.14).
 - **Manager/Creator/Client**: không có màn hình Agency List riêng — họ vào thẳng Workspace họ được mời (bookmark link), không "list Agency" vì họ không phải chủ Agency.
 
 ---
@@ -168,7 +170,7 @@ Giữ nguyên bộ component V1 (`Sidebar`, `DropdownMenu` cho Workspace switche
 #### 4. Giao diện biến thể theo Role
 - **Owner:** KPI tập trung Campaign/Package trên toàn Workspace, danh sách Task cần duyệt của mọi Creator, nút cấu hình AI Credits.
 - **Manager [mặc định]:** Approval Queue là trung tâm — Task cần Manager review. Widget "Package/Campaign đang đàm phán" nếu có.
-- **Creator:** Dashboard cá nhân — "Task được giao", "AI Credits cá nhân đã dùng", "Task bị reject cần sửa lại" (badge riêng cho case reject-giữ-approval-cũ, xem `docs/ba/13`).
+- **Creator:** Dashboard cá nhân — "Task được giao", "AI Credits cá nhân đã dùng", "Task bị reject cần sửa lại" (badge riêng cho case reject-giữ-approval-cũ, xem [../ba/05-content-task-workflow.md](../ba/05-content-task-workflow.md)).
 - **Client:** Không vào Dashboard này — điều hướng thẳng Client Portal (Màn hình 8).
 
 ---
@@ -191,13 +193,13 @@ Giữ nguyên bộ component V1 (`Sidebar`, `DropdownMenu` cho Workspace switche
 |  2.Campaign   | | NỘI DUNG GÓI (đang đề xuất bởi Client)               | LỊCH SỬ ĐÀM PHÁN               | |
 |  3.Backlog    | | - Số bài Facebook/tháng: 12                          | [10:00] Manager: Đề xuất gói cơ| |
 |               | | - Số bài Instagram/tháng: 8                          | bản 12 bài/tháng                | |
-|               | | - 1 Livestream/tháng                                  | [11:30] Client: Muốn thêm      | |
-|               | | - Ngân sách dự kiến: 50,000,000đ                      | Livestream lên 2 lần/tháng      | |
+|               | | - 4 Reels/TikTok ngắn/tháng                           | [11:30] Client: Muốn thêm      | |
+|               | | - Ngân sách dự kiến: 50,000,000đ                      | Reels lên 6 video/tháng         | |
 |               | |                                                       | [Textarea: Nhập đề xuất mới...] | |
 |               | +-----------------------------------------------------+-------------------------------+ |
 |               | [Button: Đề xuất thay đổi]   [Button: APPROVE gói này]                                  |
 |               | (*) Cần CẢ HAI bên Approve bản mới nhất mới chuyển ACTIVE — 1 bên sửa lại sẽ reset      |
-|               |     approve của bên kia (xem docs/ba/13 mục 3)                                          |
+|               |     approve của bên kia (xem docs/ba/04-media-package-campaign.md)                                          |
 +---------------+---------------------------------------------------------------------------------------+
 ```
 
@@ -212,17 +214,17 @@ Giữ nguyên bộ component V1 (`Sidebar`, `DropdownMenu` cho Workspace switche
 - **Owner/Manager:** Đề xuất/counter-offer nội dung Package và Campaign, bấm Approve đại diện Agency.
 - **Client:** Đề xuất thay đổi, bấm Approve đại diện phía khách hàng — quyền ngang với Manager trong bước này (cả 2 đều cần approve).
 - **Creator:** Không truy cập màn hình này (không tham gia đàm phán thương mại).
-- Sau khi Campaign approved (2 bên) → tự chuyển sang bước 3 (Backlog) → **Campaign khoá immutable** — không còn nút sửa, chỉ còn link "Tạo Content Request" hoặc "Manager thêm Task thủ công" (xem `docs/ba/13` mục 6).
+- Sau khi Campaign approved (2 bên) → tự chuyển sang bước 3 (Backlog) → **Campaign khoá immutable** — không còn nút sửa, chỉ còn link "Tạo Content Request" hoặc "Manager thêm Task thủ công" (xem [../ba/04-media-package-campaign.md](../ba/04-media-package-campaign.md)).
 
 ---
 
 ### MÀN HÌNH 5: TASK BOARD — KANBAN THEO APPROVAL SEQUENCE (THAY CONTENT EDITOR DUYỆT BÀI)
 
 #### 1. Bố cục tổng quan (Desktop 1440px)
-Kanban board — cột theo state machine Approval Sequence (`docs/ba/12-state-machines.md` mục 4), không theo ngày như Calendar.
-- **Header bộ lọc:** loại Task (Post/Livestream/Survey), Creator phụ trách, Campaign nguồn.
+Kanban board — cột theo state machine Approval Sequence ([../ba/12-state-machines.md](../ba/12-state-machines.md) mục 4), không theo ngày như Calendar.
+- **Header bộ lọc:** loại Task (Post / Reels / Survey / Event), Creator phụ trách, Campaign nguồn.
 - **Cột:** `Backlog` → `Assigned` → `In Progress` → `QC Review` (nếu có QC) → `Manager Review` → `Client Review` (nếu required) → `Completed`.
-- Mỗi Task card có icon phân biệt loại (Post/Livestream/Survey).
+- Mỗi Task card có icon phân biệt loại (`Post` / `Reels` / `Survey`).
 
 #### 2. Sơ đồ Wireframe (ASCII Art)
 ```
@@ -231,7 +233,7 @@ Kanban board — cột theo state machine Approval Sequence (`docs/ba/12-state-m
 +-------------------------------------------------------------------------------------------------------+
 | BACKLOG      | ASSIGNED      | IN PROGRESS   | MANAGER REVIEW | CLIENT REVIEW  | COMPLETED             |
 | +----------+ | +-----------+ | +-----------+ | +------------+ | +------------+ | +------------+        |
-| |[Post]    | | |[Post]     | | |[Livestream| | |[Post]      | | |[Post]      | | |[Survey]    |        |
+| |[Post]    | | |[Post]     | | |[Reels]    | | |[Post]      | | |[Post]      | | |[Survey]    |        |
 | |Ra mắt SP | | |Tuấn - due | | | Kickoff   | | |Chờ Manager | | |Chờ Client  | | |Done         |        |
 | |chưa giao | | |20/09      | | |Tuấn       | | |duyệt lại   | | |approve     | | |             |        |
 | +----------+ | +-----------+ | +-----------+ | (badge: giữ QC| +------------+ | +------------+        |
@@ -243,7 +245,7 @@ Kanban board — cột theo state machine Approval Sequence (`docs/ba/12-state-m
 
 #### 3. Bản đồ Component shadcn/ui
 - **Kanban:** custom drag-drop dựng trên `dnd-kit`, cột bọc `Card`, mỗi Task card `Card` nhỏ với `Badge` loại Task + `Avatar` Creator.
-- **Badge "giữ approval cũ":** `Badge` (variant `outline`, icon History) hiển thị khi Task quay về `ASSIGNED` nhưng có approval step trước đã pass — theo rule reject mới (`docs/ba/13` mục 4), tooltip giải thích "QC đã duyệt trước đó, không cần duyệt lại".
+- **Badge "giữ approval cũ":** `Badge` (variant `outline`, icon History) hiển thị khi Task quay về `ASSIGNED` nhưng có approval step trước đã pass — theo rule reject mới ([../ba/05-content-task-workflow.md](../ba/05-content-task-workflow.md)), tooltip giải thích "QC đã duyệt trước đó, không cần duyệt lại".
 - **Kéo Task sang cột khác:** map thao tác kéo-thả với action approve/reject của Approval Sequence — kéo lùi 1 cột = reject, cảnh báo `AlertDialog` xác nhận trước khi kéo lùi nhiều hơn 1 cột (không hợp lệ).
 
 #### 4. Giao diện biến thể theo Role
@@ -324,12 +326,12 @@ Giữ nguyên cấu trúc lịch V1 (Calendar Grid + Drawer chi tiết + mobile 
 ```
 
 #### 3. Bản đồ Component shadcn/ui
-Giữ bộ V1 (`Card`, `ScrollArea` chat, `Dialog` cho Content Request mới). Thêm: nút **"+ Content Request"** mở `Dialog` riêng — rõ ràng đây là kênh **bổ sung, độc lập** với Package/Campaign chính (theo `docs/ba/04-media-package-campaign.md` mục 4), không lẫn vào luồng đàm phán Package.
+Giữ bộ V1 (`Card`, `ScrollArea` chat, `Dialog` cho Content Request mới). Thêm: nút **"+ Content Request"** mở `Dialog` riêng — rõ ràng đây là kênh **bổ sung, độc lập** với Package/Campaign chính (theo [../ba/04-media-package-campaign.md](../ba/04-media-package-campaign.md) mục 4), không lẫn vào luồng đàm phán Package.
 
 #### 4. Giao diện biến thể theo Role
 - **Client [mặc định]:** Approve/Reject Task cần duyệt, tạo Content Request mới, đàm phán Package/Campaign.
 - **Manager:** Có thể vào Portal ở chế độ xem hộ (impersonate) để hỗ trợ, không thay Client bấm Approve.
-- **Content Request bị Manager denied** → hiển thị trạng thái **terminal**, không có nút sửa lại — chỉ nút "Tạo Content Request mới" (xem `docs/ba/13` mục 5).
+- **Content Request bị Manager denied** → hiển thị trạng thái **terminal**, không có nút sửa lại — chỉ nút "Tạo Content Request mới" (xem [../ba/04-media-package-campaign.md](../ba/04-media-package-campaign.md)).
 
 ---
 
@@ -337,7 +339,7 @@ Giữ bộ V1 (`Card`, `ScrollArea` chat, `Dialog` cho Content Request mới). T
 
 #### 1. Bố cục tổng quan (Desktop 1440px)
 Module mới, không thuộc publish tự động (báo/banner/TV không có API). Layout dạng CRM đơn giản, danh bạ cấp Agency.
-- **Bên trái:** danh sách `ThirdPartyCollaborator` (danh bạ chung, tái sử dụng qua nhiều Campaign — xem `docs/ba/13` mục 8).
+- **Bên trái:** danh sách `ThirdPartyCollaborator` (danh bạ chung, tái sử dụng qua nhiều Campaign — xem [../ba/06-ai-features.md](../ba/06-ai-features.md)).
 - **Bên phải:** khi chọn 1 Campaign cụ thể, hiển thị `cooperationStatus` của từng Collaborator gắn với Campaign đó (`CONTACTED → NEGOTIATING → CONFIRMED → LIVE_ON_AIR`).
 
 #### 2. Sơ đồ Wireframe (ASCII Art)
@@ -358,7 +360,7 @@ Module mới, không thuộc publish tự động (báo/banner/TV không có API
 #### 3. Bản đồ Component shadcn/ui
 - **Danh bạ:** `Table` hoặc `Card` list, `Badge` phân loại `partnerType` (newspaper/banner/tv/other).
 - **Trạng thái theo Campaign:** `Badge` màu theo `cooperationStatus` (xám `CONTACTED`, vàng `NEGOTIATING`, xanh dương `CONFIRMED`, xanh lá `LIVE_ON_AIR`).
-- **AI Gợi ý:** `Button` mở `Sheet` hiển thị kết quả `Recommend Collaborator` (FR 3.7.12), mỗi gợi ý có nút "Thêm vào danh bạ" hoặc "Gắn vào Campaign" nếu đã có sẵn.
+- **AI Gợi ý:** `Button` mở `Sheet` hiển thị kết quả `Recommend Collaborator` (FR 3.7.19), mỗi gợi ý có nút "Thêm vào danh bạ" hoặc "Gắn vào Campaign" nếu đã có sẵn.
 
 #### 4. Giao diện biến thể theo Role
 - **Owner/Manager:** Full CRUD danh bạ + gắn/gỡ Collaborator khỏi Campaign, cập nhật `cooperationStatus` thủ công.
@@ -380,9 +382,9 @@ Giữ cấu trúc V1 (KPI Grid → Charts → Top Performing Posts) nhưng đổ
 
 ### MÀN HÌNH 11: ADMIN CONSOLE (MỞ RỘNG)
 
-Không có ở bản wireframe V1 (V1 chỉ có Admin ẩn trong role-matrix, chưa thiết kế màn hình riêng). V2 cần màn hình Admin đầy đủ theo `docs/ba/09-admin-management.md`:
-- **Sidebar:** User Management, Agency/Workspace Oversight, Content Moderation, Audit Log, System Config.
-- **User Management:** `Table` liệt kê User toàn hệ thống, nút Deactivate (có câu hỏi mở "Admin xoá Admin được không" — chưa chốt, UI tạm ẩn nút này khi target là Admin khác, xem `docs/feature/admin-management/3-10-9-deactive-user/spec.md`).
+Không có ở bản wireframe V1 (V1 chỉ có Admin ẩn trong role-matrix, chưa thiết kế màn hình riêng). V2 cần màn hình Admin đầy đủ theo [../ba/09-admin-functions.md](../ba/09-admin-functions.md):
+- **Sidebar:** User Directory & Status, Agency/Workspace Oversight, Content Moderation, Audit Log, System Config.
+- **User Directory & Status (`3.10.6`–`3.10.9`):** `Table` liệt kê User toàn hệ thống, nút Deactivate (có câu hỏi mở "Admin xoá Admin được không" — chưa chốt, UI tạm ẩn nút này khi target là Admin khác, xem `docs/feature/srs/09-admin-functions/3-10-9-deactivate-user/spec.md`).
 - Role duy nhất truy cập: `ADMIN`.
 
 ---
@@ -430,6 +432,6 @@ src/
 
 ### 2. Check-list khi dựng giao diện
 1. **Figma Setup:** dùng Figma UI Kit `shadcn/ui`, đặt tên layer theo tên component (`[Button] Approve Task`, `[Card] Package Summary`).
-2. **Đồng bộ state machine:** mọi component hiển thị trạng thái Task/Package/Campaign phải map đúng enum trong `docs/ba/12-state-machines.md` — không tự đặt tên trạng thái mới ở FE.
+2. **Đồng bộ state machine:** mọi component hiển thị trạng thái Task/Package/Campaign phải map đúng enum trong [../ba/12-state-machines.md](../ba/12-state-machines.md) — không tự đặt tên trạng thái mới ở FE.
 3. **Role check ở component, không chỉ route:** vì role gán theo Workspace (không cố định), mọi component hiển thị hành động (nút Approve, nút Assign...) phải check role-trong-Workspace-hiện-tại từ context, không dùng role toàn cục lưu ở global store.
 4. **Không hardcode Zalo** trong bất kỳ danh sách platform nào (select, tab, badge) — chỉ FB/IG/TikTok/Threads.

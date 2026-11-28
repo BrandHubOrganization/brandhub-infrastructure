@@ -1,0 +1,94 @@
+@startuml 3.6.14 - Remove Material Repository
+title Sequence Diagram — 3.6.14 - Remove Material Repository
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "MaterialController" as materialcontroller
+control "MaterialService" as materialservice
+entity "WorkspaceRepository" as workspacerepository
+entity "WorkspaceMemberRepository" as workspacememberrepos
+entity "AgencyRepository" as agencyrepository
+entity "MaterialRepository" as materialrepository
+actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
+
+' === Flow ===
+materialservice -> materialservice: Check session, scope and removal rights
+else active material
+  materialservice -> materialservice: Block new material links
+  materialservice -> materialservice: Commit / rollback
+end
+
+creatorclientmanager -> webdashboard: Confirm removal (Cancel sends no request)
+activate webdashboard
+webdashboard -> materialcontroller: DELETE /api/v1/workspaces/{workspaceId}/materials/{materialId}
+activate materialcontroller
+materialcontroller -> materialservice: removeMaterial(user, command)
+activate materialservice
+materialservice -> workspacerepository: Load workspace
+activate workspacerepository
+workspacerepository --> materialservice: Workspace
+deactivate workspacerepository
+materialservice -> workspacememberrepos: Load membership
+activate workspacememberrepos
+workspacememberrepos --> materialservice: WorkspaceMember
+deactivate workspacememberrepos
+materialservice -> agencyrepository: Load agency
+activate agencyrepository
+agencyrepository --> materialservice: Agency
+deactivate agencyrepository
+materialservice -> materialrepository: Load material and deletion state
+activate materialrepository
+materialrepository --> materialservice: Material
+deactivate materialrepository
+
+loop invalid session / forbidden / unavailable resource
+  materialservice --> materialcontroller: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate materialservice
+  materialcontroller --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate materialcontroller
+  webdashboard --> creatorclientmanager: Display access or resource error
+end
+activate materialcontroller
+activate materialservice
+
+
+alt already removed
+  materialservice --> materialcontroller: 409 Conflict
+  deactivate materialservice
+  materialcontroller --> webdashboard: 409 Conflict
+  deactivate materialcontroller
+  webdashboard --> creatorclientmanager: Display already removed
+else active material
+  activate materialcontroller
+  activate materialservice
+  materialservice -> materialrepository: Soft-delete with user/time
+  activate materialrepository
+  materialrepository --> materialservice: writeOutcome
+  deactivate materialrepository
+end
+
+
+alt writeOutcome committed
+  materialservice --> materialcontroller: 204 No Content
+  deactivate materialservice
+  materialcontroller --> webdashboard: 204 No Content
+  deactivate materialcontroller
+  webdashboard --> creatorclientmanager: Display material removed from repository
+else write failed or version conflict
+  activate materialcontroller
+  activate materialservice
+  materialservice --> materialcontroller: 409 Conflict / 500 Internal Server Error
+  deactivate materialservice
+  materialcontroller --> webdashboard: 409 Conflict / 500 Internal Server Error
+  deactivate materialcontroller
+  webdashboard --> creatorclientmanager: Display save error; retain previous values
+  deactivate webdashboard
+end
+
+@enduml

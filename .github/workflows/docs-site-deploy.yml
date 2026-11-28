@@ -1,0 +1,44 @@
+name: Deploy Docs Site
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'docs/**'
+      - 'docs-site/**'
+      - '.github/workflows/docs-site-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: docs-site/package-lock.json
+
+      - name: Install and Build Docs Site
+        env:
+          VITEPRESS_BASE: ${{ vars.VITEPRESS_BASE || format('/{0}/', github.event.repository.name) }}
+        run: |
+          cd docs-site
+          npm ci
+          npm run build
+          touch .vitepress/dist/.nojekyll
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: docs-site/.vitepress/dist
+          branch: gh-pages

@@ -1,0 +1,112 @@
+{
+  "name": "brandhub-ai",
+  "services": {
+    "ai-service": {
+      "init": true,
+      "restart": "unless-stopped",
+      "container_name": "brandhub-ai-service",
+      "image": "${AI_IMAGE:?Set AI_IMAGE}",
+      "env_file": [
+        {
+          "path": "./env/ai-service.env",
+          "required": true
+        }
+      ],
+      "environment": {
+        "TREND_RUN_DIR": "/app/data/crawler/trend_runs",
+        "CRAWLER_API_URL": "http://172.31.24.149:8084",
+        "S3_BUCKET": "brandhub-media-134875421878",
+        "S3_BUCKET_NAME": "brandhub-media-134875421878",
+        "TREND_REPLAY_S3_BUCKET": "crawler-social-134875421878",
+        "AWS_REGION": "ap-southeast-1",
+        "HF_HOME": "/home/appuser/.cache/huggingface",
+        "HF_HUB_CACHE": "/home/appuser/.cache/huggingface/hub",
+        "SENTENCE_TRANSFORMERS_HOME": "/home/appuser/.cache/huggingface/hub",
+        "AGY_CLI_DISABLE_AUTO_UPDATE": "true",
+        "CODEX_HOME": "/home/appuser/.codex",
+        "CODEX_AUTH_JSON_PATH": "/home/appuser/.codex/auth.json",
+        "CODEX_CLI_MANAGED_AUTH": "true",
+        "DBUS_SESSION_BUS_ADDRESS": "unix:path=/tmp/brandhub-auth-bus"
+      },
+      "extra_hosts": [
+        "redis:172.31.24.149",
+        "rabbitmq:172.31.24.149",
+        "chromadb:172.31.24.149"
+      ],
+      "mem_limit": "3g",
+      "memswap_limit": "3g",
+      "cpus": 1.8,
+      "ports": [
+        {
+          "target": 8082,
+          "published": "8082",
+          "host_ip": "172.31.20.60",
+          "protocol": "tcp"
+        }
+      ],
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "ai-data",
+          "target": "/app/data"
+        },
+        {
+          "type": "volume",
+          "source": "ai-model-cache",
+          "target": "/home/appuser/.cache"
+        },
+        {
+          "type": "volume",
+          "source": "ai-agy-gemini",
+          "target": "/home/appuser/.gemini"
+        },
+        {
+          "type": "volume",
+          "source": "ai-agy-keyring",
+          "target": "/home/appuser/.local/share/keyrings"
+        },
+        {
+          "type": "volume",
+          "source": "ai-codex-auth",
+          "target": "/home/appuser/.codex"
+        }
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8082/health')"
+        ],
+        "timeout": "5s",
+        "interval": "15s",
+        "retries": 3,
+        "start_period": "60s"
+      },
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      }
+    }
+  },
+  "volumes": {
+    "ai-data": {
+      "name": "brandhub-ai-data"
+    },
+    "ai-model-cache": {
+      "name": "brandhub-ai-model-cache"
+    },
+    "ai-agy-gemini": {
+      "name": "brandhub-ai-agy-gemini"
+    },
+    "ai-agy-keyring": {
+      "name": "brandhub-ai-agy-keyring"
+    },
+    "ai-codex-auth": {
+      "name": "brandhub-ai-codex-auth"
+    }
+  }
+}

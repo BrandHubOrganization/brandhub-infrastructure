@@ -1,0 +1,98 @@
+@startuml 3.6.35 - View Content History
+title Sequence Diagram — 3.6.35 - View Content History
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+entity "WorkspaceRepository" as workspacerepository
+boundary "ContentHistoryController" as contenthistorycontro
+control "ContentHistoryService" as contenthistoryservic
+entity "ContentHistoryRepository" as contenthistoryreposi
+entity "ContentReuseRepository" as contentreusereposito
+actor "CREATOR / CLIENT / MANAGER" as creatorclientmanager
+
+' === Flow ===
+contenthistoryservic -> contenthistoryservic: Check session, scope and history view permission
+creatorclientmanager -> webdashboard: Open content history and filters
+activate webdashboard
+webdashboard -> contenthistorycontro: GET /api/v1/workspaces/{workspaceId}/content-history
+activate contenthistorycontro
+contenthistorycontro -> contenthistoryservic: listContentHistory(user, query)
+activate contenthistoryservic
+contenthistoryservic -> workspacerepository: Load workspace access
+activate workspacerepository
+workspacerepository --> contenthistoryservic: Workspace
+deactivate workspacerepository
+
+loop invalid session / forbidden / unavailable resource
+  contenthistoryservic --> contenthistorycontro: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate contenthistoryservic
+  contenthistorycontro --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate contenthistorycontro
+  webdashboard --> creatorclientmanager: Display access or resource error
+end
+activate contenthistorycontro
+activate contenthistoryservic
+
+contenthistoryservic -> contenthistoryreposi: Query scoped history with paging
+activate contenthistoryreposi
+contenthistoryreposi --> contenthistoryservic: history
+deactivate contenthistoryreposi
+
+alt query failed
+  contenthistoryservic --> contenthistorycontro: 500 Internal Server Error
+  deactivate contenthistoryservic
+  contenthistorycontro --> webdashboard: 500 Internal Server Error
+  deactivate contenthistorycontro
+  webdashboard --> creatorclientmanager: Display load error with Retry
+else query succeeded
+  activate contenthistorycontro
+  activate contenthistoryservic
+  contenthistoryservic --> contenthistorycontro: 200 OK
+  deactivate contenthistoryservic
+  contenthistorycontro --> webdashboard: 200 OK
+  deactivate contenthistorycontro
+  webdashboard --> creatorclientmanager: Display history / empty list
+end
+activate contenthistorycontro
+activate contenthistoryservic
+
+
+opt user explicitly chooses Reuse
+  creatorclientmanager -> webdashboard: Reuse selected version in destination Task
+  webdashboard -> contenthistorycontro: POST /api/v1/workspaces/{workspaceId}/content-reuse
+  contenthistorycontro -> contenthistoryservic: reuseContent(user, command)
+  contenthistoryservic -> contenthistoryreposi: Load content history entry
+  activate contenthistoryreposi
+  contenthistoryreposi --> contenthistoryservic: ContentHistoryEntry
+  deactivate contenthistoryreposi
+  contenthistoryservic -> contentreusereposito: Save unique reuse trace
+  activate contentreusereposito
+  contentreusereposito --> contenthistoryservic: reuseOutcome
+  deactivate contentreusereposito
+end
+
+
+alt writeOutcome committed
+  contenthistoryservic --> contenthistorycontro: 200 OK
+  deactivate contenthistoryservic
+  contenthistorycontro --> webdashboard: 200 OK
+  deactivate contenthistorycontro
+  webdashboard --> creatorclientmanager: Display reused content
+else write failed
+  activate contenthistorycontro
+  activate contenthistoryservic
+  contenthistoryservic --> contenthistorycontro: 500 Internal Server Error
+  deactivate contenthistoryservic
+  contenthistorycontro --> webdashboard: 500 Internal Server Error
+  deactivate contenthistorycontro
+  webdashboard --> creatorclientmanager: Display reuse failure
+  deactivate webdashboard
+end
+
+@enduml

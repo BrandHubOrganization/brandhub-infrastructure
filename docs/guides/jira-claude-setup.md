@@ -1,7 +1,9 @@
 # Hướng dẫn kết nối Claude Code với Jira — BrandHub
 
-> Dành cho Lộc và các thành viên team AI.
-> Sau khi setup, Claude có thể đọc/ghi Jira issue, query sprint, assign task, cập nhật status.
+> Navigation: [← Knowledge Base Hub](../index.md) · [← Guides Index](./README.md) · [Team Workflow Guide](./team-workflow-guide.md) · [Git Commit Convention](../rule/git-commit-convention.md)
+>
+> Dành cho toàn bộ 5 thành viên dự án BrandHub.
+> Sau khi setup, Claude Code / AI agent có thể đọc/ghi Jira issue, query sprint, assign task, cập nhật status.
 
 ---
 
@@ -122,12 +124,13 @@ curl -s -u "email:token" "https://letritrung2605.atlassian.net/rest/agile/1.0/bo
 curl -s -u "email:token" "https://letritrung2605.atlassian.net/rest/api/3/user/assignable/search?project=DA"
 ```
 
-| Người | Account ID |
-|-------|-----------|
-| Lê Trí Trung | `61bc48ad08e4e00069b20d6c` |
-| Nguyễn Chơn Phước | `712020:d2f784a1-44cf-468f-bb96-cd8930b1c135` |
-| Ân Hà | `712020:b501eda5-2140-417d-bc3a-c342db8310cc` |
-| Nguyễn Thanh Lộc | `712020:5ec38295-3d34-4ff3-ae87-95279adf1dff` |
+| Thành viên | Mã SV | Account ID |
+|------------|-------|------------|
+| Lê Trí Trung | `DE180075` | `61bc48ad08e4e00069b20d6c` |
+| Nguyễn Chơn Phước | `DE180098` | `712020:d2f784a1-44cf-468f-bb96-cd8930b1c135` |
+| Ân Hà | `DE180152` | `712020:b501eda5-2140-417d-bc3a-c342db8310cc` |
+| Nguyễn Thanh Lộc | `DE180134` | `712020:5ec38295-3d34-4ff3-ae87-95279adf1dff` |
+| Nguyễn Minh Tuấn | `DE180116` | *(tra qua endpoint `/user/assignable/search?project=DA` ở trên)* |
 
 ---
 
@@ -147,17 +150,17 @@ Claude sẽ tự dùng Bash tool + curl để gọi API.
 
 ## 7. Quy tắc commit & branch (nhắc lại)
 
-Xem chi tiết: `brandhub-infrastructure/docs/rule/git-commit-convention.md`
+Xem chi tiết: [Git Commit Convention](../rule/git-commit-convention.md)
 
-```
-Branch:  <type>/DA-<id>-<mô-tả-ngắn>
-Commit:  <type>(DA-<id>): <mô tả ngắn>
-PR:      [DA-<id>] <Mô tả ngắn>
+```text
+Branch:  <type>/DA-<id>-<kebab-case>
+Commit:  <type>(DA-<id>): <short description>
+PR:      [DA-<id>] <Short description>
 
 Ví dụ:
-  feature/DA-47-user-schema
+  feat/DA-47-user-schema
   feat(DA-47): implement User schema with validation
-  [DA-47] User Schema — MongoDB + Validation
+  [DA-47] User Schema — PostgreSQL + Validation
 ```
 
 ---

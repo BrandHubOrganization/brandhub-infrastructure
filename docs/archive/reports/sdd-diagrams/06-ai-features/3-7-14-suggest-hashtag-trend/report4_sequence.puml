@@ -1,0 +1,64 @@
+@startuml 3.7.10 - Suggest Hashtag Trend
+title Sequence Diagram — 3.7.10 - Suggest Hashtag Trend
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "AiHashtagController" as aihashtagcontroller
+control "AiHashtagService" as aihashtagservice
+entity "WorkspaceRepository" as workspacerepository
+entity "AI service
+Internal API" as aiserviceinternalapi
+actor "OWNER / MANAGER / CREATOR" as ownermanagercreator
+
+' === Flow ===
+aihashtagservice -> aihashtagservice: Validate topic, AI access and quota
+ownermanagercreator -> webdashboard: Request suggestions for content/topic
+activate webdashboard
+webdashboard -> aihashtagcontroller: POST /api/v1/ai/suggest-hashtags
+activate aihashtagcontroller
+aihashtagcontroller -> aihashtagservice: suggestHashtags(user, command)
+activate aihashtagservice
+aihashtagservice -> workspacerepository: Load workspace access
+activate workspacerepository
+workspacerepository --> aihashtagservice: Workspace
+deactivate workspacerepository
+
+loop invalid access / validation error / insufficient quota
+  aihashtagservice --> aihashtagcontroller: 400 Bad Request / 401 Unauthorized / 403 Forbidden
+  deactivate aihashtagservice
+  aihashtagcontroller --> webdashboard: 400 Bad Request / 401 Unauthorized / 403 Forbidden
+  deactivate aihashtagcontroller
+  webdashboard --> ownermanagercreator: Display access or validation error
+end
+activate aihashtagservice
+activate aihashtagcontroller
+
+aihashtagservice -> aiserviceinternalapi: Request hashtag suggestions
+activate aiserviceinternalapi
+aiserviceinternalapi --> aihashtagservice: suggestionsOutcome
+deactivate aiserviceinternalapi
+
+alt AI service unavailable or failed
+  aihashtagservice --> aihashtagcontroller: 503 Service Unavailable
+  deactivate aihashtagservice
+  aihashtagcontroller --> webdashboard: 503 Service Unavailable
+  deactivate aihashtagcontroller
+  webdashboard --> ownermanagercreator: Display suggestion failure
+else suggestions available
+  activate aihashtagservice
+  activate aihashtagcontroller
+  aihashtagservice --> aihashtagcontroller: 200 OK
+  deactivate aihashtagservice
+  aihashtagcontroller --> webdashboard: 200 OK
+  deactivate aihashtagcontroller
+  webdashboard --> ownermanagercreator: Display suggestions with trend evidence
+  deactivate webdashboard
+end
+
+@enduml

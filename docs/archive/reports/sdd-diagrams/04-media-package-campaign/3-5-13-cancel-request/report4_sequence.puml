@@ -1,0 +1,81 @@
+@startuml 3.5.10 - Cancel Content Request
+title Sequence Diagram — 3.5.10 - Cancel Content Request
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+control "ContentRequestService" as contentrequestservic
+boundary "ContentRequestController" as contentrequestcontro
+boundary "CancelRequestModal (UI)" as cancelrequestmodalui
+entity "ContentRequestRepository" as contentrequestreposi
+actor "Client" as client
+
+' === Flow ===
+client -> cancelrequestmodalui: clicks "Cancel Request" & confirms modal dialog
+activate cancelrequestmodalui
+cancelrequestmodalui -> contentrequestcontro: DELETE /api/v1/workspaces/{workspaceId}/content-requests/{requestId} (headers: Bearer accessToken)
+activate contentrequestcontro
+contentrequestcontro -> contentrequestservic: cancelContentRequest(workspaceId, requestId, userId)
+activate contentrequestservic
+contentrequestservic -> contentrequestreposi: findByWorkspaceIdAndId(workspaceId, requestId)
+activate contentrequestreposi
+contentrequestreposi --> contentrequestservic: request
+deactivate contentrequestreposi
+
+alt request not found
+  contentrequestservic --> contentrequestcontro: throw ResourceNotFoundException (404 Not Found)
+  deactivate contentrequestservic
+  contentrequestcontro --> cancelrequestmodalui: 404 Not Found (REQUEST_NOT_FOUND)
+  deactivate contentrequestcontro
+  cancelrequestmodalui --> client: show error toast ('Content request not found')
+else caller is not request creator (request.requestedBy != userId)
+  activate contentrequestcontro
+  activate contentrequestservic
+  contentrequestservic --> contentrequestcontro: throw AccessDeniedException (403 Forbidden)
+  deactivate contentrequestservic
+  contentrequestcontro --> cancelrequestmodalui: 403 Forbidden (FORBIDDEN_REQUEST_OWNERSHIP)
+  deactivate contentrequestcontro
+  cancelrequestmodalui --> client: show error toast ('Forbidden: Only the requesting client can cancel this request')
+else request status is not PENDING (already IN_PROGRESS, ACCEPTED, DENIED, or CANCELLED)
+  activate contentrequestcontro
+  activate contentrequestservic
+  contentrequestservic --> contentrequestcontro: throw BusinessConflictException (409 REQUEST_NOT_CANCELLABLE)
+  deactivate contentrequestservic
+  contentrequestcontro --> cancelrequestmodalui: 409 Conflict (REQUEST_NOT_CANCELLABLE)
+  deactivate contentrequestcontro
+  cancelrequestmodalui --> client: show error modal ('Cannot cancel: request is already processed or completed')
+else creator authorized & status is PENDING
+  activate contentrequestcontro
+  activate contentrequestservic
+  contentrequestservic ->> contentrequestreposi: findAndModifyCancel(workspaceId, requestId)
+  activate contentrequestreposi
+end
+
+
+alt concurrent status transition by Manager
+  contentrequestreposi --> contentrequestservic: null (0 modified)
+  deactivate contentrequestreposi
+  contentrequestservic --> contentrequestcontro: throw BusinessConflictException (409 REQUEST_NOT_CANCELLABLE)
+  deactivate contentrequestservic
+  contentrequestcontro --> cancelrequestmodalui: 409 Conflict (REQUEST_NOT_CANCELLABLE)
+  deactivate contentrequestcontro
+  cancelrequestmodalui --> client: show error toast ('Cancellation failed: request status was modified concurrently')
+else atomic cancellation succeeded
+  activate contentrequestcontro
+  activate contentrequestservic
+  activate contentrequestreposi
+  contentrequestreposi --> contentrequestservic: cancelledRequest
+  deactivate contentrequestreposi
+  contentrequestservic --> contentrequestcontro: ContentRequestResponse (status=CANCELLED)
+  deactivate contentrequestservic
+  contentrequestcontro --> cancelrequestmodalui: 200 OK (ContentRequestResponse)
+  deactivate contentrequestcontro
+  cancelrequestmodalui --> client: show success toast ('Content request cancelled successfully') & disable actions
+  deactivate cancelrequestmodalui
+end
+
+@enduml

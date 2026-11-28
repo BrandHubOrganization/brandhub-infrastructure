@@ -1,5 +1,7 @@
 # Quy định Git Commit Convention — BrandHub
 
+> Navigation: [← Knowledge Base Hub](../index.md) · [← Rules Index](./README.md) · [Team Workflow Guide →](../guides/team-workflow-guide.md)
+>
 > Áp dụng bắt buộc cho toàn bộ thành viên dự án DA (Đồ Án FPT 2026).  
 > Tuân thủ đúng giúp Jira tự động liên kết commit, branch, PR vào đúng task.
 
@@ -8,18 +10,30 @@
 ## 1. Cấu trúc Commit Message
 
 ```
-<type>(DA-<id>): <mô tả ngắn>
+<type>(DA-<id>): <short description>
 
 [body - tuỳ chọn]
 ```
 
+> 🔴 **BẮT BUỘC: Commit message phải viết bằng TIẾNG ANH.**
+>
+> Toàn bộ `type`, mô tả (subject) và body đều dùng tiếng Anh — kể cả khi
+> trao đổi, comment code hay tài liệu nội bộ đang dùng tiếng Việt.
+> Lý do: commit là dữ liệu dùng chung của repo, hiển thị trên GitHub/Jira
+> cho mọi thành viên và mọi công cụ (CI, changelog generator, `git log`
+> search). Trộn nhiều ngôn ngữ làm log khó tra cứu và không generate
+> changelog tự động được.
+>
+> Sai: `feat(DA-47): sửa lỗi responsive màn hình mobile`
+> Đúng: `feat(DA-47): fix responsive layout on mobile screens`
+
 ### Ví dụ hợp lệ
 
 ```
-feat(DA-47): hoàn thiện schema bảng Users và Brands
-fix(DA-58): sửa lỗi responsive trên màn hình mobile
-docs(DA-2): cập nhật README hướng dẫn cài đặt môi trường
-refactor(DA-87): tách API route auth thành module riêng
+feat(DA-47): complete Users and Brands table schema
+fix(DA-58): fix responsive layout on mobile screens
+docs(DA-2): update README with environment setup guide
+refactor(DA-87): extract auth API routes into a separate module
 ```
 
 ### Ví dụ KHÔNG hợp lệ (Jira sẽ không nhận diện được)
@@ -29,6 +43,7 @@ update code
 fix bug
 DA47 done          ← thiếu dấu gạch ngang: phải là DA-47
 feat: add login    ← thiếu mã task
+feat(DA-47): sửa lỗi responsive   ← không phải tiếng Anh
 ```
 
 ---
@@ -76,8 +91,10 @@ chore/DA-90-cicd-pipeline-setup
 
 ```
 [DA-87] Implement API Design & Swagger Spec
-[DA-58] UI/UX Wireframe — màn hình Dashboard và Profile
+[DA-58] UI/UX Wireframe — Dashboard and Profile screens
 ```
+
+> Tiêu đề PR cũng viết bằng tiếng Anh, cùng lý do với commit message (mục 1).
 
 ---
 
@@ -139,22 +156,64 @@ Commit thường xuyên, mỗi commit là một đơn vị công việc có ngh�
 ```bash
 # Sau khi tạo xong file schema
 git add src/models/user.model.ts
-git commit -m "feat(DA-47): tạo schema bảng Users với các trường cơ bản"
+git commit -m "feat(DA-47): create Users table schema with base fields"
 
 # Sau khi thêm validation
 git add src/models/user.model.ts
-git commit -m "feat(DA-47): thêm validation email và password cho schema Users"
+git commit -m "feat(DA-47): add email and password validation for Users schema"
 
 # Sau khi viết unit test
 git add src/models/__tests__/user.model.test.ts
-git commit -m "test(DA-47): viết unit test cho User schema"
+git commit -m "test(DA-47): add unit tests for User schema"
 ```
 
 > **Không** dồn tất cả vào 1 commit lớn cuối ngày — khó review, khó rollback.
 
 ---
 
-### Bước 5 — Push branch lên GitHub
+### Bước 5 — Pull và kiểm tra conflict trước khi push
+
+> **Bắt buộc trước mọi lần push**: kiểm tra xem branch có bị lệch so với
+> remote không, để không push đè lên commit của người khác hoặc bỏ sót
+> merge conflict.
+
+```bash
+# 1. Đảm bảo working tree sạch (không có gì chưa commit)
+git status
+
+# 2. Lấy trạng thái mới nhất của remote, KHÔNG tự merge
+git fetch origin <branch-name>
+
+# 3. So sánh: remote có commit mới mà local chưa có không?
+git log --oneline HEAD..origin/<branch-name>
+```
+
+- Nếu lệnh ở bước 3 **không in ra gì** → remote không có gì mới, local đang
+  dẫn trước (hoặc ngang bằng) → an toàn, sang bước 6 push thẳng.
+- Nếu lệnh ở bước 3 **có in ra commit** → remote đã có thay đổi mới, phải
+  đồng bộ trước khi push:
+
+```bash
+git pull origin <branch-name>
+```
+
+  - Nếu `git pull` báo **Already up to date** hoặc tự merge/fast-forward
+    thành công, không có dòng `CONFLICT` nào → an toàn, sang bước 6.
+  - Nếu `git pull` báo **CONFLICT (content)**: mở từng file bị đánh dấu
+    xung đột (`conflict markers`), xử lý thủ công, sau đó:
+    ```bash
+    git add <file-đã-giải-quyết>
+    git commit -m "chore(DA-<id>): resolve merge conflict with <branch-name>"
+    ```
+    Không bỏ qua conflict, không dùng `git checkout --theirs .` hàng loạt
+    mà không đọc kỹ nội dung bị ghi đè.
+
+> **Không bao giờ** bỏ qua bước fetch/kiểm tra này rồi push thẳng — trên
+> branch nhiều người cùng làm, push mù dễ ghi đè mất commit của đồng đội.
+
+---
+
+### Bước 6 — Push branch lên GitHub
 
 ```bash
 # Lần đầu push branch mới
@@ -168,10 +227,10 @@ Sau bước này, Jira đã nhận diện được branch và gán vào task `DA
 
 ---
 
-### Bước 6 — Tạo Pull Request và tự merge
+### Bước 7 — Tạo Pull Request và tự merge
 
 1. Vào GitHub → **Compare & pull request**
-2. Đặt tiêu đề PR theo chuẩn: `feat(DA-47): mô tả ngắn gọn`
+2. Đặt tiêu đề PR theo chuẩn: `feat(DA-47): short description`
 3. Điền mô tả theo template:
 
 ```
@@ -195,7 +254,7 @@ Jira: DA-47
 - [ ] Tính năng hoạt động đúng yêu cầu kỹ thuật
 - [ ] Đã xóa hoặc cập nhật dòng TODO tương ứng trong file `README.md` (nếu có)
 - [ ] Đã viết Unit Test / Integration Test (nếu có logic nghiệp vụ)
-- [ ] Pull Request đặt tên theo chuẩn: `feat(DA-47): mô tả ngắn gọn (#số_PR)`
+- [ ] Pull Request đặt tên theo chuẩn: `feat(DA-47): short description (#PR_number)`
 - [ ] Không có `console.log` thừa
 - [ ] Code không có lỗi lint/build
 - [ ] Không có conflict chưa giải quyết
@@ -210,7 +269,7 @@ Jira: DA-47
 6. GitHub sẽ tạo 1 commit duy nhất — **chỉnh tiêu đề squash commit** theo chuẩn:
 
 ```
-feat(DA-47): mô tả ngắn gọn (#số_PR)
+feat(DA-47): short description (#PR_number)
 ```
 
 > Dùng **Squash and merge** để giữ history `develop` gọn — tránh hàng chục commit nhỏ lẫn lộn.
@@ -219,7 +278,7 @@ feat(DA-47): mô tả ngắn gọn (#số_PR)
 
 ---
 
-### Bước 7 — Cập nhật Jira sau khi merge
+### Bước 8 — Cập nhật Jira sau khi merge
 
 1. Vào task `DA-47` trên Jira
 2. Kéo sang **In Review**
@@ -235,6 +294,7 @@ feat(DA-47): mô tả ngắn gọn (#số_PR)
 Jira: kéo task → In Progress
 Git:  pull develop → tạo branch feature/DA-47-xxx
 Code: commit thường xuyên với feat(DA-47): ...
+Pull: git fetch + kiểm tra conflict trước khi push (xem Bước 5)
 Push: git push -u origin feature/DA-47-xxx
 PR:   tiêu đề feat(DA-47): ..., base=develop, điền template đầy đủ
 Merge: Squash and merge → chỉnh tiêu đề squash commit → xác nhận
@@ -249,6 +309,7 @@ Jira: kéo task → In Review → chờ duyệt → Done
 - Một commit có thể gán nhiều task: `feat(DA-47)(DA-58): ...` — Jira nhận cả hai.
 - Commit không có mã task vẫn hợp lệ cho Git, nhưng **không sync được vào Jira**.
 - Merge commit tự động (`Merge pull request #xx`) không cần mã task.
+- **Ngôn ngữ commit/PR là tiếng Anh** — xem mục 1. Áp dụng cho cả squash commit title khi merge (mục 6, bước 7).
 
 ---
 
@@ -263,3 +324,4 @@ Jira: kéo task → In Review → chờ duyệt → Done
 | **Không force push** | Không dùng `git push --force` lên branch đã có PR open |
 | **Squash commit phải có mã DA** | Khi confirm squash merge, đảm bảo tiêu đề chứa `DA-xx` |
 | **Không commit file nhạy cảm** | `.env`, `*.key`, `credentials.*` — thêm vào `.gitignore` trước khi commit |
+| **Commit message bằng tiếng Anh** | Subject + body + PR title dùng tiếng Anh, không dùng tiếng Việt (xem mục 1) |

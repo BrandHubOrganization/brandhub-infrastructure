@@ -1,0 +1,68 @@
+@startuml 3.10.12 - Create, download and expire PDF report
+title Sequence Diagram — 3.10.12 - Create, download and expire PDF report
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "Admin" as admin
+boundary "AdminReportPage (UI)" as adminreportpageui
+boundary "ReportController" as reportcontroller
+control "ReportService" as reportservice
+entity "ReportRepository" as reportrepository
+control "PdfGeneratorService" as pdfgeneratorservice
+
+' === Flow ===
+admin -> adminreportpageui: configures report parameters, clicks "Generate Report"
+activate adminreportpageui
+adminreportpageui -> reportcontroller: POST /api/v1/admin/reports/generate (GenerateReportRequest)
+activate reportcontroller
+reportcontroller -> reportservice: generateReport(adminId, request)
+activate reportservice
+reportservice -> pdfgeneratorservice: generate(reportData)
+activate pdfgeneratorservice
+pdfgeneratorservice --> reportservice: pdfBytes
+deactivate pdfgeneratorservice
+reportservice -> reportrepository: save(reportRecord with expiresAt=NOW()+7days)
+activate reportrepository
+reportrepository --> reportservice: savedReport(reportId, downloadUrl)
+deactivate reportrepository
+reportservice --> reportcontroller: 201 Created (ReportResponse)
+deactivate reportservice
+reportcontroller --> adminreportpageui: 201 Created (downloadUrl)
+deactivate reportcontroller
+adminreportpageui --> admin: Display download link
+admin -> adminreportpageui: clicks "Download PDF"
+adminreportpageui -> reportcontroller: GET /api/v1/admin/reports/{reportId}/download
+activate reportcontroller
+reportcontroller -> reportservice: downloadReport(reportId)
+activate reportservice
+reportservice -> reportrepository: findById(reportId)
+activate reportrepository
+
+alt report expired or not found
+  reportrepository --> reportservice: null / expired
+  deactivate reportrepository
+  reportservice --> reportcontroller: 404 Not Found (REPORT_EXPIRED)
+  deactivate reportservice
+  reportcontroller --> adminreportpageui: 404 Not Found
+  deactivate reportcontroller
+  adminreportpageui --> admin: Show error "Report expired or not found"
+else report valid
+  activate reportcontroller
+  activate reportservice
+  activate reportrepository
+  reportrepository --> reportservice: reportRecord
+  deactivate reportrepository
+  reportservice --> reportcontroller: 200 OK (pdfStream)
+  deactivate reportservice
+  reportcontroller --> adminreportpageui: 200 OK (Content-Disposition: attachment)
+  deactivate reportcontroller
+  adminreportpageui --> admin: PDF downloaded
+  deactivate adminreportpageui
+end
+
+@enduml

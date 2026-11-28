@@ -1,0 +1,81 @@
+@startuml 3.5.9 - Update Content Request
+title Sequence Diagram — 3.5.9 - Update Content Request
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "ContentRequestRepository" as contentrequestreposi
+control "ContentRequestService" as contentrequestservic
+boundary "ContentRequestController" as contentrequestcontro
+boundary "EditContentRequestModal (UI)" as editcontentrequestmo
+actor "Client" as client
+
+' === Flow ===
+client -> editcontentrequestmo: edits title and/or description & clicks "Save Changes"
+activate editcontentrequestmo
+activate contentrequestcontro
+contentrequestcontro -> contentrequestservic: updateContentRequest(workspaceId, requestId, userId, payload)
+activate contentrequestservic
+editcontentrequestmo -> contentrequestcontro: PATCH /api/v1/workspaces/{workspaceId}/content-requests/{requestId} (UpdateContentRequestPayload(title, description), headers: Bearer accessToken)
+contentrequestservic -> contentrequestreposi: findByWorkspaceIdAndId(workspaceId, requestId)
+activate contentrequestreposi
+contentrequestreposi --> contentrequestservic: request
+deactivate contentrequestreposi
+
+alt request not found
+  contentrequestservic --> contentrequestcontro: throw ResourceNotFoundException (404 Not Found)
+  deactivate contentrequestservic
+  contentrequestcontro --> editcontentrequestmo: 404 Not Found (REQUEST_NOT_FOUND)
+  deactivate contentrequestcontro
+  editcontentrequestmo --> client: show error toast ('Content request not found')
+else caller is not request creator (request.requestedBy != userId)
+  activate contentrequestcontro
+  activate contentrequestservic
+  contentrequestservic --> contentrequestcontro: throw AccessDeniedException (403 Forbidden)
+  deactivate contentrequestservic
+  contentrequestcontro --> editcontentrequestmo: 403 Forbidden (FORBIDDEN_REQUEST_OWNERSHIP)
+  deactivate contentrequestcontro
+  editcontentrequestmo --> client: show error toast ('Forbidden: Only the requesting client can edit this request')
+else request status is not PENDING (already IN_PROGRESS, ACCEPTED, DENIED, or CANCELLED)
+  activate contentrequestcontro
+  activate contentrequestservic
+  contentrequestservic --> contentrequestcontro: throw BusinessConflictException (409 REQUEST_NOT_EDITABLE)
+  deactivate contentrequestservic
+  contentrequestcontro --> editcontentrequestmo: 409 Conflict (REQUEST_NOT_EDITABLE)
+  deactivate contentrequestcontro
+  editcontentrequestmo --> client: show error modal ('Request is no longer pending and cannot be modified')
+else creator authorized & initial status is PENDING
+  activate contentrequestcontro
+  activate contentrequestservic
+  contentrequestservic ->> contentrequestreposi: findAndModifyPending(workspaceId, requestId, payload.title, payload.description)
+  activate contentrequestreposi
+end
+
+
+alt concurrent status change by Manager during edit
+  contentrequestreposi --> contentrequestservic: null (0 modified)
+  deactivate contentrequestreposi
+  contentrequestservic --> contentrequestcontro: throw BusinessConflictException (409 REQUEST_NOT_EDITABLE)
+  deactivate contentrequestservic
+  contentrequestcontro --> editcontentrequestmo: 409 Conflict (REQUEST_NOT_EDITABLE)
+  deactivate contentrequestcontro
+  editcontentrequestmo --> client: show error toast ('Conflict: Manager changed request status concurrently')
+else atomic update succeeded
+  activate contentrequestcontro
+  activate contentrequestservic
+  activate contentrequestreposi
+  contentrequestreposi --> contentrequestservic: updatedRequest
+  deactivate contentrequestreposi
+  contentrequestservic --> contentrequestcontro: ContentRequestResponse (updatedRequest)
+  deactivate contentrequestservic
+  contentrequestcontro --> editcontentrequestmo: 200 OK (ContentRequestResponse)
+  deactivate contentrequestcontro
+  editcontentrequestmo --> client: show success toast ('Request updated successfully') & refresh details
+  deactivate editcontentrequestmo
+end
+
+@enduml

@@ -1,0 +1,79 @@
+@startuml 3.3.1 - View User Profile
+title Sequence Diagram — 3.3.1 - View User Profile
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "ProfilePage (UI)" as profilepage_ui
+boundary "UserController" as usercontroller
+control "UserServiceImpl" as userserviceimpl
+entity "UserRepository" as userrepository
+entity "UserSystemRoleRepository" as usersystemrolerepository
+entity "UserSystemRole" as usersystemrole
+entity "WorkspaceMemberRepository" as workspacememberrepository
+entity "UserProfileResponse" as userprofileresponse
+
+' === Flow ===
+user -> profilepage_ui: opens /profile
+activate profilepage_ui
+profilepage_ui -> usercontroller: GET /api/v1/users/me
+activate usercontroller
+usercontroller -> userserviceimpl: getUserProfile(currentUser)
+activate userserviceimpl
+userserviceimpl -> userrepository: findById(currentUser.getId())
+activate userrepository
+userrepository --> userserviceimpl: Optional<User>
+deactivate userrepository
+opt !user.present
+  userserviceimpl --> usercontroller: throw 404 USER_NOT_FOUND
+  deactivate userserviceimpl
+  usercontroller --> profilepage_ui: 404 Not Found
+  deactivate usercontroller
+  profilepage_ui --> user: shows 404 toast
+end
+activate userserviceimpl
+activate usercontroller
+userserviceimpl -> userserviceimpl: user = userOpt.get()
+opt !role.present
+  userserviceimpl -> usersystemrolerepository: findByUserId(user.getId())
+  activate usersystemrolerepository
+  usersystemrolerepository --> userserviceimpl: Optional.empty()
+  deactivate usersystemrolerepository
+  userserviceimpl -> userserviceimpl: role = USER
+end
+opt role.present
+  userserviceimpl -> usersystemrolerepository: findByUserId(user.getId())
+  activate usersystemrolerepository
+  usersystemrolerepository --> userserviceimpl: Optional<UserSystemRole>
+  deactivate usersystemrolerepository
+  userserviceimpl -> usersystemrole: getRole()
+  activate usersystemrole
+  usersystemrole --> userserviceimpl: role
+  deactivate usersystemrole
+end
+opt workspaceId == null
+  userserviceimpl -> workspacememberrepository: findFirstByUserIdAndIsActiveTrue(user.getId())
+  activate workspacememberrepository
+  workspacememberrepository --> userserviceimpl: Optional<WorkspaceMember>
+  deactivate workspacememberrepository
+  userserviceimpl -> userserviceimpl: workspaceId = member.getWorkspaceId()
+end
+userserviceimpl -> userserviceimpl: parsePreferences(user)
+userserviceimpl -> userserviceimpl: parseSkillsAndUrls(user)
+userserviceimpl -> userprofileresponse: new UserProfileResponse(...)
+activate userprofileresponse
+userprofileresponse --> userserviceimpl: UserProfileResponse
+deactivate userprofileresponse
+userserviceimpl --> usercontroller: UserProfileResponse
+deactivate userserviceimpl
+usercontroller --> profilepage_ui: 200 OK UserProfileResponse
+deactivate usercontroller
+profilepage_ui --> user: renders profile
+deactivate profilepage_ui
+
+@enduml

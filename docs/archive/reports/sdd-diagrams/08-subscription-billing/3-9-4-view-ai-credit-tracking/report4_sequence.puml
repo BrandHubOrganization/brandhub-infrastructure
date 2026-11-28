@@ -1,0 +1,97 @@
+@startuml 3.9.5 - View AI Credit Tracking
+title Sequence Diagram — 3.9.5 - View AI Credit Tracking
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Web dashboard" as webdashboard
+boundary "BillingController" as billingcontroller
+control "BillingService" as billingservice
+entity "AgencyRepository" as agencyrepository
+entity "WorkspaceMemberRepository" as workspacememberrepos
+entity "AiCreditEntryRepository" as aicreditentryreposit
+entity "AiCreditWorkspaceLimitRepository" as aicreditworkspacelim
+entity "AiCreditAccountRepository" as aicreditaccountrepos
+actor "USER (self) / OWNER (managed
+Agency)" as userselfownermanaged
+
+' === Flow ===
+billingservice -> billingservice: Check session, scope and self scope / Agency OWNER
+billingservice -> billingservice: Validate period and permitted Workspace/Creator filters
+billingservice -> billingservice: Resolve authenticated self scope
+billingservice -> billingservice: Build usageOutcome
+activate userselfownermanaged
+userselfownermanaged -> webdashboard: Select month and permitted usage scope
+webdashboard -> billingcontroller: GET /api/v1/billing/credits/usage
+activate billingcontroller
+billingcontroller -> billingservice: getCreditUsage(user, query)
+activate billingservice
+
+opt Agency / workspace scope
+  billingservice -> agencyrepository: Load owned agency
+  activate agencyrepository
+  agencyrepository --> billingservice: Agency
+  deactivate agencyrepository
+  billingservice -> workspacememberrepos: Load scoped membership
+  activate workspacememberrepos
+  workspacememberrepos --> billingservice: WorkspaceMember
+  deactivate workspacememberrepos
+end
+
+
+loop invalid session / forbidden / unavailable resource
+  billingservice --> billingcontroller: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate billingservice
+  billingcontroller --> webdashboard: 401 Unauthorized / 403 Forbidden / 404 Not Found
+  deactivate billingcontroller
+  webdashboard --> userselfownermanaged: Display access or resource error
+end
+activate billingcontroller
+activate billingservice
+
+
+loop invalid period / unauthorized filter
+  billingservice --> billingcontroller: 400 Bad Request / 403 Forbidden
+  deactivate billingservice
+  billingcontroller --> webdashboard: 400 Bad Request / 403 Forbidden
+  deactivate billingcontroller
+  webdashboard --> userselfownermanaged: Display validation or scope error
+end
+activate billingcontroller
+activate billingservice
+
+billingservice -> aicreditentryreposit: Aggregate committed usage
+activate aicreditentryreposit
+aicreditentryreposit --> billingservice: usage
+deactivate aicreditentryreposit
+billingservice -> aicreditworkspacelim: Load workspace limit
+activate aicreditworkspacelim
+aicreditworkspacelim --> billingservice: limit
+deactivate aicreditworkspacelim
+billingservice -> aicreditaccountrepos: Load balance and reservations
+activate aicreditaccountrepos
+aicreditaccountrepos --> billingservice: balance / reserved
+deactivate aicreditaccountrepos
+
+alt query failed
+  billingservice --> billingcontroller: 500 Internal Server Error
+  deactivate billingservice
+  billingcontroller --> webdashboard: 500 Internal Server Error
+  deactivate billingcontroller
+  webdashboard --> userselfownermanaged: Display load error; do not show zero usage
+else query succeeded
+  activate billingcontroller
+  activate billingservice
+  billingservice --> billingcontroller: 200 OK
+  deactivate billingservice
+  billingcontroller --> webdashboard: 200 OK
+  deactivate billingcontroller
+  webdashboard --> userselfownermanaged: Display usage, limit, balance and reserved
+end
+
+deactivate userselfownermanaged
+@enduml

@@ -1,0 +1,66 @@
+@startuml 3.7.1 - View trending topics
+title Sequence Diagram — 3.7.1 - View trending topics
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "Creator / Manager" as creatormanager
+boundary "TrendsPage (UI)" as trendspageui
+boundary "AiTrendController" as aitrendcontroller
+control "AI Service (trends API)" as aiservicetrendsapi
+entity "Redis" as redis
+
+' === Flow ===
+aitrendcontroller -> aitrendcontroller: Validate period and limit
+activate creatormanager
+creatormanager -> trendspageui: Open trends; choose period and topic
+trendspageui -> aitrendcontroller: GET /api/v1/ai/trending-topics
+activate aitrendcontroller
+
+alt Invalid filters
+  aitrendcontroller --> trendspageui: 400 — invalid filters
+  deactivate aitrendcontroller
+  trendspageui --> creatormanager: Show error; keep filters
+else Valid filters
+  activate aitrendcontroller
+  aitrendcontroller -> aiservicetrendsapi: GET /api/v1/ai/trends?period&limit=100
+  activate aiservicetrendsapi
+  aiservicetrendsapi -> redis: ZREVRANGE trendKey 0 99 WITHSCORES HGET trendKey:data trendId
+  activate redis
+  redis --> aiservicetrendsapi: Cached trends, possibly empty
+  deactivate redis
+  aiservicetrendsapi --> aitrendcontroller: Trend data / upstream error
+  deactivate aiservicetrendsapi
+end
+
+
+alt AI request failed
+  aitrendcontroller --> trendspageui: 502 / 503 — trends unavailable
+  deactivate aitrendcontroller
+  trendspageui --> creatormanager: Show error and retry
+else Trend data loaded
+  activate aitrendcontroller
+  aitrendcontroller -> aitrendcontroller: Filter topics; rank and deduplicate trends
+  aitrendcontroller -> aiservicetrendsapi: GET /api/v1/ai/trends/crawl-config
+  activate aiservicetrendsapi
+  aiservicetrendsapi --> aitrendcontroller: Crawl summary / null on failure
+  deactivate aiservicetrendsapi
+  aitrendcontroller --> trendspageui: 200 OK — ApiResponse<ObjectNode>
+  deactivate aitrendcontroller
+  trendspageui --> creatormanager: Show trends, topic chart and crawl summary
+end
+activate aitrendcontroller
+
+
+opt Trends loaded; user selects a trend
+  creatormanager -> trendspageui: Hover or open a trend
+  trendspageui --> creatormanager: Show sample posts and growth chart
+end
+
+deactivate creatormanager
+deactivate aitrendcontroller
+@enduml

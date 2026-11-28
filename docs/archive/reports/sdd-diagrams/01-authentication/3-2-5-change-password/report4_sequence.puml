@@ -1,0 +1,103 @@
+@startuml 3.2.5 - Change Password
+title Sequence Diagram — 3.2.5 - Change Password
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+control "AuthService" as authservice
+boundary "AuthController" as authcontroller
+entity "UserRepository" as userrepository
+boundary "SecuritySettingsPage (UI)" as securitysettingspage
+actor "Guest" as guest
+
+' === Flow ===
+else authHeader valid
+  authservice -> authservice: parseToken(accessToken) -> userId
+end
+
+else user record found
+  authservice -> authservice: verifyPassword(request.currentPassword(), user.getPasswordHash())
+end
+
+else current password is correct (isCurrentMatch == true)
+  authservice -> authservice: checkSamePassword(request.newPassword(), user.getPasswordHash())
+end
+
+else new password valid (isSamePassword == false)
+  authservice -> authservice: encodePassword(request.newPassword())
+  authservice -> authservice: updatePassword(user, newPasswordHash)
+  authservice -> authservice: recordAuditLog(userId, PASSWORD_RESET)
+end
+
+guest -> securitysettingspage: enters current password, new password & clicks "Update password"
+activate securitysettingspage
+securitysettingspage -> authcontroller: POST /api/v1/auth/change-password (ChangePasswordRequest, headers: Bearer accessToken)
+activate authcontroller
+
+alt authHeader missing or invalid Bearer format
+  authcontroller --> securitysettingspage: 401 Unauthorized (INVALID_CREDENTIALS)
+  deactivate authcontroller
+  securitysettingspage --> guest: show error toast ('Authentication session invalid, please sign in again')
+else authHeader valid
+  activate authcontroller
+  authcontroller ->> authservice: changePassword(accessToken, request)
+  activate authservice
+  authservice ->> userrepository: findById(userId)
+  activate userrepository
+end
+
+
+alt user record not found
+  userrepository --> authservice: Optional.empty()
+  deactivate userrepository
+  authservice --> authcontroller: throw BusinessException(USER_NOT_FOUND)
+  deactivate authservice
+  authcontroller --> securitysettingspage: 404 Not Found (USER_NOT_FOUND)
+  deactivate authcontroller
+  securitysettingspage --> guest: show error toast ('User account not found')
+else user record found
+  activate authcontroller
+  activate authservice
+  activate userrepository
+  userrepository --> authservice: user
+  deactivate userrepository
+end
+activate userrepository
+
+
+alt current password is incorrect (!isCurrentMatch)
+  authservice --> authcontroller: throw BusinessException(WRONG_CURRENT_PASSWORD)
+  deactivate authservice
+  authcontroller --> securitysettingspage: 400 Bad Request (WRONG_CURRENT_PASSWORD)
+  deactivate authcontroller
+  securitysettingspage --> guest: show error inline MSG19 ('Current password is incorrect.')
+end
+activate authcontroller
+activate authservice
+
+
+alt new password matches old password (isSamePassword == true)
+  authservice --> authcontroller: throw BusinessException(SAME_AS_CURRENT_PASSWORD)
+  deactivate authservice
+  authcontroller --> securitysettingspage: 400 Bad Request (SAME_AS_CURRENT_PASSWORD)
+  deactivate authcontroller
+  securitysettingspage --> guest: show error inline MSG90 ('New password cannot be the same as your current password.')
+else new password valid (isSamePassword == false)
+  activate authcontroller
+  activate authservice
+  authservice ->> userrepository: save(user)
+  userrepository --> authservice: savedUser
+  deactivate userrepository
+  authservice --> authcontroller: void
+  deactivate authservice
+  authcontroller --> securitysettingspage: 200 OK (ApiResponse)
+  deactivate authcontroller
+  securitysettingspage --> guest: show success toast MSG18 ('Password updated successfully.') & clear form fields
+  deactivate securitysettingspage
+end
+
+@enduml

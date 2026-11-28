@@ -1,0 +1,103 @@
+@startuml 3.5.6 - Approve Media Campaign
+title Sequence Diagram — 3.5.6 - Approve Media Campaign
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "TaskRepository (MongoDB)" as taskrepositorymongod
+entity "MediaCampaignRepository" as mediacampaignreposit
+control "MediaCampaignService" as mediacampaignservice
+boundary "MediaCampaignController" as mediacampaigncontrol
+boundary "MediaCampaignUI" as mediacampaignui
+actor "User (Client / Manager)" as userclientmanager
+
+' === Flow ===
+userclientmanager -> mediacampaignui: reviews campaign work items & clicks "Approve Campaign"
+activate mediacampaignui
+
+alt caller is Client
+  mediacampaignservice -> mediacampaignservice: set approvedByClientAt = now
+else caller is Agency (Owner or Manager)
+  mediacampaignservice -> mediacampaignservice: set approvedByAgencyAt = now
+end
+
+else both Agency and Client approved current contentVersion
+  mediacampaignservice -> mediacampaignservice: set status = IN_PROGRESS
+end
+
+mediacampaignui -> mediacampaigncontrol: POST /api/v1/media-campaigns/{campaignId}/approve
+activate mediacampaigncontrol
+mediacampaigncontrol -> mediacampaignservice: approveCampaign(campaignId, currentUser)
+activate mediacampaignservice
+mediacampaignservice -> mediacampaignreposit: findByIdForUpdate(campaignId)
+activate mediacampaignreposit
+mediacampaignreposit --> mediacampaignservice: campaign
+deactivate mediacampaignreposit
+
+alt campaign not found
+  mediacampaignservice --> mediacampaigncontrol: throw BusinessException (404 CAMPAIGN_NOT_FOUND)
+  deactivate mediacampaignservice
+  mediacampaigncontrol --> mediacampaignui: 404 Not Found (CAMPAIGN_NOT_FOUND)
+  deactivate mediacampaigncontrol
+  mediacampaignui --> userclientmanager: show error toast ('Campaign not found')
+else campaign already active or status != DRAFT
+  activate mediacampaigncontrol
+  activate mediacampaignservice
+  mediacampaignservice --> mediacampaigncontrol: throw BusinessException (400 CAMPAIGN_ALREADY_ACTIVE)
+  deactivate mediacampaignservice
+  mediacampaigncontrol --> mediacampaignui: 400 Bad Request (CAMPAIGN_ALREADY_ACTIVE)
+  deactivate mediacampaigncontrol
+  mediacampaignui --> userclientmanager: show error toast ('Campaign is already in progress or completed')
+else caller is unauthorized (not workspace Client or Agency Manager)
+  activate mediacampaigncontrol
+  activate mediacampaignservice
+  mediacampaignservice --> mediacampaigncontrol: throw BusinessException (403 WORKSPACE_ACCESS_DENIED)
+  deactivate mediacampaignservice
+  mediacampaigncontrol --> mediacampaignui: 403 Forbidden (WORKSPACE_ACCESS_DENIED)
+  deactivate mediacampaigncontrol
+  mediacampaignui --> userclientmanager: show error toast ('Access denied: Client or Agency Manager role required')
+end
+activate mediacampaigncontrol
+activate mediacampaignservice
+
+
+alt single party approved (pending second party confirmation)
+  mediacampaignservice ->> mediacampaignreposit: save(campaign)
+  activate mediacampaignreposit
+  mediacampaignreposit --> mediacampaignservice: savedCampaign
+  deactivate mediacampaignreposit
+  mediacampaignservice --> mediacampaigncontrol: MediaCampaignResponse (approved timestamp recorded)
+  deactivate mediacampaignservice
+  mediacampaigncontrol --> mediacampaignui: 200 OK (partially approved)
+  deactivate mediacampaigncontrol
+  mediacampaignui --> userclientmanager: show toast ('Approval recorded. Awaiting confirmation from second party')
+end
+activate mediacampaigncontrol
+activate mediacampaignservice
+
+
+break each workItem in campaign.workItems JSONB
+  mediacampaignservice ->> taskrepositorymongod: upsertTask({campaignId, campaignWorkItemId: workItem.id}, taskData)
+  activate taskrepositorymongod
+  taskrepositorymongod --> mediacampaignservice: upsertedTaskDocument
+  deactivate taskrepositorymongod
+end
+
+else both Agency and Client approved current contentVersion
+  mediacampaignservice ->> mediacampaignreposit: save(campaign)
+  activate mediacampaignreposit
+  mediacampaignreposit --> mediacampaignservice: savedCampaign (status: IN_PROGRESS)
+  deactivate mediacampaignreposit
+  mediacampaignservice --> mediacampaigncontrol: MediaCampaignResponse (status: IN_PROGRESS)
+  deactivate mediacampaignservice
+  mediacampaigncontrol --> mediacampaignui: 200 OK (MediaCampaignResponse)
+  deactivate mediacampaigncontrol
+  mediacampaignui --> userclientmanager: show success modal ('Campaign fully approved! Work items deployed to Task Backlog')
+  deactivate mediacampaignui
+end
+
+@enduml

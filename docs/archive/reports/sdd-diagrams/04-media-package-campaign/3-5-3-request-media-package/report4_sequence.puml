@@ -1,0 +1,58 @@
+@startuml 3.5.3 - Request Media Package
+title Sequence Diagram — 3.5.3 - Request Media Package
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+actor "User" as user
+boundary "MediaPackagePage (UI)" as mediapackagepageui
+boundary "MediaPackageController" as mediapackagecontroll
+control "MediaPackageService" as mediapackageservice
+entity "MediaPackageRepository" as mediapackagereposito
+entity "CampaignRepository" as campaignrepository
+
+' === Flow ===
+user -> mediapackagepageui: selects campaign & media package, clicks "Request"
+activate mediapackagepageui
+mediapackagepageui -> mediapackagecontroll: POST /api/v1/media-packages/request (RequestMediaPackageRequest)
+activate mediapackagecontroll
+mediapackagecontroll -> mediapackageservice: requestMediaPackage(userId, request)
+activate mediapackageservice
+mediapackageservice -> campaignrepository: findById(campaignId)
+activate campaignrepository
+
+alt campaign not found
+  campaignrepository --> mediapackageservice: Optional.empty()
+  deactivate campaignrepository
+  mediapackageservice --> mediapackagecontroll: 404 Not Found (CAMPAIGN_NOT_FOUND)
+  deactivate mediapackageservice
+  mediapackagecontroll --> mediapackagepageui: 404 Not Found
+  deactivate mediapackagecontroll
+  mediapackagepageui --> user: Show error "Campaign not found"
+else campaign found
+  activate mediapackagecontroll
+  activate campaignrepository
+  activate mediapackageservice
+  campaignrepository --> mediapackageservice: Optional<Campaign>
+  deactivate campaignrepository
+  mediapackageservice -> mediapackagereposito: existsByUserIdAndCampaignIdAndStatus(userId, campaignId, PENDING)
+  activate mediapackagereposito
+  mediapackagereposito --> mediapackageservice: false
+  deactivate mediapackagereposito
+  mediapackageservice -> mediapackagereposito: save(newMediaPackageRequest)
+  activate mediapackagereposito
+  mediapackagereposito --> mediapackageservice: savedRequest
+  deactivate mediapackagereposito
+  mediapackageservice --> mediapackagecontroll: MediaPackageResponse(requestId, status=PENDING)
+  deactivate mediapackageservice
+  mediapackagecontroll --> mediapackagepageui: 201 Created (MediaPackageResponse)
+  deactivate mediapackagecontroll
+  mediapackagepageui --> user: "Media package requested — awaiting approval"
+  deactivate mediapackagepageui
+end
+
+@enduml

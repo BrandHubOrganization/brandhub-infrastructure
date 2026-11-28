@@ -1,5 +1,7 @@
 # Sprint Plan V2 — Tổng quan định hướng (Sprint 8–12)
 
+> [<< Knowledge Base Home](../index.md) · [Project Plans](./README.md) · [BA V2 Baseline](../ba/README.md)
+
 > Bản tóm tắt dễ đọc. Chi tiết task ID, Goal/AC đầy đủ nằm trong `brandhub-master-plan.md` (Phần 1.5, 1.6, Phần 2). File này chỉ để nắm hướng đi nhanh.
 >
 > Chưa đẩy Jira — chờ Trung duyệt.
@@ -35,8 +37,8 @@ Trung: E13 RBAC refactor → E14 permission → E16 Agency
 | **8** (08/09–22/09) | Trung dựng nền Agency/RBAC (task chặn cả dự án). Các nhánh độc lập chạy full: Phước làm OAuth Facebook/TikTok/Threads, Tuấn làm Material Repository, Ân làm Notification | Trung, Phước | — |
 | **9** (14/09–28/09) | Trung hoàn tất Agency → mở khoá Lộc (Media Package) và Tuấn (Billing) chạy full tốc | Trung, Lộc | Ân (chờ data để làm Analytics) |
 | **10** (đầu tháng 10) | Lộc vào phần khó nhất của Media Package (đàm phán 2 bên approve). Trung xong hết phần nền, chuyển sang phụ E51 (Mail Template). Phước bắt đầu các view Task (List/Calendar/Kanban) | Lộc | Ân (vẫn chờ) |
-| **11** (giữa/cuối tháng 10) | Lộc chốt Media Package → sinh Task backlog → mở khoá Approval Sequence. Ân bắt đầu code Analytics thật (đã có data). Tuấn làm Compliance/Copyright check. Trung viết QA/integration test cho E13/E14/E16 đã code Sprint 8-9 (task thật, có checklist AC — không phải "hỗ trợ" chung) | Lộc, Ân | — (không ai rảnh, Trung có việc QA cụ thể) |
-| **12** (đầu/giữa tháng 11) | Phước làm Approval Sequence — **task rủi ro kỹ thuật cao nhất toàn dự án**, không giao thêm việc khác cho Phước sprint này. Ân hoàn thiện Admin, thay hết mock service bằng API thật. Trung QA tiếp E50/E17. Tuấn QA lại toàn bộ phần E51 mình đã code (Material/Hashtag/Compliance/Copyright) | Phước | — (Trung/Tuấn có task QA cụ thể, không rảnh) |
+| **11** (giữa/cuối tháng 10) | Lộc chốt Media Package → sinh Task backlog → mở khoá Approval Sequence. Ân bắt đầu code Analytics thật (đã có data). Tuấn làm Compliance check (`FR 3.6.33`; hạng mục Copyright check của bản nháp cũ đã lược bỏ khỏi baseline 141 FR). Trung viết QA/integration test cho E13/E14/E16 đã code Sprint 8-9 (task thật, có checklist AC — không phải "hỗ trợ" chung) | Lộc, Ân | — (không ai rảnh, Trung có việc QA cụ thể) |
+| **12** (đầu/giữa tháng 11) | Phước làm Approval Sequence — **task rủi ro kỹ thuật cao nhất toàn dự án**, không giao thêm việc khác cho Phước sprint này. Ân hoàn thiện Admin, thay hết mock service bằng API thật. Trung QA tiếp E50/E17. Tuấn QA lại toàn bộ phần E51 mình đã code (Material/Hashtag/Compliance) | Phước | — (Trung/Tuấn có task QA cụ thể, không rảnh) |
 
 ## Ai làm gì, từng sprint (chi tiết theo người)
 
@@ -69,7 +71,7 @@ Task ID đầy đủ (Goal/AC/Technical Notes) xem trong `brandhub-master-plan.m
 | 8 | DA-E52-01 → 02 → 03 → 04 | Meta OAuth (Facebook/Instagram) + TikTok/Threads OAuth |
 | 9 | DA-E52-05 → 06 → 07 → 08 | Token refresh job + callback webhook + retry backoff — xong hết E52 |
 | 10 | DA-E51-05 | Task views: List/Calendar/Gantt/Kanban/Filter |
-| 11 | DA-E51-08 → 08b → 08c → 08d → 09 → 09b | Livestream idea/script/status/meeting-link + Survey creation/analysis |
+| 11 | DA-E51-08d → 09 → 09b | Generate Meeting Link (`FR 3.6.27`) + Survey creation/analysis (`FR 3.6.25`–`3.6.26`) *(DA-E51-08..08c Livestream đã lược bỏ trong V2)* |
 | 12 | DA-E51-03 → E51-14 | **Approval Sequence state machine (rủi ro cao nhất dự án)** + `posts` collection |
 
 ### Tuấn
@@ -79,8 +81,8 @@ Task ID đầy đủ (Goal/AC/Technical Notes) xem trong `brandhub-master-plan.m
 | 8 | DA-E51-06 → 06b → 06c → 06d → 06f → 06g → E53-06 | Material Repository (view/add/update/remove/download) + Brand Collection + System Health |
 | 9 | DA-E17-05 → 06 → E51-07 → 07b → 07c → 07d → 07e | UserSubscription/Transaction rename + Hashtag Collection full CRUD |
 | 10 | DA-E17-07 → E51-13 | AI Credit Ledger + Content History no-double-charge |
-| 11 | DA-E51-11 → 12 | Compliance check + Copyright infringement check |
-| 12 | QA-E51-Tuấn | Test lại toàn bộ Material/Hashtag/Compliance/Copyright mình đã code |
+| 11 | DA-E51-11 | Check Compliance Content (`FR 3.6.33`) *(DA-E51-12 Copyright check đã lược bỏ trong V2)* |
+| 12 | QA-E51-Tuấn | Test lại toàn bộ Material/Hashtag/Compliance mình đã code |
 
 ### Ân
 

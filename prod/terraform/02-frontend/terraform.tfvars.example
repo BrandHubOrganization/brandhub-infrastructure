@@ -1,0 +1,7 @@
+aws_account_id           = "134875421878"
+aws_region               = "ap-southeast-1"
+environment              = "prod"
+domain_name              = "brandhub.id.vn"
+s3_bucket_name           = "brandhub-web-prd-134875421878"
+google_site_verification = "google-site-verification=replace-with-token"
+attach_domain_alias      = true

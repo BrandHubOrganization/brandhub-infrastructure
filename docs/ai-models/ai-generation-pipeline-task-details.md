@@ -1,4 +1,6 @@
 # Chi Tiết Nhiệm Vụ Epic AI-04 (User Query & Generation Pipeline Task Details)
+
+> [<< Knowledge Base Home](../index.md) · [AI Models & Research](./README.md) · [AI Service Architecture](../architecture/ai-service-architecture.md)
 **Epic:** `AI-04 — LLM Content Generation & Hook Optimization`  
 **Dự án:** BrandHub AI Trend System  
 
@@ -411,3 +413,19 @@ DA-AI03-03.3 (Query Normalization) ➔ DA-AI03-04 (Chroma Search) & DA-AI03-04.1
                                                                       ▼
                                                          DA-AI04-08 (Documentation)
 ```
+
+---
+
+## V. Quyết Định Kiến Trúc & Kịch Bản Vận Hành Thực Tế (End-to-End GraphRAG Walkthrough)
+
+### 1. Lý do kết hợp Hybrid GraphRAG (ChromaDB + Neo4j + BM25 Pruning)
+- **Nếu chỉ dùng ChromaDB (Vector Search):** Hiểu được câu hỏi ngữ nghĩa mờ (ví dụ người dùng gõ *"đồ uống nóng ấm áp mùa đông"* khớp được với *"trà sữa đất nung"*), nhưng các đoạn văn bản trả về bị rời rạc, không nối kết được chuỗi quan hệ thực tế (*KOL nào review → quán nằm ở con phố nào → thuộc trào lưu nào*).
+- **Nếu chỉ dùng Neo4j (Graph Traversal):** Đòi hỏi khớp chính xác tên node thực thể, thất bại khi người dùng diễn đạt bằng từ đồng nghĩa.
+- **Kiến trúc lai GraphRAG:** Dùng ChromaDB làm bước **Semantic Entry Point Discovery**, sau đó duyệt đồ thị Neo4j **1–2 hops** xung quanh Entry Point để gom đủ thực thể liên kết (`:KOL`, `:Dish`, `:Location`), rồi chạy **BM25 Pruning** cắt bỏ 30%–40% node nhiễu trước khi đóng gói vào `PromptBuilder` với cấu trúc `[HOOK_3S]`, `[BODY]`, `[CALL_TO_ACTION]`.
+
+### 2. Ví dụ luồng dữ liệu thực tế (` TeaHouse` — Trend `Trà sữa đất nung Hàng Bồ`)
+1. **Input của `Creator`:** *"Lên ý tưởng viết bài quảng cáo sản phẩm mới lấy chủ đề đồ uống nóng ấm áp bắt trend để đăng lên Fanpage"*.
+2. **Query Normalization (`DA-AI03-03.3`):** Làm sạch biểu tượng cảm xúc, chuẩn hóa từ viết tắt tiếng Việt và tách ý định nền tảng (`facebook`) khỏi chủ đề cốt lõi (`đồ uống nóng ấm áp mùa đông`).
+3. **ChromaDB Entry Point (`DA-AI03-04`):** Truy vấn HNSW 384 chiều xác định thực thể gần nhất về ngữ nghĩa là `Trend/Dish: Trà sữa đất nung`.
+4. **Neo4j 2-Hop Traversal & BM25 Pruning (`DA-AI03-04.1`–`04.2`):** Từ `Trà sữa đất nung`, đồ thị trả về các liên kết `(:KOL {name: "ninheating"})-[:PROMOTED]->(:Dish {name: "Trà sữa đất nung"})-[:CHECK_IN_AT]->(:Location {name: "Hàng Bồ, Hoàn Kiếm, Hà Nội"})`; các node phụ điểm BM25 thấp bị loại bỏ.
+5. **LLM Generation & Hook 3s (`DA-AI04-01`–`04`):** `PromptBuilder` kết xuất ngữ cảnh phân cấp sang Groq (`llama-3.1-70b-versatile`) với fallback sang Anthropic Claude, kiểm tra giới hạn ký tự theo nền tảng và sinh bộ hashtag không dấu (`#TeaHouse #trasuadatnung #hangbo`).

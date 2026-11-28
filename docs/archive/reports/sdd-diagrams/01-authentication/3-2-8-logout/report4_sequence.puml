@@ -1,0 +1,75 @@
+@startuml 3.2.8 - Sign Out
+title Sequence Diagram — 3.2.8 - Sign Out
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "RedisCache" as rediscache
+control "Auth Service" as authservice
+boundary "AuthController" as authcontroller
+boundary "AppHeader (UI)" as appheaderui
+actor "Guest" as guest
+
+' === Flow ===
+guest -> appheaderui: clicks "Sign Out"
+activate appheaderui
+else authHeader is valid Bearer token
+  authservice -> authservice: parseToken(accessToken)
+end
+
+
+alt accessToken valid
+  authservice -> authservice: extract userId and jti
+  authservice -> authservice: blacklistToken(accessToken)
+end
+
+
+opt refreshToken != null and !refreshToken.isBlank()
+  authservice -> authservice: blacklistToken(refreshToken)
+end
+
+else authHeader is valid Bearer token
+  authcontroller -> authcontroller: clearCookie("refreshToken", path="/api/v1/auth")
+  appheaderui -> appheaderui: clearClientSession()
+  authcontroller -> authcontroller: extract accessToken = authHeader.replace("Bearer ", "")
+end
+
+appheaderui -> authcontroller: POST /api/v1/auth/logout (headers: Authorization: Bearer <accessToken>, X-Forwarded-For, User-Agent; Cookie: refreshToken)
+activate authcontroller
+
+alt authHeader == null or !authHeader.startsWith(\
+  authcontroller -> appheaderui: 401 Unauthorized (INVALID_CREDENTIALS)
+  appheaderui -> guest: redirect to /login ('Invalid session credentials')
+else authHeader is valid Bearer token
+  authcontroller -> authservice: logout(accessToken, refreshToken, ipAddress, userAgent)
+  activate authservice
+end
+
+
+opt ttl > 0
+  authservice -> rediscache: set("jwt:blacklist:" + jti, "true", ttl)
+  activate rediscache
+  rediscache -> authservice: ok
+end
+
+
+opt refreshToken valid and ttl > 0
+  authservice -> rediscache: set("jwt:blacklist:" + refreshJti, "true", ttl)
+  rediscache -> authservice: ok
+end
+
+else authHeader is valid Bearer token
+  authservice --> authcontroller: void
+  deactivate authservice
+  authcontroller --> appheaderui: 200 OK (Sign out successful)
+  deactivate authcontroller
+  appheaderui --> guest: redirectToLoginPage("Signed out successfully")
+  deactivate appheaderui
+end
+
+deactivate rediscache
+@enduml

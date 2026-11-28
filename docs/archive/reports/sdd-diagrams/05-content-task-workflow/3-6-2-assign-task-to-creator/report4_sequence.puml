@@ -1,0 +1,108 @@
+@startuml 3.6.2 - Assign Task To Creator
+title Sequence Diagram — 3.6.2 - Assign Task To Creator
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "TaskRepository" as taskrepository
+control "TaskService" as taskservice
+boundary "TaskController" as taskcontroller
+boundary "TaskDetailUI" as taskdetailui
+entity "WorkspaceMemberRepository" as workspacememberrepos
+actor "Manager" as manager
+
+' === Flow ===
+manager -> taskdetailui: clicks "Assign Task" button on task detail page
+activate taskdetailui
+taskdetailui -> taskcontroller: GET /api/v1/workspaces/{workspaceId}/members?role=MEMBER
+activate taskcontroller
+taskcontroller -> taskservice: listAssignableMembers(workspaceId)
+activate taskservice
+taskservice -> workspacememberrepos: findAllByWorkspaceIdAndStatusActive(workspaceId)
+activate workspacememberrepos
+workspacememberrepos --> taskservice: activeMemberList
+deactivate workspacememberrepos
+taskservice --> taskcontroller: List<WorkspaceMemberResponse>
+deactivate taskservice
+taskcontroller --> taskdetailui: 200 OK (activeMemberList)
+deactivate taskcontroller
+taskdetailui --> manager: render Assign dialog (assignee dropdown, QC dropdown, requireClientApproval toggle)
+manager ->> taskdetailui: selects assigneeId, optional qcAssigneeId, toggles requiresClientApproval & submits
+taskdetailui ->> taskcontroller: POST /api/v1/workspaces/{workspaceId}/tasks/{taskId}/assign (AssignTaskRequest)
+activate taskcontroller
+taskcontroller ->> taskservice: assignTask(workspaceId, taskId, currentUser, request)
+activate taskservice
+taskservice ->> taskrepository: findByIdAndWorkspaceId(taskId, workspaceId)
+activate taskrepository
+taskrepository --> taskservice: task
+deactivate taskrepository
+
+alt caller is not manager of workspace
+  taskservice --> taskcontroller: throw BusinessException (403 FORBIDDEN)
+  deactivate taskservice
+  taskdetailui --> manager: show access denied error toast
+  taskcontroller --> taskdetailui: 403 Forbidden
+  deactivate taskcontroller
+else task status is not DETAIL_IDENTIFIED
+  activate taskcontroller
+  activate taskservice
+  taskservice --> taskcontroller: throw BusinessException (409 TASK_DETAIL_NOT_IDENTIFIED)
+  deactivate taskservice
+  taskdetailui --> manager: show error alert ("Task must be in DETAIL_IDENTIFIED status before assignment")
+  taskcontroller --> taskdetailui: 409 Conflict
+  deactivate taskcontroller
+else qcAssigneeId equals assigneeId
+  activate taskcontroller
+  activate taskservice
+  taskservice --> taskcontroller: throw BusinessException (400 QC_CANNOT_BE_SAME_AS_ASSIGNEE)
+  deactivate taskservice
+  taskdetailui --> manager: show validation error ("Assignee cannot be assigned to QC their own task")
+  taskcontroller --> taskdetailui: 400 Bad Request
+  deactivate taskcontroller
+else assigneeId is not an active workspace member
+  activate taskcontroller
+  activate taskservice
+  taskservice ->> workspacememberrepos: findByWorkspaceIdAndUserId(workspaceId, assigneeId)
+  activate workspacememberrepos
+  workspacememberrepos --> taskservice: empty
+  deactivate workspacememberrepos
+  taskservice --> taskcontroller: throw BusinessException (400 INVALID_ASSIGNEE)
+  deactivate taskservice
+  taskcontroller --> taskdetailui: 400 Bad Request
+  deactivate taskcontroller
+  taskdetailui --> manager: show validation error ("Selected assignee is not an active workspace member")
+else valid assignment
+  activate taskcontroller
+  activate taskservice
+  taskservice ->> workspacememberrepos: findByWorkspaceIdAndUserId(workspaceId, assigneeId)
+  activate workspacememberrepos
+  workspacememberrepos --> taskservice: assigneeMember
+  deactivate workspacememberrepos
+end
+
+
+opt qcAssigneeId is present
+  taskservice ->> workspacememberrepos: findByWorkspaceIdAndUserId(workspaceId, qcAssigneeId)
+  activate workspacememberrepos
+  workspacememberrepos --> taskservice: qcMember
+  deactivate workspacememberrepos
+end
+
+else valid assignment
+  taskservice ->> taskrepository: save(task with assigneeId, qcAssigneeId, requiresClientApproval, status=ASSIGNED)
+  activate taskrepository
+  taskrepository --> taskservice: savedTask
+  deactivate taskrepository
+  taskservice --> taskcontroller: TaskResponse (status=ASSIGNED)
+  deactivate taskservice
+  taskcontroller --> taskdetailui: 200 OK (TaskResponse)
+  deactivate taskcontroller
+  taskdetailui --> manager: show success toast ("Task assigned successfully") & update status badge to ASSIGNED
+  deactivate taskdetailui
+end
+
+@enduml

@@ -1,0 +1,77 @@
+@startuml 3.6.3 - Add Comments On Task
+title Sequence Diagram — 3.6.3 - Add Comments On Task
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+' === Participants ===
+entity "TaskCommentRepository" as taskcommentrepositor
+entity "TaskRepository" as taskrepository
+control "TaskCommentService" as taskcommentservice
+boundary "TaskCommentController" as taskcommentcontrolle
+boundary "TaskCommentPanelUI" as taskcommentpanelui
+actor "Manager" as manager
+
+' === Flow ===
+manager -> taskcommentpanelui: opens comment panel on task detail page
+activate taskcommentpanelui
+taskcommentpanelui -> taskcommentcontrolle: GET /api/v1/workspaces/{workspaceId}/tasks/{taskId}/comments
+activate taskcommentcontrolle
+taskcommentcontrolle -> taskcommentservice: getComments(workspaceId, taskId, currentUser)
+activate taskcommentservice
+taskcommentservice -> taskrepository: existsByIdAndWorkspaceId(taskId, workspaceId)
+activate taskrepository
+taskrepository --> taskcommentservice: true
+deactivate taskrepository
+taskcommentservice -> taskcommentrepositor: findByTaskIdOrderByCreatedAtAsc(taskId)
+activate taskcommentrepositor
+taskcommentrepositor --> taskcommentservice: commentList
+deactivate taskcommentrepositor
+taskcommentservice --> taskcommentcontrolle: List<TaskCommentResponse>
+deactivate taskcommentservice
+taskcommentcontrolle --> taskcommentpanelui: 200 OK (commentList)
+deactivate taskcommentcontrolle
+taskcommentpanelui --> manager: render comments timeline (author, role, timestamp, text, attachments)
+manager --> taskcommentpanelui: inputs comment text (optional @mentions), attachments & clicks "Send"
+taskcommentpanelui ->> taskcommentcontrolle: POST /api/v1/workspaces/{workspaceId}/tasks/{taskId}/comments (CreateTaskCommentRequest)
+activate taskcommentcontrolle
+taskcommentcontrolle ->> taskcommentservice: addComment(workspaceId, taskId, currentUser, request)
+activate taskcommentservice
+taskcommentservice ->> taskrepository: findByIdAndWorkspaceId(taskId, workspaceId)
+activate taskrepository
+taskrepository --> taskcommentservice: task
+deactivate taskrepository
+
+alt caller not in workspace or task not found
+  taskcommentservice --> taskcommentcontrolle: throw BusinessException (403 FORBIDDEN)
+  deactivate taskcommentservice
+  taskcommentcontrolle --> taskcommentpanelui: 403 Forbidden
+  deactivate taskcommentcontrolle
+  taskcommentpanelui --> manager: show access error toast ("You do not have access to comment on this task")
+else comment content is empty or invalid
+  activate taskcommentservice
+  activate taskcommentcontrolle
+  taskcommentservice --> taskcommentcontrolle: throw BusinessException (400 INVALID_COMMENT_CONTENT)
+  deactivate taskcommentservice
+  taskcommentcontrolle --> taskcommentpanelui: 400 Bad Request
+  deactivate taskcommentcontrolle
+  taskcommentpanelui --> manager: show validation error ("Comment content cannot be empty")
+else valid comment
+  activate taskcommentservice
+  activate taskcommentcontrolle
+  taskcommentservice ->> taskcommentrepositor: save(taskComment with authorId, content, attachments)
+  activate taskcommentrepositor
+  taskcommentrepositor --> taskcommentservice: savedComment
+  deactivate taskcommentrepositor
+  taskcommentservice --> taskcommentcontrolle: TaskCommentResponse
+  deactivate taskcommentservice
+  taskcommentcontrolle --> taskcommentpanelui: 201 Created (TaskCommentResponse)
+  deactivate taskcommentcontrolle
+  taskcommentpanelui --> manager: append comment to timeline & clear input area
+  deactivate taskcommentpanelui
+end
+
+@enduml

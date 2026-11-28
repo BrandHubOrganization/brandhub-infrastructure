@@ -1,0 +1,423 @@
+{
+  "t10_start": {
+    "timestampUtc": "2026-10-23T05:47:11.455Z",
+    "timestampSaigon": "2026-10-23T12:47:11+07:00",
+    "epochMs": 1792734431455,
+    "status": "MONITORING_ACTIVE"
+  },
+  "postgresql_telemetry": {
+    "monitoring_servers": {
+      "n_tup_ins": 0,
+      "n_tup_upd": 0,
+      "n_tup_del": 0,
+      "n_live_tup": 0,
+      "n_dead_tup": 0
+    },
+    "monitoring_collectors": {
+      "n_tup_ins": 0,
+      "n_tup_upd": 0,
+      "n_tup_del": 0,
+      "n_live_tup": 0,
+      "n_dead_tup": 0
+    },
+    "monitoring_health_targets": {
+      "n_tup_ins": 0,
+      "n_tup_upd": 0,
+      "n_tup_del": 0,
+      "n_live_tup": 0,
+      "n_dead_tup": 0
+    },
+    "monitoring_health_results": {
+      "n_tup_ins": 0,
+      "n_tup_upd": 0,
+      "n_tup_del": 0,
+      "n_live_tup": 0,
+      "n_dead_tup": 0
+    },
+    "monitoring_enrollments": {
+      "n_tup_ins": 0,
+      "n_tup_upd": 0,
+      "n_tup_del": 0,
+      "n_live_tup": 0,
+      "n_dead_tup": 0
+    }
+  },
+  "mongodb_storage_stats": {
+    "monitoring_servers": {
+      "count": 11,
+      "sizeBytes": 4753,
+      "storageSizeBytes": 36864,
+      "totalIndexSizeBytes": 110592,
+      "avgObjSizeBytes": 432
+    },
+    "monitoring_collectors": {
+      "count": 6,
+      "sizeBytes": 1462,
+      "storageSizeBytes": 36864,
+      "totalIndexSizeBytes": 73728,
+      "avgObjSizeBytes": 243
+    },
+    "monitoring_health_targets": {
+      "count": 8,
+      "sizeBytes": 6057,
+      "storageSizeBytes": 36864,
+      "totalIndexSizeBytes": 184320,
+      "avgObjSizeBytes": 757
+    },
+    "monitoring_enrollments": {
+      "count": 0,
+      "sizeBytes": 0,
+      "storageSizeBytes": 32768,
+      "totalIndexSizeBytes": 65536,
+      "avgObjSizeBytes": null
+    }
+  },
+  "servers": [
+    {
+      "serverId": "18657ed1-7ab0-4972-b9d4-bb5a9d5daa00",
+      "name": "ec2-live-smoke-node",
+      "ipAddress": "54.255.46.226",
+      "cpuPercent": "18.75",
+      "ramPercent": "55.4",
+      "diskPercent": "41.2",
+      "uptimeSeconds": 98765,
+      "lastSeenAt": "2026-10-22T17:51:52.057Z",
+      "freshnessSeconds": 42919,
+      "isFresh": false
+    },
+    {
+      "serverId": "eb52fb68-a73e-4391-ae1c-7d1f696c2f4e",
+      "name": "ec2-live-smoke-node",
+      "ipAddress": "54.255.46.226",
+      "cpuPercent": "18.75",
+      "ramPercent": "55.4",
+      "diskPercent": "41.2",
+      "uptimeSeconds": 98765,
+      "lastSeenAt": "2026-10-22T17:52:18.855Z",
+      "freshnessSeconds": 42893,
+      "isFresh": false
+    },
+    {
+      "serverId": "d6161a75-1ac8-4e6d-afff-9cb21f205377",
+      "name": "ec2-live-smoke-node",
+      "ipAddress": "54.255.46.226",
+      "cpuPercent": "18.75",
+      "ramPercent": "55.4",
+      "diskPercent": "41.2",
+      "uptimeSeconds": 98765,
+      "lastSeenAt": "2026-10-22T17:52:35.332Z",
+      "freshnessSeconds": 42876,
+      "isFresh": false
+    },
+    {
+      "serverId": "31f2a49d-c25b-458b-a33d-fd59372e965d",
+      "name": "ec2-live-smoke-node",
+      "ipAddress": "54.255.46.226",
+      "cpuPercent": "18.75",
+      "ramPercent": "55.4",
+      "diskPercent": "41.2",
+      "uptimeSeconds": 98765,
+      "lastSeenAt": "2026-10-22T17:53:12.778Z",
+      "freshnessSeconds": 42839,
+      "isFresh": false
+    },
+    {
+      "serverId": "d354e482-c230-4d56-89bc-69ef0ffa547a",
+      "name": "api-invited-node",
+      "ipAddress": "54.255.46.226",
+      "cpuPercent": null,
+      "ramPercent": null,
+      "diskPercent": null,
+      "freshnessSeconds": null,
+      "isFresh": false
+    },
+    {
+      "serverId": "22222222-2222-2222-2222-222222222222",
+      "name": "ec2-production-host",
+      "ipAddress": "54.255.46.226",
+      "cpuPercent": "12.5",
+      "ramPercent": "64.69814309082594",
+      "diskPercent": "60.502924763385614",
+      "uptimeSeconds": 646633,
+      "lastSeenAt": "2026-10-22T18:09:18.437Z",
+      "freshnessSeconds": 41873,
+      "isFresh": false
+    },
+    {
+      "serverId": "b761e7e8-34d3-4bdb-b3f9-7545055b6ffd",
+      "name": "api-enrolled-worker-node",
+      "ipAddress": "54.255.46.226",
+      "cpuPercent": null,
+      "ramPercent": null,
+      "diskPercent": null,
+      "freshnessSeconds": null,
+      "isFresh": false
+    },
+    {
+      "serverId": "78838002-a308-4fe1-b7e9-d68c75b8403d",
+      "name": "ec2-production-54-255-46-226",
+      "ipAddress": "172.31.38.183",
+      "cpuPercent": "1.24",
+      "ramPercent": "89.49",
+      "diskPercent": "53.62",
+      "uptimeSeconds": 45378,
+      "lastSeenAt": "2026-10-23T05:46:58.748Z",
+      "freshnessSeconds": 13,
+      "isFresh": true
+    },
+    {
+      "serverId": "b9ce820b-a9e6-40ed-95e7-75b4cd042149",
+      "name": "api-enrolled-worker-node",
+      "ipAddress": "54.255.46.226",
+      "cpuPercent": null,
+      "ramPercent": null,
+      "diskPercent": null,
+      "freshnessSeconds": null,
+      "isFresh": false
+    },
+    {
+      "serverId": "3d838180-1480-4d57-8123-c8eec7ea728e",
+      "name": "api-enrolled-worker-node",
+      "ipAddress": "54.255.46.226",
+      "cpuPercent": null,
+      "ramPercent": null,
+      "diskPercent": null,
+      "freshnessSeconds": null,
+      "isFresh": false
+    },
+    {
+      "serverId": "3b872d70-d9ba-4421-a1ca-2fab9b663a35",
+      "name": "api-enrolled-worker-node",
+      "ipAddress": "54.255.46.226",
+      "cpuPercent": null,
+      "ramPercent": null,
+      "diskPercent": null,
+      "freshnessSeconds": null,
+      "isFresh": false
+    }
+  ],
+  "collectors": [
+    {
+      "collectorId": "571d472b-05fb-4b17-95c1-bc45cdc48ca6",
+      "name": "ec2-smoke-collector",
+      "serverId": null,
+      "lastSeenAt": "2026-10-22T17:51:52.355Z",
+      "freshnessSeconds": 42919,
+      "isFresh": false
+    },
+    {
+      "collectorId": "d68b11a2-7a87-4757-a0a7-8f7babec2709",
+      "name": "ec2-smoke-collector",
+      "serverId": null,
+      "lastSeenAt": "2026-10-22T17:52:19.036Z",
+      "freshnessSeconds": 42892,
+      "isFresh": false
+    },
+    {
+      "collectorId": "fad43a0b-a822-433c-a588-41b206053e38",
+      "name": "ec2-smoke-collector",
+      "serverId": null,
+      "lastSeenAt": "2026-10-22T17:52:35.537Z",
+      "freshnessSeconds": 42876,
+      "isFresh": false
+    },
+    {
+      "collectorId": "beb646ef-bfb2-446a-a98e-b528ad0aaa76",
+      "name": "ec2-smoke-collector",
+      "serverId": null,
+      "lastSeenAt": "2026-10-22T17:53:13.071Z",
+      "freshnessSeconds": 42838,
+      "isFresh": false
+    },
+    {
+      "collectorId": "33333333-3333-3333-3333-333333333333",
+      "name": "ec2-production-collector",
+      "serverId": "22222222-2222-2222-2222-222222222222",
+      "lastSeenAt": "2026-10-22T18:09:18.807Z",
+      "freshnessSeconds": 41873,
+      "isFresh": false
+    },
+    {
+      "collectorId": "c011ec70-0000-0000-0000-000000000001",
+      "name": "ec2-system-collector",
+      "serverId": "78838002-a308-4fe1-b7e9-d68c75b8403d",
+      "lastSeenAt": "2026-10-23T05:46:58.431Z",
+      "freshnessSeconds": 13,
+      "isFresh": true
+    }
+  ],
+  "health_targets": [
+    {
+      "targetId": "f35653ec-b032-4a9c-8833-d06086e02bd4",
+      "name": "EC2 Business Health Probe",
+      "kind": "ENDPOINT",
+      "serverId": null,
+      "collectorId": "571d472b-05fb-4b17-95c1-bc45cdc48ca6",
+      "catalogVersion": 1,
+      "probeType": "HTTP",
+      "intervalSeconds": 30,
+      "timeoutSeconds": 5,
+      "staleAfterSeconds": 90,
+      "latestResult": null
+    },
+    {
+      "targetId": "505e9a5d-6353-43e5-b771-e02df1ae0869",
+      "name": "EC2 Business Health Probe",
+      "kind": "ENDPOINT",
+      "serverId": null,
+      "collectorId": "d68b11a2-7a87-4757-a0a7-8f7babec2709",
+      "catalogVersion": 1,
+      "probeType": "HTTP",
+      "intervalSeconds": 30,
+      "timeoutSeconds": 5,
+      "staleAfterSeconds": 90,
+      "latestResult": {
+        "outcome": "PASS",
+        "httpStatus": 200,
+        "latencyMs": "14.85",
+        "checkedAt": "2026-10-22T17:52:21.371Z",
+        "checkedAtMicros": "1792691541371000",
+        "receivedAt": "2026-10-22T17:52:19.329Z",
+        "freshnessSeconds": 42890,
+        "isFresh": false
+      }
+    },
+    {
+      "targetId": "9b224deb-c54a-4d54-a5a6-3b8e25ce6431",
+      "name": "EC2 Business Health Probe",
+      "kind": "ENDPOINT",
+      "serverId": null,
+      "collectorId": "fad43a0b-a822-433c-a588-41b206053e38",
+      "catalogVersion": 1,
+      "probeType": "HTTP",
+      "intervalSeconds": 30,
+      "timeoutSeconds": 5,
+      "staleAfterSeconds": 90,
+      "latestResult": {
+        "outcome": "PASS",
+        "httpStatus": 200,
+        "latencyMs": "14.85",
+        "checkedAt": "2026-10-22T17:52:37.914Z",
+        "checkedAtMicros": "1792691557914000",
+        "receivedAt": "2026-10-22T17:52:35.756Z",
+        "freshnessSeconds": 42874,
+        "isFresh": false
+      }
+    },
+    {
+      "targetId": "cb313e01-e376-4a8c-a9e1-93c29a836428",
+      "name": "EC2 Business Health Probe",
+      "kind": "ENDPOINT",
+      "serverId": null,
+      "collectorId": "beb646ef-bfb2-446a-a98e-b528ad0aaa76",
+      "catalogVersion": 1,
+      "probeType": "HTTP",
+      "intervalSeconds": 30,
+      "timeoutSeconds": 5,
+      "staleAfterSeconds": 90,
+      "latestResult": {
+        "outcome": "PASS",
+        "httpStatus": 200,
+        "latencyMs": "14.85",
+        "checkedAt": "2026-10-22T17:53:15.404Z",
+        "checkedAtMicros": "1792691595404000",
+        "receivedAt": "2026-10-22T17:53:13.246Z",
+        "freshnessSeconds": 42836,
+        "isFresh": false
+      }
+    },
+    {
+      "targetId": "44444444-4444-4444-4444-444444444444",
+      "name": "EC2 Business Health Actuator",
+      "kind": "ENDPOINT",
+      "serverId": "22222222-2222-2222-2222-222222222222",
+      "collectorId": "33333333-3333-3333-3333-333333333333",
+      "catalogVersion": 1,
+      "probeType": "HTTP",
+      "intervalSeconds": 15,
+      "timeoutSeconds": 5,
+      "staleAfterSeconds": 45,
+      "latestResult": {
+        "outcome": "PASS",
+        "httpStatus": 200,
+        "latencyMs": "2259.886",
+        "checkedAt": "2026-10-22T18:09:31.449Z",
+        "checkedAtMicros": "1792692571449000",
+        "receivedAt": "2026-10-22T18:09:29.269Z",
+        "freshnessSeconds": 41860,
+        "isFresh": false
+      }
+    },
+    {
+      "targetId": "55555555-5555-5555-5555-555555555555",
+      "name": "Business Root Health Info",
+      "kind": "ENDPOINT",
+      "serverId": "22222222-2222-2222-2222-222222222222",
+      "collectorId": "33333333-3333-3333-3333-333333333333",
+      "catalogVersion": 1,
+      "probeType": "HTTP",
+      "intervalSeconds": 15,
+      "timeoutSeconds": 5,
+      "staleAfterSeconds": 45,
+      "latestResult": {
+        "outcome": "PASS",
+        "httpStatus": 200,
+        "latencyMs": "141.164",
+        "checkedAt": "2026-10-22T18:09:26.294Z",
+        "checkedAtMicros": "1792692566294000",
+        "receivedAt": "2026-10-22T18:09:24.114Z",
+        "freshnessSeconds": 41865,
+        "isFresh": false
+      }
+    },
+    {
+      "targetId": "78838002-a308-4fe1-b7e9-700000000001",
+      "name": "EC2 Business Actuator Health",
+      "kind": "ENDPOINT",
+      "serverId": "78838002-a308-4fe1-b7e9-d68c75b8403d",
+      "collectorId": "c011ec70-0000-0000-0000-000000000001",
+      "catalogVersion": 3,
+      "probeType": "HTTP",
+      "intervalSeconds": 15,
+      "timeoutSeconds": 5,
+      "staleAfterSeconds": 45,
+      "latestResult": {
+        "outcome": "PASS",
+        "httpStatus": 200,
+        "latencyMs": "1657.736",
+        "checkedAt": "2026-10-23T05:46:58.916Z",
+        "checkedAtMicros": "1792734418916000",
+        "receivedAt": "2026-10-23T05:46:58.919Z",
+        "freshnessSeconds": 13,
+        "isFresh": true
+      }
+    },
+    {
+      "targetId": "78838002-a308-4fe1-b7e9-700000000002",
+      "name": "EC2 Business Monitoring Installer Endpoint",
+      "kind": "ENDPOINT",
+      "serverId": "78838002-a308-4fe1-b7e9-d68c75b8403d",
+      "collectorId": "c011ec70-0000-0000-0000-000000000001",
+      "catalogVersion": 3,
+      "probeType": "HTTP",
+      "intervalSeconds": 15,
+      "timeoutSeconds": 5,
+      "staleAfterSeconds": 45,
+      "latestResult": {
+        "outcome": "PASS",
+        "httpStatus": 200,
+        "latencyMs": "5.498",
+        "checkedAt": "2026-10-23T05:47:05.269Z",
+        "checkedAtMicros": "1792734425269000",
+        "receivedAt": "2026-10-23T05:47:05.272Z",
+        "freshnessSeconds": 6,
+        "isFresh": true
+      }
+    }
+  ],
+  "limits_and_disclaimers": {
+    "pre_cutover_baseline_limitation": "Khong co so do tai PostgreSQL (QPS/IOPS/p95) truoc cutover do khong duoc do dac san; khong the suy giam tai PostgreSQL tu viec giam so bang.",
+    "storage_architecture": "Business service EC2 MONITORING_STORAGE=mongo; 5 bang PostgreSQL duoc giu nguyen 100% de rollback; phu thuoc SSH tunnel tu Windows cho local dependencies (Postgres/Redis/RabbitMQ).",
+    "credential_rotation_status": "Credential Atlas van su dung brandhub-mongo cu do cho nguoi dung tao user/password moi tren Atlas Console; rotation chua hoan tat."
+  }
+}
