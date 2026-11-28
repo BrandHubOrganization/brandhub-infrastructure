@@ -1,0 +1,1 @@
+Caption generation, refinement and platform adaptation use Codex CLI first, Claude CLI on the AI server as sole fallback on errors, timeout, empty or rejected output. Include trend/brand/image captions. No implicit paid API fallback. Existing trend-fit judge unchanged. Reuse server logins, never print tokens/prompts. Failure of both CLIs returns explicit error.

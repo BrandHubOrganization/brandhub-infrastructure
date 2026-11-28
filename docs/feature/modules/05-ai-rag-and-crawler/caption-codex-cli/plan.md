@@ -1,0 +1,1 @@
+Add caption-specific provider setting codex_cli, isolated read-only ephemeral Codex invocation using stdin/output file and bounded timeout/concurrency. Attach images from temporary files; Claude fallback uses Read-only image access. Configure live AI process and example env. Preserve other LLM consumers.

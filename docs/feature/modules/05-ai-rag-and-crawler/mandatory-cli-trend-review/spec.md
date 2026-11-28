@@ -1,0 +1,2 @@
+# Mandatory AI trend review
+Creators and clients only see trends after AI reads source posts, confirms a coherent topic and supplies a grounded Vietnamese name. Codex CLI is primary, Claude CLI is the only fallback. No heuristic names may be published. Invalid output, missing sources and both CLIs failing keep a trend hidden. Existing supported/shared_context records and old caches must be filtered on every public trend read. Preserve raw keywords, stable IDs and scores. Admin raw graph inspection remains available. No UI changes.

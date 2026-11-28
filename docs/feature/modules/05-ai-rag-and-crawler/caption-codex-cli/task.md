@@ -1,0 +1,4 @@
+- [x] Add offline regressions for CLI command, primary/fallback validation, images and caption provider selection.
+- [x] Implement CLI provider and caption-only routing.
+- [x] Run focused tests, check server CLI login readiness and restart AI safely.
+- [x] Report local/server deployment limits.

@@ -1,0 +1,6 @@
+- [x] Codex CLI primary / Claude CLI fallback for naming and splitting, with response/evidence validation.
+- [x] Remove offline naming publication and require coherent AI review plus versioned evidence on public Redis/Neo4j reads.
+- [x] Regression suites: 113 passed; two additional source-completeness cases passed in the 13-case naming rerun.
+- [x] Live Codex CLI review and live forced Claude CLI fallback each read two actual crawl posts and produced grounded names with two quotations.
+- [x] Restart local AI; health and both workspace/Neo4j listing endpoints HTTP 200; zero old unreviewed trends visible.
+- [ ] Re-review the three old current nodes: blocked by incomplete archived source content locally; both configured S3 buckets return NoSuchBucket. Nodes remain hidden, unchanged. Requires restoring the correct archive or collecting sources again.
