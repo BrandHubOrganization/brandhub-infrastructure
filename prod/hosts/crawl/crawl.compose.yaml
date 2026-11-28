@@ -22,6 +22,9 @@ services:
       CRAWLER_STATE_DIR: /app/data/crawler/control
       CRAWLER_OUTPUT_DIR: /app/data/crawler/output
       CRAWLER_WORK_DIR: /dev/shm/crawler
+      S3_BUCKET: crawler-social-134875421878
+      CRAWLER_S3_BUCKET: crawler-social-134875421878
+      AWS_REGION: ap-southeast-1
       # The host sleeps when idle, so EventBridge Scheduler drives scheduled crawls (crawl-kick.sh).
       CRAWLER_SCHEDULER_ENABLED: "false"
     # Credential-bearing URLs in the env file keep the redis/rabbitmq names.

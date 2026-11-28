@@ -57,7 +57,15 @@
         }
       ],
       "environment": {
-        "AI_SERVICE_URL": "http://172.31.20.60:8082"
+        "AI_SERVICE_URL": "http://172.31.20.60:8082",
+        "AWS_S3_BUCKET": "brandhub-media-134875421878",
+        "AWS_S3_AI_BUCKET": "brandhub-media-134875421878",
+        "REPOSITORY_STORAGE_SYSTEMS3_BUCKET": "brandhub-media-134875421878",
+        "AWS_S3_REGION": "ap-southeast-1",
+        "AWS_S3_LOCAL_FALLBACK_ENABLED": "false",
+        "PUBLIC_API_BASE_URL": "https://api.brandhub.id.vn",
+        "REPOSITORY_MEDIA_PUBLIC_BASE_URL": "https://api.brandhub.id.vn",
+        "MAIL_ALLOWED_IMAGE_HOSTS": "brandhub-media-134875421878.s3.ap-southeast-1.amazonaws.com,api.brandhub.id.vn"
       }
     },
     "chromadb": {
@@ -197,7 +205,11 @@
           "path": "./env/publisher-service.env",
           "required": true
         }
-      ]
+      ],
+      "environment": {
+        "BUSINESS_SERVICE_URL": "http://business-service:8081",
+        "PUBLIC_MEDIA_BASE_URL": "https://api.brandhub.id.vn"
+      }
     },
     "rabbitmq": {
       "restart": "unless-stopped",

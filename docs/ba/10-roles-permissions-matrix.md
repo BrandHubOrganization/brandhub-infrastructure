@@ -193,17 +193,19 @@
 
 ---
 
-## 3. Ma trận Phân quyền Chi tiết Cấp Phần Soạn thảo (`SectionPolicy` — 8 Loại `TaskType`)
+## 3. Ma trận Phân quyền Chi tiết Cấp Phần Soạn thảo & Điều phối Task (`SectionPolicy` & `TaskApprovalPolicy` — 8 Loại `TaskType`)
 
-Bên trong một Công việc (`TaskDocument`), quyền thao tác trên từng phần nội dung (`TaskSection`) được kiểm soát chặt chẽ tại Backend bởi `SectionPolicy.java`:
+> Đặc tả chi tiết toàn bộ quy tắc chuyển trạng thái và rào chắn chống nhảy cóc xem tại [13-task-status-and-approval-governance.md](./13-task-status-and-approval-governance.md).
 
-| Đối tượng trong Công việc | Sửa phần mình sở hữu (`canEdit`) | Sửa các phần khác | Xem phần nội bộ (`I`) | Duyệt / Trả lại phần (`canApprove` / `canReturn`) | Mở lại phần đã duyệt (`canReopen`) | Khôi phục phiên bản cũ (`canRestore`) | Tự duyệt 1 chạm (`Self-Approve` ở chế độ `PERSONAL`) |
+Bên trong một Công việc (`TaskDocument`), quyền thao tác trên từng phần nội dung (`TaskSection`) và trên Task cha được kiểm soát chặt chẽ tại Backend bởi `SectionPolicy.java`, `TaskApprovalPolicy.java` và `TaskWorkflowPolicy.java`:
+
+| Đối tượng trong Công việc | Sửa phần mình sở hữu (`canEdit`) | Sửa các phần khác | Xem phần nội bộ (`I`) | Duyệt / Trả lại phần (`canApprove` / `canReturn`) | Mở lại phần đã duyệt (`canReopen`) | Khôi phục phiên bản cũ (`canRestore`) | Tự duyệt 1 chạm (`Self-Approve` — **chỉ ở chế độ `PERSONAL`**) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Chủ không gian `PERSONAL` (`Owner` / `Manager`)** | ✔ | ✔ (Mọi phần) | ✔ | ✔ | ✔ | ✔ | **✔ (1 chạm hoàn tất toàn bộ Task & Sections)** |
-| **`Manager` của Workspace `AGENCY`** | ✔ | ✔ (Mọi phần trước khi đóng) | ✔ | ✔ (Cấp nội bộ `INTERNAL_APPROVED`) | ✔ | ✔ | ✔ (Chỉ khi `requiresClientApproval = false`) |
-| **Điều phối viên (`assigneeId` của Task cha)** | ✔ | ✔ (Mọi phần trước khi nộp) | ✔ | ✖ | ✖ | ✔ | ✖ (Nếu là `Creator` trong `AGENCY`) |
-| **Chủ phần (`Creator` nhận Subtask có `subtaskRole`)** | ✔ (Khi phần ở `DRAFT` / `RETURNED`) | ✖ (Chỉ đọc) | ✔ | ✖ | ✖ | ✔ (Khi phần ở `DRAFT` / `RETURNED`) | ✖ |
-| **`Supervisor` của Subtask** | Theo vai trò khác | ✖ | ✔ | ✔ (Cấp nội bộ cho phần thuộc Subtask mình giám sát) | ✖ | ✖ | ✖ |
+| **`Owner` hoặc `Manager` của Workspace `AGENCY`** | ✔ | ✔ (Mọi phần khi Task mở) | ✔ | ✔ (Cấp nội bộ `INTERNAL_APPROVED`) | ✔ (Kể cả khi Task vừa `FINISHED` mà bài chưa đăng) | ✔ | **✖ (Tắt hoàn toàn ở `AGENCY` để bảo vệ tiến độ `Subtask`/`Section`)** |
+| **Người giám sát Task / Subtask (`supervisorId` / `supervisorOverrideId` là `Creator`, `≠ assignee`)** | Theo vai trò sở hữu (nếu có) | ✖ | ✔ | ✔ (Cấp nội bộ cho phần mình giám sát và không trực tiếp sở hữu) | ✖ | ✖ | ✖ |
+| **Điều phối viên (`assigneeId` của Task cha là `Creator`)** | ✔ | ✔ (Mọi phần trước khi nộp) | ✔ | **✖ (Cấm tự duyệt; `supervisorId` bắt buộc khác `Creator` này)** | ✖ | ✔ | ✖ |
+| **Chủ phần (`Creator` nhận Subtask có `subtaskRole`)** | ✔ (Khi phần ở `DRAFT` / `RETURNED`; tự mở `IN_PROGRESS` nếu Task đang `TODO`) | ✖ (Chỉ đọc) | ✔ | ✖ | ✖ | ✔ (Khi phần ở `DRAFT` / `RETURNED`) | ✖ |
 | **`Creator` nhận Subtask tự do (`subtaskRole = null`)** | ✖ | ✖ (Chỉ đọc) | ✔ | ✖ | ✖ | ✖ | ✖ |
-| **`Creator` khác trong Workspace (không tham gia Task)** | ✖ | ✖ (Chỉ đọc phần `O`) | **✖ (Ẩn phần `I`)** | ✖ | ✖ | ✖ | ✖ |
-| **`Client` (Khách hàng)** | ✖ | ✖ | **✖ (Ẩn hoàn toàn ở Backend)** | ✔ (Cấp `Client`, chỉ phần `O` đã `INTERNAL_APPROVED`) | ✖ | **✖ (Không xem lịch sử nháp)** | ✖ |
+| **`Creator` khác trong Workspace (không tham gia Task)** | ✖ | ✖ (Chỉ đọc phần `O`; cấm sửa `partnerIds` & cấm `Publish`) | **✖ (Ẩn phần `I`)** | ✖ | ✖ | ✖ | ✖ |
+| **`Client` (Khách hàng)** | ✖ | ✖ | **✖ (Ẩn hoàn toàn ở Backend)** | ✔ (Cấp `Client`, chỉ phần `O` đã `INTERNAL_APPROVED`) | ✖ *(Dùng `Client Return` để mở lại)* | **✖ (Không xem lịch sử nháp)** | ✖ |

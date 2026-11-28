@@ -52,6 +52,7 @@ Across all code, API contracts, database seeders, UML diagrams, and SRS/SDD repo
 - [10-roles-permissions-matrix.md](./10-roles-permissions-matrix.md) — Complete `6-Role × 141-FR` authorization matrix + `SectionPolicy` subtask matrix.
 - [11-data-entities-glossary.md](./11-data-entities-glossary.md) — Domain entity dictionary across PostgreSQL (`97` tables), MongoDB (`52` collections), ChromaDB, Neo4j, and Redis.
 - [12-state-machines.md](./12-state-machines.md) — Formal lifecycle state machines for Workspaces, Packages, Campaigns, Content Requests, Tasks, `TaskSection`s, Social Posts, Mail Batches, SePay Invoices, Credit Reservations, and Moderation.
+- [13-task-status-and-approval-governance.md](./13-task-status-and-approval-governance.md) — End-to-end multi-role authorization (`Owner`, `Manager`, `Creator`, `Client` × `Coordinator`, `Task Supervisor`, `Section Owner`), automatic `Section → Subtask → Task` status settlement, and anti-bypass guards.
 - Financial & unit-economics workbook in this folder: `docs/ba/brandhub-pricing-model.xlsx` (models `STUDIO_FREE/PLUS/PRO` + `BASIC/PLUS/ENTERPRISE` pricing & AI Credit margins).
 
 ---

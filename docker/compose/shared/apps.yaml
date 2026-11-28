@@ -13,6 +13,8 @@ services:
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
       BUSINESS_SERVICE_URL: http://business-service:8081
+      BUSINESS_SERVICE_WS_URL: ws://business-service:8081
+      PUBLISHER_SERVICE_URL: http://publisher-service:8083
       AI_SERVICE_URL: http://ai-service:8082
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:?JWT_PUBLIC_KEY is required}
       RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:?RATE_LIMIT_PER_MINUTE is required}

@@ -1,124 +1,159 @@
-> **Navigation:** [← Domain Index](../README.md) · **Spec** · [Plan](./plan.md) · [Task](./task.md) · [Test](./test.md)
+> **Navigation:** [← Domain Index](../README.md) · **Spec** · [Plan](./plan.md) · [Task](./task.md) · [Test](./test.md) · [BA Governance →](../../../../ba/13-task-status-and-approval-governance.md)
 
 # FR 3.6.9 — Approval Sequence (Creator -> Manager -> Client)
 
-## UI mới nhất — trang Duyệt bài riêng trong Workspace
-
-Người dùng chốt mục riêng trên menu Workspace, không đặt phần nội dung/decision/history trong Task Detail. Route `/workspaces/:id/task-approvals?task=<id>`; mặc định danh sách POST IN_REVIEW, có tìm kiếm/phân trang/lọc trạng thái để xem bài đang làm/đã kết thúc. Chọn bài mở vùng xem/duyệt cùng trang, không modal chi tiết; mobile có quay về danh sách. Manager/Creator/Client được xem theo ACL hiện có, action vẫn do API quyết định. Task Detail giữ brief/start/comments và liên kết sang trang duyệt/Editor cho POST. Không thêm DB hay thay BA/publisher/Yjs; không giả danh sách là “của tôi” khi API chưa lọc theo người duyệt. Key vi/en song song, semantic light/dark, keyboard/loading/error/empty và giữ note khi đổi bài.
-
-## Quyết định mới nhất — 18/10/2026
-
-Người dùng yêu cầu bỏ hoàn toàn cờ rollout POST integration. Soạn/lưu và gửi/thu hồi/duyệt/từ chối hoạt động theo schema, ACL, trạng thái và revision/version, không phụ thuộc biến môi trường. Worker handoff Admin hoạt động bình thường, chỉ xử lý event riêng. Không thay publish; nguy cơ publish lưu toàn document vẫn bàn giao thành viên phụ trách. Các mô tả gate tắt bên dưới là lịch sử, không còn là hướng dẫn hiện hành.
-
 | Thuộc tính | Giá trị |
-|---|---|
-| FR / Use case / Task | 3.6.9 / UC-47 / DA-E51-03; chưa xác minh mã Jira số |
-| Vai trò | Creator được giao, Manager thực tế của Workspace, Client đang hoạt động |
-| Phiên bản | 3.0 — BA được người dùng xác nhận ngày 2026-10-18 |
-| Tiến độ | Giai đoạn 1–3, core Task–Post/Editor giai đoạn 4 và UI duyệt giai đoạn 5 đã có code/kiểm thử cô lập; mutation mặc định tắt. Còn checkpoint publisher, SQL/inbox/Gateway end-to-end và rollout giai đoạn 6; Atlas APPLY chưa thực hiện |
-| Phụ trách | Lộc tiếp nhận FR 3.6.9 theo yêu cầu người dùng; chưa tuyên bố Jira đã đổi assignee |
+| :--- | :--- |
+| **FR / Use Case** | `3.6.9` / `UC-061` |
+| **Miền chức năng** | `3.6 Content & Workflow` |
+| **Canonical Actors / Roles** | `Owner`, `Manager`, `Creator`, `Client` *(chặn `Guest` `401`; `Admin` vận hành `3.10.4` độc lập)* |
+| **Vai trò tham gia trên Task** | `Coordinator` (`task.assigneeId`), `Task Supervisor` (`task.supervisorId`), `Section Owner` (`subtask.assigneeId`), `Subtask Supervisor` (`subtask.supervisorOverrideId`) |
+| **Phạm vi loại công việc** | Đầy đủ **8 `TaskType`**: `POST`, `SHORT_VIDEO`, `SURVEY`, `EVENT_PLAN`, `PRESS_RECOMMENDATION`, `KOL_BOOKING`, `WORKSHOP`, `EMAIL_NEWSLETTER` |
+| **Quy tắc nghiệp vụ liên quan** | `BR-33`, `BR-34`, `BR-34a` *(Anti-Self-Supervision)*, `BR-35`, `BR-42`, `BR-54` |
+| **Phiên bản đặc tả** | **v4.0 — Hợp nhất Phân quyền Đa Vai trò, Tự động Chốt Trạng thái & Chống Nhảy cóc (27/11/2026)** |
 
-Thay thế quy tắc QC, trạng thái trung gian và skip approval cũ của FR 3.6.9. Quyết định 2026-10-18: dùng `/editor` trước; một bản nội dung hiện tại, không snapshot; thu hồi trước quyết định Manager; một Client bất kỳ quyết định; thiếu Client thì chặn gửi duyệt. [Kế hoạch](./plan.md), [checklist](./task.md), [kiểm thử](./test.md).
+---
 
-## 1. Objective
+## 1. Objective (Mục tiêu Nghiệp vụ)
 
-Cho Creator gửi kết quả tới Manager và Client khi cần, theo dõi quyết định từng lượt mà không trộn với bình luận Task hoặc thao tác xuất bản.
+Đảm bảo mọi công việc sản xuất nội dung trên cả **8 loại `TaskType`** đều đi qua luồng kiểm duyệt phân cấp chặt chẽ, minh bạch theo đúng vai trò trong Workspace (`Owner`, `Manager`, `Creator`, `Client`) và vai trò gắn trực tiếp trên từng Công việc / Công việc con (`Người thực hiện`, `Người giám sát`), đồng thời:
+1. **Tự động chuyển trạng thái Task cha (`IN_PROGRESS → IN_REVIEW → FINISHED`)** ngay khi các phần nội dung (`TaskSection`) hoàn tất phê duyệt tương ứng, loại bỏ tình trạng duyệt xong 100% nhưng trạng thái bên ngoài vẫn kẹt ở `Đang làm`.
+2. **Đóng kín mọi lỗ hổng nhảy cóc trạng thái** qua API đổi status thô, kéo-thả Kanban, Thanh thao tác hàng loạt hoặc nút `Self-Approve` sai chế độ.
+3. **Đồng bộ quyền đầy đủ cho `Owner` và `Người giám sát` (`supervisorId`)**, ngăn chặn tuyệt đối việc `Creator` tự làm Người giám sát để bỏ qua bước duyệt nội bộ.
 
-## 2. User story và phạm vi
+---
 
-- Creator được giao gửi bài POST từ `/editor`, thu hồi đúng thời điểm và sửa lại sau từ chối.
-- Manager xem bài được liên kết, duyệt hoặc từ chối có lý do.
-- Client quyết định ở bước của khách hàng và xem lịch sử duyệt.
-- Khung workflow dùng chung cho năm loại Task; đợt này chỉ nối nội dung POST. Chưa có adapter nội dung thì không gửi/duyệt giả các loại khác.
+## 2. User Stories theo Vai trò Chuẩn
 
-## 3. Acceptance criteria
+- **Là một `Creator` (Chủ phần `Section Owner` hoặc Điều phối viên `Coordinator`)**: Tôi muốn biên soạn, lưu nháp (tự động kích hoạt Task từ `TODO` sang `IN_PROGRESS` nếu đủ điều kiện) và nộp duyệt từng phần việc được giao mà không thể vô tình hay cố ý tự chuyển Task cha sang `FINISHED` khi chưa được cấp trên nghiệm thu.
+- **Là một `Task Supervisor` (`task.supervisorId`) hoặc `Subtask Supervisor` (`subtask.supervisorOverrideId`)**: Tôi muốn có quyền kiểm duyệt nội bộ (`Approve` / `Return` kèm lý do) đối với các phần nội dung và công việc mình được phân công giám sát (miễn tôi không phải là người trực tiếp làm phần đó).
+- **Là một `Manager` hoặc `Owner` của Workspace `AGENCY`**: Tôi muốn có toàn quyền điều hành, chọn nền tảng xuất bản (`Facebook`, `Instagram`, `TikTok`, `Threads`), phân công công việc con, phê duyệt / trả lại / mở lại (`Reopen`) bất kỳ phần nội dung nào (kể cả mở lại gấp trước giờ xuất bản), và theo dõi toàn bộ **8 loại `TaskType`** tập trung tại trang `/workspaces/:id/task-approvals`.
+- **Là một `Client` trong Workspace `AGENCY`**: Tôi muốn chỉ nhìn thấy các phần sản phẩm đầu ra (`OUTPUT`) đã qua kiểm duyệt nội bộ của Agency (ẩn hoàn toàn các phần nội bộ `INTERNAL` và lịch sử nháp), và ngay khi tôi bấm `Duyệt` phần đầu ra cuối cùng thì công việc tự động chốt sang `Hoàn thành` (`FINISHED`).
+- **Là Chủ không gian chế độ `PERSONAL` (`Owner` / `Manager`)**: Tôi muốn sử dụng nút **`Hoàn tất & Tự duyệt` (`Self-Approve` 1 chạm)** để chốt nhanh công việc cá nhân sang `FINISHED` mà không ảnh hưởng tới quy trình kiểm soát nhiều người của chế độ `AGENCY`.
 
-### Quyền, nội dung và lượt duyệt
+---
 
-- **AC-01 — Scope:** xác minh User/membership đang hoạt động, đúng Workspace/Task. Owner Agency không tự có quyền Manager. Chỉ assignee Creator được submit/withdraw; Manager/Client đúng bước mới approve/reject. Client vẫn xem/bình luận mọi Task trong Workspace theo FR 3.6.3.
-- **AC-02 — Một bài:** Task POST liên kết tối đa một Post cùng Workspace; Post độc lập không bắt buộc có Task. Chưa có bài thì chưa submit. Mở lại phải mở đúng bài đã lưu, không tạo bản mới do bài bị khóa/lỗi API. Mô tả yêu cầu Task không phải kết quả nội dung đã viết.
-- **AC-03 — Một bản hiện tại:** không thêm snapshot, kho phiên bản Approval, `reviewSnapshotId` hay `reviewContentVersion`. Khi Task `IN_REVIEW`, khóa sửa caption/hashtag/media/kênh của bài liên kết ở backend và UI; không chỉ dựa vào `posts.status`. Giữ `content_version` hiện có phục vụ Admin moderation/concurrency, không xây kho phiên bản mới.
-- **AC-04 — Giới hạn lịch sử:** sau reject/withdraw hợp lệ, sửa chính bài hiện tại. Lịch sử chỉ giữ người quyết định, bước, lượt, nhận xét và thời gian; không xem/diff nội dung cũ vì không lưu bản cũ. Không gắn nhãn như thể nội dung hiện tại là nội dung của lượt cũ. Không xóa content history của module khác.
-- **AC-05 — Submit:** chỉ từ `IN_PROGRESS`, assignee còn hợp lệ, có bài POST hợp lệ theo validation Editor hiện có (ít nhất caption không trắng). Mở trang không tự start/submit. Không bổ sung quy tắc chặn nộp quá hạn trong FR này. Gửi thành công chuyển `IN_REVIEW/MANAGER`.
-- **AC-06 — Lượt:** lượt đầu là 1; mỗi lần gửi lại thành công sau reject/withdraw dùng lượt tiếp theo. Chỉ approve/reject tạo decision trong `task_approvals`, không tạo sẵn dòng cho người chưa duyệt. Một lượt tối đa hai decision: Manager, Client. Không tạo collection round riêng; không kế thừa hiệu lực approval cũ.
+## 3. Acceptance Criteria (Tiêu chí Nghiệm thu Chi tiết)
 
-### Chuyển bước và ngoại lệ
+### 3.1. Phân quyền Đa Vai trò (`Owner`, `Manager`, `Creator`, `Client` × `Supervisor`, `Assignee`)
 
-- **AC-07 — Manager:** approve ở bước MANAGER: không yêu cầu Client thì FINISHED; có yêu cầu thì giữ IN_REVIEW, chuyển bước CLIENT.
-- **AC-08 — Client:** một Client bất kỳ còn hoạt động trong Workspace quyết định tại bước CLIENT; không yêu cầu tất cả hoặc chỉ định đại diện. Chỉ decision hợp lệ đầu tiên được ghi nhận. Client approve chuyển FINISHED.
-- **AC-09 — Thiếu người duyệt:** yêu cầu Client nhưng chưa có Client có tài khoản hoạt động thì chặn submit, giữ nguyên Task/Post/lượt, báo Manager bổ sung Client. ClientProfile chưa gắn User đăng nhập không đủ điều kiện. Hết Client khi đang chờ Client: giữ nguyên bước, không tự approve/skip; dùng chức năng quản lý thành viên hiện có để bổ sung. Không xây flow mời mới trong FR này.
-- **AC-10 — Reject:** Manager/Client đúng bước nhập lý do không trắng; append REJECT, Task về IN_PROGRESS, xóa bước chờ. Creator sửa bài hiện tại, gửi lại từ Manager ở lượt mới. Không sửa/xóa decision cũ.
-- **AC-11 — Withdraw:** assignee Creator chỉ thu hồi khi IN_REVIEW/MANAGER và Manager chưa quyết định lượt hiện tại. Task về IN_PROGRESS, xóa bước chờ, mở sửa bài hiện tại. Không tạo REJECT thay người duyệt. Sau Manager approve đang chờ Client thì không thu hồi. Withdraw và Manager decision đồng thời: chỉ một thao tác hợp lệ thắng.
-- **AC-12 — Giữ nền Task:** không QC/review chéo; giữ TODO/IN_PROGRESS/IN_REVIEW/FINISHED/CANCELLED. Sau lần bắt đầu đầu tiên Manager không sửa brief/deadline/giao lại, kể cả sau reject/withdraw. Không mở lại FINISHED hoặc chọn trạng thái tùy ý. Giữ field `task_approvals.comment`; UI gọi “Nhận xét duyệt”, khác bình luận Task.
-- **AC-13 — Cancel/Campaign:** Task bị hủy hoặc Campaign đã hoàn thành không nhận submit/decision/withdraw. Hủy Task đang duyệt theo flow hiện có phải chặn decision tiếp theo, giữ lịch sử, không mở lại. Giữ điều kiện hoàn thành Campaign: còn Task chưa kết thúc vẫn chặn.
-- **AC-14 — Nội dung/publishing:** bước cuối chỉ hoàn thành Task, không enqueue/publish bài thật. Bài đã chốt không được sửa bằng flow draft để làm khác kết quả được duyệt. Admin moderation độc lập, không thay quyết định Manager/Client. Không thay Yjs, AI hoặc publisher; phối hợp các điểm tích hợp có ảnh hưởng module khác trước rollout.
-- **AC-15 — Concurrency:** mutation nhận revision/lượt đang xem; request cũ trả conflict, không cập nhật nửa chừng hoặc tạo decision/thông báo trùng. Post đã đổi so với bản đang xem thì không tự duyệt/gửi thay người dùng. Chỉ báo thành công sau commit.
-- **AC-16 — Notification:** in-app cho người duyệt bước tiếp theo khi submit/chuyển bước; reject báo assignee Creator. Không email. Recheck quyền/lượt/bước; bỏ trùng và thông báo chờ duyệt lỗi thời. Giữ hành vi notification bình luận/giao việc hiện có.
+- **AC-01 — Đồng quyền điều hành của `Owner` với `Manager`:** Trong mọi Workspace thuộc `Agency` của mình, `Owner` có đầy đủ quyền hạn như `Manager` trên toàn bộ vòng đời công việc: giao việc (`assign`), chọn và thay đổi nền tảng đích (`targetPlatforms`), thêm/sửa/sắp xếp công việc con (`Subtasks` cho cả task Chiến dịch và task Độc lập), bấm bắt đầu (`start`), sửa/nộp/khôi phục phần nội dung (`Section`), duyệt nội bộ (`APPROVE`), trả lại (`RETURN`), mở lại (`REOPEN`), và duyệt/từ chối Task cha ở bước `MANAGER`.
+- **AC-02 — Kế thừa Người giám sát (`Supervisor Inheritance`):** Quy tắc xác định người giám sát hiệu lực của một công việc con / phần nội dung là: `subtask.supervisorOverrideId ?? task.supervisorId ?? defaultManager(workspaceId)`. Một thành viên là `Creator` được chỉ định làm `task.supervisorId` hoặc `subtask.supervisorOverrideId` (và không đồng thời là chủ sở hữu phần đó hay `Coordinator` tự duyệt bài mình) có quyền `APPROVE` / `RETURN` cấp nội bộ đối với phần/task đó.
+- **AC-03 — Duyệt hỗ trợ của `Owner` & `Manager`:** Kể cả khi Task đã gán `task.supervisorId` cụ thể, mọi `Owner` và `Manager` đang hoạt động trong Workspace (khác `Creator` nộp bài) đều có quyền thực hiện duyệt nội bộ hoặc trả lại để không gây tắc nghẽn dây chuyền khi Người giám sát vắng mặt.
+- **AC-04 — Chống tự giám sát (`BR-34a — Anti-Self-Supervision`):**
+  - Nếu người thực hiện (`task.assigneeId` hoặc `subtask.assigneeId`) có vai trò `Creator`, hệ thống **cấm tuyệt đối** gán người giám sát trùng với người thực hiện đó (`supervisorId != assigneeId`).
+  - Khi `Creator` tạo mới công việc (`POST /tasks` hoặc `POST /tasks/standalone`) mà để trống `supervisorId` (hoặc gửi ID của chính mình), hệ thống bắt buộc gán `task.supervisorId = defaultManager` của Workspace.
+  - Quy tắc bỏ qua bước duyệt nội bộ (`skipsAgencyReview`) **chỉ** kích hoạt khi người thực hiện chính (`task.assigneeId`) mang vai trò `Owner` hoặc `Manager` và tự giám sát chính mình (hoặc trong chế độ `PERSONAL`).
+- **AC-05 — Cô lập `Creator` không tham gia Task:** Một `Creator` trong Workspace nhưng không phải `task.assigneeId`, `task.supervisorId`, `subtask.assigneeId` hay `subtask.supervisorOverrideId` của Task thì:
+  - Không nhìn thấy các phần `INTERNAL` và không sửa được bất kỳ phần nào.
+  - Không được sửa danh sách đối tác (`PATCH /tasks/{taskId}/partners` → `403 FORBIDDEN`).
+  - Không được bấm xuất bản bài đăng của Task đó (`POST /posts/{postId}/publish` → `403 FORBIDDEN`).
+- **AC-06 — Cô lập tầm nhìn và quyền của `Client`:**
+  - `Client` chỉ nhìn thấy các `TaskSection` có `visibility = OUTPUT` đã đạt `INTERNAL_APPROVED` hoặc `CLIENT_APPROVED`; toàn bộ phần `INTERNAL` (`POST.BRIEF`, `VIDEO.SHOOT`, `KOL.DEAL`, `EVENT.LOGISTICS`, `EVENT.RUNSHEET`, `PRESS.MEDIA_LIST`, `PRESS.CONTACT_LOG`, `WORKSHOP.LOGISTICS`) và lịch sử phiên bản (`TaskSectionVersion`) bị lọc bỏ hoàn toàn từ Backend.
+  - Một `Client` đang hoạt động bất kỳ trong Workspace được quyền quyết định (`CLIENT_APPROVE` / `CLIENT_RETURN`) khi `task.requiresClientApproval = true`.
 
-## 4. State machine
+### 3.2. Gỡ kẹt Khởi động, Tự động Chốt Trạng thái (`Auto-Settlement`) & Chống Nhảy Cóc
 
-| Trước | Actor / hành động | Sau |
-|---|---|---|
-| TODO | Assignee Creator / Bắt đầu (FR 3.6.2 hiện có) | IN_PROGRESS |
-| IN_PROGRESS | Assignee Creator / Gửi duyệt | IN_REVIEW / MANAGER |
-| IN_REVIEW / MANAGER | Manager / Duyệt, không cần Client | FINISHED, reviewStep=null |
-| IN_REVIEW / MANAGER | Manager / Duyệt, cần Client | IN_REVIEW / CLIENT |
-| IN_REVIEW / CLIENT | Một Client active / Duyệt | FINISHED, reviewStep=null |
-| IN_REVIEW / MANAGER hoặc CLIENT | Đúng người duyệt / Từ chối có lý do | IN_PROGRESS, reviewStep=null |
-| IN_REVIEW / MANAGER, chưa decision | Assignee Creator / Thu hồi | IN_PROGRESS, reviewStep=null |
-| Task chưa kết thúc | Flow hủy được cấp quyền hiện có | CANCELLED; không còn quyền duyệt |
+- **AC-07 — Tự mở phiên làm việc cho Chủ phần (`Auto-Start on Subtask Edit`):** Khi Task cha đang ở trạng thái `TODO` (đã có đủ mô tả Brief, hạn chót hợp lệ và Chiến dịch cho phép bắt đầu), nếu `Coordinator` hoặc bất kỳ `Section Owner` (`subtask.assigneeId`) hợp lệ nào lưu bản nháp phần nội dung (`PATCH /sections/{key}` hoặc `POST /tasks/{id}/post`), hệ thống tự động chuyển Task cha sang `IN_PROGRESS` (ghi nhận `firstStartedAt`, `firstStartedBy`), xóa bỏ sự bất nhất giữa phần `Brief` và phần `Caption`/`Media`.
+- **AC-08 — Tự động chốt Task cha khi làm theo từng phần (`Section → Subtask → Task Auto-Settlement`):** Với mọi Task có `Subtask` gắn vai trò (`roleTask = true` trên cả 8 loại `TaskType`):
+  1. Mỗi lần một phần được `APPROVE` (cấp nội bộ hoặc cấp `Client`), hệ thống đồng bộ trạng thái `Subtask` vai trò (`syncRoleSubtasks`) và kiểm tra toàn cục các phần của Task:
+  2. Các phần không có `Subtask` sở hữu riêng (`unowned sections`) được coi là sẵn sàng đóng nội bộ khi thỏa điều kiện nội dung tối thiểu (với `POST` / `SHORT_VIDEO`: `caption` không trống).
+  3. **Khi `requiresClientApproval = false`**: Ngay khi 100% phần của Task đạt `INTERNAL_APPROVED` và không còn công việc con tự do (`subtaskRole = null`) chưa hoàn thành → Hệ thống **tự động chuyển Task cha sang `FINISHED`**, ghi nhận `finishedAt`, đóng `lastSubmission` với `outcome = "APPROVED"`, ghi bản ghi `task_approvals`, và đồng bộ `PostDocument` sang `SCHEDULED` (nếu có `publishDate`) hoặc `APPROVED`.
+  4. **Khi `requiresClientApproval = true`**:
+     - Ngay khi tất cả các phần đạt tối thiểu `INTERNAL_APPROVED` (trong đó còn ít nhất 1 phần `OUTPUT` đang chờ `Client` duyệt): Nếu Task cha đang ở `IN_PROGRESS`, hệ thống **tự động chuyển Task cha sang `IN_REVIEW` với `reviewStep = "CLIENT"`** (và `PostDocument` sang `PENDING_APPROVAL`).
+     - Ngay khi 100% các phần đạt `finalState = true` (mọi phần `INTERNAL` đạt `INTERNAL_APPROVED` và mọi phần `OUTPUT` đạt `CLIENT_APPROVED`) và không còn công việc con tự do mở → Hệ thống **tự động chuyển Task cha sang `FINISHED`** (kể cả trong trường hợp `Client` đã duyệt sớm các phần `OUTPUT` trước khi `Manager` duyệt xong phần `INTERNAL` cuối cùng).
+- **AC-09 — Trả lại (`Return`) và Mở lại (`Reopen`) an toàn trước giờ xuất bản:**
+  - `Owner` / `Manager` / `Supervisor` trả lại phần đang `SUBMITTED` (`RETURN`), hoặc `Client` trả lại phần `OUTPUT` đã duyệt (`CLIENT_RETURN`) đều **bắt buộc nhập lý do không rỗng** (tối đa `2.000` ký tự cho Section, `5.000` ký tự cho Task đơn).
+  - `Owner` và `Manager` được phép bấm `Mở lại` (`REOPEN`) một phần đã duyệt ngay cả khi Task cha đang ở `IN_PROGRESS`, `IN_REVIEW`, hoặc vừa chuyển sang `FINISHED` (miễn bài đăng/bản tin chưa bước vào `PUBLISHING` / `PUBLISHED` / `PROCESSING`).
+  - Khi một phần trên Task đang `IN_REVIEW` hoặc `FINISHED` bị `CLIENT_RETURN` hoặc `REOPEN`: chỉ phần đó quay về `RETURNED` (giữ nguyên kết quả đã duyệt của các phần anh em khác), `Subtask` tương ứng quay về `IN_PROGRESS`, **Task cha tự động quay về `IN_PROGRESS`** (`finishedAt = null`, `reviewStep = null`), và hệ thống tự động thu hồi lịch xuất bản (`PostService.cancelTaskSchedule` / `MailBatchService.cancelForTask`).
+- **AC-10 — Khóa cứng chống nhảy cóc trạng thái (`Anti-Bypass Guard`):**
+  - Endpoint `PATCH /api/v1/workspaces/{workspaceId}/tasks/{taskId}/status` **từ chối (`409 TASK_WORKFLOW_REQUIRED`)** mọi yêu cầu đổi trực tiếp sang `IN_REVIEW` hoặc `FINISHED` đối với các Task thuộc phạm vi quy trình duyệt.
+  - Thao tác đổi sang `CANCELLED` qua `PATCH /status` chỉ cho phép `Owner` và `Manager` (`Creator` bị từ chối `403 FORBIDDEN`).
+  - Bảng Kanban (`useBoardDragAndDrop`) và Thanh thao tác hàng loạt (`TaskBulkActionBar`) tuân thủ cùng quy tắc: chặn thả thẻ / chọn hàng loạt sang `Chờ duyệt` hoặc `Hoàn thành`.
+- **AC-11 — Giới hạn nghiêm ngặt `Hoàn tất & Tự duyệt` (`Self-Approve`):**
+  - Endpoint `POST /api/v1/workspaces/{workspaceId}/tasks/{taskId}/self-approve` và nút `Hoàn tất & Tự duyệt` trên giao diện (`TaskWorkflowContent`, `TaskEditorControls`, `TaskExportButton`) **chỉ được phép hoạt động khi `workspaceMode = "PERSONAL"`** đối với `Owner` / `Manager`.
+  - Trong chế độ `AGENCY` (kể cả khi `requiresClientApproval = false`), gọi `self-approve` bị chặn với mã lỗi `403 TASK_SELF_APPROVE_NOT_ALLOWED` và nút bị ẩn hoàn toàn trên mọi màn hình.
 
-Ngoài IN_REVIEW, writer mới để reviewStep=null. Legacy QC/thiếu bước/lượt chưa xác minh: chỉ đọc và báo cần rà soát, không tự reinterpret/backfill.
+### 3.3. Trải nghiệm Giao diện (UI/UX), Đa ngôn ngữ (i18n) & Giao diện Sáng/Tối (Light/Dark)
 
-## 5. UI/UX và UI states
+- **AC-12 — Chuẩn hóa `TaskStatusControl` ở góc trên Task Detail:**
+  - Khi Task ở trạng thái kết thúc (`FINISHED` hoặc `CANCELLED`) hoặc người dùng hiện tại không có bất kỳ thao tác chuyển trạng thái hợp lệ nào (`availableActions.length === 0`): hiển thị **Badge trạng thái tĩnh** (không hiển thị icon mũi tên `⌄` và không mở menu trống *"Không có thao tác chuyển trạng thái"*).
+  - Hiển thị nhãn ngữ cảnh tiến độ rõ ràng ngay cạnh trạng thái: ví dụ `3/5 phần đã duyệt` (khi `IN_PROGRESS` trên Task chia phần), `Bước Quản lý` / `Bước Khách hàng` (khi `IN_REVIEW`), `Đã hoàn tất phê duyệt` (khi `FINISHED`).
+  - Hỗ trợ đầy đủ cả các Task tạo thủ công (`sourceType = "MANUAL"` hoặc `"CAMPAIGN_OUT_OF_SCOPE"`) trên cả 8 loại `TaskType`.
+- **AC-13 — Trang Phê duyệt tập trung (`/workspaces/:id/task-approvals`) hỗ trợ đủ 8 `TaskType`:**
+  - Danh sách chờ duyệt hiển thị toàn bộ 8 loại công việc (`POST`, `SHORT_VIDEO`, `SURVEY`, `EVENT_PLAN`, `PRESS_RECOMMENDATION`, `KOL_BOOKING`, `WORKSHOP`, `EMAIL_NEWSLETTER`), hỗ trợ lọc theo Loại công việc (`type`), Trạng thái (`status`) và từ khóa tìm kiếm.
+- **AC-14 — Đồng bộ tức thì danh sách bên ngoài (`List`, `Kanban`, `Calendar`, `Gantt`):**
+  - Khi người dùng nộp phần, duyệt phần, trả lại phần, mở lại phần hoặc duyệt Task ngay trong `TaskDetailPanel` (Side Peek / Center Modal) hoặc quay về từ `Editor`, trạng thái dòng/thẻ công việc ở danh sách bên ngoài cập nhật ngay lập tức sang `Chờ duyệt` / `Hoàn thành` / `Đang làm` mà không cần tải lại trang trình duyệt.
+- **AC-15 — Đa ngôn ngữ (`vi.json` + `en.json` key-parallel):**
+  - Toàn bộ nhãn trạng thái ngữ cảnh, thông báo chặn kéo-thả Kanban, bộ lọc loại công việc trên `/task-approvals`, và thông báo lỗi phân quyền dùng khóa dịch song song trong `src/i18n/locales/vi/tasks.json`, `src/i18n/locales/en/tasks.json`, `src/i18n/locales/vi/editor.json`, `src/i18n/locales/en/editor.json` — tuyệt đối không hardcode chuỗi tiếng Việt hay tiếng Anh trong JSX/TSX.
+- **AC-16 — Tương thích Light / Dark Mode & Responsive:**
+  - Mọi huy hiệu trạng thái tĩnh/động, tiến độ phần, thẻ phê duyệt và thông báo cảnh báo dùng semantic CSS variables (`bg-card`, `text-foreground`, `text-muted-foreground`, `border-border`) và cặp biến thể `dark:*` chuẩn mực, đảm bảo độ tương phản WCAG AA trên cả Light mode và Dark mode ở các khung nhìn `375px`, `768px`, `1440px`.
 
-Giữ popup Task Detail hiện có; thêm phần “Phê duyệt” gồm bước chờ, lượt, bài hiện tại và lịch sử decision. Không thay layout danh sách, Chat hoặc editor khác. Người có quyền đọc Task xem được lịch sử; quyền action lấy từ backend, không suy từ lockReason sửa brief.
+---
 
-- Creator lưu bài thành công rồi submit; chờ Manager có Withdraw, chờ Client chỉ xem.
-- Manager/Client xem bài, Approve hoặc Reject; lý do trong Dialog ứng dụng, không window.confirm/prompt/alert.
-- Missing Post/thiếu Client/loại chưa hỗ trợ: hiển thị nguyên nhân và cách xử lý, không báo thành công giả.
-- Loading/submitting: giữ bố cục, disable thao tác trùng, aria-busy/status phù hợp. Lỗi gần field; conflict giữ lý do đang nhập và tải lại trạng thái, không tự replay mutation cũ.
-- Label/focus/keyboard rõ; focus vào lỗi khi gửi thất bại, trả focus khi đóng Dialog; không chỉ dùng màu. Refresh Approval không làm mất bình luận đang viết.
-- **AC-17 — i18n/theme:** key song song trong `src/i18n/locales/{vi,en}/tasks.json` và `editor.json` khi đổi text Editor. Dùng token semantic, light/dark, 375/768/1440px; không tạo theme/layout mới.
+## 4. State Machine Tổng hợp
 
-Keys dự kiến `tasks.review`: title, currentRound, currentStep, steps.manager, steps.client, submit, withdraw, approve, reject, reviewNote, reasonRequired, history, historyNoContentVersions, noHistory, contentUnavailable, missingClient, waitingForClient, pending, success, conflict, unsupportedType, legacyReviewRequired, errors.*. Text Editor dùng editor.review.*; không đưa bài/lý do nhạy cảm vào notification chung.
+### 4.1. Task Có Chia Phần & Vai trò (`roleTask = true`)
 
-## 6. API contract đề xuất
+| Trạng thái Trước | Actor & Sự kiện Nghiệp vụ | Trạng thái Sau (`TaskDocument` & `PostDocument`) |
+| :--- | :--- | :--- |
+| `TODO` | `Coordinator` bấm `Start` **HOẶC** `Section Owner` / `Coordinator` lưu bản nháp phần đầu tiên | `IN_PROGRESS` (`firstStartedAt` được ghi nhận) |
+| `IN_PROGRESS` | `Section Owner` nộp phần (`SUBMIT`); `Owner` / `Manager` / `Supervisor` duyệt từng phần (`INTERNAL_APPROVED`), còn phần chưa xong | Giữ `IN_PROGRESS` (cập nhật tiến độ `X/Y` phần đã duyệt; các `Subtask` xong phần của mình tự chuyển `FINISHED`) |
+| `IN_PROGRESS` | Phần bắt buộc cuối cùng đạt `INTERNAL_APPROVED`, `requiresClientApproval = false`, không còn Free Subtask mở | **Tự động chuyển `FINISHED`**, `reviewStep = null`, `Post` → `SCHEDULED` / `APPROVED` |
+| `IN_PROGRESS` | Tất cả phần đạt tối thiểu `INTERNAL_APPROVED`, `requiresClientApproval = true`, còn phần `OUTPUT` chờ `Client` | **Tự động chuyển `IN_REVIEW` (`reviewStep = "CLIENT"`)**, `Post` → `PENDING_APPROVAL` |
+| `IN_PROGRESS` / `IN_REVIEW (CLIENT)` | `Client` duyệt phần `OUTPUT` cuối cùng (hoặc `Manager` duyệt phần `INTERNAL` cuối cùng sau khi `Client` đã duyệt xong các phần `OUTPUT`) | **Tự động chuyển `FINISHED`**, `reviewStep = null`, `Post` → `SCHEDULED` / `APPROVED` |
+| `IN_REVIEW (CLIENT)` / `FINISHED` *(chưa đăng)* | `Client` bấm `Return` (kèm lý do) **HOẶC** `Owner` / `Manager` bấm `Reopen` 1 phần | Phần đó → `RETURNED`, `Subtask` đó → `IN_PROGRESS`, **Task cha → `IN_PROGRESS`**, hủy lịch đăng tự động |
 
-Prefix `/api/v1/workspaces/{workspaceId}/tasks/{taskId}`:
+### 4.2. Task Đơn Không Chia Subtask Vai trò (`roleTask = false`)
 
-| Method / suffix | Mục đích |
-|---|---|
-| GET /review | Trạng thái, lượt, bước, bài liên kết, allowedActions và lý do chặn |
-| POST /submit | Gửi bài hiện tại ở lượt đầu/lượt mới |
-| POST /withdraw | Thu hồi trước decision Manager |
-| POST /approve | Ghi decision duyệt đúng bước |
-| POST /reject | Ghi decision từ chối có lý do |
-| GET /approvals | Lịch sử append-only theo lượt |
+| Trạng thái Trước | Actor & Sự kiện Nghiệp vụ | Trạng thái Sau |
+| :--- | :--- | :--- |
+| `TODO` | `Coordinator` (`Owner` / `Manager` / `Creator` được giao) bấm `Start` | `IN_PROGRESS` |
+| `IN_PROGRESS` | `Coordinator` là `Creator` (hoặc có `Supervisor` khác) bấm `Submit` | `IN_REVIEW` / `MANAGER` (`Post` → `PENDING_APPROVAL`) |
+| `IN_PROGRESS` | `Coordinator` là `Owner` / `Manager` tự giám sát bấm `Submit` | `IN_REVIEW` / `CLIENT` *(nếu cần `Client`)* hoặc `FINISHED` *(nếu không cần `Client`)* |
+| `IN_REVIEW` / `MANAGER` | `Owner` / `Manager` / `Task Supervisor` (khác `Creator` nộp) bấm `Approve` | `FINISHED` *(nếu không cần `Client`)* hoặc `IN_REVIEW` / `CLIENT` *(nếu cần `Client`)* |
+| `IN_REVIEW` / `CLIENT` | Một `Client` active bất kỳ bấm `Approve` | `FINISHED` (`Post` → `SCHEDULED` / `APPROVED`) |
+| `IN_REVIEW` / `MANAGER` hoặc `CLIENT` | Người duyệt hợp lệ bấm `Reject` (có lý do bắt buộc) | `IN_PROGRESS`, `reviewStep = null` (`Post` → `DRAFT`; lần gửi sau `approvalRound + 1`) |
+| `IN_REVIEW` / `MANAGER` *(chưa có decision)* | `Coordinator` bấm `Withdraw` | `IN_PROGRESS`, `reviewStep = null` (`Post` → `DRAFT`) |
 
-Giữ ApiResponse; shape/CAS và contract tìm/tạo bài theo Task ở [plan §3](./plan.md#3-api-contract-đích). Sáu endpoint review/approvals/submit/withdraw/approve/reject đã có code backend giai đoạn 3; chưa được mở mutation trên môi trường dùng chung. Endpoint tìm/tạo bài theo Task thuộc giai đoạn 4.
+---
 
-## 7. Error handling và edge cases
+## 5. API Contract & Quy tắc Kiểm tra Quyền
 
-- 401 mất/hết phiên; 403 sai role/bước/membership; 404 Task/Post ngoài scope.
-- 400 validation reason/caption/input; 409 sai trạng thái/revision/lượt, thiếu bài/người duyệt; 503 schema/storage/transaction chưa sẵn sàng. Mã ở plan; không coi lỗi migration là lỗi nhập liệu.
-- Hai Client quyết định ngược nhau; withdraw cùng approve; Post save cùng submit; cancel cùng approve: chỉ một kết quả hợp lệ, không approval mồ côi.
-- Hết Client giữa lượt không làm mất Manager approval. Manager thay thế: chỉ Manager active hiện tại được quyết định, không gắn cứng người cũ.
-- Admin đổi Post status không tự là decision Task; khóa nội dung theo Task vẫn có hiệu lực. Không tự đặt quy tắc Admin BLOCK đổi Task status.
-- Chốt bổ sung 18/10: nếu Admin đưa bài về DRAFT trong lúc Task vẫn IN_REVIEW, giữ nguyên lượt/bước. Creator vẫn thu hồi trước quyết định Manager; Manager/Client đúng bước vẫn từ chối có lý do để sửa. Không cho APPROVE khi Post không còn PENDING_APPROVAL; không tự chuyển Admin BLOCK thành Task REJECT.
-- Bài gắn Task lưu qua API Task với revision/version bắt buộc. PATCH/submit Post cũ từ chối bài linked và hướng sang API Task; bài độc lập giữ contract cũ. Không fallback tạo bài độc lập để vượt lỗi/khóa.
-- External media URL có thể đổi nội dung ngoài hệ thống: chỉ khóa field/quan hệ trong hệ thống; không tuyên bố lưu bất biến byte của tài nguyên bên thứ ba.
+Prefix chuẩn: `/api/v1/workspaces/{workspaceId}/tasks/{taskId}`
 
-## 8. Definition of Done và out of scope
+| Method & Endpoint | Vai trò Được Phép | Ràng buộc Nghiệp vụ Cốt lõi |
+| :--- | :--- | :--- |
+| `GET /review` | `Owner`, `Manager`, `Creator`, `Client` | Trả về `status`, `reviewStep`, `approvalRound`, `workflowRevision`, `allowedActions`, `blockedReason`. |
+| `POST /submit` | `Coordinator` (`task.assigneeId`) | Chuyển Task đơn sang `IN_REVIEW` (hoặc chốt các phần không chủ sở hữu). Bắt buộc `caption` không rỗng với `POST`/`SHORT_VIDEO`. |
+| `POST /withdraw` | `Coordinator` (`task.assigneeId`) | Thu hồi khi đang `IN_REVIEW / MANAGER` và chưa có quyết định. |
+| `POST /approve` | `Owner`, `Manager`, `Task Supervisor` *(bước `MANAGER`)*; `Client` *(bước `CLIENT`)* | Chặn tự duyệt đối với `Creator`; cập nhật CAS nguyên tử Task + Post + `task_approvals`. |
+| `POST /reject` | `Owner`, `Manager`, `Task Supervisor` *(bước `MANAGER`)*; `Client` *(bước `CLIENT`)* | Bắt buộc `comment` không trắng (≤ `5.000` ký tự); đưa Task về `IN_PROGRESS`. |
+| `POST /self-approve` | `Owner`, `Manager` (**CHỈ khi `workspaceMode = "PERSONAL"`**) | Trả `403 TASK_SELF_APPROVE_NOT_ALLOWED` nếu gọi trên Workspace chế độ `AGENCY`. |
+| `GET /sections` | `Owner`, `Manager`, `Creator`, `Client` | Lọc ẩn toàn bộ phần `INTERNAL` đối với `Client` và `Creator` ngoài Task. |
+| `PATCH /sections/{sectionKey}` | `Owner`, `Manager`, `Coordinator`, `Section Owner` | Lưu nháp theo CAS `expectedRevision`; tự mở `TODO → IN_PROGRESS` nếu đủ điều kiện. |
+| `POST /sections/{sectionKey}/submit` | `Owner`, `Manager`, `Coordinator`, `Section Owner` | Chụp `TaskSectionVersion` bất biến, chuyển phần sang `SUBMITTED`. |
+| `POST /sections/{sectionKey}/approve` | `Owner`, `Manager`, `Supervisor` *(nội bộ)*; `Client` *(phần `OUTPUT`)* | Duyệt phần; kích hoạt **Auto-Settlement** chuyển Task cha sang `IN_REVIEW (CLIENT)` hoặc `FINISHED` khi đủ 100% điều kiện. |
+| `POST /sections/{sectionKey}/return` | `Owner`, `Manager`, `Supervisor` *(nội bộ)*; `Client` *(phần `OUTPUT`)* | Bắt buộc `note` (≤ `2.000` ký tự); nếu Task đang `IN_REVIEW`/`FINISHED` thì mở lại `IN_PROGRESS` và hủy lịch đăng. |
+| `POST /sections/{sectionKey}/reopen` | `Owner`, `Manager` | Mở lại phần đã duyệt (kể cả khi Task vừa `FINISHED` mà bài chưa đăng), tự đưa Task về `IN_PROGRESS` và hủy lịch đăng. |
+| `PATCH /status` | `Owner`, `Manager`, `Coordinator` *(giới hạn)* | **Cấm** `IN_REVIEW` và `FINISHED` (`409 TASK_WORKFLOW_REQUIRED`); `CANCELLED` chỉ cho `Owner`/`Manager`. |
 
-FR chỉ hoàn thành khi API + UI + liên kết POST + khóa sửa + notification + hồi quy được kiểm chứng theo test.md. Giai đoạn 1 chỉ hoàn thành tài liệu; không đánh Done Jira/FR, không APPLY Atlas/init/seed/clean dữ liệu.
+---
 
-Checkpoint giai đoạn 2 (2026-10-18): `migration/setup` đã có, init/checker đồng bộ và test DB cô lập đã chạy. Atlas chỉ kiểm kê đọc, còn hai active review chưa xác minh nên chưa APPLY. Không coi đây là Approval runtime đã hoàn thành.
+## 6. Error Handling & Edge Cases
 
-Rollout giai đoạn 3: API read/history được triển khai độc lập, mutation mặc định khóa bằng cờ kỹ thuật `app.task-approval.post-integration-ready=false`. Chưa nối guard mọi Post writer/hook Admin ở giai đoạn 4 thì không bật cờ trên môi trường dùng chung. Read vẫn trả trạng thái/lịch sử; allowedActions=false với lý do tích hợp chưa sẵn sàng. Đây là khóa rollout an toàn, không phải trạng thái Task hoặc BA mới.
+- **`400 VALIDATION_ERROR` / `INVALID_TASK_SUPERVISOR`**: Thiếu lý do trả bài/từ chối, `caption` rỗng khi nộp bài `POST`/`SHORT_VIDEO`, hoặc gán `supervisorId` trùng với `assigneeId` của `Creator`.
+- **`403 FORBIDDEN` / `WRONG_APPROVAL_STEP` / `TASK_SELF_APPROVE_NOT_ALLOWED`**: Sai vai trò duyệt, `Creator` tự duyệt bài mình, `Creator` ngoài Task bấm `Publish` hoặc sửa `partners`, hoặc gọi `self-approve` trong Workspace `AGENCY`.
+- **`409 TASK_WORKFLOW_REQUIRED` / `TASK_REVISION_CONFLICT` / `POST_CONTENT_CONFLICT`**: Cố tình đổi thẳng sang `FINISHED` / `IN_REVIEW` qua `PATCH /status` (Kanban/Bulk), hoặc dữ liệu màn hình đã cũ khi hai người thao tác đồng thời (giữ nguyên nháp/nhận xét đang nhập để người dùng tải lại).
+- **Bài đã xuất bản thật (`PUBLISHING` / `PUBLISHED`)**: Khi `PostDocument` đã đi vào hàng đợi xuất bản hoặc đã đăng lên mạng xã hội, mọi thao tác `REOPEN` / `CLIENT_RETURN` trên phần nội dung của bài đăng đó bị khóa để bảo toàn tính toàn vẹn lịch sử xuất bản.
 
-Ngoài phạm vi: snapshot/diff các lượt; role/QC mới; editor/Yjs mới; mở lại FINISHED; nội dung chuyên biệt bốn loại Task còn lại; tự publish/đổi queue/callback; email; thay Admin moderation; backfill legacy chưa duyệt allowlist. Report 3/4 chính thức và thông báo team/Jira là checkpoint bàn giao, không tuyên bố đã làm.
+---
 
-## Tham chiếu BA
+## 7. Definition of Done & Out of Scope
 
-[BA Task](../../../../ba/05-content-task-workflow.md), [UC-47](../../../../ba/use-cases/04-content-task-workflow.md), [state machines](../../../../ba/12-state-machines.md), [glossary](../../../../ba/11-data-entities-glossary.md), [Task structure](../../../modules/README.md), [contract Task](../../../../archive/reports/engineering-notes/05-content-task-workflow/task-workflow-contract.md), [đề xuất lịch sử](../../../../archive/reports/engineering-notes/05-content-task-workflow/task-approval-simplification/spec.md), `team guide`.
+- **Definition of Done:**
+  1. Toàn bộ 16 tiêu chí nghiệm thu (`AC-01` – `AC-16`) được triển khai đồng bộ trên `brandhub-business-service` và `brandhub-web`.
+  2. Bộ khóa dịch `vi` / `en` song song 100%, không hardcode chuỗi văn bản; giao diện đạt chuẩn Light/Dark mode trên Mobile/Tablet/Desktop.
+  3. Toàn bộ kiểm thử đơn vị và tích hợp trong [test.md](./test.md) đạt `Pass` 100%.
+- **Out of Scope:** Các tính năng đã loại khỏi phạm vi dự án theo `AGENTS.md` (không có Livestream, không hạ cấp gói cước, không quét đạo văn/bản quyền, chỉ hỗ trợ đúng 4 nền tảng `Facebook`, `Instagram`, `TikTok`, `Threads`).
+- **Tham chiếu BA:** [13-task-status-and-approval-governance.md](../../../../ba/13-task-status-and-approval-governance.md) · [05-content-task-workflow.md](../../../../ba/05-content-task-workflow.md) · [10-roles-permissions-matrix.md](../../../../ba/10-roles-permissions-matrix.md) · [12-state-machines.md](../../../../ba/12-state-machines.md).

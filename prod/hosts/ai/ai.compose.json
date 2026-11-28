@@ -15,6 +15,10 @@
       "environment": {
         "TREND_RUN_DIR": "/app/data/crawler/trend_runs",
         "CRAWLER_API_URL": "http://172.31.24.149:8084",
+        "S3_BUCKET": "brandhub-media-134875421878",
+        "S3_BUCKET_NAME": "brandhub-media-134875421878",
+        "TREND_REPLAY_S3_BUCKET": "crawler-social-134875421878",
+        "AWS_REGION": "ap-southeast-1",
         "HF_HOME": "/home/appuser/.cache/huggingface",
         "HF_HUB_CACHE": "/home/appuser/.cache/huggingface/hub",
         "SENTENCE_TRANSFORMERS_HOME": "/home/appuser/.cache/huggingface/hub",

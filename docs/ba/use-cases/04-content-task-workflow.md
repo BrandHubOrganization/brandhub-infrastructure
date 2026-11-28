@@ -114,7 +114,7 @@
 - **Canonical Actor(s):** `Owner`, `Manager`, `Creator`, `Client`
 - **Business Rules:** `BR-22, BR-33, BR-34, BR-44`
 - **System Messages:** `MSG02, MSG03, MSG07, MSG36, MSG37`
-- **Specification & Flow:** Xem và kéo thả trạng thái công việc trên bảng Kanban kiểu Jira (Kanban Board Task View — /workspaces/:id/tasks?view=kanban). Hỗ trợ chuyển đổi linh hoạt theo 3 chế độ nhóm cột (Group by Status: Backlog / In Progress / In Review / Approved / Published; Group by Assignee; Group by Platform) và kéo thả thẻ Task để cập nhật trạng thái tuân thủ quy trình duyệt (BR-33, BR-34).
+- **Specification & Flow:** Xem và kéo thả trạng thái công việc trên bảng Kanban kiểu Jira (Kanban Board Task View — /workspaces/:id/tasks?view=kanban). Hỗ trợ chuyển đổi linh hoạt theo 3 chế độ nhóm cột (Group by Status: `TODO` / `IN_PROGRESS` / `IN_REVIEW` / `FINISHED` / `CANCELLED`; Group by Assignee; Group by Platform). Hệ thống cưỡng chế nghiêm ngặt rào chắn quy trình duyệt (`BR-33`, `BR-34`): chặn tuyệt đối `Creator` (và mọi thao tác kéo-thả / đổi trạng thái hàng loạt) nhảy cóc trực tiếp sang cột `IN_REVIEW` hoặc `FINISHED` khi chưa qua quy trình nộp và phê duyệt hợp lệ; thao tác chuyển sang `CANCELLED` chỉ dành cho `Owner` và `Manager`.
 
 ---
 
@@ -134,7 +134,11 @@
 - **Canonical Actor(s):** `Owner`, `Manager`, `Creator`, `Client`
 - **Business Rules:** `BR-33, BR-34, BR-42, BR-54`
 - **System Messages:** `MSG02, MSG07, MSG36, MSG38`
-- **Specification & Flow:** Quy trình phê duyệt nội dung phân cấp 3 tầng nghiêm ngặt: Creator -> Manager -> Client (Approval Sequence — /workspaces/:id/tasks/:taskId). Khi Creator hoàn thành bài viết sẽ gửi duyệt lên bước tiếp theo (hỗ trợ bước Creator QC nội bộ kiểm tra chéo nếu được gán) -> tiếp tục trình Manager duyệt -> trình Client phê duyệt cuối cùng (nếu Task yêu cầu khách hàng duyệt). Chỉ khi hoàn tất đủ các cấp duyệt thì Task mới chuyển sang trạng thái APPROVED để sẵn sàng đăng tải. Nếu bất kỳ cấp nào nhấn Reject (Trả lại kèm lý do bắt buộc), trạng thái Task sẽ quay về bước đầu tiên cho Creator chỉnh sửa nhưng vẫn giữ nguyên toàn bộ lịch sử nhận xét và nhật ký duyệt trước đó (BR-34).
+- **Specification & Flow:** Quy trình phê duyệt nội dung phân cấp nghiêm ngặt trên cả 8 loại công việc (`POST`, `SHORT_VIDEO`, `SURVEY`, `EVENT_PLAN`, `PRESS_RECOMMENDATION`, `KOL_BOOKING`, `WORKSHOP`, `EMAIL_NEWSLETTER`) tại `/workspaces/:id/tasks/:taskId`, `/workspaces/:id/task-approvals` và các trình soạn thảo chuyên biệt:
+  1. `Creator` (hoặc chủ phần `Subtask`) hoàn thiện nội dung và gửi duyệt (`Submit`), cấm `Creator` tự gán mình làm Người giám sát (`supervisorId != assigneeId`).
+  2. `Owner`, `Manager` hoặc `Người giám sát` hợp lệ (`supervisorId` / `supervisorOverrideId`) kiểm duyệt cấp nội bộ (`INTERNAL_APPROVED`).
+  3. Khi 100% các phần của công việc đạt duyệt nội bộ: nếu không yêu cầu khách hàng duyệt (`requiresClientApproval = false`), hệ thống **tự động chốt công việc sang `FINISHED`**; nếu yêu cầu khách hàng duyệt (`requiresClientApproval = true`), công việc chuyển sang chờ `Client` duyệt các phần đầu ra (`OUTPUT`) và **tự động chốt sang `FINISHED`** ngay khi `Client` duyệt phần cuối cùng.
+  4. Nếu bất kỳ cấp nào nhấn `Reject` / `Return` (bắt buộc nhập lý do) hoặc `Owner`/`Manager` mở lại (`Reopen`) phần trên công việc chưa xuất bản, công việc quay về `IN_PROGRESS`, tự động hủy lịch đăng hẹn giờ (nếu có) và bảo toàn nguyên vẹn toàn bộ nhật ký duyệt trước đó (`BR-34`). Nút `Self-Approve` 1 chạm chỉ được mở trong chế độ `PERSONAL`.
 
 ---
 

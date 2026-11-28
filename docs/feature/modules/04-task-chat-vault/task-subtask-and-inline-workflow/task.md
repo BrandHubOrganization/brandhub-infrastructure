@@ -32,6 +32,7 @@
 
 - [x] **Task file export:** Add explicit formats, audit task workspace and overview entry points, and improve PDF, Word, and Excel layouts.
 - [x] **Export locale:** Update both Web `editor.json` locale files and reuse the shared theme-aware menu.
+- [x] **Multi-role parity & auto-settlement (v4.0):** Execute tasks `T6.01`–`T6.14` in [FR 3.6.9 Task Checklist](../../../srs/05-content-task-workflow/3-6-9-approval-sequence-creator-manager-client/task.md) (`Owner` parity, `task.supervisorId` inheritance & anti-self-supervision, `Section → Task` auto-settlement, `PERSONAL`-only `Self-Approve`, Kanban/Bulk anti-bypass, static/contextual `TaskStatusControl`, 8-type `/task-approvals`, `vi`/`en` parity & Light/Dark verification).
 
 ## 5. Observability, Security Hygiene & Rollout Readiness (Plan §5–§6)
 

@@ -15,6 +15,8 @@
 
 ## 2. Acceptance & Regression Test Matrix (16 Cases)
 
+The [Agency social-post verification scenarios](./agency-social-post-workflow.md#verification) cover the shared Image and Reel workflow, destination authorization and task-scoped media handoff.
+
 | ID | Category | Scenario | Precondition / Input | Expected Result | Status |
 | :--- | :---: | :--- | :--- | :--- | :---: |
 | `M01` | Normal | Primary authorized workflow | Authenticated primary actor in `Owner, Manager, Creator, Client` executes happy path | `200/201` `ApiResponse`; state persisted in PostgreSQL `tasks`, `task_content_operations`, `task_content_snapshots`; MongoDB `tasks`, `task_sections`, `task_section_versions`, `task_section_events` and reflected in UI | Pass |
@@ -45,6 +47,10 @@
 - Request each explicit format and verify MIME type, filename extension, and file contents. Verify the press and ordinary defaults when the selector is omitted.
 - Read Vietnamese text and draft stamps in PDF and Word. Verify A4 layout, page numbering, and long text wrapping. Verify Excel headings, typed numeric metrics, and printing options.
 - Verify the three choices in the KOL spreadsheet workspace and inspect the shared entry points, including the Survey overview and Post workspace.
+
+### Multi-role approval, supervisor inheritance & auto-settlement regression (v4.0)
+
+- Execute scenarios `TA-44` through `TA-62` in [FR 3.6.9 Test Specification](../../../srs/05-content-task-workflow/3-6-9-approval-sequence-creator-manager-client/test.md): verify `Owner` parity across sections/platforms/subtasks, `task.supervisorId` inheritance, `Creator` anti-self-supervision, automatic `IN_PROGRESS → IN_REVIEW (CLIENT) → FINISHED` settlement on final section approval, `AGENCY` `Self-Approve` block, Kanban/Bulk anti-bypass, static `TaskStatusControl` badge when `FINISHED`, 8-`TaskType` `/task-approvals` filtering, `vi`/`en` parity, and Light/Dark contrast.
 
 ## 3. Test Isolation & Reproducible CLI Commands
 
